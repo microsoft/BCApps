@@ -8,6 +8,8 @@ namespace Microsoft.DataMigration.BC14;
 table 50157 "BC14 Migration Errors"
 {
     DataClassification = CustomerContent;
+    DataPerCompany = false;
+    ReplicateData = false;
     Description = 'BC14 Migration Errors';
 
     fields

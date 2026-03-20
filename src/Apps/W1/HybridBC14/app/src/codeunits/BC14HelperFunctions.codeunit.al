@@ -136,6 +136,14 @@ codeunit 50152 "BC14 Helper Functions"
     /// Opens any buffer table record for editing using the generic BC14 Buffer Record Editor page.
     /// </summary>
     internal procedure OpenBufferRecord(SourceTableId: Integer; SourceRecordId: RecordId): Boolean
+    begin
+        exit(OpenBufferRecord(SourceTableId, SourceRecordId, CopyStr(CompanyName(), 1, 30)));
+    end;
+
+    /// <summary>
+    /// Opens any buffer table record for editing in the specified company context.
+    /// </summary>
+    internal procedure OpenBufferRecord(SourceTableId: Integer; SourceRecordId: RecordId; SourceCompanyName: Text[30]): Boolean
     var
         BC14BufferRecordEditor: Page "BC14 Buffer Record Editor";
     begin
@@ -145,7 +153,7 @@ codeunit 50152 "BC14 Helper Functions"
         if Format(SourceRecordId) = '' then
             exit(false);
 
-        BC14BufferRecordEditor.SetSourceRecord(SourceRecordId);
+        BC14BufferRecordEditor.SetSourceRecord(SourceRecordId, SourceCompanyName);
         BC14BufferRecordEditor.RunModal();
         exit(true);
     end;

@@ -121,7 +121,7 @@ page 50163 "BC14 Migration Error Overview"
                         exit;
                     end;
 
-                    BC14HelperFunctions.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id");
+                    BC14HelperFunctions.OpenBufferRecord(Rec."Source Table ID", Rec."Record Id", Rec."Company Name");
                     CurrPage.Update(false);
                 end;
             }
@@ -139,16 +139,18 @@ page 50163 "BC14 Migration Error Overview"
                     BC14MigrationRunner: Codeunit "BC14 Migration Runner";
                     UnresolvedCount: Integer;
                 begin
-                    BC14MigrationErrors.SetRange("Company Name", CompanyName());
+                    // Rerun only works for errors in the current company context.
+                    // The Runner executes in CompanyName(), so cross-company retry is not possible from here.
+                    BC14MigrationErrors.SetRange("Company Name", CopyStr(CompanyName(), 1, 30));
                     BC14MigrationErrors.SetRange("Resolved", false);
                     UnresolvedCount := BC14MigrationErrors.Count();
 
                     if UnresolvedCount = 0 then begin
-                        Message(NoUnresolvedErrorsMsg);
+                        Message(NoUnresolvedErrorsForCurrentCompanyMsg);
                         exit;
                     end;
 
-                    if not Confirm(RerunMigrationQst, false, UnresolvedCount) then
+                    if not Confirm(RerunMigrationQst, false, UnresolvedCount, CompanyName()) then
                         exit;
 
                     // Mark all unresolved as scheduled for retry
@@ -160,7 +162,7 @@ page 50163 "BC14 Migration Error Overview"
 
                     // Report results
                     BC14MigrationErrors.Reset();
-                    BC14MigrationErrors.SetRange("Company Name", CompanyName());
+                    BC14MigrationErrors.SetRange("Company Name", CopyStr(CompanyName(), 1, 30));
                     BC14MigrationErrors.SetRange("Resolved", false);
                     if BC14MigrationErrors.IsEmpty() then
                         Message(RerunAllResolvedMsg)
@@ -186,6 +188,7 @@ page 50163 "BC14 Migration Error Overview"
                     if not Confirm(DeleteAllErrorsQst, false) then
                         exit;
 
+                    BC14MigrationErrors.SetRange("Company Name", CopyStr(CompanyName(), 1, 30));
                     DeletedCount := BC14MigrationErrors.Count();
                     BC14MigrationErrors.DeleteAll();
                     Message(ErrorsDeletedMsg, DeletedCount);
@@ -214,10 +217,10 @@ page 50163 "BC14 Migration Error Overview"
 
     var
         DeleteAllErrorsQst: Label 'Do you want to DELETE ALL error records? This cannot be undone.';
-        RerunMigrationQst: Label 'There are %1 unresolved error(s). Rerun migration to retry them?\Already succeeded records will be skipped.', Comment = '%1 = Count';
+        RerunMigrationQst: Label 'There are %1 unresolved error(s) for company %2. Rerun migration to retry them?\Already succeeded records will be skipped.\Note: This only retries errors for the current company. For other companies, switch to that company or use the Cloud Migration Management page.', Comment = '%1 = Count, %2 = Company Name';
         ErrorsDeletedMsg: Label '%1 error records have been deleted.', Comment = '%1 = Count';
         RerunAllResolvedMsg: Label 'Rerun completed successfully. All errors have been resolved.';
         RerunPartialSuccessMsg: Label 'Rerun completed. %1 error(s) still unresolved - review and fix the source data, then rerun again.', Comment = '%1 = Count';
-        NoUnresolvedErrorsMsg: Label 'There are no unresolved errors to retry.';
+        NoUnresolvedErrorsForCurrentCompanyMsg: Label 'There are no unresolved errors for the current company. If you see errors for other companies, switch to that company or use the Cloud Migration Management page to rerun the upgrade.';
         SourceRecordNotAvailableMsg: Label 'Source record %2 in table %1 cannot be opened. The record reference is unavailable.', Comment = '%1 = Source Table Name, %2 = Source Record Key';
 }

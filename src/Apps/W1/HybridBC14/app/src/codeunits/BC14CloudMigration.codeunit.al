@@ -41,10 +41,16 @@ codeunit 50153 "BC14 Cloud Migration"
             BC14MigrationErrorHandler.ClearErrorOccurred();
             Commit();
 
-            // If Stop On First Error is enabled, show error to user
+            // If Stop On First Error is enabled, don't chain to next company.
+            // MarkUpgradeFailed already set the status correctly.
+            // Do NOT call Error() here — it would trigger the TaskScheduler error handler
+            // (BC14 Handle Upgrade Error) which calls MarkUpgradeFailed a second time,
+            // overwriting the precise error details with a generic message.
             BC14CompanySettings.GetSingleInstance();
-            if BC14CompanySettings.GetStopOnFirstTransformationError() then
-                Error(DataTransformationErrorsPresentMsg);
+            if BC14CompanySettings.GetStopOnFirstTransformationError() then begin
+                FinalizeReplicationSummary(Rec);
+                exit;
+            end;
         end;
 
         // Chain to next pending company — orchestration delegated to Management
@@ -267,7 +273,6 @@ codeunit 50153 "BC14 Cloud Migration"
         ReplicationSummaryNotFoundMsg: Label 'Hybrid Replication Summary record not found. Exiting upgrade process.', Locked = true;
         UpgradeAlreadyFailedMsg: Label 'Upgrade status is already UpgradeFailed. Skipping further processing.', Locked = true;
         ReplicationFailedMsg: Label 'Replication status is Failed. Skipping upgrade completion.', Locked = true;
-        DataTransformationErrorsPresentMsg: Label 'Data transformation errors have occurred. Please review the BC14 Migration Error Overview page for details.';
         UnhandledMigrationErrorLbl: Label 'Unhandled migration error: %1', Locked = true, Comment = '%1 = Error message';
 
 }

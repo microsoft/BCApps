@@ -127,6 +127,7 @@ page 50178 "BC14 Buffer Record Editor"
 
     var
         SourceRecordId: RecordId;
+        SourceCompanyName: Text[30];
         TableNameText: Text[250];
         RecordKeyText: Text[250];
         FieldValueChanged: Boolean;
@@ -137,7 +138,13 @@ page 50178 "BC14 Buffer Record Editor"
 
     procedure SetSourceRecord(NewRecordId: RecordId)
     begin
+        SetSourceRecord(NewRecordId, CompanyName());
+    end;
+
+    procedure SetSourceRecord(NewRecordId: RecordId; NewCompanyName: Text[30])
+    begin
         SourceRecordId := NewRecordId;
+        SourceCompanyName := NewCompanyName;
     end;
 
     local procedure LoadRecordFields()
@@ -149,7 +156,7 @@ page 50178 "BC14 Buffer Record Editor"
         Rec.DeleteAll();
         FieldValueChanged := false;
 
-        SourceRecRef.Open(SourceRecordId.TableNo);
+        SourceRecRef.Open(SourceRecordId.TableNo, false, SourceCompanyName);
         if not SourceRecRef.Get(SourceRecordId) then
             Error(RecordNotFoundErr);
 
@@ -182,7 +189,7 @@ page 50178 "BC14 Buffer Record Editor"
         SourceRecRef: RecordRef;
         SourceFldRef: FieldRef;
     begin
-        SourceRecRef.Open(SourceRecordId.TableNo);
+        SourceRecRef.Open(SourceRecordId.TableNo, false, SourceCompanyName);
         if not SourceRecRef.Get(SourceRecordId) then
             Error(RecordNotFoundErr);
 
