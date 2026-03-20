@@ -88,7 +88,7 @@ jobs:
               --allow-tool=read \
               --allow-tool=glob \
               --allow-tool=grep \
-              --allow-tool='shell(git log:*)' \
+              --allow-tool='shell(git log:read)' \
               2>&1 | tee /tmp/audit-output.txt || true
 
             # Extract clean summary: strip tool traces, stats, and usage lines
