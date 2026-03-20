@@ -77,16 +77,19 @@ jobs:
             APP_NAME=$(jq -r '.name // "unknown"' "$APP_PATH/app.json" 2>/dev/null || echo "unknown")
             echo "Auditing $APP_NAME at $APP_PATH..."
 
-            OUTPUT=$(timeout 300 copilot -p \
+            # Run with full output to CI log, capture to file
+            timeout 300 copilot -p \
               "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit completes, summarize the result in 2-3 sentences: coverage percentage, what is missing, and whether the developer should run al-docs init." \
               --model claude-opus-4.6 \
-              -s \
               --no-ask-user \
               --autopilot \
               --allow-tool=read \
               --allow-tool=glob \
               --allow-tool=grep \
-              2>&1) || true
+              2>&1 | tee /tmp/audit-output.txt || true
+
+            # Grab last lines for PR comment (skip tool traces / stats)
+            OUTPUT=$(grep -v '^[│├└●✓✗]' /tmp/audit-output.txt | grep -v '^$' | tail -10)
 
             if echo "$OUTPUT" | grep -qi "missing\|no documentation\|should.*run\|does not have\|0%\|no CLAUDE"; then
               REPORT="$REPORT
