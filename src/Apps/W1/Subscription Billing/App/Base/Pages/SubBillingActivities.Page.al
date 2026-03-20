@@ -1,8 +1,10 @@
 namespace Microsoft.SubscriptionBilling;
 
 #if not CLEAN26
+#pragma warning disable AS0072
 using Microsoft.Foundation.Task;
 using Microsoft.Projects.Project.Job;
+#pragma warning restore AS0072
 #endif
 using Microsoft.Purchases.Document;
 using Microsoft.RoleCenters;
@@ -24,6 +26,7 @@ page 8085 "Sub. Billing Activities"
         area(content)
         {
 #if not CLEAN26
+#pragma warning disable AS0072
             cuegroup("My User Tasks")
             {
                 ObsoleteReason = 'Removed as tasks are already a part of other role centers.';
@@ -69,6 +72,7 @@ page 8085 "Sub. Billing Activities"
                     ToolTip = 'Specifies the number of projects where the usage cost exceeds the budgeted cost.';
                 }
             }
+#pragma warning restore AS0072
 #endif
 
             cuegroup("Open Posted Documents Customer")
@@ -267,7 +271,9 @@ page 8085 "Sub. Billing Activities"
         SubBillingActivitiesCue: Codeunit "Sub. Billing Activities Cue";
         CuesAndKpisCodeunit: Codeunit "Cues And KPIs";
 #if not CLEAN26
+#pragma warning disable AS0072
         UserTaskManagement: Codeunit "User Task Management";
+#pragma warning restore AS0072
 #endif
         CalcTaskId: Integer;
 }
