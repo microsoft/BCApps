@@ -20,7 +20,6 @@ page 20401 "Qlty. Tests"
     CardPageId = "Qlty. Test Card";
     Editable = false;
     InsertAllowed = false;
-    DeleteAllowed = false;
     RefreshOnActivate = true;
     PageType = List;
     SourceTable = "Qlty. Test";
@@ -219,32 +218,7 @@ page 20401 "Qlty. Tests"
         }
     }
 
-    actions
-    {
-        area(Processing)
-        {
-            action(DeleteRecordSafe)
-            {
-                Caption = 'Delete';
-                Image = Delete;
-                Scope = Repeater;
-                ToolTip = 'Deletes this test. A test can only be deleted if it is not being used on an existing inspection.';
 
-                trigger OnAction()
-                begin
-                    Rec.CheckDeleteConstraints(true);
-                    Rec.Delete(true);
-                    CurrPage.Update(false);
-                end;
-            }
-        }
-        area(Promoted)
-        {
-            actionref(DeleteRecordSafe_Promoted; DeleteRecordSafe)
-            {
-            }
-        }
-    }
 
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
@@ -270,10 +244,7 @@ page 20401 "Qlty. Tests"
     begin
     end;
 
-    trigger OnDeleteRecord(): Boolean
-    begin
-        Rec.CheckDeleteConstraints(true);
-    end;
+
 
     trigger OnAfterGetRecord()
     begin
