@@ -283,5 +283,18 @@ codeunit 2504 "Extension Management"
     begin
         ExtensionOperationImpl.GetDeploymentDetailedStatusMessageAsStream(OperationId, OutStream);
     end;
+
+    /// <summary>
+    /// ReInstalls an extension.
+    /// Uninstalls the extension and all dependent extensions and then installs it again.
+    /// </summary>
+    /// <param name="PackageId">The ID of the extension package.</param>
+    /// <param name="lcid">The Locale Identifier.</param>
+    /// <param name="IsUIEnabled">Indicates if the reinstall operation is invoked through the UI.</param>
+    /// <returns></returns>
+    procedure ReinstallExtension(PackageId: Guid; lcid: Integer; IsUIEnabled: Boolean): Boolean
+    begin
+        exit(ExtensionOperationImpl.ReinstallExtension(PackageId, lcid, IsUIEnabled));
+    end;
 }
 
