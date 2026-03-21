@@ -152,7 +152,6 @@ codeunit 139539 "Shpfy Company Locations Test"
     internal procedure Initialize()
     var
         CompanyInitialize: Codeunit "Shpfy Company Initialize";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySales: Codeunit "Library - Sales";
         LibraryRandom: Codeunit "Library - Random";
@@ -173,7 +172,6 @@ codeunit 139539 "Shpfy Company Locations Test"
         Shop."B2B Enabled" := true;
         Shop.Modify();
 
-        CommunicationMgt.SetTestInProgress(false);
         CompanyLocation := CompanyInitialize.CreateShopifyCompanyLocation();
         ShopifyCompany.GetBySystemId(CompanyLocation."Company SystemId");
         ShopifyCompany."Shop Code" := Shop.Code;

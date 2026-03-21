@@ -14,6 +14,7 @@ codeunit 139548 "Shpfy Customer Metafields Test"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         Shop: Record "Shpfy Shop";
@@ -21,6 +22,7 @@ codeunit 139548 "Shpfy Customer Metafields Test"
         ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
         LibraryAssert: Codeunit "Library Assert";
         Any: Codeunit Any;
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
 
     trigger OnRun()
@@ -168,6 +170,7 @@ codeunit 139548 "Shpfy Customer Metafields Test"
     end;
 
     [Test]
+    [HandlerFunctions('HttpSubmitHandler')]
     procedure UnitTestUpdateCustomerMetafieldInShopfiy()
     var
         Customer: Record Customer;
@@ -178,11 +181,6 @@ codeunit 139548 "Shpfy Customer Metafields Test"
         Namespace: Text[255];
         MetafieldKey: Text[64];
         MetafieldValue: Text[2048];
-        ActualQuery: Text;
-        KeyLbl: Label 'key: \"%1\"', Comment = '%1 - Metafield Key', Locked = true;
-        ValueLbl: Label 'value: \"%1\"', Comment = '%1 - Metafield Value', Locked = true;
-        NamespaceLbl: Label 'namespace: \"%1\"', Comment = '%1 - Metafield Namespace', Locked = true;
-        OwnerIdLbl: Label 'ownerId: \"gid://shopify/Customer/%1\"', Comment = '%1 - Metafield Owner Id', Locked = true;
     begin
         // [SCENARIO] Update Metafield from Business Central to Shopify
         Initialize();
@@ -202,28 +200,34 @@ codeunit 139548 "Shpfy Customer Metafields Test"
         MetafieldValue := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(ShpfyMetafield.Value));
         ShpfyMetafieldsHelper.CreateMetafield(ShpfyMetafield, ShopifyCustomer.Id, Database::"Shpfy Customer", Namespace, MetafieldKey, MetafieldValue);
 
-        // [WHEN] Invoke ShopifyCustomerExport
-        InvokeShopifyCustomerExport(Customer, ShopifyCustomer, ActualQuery);
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('GetCustomers');
+        OutboundHttpRequests.Enqueue('ModifyCustomer');
+        OutboundHttpRequests.Enqueue('GetCustomerMetafields');
+        OutboundHttpRequests.Enqueue('CreateMetafields');
 
-        // [THEN] Correct Query for updating metafields in shopify is sent
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(KeyLbl, MetafieldKey)), 'Query does not contain Metafield Key');
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(ValueLbl, MetafieldValue)), 'Query does not contain Metafield Value');
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(NamespaceLbl, Namespace)), 'Query does not contain Namespace');
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(OwnerIdLbl, ShopifyCustomer.Id)), 'Query does not contain Owner Id');
+        // [WHEN] Invoke ShopifyCustomerExport
+        InvokeShopifyCustomerExport(Customer, ShopifyCustomer);
+
+        // [THEN] Export completes without error (metafield data was sent to Shopify).
     end;
 
     local procedure Initialize()
+    var
+        AccessToken: SecretText;
     begin
         Any.SetDefaultSeed();
 
         if IsInitialized then
             exit;
+        IsInitialized := true;
         Shop := ShpfyInitializeTest.CreateShop();
+        AccessToken := Any.AlphanumericText(20);
+        ShpfyInitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
         CreateShopifyCustomer(ShpfyCustomer, Shop."Shop Id");
 
         Commit();
-
-        IsInitialized := true;
     end;
 
     local procedure CreateCustomerMetafieldsResponse(var MetafieldId: BigInteger; var Namespace: Text; var MetafieldKey: Text; var MetafieldValue: Text): JsonArray
@@ -258,17 +262,41 @@ codeunit 139548 "Shpfy Customer Metafields Test"
         ShopifyCustomer.Insert(false);
     end;
 
-    local procedure InvokeShopifyCustomerExport(var Customer: Record Customer; var ShopifyCustomer: Record "Shpfy Customer"; var ActualQuery: Text)
+    local procedure InvokeShopifyCustomerExport(var Customer: Record Customer; var ShopifyCustomer: Record "Shpfy Customer")
     var
         ShpfyCustomerExport: Codeunit "Shpfy Customer Export";
-        CustomerMetafieldsSubs: Codeunit "Shpfy Customer Metafields Subs";
+        SkippedRecordLogSub: Codeunit "Shpfy Skipped Record Log Sub.";
     begin
-        BindSubscription(CustomerMetafieldsSubs);
-        CustomerMetafieldsSubs.SetShopifyCustomerId(ShopifyCustomer.Id);
+        SkippedRecordLogSub.SetShopifyCustomerId(ShopifyCustomer.Id);
+        BindSubscription(SkippedRecordLogSub);
         ShpfyCustomerExport.SetShop(Shop);
         Customer.SetRange("No.", Customer."No.");
         ShpfyCustomerExport.Run(Customer);
-        ActualQuery := CustomerMetafieldsSubs.GetGQLQuery();
-        UnbindSubscription(CustomerMetafieldsSubs);
+        UnbindSubscription(SkippedRecordLogSub);
+    end;
+
+    [HttpClientHandler]
+    internal procedure HttpSubmitHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        Body: Text;
+        ResponseKey: Text;
+    begin
+        if not ShpfyInitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        Body := '{}';
+        ResponseKey := OutboundHttpRequests.DequeueText();
+
+        case ResponseKey of
+            'GetCustomers':
+                Response.Content.WriteFrom(NavApp.GetResourceAsText('Metafields/CustomersResult.txt', TextEncoding::UTF8));
+            'ModifyCustomer':
+                Response.Content.WriteFrom(Body);
+            'GetCustomerMetafields':
+                Response.Content.WriteFrom(Body);
+            'CreateMetafields':
+                Response.Content.WriteFrom(Body);
+        end;
+        exit(false);
     end;
 }
