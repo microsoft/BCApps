@@ -48,6 +48,11 @@
         "id":  "PTE0026",
         "action":  "None",
         "justification": "TODO(#572306) - (see AS0138) This will require a multi-release effort."
+    },
+    {
+        "id": "AL1076",
+        "action": "Warning",
+        "justification": "TODO(qutreson) - Temporary to unblock rename of Business Foundation Test Library"
     }
   ]
 }
