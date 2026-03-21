@@ -6,6 +6,7 @@ Param(
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot\BuildOptimization.psm1 -Force
 
 function Get-DisabledTests
 {
@@ -52,6 +53,12 @@ function Invoke-TestsWithReruns {
             }
         }
     }
+}
+
+# Build optimization: skip test apps not in the affected set
+$baseFolder = Get-BaseFolder
+if ($parameters["appName"] -and (Test-ShouldSkipTestApp -AppName $parameters["appName"] -BaseFolder $baseFolder)) {
+    return $true
 }
 
 if ($null -ne $TestType) {
