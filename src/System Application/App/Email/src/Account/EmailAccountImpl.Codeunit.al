@@ -27,7 +27,7 @@ codeunit 8889 "Email Account Impl."
 
     procedure GetAllAccounts(LoadLogos: Boolean; var TempEmailAccount: Record "Email Account" temporary)
     var
-        EmailAccounts: Record "Email Account";
+        TempEmailAccounts: Record "Email Account";
         Connector: Enum "Email Connector";
         EmailConnector: Interface "Email Connector";
     begin
@@ -37,12 +37,12 @@ codeunit 8889 "Email Account Impl."
         foreach Connector in Connector.Ordinals do begin
             EmailConnector := Connector;
 
-            EmailAccounts.DeleteAll();
-            EmailConnector.GetAccounts(EmailAccounts);
+            TempEmailAccounts.DeleteAll();
+            EmailConnector.GetAccounts(TempEmailAccounts);
 
-            if EmailAccounts.FindSet() then
+            if TempEmailAccounts.FindSet() then
                 repeat
-                    TempEmailAccount := EmailAccounts;
+                    TempEmailAccount := TempEmailAccounts;
                     TempEmailAccount.Connector := Connector;
 
                     if LoadLogos then begin
@@ -51,7 +51,7 @@ codeunit 8889 "Email Account Impl."
                     end;
 
                     if not TempEmailAccount.Insert() then;
-                until EmailAccounts.Next() = 0;
+                until TempEmailAccounts.Next() = 0;
         end;
 
         // Sort by account name
@@ -66,7 +66,7 @@ codeunit 8889 "Email Account Impl."
     [InherentPermissions(PermissionObjectType::TableData, Database::"Email Rate Limit", 'rd')]
     procedure DeleteAccounts(var EmailAccountsToDelete: Record "Email Account"; HideDialog: Boolean)
     var
-        CurrentDefaultEmailAccount: Record "Email Account";
+        TempCurrentDefaultEmailAccount: Record "Email Account";
         EmailRateLimitToDelete: Record "Email Rate Limit";
         ConfirmManagement: Codeunit "Confirm Management";
         EmailScenario: Codeunit "Email Scenario";
@@ -83,7 +83,7 @@ codeunit 8889 "Email Account Impl."
             exit;
 
         // Get the current default account to track if it was deleted
-        EmailScenario.GetDefaultEmailAccount(CurrentDefaultEmailAccount);
+        EmailScenario.GetDefaultEmailAccount(TempCurrentDefaultEmailAccount);
 
         // Delete all selected acounts
         repeat
@@ -99,37 +99,37 @@ codeunit 8889 "Email Account Impl."
             end;
         until EmailAccountsToDelete.Next() = 0;
 
-        HandleDefaultAccountDeletion(CurrentDefaultEmailAccount."Account Id", CurrentDefaultEmailAccount.Connector, HideDialog);
+        HandleDefaultAccountDeletion(TempCurrentDefaultEmailAccount."Account Id", TempCurrentDefaultEmailAccount.Connector, HideDialog);
     end;
 
     local procedure HandleDefaultAccountDeletion(CurrentDefaultAccountId: Guid; Connector: Enum "Email Connector"; HideDialog: Boolean)
     var
-        AllEmailAccounts: Record "Email Account";
-        NewDefaultEmailAccount: Record "Email Account";
+        TempAllEmailAccounts: Record "Email Account";
+        TempNewDefaultEmailAccount: Record "Email Account";
         EmailScenario: Codeunit "Email Scenario";
         NewDefaultEmailAccountSelected: Boolean;
     begin
-        GetAllAccounts(false, AllEmailAccounts);
+        GetAllAccounts(false, TempAllEmailAccounts);
 
-        if AllEmailAccounts.IsEmpty() then
+        if TempAllEmailAccounts.IsEmpty() then
             exit; //All of the accounts were deleted, nothing to do
 
-        if AllEmailAccounts.Get(CurrentDefaultAccountId, Connector) then
+        if TempAllEmailAccounts.Get(CurrentDefaultAccountId, Connector) then
             exit; // The default account was not deleted or it never existed
 
         // In case there's only one account, set it as default
-        if AllEmailAccounts.Count() = 1 then begin
-            MakeDefault(AllEmailAccounts);
+        if TempAllEmailAccounts.Count() = 1 then begin
+            MakeDefault(TempAllEmailAccounts);
             exit;
         end;
 
         NewDefaultEmailAccountSelected := false;
         if not HideDialog then begin
             Commit();  // Commit the accounts deletion in order to prompt for new default account
-            NewDefaultEmailAccountSelected := PromptNewDefaultAccountChoice(NewDefaultEmailAccount);
+            NewDefaultEmailAccountSelected := PromptNewDefaultAccountChoice(TempNewDefaultEmailAccount);
         end;
         if NewDefaultEmailAccountSelected then
-            MakeDefault(NewDefaultEmailAccount)
+            MakeDefault(TempNewDefaultEmailAccount)
         else
             EmailScenario.UnassignScenario(Enum::"Email Scenario"::Default); // remove the default scenario as it is pointing to a non-existent account
     end;
@@ -176,16 +176,16 @@ codeunit 8889 "Email Account Impl."
 
     procedure IsAnyAccountRegistered(): Boolean
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
     begin
-        GetAllAccounts(false, EmailAccount);
+        GetAllAccounts(false, TempEmailAccount);
 
-        exit(not EmailAccount.IsEmpty());
+        exit(not TempEmailAccount.IsEmpty());
     end;
 
     procedure IsAccountRegistered(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"): Boolean
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
     begin
         if IsNullGuid(EmailAccountId) then
             exit(false);
@@ -193,9 +193,9 @@ codeunit 8889 "Email Account Impl."
         if not IsValidConnector(EmailConnector) then
             exit(false);
 
-        GetAllAccounts(false, EmailAccount);
+        GetAllAccounts(false, TempEmailAccount);
 
-        exit(EmailAccount.Get(EmailAccountId, EmailConnector));
+        exit(TempEmailAccount.Get(EmailAccountId, EmailConnector));
     end;
 
     internal procedure IsUserEmailAdmin(): Boolean
