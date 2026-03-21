@@ -8,5 +8,5 @@ using System.Security.AccessControl;
 
 permissionsetextension 20402 "Administrator - QltyMngmnt" extends "Administrator"
 {
-    IncludedPermissionSets = "QltyMngmnt - Edit";
+    IncludedPermissionSets = "QltyMngmnt - Admin";
 }
