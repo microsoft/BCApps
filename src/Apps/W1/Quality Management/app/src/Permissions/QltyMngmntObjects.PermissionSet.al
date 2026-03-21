@@ -28,7 +28,6 @@ using Microsoft.QualityManagement.Integration.Foundation.Navigate;
 using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.Integration.Manufacturing;
-using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Utilities;
 using Microsoft.QualityManagement.Integration.Warehouse;
@@ -117,7 +116,6 @@ permissionset 20406 "QltyMngmnt - Objects"
         page "Qlty. Rec. Gen. Rule S. Guide" = X,
         page "Qlty. Related Transfer Orders" = X,
         page "Qlty. Report Selection - QM" = X,
-        page "Qlty. Routing Line Lookup" = X,
         page "Qlty. Inspection Template List" = X,
         page "Qlty. Inspection Template Subf" = X,
         page "Qlty. Inspection Template" = X,
