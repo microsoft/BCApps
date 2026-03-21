@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Setup;
 
 page 99001506 "Subc. Temp BOM Lines"
 {
@@ -85,8 +86,8 @@ page 99001506 "Subc. Temp BOM Lines"
                             Rec.FieldError("Subcontracting Type");
 
                         if (Rec."Routing Link Code" = '') and (Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Empty) then begin
-                            GetSubManagementSetup();
-                            Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
+                            GetManufacturingSetup();
+                            Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
                         end;
                     end;
                 }
@@ -104,25 +105,25 @@ page 99001506 "Subc. Temp BOM Lines"
         Rec."Version Code" := xRec."Version Code";
         Rec."Routing Link Code" := xRec."Routing Link Code";
         Rec."Subcontracting Type" := xRec."Subcontracting Type";
-        GetSubManagementSetup();
-        Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
+        GetManufacturingSetup();
+        Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
     end;
 
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
-        SubManagementSetupRead: Boolean;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ManufacturingSetupRead: Boolean;
 
     procedure SetTemporaryRecords(var TempProductionBOMLine: Record "Production BOM Line" temporary)
     begin
         Rec.Copy(TempProductionBOMLine, true);
     end;
 
-    local procedure GetSubManagementSetup()
+    local procedure GetManufacturingSetup()
     begin
-        if not SubManagementSetupRead then begin
-            SubcManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
-            SubcManagementSetup.Get();
-            SubManagementSetupRead := true;
+        if not ManufacturingSetupRead then begin
+            ManufacturingSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
+            ManufacturingSetup.Get();
+            ManufacturingSetupRead := true;
         end;
     end;
 }

@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
 
 page 99001508 "Subc. Temp Prod Order Comp"
 {
@@ -79,8 +80,8 @@ page 99001508 "Subc. Temp Prod Order Comp"
                             Rec.FieldError("Subcontracting Type");
 
                         if (Rec."Routing Link Code" = '') and (Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Empty) then begin
-                            GetSubManagementSetup();
-                            Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
+                            GetManufacturingSetup();
+                            Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
                         end;
 
                         if Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Transfer then
@@ -109,7 +110,8 @@ page 99001508 "Subc. Temp Prod Order Comp"
 
         if PresetSubValues then begin
             GetSubManagementSetup();
-            Rec."Routing Link Code" := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
+            GetManufacturingSetup();
+            Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
             Rec."Flushing Method" := SubcManagementSetup."Def. provision flushing method";
         end;
     end;
@@ -139,9 +141,11 @@ page 99001508 "Subc. Temp Prod Order Comp"
 
     var
         SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
         PresetSubValues: Boolean;
         SubManagementSetupRead: Boolean;
+        ManufacturingSetupRead: Boolean;
 
     procedure GetLinesChanged(): Boolean
     begin
@@ -162,9 +166,18 @@ page 99001508 "Subc. Temp Prod Order Comp"
     local procedure GetSubManagementSetup()
     begin
         if not SubManagementSetupRead then begin
-            SubcManagementSetup.SetLoadFields("Rtng. Link Code Purch. Prov.", "Def. provision flushing method");
+            SubcManagementSetup.SetLoadFields("Def. provision flushing method");
             SubcManagementSetup.Get();
             SubManagementSetupRead := true;
+        end;
+    end;
+
+    local procedure GetManufacturingSetup()
+    begin
+        if not ManufacturingSetupRead then begin
+            ManufacturingSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
+            ManufacturingSetup.Get();
+            ManufacturingSetupRead := true;
         end;
     end;
 }
