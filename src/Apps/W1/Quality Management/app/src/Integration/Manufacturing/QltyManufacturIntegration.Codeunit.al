@@ -19,8 +19,11 @@ using Microsoft.QualityManagement.Setup;
 /// </summary>
 codeunit 20407 "Qlty. Manufactur. Integration"
 {
+    SingleInstance = true;
+
     var
         QltyTraversal: Codeunit "Qlty. Traversal";
+        ListOfCreatedInspectionIds: List of [RecordId];
 
     /// <summary>
     /// We subscribe to OnAfterPostOutput to see if we need to create an inspection related to the output.
@@ -347,7 +350,6 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         ProdOrderLineReserve: Codeunit "Prod. Order Line-Reserve";
-        ListOfInspectionIds: List of [RecordId];
         HasReservationEntries: Boolean;
         IsHandled: Boolean;
         CreatedAtLeastOneInspectionForRoutingLine: Boolean;
@@ -359,7 +361,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         OnBeforeProductionAttemptCreateReleaseAutomaticInspection(ProductionOrder, IsHandled);
         if IsHandled then
             exit;
-
+        Clear(ListOfCreatedInspectionIds);
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         if ProdOrderLine.FindSet() then begin
@@ -376,6 +378,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                             ReservationEntry.FindSet();
                             repeat
                                 Clear(TempTrackingSpecification);
+                                Clear(QltyInspectionHeader);
                                 TempTrackingSpecification.DeleteAll(false);
                                 TempTrackingSpecification.SetSourceFromReservEntry(ReservationEntry);
                                 TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
@@ -385,7 +388,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
                                 if MadeInspection then begin
                                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                                    ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                                    ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId());
                                     CreatedAtLeastOneInspectionForRoutingLine := true;
                                 end;
                             until ReservationEntry.Next() = 0;
@@ -394,7 +397,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
                             if MadeInspection then begin
                                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                                ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                                ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId());
                                 CreatedAtLeastOneInspectionForRoutingLine := true;
                             end;
                         end;
@@ -405,6 +408,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                         ReservationEntry.FindSet();
                         repeat
                             Clear(TempTrackingSpecification);
+                            Clear(QltyInspectionHeader);
                             TempTrackingSpecification.DeleteAll(false);
                             TempTrackingSpecification.SetSourceFromReservEntry(ReservationEntry);
                             TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
@@ -414,7 +418,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
 
                             if MadeInspection then begin
                                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                                ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                                ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId());
                                 CreatedAtLeastOneInspectionForOrderLine := true;
                             end;
 
@@ -423,7 +427,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                         MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProdOrderLine, ProductionOrder, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
                         if MadeInspection then begin
                             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                            ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                            ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId());
                             CreatedAtLeastOneInspectionForOrderLine := true;
                         end;
                     end;
@@ -433,12 +437,15 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             MadeInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ProductionOrder, DummyVariant, DummyVariant, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
             if MadeInspection then begin
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId());
                 CreatedInspectionForProdOrder := MadeInspection;
             end;
         end;
-
-        OnAfterProductionAttemptCreateReleaseAutomaticInspection(ProductionOrder, CreatedAtLeastOneInspectionForRoutingLine, CreatedAtLeastOneInspectionForOrderLine, CreatedInspectionForProdOrder, ListOfInspectionIds);
+        if ListOfCreatedInspectionIds.Count() > 0 then begin
+            QltyInspectionCreate.DisplayInspectionsIfConfigured(false, ListOfCreatedInspectionIds);
+            Clear(ListOfCreatedInspectionIds);
+        end;
+        OnAfterProductionAttemptCreateReleaseAutomaticInspection(ProductionOrder, CreatedAtLeastOneInspectionForRoutingLine, CreatedAtLeastOneInspectionForOrderLine, CreatedInspectionForProdOrder);
     end;
 
     /// <summary>
@@ -470,10 +477,30 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             else
                 HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(ItemLedgerEntry, ItemJournalLine, ProdOrderLine, DummyVariant, false, OptionalFiltersQltyInspectionGenRule);
 
-        if HasInspection then
+        if HasInspection then begin
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+            if QltyInspectionHeader."No." <> '' then
+                ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
+        end;
 
         OnAfterProductionAttemptCreateAutomaticInspection(ProdOrderRoutingLine, ItemLedgerEntry, ProdOrderLine, ItemJournalLine);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnBeforeCode', '', false, false)]
+    local procedure HandleOnBeforeCode(var ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+        Clear(ListOfCreatedInspectionIds);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnAfterPostJnlLines', '', true, true)]
+    local procedure HandleOnAfterPostJnlLines(var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; ItemRegNo: Integer; WhseRegNo: Integer; var WindowIsOpen: Boolean)
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        if ListOfCreatedInspectionIds.Count() > 0 then begin
+            QltyInspectionCreate.DisplayInspectionsIfConfigured(false, ListOfCreatedInspectionIds);
+            Clear(ListOfCreatedInspectionIds);
+        end;
     end;
 
     /// <summary>
@@ -519,9 +546,8 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="CreatedAtLeastOneInspectionForRoutingLine">A flag indicating if at least one inspection for the production order routing line was created</param>
     /// <param name="CreatedAtLeastOneInspectionForOrderLine">A flag indicating if at least one inspection for the production order line was created</param>
     /// <param name="CreatedInspectionForProdOrder">A flag indicating if at least one inspection for the production order was created</param>
-    /// <param name="ListOfInspectionIds">A list of record ids of the inspections that were created</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProductionAttemptCreateReleaseAutomaticInspection(var ProductionOrder: Record "Production Order"; CreatedAtLeastOneInspectionForRoutingLine: Boolean; CreatedAtLeastOneInspectionForOrderLine: Boolean; CreatedInspectionForProdOrder: Boolean; ListOfInspectionIds: List of [RecordId])
+    local procedure OnAfterProductionAttemptCreateReleaseAutomaticInspection(var ProductionOrder: Record "Production Order"; CreatedAtLeastOneInspectionForRoutingLine: Boolean; CreatedAtLeastOneInspectionForOrderLine: Boolean; CreatedInspectionForProdOrder: Boolean)
     begin
     end;
 
