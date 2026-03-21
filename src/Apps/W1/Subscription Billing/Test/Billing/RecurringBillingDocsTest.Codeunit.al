@@ -5,6 +5,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
+using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
@@ -2369,6 +2370,86 @@ codeunit 139687 "Recurring Billing Docs Test"
         // [THEN] Throw error if Item Unit of Measure for Invoicing Item No. does not exist
         asserterror CreateBillingDocumentsCodeunit.ErrorIfItemUnitOfMeasureCodeDoesNotExist(BillingLine, Item."No.", MockServiceObject);
         Assert.ExpectedError(StrSubstNo(ItemUOMDoesNotExistErr, MockServiceObject."No.", MockServiceObject."Unit of Measure", Item."No."));
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,CreateBillingDocumentPageHandler')]
+    procedure CatalogSubscriptionItemNotDeletedOnInvoiceDeletion()
+    var
+        ItemTempl: Record "Item Templ.";
+        NonstockItem: Record "Nonstock Item";
+        CatalogItem: Record Item;
+        Customer: Record Customer;
+        ItemServCommitmentPackage: Record "Item Subscription Package";
+        ServiceCommPackageLine: Record "Subscription Package Line";
+        ServiceCommitmentPackage2: Record "Subscription Package";
+        ServiceCommitmentTemplate2: Record "Sub. Package Line Template";
+        InvoicingItem: Record Item;
+        LibraryTemplates: Codeunit "Library - Templates";
+        NextBillingToDate: Date;
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO] When an item is created from a catalog item and used in a subscription contract,
+        // deleting the invoice draft should NOT automatically delete the item.
+        Initialize();
+        ContractTestLibrary.DeleteAllContractRecords();
+
+        // [GIVEN] Create a Non-Inventory Item Template with Subscription Option = "Service Commitment Item"
+        LibraryTemplates.CreateItemTemplateWithData(ItemTempl);
+        ItemTempl.Validate("Inventory Posting Group", '');
+        ItemTempl.Validate(Type, "Item Type"::"Non-Inventory");
+        ItemTempl.Validate("Subscription Option", "Item Service Commitment Type"::"Service Commitment Item");
+        ItemTempl.Modify(false);
+
+        // [GIVEN] Create a catalog item (Nonstock Item) using the template - this creates an Item automatically
+        LibraryInventory.CreateNonStockItemWithItemTemplateCode(NonstockItem, ItemTempl.Code);
+        NonstockItem.Get(NonstockItem."Entry No.");
+        CatalogItem.Get(NonstockItem."Item No.");
+        ItemNo := CatalogItem."No.";
+        CatalogItem.TestField("Subscription Option", "Item Service Commitment Type"::"Service Commitment Item");
+
+        // [GIVEN] Create Subscription Package with invoicing item and assign to the catalog item
+        ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate2, '', LibraryRandom.RandDec(100, 2),
+            Enum::"Invoicing Via"::Contract, Enum::"Calculation Base Type"::"Item Price", false);
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(InvoicingItem, Enum::"Item Service Commitment Type"::"Invoicing Item");
+        ServiceCommitmentTemplate2.Validate("Invoicing Item No.", InvoicingItem."No.");
+        ServiceCommitmentTemplate2.Modify(false);
+        ContractTestLibrary.CreateServiceCommitmentPackage(ServiceCommitmentPackage2);
+        ContractTestLibrary.CreateServiceCommitmentPackageLine(ServiceCommitmentPackage2.Code, ServiceCommitmentTemplate2.Code,
+            ServiceCommPackageLine, '<1Y>', '<1M>', Enum::"Service Partner"::Customer, '<1M>');
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(CatalogItem, ServiceCommitmentPackage2.Code);
+
+        // [GIVEN] Create Service Object for the catalog item with subscription commitments
+        ContractTestLibrary.CreateServiceObjectForItem(ServiceObject, CatalogItem, false);
+        ServiceCommitmentPackage2.SetFilter(Code, ContractTestLibrary.GetPackageFilterForItem(ItemServCommitmentPackage, ServiceObject."Source No."));
+        ContractTestLibrary.InsertServiceCommitmentsFromServCommPackage(ServiceObject, WorkDate(), ServiceCommitmentPackage2);
+
+        // [GIVEN] Set up Customer and assign service object to Customer Subscription Contract
+        LibrarySales.CreateCustomer(Customer);
+        ContractTestLibrary.SetGeneralPostingSetup(Customer."Gen. Bus. Posting Group", CatalogItem."Gen. Prod. Posting Group", false, Enum::"Service Partner"::Customer);
+        ContractTestLibrary.SetGeneralPostingSetup(Customer."Gen. Bus. Posting Group", InvoicingItem."Gen. Prod. Posting Group", false, Enum::"Service Partner"::Customer);
+        ServiceObject.SetHideValidationDialog(true);
+        ServiceObject.Validate("End-User Customer No.", Customer."No.");
+        ServiceObject.Modify(false);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        ContractTestLibrary.AssignServiceObjectForItemToCustomerContract(CustomerContract, ServiceObject, false);
+
+        // [GIVEN] Create billing proposal and billing document (invoice)
+        GetCustomerContractServiceCommitment(CustomerContract."No.");
+        NextBillingToDate := ServiceCommitment."Next Billing Date";
+        LibraryVariableStorage.Enqueue(NextBillingToDate);
+        BillingProposal.CreateBillingProposalFromContract(CustomerContract."No.", CustomerContract.GetFilter("Billing Rhythm Filter"), "Service Partner"::Customer);
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", '');
+        BillingLine.FindLast();
+        SalesHeader.Get(Enum::"Sales Document Type"::Invoice, BillingLine."Document No.");
+
+        // [WHEN] Delete the sales invoice
+        SalesHeader.Delete(true);
+
+        // [THEN] The item created from catalog should NOT be deleted
+        Assert.IsTrue(CatalogItem.Get(ItemNo), 'Item created from catalog item should not be deleted when the billing invoice is deleted.');
+        CatalogItem.TestField("Subscription Option", "Item Service Commitment Type"::"Service Commitment Item");
     end;
 
     #endregion Tests
