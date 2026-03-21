@@ -144,14 +144,14 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
 
         if QRBase64 = '' then
             exit;
-        Inv."QR Code Base64".CreateOutStream(OutStream, TextEncoding::UTF8);
+        Inv."SalesInv QR Code Base64".CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(QRBase64);
 
         TempBlob.CreateOutStream(OutStream);
         Base64Convert.FromBase64(QRBase64, OutStream);
 
         TempBlob.CreateInStream(InStream);
-        Inv."QR Code Image".ImportStream(InStream, 'image/png');
+        Inv."SalesInv QR Code Image".ImportStream(InStream, 'image/png');
 
         Inv.Modify();
     end;
@@ -169,14 +169,14 @@ codeunit 139890 "E-Doc Clearance Model E2E Test"
 
         if QRBase64 = '' then
             exit;
-        Memo."QR Code Base64".CreateOutStream(OutStream, TextEncoding::UTF8);
+        Memo."CrdMemo QR Code Base64".CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(QRBase64);
 
         TempBlob.CreateOutStream(OutStream);
         Base64Convert.FromBase64(QRBase64, OutStream);
 
         TempBlob.CreateInStream(InStream);
-        Memo."QR Code Image".ImportStream(InStream, 'image/png');
+        Memo."CrdMemo QR Code Image".ImportStream(InStream, 'image/png');
 
         Memo.Modify();
     end;

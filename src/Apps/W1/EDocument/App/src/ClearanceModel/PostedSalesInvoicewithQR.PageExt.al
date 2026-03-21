@@ -35,6 +35,6 @@ pageextension 6164 "Posted Sales Invoice with QR" extends "Posted Sales Invoice"
 
     trigger OnAfterGetRecord()
     begin
-        ShowQRCodeAction := Rec."QR Code Image".Count > 0;
+        ShowQRCodeAction := Rec."SalesInv QR Code Image".Count > 0;
     end;
 }
