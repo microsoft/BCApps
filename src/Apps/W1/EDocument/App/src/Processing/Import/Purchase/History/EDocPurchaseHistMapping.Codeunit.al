@@ -205,13 +205,13 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
 
     /// <summary>
     /// Applies the values configured as additional fields in the posted line, if the line had a historic match the values are retrieved from the Purchase Invoice Line.
-    /// Validation failures are skipped and logged as warnings on the supplied EDocument record.
+    /// Validation failures are skipped and logged as warnings on the e-document.
     /// </summary>
-    /// <param name="EDocument">The e-document record used for warning logging when a field value cannot be validated.</param>
     /// <param name="EDocumentPurchaseLine"></param>
     /// <param name="PurchaseLine"></param>
-    procedure ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocument: Record "E-Document"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; var PurchaseLine: Record "Purchase Line")
+    procedure ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var PurchaseLine: Record "Purchase Line")
     var
+        EDocument: Record "E-Document";
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         EDocPurchLineField: Record "E-Document Line - Field";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
@@ -223,6 +223,7 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
     begin
         if not EDocPurchLineFieldSetup.FindSet() then
             exit;
+        EDocument.Get(EDocumentPurchaseLine."E-Document Entry No.");
         NewPurchLineRecordRef.GetTable(PurchaseLine);
         repeat
             if EDocPurchLineFieldSetup.IsOmitted() then
