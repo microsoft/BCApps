@@ -334,6 +334,8 @@ table 6101 "E-Document Purchase Line"
             Rec, "[BC] Dimension Set ID", StrSubstNo('%1 %2', "E-Document Entry No.", "Line No."),
             "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
         DimMgt.UpdateGlobalDimFromDimSetID("[BC] Dimension Set ID", "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
+        if OldDimSetID <> "[BC] Dimension Set ID" then
+            Modify();
         exit(OldDimSetID <> "[BC] Dimension Set ID");
     end;
 
