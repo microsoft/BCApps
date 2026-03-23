@@ -3,9 +3,6 @@ namespace Microsoft.Foundation.DataSearch;
 using Microsoft.Utilities;
 using System.Reflection;
 
-/// <summary>
-/// Stores temporary search results for the Data Search feature.
-/// </summary>
 table 2680 "Data Search Result"
 {
     DataClassification = CustomerContent;
