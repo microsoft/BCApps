@@ -14,7 +14,6 @@ page 37007 "Sales Actual vs. Budget Qty."
     Caption = 'Sales Actual vs. Budget';
     AboutTitle = 'About Sales Actual vs. Budget';
     AboutText = 'The Sales Actual vs. Budget report provides a comparative analysis of sales to budget amounts/quantities. Featuring variance and variance percentage metrics that provide a clear view of actual performance compared to budgeted targets.';
-    ToolTip = 'Compare sales quantity to budget amounts and quantities with variance and variance percentage metrics.';
 
     layout
     {

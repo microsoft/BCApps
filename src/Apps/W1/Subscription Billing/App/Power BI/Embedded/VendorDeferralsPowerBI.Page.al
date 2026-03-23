@@ -10,7 +10,6 @@ page 8111 "Vendor Deferrals Power BI"
     Caption = 'Vendor Deferrals';
     AboutTitle = 'About Vendor Deferrals';
     AboutText = 'The Vendor Deferrals report provides an overview of deferred vs. released subscription cost amount.';
-    ToolTip = 'View an overview of deferred vs. released subscription cost amount.';
 
     layout
     {

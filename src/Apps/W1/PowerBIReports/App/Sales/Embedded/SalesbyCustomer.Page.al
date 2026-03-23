@@ -14,7 +14,6 @@ page 37005 "Sales by Customer"
     Caption = 'Sales by Customer';
     AboutTitle = 'About Sales by Customer';
     AboutText = 'The Sales by Customer report breaks down sales performance highlighting key metrics such as Sales Amount, Cost Amount, Gross Profit and Gross Profit Margin by customer. This report provides detailed insights into which customer and items driving revenue and profitability.';
-    ToolTip = 'View sales performance by customer, including Sales Amount, Cost Amount, Gross Profit, and Gross Profit Margin.';
 
     layout
     {

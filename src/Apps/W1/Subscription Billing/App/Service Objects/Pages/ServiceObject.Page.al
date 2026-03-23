@@ -17,7 +17,6 @@ page 8060 "Service Object"
     AdditionalSearchTerms = 'Subscription, Service Object, Subscription Details, Subscription Lines, Customer Subscription, Billing Details';
     AboutTitle = 'About Subscription details';
     AboutText = 'Look at further details of a subscription. Create new and review existing lines and billing details.';
-    ToolTip = 'View or edit Subscription details and lines.';
 
     layout
     {

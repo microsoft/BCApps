@@ -14,7 +14,6 @@ page 36998 "Sales Overview"
     Caption = 'Sales Overview';
     AboutTitle = 'About Sales Overview';
     AboutText = 'The Sales Overview provides a comprehensive view of sales performance, offering insights into metrics such as Total Sales, Gross Profit Margin, Number of New Customers, and top-performing customers and salespeople.';
-    ToolTip = 'View a comprehensive overview of sales performance, including Total Sales, Gross Profit Margin, Number of New Customers, and top-performing customers and salespeople.';
 
     layout
     {

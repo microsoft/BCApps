@@ -10,7 +10,6 @@ page 8104 "Revenue by Customer Power BI"
     Caption = 'Revenue by Customer';
     AboutTitle = 'About Revenue by Customer';
     AboutText = 'The Revenue by Customer report breaks down subscription performance by customer and item, highlighting metrics such as Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit Amount and Monthly Net Profit %. This report provides detailed insights into which customers and items are driving subscription revenue and profitability.';
-    ToolTip = 'View subscription performance by customer and item, including Monthly Recurring Revenue, Monthly Recurring Cost, and Monthly Net Profit.';
 
     layout
     {

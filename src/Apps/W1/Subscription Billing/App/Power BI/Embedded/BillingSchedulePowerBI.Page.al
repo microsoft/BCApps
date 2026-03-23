@@ -10,7 +10,6 @@ page 8097 "Billing Schedule Power BI"
     Caption = 'Billing Schedule';
     AboutTitle = 'About Billing Schedule';
     AboutText = 'The Billing Schedule report provides a forecast of vendor and customer invoiced amounts according to the contractual billing rhythm. It helps to identify future development of incoming and outgoing cash from billed subscriptions.';
-    ToolTip = 'View a forecast of vendor and customer invoiced amounts according to the contractual billing rhythm.';
 
     layout
     {

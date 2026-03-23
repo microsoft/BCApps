@@ -14,7 +14,6 @@ page 37001 "Sales Moving Annual Total"
     Caption = 'Sales Moving Annual Total';
     AboutTitle = 'About Sales Moving Annual Total';
     AboutText = 'The Sales Moving Annual Total report provides a rolling 12-month view of sales figures, tracking the current year to the previous year''s performance. ';
-    ToolTip = 'View a rolling 12-month view of sales figures, tracking the current year to the previous year''s performance.';
 
     layout
     {

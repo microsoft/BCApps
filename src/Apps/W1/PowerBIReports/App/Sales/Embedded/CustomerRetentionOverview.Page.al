@@ -14,7 +14,6 @@ page 36983 "Customer Retention Overview"
     Caption = 'Customer Retention Overview';
     AboutTitle = 'About Customer Retention Overview';
     AboutText = 'The Customer Retention Overview page provides insights into customer retention metrics, helping to analyze customer loyalty and retention trends.';
-    ToolTip = 'Analyze customer retention, including repeat purchase behavior, customer loyalty, and trends in customer churn over time.';
 
     layout
     {

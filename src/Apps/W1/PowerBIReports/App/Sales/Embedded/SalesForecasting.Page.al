@@ -14,7 +14,6 @@ page 37109 "Sales Forecasting"
     Caption = 'Sales Forecasting';
     AboutTitle = 'About Sales Forecasting';
     AboutText = 'The Sales Forecasting report predicts future sales trends based on historical data. It uses advanced forecasting techniques to project sales values, helping users anticipate demand.';
-    ToolTip = 'View sales trend predictions, including forecasting of sales metrics across item, customer, document type, and salespeople.';
 
     layout
     {

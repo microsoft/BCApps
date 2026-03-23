@@ -19,7 +19,6 @@ page 8067 "Recurring Billing"
     AdditionalSearchTerms = 'Recurring Billing, Create Invoice, Billing Proposal, Contract Billing, Subscription Billing, Invoice Generation';
     AboutTitle = 'About Recurring Billing';
     AboutText = 'Use this page to prepare the billing of subscriptions and contracts. It creates a billing proposal before actual invoicing.';
-    ToolTip = 'Create billing proposals for recurring subscriptions and contracts, and generate invoices from the proposals.';
 
     layout
     {

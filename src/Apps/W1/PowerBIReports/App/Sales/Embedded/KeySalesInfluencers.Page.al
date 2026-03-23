@@ -14,7 +14,6 @@ page 37102 "Key Sales Influencers"
     Caption = 'Key Sales Influencers';
     AboutTitle = 'About Key Sales Influencers';
     AboutText = 'The Key Sales Influencers report identifies the key factors driving sales performance, highlighting the most impactful variables and trends based on the sales data like items, customers and dimensions.';
-    ToolTip = 'Identify and analyze the main factors influencing sales performance based on items, customers, and dimensions.';
 
     layout
     {

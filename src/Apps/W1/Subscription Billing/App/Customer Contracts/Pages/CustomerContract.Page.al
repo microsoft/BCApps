@@ -17,7 +17,6 @@ page 8052 "Customer Contract"
     AdditionalSearchTerms = 'Customer Contract, Subscription Contract, Contract Details, Subscription Billing, Contract Lines, Customer Subscription';
     AboutTitle = 'About Customer Subscription Contract details';
     AboutText = 'Take a closer look at the details of a contract. Review assigned subscriptions and their billing details or assign new subscriptions.';
-    ToolTip = 'View or edit Customer Subscription Contract details and assigned subscriptions.';
     layout
     {
         area(content)

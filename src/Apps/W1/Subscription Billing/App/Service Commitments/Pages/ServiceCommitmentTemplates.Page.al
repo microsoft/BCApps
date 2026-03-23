@@ -8,7 +8,6 @@ page 8055 "Service Commitment Templates"
     PageType = List;
     SourceTable = "Sub. Package Line Template";
     UsageCategory = Administration;
-    ToolTip = 'View or edit Subscription Package Line Templates.';
     layout
     {
         area(content)

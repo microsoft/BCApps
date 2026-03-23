@@ -14,7 +14,6 @@ page 36999 "Daily Sales"
     Caption = 'Daily Sales';
     AboutTitle = 'About Daily Sales';
     AboutText = 'The Daily Sales report offers a detailed analysis of sales amounts by weekday. The tabular report highlights trends by using conditional formatting to display figures in a gradient from low to high.';
-    ToolTip = 'View a detailed analysis of sales amounts by weekday with conditional formatting to display figures in a gradient from low to high.';
 
     layout
     {

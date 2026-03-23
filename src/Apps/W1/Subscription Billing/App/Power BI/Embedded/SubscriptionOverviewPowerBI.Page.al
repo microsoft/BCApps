@@ -10,7 +10,6 @@ page 8110 "Subscription Overview Power BI"
     Caption = 'Subscription Overview';
     AboutTitle = 'About Subscription Overview';
     AboutText = 'The Subscription Overview provides a comprehensive view of subscription performance, offering insights into metrics such as Monthly Recurring Revenue, Total Contract Value, Churn and top-performing customers or vendors.';
-    ToolTip = 'View subscription performance, including Monthly Recurring Revenue, Total Contract Value, Churn, and top-performing customers or vendors.';
 
     layout
     {

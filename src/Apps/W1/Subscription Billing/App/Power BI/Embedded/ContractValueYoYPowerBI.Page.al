@@ -10,7 +10,6 @@ page 8100 "Contract Value YoY Power BI"
     Caption = 'Total Contract Value YoY';
     AboutTitle = 'About Total Contract Value YoY';
     AboutText = 'The Total Contract Value YoY report compares the Total Contract Value and Active Customers across a year-over-year period.';
-    ToolTip = 'Compare Total Contract Value and Active Customers across a year-over-year period.';
 
     layout
     {

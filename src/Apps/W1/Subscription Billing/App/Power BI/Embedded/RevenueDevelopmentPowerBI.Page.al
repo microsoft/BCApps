@@ -10,7 +10,6 @@ page 8106 "Revenue Development Power BI"
     Caption = 'Revenue Development';
     AboutTitle = 'About Revenue Development';
     AboutText = 'The Revenue Development report shows the change in monthly recurring revenue and helps to identify its various sources such as churn, downgrades, new subscriptions or upgrades.';
-    ToolTip = 'View the change in Monthly Recurring Revenue and identify its sources such as churn, downgrades, new subscriptions, or upgrades.';
 
     layout
     {

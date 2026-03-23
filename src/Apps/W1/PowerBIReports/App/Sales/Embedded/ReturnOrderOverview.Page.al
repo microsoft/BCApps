@@ -14,7 +14,6 @@ page 37105 "Return Order Overview"
     Caption = 'Return Order Overview';
     AboutTitle = 'About Return Order Overview';
     AboutText = 'The Return Order Overview tracks and analyzes return orders, providing insights into return amounts, quantities,  reasons for return, and the financial impact on the organization.';
-    ToolTip = 'View return order details, including return amounts, quantities, reasons for return, and the financial impact on the organization.';
 
     layout
     {

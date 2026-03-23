@@ -14,7 +14,6 @@ page 37114 "Customer Retention History"
     Caption = 'Customer Retention History';
     AboutTitle = 'About Customer Retention History';
     AboutText = 'The Customer Retention History page provides historical insights into customer retention metrics, allowing analysis of trends over time.';
-    ToolTip = 'View historical customer retention metrics and analyze retention trends over time.';
 
     layout
     {

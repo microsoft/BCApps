@@ -14,7 +14,6 @@ page 37103 "Opportunity Overview"
     Caption = 'Opportunity Overview';
     AboutTitle = 'About Opportunity Overview';
     AboutText = 'The Opportunity Overview report provides a comprehensive view of sales opportunities, including the number of opportunities, estimated values, sales cycle, and a breakdown of potential value by location.';
-    ToolTip = 'View sales opportunities, including the number of opportunities, estimated values, sales cycle, and a breakdown of potential value by location.';
 
     layout
     {

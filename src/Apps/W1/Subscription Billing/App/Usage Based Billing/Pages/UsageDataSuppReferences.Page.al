@@ -8,7 +8,6 @@ page 8043 "Usage Data Supp. References"
     UsageCategory = Lists;
     PageType = List;
     LinksAllowed = false;
-    ToolTip = 'View and manage references that link usage data supplier entries to Business Central records.';
     layout
     {
         area(content)

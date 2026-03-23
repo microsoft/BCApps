@@ -14,7 +14,6 @@ page 37101 "Sales Decomposition"
     Caption = 'Sales Decomposition';
     AboutTitle = 'About Sales Decomposition';
     AboutText = 'The Sales Decomposition report breaks down sales metrics into its key contributing components to help users understand what is driving changes in sales and why.';
-    ToolTip = 'View a breakdown of sales figures by contributing factors, including location names, item categories, and countries and regions.';
 
     layout
     {

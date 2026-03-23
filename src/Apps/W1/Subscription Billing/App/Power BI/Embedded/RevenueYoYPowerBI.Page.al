@@ -10,7 +10,6 @@ page 8107 "Revenue YoY Power BI"
     Caption = 'Revenue YoY';
     AboutTitle = 'About Revenue YoY';
     AboutText = 'The Revenue YoY report compares Monthly Recurring Revenue performance across a year-over-year period.';
-    ToolTip = 'Compare Monthly Recurring Revenue performance across a year-over-year period.';
 
     layout
     {

@@ -10,7 +10,6 @@ page 8105 "Revenue by Item Power BI"
     Caption = 'Revenue by Item';
     AboutTitle = 'About Revenue by Item';
     AboutText = 'The Revenue by Item report breaks down subscription performance by item category, highlighting metrics such as Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit Amount and Monthly Net Profit %. This report provides detailed insights into which categories and items are driving subscription revenue and profitability.';
-    ToolTip = 'View subscription performance by item category, including Monthly Recurring Revenue, Monthly Recurring Cost, and Monthly Net Profit.';
 
     layout
     {

@@ -10,7 +10,6 @@ page 8102 "Rev. by Salesperson Power BI"
     Caption = 'Revenue by Salesperson';
     AboutTitle = 'About Revenue by Salesperson';
     AboutText = 'The Revenue by Salesperson report breaks down subscription performance by Salesperson, highlighting metrics such as Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit Amount and Churn.';
-    ToolTip = 'View subscription performance by salesperson, including Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, and Churn.';
 
     layout
     {

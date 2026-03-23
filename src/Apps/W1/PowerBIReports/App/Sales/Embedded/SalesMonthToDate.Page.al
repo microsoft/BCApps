@@ -14,7 +14,6 @@ page 37003 "Sales Month-To-Date"
     Caption = 'Sales Month-To-Date';
     AboutTitle = 'About Sales Month-To-Date';
     AboutText = 'The Sales Month-to-Date report tracks the accumulation of sales amounts throughout the current month, providing insights into progress and performance up to the present date.';
-    ToolTip = 'Track the accumulation of sales amounts throughout the current month, providing insights into progress and performance up to the present date.';
 
     layout
     {

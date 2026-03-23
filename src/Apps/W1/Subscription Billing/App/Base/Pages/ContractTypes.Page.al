@@ -11,7 +11,6 @@ page 8054 "Contract Types"
     AdditionalSearchTerms = 'Contract Type, Contract Category, Contract Classification, Deferral Settings, Contract Categorization, Type Setup';
     AboutTitle = 'About Subscription Contract Types';
     AboutText = 'Here you overview all contract types available. You can use them to categorize contracts and to default certain details, like creating deferrals.';
-    ToolTip = 'View or edit Subscription Contract Types.';
 
     layout
     {

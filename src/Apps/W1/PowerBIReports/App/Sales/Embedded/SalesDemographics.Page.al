@@ -14,7 +14,6 @@ page 37100 "Sales Demographics"
     Caption = 'Sales Demographics';
     AboutTitle = 'About Sales Demographics';
     AboutText = 'The Sales Demographics report analyzes sales performance across different demographic segments, providing insights into customer behavior and preferences.';
-    ToolTip = 'View sales data segmented by demographic factors, including item category, customer posting group, document type, and customer locations.';
 
     layout
     {

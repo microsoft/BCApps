@@ -14,7 +14,6 @@ page 37119 "Sales by Projects"
     Caption = 'Sales by Projects';
     AboutTitle = 'About Sales by Projects';
     AboutText = 'The Sales by Projects report breaks down sales performance by project, highlighting metrics such as sales amount and sales quantity. This report provides key insights into the customers, items, general ledger accounts and resources driving project sales and contributing to revenue.';
-    ToolTip = 'View sales performance by project, including metrics across customer, item, resources, and general ledger accounts.';
 
     layout
     {

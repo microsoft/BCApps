@@ -12,7 +12,6 @@ page 8057 "Service Commitment Packages"
     AdditionalSearchTerms = 'Subscription Packages, Package List, Item Packages, Subscription Templates, Commitment Packages, Package Overview';
     AboutTitle = 'About Subscription Packages';
     AboutText = 'Here you can see all the subscription packages that are available to help you create your subscriptions. You can assign them directly to items or even provide them in Item Templates.';
-    ToolTip = 'View or edit Subscription Packages.';
     layout
     {
         area(content)
