@@ -17,13 +17,15 @@ using Microsoft.QualityManagement.Workflow;
 /// <summary>
 /// Used for working with Quality Inspections.
 /// </summary>
-permissionset 20404 QltyMngmntInspector
+#pragma warning disable AS0125
+#pragma warning disable AS0090
+permissionset 20404 "QltyMgmt - Inspector"
 {
-    Caption = 'Quality Management - Quality Inspector';
+    Caption = 'Quality Inspector';
     Access = Public;
     Assignable = true;
 
-    IncludedPermissionSets = "QltyMngmnt - Objects";
+    IncludedPermissionSets = "QltyMgmt - Objects";
 
     Permissions =
         tabledata "Qlty. Workflow Config. Value" = Rim,
@@ -41,4 +43,5 @@ permissionset 20404 QltyMngmntInspector
         tabledata "Qlty. Inspection Header" = RIMd,
         tabledata "Qlty. Test" = R;
 }
-
+#pragma warning restore AS0090
+#pragma warning restore AS0125

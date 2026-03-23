@@ -54,7 +54,7 @@ codeunit 139940 "Qlty. Inspection Utility"
         LibraryUtility: Codeunit "Library - Utility";
         NoSeriesCodeunit: Codeunit "No. Series";
         DefaultResult2PassCodeLbl: Label 'PASS', Locked = true;
-        AdminSupervisorRoleIDTok: Label 'QltyMngmnt - Admin', Locked = true;
+        AdminSupervisorRoleIDTok: Label 'QltyMgmt - Admin', Locked = true;
 
     internal procedure EnsureSetupExists()
     var

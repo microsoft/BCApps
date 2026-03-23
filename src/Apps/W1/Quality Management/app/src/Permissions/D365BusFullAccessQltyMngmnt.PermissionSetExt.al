@@ -8,5 +8,5 @@ using System.Security.AccessControl;
 
 permissionsetextension 20401 "D365 BUS FULL ACCESS - QltyMngmnt" extends "D365 BUS FULL ACCESS"
 {
-    IncludedPermissionSets = "QltyMngmnt - Admin";
+    IncludedPermissionSets = "QltyMgmt - Admin";
 }

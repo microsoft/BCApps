@@ -8,5 +8,5 @@ using System.Security.AccessControl;
 
 permissionsetextension 20403 "D365 READ - QltyMngmnt" extends "D365 READ"
 {
-    IncludedPermissionSets = "QltyMngmnt - Read";
+    IncludedPermissionSets = "QltyMgmt - Read";
 }
