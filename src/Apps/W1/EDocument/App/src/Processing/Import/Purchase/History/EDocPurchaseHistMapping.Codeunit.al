@@ -205,7 +205,9 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
 
     /// <summary>
     /// Applies the values configured as additional fields in the posted line, if the line had a historic match the values are retrieved from the Purchase Invoice Line.
+    /// Validation failures are skipped and logged as warnings on the supplied EDocument record.
     /// </summary>
+    /// <param name="EDocument">The e-document record used for warning logging when a field value cannot be validated.</param>
     /// <param name="EDocumentPurchaseLine"></param>
     /// <param name="PurchaseLine"></param>
     procedure ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocument: Record "E-Document"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; var PurchaseLine: Record "Purchase Line")
