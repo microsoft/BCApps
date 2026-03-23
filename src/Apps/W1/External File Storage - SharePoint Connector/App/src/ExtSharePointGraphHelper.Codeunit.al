@@ -23,7 +23,6 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
 
     var
         SharePointGraphClient: Codeunit "SharePoint Graph Client";
-        AccountDisabledErr: Label 'The account "%1" is disabled.', Comment = '%1 - Account Name';
         ErrorOccurredErr: Label 'An error occurred.\%1', Comment = '%1 - Error message from Graph API';
 
     #region File Operations
@@ -44,19 +43,21 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
 
         SharePointGraphClient.GetItemsByPath(Path, GraphDriveItem);
 
-        if GraphDriveItem.FindSet() then
-            repeat
-                // Only include files (not folders)
-                if not GraphDriveItem.IsFolder then begin
-                    TempFileAccountContent.Init();
-                    TempFileAccountContent.Name := GraphDriveItem.Name;
-                    TempFileAccountContent.Type := TempFileAccountContent.Type::"File";
-                    TempFileAccountContent."Parent Directory" := CopyStr(OriginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
-                    TempFileAccountContent.Insert();
-                end;
-            until GraphDriveItem.Next() = 0;
-
         FilePaginationData.SetEndOfListing(true);
+
+        if not GraphDriveItem.FindSet() then
+            exit;
+
+        repeat
+            // Only include files (not folders)
+            if not GraphDriveItem.IsFolder then begin
+                TempFileAccountContent.Init();
+                TempFileAccountContent.Name := GraphDriveItem.Name;
+                TempFileAccountContent.Type := TempFileAccountContent.Type::"File";
+                TempFileAccountContent."Parent Directory" := CopyStr(OriginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
+                TempFileAccountContent.Insert();
+            end;
+        until GraphDriveItem.Next() = 0;
     end;
 
     internal procedure GetFile(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; Stream: InStream)
@@ -181,7 +182,7 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
 
     internal procedure ListDirectories(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        TempGraphDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        GraphDriveItem: Record "SharePoint Graph Drive Item";
         OriginalPath: Text;
     begin
         OriginalPath := Path;
@@ -193,21 +194,23 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         if Path = '' then
             Path := '/';
 
-        SharePointGraphClient.GetItemsByPath(Path, TempGraphDriveItem);
-
-        if TempGraphDriveItem.FindSet() then
-            repeat
-                // Only include folders
-                if TempGraphDriveItem.IsFolder then begin
-                    TempFileAccountContent.Init();
-                    TempFileAccountContent.Name := TempGraphDriveItem.Name;
-                    TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
-                    TempFileAccountContent."Parent Directory" := CopyStr(OriginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
-                    TempFileAccountContent.Insert();
-                end;
-            until TempGraphDriveItem.Next() = 0;
+        SharePointGraphClient.GetItemsByPath(Path, GraphDriveItem);
 
         FilePaginationData.SetEndOfListing(true);
+
+        if not GraphDriveItem.FindSet() then
+            exit;
+
+        repeat
+            // Only include folders
+            if GraphDriveItem.IsFolder then begin
+                TempFileAccountContent.Init();
+                TempFileAccountContent.Name := GraphDriveItem.Name;
+                TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
+                TempFileAccountContent."Parent Directory" := CopyStr(OriginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
+                TempFileAccountContent.Insert();
+            end;
+        until GraphDriveItem.Next() = 0;
     end;
 
     internal procedure CreateDirectory(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text)
@@ -270,6 +273,7 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         Certificate: SecretText;
         CertificatePassword: SecretText;
         Scopes: List of [Text];
+        AccountDisabledErr: Label 'The account "%1" is disabled.', Comment = '%1 - Account Name';
     begin
         // Get and validate account
         if SharePointAccount.Disabled then
@@ -323,7 +327,6 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
             FolderPath := '/';
             ItemName := FullPath;
         end else begin
-            LastSlashPos := StrLen(FullPath) - LastSlashPos + 1;
             FolderPath := CopyStr(FullPath, 1, LastSlashPos - 1);
             ItemName := CopyStr(FullPath, LastSlashPos + 1);
 

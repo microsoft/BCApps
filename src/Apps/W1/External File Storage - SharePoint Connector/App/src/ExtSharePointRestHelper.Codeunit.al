@@ -82,11 +82,8 @@ codeunit 4582 "Ext. SharePoint REST Helper"
 
     internal procedure CopyFile(SharePointAccount: Record "Ext. SharePoint Account"; SourcePath: Text; TargetPath: Text)
     var
-        TempBlob: Codeunit "Temp Blob";
         Stream: InStream;
     begin
-        TempBlob.CreateInStream(Stream);
-
         GetFile(SharePointAccount, SourcePath, Stream);
         CreateFile(SharePointAccount, TargetPath, Stream);
     end;

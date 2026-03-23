@@ -46,7 +46,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// </summary>
     /// <param name="AccountId">The file account ID which is used to get the file.</param>
     /// <param name="Path">The file path inside the file account.</param>
-    /// <param name="Stream">The Stream were the file is read to.</param>
+    /// <param name="Stream">The Stream where the file is read to.</param>
     procedure GetFile(AccountId: Guid; Path: Text; Stream: InStream)
     var
         SharePointAccount: Record "Ext. SharePoint Account";
@@ -63,7 +63,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// </summary>
     /// <param name="AccountId">The file account ID which is used to send out the file.</param>
     /// <param name="Path">The file path inside the file account.</param>
-    /// <param name="Stream">The Stream were the file is read from.</param>
+    /// <param name="Stream">The Stream where the file is read from.</param>
     procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream)
     var
         SharePointAccount: Record "Ext. SharePoint Account";
@@ -76,7 +76,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     end;
 
     /// <summary>
-    /// Copies as file inside the provided account.
+    /// Copies a file inside the provided account.
     /// </summary>
     /// <param name="AccountId">The file account ID which is used to send out the file.</param>
     /// <param name="SourcePath">The source file path.</param>
@@ -93,7 +93,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     end;
 
     /// <summary>
-    /// Move as file inside the provided account.
+    /// Moves a file inside the provided account.
     /// </summary>
     /// <param name="AccountId">The file account ID which is used to send out the file.</param>
     /// <param name="SourcePath">The source file path.</param>
@@ -127,7 +127,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     end;
 
     /// <summary>
-    /// Deletes a file exists on the provided account.
+    /// Deletes a file on the provided account.
     /// </summary>
     /// <param name="AccountId">The file account ID which is used to send out the file.</param>
     /// <param name="Path">The file path inside the file account.</param>
@@ -194,7 +194,7 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     end;
 
     /// <summary>
-    /// Deletes a directory exists on the provided account.
+    /// Deletes a directory on the provided account.
     /// </summary>
     /// <param name="AccountId">The file account ID which is used to send out the file.</param>
     /// <param name="Path">The directory path inside the file account.</param>
