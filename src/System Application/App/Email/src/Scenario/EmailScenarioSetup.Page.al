@@ -76,7 +76,7 @@ page 8893 "Email Scenario Setup"
 
                     trigger OnAction()
                     begin
-                        SelectedEmailAccountScenario := Rec;
+                        TempSelectedEmailAccountScenario := Rec;
                         EmailScenarioImpl.AddScenarios(Rec);
 
                         EmailScenarioImpl.GetScenariosByEmailAccount(Rec);
@@ -104,7 +104,7 @@ page 8893 "Email Scenario Setup"
                     trigger OnAction()
                     begin
                         CurrPage.SetSelectionFilter(Rec);
-                        SelectedEmailAccountScenario := Rec;
+                        TempSelectedEmailAccountScenario := Rec;
 
                         EmailScenarioImpl.ChangeAccount(Rec);
                         EmailScenarioImpl.GetScenariosByEmailAccount(Rec); // refresh the data on the page
@@ -129,7 +129,7 @@ page 8893 "Email Scenario Setup"
                     trigger OnAction()
                     begin
                         CurrPage.SetSelectionFilter(Rec);
-                        SelectedEmailAccountScenario := Rec;
+                        TempSelectedEmailAccountScenario := Rec;
 
                         EmailScenarioImpl.DeleteScenario(Rec);
                         EmailScenarioImpl.GetScenariosByEmailAccount(Rec); // refresh the data on the page
@@ -204,12 +204,12 @@ page 8893 "Email Scenario Setup"
 
     local procedure SetSelectedRecord()
     begin
-        if not Rec.Get(SelectedEmailAccountScenario.Scenario, SelectedEmailAccountScenario."Account Id", SelectedEmailAccountScenario.Connector) then
+        if not Rec.Get(TempSelectedEmailAccountScenario.Scenario, TempSelectedEmailAccountScenario."Account Id", TempSelectedEmailAccountScenario.Connector) then
             if Rec.FindFirst() then;
     end;
 
     var
-        SelectedEmailAccountScenario: Record "Email Account Scenario";
+        TempSelectedEmailAccountScenario: Record "Email Account Scenario";
         EmailScenarioImpl: Codeunit "Email Scenario Impl.";
         EmailAccountImpl: Codeunit "Email Account Impl.";
         EmailAccountId: Guid;
