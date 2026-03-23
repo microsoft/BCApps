@@ -345,10 +345,10 @@ codeunit 8351 "MCP Config Implementation"
 
     internal procedure ValidateConfiguration(var MCPConfiguration: Record "MCP Configuration"; OnActivate: Boolean)
     var
-        MCPConfigurationWarning: Record "MCP Config Warning";
+        TempMCPConfigurationWarning: Record "MCP Config Warning";
     begin
         // Raise warning if any issues found
-        if not FindWarningsForConfiguration(MCPConfiguration.SystemId, MCPConfigurationWarning) then begin
+        if not FindWarningsForConfiguration(MCPConfiguration.SystemId, TempMCPConfigurationWarning) then begin
             if not OnActivate then
                 Message(ConfigValidLbl);
             exit;
@@ -359,7 +359,7 @@ codeunit 8351 "MCP Config Implementation"
                 exit;
 
         MCPConfiguration.Active := false;
-        Page.Run(Page::"MCP Config Warning List", MCPConfigurationWarning);
+        Page.Run(Page::"MCP Config Warning List", TempMCPConfigurationWarning);
     end;
 
     internal procedure FindWarningsForConfiguration(ConfigId: Guid; var MCPConfigurationWarning: Record "MCP Config Warning"): Boolean
@@ -722,7 +722,7 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure LookupAPIVersions(PageId: Integer; var APIVersion: Text[30])
     var
         PageMetadata: Record "Page Metadata";
-        MCPAPIVersion: Record "MCP API Version";
+        TempMCPAPIVersion: Record "MCP API Version";
         Versions: List of [Text];
         Version: Text[30];
     begin
@@ -731,12 +731,12 @@ codeunit 8351 "MCP Config Implementation"
 
         Versions := PageMetadata.APIVersion.Split(',');
         foreach Version in Versions do begin
-            MCPAPIVersion."API Version" := Version;
-            MCPAPIVersion.Insert();
+            TempMCPAPIVersion."API Version" := Version;
+            TempMCPAPIVersion.Insert();
         end;
 
-        if Page.RunModal(Page::"MCP API Version Lookup", MCPAPIVersion) = Action::LookupOK then
-            APIVersion := MCPAPIVersion."API Version";
+        if Page.RunModal(Page::"MCP API Version Lookup", TempMCPAPIVersion) = Action::LookupOK then
+            APIVersion := TempMCPAPIVersion."API Version";
     end;
 
     internal procedure GetHighestAPIVersion(PageMetadata: Record "Page Metadata"): Text[30]
