@@ -27,6 +27,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if [ "${{ vars.DOCS_SKIP_DEDUP }}" = "true" ]; then
+            echo "Dedup check disabled via DOCS_SKIP_DEDUP variable."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           EXISTING=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
             --jq '[.[] | select(.body | startswith("AL Documentation Audit"))] | length' 2>/dev/null || echo "0")
           if [ "$EXISTING" != "0" ]; then
