@@ -162,6 +162,43 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
     end;
 
     [Test]
+    procedure UnitTestLogTooManyVariants()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        SkippedRecord: Record "Shpfy Skipped Record";
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempShopifyTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        i: Integer;
+    begin
+        // [SCENARIO] Log skipped record when item has more than 2048 variants
+        Initialize();
+
+        // [GIVEN] An item record with more than 2048 variants
+        CreateItem(Item);
+        for i := 1 to 2049 do begin
+            ItemVariant.Init();
+            ItemVariant."Item No." := Item."No.";
+            ItemVariant.Code := CopyStr(Format(i).PadLeft(10, '0'), 1, MaxStrLen(ItemVariant.Code));
+            ItemVariant.Insert(false);
+        end;
+
+        // [WHEN] Invoke Create Product
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempShopifyTag);
+
+        // [THEN] Related record is created in shopify skipped record table.
+        SkippedRecord.SetRange("Record ID", Item.RecordId);
+        LibraryAssert.IsTrue(SkippedRecord.FindFirst(), 'Skipped record is not created');
+        LibraryAssert.AreEqual('Item has more than 2048 variants. Shopify allows a maximum of 2048 variants per product.', SkippedRecord."Skipped Reason", 'Skipped reason is not as expected');
+
+        // [THEN] Temp product and variant records are cleaned up.
+        LibraryAssert.IsTrue(TempShopifyProduct.IsEmpty(), 'Temp product should be empty');
+        LibraryAssert.IsTrue(TempShopifyVariant.IsEmpty(), 'Temp variant should be empty');
+    end;
+
+    [Test]
     procedure UnitTestLogProductItemBlocked()
     var
 

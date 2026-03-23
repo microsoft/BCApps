@@ -125,6 +125,11 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         IsAgentTestType := Rec."Test Type" = Rec."Test Type"::Agent;
     end;
 
+    local procedure UpdateIsAgentTestType()
+    begin
+        IsAgentTestType := Rec."Test Type" = Rec."Test Type"::Agent;
+    end;
+
     local procedure UpdateAgentTaskMetrics()
     begin
         CopilotCredits := ConsumedCreditsVisible ? AgentTestContextImpl.GetCopilotCredits(Rec.Code, Rec.Version, '', 0) : -1;

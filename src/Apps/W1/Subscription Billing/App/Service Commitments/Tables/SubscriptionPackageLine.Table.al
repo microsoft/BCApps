@@ -308,4 +308,12 @@ table 8056 "Subscription Package Line"
         if (Format("Billing Base Period") <> '') and (Format("Billing Rhythm") <> '') then
             DateFormulaManagement.CheckIntegerRatioForDateFormulas("Billing Base Period", FieldCaption("Billing Base Period"), "Billing Rhythm", FieldCaption("Billing Rhythm"));
     end;
+
+    internal procedure GetInvoicingItemNo(Item: Record Item): Code[20]
+    begin
+        if Rec."Invoicing Item No." <> '' then
+            exit(Rec."Invoicing Item No.");
+        if Item.IsServiceCommitmentItem() then
+            exit(Item."No.");
+    end;
 }
