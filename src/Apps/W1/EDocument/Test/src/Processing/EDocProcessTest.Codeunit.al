@@ -594,7 +594,7 @@ codeunit 139883 "E-Doc Process Test"
         ErrorMessage: Record "Error Message";
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
-        FieldValue: Text;
+        FieldValue: Code[2048];
     begin
         // [SCENARIO] An additional field is configured, and the stored value exceeds the target field's maximum length.
         // When finalizing the draft, the system should report an error identifying the problematic field.
