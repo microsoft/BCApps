@@ -16,7 +16,7 @@ Generate, update, and audit hierarchical documentation for Business Central AL c
 /al-docs init                   # Bootstrap documentation for AL app or folder
 /al-docs init "path/to/app"     # Bootstrap docs for a specific path
 /al-docs update                 # Incrementally refresh docs based on changes
-/al-docs audit                  # Read-only gap and correctness analysis
+/al-docs audit                  # Read-only gap analysis without writing files
 ```
 
 ## Routing
@@ -99,4 +99,5 @@ During discovery, use the Microsoft Learn MCP tools (`microsoft_docs_search`, `m
 5. **Locality** -- document as locally as possible, getting more general going up the tree
 6. **No mechanical listings** -- never list fields, procedures, or AL objects that an LLM can read from code. Capture intent, relationships, gotchas, and design decisions.
 7. **Concise over comprehensive** -- shorter docs with real knowledge beat longer docs that list everything
-8. **Use Microsoft Docs MCP** -- query Microsoft Learn during discovery to understand feature intent, but always trust source code over docs when they conflict
+8. **Use Microsoft Docs MCP** (init mode) -- query Microsoft Learn during init discovery to understand feature intent, but always trust source code over docs when they conflict
+9. **Formatting** -- sentence case headers, no em dashes (use `--`), blank line before lists

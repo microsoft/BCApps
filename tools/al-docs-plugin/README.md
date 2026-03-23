@@ -17,7 +17,7 @@ AL codebase documentation generator that bootstraps, updates, and audits hierarc
 /al-docs init                   # Bootstrap documentation for AL app or folder
 /al-docs init "path/to/app"     # Bootstrap docs for a specific path
 /al-docs update                 # Incrementally refresh docs based on changes
-/al-docs audit                  # Read-only gap and correctness analysis
+/al-docs audit                  # Read-only gap analysis without writing files
 ```
 
 ## Modes
@@ -26,11 +26,10 @@ AL codebase documentation generator that bootstraps, updates, and audits hierarc
 
 Bootstraps a complete documentation hierarchy through five phases:
 
-1. **Discovery** -- launches 4 parallel sub-agents to analyze the AL codebase:
+1. **Discovery** -- launches 3 parallel sub-agents to analyze the AL codebase:
    - Agent 1: app structure, `app.json` metadata, object inventory by type and subfolder
    - Agent 2: data model -- tables, relationships, enums, keys, conceptual model
    - Agent 3: business logic, patterns, event architecture, subfolder scoring
-   - Agent 4: Microsoft Learn documentation research for feature context
 2. **Documentation map** -- presents every file to create for user approval
 3. **Exit plan mode** -- unlocks write access
 4. **Generation** -- parallel sub-agents write docs grouped by scope
@@ -42,18 +41,17 @@ Incrementally refreshes docs based on git changes:
 
 1. **Detect changes** -- determines baseline and gets changed `.al` files
 2. **Map changes** -- maps AL object types to affected doc files (table changes -> data-model.md, codeunit changes -> business-logic.md, etc.)
-3. **Targeted regeneration + correctness verification** -- presents update plan for approval, then updates affected docs. Also verifies that adjacent sections in touched docs still match the code.
-4. **Staleness report** -- summarizes changes, correctness fixes applied, and flags potentially stale sections
+3. **Targeted regeneration** -- presents update plan for approval, then updates affected docs only
+4. **Staleness report** -- summarizes changes and flags potentially stale sections
 
 ### 3. Audit (`/al-docs audit`)
 
-Read-only gap and correctness analysis:
+Read-only gap analysis:
 
 - Launches 3 parallel subagents to inventory objects, existing docs, and score subfolders
 - Compares expected documentation against what exists
-- Verifies existing docs are accurate by checking claims against current AL source code
-- Reports coverage percentage, missing files, correctness drift, and non-standard patterns
-- Provides prioritized recommendations (incorrect docs prioritized over missing docs)
+- Reports coverage percentage, missing files, and non-standard patterns
+- Provides prioritized recommendations
 
 ## Generated doc types
 
@@ -61,8 +59,7 @@ Read-only gap and correctness analysis:
 |------|---------|
 | `CLAUDE.md` | Orientation: app purpose, dependencies, structure, key objects |
 | `data-model.md` | What the app models, table relationships, key fields, enums |
-| `business-logic.md` | Codeunits, processing flows, event pub/sub, integration points |
-| `extensibility.md` | Extension points, events, interfaces -- how to customize without modifying core code |
+| `business-logic.md` | Processing flows, decision points, error handling, key operations |
 | `patterns.md` | Locally applied patterns (IsHandled, TryFunction, etc.) |
 
 ## Documentation levels
@@ -75,7 +72,7 @@ Read-only gap and correctness analysis:
 
 ## Subfolder scoring
 
-Subfolders are scored based on AL object count, table count, codeunit count, event presence, and extension objects:
+Subfolders are scored 0-10 based on AL object count, table count, codeunit count, event presence, and extension objects:
 
 - **MUST_DOCUMENT (7+)**: CLAUDE.md plus at least one additional file
 - **SHOULD_DOCUMENT (4-6)**: CLAUDE.md only
@@ -93,7 +90,5 @@ al-docs-plugin/
         ├── SKILL.md              # Router -- dispatches to the correct mode
         ├── al-docs-init.md       # Mode 1: full bootstrap
         ├── al-docs-update.md     # Mode 2: incremental update
-        ├── al-docs-audit.md      # Mode 3: read-only audit
-        └── references/
-            └── al-scoring.md     # AL object types, subfolder scoring, change-to-doc mapping
+        └── al-docs-audit.md      # Mode 3: read-only audit
 ```

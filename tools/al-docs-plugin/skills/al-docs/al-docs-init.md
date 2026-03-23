@@ -38,7 +38,7 @@ Phase 5: Cross-referencing (final pass)
 
 ## Phase 1: Discovery
 
-Launch **4 agents in parallel** using the Task tool to analyze the AL codebase. Send all Task tool calls in a single message. Agents 1-3 are Explore agents (read-only codebase analysis). Agent 4 is a general-purpose agent that queries Microsoft Learn via the MCP tools.
+Launch **4 agents in parallel** using the Agent tool to analyze the AL codebase. Send all Agent tool calls in a single message. Agents 1-3 are Explore agents (read-only codebase analysis). Agent 4 is a general-purpose agent that queries Microsoft Learn via the MCP tools.
 
 ### Agent 1: App structure and metadata
 
@@ -75,6 +75,23 @@ Prompt the agent to:
 
 **Important**: Do NOT catalog field names and types. An LLM reads those from the source. Focus on relationships, intent, design decisions, and non-obvious behavior.
 
+### Agent 3: Business logic, extensibility, patterns, and module scoring
+
+Prompt the agent to:
+
+1. **Understand the key business processes** by reading codeunit objects. Focus on:
+   - What are the main operations this app performs? (e.g., sync, import, export, post)
+   - What triggers each operation? (user action, schedule, event)
+   - What are the key decision points? (when does it create vs update vs skip?)
+   - What can go wrong and how are errors handled?
+2. **Map processing flows** -- follow the call chain for key operations. Focus on the narrative: what happens, why, and what's non-obvious. Don't just list procedure names.
+3. **Catalog extension points** -- find all `[IntegrationEvent]`, `[BusinessEvent]`, `[EventSubscriber]` attributes and interface implementations. Group them by what a developer would want to customize, not by codeunit. Identify which events are genuinely useful vs. which are just plumbing.
+4. **Identify patterns worth documenting** -- only patterns that are non-obvious or used in interesting ways in this specific codebase. Skip standard AL patterns that any developer already knows.
+5. **Flag legacy patterns** -- identify patterns that exist in the codebase (often for historical reasons) but should NOT be followed in new code. Examples: direct SQL access, hardcoded IDs, global variables where a parameter would suffice, overly large codeunits that should be refactored, deprecated APIs still in use. These will be documented in the "Legacy patterns" section of patterns.md as guidance for future developers.
+6. **Score all subfolders recursively at any depth** for documentation need using the scoring criteria in `skills/al-docs/references/al-scoring.md`. Read that file for the full scoring table. A subfolder can have subfolders that are big enough to need their own documentation. Classify each subfolder as MUST_DOCUMENT (7+), SHOULD_DOCUMENT (4-6), or OPTIONAL (1-3)
+
+**Important**: Do NOT create inventories of every codeunit with its procedures. Focus on understanding the flows, decision points, and gotchas. The docs should capture knowledge a developer would only learn after spending time in the code.
+
 ### Agent 4: Microsoft Learn documentation research
 
 Use the Microsoft Learn MCP tools to research the feature area being documented. This agent provides external context that enriches the generated documentation.
@@ -96,23 +113,6 @@ Prompt the agent to:
 5. **Flag potential discrepancies** -- note anything the docs describe that might differ from the code (these will be verified against source code later)
 
 **Important**: Microsoft docs may be outdated or describe planned behavior that differs from the actual implementation. **Source code is always the source of truth.** This agent provides context and intent -- the other agents provide the ground truth from code. When conflicts arise during generation, document what the code does, not what the docs say.
-
-### Agent 3: Business logic, extensibility, patterns, and module scoring
-
-Prompt the agent to:
-
-1. **Understand the key business processes** by reading codeunit objects. Focus on:
-   - What are the main operations this app performs? (e.g., sync, import, export, post)
-   - What triggers each operation? (user action, schedule, event)
-   - What are the key decision points? (when does it create vs update vs skip?)
-   - What can go wrong and how are errors handled?
-2. **Map processing flows** -- follow the call chain for key operations. Focus on the narrative: what happens, why, and what's non-obvious. Don't just list procedure names.
-3. **Catalog extension points** -- find all `[IntegrationEvent]`, `[BusinessEvent]`, `[EventSubscriber]` attributes and interface implementations. Group them by what a developer would want to customize, not by codeunit. Identify which events are genuinely useful vs. which are just plumbing.
-4. **Identify patterns worth documenting** -- only patterns that are non-obvious or used in interesting ways in this specific codebase. Skip standard AL patterns that any developer already knows.
-5. **Flag legacy patterns** -- identify patterns that exist in the codebase (often for historical reasons) but should NOT be followed in new code. Examples: direct SQL access, hardcoded IDs, global variables where a parameter would suffice, overly large codeunits that should be refactored, deprecated APIs still in use. These will be documented in the "Legacy patterns" section of patterns.md as guidance for future developers.
-6. **Score all subfolders recursively at any depth** for documentation need using the scoring criteria in `skills/al-docs/references/al-scoring.md`. Read that file for the full scoring table. A subfolder can have subfolders that are big enough to need their own documentation. Classify each subfolder as MUST_DOCUMENT (7+), SHOULD_DOCUMENT (4-6), or OPTIONAL (1-3)
-
-**Important**: Do NOT create inventories of every codeunit with its procedures. Focus on understanding the flows, decision points, and gotchas. The docs should capture knowledge a developer would only learn after spending time in the code.
 
 ---
 
@@ -605,6 +605,13 @@ After all generation agents complete, do a final pass:
 2. **Add cross-level references** -- app-level docs should reference subfolder docs for details; subfolder docs should reference app-level docs for context
 3. **Check for orphans** -- no references to files that don't exist
 4. **Verify doc consistency** -- table names and codeunit names should be consistent across all docs
+5. **Write `.docs-updated` marker** in the target root so `/al-docs update` knows the baseline:
+   ```
+   # Documentation last updated
+   commit: [current HEAD commit hash]
+   date: [current date]
+   scope: full
+   ```
 
 ---
 
