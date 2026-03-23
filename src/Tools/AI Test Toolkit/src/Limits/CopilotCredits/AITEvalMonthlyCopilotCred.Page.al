@@ -23,7 +23,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         {
             label(EnforcementExplanation)
             {
-                Caption = 'Credit limits control when new evals can be started. Once the limit is reached, no new evals can start, but any eval already in progress is allowed to finish. Actual consumption may slightly exceed the configured limit.';
+                Caption = 'Credit limits control when new AI evaluations can be started. Once the limit is reached, new evaluations cannot be started, but evaluations already in progress are allowed to finish.';
                 Style = Subordinate;
             }
             group(CreditLimitSetup)
@@ -171,7 +171,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
     }
 
     var
-        AITCreditLimitSetup: Record "AIT Credit Limit Setup";
+        AITEvalMonthlyCopilotCreditLimits: Record "AIT Eval Monthly Copilot Cred.";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         MonthlyCreditLimit: Decimal;
         EnforcementEnabled: Boolean;
@@ -199,18 +199,18 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
     local procedure LoadCreditLimitSetup()
     begin
-        AITCreditLimitSetup.GetOrCreate();
-        MonthlyCreditLimit := AITCreditLimitSetup."Monthly Credit Limit";
-        EnforcementEnabled := AITCreditLimitSetup."Enforcement Enabled";
-        CurrentPeriod := Format(AITCreditLimitSetup.GetPeriodStartDate()) + ' - ' + Format(AITCreditLimitSetup.GetPeriodEndDate());
+        AITEvalMonthlyCopilotCreditLimits.GetOrCreate();
+        MonthlyCreditLimit := AITEvalMonthlyCopilotCreditLimits."Monthly Credit Limit";
+        EnforcementEnabled := AITEvalMonthlyCopilotCreditLimits."Enforcement Enabled";
+        CurrentPeriod := Format(AITEvalMonthlyCopilotCreditLimits.GetPeriodStartDate()) + ' - ' + Format(AITEvalMonthlyCopilotCreditLimits.GetPeriodEndDate());
     end;
 
     local procedure SaveCreditLimitSetup()
     begin
-        AITCreditLimitSetup.GetOrCreate();
-        AITCreditLimitSetup."Monthly Credit Limit" := MonthlyCreditLimit;
-        AITCreditLimitSetup."Enforcement Enabled" := EnforcementEnabled;
-        AITCreditLimitSetup.Modify();
+        AITEvalMonthlyCopilotCreditLimits.GetOrCreate();
+        AITEvalMonthlyCopilotCreditLimits."Monthly Credit Limit" := MonthlyCreditLimit;
+        AITEvalMonthlyCopilotCreditLimits."Enforcement Enabled" := EnforcementEnabled;
+        AITEvalMonthlyCopilotCreditLimits.Modify();
     end;
 
     local procedure UpdateComputedFields()
@@ -230,16 +230,12 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         if CreditsAvailable < 0 then
             CreditsAvailable := 0;
 
-        // Set style based on percentage of credits remaining
-        // Unfavorable: >= 100% used (0% remaining)
-        // Attention: 80-99% used (1-20% remaining)
-        // Favorable: < 80% used (>20% remaining)
         if UsagePercent >= 100 then
-            CreditsAvailableStyle := 'Unfavorable'
+            CreditsAvailableStyle := Format(PageStyle::Unfavorable)
         else if UsagePercent >= 80 then
-            CreditsAvailableStyle := 'Attention'
+            CreditsAvailableStyle := Format(PageStyle::Attention)
         else
-            CreditsAvailableStyle := 'Favorable';
+            CreditsAvailableStyle := Format(PageStyle::Favorable);
     end;
 
     local procedure GetTotalCreditsConsumedThisMonth(): Decimal
@@ -265,7 +261,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
     begin
         // Get credits consumed for this suite in the current month
         // We filter by all versions since the start of the month
-        exit(AgentTestContextImpl.GetCopilotCreditsForPeriod(TestSuiteCode, AITCreditLimitSetup.GetPeriodStartDate()));
+        exit(AgentTestContextImpl.GetCopilotCreditsForPeriod(TestSuiteCode, AITEvalMonthlyCopilotCreditLimits.GetPeriodStartDate()));
     end;
 
     local procedure BuildSuitesWithCreditsList()

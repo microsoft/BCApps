@@ -5,9 +5,9 @@
 
 namespace System.TestTools.AITestToolkit;
 
-table 149040 "AIT Credit Limit Setup" // TODO(qutreson) Rename.
+table 149040 "AIT Eval Monthly Copilot Cred."
 {
-    Caption = 'AI Eval Credit Limit Setup';
+    Caption = 'AI Eval Monthly Copilot Credit Limits';
     DataClassification = SystemMetadata;
     Access = Internal;
     ReplicateData = false;
@@ -22,64 +22,44 @@ table 149040 "AIT Credit Limit Setup" // TODO(qutreson) Rename.
             Caption = 'Primary Key';
             ToolTip = 'Specifies the primary key.';
         }
-        field(10; "Monthly Credit Limit"; Decimal)
+        field(2; "Monthly Credit Limit"; Decimal)
         {
             Caption = 'Monthly Credit Limit';
             ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed by agent test suites during the current month.';
             MinValue = 0;
             DecimalPlaces = 2 : 5;
         }
-        field(11; "Enforcement Enabled"; Boolean)
+        field(3; "Enforcement Enabled"; Boolean)
         {
             Caption = 'Enforcement Enabled';
             ToolTip = 'Specifies whether the credit limit enforcement is enabled. When disabled, suites can consume unlimited credits.';
             InitValue = true;
         }
-        field(12; "Period Start Date"; Date)
-        {
-            Caption = 'Period Start Date';
-            ToolTip = 'Specifies the start date of the current tracking period.';
-            Editable = false;
-        }
     }
 
     keys
     {
-        key(Key1; "Primary Key")
+        key(PK; "Primary Key")
         {
             Clustered = true;
         }
     }
 
-    procedure GetOrCreate(): Boolean
-    var
-        IsNew: Boolean;
+    procedure GetOrCreate()
     begin
-        if not Get() then begin
-            Init();
-            "Primary Key" := '';
-            "Period Start Date" := CalcDate('<-CM>', Today());
-            Insert();
-            IsNew := true;
+        if not Rec.Get() then begin
+            Rec."Primary Key" := '';
+            Rec.Insert();
         end;
-
-        // Auto-reset period on month change
-        if "Period Start Date" < CalcDate('<-CM>', Today()) then begin
-            "Period Start Date" := CalcDate('<-CM>', Today());
-            Modify();
-        end;
-
-        exit(IsNew);
     end;
 
     procedure GetPeriodStartDate(): Date
     begin
-        GetOrCreate();
-        exit("Period Start Date");
+        exit(CalcDate('<-CM>', Today()));
     end;
 
     procedure GetPeriodEndDate(): Date
     begin
-        exit(CalcDate('<CM>', GetPeriodStartDate()));
+        exit(CalcDate('<CM>', Today()));
     end;
 }

@@ -21,25 +21,24 @@ codeunit 149031 "AIT Upgrade"
 
     procedure SetupDefaultCreditLimit()
     var
-        AITCreditLimitSetup: Record "AIT Credit Limit Setup";
+        AITEvalMonthlyCopilotCreditsLimit: Record "AIT Eval Monthly Copilot Cred.";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if UpgradeTag.HasDatabaseUpgradeTag(GetDefaultCreditLimitUpgradeTag()) then
             exit;
 
         // If the table already has data, just set the upgrade tag.
-        if not AITCreditLimitSetup.IsEmpty() then begin
+        if not AITEvalMonthlyCopilotCreditsLimit.IsEmpty() then begin
             UpgradeTag.SetDatabaseUpgradeTag(GetDefaultCreditLimitUpgradeTag());
             exit;
         end;
 
         // Insert default credit limit setup.
-        AITCreditLimitSetup.Init();
-        AITCreditLimitSetup."Primary Key" := '';
-        AITCreditLimitSetup."Monthly Credit Limit" := 200;
-        AITCreditLimitSetup."Enforcement Enabled" := true;
-        AITCreditLimitSetup."Period Start Date" := CalcDate('<-CM>', Today());
-        AITCreditLimitSetup.Insert();
+        AITEvalMonthlyCopilotCreditsLimit.Init();
+        AITEvalMonthlyCopilotCreditsLimit."Primary Key" := '';
+        AITEvalMonthlyCopilotCreditsLimit."Monthly Credit Limit" := 200;
+        AITEvalMonthlyCopilotCreditsLimit."Enforcement Enabled" := true;
+        AITEvalMonthlyCopilotCreditsLimit.Insert();
 
         UpgradeTag.SetDatabaseUpgradeTag(GetDefaultCreditLimitUpgradeTag());
     end;

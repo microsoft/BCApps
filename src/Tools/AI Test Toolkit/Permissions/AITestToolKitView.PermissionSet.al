@@ -12,7 +12,7 @@ permissionset 149034 "AI Test Toolkit - View"
 
     IncludedPermissionSets = "AI Test Toolkit - Read";
 
-    Permissions = tabledata "AIT Credit Limit Setup" = IMD,
+    Permissions = tabledata "AIT Eval Monthly Copilot Cred." = IMD,
         tabledata "AIT Run History" = IMD,
         tabledata "AIT Test Suite" = IMD,
         tabledata "AIT Test Suite Language" = IMD,

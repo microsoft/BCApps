@@ -10,7 +10,7 @@ permissionset 149031 "AI Test Toolkit - Obj"
     Assignable = false;
     Access = Public;
 
-    Permissions = table "AIT Credit Limit Setup" = X,
+    Permissions = table "AIT Eval Monthly Copilot Cred." = X,
         table "AIT Run History" = X,
         table "AIT Test Suite" = X,
         table "AIT Test Method Line" = X,
