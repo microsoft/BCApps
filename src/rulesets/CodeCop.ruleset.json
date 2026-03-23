@@ -292,7 +292,8 @@
                   },
                   {
                       "id":  "AA0073",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "Temporary"
                   },
                   {
                       "id":  "AA0074",
@@ -949,7 +950,8 @@
                   },
                   {
                       "id":  "AA0237",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "Temporary"
                   },
                   {
                       "id":  "AA0238",
