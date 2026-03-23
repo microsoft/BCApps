@@ -531,6 +531,10 @@ page 30101 "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                 }
+                field(UseShopifyOrderNo; Rec."Use Shopify Order No.")
+                {
+                    ApplicationArea = All;
+                }
                 field(ArchiveProcessOrders; Rec."Archive Processed Orders")
                 {
                     ApplicationArea = All;
@@ -575,6 +579,10 @@ page 30101 "Shpfy Shop Card"
                         ApplicationArea = All;
                         Caption = 'Return Location Priority';
                         ToolTip = 'Specifies the priority of the return location.';
+                    }
+                    field("Process Returns As"; Rec."Process Returns As")
+                    {
+                        ApplicationArea = All;
                     }
                     field("Location Code of Returns"; Rec."Return Location")
                     {

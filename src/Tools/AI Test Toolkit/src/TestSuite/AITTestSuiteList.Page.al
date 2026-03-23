@@ -31,6 +31,9 @@ page 149040 "AIT Test Suite List"
                 field(Description; Rec.Description)
                 {
                 }
+                field(TestType; Rec."Test Type")
+                {
+                }
                 field("Copilot Capability"; CopilotCapabilityText)
                 {
                     Caption = 'Capability';
