@@ -134,8 +134,6 @@ pageextension 8018 "Sales Mkt. Mgr. RC SubBill" extends "Sales & Marketing Manag
                 group(SubBillingPowerBIReports)
                 {
                     Caption = 'Power BI Reports';
-                    Image = AnalysisView;
-                    ToolTip = 'Power BI reports for subscription billing';
                     action("SubBill Report (Power BI)")
                     {
                         ApplicationArea = Basic, Suite;
