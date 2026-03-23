@@ -10,6 +10,7 @@ page 8103 "Revenue Analysis Power BI"
     Caption = 'Revenue Analysis';
     AboutTitle = 'About Revenue Analysis';
     AboutText = 'The Revenue Analysis report breaks down Monthly Recurring Revenue by various dimension such as billing rhythm, contract type or customer.';
+    ToolTip = 'View Monthly Recurring Revenue by various dimensions such as billing rhythm, contract type, or customer.';
 
     layout
     {

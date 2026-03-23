@@ -14,6 +14,7 @@ page 37004 "Sales by Item"
     Caption = 'Sales by Item';
     AboutTitle = 'About Sales by Item';
     AboutText = 'The Sales by Item report breaks down sales performance by item category, highlighting metrics such as Sales Amount, Gross Profit Margin, and Gross Profit as a Percent of the Grand Total. This report provides detailed insights into which categories and items are driving revenue and profitability.';
+    ToolTip = 'View sales performance by item category, including Sales Amount, Gross Profit Margin, and Gross Profit as a Percent of the Grand Total.';
 
     layout
     {

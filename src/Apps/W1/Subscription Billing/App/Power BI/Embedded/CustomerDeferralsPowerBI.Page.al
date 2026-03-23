@@ -10,6 +10,7 @@ page 8112 "Customer Deferrals Power BI"
     Caption = 'Customer Deferrals';
     AboutTitle = 'About Customer Deferrals';
     AboutText = 'The Customer Deferrals report provides an overview of deferred vs. released subscription sales amount.';
+    ToolTip = 'View an overview of deferred vs. released subscription sales amount.';
 
     layout
     {

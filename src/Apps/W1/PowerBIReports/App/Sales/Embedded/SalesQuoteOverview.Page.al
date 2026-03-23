@@ -14,6 +14,7 @@ page 37104 "Sales Quote Overview"
     Caption = 'Sales Quote Overview';
     AboutTitle = 'About Sales Quote Overview';
     AboutText = 'The Sales Quote Overview provides detailed information on sales quotes, including the number of quotes, total value, profit rates, and sales quote amount over time.';
+    ToolTip = 'View sales quote details, including the number of quotes, total value, profit rates, and sales quote amount over time.';
 
     layout
     {

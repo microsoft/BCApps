@@ -9,6 +9,7 @@ page 8007 "Overdue Service Commitments"
     UsageCategory = None;
     SourceTableTemporary = true;
     ApplicationArea = All;
+    ToolTip = 'View overdue subscription lines that need attention.';
 
     layout
     {

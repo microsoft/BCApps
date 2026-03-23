@@ -10,6 +10,7 @@ page 8098 "Churn Analysis Power BI"
     Caption = 'Churn Analysis';
     AboutTitle = 'About Churn Analysis';
     AboutText = 'The Churn Analysis report breaks down churn by various dimensions such as contract term, contract type or product.';
+    ToolTip = 'View churn by various dimensions such as contract term, contract type, or product.';
 
     layout
     {

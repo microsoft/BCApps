@@ -14,6 +14,7 @@ page 8051 "Service Contract Setup"
     AdditionalSearchTerms = 'Subscription Setup, Contract Setup, Billing Setup, Number Series, Contract Configuration, Invoice Details, Subscription Settings';
     AboutTitle = 'About Subscription Contract Setup';
     AboutText = 'Find the general setup options for Subscription Billing in this setup page. In addition to the information on number series and dimensions, the invoice details also provide options for customizing the content of the contract invoices.';
+    ToolTip = 'View or edit Subscription Contract Setup.';
 
     layout
     {

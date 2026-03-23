@@ -14,6 +14,7 @@ page 37000 "Sales Moving Average"
     Caption = 'Sales Moving Average';
     AboutTitle = 'About Sales Moving Average';
     AboutText = 'The Sales Moving Average report visualizes the 30-day moving average of sales amounts over time. This helps identify trends by smoothing out fluctuations and highlighting overall patterns.';
+    ToolTip = 'View the 30-day moving average of sales amounts over time to identify trends by smoothing out fluctuations and highlighting overall patterns.';
 
     layout
     {

@@ -14,6 +14,7 @@ page 37006 "Sales by Salesperson"
     Caption = 'Sales by Salesperson';
     AboutTitle = 'About Sales by Salesperson';
     AboutText = 'The Sales by Salesperson report breaks down salesperson performance by customer and item. Highlighting metrics such as Sales Amount, Sales Quantity, Gross Profit and Gross Profit Margin.';
+    ToolTip = 'View salesperson performance by customer and item, including Sales Amount, Sales Quantity, Gross Profit, and Gross Profit Margin.';
 
     layout
     {

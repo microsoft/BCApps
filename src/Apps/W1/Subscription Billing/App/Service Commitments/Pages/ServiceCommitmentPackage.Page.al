@@ -10,6 +10,7 @@ page 8056 "Service Commitment Package"
     AdditionalSearchTerms = 'Subscription Package, Package Details, Package Lines, Subscription Template, Commitment Package, Package Setup';
     AboutTitle = 'About Subscription Package details';
     AboutText = 'Subscription elements are grouped together in the form of package lines so that they can be used.';
+    ToolTip = 'View or edit Subscription Package details and lines.';
 
     layout
     {

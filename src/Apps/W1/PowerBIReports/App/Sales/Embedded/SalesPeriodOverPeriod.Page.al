@@ -14,6 +14,7 @@ page 37002 "Sales Period-Over-Period"
     Caption = 'Sales Period-Over-Period';
     AboutTitle = 'About Sales Period-Over-Period';
     AboutText = 'The Sales Period Over Period report compares sales performance across different periods, such as month-over-month or year-over-year.';
+    ToolTip = 'Compare sales performance across different periods, such as month-over-month or year-over-year.';
 
     layout
     {

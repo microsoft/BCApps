@@ -10,6 +10,7 @@ page 8099 "Contract Val Analysis Power BI"
     Caption = 'Total Contract Value Analysis';
     AboutTitle = 'About Total Contract Value Analysis';
     AboutText = 'The Total Contract Value Analysis report breaks down Total Contract Value by various dimension such as billing rhythm, contract type or customer.';
+    ToolTip = 'View Total Contract Value by various dimensions such as billing rhythm, contract type, or customer.';
 
     layout
     {

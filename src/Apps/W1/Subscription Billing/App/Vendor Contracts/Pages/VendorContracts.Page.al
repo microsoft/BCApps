@@ -14,6 +14,7 @@ page 8071 "Vendor Contracts"
     RefreshOnActivate = true;
     SourceTable = "Vendor Subscription Contract";
     UsageCategory = Lists;
+    ToolTip = 'Detailed information on Vendor Subscription Contracts that include recurring subscriptions. A Vendor Subscription Contract is used to calculate these Subscription Lines based on the parameters specified in the Subscription Lines. The Subscription Lines are presented in detail and can be edited. In addition, commercial information can be stored in a Contract.';
     AdditionalSearchTerms = 'Vendor Contracts, Subscription Contracts, Contract List, Purchase Contracts, Vendor Subscriptions, Contract Overview';
     AboutTitle = 'About Vendor Subscription Contracts';
     AboutText = 'Use vendor subscription contracts to combine subscriptions you are receiving invoices for.';
