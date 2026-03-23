@@ -8,25 +8,27 @@ namespace System.TestTools.AITestToolkit;
 codeunit 149041 "AIT Eval No Limit" implements "AIT Eval Limit Provider"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
+    /// <inheritdoc />
     procedure CheckBeforeRun(AITTestSuite: Record "AIT Test Suite")
     begin
     end;
 
+    /// <inheritdoc />
     procedure IsLimitReached(): Boolean
     begin
         exit(false);
     end;
 
-    procedure HandleLimitReached(var AITTestSuite: Record "AIT Test Suite")
-    begin
-    end;
-
+    /// <inheritdoc />
     procedure ShowNotifications()
     begin
     end;
 
-    procedure OpenSetupPage()
+    /// <inheritdoc />
+    procedure OpenConfigurationPage()
     begin
     end;
 }

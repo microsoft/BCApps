@@ -59,15 +59,14 @@ codeunit 149042 "AIT Test Run Iteration"
 
     local procedure RunAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
     var
-        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
     begin
         AITEvalLimitProvider := GlobalAITTestSuite."Test Type";
 
         OnBeforeRunIteration(AITTestSuite, AITTestMethodLine, RunAllTests, UpdateTestSuite);
         RunIteration(AITTestMethodLine);
 
-        // After tests complete, check if credit limit was reached and update line status
         if AITEvalLimitProvider.IsLimitReached() then
             SetLineStatusToSkipped();
 

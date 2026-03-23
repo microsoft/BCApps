@@ -69,7 +69,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         FeatureTelemetry: Codeunit "Feature Telemetry";
         AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
         FeatureTelemetryCD: Dictionary of [Text, Text];
-        CreditLimitReached: Boolean;
+        LimitReached: Boolean;
     begin
         ValidateAITestSuite(AITTestSuite);
         AITTestSuite.RunID := CreateGuid();
@@ -96,18 +96,16 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
 
         AITEvalLimitProvider := AITTestSuite."Test Type";
-        CreditLimitReached := false;
+        LimitReached := false;
 
         if AITTestMethodLine.FindSet() then
             repeat
-                if AITEvalLimitProvider.IsLimitReached() then
-                    CreditLimitReached := true;
-
-                if CreditLimitReached then begin
-                    AITEvalLimitProvider.HandleLimitReached(AITTestSuite);
+                if AITEvalLimitProvider.IsLimitReached() then begin
+                    HandleLimitReached(AITTestSuite);
+                    LimitReached := true;
                 end else
                     RunAITestLine(AITTestMethodLine, true);
-            until (AITTestMethodLine.Next() = 0) or CreditLimitReached;
+            until (AITTestMethodLine.Next() = 0) or LimitReached;
 
         LogRunHistory(AITTestSuite.Code, AITTestSuite.Version, AITTestSuite.Tag);
     end;
@@ -289,6 +287,17 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestSuite."No. of Tests Running" := 0;
         AITTestSuite."Ended at" := CurrentDateTime();
         AITTestSuite.Modify(true);
+    end;
+
+    local procedure HandleLimitReached(var AITTestSuite: Record "AIT Test Suite")
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+    begin
+        SetRunStatus(AITTestSuite, AITTestSuite.Status::LimitReached);
+
+        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
+        AITTestMethodLine.SetFilter(Status, '%1|%2|%3', AITTestMethodLine.Status::" ", AITTestMethodLine.Status::Starting, AITTestMethodLine.Status::Running);
+        AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Skipped, true);
     end;
 
     internal procedure SetRunStatus(var AITTestSuite: Record "AIT Test Suite"; AITTestSuiteStatus: Enum "AIT Test Suite Status")

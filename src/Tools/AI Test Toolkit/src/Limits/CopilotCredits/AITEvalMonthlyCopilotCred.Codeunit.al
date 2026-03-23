@@ -9,15 +9,16 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
 {
     Access = Internal;
 
+    /// <inheritdoc />
     procedure CheckBeforeRun(AITTestSuite: Record "AIT Test Suite")
     var
         TotalCreditsConsumed, MonthlyCreditLimit : Decimal;
     begin
-        if IsLimitReached(TotalCreditsConsumed, MonthlyCreditLimit) then begin
+        if IsLimitReached(TotalCreditsConsumed, MonthlyCreditLimit) then
             Error(GlobalCreditLimitExceededErr, MonthlyCreditLimit, TotalCreditsConsumed);
-        end;
     end;
 
+    /// <inheritdoc />
     procedure IsLimitReached(): Boolean
     var
         TotalCreditsConsumed, MonthlyCreditLimit : Decimal;
@@ -25,18 +26,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         exit(IsLimitReached(TotalCreditsConsumed, MonthlyCreditLimit));
     end;
 
-    procedure HandleLimitReached(var AITTestSuite: Record "AIT Test Suite")
-    var
-        AITTestMethodLine: Record "AIT Test Method Line";
-        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-    begin
-        AITTestSuiteMgt.SetRunStatus(AITTestSuite, AITTestSuite.Status::CreditLimitReached);
-
-        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
-        AITTestMethodLine.SetFilter(Status, '%1|%2|%3', AITTestMethodLine.Status::" ", AITTestMethodLine.Status::Starting, AITTestMethodLine.Status::Running);
-        AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Skipped, true);
-    end;
-
+    /// <inheritdoc />
     procedure ShowNotifications()
     begin
         if not IsEnforcementEnabled() then
@@ -45,7 +35,8 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
             ShowNotificationsWhenEnforcementEnabled();
     end;
 
-    procedure OpenSetupPage()
+    /// <inheritdoc />
+    procedure OpenConfigurationPage()
     begin
         Page.Run(Page::"AIT Eval Monthly Copilot Cred.");
     end;
@@ -64,7 +55,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
             exit(false);
 
         MonthlyCreditLimit := AITEvalMonthlyCopilotCreditsLimit."Monthly Credit Limit";
-        CopilotCreditConsumed := AgentTestContextImpl.GetTotalCreditsConsumedThisMonth(AITEvalMonthlyCopilotCreditsLimit.GetPeriodStartDate());
+        CopilotCreditConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITEvalMonthlyCopilotCreditsLimit.GetPeriodStartDate());
         exit(CopilotCreditConsumed >= AITEvalMonthlyCopilotCreditsLimit."Monthly Credit Limit");
     end;
 
@@ -94,7 +85,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
         EnforcementDisabledNotification.Message := EnforcementDisabledMsg;
         EnforcementDisabledNotification.Scope := NotificationScope::LocalScope;
-        EnforcementDisabledNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenSetupPage');
+        EnforcementDisabledNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenConfigurationPage');
         EnforcementDisabledNotification.Send();
 
         // Recall limit/warning notifications since enforcement is off
@@ -124,7 +115,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
             // Show credit limit notification when limit is reached
             CreditLimitNotification.Message := CreditLimitReachedMsg;
             CreditLimitNotification.Scope := NotificationScope::LocalScope;
-            CreditLimitNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenSetupPage');
+            CreditLimitNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenConfigurationPage');
             CreditLimitNotification.Send();
 
             // Recall warning notification if limit is exceeded
@@ -140,7 +131,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
             // Show warning notification when approaching credit limit
             CreditWarningNotification.Message := StrSubstNo(CreditWarningMsg, UsagePercentage);
             CreditWarningNotification.Scope := NotificationScope::LocalScope;
-            CreditWarningNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenSetupPage');
+            CreditWarningNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenConfigurationPage');
             CreditWarningNotification.Send();
             exit;
         end;
@@ -164,9 +155,9 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         exit('b2acb24d-dbc8-4bda-99c9-8bed0d470fd8');
     end;
 
-    procedure OpenSetupPage(Notification: Notification)
+    procedure OpenConfigurationPage(Notification: Notification)
     begin
-        OpenSetupPage()
+        OpenConfigurationPage()
     end;
 
     var

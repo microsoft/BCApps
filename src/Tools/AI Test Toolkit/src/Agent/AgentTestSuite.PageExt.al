@@ -93,7 +93,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
                     AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
                 begin
                     AITEvalLimitProvider := Rec."Test Type";
-                    AITEvalLimitProvider.OpenSetupPage();
+                    AITEvalLimitProvider.OpenConfigurationPage();
                 end;
             }
         }
@@ -118,11 +118,6 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         UpdateAgentTaskMetrics();
         UpdateAgentUserName();
         ShowNotifications();
-    end;
-
-    local procedure UpdateIsAgentTestType()
-    begin
-        IsAgentTestType := Rec."Test Type" = Rec."Test Type"::Agent;
     end;
 
     local procedure UpdateIsAgentTestType()

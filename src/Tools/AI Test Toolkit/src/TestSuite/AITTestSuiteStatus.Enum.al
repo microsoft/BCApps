@@ -45,11 +45,11 @@ enum 149030 "AIT Test Suite Status"
     }
 
     /// <summary>
-    /// Specifies that the AI Eval Suite state is Credit Limit Reached.
-    /// The suite stopped queuing new agent tasks because the credit limit was reached.
+    /// Specifies that the AI Eval Suite state is Limit Reached.
+    /// The suite stopped because an execution limit was reached.
     /// </summary>
-    value(50; CreditLimitReached)
+    value(50; LimitReached)
     {
-        Caption = 'Credit Limit Reached';
+        Caption = 'Limit Reached';
     }
 }

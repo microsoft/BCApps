@@ -257,16 +257,20 @@ codeunit 149049 "Agent Test Context Impl."
         exit(TotalCredits);
     end;
 
-    procedure GetTotalCreditsConsumedThisMonth(PeriodStartDate: Date): Decimal
+    procedure GetCopilotCreditsForPeriod(PeriodStartDate: Date): Decimal
+    begin
+        exit(GetCopilotCreditsForPeriod(PeriodStartDate, DT2Date(CurrentDateTime())));
+    end;
+
+    procedure GetCopilotCreditsForPeriod(PeriodStartDate: Date; PeriodEndDate: Date): Decimal
     var
         AITTestSuite: Record "AIT Test Suite";
         TotalCredits: Decimal;
     begin
-        // TODO(qutreson) what if someone changes the type after?
         AITTestSuite.SetRange("Test Type", AITTestSuite."Test Type"::Agent);
         if AITTestSuite.FindSet() then
             repeat
-                TotalCredits += GetCopilotCreditsForPeriod(AITTestSuite.Code, PeriodStartDate);
+                TotalCredits += GetCopilotCreditsForPeriod(AITTestSuite.Code, PeriodStartDate, PeriodEndDate);
             until AITTestSuite.Next() = 0;
 
         exit(TotalCredits);

@@ -42,6 +42,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                 }
                 field(MonthlyCreditLimit; MonthlyCreditLimit)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Monthly Copilot Credit Limit';
                     ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed by all agent test suites during the current month.';
                     DecimalPlaces = 2 : 5;
@@ -55,6 +56,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                 }
                 field(CreditsConsumed; CreditsConsumed)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Copilot Credits Consumed';
                     ToolTip = 'Specifies the total number of Copilot credits consumed by all agent test suites during the current month.';
                     Editable = false;
@@ -62,6 +64,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                 }
                 field(CreditsAvailable; CreditsAvailable)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Copilot Credits Available';
                     ToolTip = 'Specifies the number of Copilot credits remaining for the current month.';
                     Editable = false;
@@ -101,6 +104,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                 }
                 field(SuiteCreditsConsumed; SuiteCreditsConsumed)
                 {
+                    AutoFormatType = 0;
                     Caption = 'Copilot Credits Consumed (Month)';
                     ToolTip = 'Specifies the number of Copilot credits consumed by this test suite during the current month.';
                     Editable = false;
@@ -232,10 +236,11 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
         if UsagePercent >= 100 then
             CreditsAvailableStyle := Format(PageStyle::Unfavorable)
-        else if UsagePercent >= 80 then
-            CreditsAvailableStyle := Format(PageStyle::Attention)
         else
-            CreditsAvailableStyle := Format(PageStyle::Favorable);
+            if UsagePercent >= 80 then
+                CreditsAvailableStyle := Format(PageStyle::Attention)
+            else
+                CreditsAvailableStyle := Format(PageStyle::Favorable);
     end;
 
     local procedure GetTotalCreditsConsumedThisMonth(): Decimal
@@ -294,12 +299,11 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         end;
 
         // Build filter for suites with credits consumed
-        foreach SuiteCode in SuitesWithCredits do begin
+        foreach SuiteCode in SuitesWithCredits do
             if FilterText = '' then
                 FilterText := SuiteCode
             else
                 FilterText := FilterText + '|' + SuiteCode;
-        end;
 
         if FilterText <> '' then
             Rec.SetFilter(Code, FilterText)

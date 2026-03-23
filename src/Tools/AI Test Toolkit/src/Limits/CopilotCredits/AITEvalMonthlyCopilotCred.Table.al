@@ -24,6 +24,7 @@ table 149040 "AIT Eval Monthly Copilot Cred."
         }
         field(2; "Monthly Credit Limit"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Monthly Credit Limit';
             ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed by agent test suites during the current month.';
             MinValue = 0;
@@ -47,10 +48,8 @@ table 149040 "AIT Eval Monthly Copilot Cred."
 
     procedure GetOrCreate()
     begin
-        if not Rec.Get() then begin
-            Rec."Primary Key" := '';
-            Rec.Insert();
-        end;
+        if not Get() then
+            InsertDefaultRecord();
     end;
 
     procedure GetPeriodStartDate(): Date
@@ -61,5 +60,13 @@ table 149040 "AIT Eval Monthly Copilot Cred."
     procedure GetPeriodEndDate(): Date
     begin
         exit(CalcDate('<CM>', Today()));
+    end;
+
+    internal procedure InsertDefaultRecord()
+    begin
+        Rec."Primary Key" := '';
+        Rec."Monthly Credit Limit" := 200;
+        Rec."Enforcement Enabled" := true;
+        Rec.Insert();
     end;
 }
