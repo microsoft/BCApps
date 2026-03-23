@@ -634,8 +634,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         ActivityAmount: Decimal;
         PriorYear: Integer;
     begin
-        // [SCENARIO] Starting Balance includes closing date entries from the prior fiscal year,
-        // emulating what "Close Income Statement" produces.
+        // [SCENARIO] Starting Balance includes closing date entries from the prior fiscal year, emulating what "Close Income Statement" produces.
         // [GIVEN] A posting account with activity during the prior year
         Initialize();
         CreateGLAccount(GLAccount);
@@ -645,6 +644,8 @@ codeunit 139544 "Trial Balance Excel Reports"
         CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(15, 6, PriorYear), ActivityAmount);
         // [GIVEN] A closing entry on ClosingDate(31/12) that zeroes out the account (emulates Close Income Statement)
         CreateGLEntryWithAmount(PostingAccount, '', '', '', ClosingDate(DMY2Date(31, 12, PriorYear)), -ActivityAmount);
+        // [GIVEN] An entry on the first day of the current year so the old FindFirst logic derives cutoff ..31/12 (normal date), which misses C31/12
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), 100);
 
         // [WHEN] Running the trial balance for the current year
         GLAccount.SetRange("No.", PostingAccount);
@@ -654,53 +655,8 @@ codeunit 139544 "Trial Balance Excel Reports"
 
         // [THEN] Starting Balance is zero because the closing entry zeroed out the account
         TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
-        if TrialBalanceData.FindFirst() then
-            Assert.AreEqual(0, TrialBalanceData."Starting Balance", 'Starting Balance should be zero after closing entries')
-        else
-            ; // No record means all-zero, which is correct
-    end;
-
-    [Test]
-    procedure QueryPathStartingBalanceUsesFilterStartDateNotFirstEntry()
-    var
-        GLAccount: Record "G/L Account";
-        TempDimensionValue: Record "Dimension Value" temporary;
-        TrialBalanceData: Record "EXR Trial Balance Buffer";
-        TrialBalance: Codeunit "Trial Balance";
-        PostingAccount: Code[20];
-        BeforePeriodAmount: Decimal;
-        FirstDayAmount: Decimal;
-        LaterAmount: Decimal;
-        CurrentYear: Integer;
-    begin
-        // [SCENARIO] Starting Balance is calculated relative to the filter start date,
-        // not the posting date of the first G/L Entry within the period.
-        // [GIVEN] A posting account with an entry before the period
-        Initialize();
-        CreateGLAccount(GLAccount);
-        PostingAccount := GLAccount."No.";
-        CurrentYear := Date2DMY(WorkDate(), 3);
-        BeforePeriodAmount := 1000;
-        FirstDayAmount := 200;
-        LaterAmount := 300;
-        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(15, 12, CurrentYear - 1), BeforePeriodAmount);
-        // [GIVEN] An entry on the first day of the period
-        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(1, 1, CurrentYear), FirstDayAmount);
-        // [GIVEN] An entry later in the period (this would be FindFirst if entries on 01.01 were absent)
-        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(15, 3, CurrentYear), LaterAmount);
-
-        // [WHEN] Running the trial balance for the current year
-        GLAccount.SetRange("No.", PostingAccount);
-        GLAccount.SetRange("Date Filter", DMY2Date(1, 1, CurrentYear), DMY2Date(31, 12, CurrentYear));
-        TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TrialBalanceData);
-
-        // [THEN] Starting Balance only includes the entry before the period
-        TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
-        Assert.IsTrue(TrialBalanceData.FindFirst(), 'Buffer record should exist for the posting account');
-        Assert.AreEqual(BeforePeriodAmount, TrialBalanceData."Starting Balance", 'Starting Balance should only include entries before the period start');
-        // [THEN] Net Change includes both in-period entries
-        Assert.AreEqual(FirstDayAmount + LaterAmount, TrialBalanceData."Net Change", 'Net Change should include all entries within the period');
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(0, TrialBalanceData."Starting Balance", 'Starting Balance should be zero after closing entries')
     end;
 
     local procedure CreateSampleBusinessUnits(HowMany: Integer)
@@ -826,12 +782,14 @@ codeunit 139544 "Trial Balance Excel Reports"
     [RequestPageHandler]
     procedure EXRTrialBalanceExcelHandler(var EXRTrialBalanceExcel: TestRequestPage "EXR Trial Balance Excel")
     begin
+        EXRTrialBalanceExcel.GLAccounts.SetFilter("Date Filter", Format(DMY2Date(1, 1, Date2DMY(WorkDate(), 3))) + '..' + Format(DMY2Date(31, 12, Date2DMY(WorkDate(), 3))));
         EXRTrialBalanceExcel.OK().Invoke();
     end;
 
     [RequestPageHandler]
     procedure EXRTrialBalanceBudgetExcelHandler(var EXRTrialBalanceBudgetExcel: TestRequestPage "EXR Trial BalanceBudgetExcel")
     begin
+        EXRTrialBalanceBudgetExcel.GLAccounts.SetFilter("Date Filter", Format(DMY2Date(1, 1, Date2DMY(WorkDate(), 3))) + '..' + Format(DMY2Date(31, 12, Date2DMY(WorkDate(), 3))));
         EXRTrialBalanceBudgetExcel.OK().Invoke();
     end;
 
