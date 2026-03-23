@@ -208,13 +208,16 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
     /// </summary>
     /// <param name="EDocumentPurchaseLine"></param>
     /// <param name="PurchaseLine"></param>
-    procedure ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var PurchaseLine: Record "Purchase Line")
+    procedure ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocument: Record "E-Document"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; var PurchaseLine: Record "Purchase Line")
     var
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         EDocPurchLineField: Record "E-Document Line - Field";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         NewPurchLineRecordRef: RecordRef;
         NewPurchLineFieldRef: FieldRef;
         FieldValue: Variant;
+        LastErrorText: Text;
+        FieldValidationSkippedLbl: Label 'Could not apply additional field %1 (ID %2) with value ''%3'': %4', Comment = '%1 = Field Name, %2 = Field Number, %3 = Value, %4 = Error Text';
     begin
         if not EDocPurchLineFieldSetup.FindSet() then
             exit;
@@ -225,22 +228,21 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
             EDocPurchLineField.Get(EDocumentPurchaseLine, EDocPurchLineFieldSetup);
             NewPurchLineFieldRef := NewPurchLineRecordRef.Field(EDocPurchLineFieldSetup."Field No.");
             FieldValue := EDocPurchLineField.GetValue();
-            CheckFieldValueLength(NewPurchLineFieldRef, FieldValue);
-            NewPurchLineFieldRef.Validate(FieldValue);
+            if not TryValidateFieldValue(NewPurchLineFieldRef, FieldValue) then begin
+                LastErrorText := GetLastErrorText();
+                EDocumentErrorHelper.LogWarningMessage(
+                    EDocument, EDocumentPurchaseLine,
+                    EDocPurchLineFieldSetup."Field No.",
+                    StrSubstNo(FieldValidationSkippedLbl, NewPurchLineFieldRef.Name(), NewPurchLineFieldRef.Number(), FieldValue, LastErrorText));
+            end;
         until EDocPurchLineFieldSetup.Next() = 0;
         NewPurchLineRecordRef.SetTable(PurchaseLine);
     end;
 
-    local procedure CheckFieldValueLength(PurchLineFieldRef: FieldRef; FieldValue: Variant)
-    var
-        ValueAsText: Text;
-        ValueTooLongErr: Label 'value ''%1'' exceeds the maximum length of %2 characters (actual: %3). Review the additional field %4 (ID %5) under Configure additional fields on the E-Document Service page.', Comment = '%1 = Value, %2 = Max Length, %3 = Actual Length, %4 = Field Name, %5 = Field Number';
+    [TryFunction]
+    local procedure TryValidateFieldValue(var PurchLineFieldRef: FieldRef; FieldValue: Variant)
     begin
-        if not (PurchLineFieldRef.Type() in [FieldType::Text, FieldType::Code]) then
-            exit;
-        ValueAsText := Format(FieldValue);
-        if StrLen(ValueAsText) > PurchLineFieldRef.Length() then
-            PurchLineFieldRef.FieldError(StrSubstNo(ValueTooLongErr, ValueAsText, PurchLineFieldRef.Length(), StrLen(ValueAsText), PurchLineFieldRef.Name(), PurchLineFieldRef.Number()));
+        PurchLineFieldRef.Validate(FieldValue);
     end;
 
     procedure OpenPageWithHistoricMatch(EDocumentPurchaseLine: Record "E-Document Purchase Line"): Boolean

@@ -167,7 +167,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EDocLineByReceipt.Open();
         while EDocLineByReceipt.Read() do begin
             EDocumentPurchaseLine.GetBySystemId(EDocLineByReceipt.SystemId);
-            CreatePurchaseInvoiceLine(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
+            CreatePurchaseInvoiceLine(EDocument, PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
         end;
         EDocLineByReceipt.Close();
 
@@ -188,7 +188,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
                 PurchaseLine.Insert();
             end;
             EDocumentPurchaseLine.GetBySystemId(EDocLineByReceipt.SystemId);
-            CreatePurchaseInvoiceLine(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
+            CreatePurchaseInvoiceLine(EDocument, PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
             LastReceiptNo := EDocLineByReceipt.ReceiptNo;
         end;
         EDocLineByReceipt.Close();
@@ -197,7 +197,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         exit(PurchaseHeader);
     end;
 
-    local procedure CreatePurchaseInvoiceLine(PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; HasTotalDiscount: Boolean; var PurchaseLineNo: Integer)
+    local procedure CreatePurchaseInvoiceLine(EDocument: Record "E-Document"; PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; HasTotalDiscount: Boolean; var PurchaseLineNo: Integer)
     var
         PurchaseLine: Record "Purchase Line";
         EDocRecordLink: Record "E-Doc. Record Link";
@@ -232,7 +232,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseLine.Validate("Dimension Set ID", DimensionManagement.GetCombinedDimensionSetID(PurchaseLineCombinedDimensions, GlobalDim1, GlobalDim2));
         PurchaseLine.Validate("Shortcut Dimension 1 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 1 Code");
         PurchaseLine.Validate("Shortcut Dimension 2 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 2 Code");
-        EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
+        EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
         PurchaseLine.Insert();
         EDocRecordLink.InsertEDocumentLineLink(EDocumentPurchaseLine, PurchaseLine);
     end;
