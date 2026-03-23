@@ -582,7 +582,7 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
-    procedure AdditionalFieldValueExceedingFieldLengthShouldError()
+    procedure AdditionalFieldValueExceedingFieldLengthShouldWarn()
     var
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         PurchaseInvoiceLine: Record "Purch. Inv. Line";
@@ -597,7 +597,7 @@ codeunit 139883 "E-Doc Process Test"
         FieldValue: Code[2048];
     begin
         // [SCENARIO] An additional field is configured, and the stored value exceeds the target field's maximum length.
-        // When finalizing the draft, the system should report an error identifying the problematic field.
+        // When finalizing the draft, the system should skip the field, log a warning, and still create the purchase document.
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
@@ -623,23 +623,22 @@ codeunit 139883 "E-Doc Process Test"
 
         // [WHEN] Finalizing the draft
         EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        Assert.IsFalse(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams), 'The finalization should fail due to field length exceeded');
+        Assert.IsTrue(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams), 'The finalization should succeed despite field length exceeded');
 
-        // [THEN] The e-document should have errors
+        // [THEN] The e-document should not have errors
         EDocument.Get(EDocument."Entry No");
-        Assert.IsTrue(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should have an error logged for the field length violation');
+        Assert.IsFalse(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should not have errors');
 
-        // [THEN] The error message should reference the field name, value, and lengths
+        // [THEN] A warning message should reference the field name and value
         ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
-        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Warning);
         ErrorMessage.FindFirst();
-        Assert.ExpectedMessage(FieldValue, ErrorMessage."Message");
-        Assert.ExpectedMessage('exceeds the maximum length', ErrorMessage."Message");
         Assert.ExpectedMessage('Location Code', ErrorMessage."Message");
+        Assert.ExpectedMessage(FieldValue, ErrorMessage."Message");
 
-        // [THEN] No purchase invoice should have been created
+        // [THEN] A purchase invoice should have been created
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
-        Assert.RecordIsEmpty(PurchaseHeader);
+        Assert.RecordIsNotEmpty(PurchaseHeader);
     end;
 
     [Test]
