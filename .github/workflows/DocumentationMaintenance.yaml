@@ -120,15 +120,16 @@ jobs:
           if copilot -p "Read /tmp/full-report.md. Does the audit show documentation gaps that need to be fixed? Reply only YES or NO." \
             -s --no-ask-user --allow-tool=read | grep -qi "yes"; then
 
-            # Build comment from structured audit report -- no AI-generated text
+            # Build comment with deterministic template -- copilot only extracts coverage %
             BODY="AL Documentation Audit"$'\n\n'
             BODY+="Documentation gaps were detected in the following apps:"$'\n\n'
 
             for REPORT in /tmp/audit-*.md; do
               [ -f "$REPORT" ] || continue
-              APP=$(grep -m1 '| App name' "$REPORT" | sed 's/.*| *//;s/ *|.*//')
-              COV=$(grep -m1 '| \*\*Coverage\*\*' "$REPORT" | sed 's/.*\*\*//;s/\*\*.*//')
-              [ -z "$APP" ] && continue
+              # App name from the report filename (set during audit step from app.json)
+              APP=$(basename "$REPORT" .md | sed 's/^audit-//')
+              COV=$(copilot -p "Read $REPORT. What is the documentation coverage percentage? Reply with ONLY the number followed by %, like 42%. Nothing else." \
+                -s --no-ask-user --allow-tool=read 2>&1 | grep -oE '[0-9]+%' | head -1)
               [ "$COV" = "100%" ] && continue
               BODY+="- **${APP}**: ${COV:-unknown} documentation coverage"$'\n'
             done
