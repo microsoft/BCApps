@@ -14,6 +14,7 @@ page 37060 "Sales Report"
     Caption = 'Sales Report';
     AboutTitle = 'About Sales Report';
     AboutText = 'The Sales Report offers a consolidated view of all sales report pages, conveniently embedded into a single page for easy access.';
+
     layout
     {
         area(Content)

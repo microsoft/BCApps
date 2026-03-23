@@ -14,7 +14,6 @@ page 8059 "Service Objects"
     QueryCategory = 'Subscriptions';
     RefreshOnActivate = true;
     CardPageId = "Service Object";
-    ToolTip = 'Detailed information on the Subscriptions. The Subscriptions shows the item for which it was created and the Subscription Lines that belong to it. The amount and the details of the provision can be seen. The service recipient indicates to which customer the Subscription Item was sold. Different delivery and billing addresses provide information about who the item was delivered to and who received the invoice. In addition, the Subscription Lines are shown in detail and can be edited.';
     AdditionalSearchTerms = 'Subscriptions, Service Objects, Subscription List, Customer Subscriptions, Billing Subscriptions, Subscription Overview';
     AboutTitle = 'About Subscriptions';
     AboutText = 'Subscriptions primarily represent the products and services used by a customer. They contain information from master data, details of customers and suppliers, have a quantity and details for billing.';

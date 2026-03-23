@@ -16,7 +16,6 @@ page 8053 "Customer Contracts"
     RefreshOnActivate = true;
     SourceTable = "Customer Subscription Contract";
     UsageCategory = Lists;
-    ToolTip = 'Detailed information on Customer Subscription Contracts that include recurring subscriptions. A Customer Subscription Contract is used to calculate these Subscription Lines based on the parameters specified in the Subscription Lines. The Subscription Lines are presented in detail and can be edited. In addition, commercial information as well as delivery and billing addresses can be stored in a Contract.';
     AdditionalSearchTerms = 'Customer Contracts, Subscription Contracts, Contract List, Billing Contracts, Customer Subscriptions, Contract Overview';
     AboutTitle = 'About Customer Subscription Contracts';
     AboutText = 'Use customer subscription contracts to package subscriptions for billing to customers.';
