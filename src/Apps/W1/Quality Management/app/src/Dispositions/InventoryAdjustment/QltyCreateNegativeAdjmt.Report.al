@@ -14,7 +14,7 @@ report 20408 "Qlty. Create Negative Adjmt."
 {
     Caption = 'Quality Management - Create Negative Inventory Adjustment';
     AdditionalSearchTerms = 'write-off, dispose';
-    ToolTip = 'Use this to decrease inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage';
+    ToolTip = 'Use this report to decrease inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage';
     ProcessingOnly = true;
     AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = Tasks;
