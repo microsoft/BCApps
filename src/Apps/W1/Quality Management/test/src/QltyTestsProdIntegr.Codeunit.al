@@ -30,8 +30,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
     var
         ReUsedProdOrderLine: Record "Prod. Order Line";
-        LibraryAssert: Codeunit "Library Assert";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryAssert: Codeunit "Library Assert";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         GenQltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
         LibraryInventory: Codeunit "Library - Inventory";
