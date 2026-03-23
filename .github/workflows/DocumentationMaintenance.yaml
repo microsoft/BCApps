@@ -4,19 +4,9 @@ on:
   pull_request:
     branches: ['main', 'releases/*', 'features/*']
     paths: ['src/**/*.al']
-  workflow_dispatch:
-    inputs:
-      skip-dedup:
-        description: 'Skip the check for existing docs review (re-run even if already posted)'
-        type: boolean
-        default: false
-      pr-number:
-        description: 'PR number to audit'
-        required: true
-        type: number
 
 concurrency:
-  group: docs-${{ github.event.pull_request.number || inputs.pr-number }}
+  group: docs-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 permissions:
@@ -26,39 +16,18 @@ permissions:
 
 jobs:
   AuditDocs:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+    if: github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GH_TOKEN }}
-      PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr-number }}
     steps:
-      - name: Resolve PR metadata
-        id: pr
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            PR_JSON=$(gh api repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }})
-            echo "head_sha=$(echo "$PR_JSON" | jq -r '.head.sha')" >> "$GITHUB_OUTPUT"
-            echo "base_sha=$(echo "$PR_JSON" | jq -r '.base.sha')" >> "$GITHUB_OUTPUT"
-          else
-            echo "head_sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
-            echo "base_sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Check for existing docs review
         id: dedup
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ "${{ inputs.skip-dedup }}" = "true" ]; then
-            echo "Dedup check disabled via input."
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          EXISTING=$(gh api repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }}/reviews \
+          EXISTING=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
             --jq '[.[] | select(.body | startswith("AL Documentation Audit"))] | length' 2>/dev/null || echo "0")
           if [ "$EXISTING" != "0" ]; then
             echo "Docs review already posted, skipping."
@@ -72,7 +41,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
-          ref: ${{ steps.pr.outputs.head_sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Setup Node.js
         if: steps.dedup.outputs.skip != 'true'
@@ -94,8 +63,8 @@ jobs:
         if: steps.dedup.outputs.skip != 'true'
         id: scope
         run: |
-          MERGE_BASE=$(git merge-base ${{ steps.pr.outputs.base_sha }} ${{ steps.pr.outputs.head_sha }})
-          CHANGED=$(git diff --name-only "$MERGE_BASE"..${{ steps.pr.outputs.head_sha }} -- '*.al')
+          MERGE_BASE=$(git merge-base ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+          CHANGED=$(git diff --name-only "$MERGE_BASE"..${{ github.event.pull_request.head.sha }} -- '*.al')
 
           if [ -z "$CHANGED" ]; then
             echo "count=0" >> "$GITHUB_OUTPUT"
@@ -168,7 +137,7 @@ jobs:
             BODY+=$'\n'"To generate documentation, run \`/al-docs init\` or \`/al-docs update\` using [GitHub Copilot CLI](https://github.com/github/copilot-cli) or [Claude Code](https://claude.com/claude-code)."$'\n'
             BODY+="_This review is for awareness to help keep documentation in sync with code changes. It is okay to dismiss this request._"
 
-            gh api repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }}/reviews \
+            gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
               -f body="$BODY" \
               -f event="REQUEST_CHANGES"
           else
