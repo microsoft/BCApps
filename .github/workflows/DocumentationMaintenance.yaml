@@ -120,22 +120,24 @@ jobs:
           if copilot -p "Read /tmp/full-report.md. Does the audit show documentation gaps that need to be fixed? Reply only YES or NO." \
             -s --no-ask-user --allow-tool=read | grep -qi "yes"; then
 
-            SUMMARY=$(copilot -p "You are GitHub Copilot writing a PR review comment. Read /tmp/full-report.md and output ONLY the following — nothing else, no thinking, no preamble:
+            # Build comment from structured audit report -- no AI-generated text
+            BODY="AL Documentation Audit"$'\n\n'
+            BODY+="Documentation gaps were detected in the following apps:"$'\n\n'
 
-            AL Documentation Audit:
+            for REPORT in /tmp/audit-*.md; do
+              [ -f "$REPORT" ] || continue
+              APP=$(grep -m1 '| App name' "$REPORT" | sed 's/.*| *//;s/ *|.*//')
+              COV=$(grep -m1 '| \*\*Coverage\*\*' "$REPORT" | sed 's/.*\*\*//;s/\*\*.*//')
+              [ -z "$APP" ] && continue
+              [ "$COV" = "100%" ] && continue
+              BODY+="- **${APP}**: ${COV:-unknown} documentation coverage"$'\n'
+            done
 
-            I reviewed the changed apps and found:
-
-            For each app with gaps, write one line like: **App Name** (path): X% documentation coverage
-            Only list apps that have gaps. If an app has 100% coverage, skip it.
-
-            End with exactly these two lines:
-            To generate documentation, run the \`/al-docs init\` or \`/al-docs update\` skill using [GitHub Copilot CLI](https://github.com/github/copilot-cli) or [Claude Code](https://claude.com/claude-code).
-            _This review is for awareness to help keep documentation in sync with code changes. It is okay to dismiss this request._" \
-              -s --no-ask-user --allow-tool=read 2>&1)
+            BODY+=$'\n'"To generate documentation, run \`/al-docs init\` or \`/al-docs update\` using [GitHub Copilot CLI](https://github.com/github/copilot-cli) or [Claude Code](https://claude.com/claude-code)."$'\n'
+            BODY+="_This review is for awareness to help keep documentation in sync with code changes. It is okay to dismiss this request._"
 
             gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
-              -f body="$SUMMARY" \
+              -f body="$BODY" \
               -f event="REQUEST_CHANGES"
           else
             echo "No documentation gaps found."
