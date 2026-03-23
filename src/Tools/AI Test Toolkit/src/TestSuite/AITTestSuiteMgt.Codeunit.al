@@ -143,8 +143,8 @@ codeunit 149034 "AIT Test Suite Mgt."
         TelemetryCustomDimensions: Dictionary of [Text, Text];
         EmptyGuid: Guid;
     begin
+        AITTestSuite.Get(AITTestMethodLine."Test Suite Code");
         if not IsExecutedFromTestSuiteHeader then begin
-            AITTestSuite.Get(AITTestMethodLine."Test Suite Code");
             AITTestSuite.Version += 1;
             AITTestSuite.Modify(true);
 
@@ -153,7 +153,7 @@ codeunit 149034 "AIT Test Suite Mgt."
             FeatureTelemetry.LogUptake('0000NEX', GetFeatureName(), Enum::"Feature Uptake Status"::"Set up", TelemetryCustomDimensions);
         end;
 
-        AITEvalLimitProvider := GlobalAITTestSuite."Test Type";
+        AITEvalLimitProvider := AITTestSuite."Test Type";
         AITEvalLimitProvider.CheckBeforeRun(AITTestSuite);
 
         AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);

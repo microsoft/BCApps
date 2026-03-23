@@ -8,9 +8,8 @@ namespace System.TestTools.AITestToolkit;
 codeunit 149041 "AIT Eval No Limit" implements "AIT Eval Limit Provider"
 {
     Access = Internal;
-    SingleInstance = true;
 
-    procedure CheckBeforeRun(AITTestSuite: Record "AIT Test Suite"): Boolean
+    procedure CheckBeforeRun(AITTestSuite: Record "AIT Test Suite")
     begin
     end;
 

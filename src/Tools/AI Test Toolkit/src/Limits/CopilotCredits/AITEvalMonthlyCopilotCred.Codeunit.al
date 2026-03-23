@@ -9,36 +9,20 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
 {
     Access = Internal;
 
-    procedure CheckBeforeRun(AITTestSuite: Record "AIT Test Suite"): Boolean
+    procedure CheckBeforeRun(AITTestSuite: Record "AIT Test Suite")
     var
-        AITCreditLimitSetup: Record "AIT Credit Limit Setup";
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        TotalCreditsConsumed: Decimal;
+        TotalCreditsConsumed, MonthlyCreditLimit : Decimal;
     begin
-        if IsLimitReached() then begin
-            Error(GlobalCreditLimitExceededErr, AITCreditLimitSetup."Monthly Credit Limit", TotalCreditsConsumed);
-            exit(false);
+        if IsLimitReached(TotalCreditsConsumed, MonthlyCreditLimit) then begin
+            Error(GlobalCreditLimitExceededErr, MonthlyCreditLimit, TotalCreditsConsumed);
         end;
-
-        exit(true);
     end;
 
     procedure IsLimitReached(): Boolean
     var
-        AITCreditLimitSetup: Record "AIT Credit Limit Setup";
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        TotalCreditsConsumed: Decimal;
+        TotalCreditsConsumed, MonthlyCreditLimit : Decimal;
     begin
-        AITCreditLimitSetup.GetOrCreate();
-
-        if not AITCreditLimitSetup."Enforcement Enabled" then
-            exit(false);
-
-        if AITCreditLimitSetup."Monthly Credit Limit" <= 0 then
-            exit(false);
-
-        TotalCreditsConsumed := AgentTestContextImpl.GetTotalCreditsConsumedThisMonth(AITCreditLimitSetup.GetPeriodStartDate());
-        exit(TotalCreditsConsumed >= AITCreditLimitSetup."Monthly Credit Limit");
+        exit(IsLimitReached(TotalCreditsConsumed, MonthlyCreditLimit));
     end;
 
     procedure HandleLimitReached(var AITTestSuite: Record "AIT Test Suite")
@@ -52,7 +36,6 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::Running);
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Skipped, true);
 
-        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
         AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::Starting);
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Skipped, true);
 
@@ -61,66 +44,11 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
     end;
 
     procedure ShowNotifications()
-    var
-        GlobalLimitNotification: Notification;
-        GlobalWarningNotification: Notification;
-        EnforcementDisabledNotification: Notification;
-        UsagePercentage: Decimal;
-        GlobalCreditLimitReachedMsg: Label 'The monthly Copilot credit limit has been reached. New agent tests cannot be started until the limit is increased or the next month begins.';
-        GlobalCreditWarningMsg: Label 'Warning: %1% of the monthly Copilot credits have been consumed. Consider monitoring usage to avoid reaching the limit.', Comment = '%1 - Usage percentage';
-        EnforcementDisabledMsg: Label 'Copilot credit limit enforcement is disabled. Eval execution costs are not bounded. Enable enforcement on the Credit Limits page to set a spending cap.';
-        ViewCopilotCreditLimitsLbl: Label 'View credit limits';
     begin
-        // Show notification when enforcement is disabled
-        if not IsEnforcementEnabled() then begin
-            EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
-            EnforcementDisabledNotification.Message := EnforcementDisabledMsg;
-            EnforcementDisabledNotification.Scope := NotificationScope::LocalScope;
-            EnforcementDisabledNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenSetupPage');
-            EnforcementDisabledNotification.Send();
-
-            // Recall limit/warning notifications since enforcement is off
-            GlobalLimitNotification.Id := GetGlobalCreditLimitNotificationId();
-            GlobalLimitNotification.Recall();
-
-            GlobalWarningNotification.Id := GetGlobalCreditWarningNotificationId();
-            GlobalWarningNotification.Recall();
-            exit;
-        end;
-
-        // Enforcement is enabled — recall the disabled notification
-        EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
-        EnforcementDisabledNotification.Recall();
-
-        // Check and show global credit limit notification
-        if IsLimitReached() then begin
-            GlobalLimitNotification.Id := GetGlobalCreditLimitNotificationId();
-            GlobalLimitNotification.Message := GlobalCreditLimitReachedMsg;
-            GlobalLimitNotification.Scope := NotificationScope::LocalScope;
-            GlobalLimitNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenSetupPage');
-            GlobalLimitNotification.Send();
-
-            // Recall warning if limit is exceeded
-            GlobalWarningNotification.Id := GetGlobalCreditWarningNotificationId();
-            GlobalWarningNotification.Recall();
-        end else begin
-            GlobalLimitNotification.Id := GetGlobalCreditLimitNotificationId();
-            GlobalLimitNotification.Recall();
-
-            // Check for 80% warning
-            // TODO(qutreson) computing it twice, not ideal.
-            if IsApproachingCreditLimit() then begin
-                UsagePercentage := GetCreditUsagePercentage();
-                GlobalWarningNotification.Id := GetGlobalCreditWarningNotificationId();
-                GlobalWarningNotification.Message := StrSubstNo(GlobalCreditWarningMsg, UsagePercentage);
-                GlobalWarningNotification.Scope := NotificationScope::LocalScope;
-                GlobalWarningNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenSetupPage');
-                GlobalWarningNotification.Send();
-            end else begin
-                GlobalWarningNotification.Id := GetGlobalCreditWarningNotificationId();
-                GlobalWarningNotification.Recall();
-            end;
-        end;
+        if not IsEnforcementEnabled() then
+            ShowNotficitationsWhenEnforcementDiabled()
+        else
+            ShowNotificationsWhenEnforcementEnabled();
     end;
 
     procedure OpenSetupPage()
@@ -128,32 +56,32 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         Page.Run(Page::"AIT Eval Monthly Copilot Cred.");
     end;
 
-    local procedure OpenSetupPage(Notification: Notification)
-    begin
-        OpenSetupPage()
-    end;
-
-    local procedure GetCreditUsagePercentage(): Decimal
+    local procedure IsLimitReached(var CopilotCreditConsumed: Decimal; var MonthlyCreditLimit: Decimal): Boolean
     var
         AITCreditLimitSetup: Record "AIT Credit Limit Setup";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        TotalCreditsConsumed: Decimal;
     begin
         AITCreditLimitSetup.GetOrCreate();
 
         if not AITCreditLimitSetup."Enforcement Enabled" then
-            exit(0);
+            exit(false);
 
         if AITCreditLimitSetup."Monthly Credit Limit" <= 0 then
-            exit(0);
+            exit(false);
 
-        TotalCreditsConsumed := AgentTestContextImpl.GetTotalCreditsConsumedThisMonth(AITCreditLimitSetup.GetPeriodStartDate());
-        exit(Round(TotalCreditsConsumed / AITCreditLimitSetup."Monthly Credit Limit" * 100, 0.1));
+        MonthlyCreditLimit := AITCreditLimitSetup."Monthly Credit Limit";
+        CopilotCreditConsumed := AgentTestContextImpl.GetTotalCreditsConsumedThisMonth(AITCreditLimitSetup.GetPeriodStartDate());
+        exit(CopilotCreditConsumed >= AITCreditLimitSetup."Monthly Credit Limit");
     end;
 
-    local procedure IsApproachingCreditLimit(): Boolean
+    local procedure GetCreditUsagePercentage(TotalCreditsConsumed: Decimal; MonthlyCreditLimit: Decimal): Decimal
     begin
-        exit(GetCreditUsagePercentage() >= 80);
+        exit(Round(TotalCreditsConsumed / MonthlyCreditLimit * 100, 0.1));
+    end;
+
+    local procedure IsApproachingCreditLimit(CreditUsagePercentage: Decimal): Boolean
+    begin
+        exit(CreditUsagePercentage >= 80);
     end;
 
     local procedure IsEnforcementEnabled(): Boolean
@@ -164,12 +92,75 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         exit(AITCreditLimitSetup."Enforcement Enabled");
     end;
 
-    local procedure GetGlobalCreditLimitNotificationId(): Guid
+    local procedure ShowNotficitationsWhenEnforcementDiabled()
+    var
+        EnforcementDisabledNotification, GlobalWarningNotification, GlobalLimitNotification : Notification;
+        EnforcementDisabledMsg: Label 'Copilot credit limit enforcement is disabled. Eval execution costs are not bounded. Enable enforcement on the Credit Limits page to set a spending cap.';
+    begin
+        EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
+        EnforcementDisabledNotification.Message := EnforcementDisabledMsg;
+        EnforcementDisabledNotification.Scope := NotificationScope::LocalScope;
+        EnforcementDisabledNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", GetOpenSetupPageMethodName());
+        EnforcementDisabledNotification.Send();
+
+        // Recall limit/warning notifications since enforcement is off
+        GlobalLimitNotification.Id := GetCreditLimitNotificationId();
+        GlobalLimitNotification.Recall();
+
+        GlobalWarningNotification.Id := GetCreditWarningNotificationId();
+        GlobalWarningNotification.Recall();
+    end;
+
+    local procedure ShowNotificationsWhenEnforcementEnabled()
+    var
+        EnforcementDisabledNotification, CreditWarningNotification, CreditLimitNotification : Notification;
+        CreditLimitReachedMsg: Label 'The monthly Copilot credit limit has been reached. New agent tests cannot be started until the limit is increased or the next month begins.';
+        CreditWarningMsg: Label 'Warning: %1% of the monthly Copilot credits have been consumed. Consider monitoring usage to avoid reaching the limit.', Comment = '%1 - Usage percentage';
+        TotalCreditsConsumed, MonthlyCreditLimit, UsagePercentage : Decimal;
+    begin
+        EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
+        CreditWarningNotification.Id := GetCreditWarningNotificationId();
+        CreditLimitNotification.Id := GetCreditLimitNotificationId();
+
+        // Recall the disabled notification
+        EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
+        EnforcementDisabledNotification.Recall();
+
+        if IsLimitReached(TotalCreditsConsumed, MonthlyCreditLimit) then begin
+            // Show credit limit notification when limit is reached
+            CreditLimitNotification.Message := CreditLimitReachedMsg;
+            CreditLimitNotification.Scope := NotificationScope::LocalScope;
+            CreditLimitNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", GetOpenSetupPageMethodName());
+            CreditLimitNotification.Send();
+
+            // Recall warning notification if limit is exceeded
+            CreditWarningNotification.Recall();
+            exit;
+        end;
+
+        // Recall credit limit notification since limit is not reached
+        CreditLimitNotification.Recall();
+
+        UsagePercentage := GetCreditUsagePercentage(TotalCreditsConsumed, MonthlyCreditLimit);
+        if IsApproachingCreditLimit(UsagePercentage) then begin
+            // Show warning notification when approaching credit limit
+            CreditWarningNotification.Message := StrSubstNo(CreditWarningMsg, UsagePercentage);
+            CreditWarningNotification.Scope := NotificationScope::LocalScope;
+            CreditWarningNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", GetOpenSetupPageMethodName());
+            CreditWarningNotification.Send();
+            exit;
+        end;
+
+        // Recall warning notification if not approaching limit
+        CreditWarningNotification.Recall();
+    end;
+
+    local procedure GetCreditLimitNotificationId(): Guid
     begin
         exit('fbb7ec95-3427-400f-9fad-34d6009858c9');
     end;
 
-    local procedure GetGlobalCreditWarningNotificationId(): Guid
+    local procedure GetCreditWarningNotificationId(): Guid
     begin
         exit('f365e625-24bb-491b-bd85-83d66d5557ae');
     end;
@@ -179,6 +170,17 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         exit('b2acb24d-dbc8-4bda-99c9-8bed0d470fd8');
     end;
 
+    local procedure GetOpenSetupPageMethodName(): Text
+    begin
+        exit('OpenSetupPage');
+    end;
+
+    local procedure OpenSetupPage(Notification: Notification)
+    begin
+        OpenSetupPage()
+    end;
+
     var
+        ViewCopilotCreditLimitsLbl: Label 'View credit limits';
         GlobalCreditLimitExceededErr: Label 'Cannot start the agent eval suite. The monthly credit limit for evals of %1 has been reached. Current consumption: %2.', Comment = '%1 = Credit limit, %2 = Credits consumed';
 }

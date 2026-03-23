@@ -2,27 +2,25 @@
 
 ## 1. Overview
 
-The Copilot Credit Limit feature provides cost control for agent test suites within the AI Test Toolkit. It enables administrators to set monthly credit limits at both the environment and individual suite levels, automatically stopping test execution when limits are reached.
+The Copilot Credit Limit feature provides cost control for eval suites within the AI Test Toolkit. It uses an interface-based strategy pattern (`AIT Eval Limit Provider`) to allow different test types to define their own limit-checking behavior. Currently, only the **Agent** test type enforces limits (monthly Copilot credit caps), while **Copilot** and **MCP** types use a no-op implementation.
 
 ---
 
 ## 2. Architecture Principles
 
-### 2.1 Single Responsibility
-Each component has a focused purpose:
-- **Table:** Data storage only
-- **Page:** UI presentation and user interaction
-- **Codeunit:** Business logic and enforcement
+### 2.1 Strategy Pattern via Interface
+Limit-checking behavior is abstracted behind the `AIT Eval Limit Provider` interface, implemented per test type through the `AIT Test Type` enum. The core test suite engine is fully agnostic to the specifics of any limit implementation.
 
-### 2.2 Extension-Based Design
-Agent-specific functionality is isolated in page/table extensions, keeping the core AI Test Toolkit agnostic to specific test types (Copilot vs. Agent vs. MCP).
+### 2.2 Stateless Enforcement
+All limit checks query the database on every call. There is no cached state or `SingleInstance` flag for limit tracking. This guarantees accuracy at the cost of additional DB reads per check.
 
-### 2.3 Fail-Safe Enforcement
-- Credit checks occur at multiple points to ensure limits are respected
-- Uses `SingleInstance` pattern for state tracking during test runs
-- Graceful degradation: tests complete with error rather than abrupt termination
+### 2.3 Enum-Driven Dispatch
+The `AIT Test Type` enum declares a `DefaultImplementation` of `AIT Eval No Limit` (null object). Only the `Agent` value overrides this with `AIT Eval Monthly Copilot Cred.`. New test types automatically get no-op limit behavior unless explicitly configured.
 
-### 2.4 Environment-Wide Scope
+### 2.4 Extension-Based Design
+Agent-specific UI (notifications, navigation, metrics) is isolated in page extensions, keeping the core AI Test Toolkit agnostic to specific test types.
+
+### 2.5 Environment-Wide Scope
 - Credit limit setup is stored with `DataPerCompany = false`
 - Limits apply across all companies in the environment
 - Consistent behavior regardless of company context
@@ -32,40 +30,79 @@ Agent-specific functionality is isolated in page/table extensions, keeping the c
 ## 3. Component Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        UI Layer                                  │
-├─────────────────────────────────────────────────────────────────┤
-│  AIT Credit Limits Page     │  Agent Test Suite PageExt         │
-│  (Administration)           │  (Notifications & Navigation)     │
-└──────────────┬──────────────┴───────────────┬───────────────────┘
-               │                              │
-               ▼                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                     Business Logic Layer                         │
-├─────────────────────────────────────────────────────────────────┤
-│  AIT Credit Limit Mgt.      │  Agent Test Context Impl.         │
-│  - Limit checking           │  - Credit consumption queries     │
-│  - Status management        │  - Monthly credit aggregation     │
-│  - Run-time state tracking  │                                   │
-└──────────────┬──────────────┴───────────────┬───────────────────┘
-               │                              │
-               ▼                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       Data Layer                                 │
-├─────────────────────────────────────────────────────────────────┤
-│  AIT Credit Limit Setup     │  Agent Task Log                   │
-│  (Singleton, env-wide)      │  (Task-level consumption)         │
-│                             │                                   │
-│  AIT Test Suite             │  AIT Log Entry                    │
-│  (Suite Credit Limit field) │  (Test execution records)         │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        UI Layer                                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  AIT Eval Monthly Copilot Cred.   │  Agent Test Suite PageExt              │
+│  Page (Administration)            │  (Notifications & Navigation)          │
+└──────────────┬────────────────────┴──────────────────┬──────────────────────┘
+               │                                       │
+               ▼                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     Interface Layer                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  «interface» AIT Eval Limit Provider                                        │
+│  ┌──────────────────────────────────┬──────────────────────────────────┐    │
+│  │ AIT Eval Monthly Copilot Cred.  │  AIT Eval No Limit               │    │
+│  │ (Agent test type)               │  (Default for Copilot, MCP)      │    │
+│  │ - Monthly credit enforcement    │  - All methods are no-ops        │    │
+│  │ - Notifications & warnings      │  - IsLimitReached() → false      │    │
+│  └──────────────────────────────────┴──────────────────────────────────┘    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  AIT Test Type Enum (dispatch)      │  AIT Test Suite Mgt. (orchestration) │
+│  - DefaultImpl = No Limit           │  - StartAITSuite, RunAITests         │
+│  - Agent → Monthly Copilot Cred.    │  - RunAITestLine, LogSkippedEval     │
+└──────────────┬──────────────────────┴──────────────────┬────────────────────┘
+               │                                         │
+               ▼                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       Data Layer                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  AIT Credit Limit Setup (149040)    │  Agent Task Log                      │
+│  (Singleton, env-wide)              │  (Task-level consumption)            │
+│                                     │                                      │
+│  AIT Test Suite                     │  AIT Log Entry                       │
+│  (Test Type field → enum dispatch)  │  (Test execution + skipped records)  │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. Data Model
+## 4. Interface Contract
 
-### 4.1 AIT Credit Limit Setup (Table 149040)
+### 4.1 AIT Eval Limit Provider
+
+```al
+interface "AIT Eval Limit Provider"
+{
+    procedure CheckBeforeRun(AITTestSuite: Record "AIT Test Suite");
+    procedure IsLimitReached(): Boolean;
+    procedure HandleLimitReached(var AITTestSuite: Record "AIT Test Suite");
+    procedure ShowNotifications();
+    procedure OpenSetupPage();
+}
+```
+
+| Method | Purpose | Called By |
+|--------|---------|-----------|
+| `CheckBeforeRun` | Pre-run gate. Raises `Error()` if the limit is already reached, preventing the suite from starting. | `StartAITSuite`, `RunAITestLine` |
+| `IsLimitReached` | Stateless boolean check. Queries current consumption vs. limit. | `RunAITests` loop, `OnBeforeTestMethodRun`, `OnAfterTestMethodRun`, `RunAITestLine` post-run |
+| `HandleLimitReached` | Sets suite status to `CreditLimitReached` and marks pending/running lines as `Skipped`. | `RunAITests` loop when `IsLimitReached()` returns true |
+| `ShowNotifications` | Sends/recalls page notifications (limit reached, 80% warning, enforcement disabled). | `AgentTestSuite.PageExt` on `OnAfterGetCurrRecord` |
+| `OpenSetupPage` | Opens the setup page for the limit provider. Also used as notification action handler. | `AgentTestSuite.PageExt` action, notification actions |
+
+### 4.2 Implementations
+
+| Implementation | Codeunit | Applies To | Behavior |
+|----------------|----------|------------|----------|
+| `AIT Eval Monthly Copilot Cred.` | 149039 | Agent | Full enforcement: monthly credit tracking, notifications, error on limit |
+| `AIT Eval No Limit` | 149041 | Copilot, MCP (default) | Null object: all methods are no-ops, `IsLimitReached()` returns `false` |
+
+---
+
+## 5. Data Model
+
+### 5.1 AIT Credit Limit Setup (Table 149040)
 
 Singleton table storing environment-wide credit configuration.
 
@@ -77,105 +114,114 @@ Singleton table storing environment-wide credit configuration.
 | Period Start Date | Date | First day of current tracking month |
 
 **Key Properties:**
-- `DataPerCompany = false` - Environment-wide
-- `ReplicateData = false` - Not replicated
+- `DataPerCompany = false` — Environment-wide
+- `ReplicateData = false` — Not replicated
+- `InherentEntitlements/Permissions = RIMDX` — Accessible during install/upgrade
 - Auto-resets period on month change via `GetOrCreate()`
+- `GetPeriodEndDate()` computes the last day of the period month
 
-### 4.2 AIT Test Suite Extensions
+### 5.2 AIT Test Type Enum (149041)
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| Suite Credit Limit | Decimal | Per-suite credit cap (0 = no limit) |
+Drives interface dispatch. `Extensible = false`.
 
-**Relationship:** Suite limits are subdivisions of the global limit. Both limits apply simultaneously.
+| Value | Caption | AIT Eval Limit Provider Implementation |
+|-------|---------|----------------------------------------|
+| 0 | Copilot | `AIT Eval No Limit` (default) |
+| 1 | Agent | `AIT Eval Monthly Copilot Cred.` |
+| 2 | MCP | `AIT Eval No Limit` (default) |
 
-### 4.3 Credit Consumption Calculation
+### 5.3 Credit Consumption Calculation
 
-Credits are calculated dynamically from `Agent Task Log` records:
-1. Query log entries for the suite within the current period
-2. Sum `CopilotCreditsConsumed` from associated agent tasks
-3. Filter by `Period Start Date` to ensure monthly boundaries
+Credits are calculated dynamically via `Agent Test Context Impl.`:
+1. `GetTotalCreditsConsumedThisMonth(PeriodStartDate)` — queries all agent task consumption since period start
+2. `GetCopilotCreditsForPeriod(SuiteCode, PeriodStartDate)` — per-suite consumption for the page display
+3. No caching — every call hits the database for accuracy
 
 ---
 
-## 5. Enforcement Flow
+## 6. Enforcement Flow
 
-### 5.1 Pre-Run Check
+### 6.1 Pre-Run Check
 
 ```
 StartAITSuite()
     │
-    ├── CheckCreditLimitBeforeRun()
-    │   ├── Is Test Type = Agent? ──No──► Allow
-    │   ├── Is Enforcement Enabled? ──No──► Allow
-    │   ├── Is Global Limit Set? ──No──► Allow
-    │   ├── Global Credits >= Limit? ──Yes──► Error
-    │   └── Suite Credits >= Suite Limit? ──Yes──► Error
+    ├── AITEvalLimitProvider := AITTestSuite."Test Type"
+    ├── AITEvalLimitProvider.CheckBeforeRun(AITTestSuite)
+    │   ├── IsLimitReached(Credits, Limit)?
+    │   │   ├── Enforcement disabled? ──► exit(false)
+    │   │   ├── Limit <= 0? ──► exit(false)
+    │   │   └── Credits >= Limit? ──► exit(true)
+    │   └── If true ──► Error('Cannot start... limit %1 reached. Consumed: %2')
     │
     └── Continue to RunAITests()
 ```
 
-### 5.2 During-Run Check (Per Test Line)
+### 6.2 During-Run Check (Per Test Line)
 
 ```
 RunAITests() loop
     │
-    ├── CheckCreditLimitDuringRun()
-    │   └── [Same checks as pre-run, but no error - returns boolean]
+    ├── AITEvalLimitProvider.IsLimitReached()?
+    │   └── If true: CreditLimitReached := true
     │
-    ├── IsCreditLimitReachedDuringRun()?
-    │   └── [Check SingleInstance flag set by OnAfterTestMethodRun]
-    │
-    ├── If either true:
-    │   ├── SetCreditLimitReachedStatus()
+    ├── If CreditLimitReached:
+    │   ├── AITEvalLimitProvider.HandleLimitReached(AITTestSuite)
+    │   │   ├── SetRunStatus → CreditLimitReached
+    │   │   └── ModifyAll Running/Starting/" " lines → Skipped
     │   └── Exit loop
     │
     └── RunAITestLine()
 ```
 
-### 5.3 Per-Test Method Check
+### 6.3 Per-Test Method Check
 
 ```
 OnBeforeTestMethodRun()
     │
-    ├── ShouldSkipTestDueToCreditLimit()? ──Yes──► Error (skip test)
+    ├── AITEvalLimitProvider.IsLimitReached()?
+    │   └── If true:
+    │       ├── Skip := true  (Test Runner skips execution)
+    │       ├── LogSkippedEval()  (AIT Log Entry with Status::Skipped)
+    │       └── exit
     │
-    └── Continue test execution
+    └── Continue test execution (reset counters, start scenario)
 
 OnAfterTestMethodRun()
     │
-    ├── CheckAndHandleCreditLimitAfterTest()
-    │   ├── Is Global Limit Exceeded?
-    │   └── Is Suite Limit Exceeded?
+    ├── AITEvalLimitProvider.IsLimitReached()?
+    │   └── If true: exit (don't log — test was already skipped by platform)
     │
-    └── If either: SetCreditLimitReachedDuringRun()
+    └── Normal logging (tokens, turns, accuracy)
+```
+
+### 6.4 Post-Line Check
+
+```
+RunAITestLine() — after Codeunit.Run returns
+    │
+    ├── AITEvalLimitProvider.IsLimitReached()?
+    │   └── If true: Line Status → Skipped
+    │   └── If false: Line Status → Completed
+    │
+    └── Log telemetry, run history
 ```
 
 ---
 
-## 6. State Management
+## 7. State Management
 
-### 6.1 SingleInstance Pattern
+### 7.1 Stateless Design
 
-The `AIT Credit Limit Mgt.` codeunit uses `SingleInstance = true` to track state across the test run:
+There are **no SingleInstance state flags** for limit tracking. Every limit check calls `IsLimitReached()` which:
+1. Reads `AIT Credit Limit Setup` from DB
+2. Queries `Agent Test Context Impl.GetTotalCreditsConsumedThisMonth()`
+3. Compares consumption against configured limit
+4. Returns boolean
 
-```al
-codeunit 149050 "AIT Credit Limit Mgt."
-{
-    SingleInstance = true;
-    
-    var
-        CreditLimitReachedDuringRun: Boolean;
-}
-```
+This eliminates stale-state bugs at the cost of repeated DB queries during a run.
 
-**Lifecycle:**
-1. `ResetCreditLimitFlag()` - Called at start of suite run
-2. `SetCreditLimitReachedDuringRun()` - Called when limit detected
-3. `IsCreditLimitReachedDuringRun()` - Checked before each test
-4. `ShouldSkipTestDueToCreditLimit()` - Used in event subscriber
-
-### 6.2 Status Transitions
+### 7.2 Status Transitions
 
 ```
          ┌──────────────┐
@@ -190,85 +236,89 @@ codeunit 149050 "AIT Credit Limit Mgt."
 └────────┘ └────────┘ └─────────────────┘
 ```
 
-When `CreditLimitReached`:
-- All running test method lines → `Skipped`
-- All pending (blank status) lines → `Skipped`
+When `CreditLimitReached` (via `HandleLimitReached`):
+- All `Running` test method lines → `Skipped`
+- All `Starting` test method lines → `Skipped`
+- All blank-status test method lines → `Skipped`
 - Suite status → `CreditLimitReached`
 
-**Note:** The `Skipped` status (enum value 50) distinguishes lines that didn't run due to credit limits from lines that were manually cancelled by users.
+### 7.3 Skipped Eval Tracking
+
+When a test method is skipped due to credit limits, `LogSkippedEval()` creates an `AIT Log Entry` with:
+- `Status = Skipped`
+- `Message = 'Eval skipped due to Copilot credit limit being reached.'`
+- `Procedure Name` = the function that was skipped
+
+These entries feed FlowFields on `AIT Test Suite` and `AIT Run History` (`No. of Tests Skipped`).
 
 ---
 
-## 7. User Interface Design
+## 8. User Interface Design
 
-### 7.1 Credit Limits Page
+### 8.1 Credit Limits Page (`AIT Eval Monthly Copilot Cred.`, Page 149048)
 
-**Purpose:** Central administration of credit limits
+**Purpose:** Central administration of credit limits. PageType = Worksheet.
 
 **Layout:**
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Header Group: Monthly Copilot Credit Limits                │
+│ Label: "Credit limits control when new evals can be        │
+│  started. Once the limit is reached, no new evals can      │
+│  start, but any eval already in progress is allowed to     │
+│  finish. Actual consumption may slightly exceed the limit." │
 ├─────────────────────────────────────────────────────────────┤
-│ [Editable]    Monthly Copilot Credit Limit: 200.00         │
-│ [Editable]    Enforcement Enabled: Yes                     │
-│ [Computed]    Copilot Credits Consumed: 160.00             │
-│ [Computed]    Copilot Credits Available: 40.00  [YELLOW]   │
-│ [Computed]    Usage: 80.0%                                 │
-│ [Display]     Current Period: Mar 1, 2026 - Mar 31, 2026   │
+│ [Toggle]     Limits Enabled: Yes                            │
+│ [Editable]   Monthly Copilot Credit Limit: 200.00          │
+│ [Computed]   Copilot Credits Consumed: 160.00              │
+│ [Computed]   Copilot Credits Available: 40.00  [YELLOW]    │
+│ [Computed]   Usage: 80.0%                                  │
+│ [Display]    Current Period: Mar 1, 2026 - Mar 31, 2026    │
 ├─────────────────────────────────────────────────────────────┤
-│ Repeater: Agent Test Suites                                 │
-│ ┌──────┬───────────┬────────┬───────┬───────┬─────┬───────┐│
-│ │Code  │Description│Consumed│Limit  │Usage %│Skip │Status ││
-│ ├──────┼───────────┼────────┼───────┼───────┼─────┼───────┤│
-│ │AGT-01│Sales Agent│ 80.00  │100.00 │ 80.0% │  0  │Running││
-│ │AGT-02│Support Bot│ 80.00  │       │       │  3  │Skipped││
-│ └──────┴───────────┴────────┴───────┴───────┴─────┴───────┘│
+│ Repeater: Agent Test Suites                                │
+│ ┌──────┬───────────┬──────────────────────────────────┐    │
+│ │Code  │Description│Copilot Credits Consumed (Month)  │    │
+│ ├──────┼───────────┼──────────────────────────────────┤    │
+│ │AGT-01│Sales Agent│ 80.00                            │    │
+│ │AGT-02│Support Bot│ 80.00                            │    │
+│ └──────┴───────────┴──────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Default Filter:** Shows only suites that have consumed credits (toggle available)
+- **SourceTableView:** Filtered to `Test Type = Agent` only
+- **Default Filter:** Shows only suites that have consumed credits (toggle to show all)
+- **Monthly Credit Limit field:** Editable only when enforcement is enabled
 
-**Suite Limit Display:**
-- Empty = No suite-specific limit (global only)
-- Value = Explicit suite limit
+### 8.2 Notifications (on Agent Test Suite page)
 
-### 7.2 Notifications
+Three mutually exclusive notification paths, managed by `ShowNotifications()`:
 
-Displayed on the AI Eval Suite page for Agent type suites:
+| State | Notification | Action |
+|-------|-------------|--------|
+| Enforcement disabled | "Copilot credit limit enforcement is disabled. Eval execution costs are not bounded." | View credit limits |
+| Limit reached | "The monthly Copilot credit limit has been reached." | View credit limits |
+| ≥ 80% used | "Warning: X% of the monthly Copilot credits have been consumed." | View credit limits |
 
-| Notification | Trigger | Action | Style |
-|--------------|---------|--------|-------|
-| Global Warning (80%) | `IsApproachingCreditLimit()` | Open Credit Limits | Warning |
-| Suite Warning (80%) | `IsSuiteApproachingCreditLimit()` | Open Credit Limits | Warning |
-| Global Limit Reached | `IsGlobalCreditLimitExceeded()` | Open Credit Limits | Error |
-| Suite Limit Reached | `IsSuiteCreditLimitExceeded()` | Open Credit Limits | Error |
+**Notification IDs:** Fixed GUIDs ensure proper send/recall lifecycle:
+- Enforcement Disabled: `b2acb24d-dbc8-4bda-99c9-8bed0d470fd8`
+- Global Limit Reached: `fbb7ec95-3427-400f-9fad-34d6009858c9`
+- Global Warning (80%): `f365e625-24bb-491b-bd85-83d66d5557ae`
 
-**Notification IDs:** Fixed GUIDs to enable proper recall when limits change:
-- Global Limit: `a1b2c3d4-e5f6-7890-abcd-ef1234567890`
-- Suite Limit: `b2c3d4e5-f6a7-8901-bcde-f12345678901`
-- Global Warning: `c3d4e5f6-a7b8-9012-cdef-123456789012`
-- Suite Warning: `d4e5f6a7-b8c9-0123-defa-234567890123`
+When enforcement is disabled, limit/warning notifications are recalled. When enforcement is enabled, the disabled notification is recalled.
 
-### 7.3 Percentage Display & Styling
-
-**Usage Percentage Calculation:**
-```al
-UsagePercent := Round(CreditsConsumed / CreditLimit * 100, 0.1);
-```
+### 8.3 Percentage Display & Styling
 
 **Three-Tier Styling:**
 | Usage % | Style | Meaning |
-|---------|-------|--------|
+|---------|-------|---------|
 | < 80% | Favorable (green) | Safe consumption level |
 | 80-99% | Attention (yellow) | Approaching limit |
-| >= 100% | Unfavorable (red) | Limit reached |
+| ≥ 100% | Unfavorable (red) | Limit reached |
 
 ---
 
-## 8. Installation & Upgrade
+## 9. Installation & Upgrade
 
-### 8.1 Install (New Environments)
+### 9.1 Install (New Environments)
 
 ```al
 trigger OnInstallAppPerDatabase()
@@ -277,7 +327,7 @@ begin
 end;
 ```
 
-### 8.2 Upgrade (Existing Environments)
+### 9.2 Upgrade (Existing Environments)
 
 ```al
 trigger OnUpgradePerDatabase()
@@ -296,48 +346,50 @@ end;
 
 ---
 
-## 9. Performance Considerations
+## 10. Performance Considerations
 
-### 9.1 Credit Calculation
+### 10.1 Credit Calculation
 
 Credits are calculated on-demand by querying `Agent Task Log`. For performance:
 - Queries are filtered by period start date
 - Task IDs are deduplicated before summing
-- Results are not cached (ensures accuracy)
+- Results are **not** cached (ensures accuracy)
 
-### 9.2 Check Frequency
+### 10.2 Check Frequency
 
 | Check Point | Frequency | Impact |
 |-------------|-----------|--------|
-| Before suite run | Once per run | Minimal |
-| Before each test line | Per line | Low |
-| After each test method | Per method | Medium |
+| `CheckBeforeRun` | Once per run | Minimal |
+| `IsLimitReached` in RunAITests loop | Per test method line | Low-Medium |
+| `IsLimitReached` in OnBefore/AfterTestMethodRun | Per test method | Medium |
+| `IsLimitReached` post-line in RunAITestLine | Per line | Low |
 
-**Optimization:** Checks short-circuit early if Test Type ≠ Agent or Enforcement disabled.
+**Optimization:** The `AIT Eval No Limit` implementation short-circuits immediately (`exit(false)`) for non-Agent test types, with zero DB access.
 
 ---
 
-## 10. Error Handling
+## 11. Error Handling
 
-### 10.1 Pre-Run Errors
+### 11.1 Pre-Run Error
 
-Blocking errors that prevent suite from starting:
-- `Cannot start the agent test suite. The monthly credit limit of %1 has been reached.`
-- `Cannot start the agent test suite. The suite credit limit of %1 has been reached.`
+Blocking error that prevents the suite from starting:
+- `'Cannot start the agent eval suite. The monthly credit limit for evals of %1 has been reached. Current consumption: %2.'`
 
-### 10.2 During-Run Errors
+This is raised by `CheckBeforeRun` using the private `IsLimitReached(var CopilotCreditConsumed, var MonthlyCreditLimit)` overload to get both values in a single DB pass.
 
-Graceful termination:
-- Current test method completes with error: `Copilot credit limit reached. Skipping remaining tests.`
-- Subsequent tests are skipped
+### 11.2 During-Run Handling
+
+Graceful wind-down (no `Error()` raised during execution):
+- `IsLimitReached()` returns `true` → remaining methods skipped via `Skip := true`
+- Skipped methods logged as `AIT Log Entry` with `Status::Skipped`
 - Suite transitions to `CreditLimitReached` status
 - Run history is logged normally
 
 ---
 
-## 11. Security & Permissions
+## 12. Security & Permissions
 
-### 11.1 Permission Sets
+### 12.1 Permission Sets
 
 | Permission Set | Access Level |
 |----------------|--------------|
@@ -345,7 +397,7 @@ Graceful termination:
 | AI Test Toolkit - Read | Read (R) on Credit Limit Setup |
 | AI Test Toolkit - View | IMD on Credit Limit Setup |
 
-### 11.2 Table Access
+### 12.2 Table Access
 
 ```al
 InherentEntitlements = RIMDX;
@@ -356,38 +408,64 @@ Credit Limit Setup table has inherent permissions to allow access during install
 
 ---
 
-## 12. Extensibility
+## 13. File Layout
 
-### 12.1 Current Extension Points
-
-- `OnBeforeRunIteration` event in test run iteration
-- Status enum is not extensible (by design)
-
-### 12.2 Future Considerations
-
-- Webhook notifications when limits are reached
-- Integration with Azure Cost Management
-- Per-user credit tracking
-- Historical consumption analytics
-- Configurable warning threshold (currently fixed at 80%)
-- Email notifications for administrators
+```
+src/
+  Limits/
+    AITEvalLimitProvider.Interface.al          ← Interface definition
+    CopilotCredits/
+      AITEvalMonthlyCopilotCred.Codeunit.al   ← Agent implementation (149039)
+      AITEvalMonthlyCopilotCred.Page.al       ← Credit limits admin page (149048)
+      AITCreditLimitSetup.Table.al            ← Singleton config table (149040)
+    None/
+      AITEvalNoLimit.Codeunit.al              ← Null object implementation (149041)
+  TestSuite/
+    AITTestType.Enum.al                       ← Enum with interface dispatch (149041)
+    AITTestSuiteMgt.Codeunit.al               ← Orchestration (calls interface)
+  AITTestRunIteration.Codeunit.al             ← Test method event subscribers
+  Agent/
+    AgentTestSuite.PageExt.al                 ← Agent-specific UI, notifications
+```
 
 ---
 
-## 13. Testing Considerations
+## 14. Extensibility
 
-### 13.1 Test Scenarios
+### 14.1 Adding a New Limit Strategy
+
+To add a new limit type for a future test type (e.g., MCP with token-based limits):
+1. Create a new codeunit implementing `AIT Eval Limit Provider`
+2. Set the `Implementation` on the corresponding `AIT Test Type` enum value
+3. No changes needed in `AIT Test Suite Mgt.` or `AIT Test Run Iteration`
+
+### 14.2 Current Extension Points
+
+- `OnBeforeRunIteration` event in `AIT Test Run Iteration`
+- `AIT Test Type` enum is `Extensible = false` (by design — new types require code changes)
+
+### 14.3 Future Considerations
+
+- Configurable warning threshold (currently fixed at 80%)
+- Historical consumption analytics / trends
+- Webhook or email notifications when limits are reached
+
+---
+
+## 15. Testing Considerations
+
+### 15.1 Test Scenarios
 
 1. **Pre-run blocking:** Verify suite cannot start when limit exceeded
-2. **Mid-run stopping:** Verify tests stop within a line when limit hit
+2. **Mid-run stopping:** Verify tests stop and remaining methods are skipped
 3. **Monthly reset:** Verify consumption resets on new month
-4. **Suite vs. global:** Verify both limits apply correctly
-5. **Notifications:** Verify correct notifications appear/disappear
+4. **Enforcement toggle:** Verify notifications and behavior change correctly
+5. **Skipped eval tracking:** Verify AIT Log Entries with Status::Skipped are created
+6. **No-op implementation:** Verify Copilot/MCP test types are unaffected
 
-### 13.2 Test Data Setup
+### 15.2 Test Data Setup
 
 ```al
-// Set up low limit for testing
 AITCreditLimitSetup."Monthly Credit Limit" := 1;
 AITCreditLimitSetup."Enforcement Enabled" := true;
 AITCreditLimitSetup.Modify();
@@ -395,23 +473,24 @@ AITCreditLimitSetup.Modify();
 
 ---
 
-## 14. Glossary
+## 16. Glossary
 
 | Term | Definition |
 |------|------------|
 | Copilot Credits | Unit of consumption for AI/agent operations |
-| Global Limit | Environment-wide monthly credit cap |
-| Suite Limit | Per-test-suite credit cap (subdivision of global) |
+| Eval Limit Provider | Interface abstracting limit-checking behavior per test type |
 | Enforcement | Whether limits are actively enforced |
 | Period | Monthly tracking window (1st to last day of month) |
-| SingleInstance | AL codeunit pattern for session-wide state |
-| Skipped | Line status indicating execution prevented by credit limit |
-| Warning Threshold | 80% of limit - triggers warning notification |
+| Skipped | Line/entry status indicating execution prevented by credit limit |
+| Warning Threshold | 80% of limit — triggers warning notification |
+| Null Object | Design pattern: `AIT Eval No Limit` provides safe no-op behavior |
 
 ---
 
-## 15. Document History
+## 17. Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2026-03-18 | AI Test Toolkit Team | Initial design || 1.1 | 2026-03-18 | AI Test Toolkit Team | Added 80% warning notifications, percentage display, Skipped line status, evals skipped tracking |
+| 1.0 | 2026-03-18 | AI Test Toolkit Team | Initial design |
+| 1.1 | 2026-03-18 | AI Test Toolkit Team | Added 80% warning notifications, percentage display, Skipped line status, evals skipped tracking |
+| 2.0 | 2026-03-23 | AI Test Toolkit Team | Major rewrite to match interface-based architecture. Removed per-suite limits, SingleInstance state flags, AIT Credit Limit Mgt. codeunit. Documented AIT Eval Limit Provider interface contract, enum dispatch, stateless enforcement, file layout, null object pattern. |
