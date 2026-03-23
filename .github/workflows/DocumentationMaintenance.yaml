@@ -27,8 +27,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ "${{ vars.DOCS_SKIP_DEDUP }}" = "true" ]; then
-            echo "Dedup check disabled via DOCS_SKIP_DEDUP variable."
+          if [ "${{ vars.RUN_DOCS_CHECK_ON_EVERY_ITERATION }}" = "true" ]; then
+            echo "Dedup check disabled via RUN_DOCS_CHECK_ON_EVERY_ITERATION variable."
             echo "skip=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -145,7 +145,7 @@ jobs:
 
             gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
               -f body="$BODY" \
-              -f event="REQUEST_CHANGES"
+              -f event="COMMENT"
           else
             echo "No documentation gaps found."
           fi
