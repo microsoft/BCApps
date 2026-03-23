@@ -332,16 +332,6 @@ codeunit 4581 "Ext. SharePoint Graph Helper"
         end;
     end;
 
-    local procedure ReverseString(InputString: Text): Text
-    var
-        ReversedString: Text;
-        i: Integer;
-    begin
-        for i := StrLen(InputString) downto 1 do
-            ReversedString := ReversedString + CopyStr(InputString, i, 1);
-        exit(ReversedString);
-    end;
-
     local procedure PathSeparator(): Text
     begin
         exit('/');
