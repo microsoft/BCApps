@@ -5,6 +5,7 @@
 namespace Microsoft.DemoData.QualityManagement;
 
 using Microsoft.DemoTool.Helpers;
+using Microsoft.QualityManagement.Configuration.Template;
 
 codeunit 5596 "Create QM Insp. Template Hdr"
 {
@@ -23,6 +24,7 @@ codeunit 5596 "Create QM Insp. Template Hdr"
         ContosoQualityManagement.InsertQualityInspectionTemplateHdr(ProductionFood(), ProductionFoodDescLbl);
         ContosoQualityManagement.InsertQualityInspectionTemplateHdr(Receive(), ReceiveDescLbl);
         ContosoQualityManagement.InsertQualityInspectionTemplateHdr(ScheduleChange(), ScheduleChangeDescLbl);
+        ContosoQualityManagement.InsertQualityInspectionTemplateHdr(Beans(), BeansDescLbl, Enum::"Qlty. Sample Size Source"::"Percent of Quantity", 2);
     end;
 
     procedure BicycleChecklist(): Code[20]
@@ -75,6 +77,11 @@ codeunit 5596 "Create QM Insp. Template Hdr"
         exit(ScheduleChangeTok);
     end;
 
+    procedure Beans(): Code[20]
+    begin
+        exit(BeansTok);
+    end;
+
     var
         BicycleChecklistTok: Label 'BICYCLECHECKLIST', Locked = true, MaxLength = 20;
         CarTok: Label 'CAR', Locked = true, MaxLength = 20;
@@ -84,6 +91,7 @@ codeunit 5596 "Create QM Insp. Template Hdr"
         ProductionFoodTok: Label 'PRODUCTIONFOOD', Locked = true, MaxLength = 20;
         ReceiveTok: Label 'RECEIVE', Locked = true, MaxLength = 20;
         ScheduleChangeTok: Label 'SCHEDULECHANGE', Locked = true, MaxLength = 20;
+        BeansTok: Label 'BEANS', Locked = true, MaxLength = 20;
 
         BicycleChecklistDescLbl: Label 'Bicycle Checklist', MaxLength = 100;
         CorrectiveActionDescLbl: Label 'Corrective Action', MaxLength = 100;
@@ -93,4 +101,5 @@ codeunit 5596 "Create QM Insp. Template Hdr"
         ProductionFoodDescLbl: Label 'Food Production Example', MaxLength = 100;
         ReceiveDescLbl: Label 'Receiving Example', MaxLength = 100;
         ScheduleChangeDescLbl: Label 'Scheduler Change', MaxLength = 100;
+        BeansDescLbl: Label 'Coffee beans, receipt, bag', MaxLength = 100;
 }

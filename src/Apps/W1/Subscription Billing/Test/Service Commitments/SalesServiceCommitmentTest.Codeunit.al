@@ -598,6 +598,43 @@ codeunit 139915 "Sales Service Commitment Test"
     end;
 
     [Test]
+    procedure CheckSalesLineQtyToInvoiceAfterPartialShipment()
+    var
+        ReleaseSalesDoc: Codeunit "Release Sales Document";
+    begin
+        // [SCENARIO] After posting a partial (ship-only) shipment for a subscription item, "Qty. to Invoice" must stay 0.
+        //            A subsequent Ship+Invoice posting of the remaining quantity must succeed without error
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Vendor);
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(
+            Item, Enum::"Item Service Commitment Type"::"Service Commitment Item", ServiceCommitmentPackage.Code);
+
+        // [GIVEN] Sales order for a subscription item with quantity 2; first shipment covers 1 piece
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), 2);
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Modify(false);
+
+        // [WHEN] Post ship-only for the first piece
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] "Qty. to Invoice" on the remaining order line must be 0
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        Assert.AreEqual(0, SalesLine."Qty. to Invoice", '"Qty. to Invoice" must be 0 for subscription item after partial shipment.');
+
+        // [WHEN] Post ship+invoice for the remaining piece - must succeed without error
+        ReleaseSalesDoc.PerformManualReopen(SalesHeader);
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Modify(false);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] All quantity has been shipped and "Qty. to Invoice" is still 0
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        Assert.AreEqual(2, SalesLine."Quantity Shipped", '"Quantity Shipped" must equal the full quantity after complete shipment.');
+        Assert.AreEqual(0, SalesLine."Qty. to Invoice", '"Qty. to Invoice" must remain 0 for subscription item after full shipment.');
+    end;
+
+    [Test]
     procedure CheckSalesLineQtyToInvoiceAfterSalesQuoteToOrder()
     var
         SalesOrder: Record "Sales Header";
