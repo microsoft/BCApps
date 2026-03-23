@@ -305,6 +305,16 @@ codeunit 8055 "Sub. Contracts Item Management"
         ItemAttributeValueSelection.Primary := TempItemAttributeValue.Primary;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Catalog Item Management", OnDelNonStockItemOnAfterCheckRelations, '', false, false)]
+    local procedure PreventDeletionOfSubscriptionItemOnDelNonStockItem(var Item: Record Item; var ShouldExit: Boolean)
+    begin
+        if Item."Subscription Option" in
+            ["Item Service Commitment Type"::"Service Commitment Item",
+             "Item Service Commitment Type"::"Invoicing Item"]
+        then
+            ShouldExit := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Catalog Item Management", OnAfterCreateNewItem, '', false, false)]
     local procedure InsertItemServiceCommPackAfterCreateNewItem(var Item: Record Item; NonstockItem: Record "Nonstock Item"; var NewItem: Record Item)
     begin
