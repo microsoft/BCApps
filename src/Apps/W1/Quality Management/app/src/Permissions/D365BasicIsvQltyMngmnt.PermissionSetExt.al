@@ -8,5 +8,5 @@ using System.Security.AccessControl;
 
 permissionsetextension 20400 "D365 BASIC ISV - QltyMngmnt" extends "D365 BASIC ISV"
 {
-    IncludedPermissionSets = "QltyMngmnt - Admin";
+    IncludedPermissionSets = "QltyMgmt - Admin";
 }

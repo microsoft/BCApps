@@ -28,7 +28,7 @@ codeunit 20406 "Qlty. Permission Mgmt."
         ActionChangeItemTrackingLbl: Label 'change item tracking';
         ActionChangeSourceQuantityLbl: Label 'change source quantity';
         ActionEditLineCommentLbl: Label 'edit line note/comment';
-        AdminSupervisorRoleIDTxt: Label 'QltyMngmnt - Admin', Locked = true;
+        AdminSupervisorRoleIDTxt: Label 'QltyMgmt - Admin', Locked = true;
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
 
     /// <summary>
