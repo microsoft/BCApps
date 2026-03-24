@@ -9,7 +9,6 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
 {
     Access = Internal;
 
-    /// <inheritdoc />
     procedure CheckBeforeRun(AITTestSuite: Record "AIT Test Suite")
     var
         TotalCreditsConsumed, MonthlyCreditLimit : Decimal;
@@ -18,7 +17,6 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
             Error(GlobalCreditLimitExceededErr, MonthlyCreditLimit, TotalCreditsConsumed);
     end;
 
-    /// <inheritdoc />
     procedure IsLimitReached(): Boolean
     var
         TotalCreditsConsumed, MonthlyCreditLimit : Decimal;
@@ -26,16 +24,14 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         exit(IsLimitReached(TotalCreditsConsumed, MonthlyCreditLimit));
     end;
 
-    /// <inheritdoc />
     procedure ShowNotifications()
     begin
         if not IsEnforcementEnabled() then
-            ShowNotficitationsWhenEnforcementDiabled()
+            ShowNotificationsWhenEnforcementDiabled()
         else
             ShowNotificationsWhenEnforcementEnabled();
     end;
 
-    /// <inheritdoc />
     procedure OpenConfigurationPage()
     begin
         Page.Run(Page::"AIT Eval Monthly Copilot Cred.");
@@ -77,67 +73,56 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         exit(AITEvalMonthlyCopilotCreditsLimit."Enforcement Enabled");
     end;
 
-    local procedure ShowNotficitationsWhenEnforcementDiabled()
-    var
-        EnforcementDisabledNotification, GlobalWarningNotification, GlobalLimitNotification : Notification;
-        EnforcementDisabledMsg: Label 'Copilot credit limit enforcement is disabled. Eval execution costs are not bounded. Enable enforcement on the Credit Limits page to set a spending cap.';
+    local procedure ShowNotificationsWhenEnforcementDiabled()
     begin
-        EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
-        EnforcementDisabledNotification.Message := EnforcementDisabledMsg;
-        EnforcementDisabledNotification.Scope := NotificationScope::LocalScope;
-        EnforcementDisabledNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenConfigurationPage');
-        EnforcementDisabledNotification.Send();
+        RecallAllNotifications();
 
-        // Recall limit/warning notifications since enforcement is off
-        GlobalLimitNotification.Id := GetCreditLimitNotificationId();
-        GlobalLimitNotification.Recall();
-
-        GlobalWarningNotification.Id := GetCreditWarningNotificationId();
-        GlobalWarningNotification.Recall();
+        SendEnforcementDisabledNotification();
     end;
 
     local procedure ShowNotificationsWhenEnforcementEnabled()
     var
-        EnforcementDisabledNotification, CreditWarningNotification, CreditLimitNotification : Notification;
-        CreditLimitReachedMsg: Label 'The monthly Copilot credit limit for AI evaluations has been reached. New agent evaluations cannot be started until the limit is increased or the next month begins.';
-        CreditWarningMsg: Label 'Warning: %1% of the monthly Copilot credits for AI evaluations have been consumed. Consider monitoring agent evaluations to avoid reaching the limit.', Comment = '%1 - Usage percentage';
         TotalCreditsConsumed, MonthlyCreditLimit, UsagePercentage : Decimal;
     begin
-        EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
-        CreditWarningNotification.Id := GetCreditWarningNotificationId();
-        CreditLimitNotification.Id := GetCreditLimitNotificationId();
-
-        // Recall the disabled notification
-        EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
-        EnforcementDisabledNotification.Recall();
+        RecallAllNotifications();
 
         if IsLimitReached(TotalCreditsConsumed, MonthlyCreditLimit) then begin
-            // Show credit limit notification when limit is reached
-            CreditLimitNotification.Message := CreditLimitReachedMsg;
-            CreditLimitNotification.Scope := NotificationScope::LocalScope;
-            CreditLimitNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenConfigurationPage');
-            CreditLimitNotification.Send();
-
-            // Recall warning notification if limit is exceeded
-            CreditWarningNotification.Recall();
+            SendCreditLimitNotification();
             exit;
         end;
-
-        // Recall credit limit notification since limit is not reached
-        CreditLimitNotification.Recall();
 
         UsagePercentage := GetCreditUsagePercentage(TotalCreditsConsumed, MonthlyCreditLimit);
         if IsApproachingCreditLimit(UsagePercentage) then begin
-            // Show warning notification when approaching credit limit
-            CreditWarningNotification.Message := StrSubstNo(CreditWarningMsg, UsagePercentage);
-            CreditWarningNotification.Scope := NotificationScope::LocalScope;
-            CreditWarningNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenConfigurationPage');
-            CreditWarningNotification.Send();
+            SendCreditWarningNotification(UsagePercentage);
             exit;
         end;
+    end;
 
-        // Recall warning notification if not approaching limit
-        CreditWarningNotification.Recall();
+    local procedure RecallAllNotifications()
+    begin
+        RecallCreditLimitNotification();
+        RecallCreditWarningNotification();
+        RecallEnforcementDisabledNotification();
+    end;
+
+    local procedure SendCreditLimitNotification()
+    var
+        CreditLimitNotification: Notification;
+        CreditLimitReachedMsg: Label 'The monthly Copilot credit limit for AI evaluations has been reached. New agent evaluations cannot be started until the limit is increased or the next month begins.';
+    begin
+        CreditLimitNotification.Id := GetCreditLimitNotificationId();
+        CreditLimitNotification.Message := CreditLimitReachedMsg;
+        CreditLimitNotification.Scope := NotificationScope::LocalScope;
+        CreditLimitNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenConfigurationPage');
+        CreditLimitNotification.Send();
+    end;
+
+    local procedure RecallCreditLimitNotification()
+    var
+        CreditLimitNotification: Notification;
+    begin
+        CreditLimitNotification.Id := GetCreditLimitNotificationId();
+        if CreditLimitNotification.Recall() then;
     end;
 
     local procedure GetCreditLimitNotificationId(): Guid
@@ -145,9 +130,49 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         exit('fbb7ec95-3427-400f-9fad-34d6009858c9');
     end;
 
+    local procedure SendCreditWarningNotification(UsagePercentage: Decimal)
+    var
+        CreditWarningNotification: Notification;
+        CreditWarningMsg: Label 'Warning: %1% of the monthly Copilot credits for AI evaluations have been consumed. Consider monitoring agent evaluations to avoid reaching the limit.', Comment = '%1 - Usage percentage';
+    begin
+        CreditWarningNotification.Id := GetCreditWarningNotificationId();
+        CreditWarningNotification.Message := StrSubstNo(CreditWarningMsg, UsagePercentage);
+        CreditWarningNotification.Scope := NotificationScope::LocalScope;
+        CreditWarningNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenConfigurationPage');
+        CreditWarningNotification.Send();
+    end;
+
+    local procedure RecallCreditWarningNotification()
+    var
+        CreditWarningNotification: Notification;
+    begin
+        CreditWarningNotification.Id := GetCreditWarningNotificationId();
+        if CreditWarningNotification.Recall() then;
+    end;
+
     local procedure GetCreditWarningNotificationId(): Guid
     begin
         exit('f365e625-24bb-491b-bd85-83d66d5557ae');
+    end;
+
+    local procedure SendEnforcementDisabledNotification()
+    var
+        EnforcementDisabledNotification: Notification;
+        EnforcementDisabledMsg: Label 'Copilot credit limits for AI evaluation are disabled. Enable enforcement on the Credit Limits page to set a spending cap.';
+    begin
+        EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
+        EnforcementDisabledNotification.Message := EnforcementDisabledMsg;
+        EnforcementDisabledNotification.Scope := NotificationScope::LocalScope;
+        EnforcementDisabledNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenConfigurationPage');
+        EnforcementDisabledNotification.Send();
+    end;
+
+    local procedure RecallEnforcementDisabledNotification()
+    var
+        EnforcementDisabledNotification: Notification;
+    begin
+        EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
+        if EnforcementDisabledNotification.Recall() then;
     end;
 
     local procedure GetEnforcementDisabledNotificationId(): Guid

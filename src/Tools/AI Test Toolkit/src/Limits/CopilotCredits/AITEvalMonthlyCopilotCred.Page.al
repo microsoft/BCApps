@@ -54,36 +54,6 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                         UpdateComputedFields();
                     end;
                 }
-                field(CreditsConsumed; CreditsConsumed)
-                {
-                    AutoFormatType = 0;
-                    Caption = 'Copilot Credits Consumed';
-                    ToolTip = 'Specifies the total number of Copilot credits consumed by all agent test suites during the current month.';
-                    Editable = false;
-                    DecimalPlaces = 2 : 5;
-                }
-                field(CreditsAvailable; CreditsAvailable)
-                {
-                    AutoFormatType = 0;
-                    Caption = 'Copilot Credits Available';
-                    ToolTip = 'Specifies the number of Copilot credits remaining for the current month.';
-                    Editable = false;
-                    DecimalPlaces = 2 : 5;
-                    StyleExpr = CreditsAvailableStyle;
-                }
-                field(CreditsUsagePercentage; CreditsUsagePercentage)
-                {
-                    Caption = 'Usage %';
-                    ToolTip = 'Specifies the percentage of the monthly Copilot credit limit that has been consumed.';
-                    Editable = false;
-                    StyleExpr = CreditsAvailableStyle;
-                }
-                field(CurrentPeriod; CurrentPeriod)
-                {
-                    Caption = 'Current Period';
-                    ToolTip = 'Specifies the date range for the current tracking period.';
-                    Editable = false;
-                }
             }
             repeater(AgentSuites)
             {
@@ -109,6 +79,40 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                     ToolTip = 'Specifies the number of Copilot credits consumed by this test suite during the current month.';
                     Editable = false;
                     DecimalPlaces = 2 : 5;
+                }
+            }
+            group(Footer)
+            {
+                ShowCaption = false;
+                field(CurrentPeriod; CurrentPeriod)
+                {
+                    Caption = 'Current Period';
+                    ToolTip = 'Specifies the date range for the current tracking period.';
+                    Editable = false;
+                }
+                field(CreditsConsumed; CreditsConsumed)
+                {
+                    AutoFormatType = 0;
+                    Caption = 'Copilot Credits Consumed';
+                    ToolTip = 'Specifies the total number of Copilot credits consumed by all agent test suites during the current month.';
+                    Editable = false;
+                    DecimalPlaces = 2 : 5;
+                }
+                field(CreditsAvailable; CreditsAvailable)
+                {
+                    AutoFormatType = 0;
+                    Caption = 'Copilot Credits Available';
+                    ToolTip = 'Specifies the number of Copilot credits remaining for the current month.';
+                    Editable = false;
+                    DecimalPlaces = 2 : 5;
+                    StyleExpr = CreditsAvailableStyle;
+                }
+                field(CreditsUsagePercentage; CreditsUsagePercentage)
+                {
+                    Caption = 'Usage %';
+                    ToolTip = 'Specifies the percentage of the monthly Copilot credit limit that has been consumed.';
+                    Editable = false;
+                    StyleExpr = CreditsAvailableStyle;
                 }
             }
         }
@@ -194,6 +198,11 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         UpdateComputedFields();
         BuildSuitesWithCreditsList();
         ApplySuiteFilter();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateSuiteCreditsConsumed();
     end;
 
     trigger OnAfterGetRecord()

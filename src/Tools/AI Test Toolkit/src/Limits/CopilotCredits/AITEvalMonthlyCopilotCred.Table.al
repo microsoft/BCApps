@@ -17,10 +17,9 @@ table 149040 "AIT Eval Monthly Copilot Cred."
 
     fields
     {
-        field(1; "Primary Key"; Code[10])
+        field(1; Code; Code[10])
         {
-            Caption = 'Primary Key';
-            ToolTip = 'Specifies the primary key.';
+            Caption = 'Code';
         }
         field(2; "Monthly Credit Limit"; Decimal)
         {
@@ -40,7 +39,7 @@ table 149040 "AIT Eval Monthly Copilot Cred."
 
     keys
     {
-        key(PK; "Primary Key")
+        key(PK; Code)
         {
             Clustered = true;
         }
@@ -64,7 +63,7 @@ table 149040 "AIT Eval Monthly Copilot Cred."
 
     internal procedure InsertDefaultRecord()
     begin
-        Rec."Primary Key" := '';
+        Rec.Code := '';
         Rec."Monthly Credit Limit" := 200;
         Rec."Enforcement Enabled" := true;
         Rec.Insert();

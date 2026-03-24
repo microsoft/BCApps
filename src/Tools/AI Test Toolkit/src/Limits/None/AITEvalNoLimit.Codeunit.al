@@ -11,23 +11,19 @@ codeunit 149041 "AIT Eval No Limit" implements "AIT Eval Limit Provider"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    /// <inheritdoc />
     procedure CheckBeforeRun(AITTestSuite: Record "AIT Test Suite")
     begin
     end;
 
-    /// <inheritdoc />
     procedure IsLimitReached(): Boolean
     begin
         exit(false);
     end;
 
-    /// <inheritdoc />
     procedure ShowNotifications()
     begin
     end;
 
-    /// <inheritdoc />
     procedure OpenConfigurationPage()
     begin
     end;
