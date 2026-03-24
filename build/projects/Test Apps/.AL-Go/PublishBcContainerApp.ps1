@@ -33,8 +33,6 @@ function PublishApp() {
     }
 }
 
-
-
 $appFiles = $parameters["appFile"]
 if (($appFiles -is [string]) -and (PublishApp -appFile $appFiles)) {
     Write-Host "Single app file detected."

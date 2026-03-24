@@ -3,6 +3,7 @@ Param(
 )
 
 Import-Module (Join-Path $PSScriptRoot "../../../scripts/EnlistmentHelperFunctions.psm1" -Resolve)
+
 $testType = Get-ALGoSetting -Key "testType"
 $testConfiguration = (Get-Content (Join-Path $PSScriptRoot "TestConfiguration.json" -Resolve) | ConvertFrom-Json)
 
