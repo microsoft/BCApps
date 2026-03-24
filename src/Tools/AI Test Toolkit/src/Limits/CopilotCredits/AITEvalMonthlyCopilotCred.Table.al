@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+using System.Environment;
 
 table 149040 "AIT Eval Monthly Copilot Cred."
 {
@@ -65,10 +66,20 @@ table 149040 "AIT Eval Monthly Copilot Cred."
     /// Inserts the default record.
     /// </summary>
     procedure InsertDefaultRecord()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
-        Rec.Code := '';
-        Rec."Monthly Credit Limit" := 200;
-        Rec."Enforcement Enabled" := true;
+        if EnvironmentInformation.IsSaaSInfrastructure() then begin
+            Rec.Code := '';
+            Rec."Monthly Credit Limit" := 200;
+            Rec."Enforcement Enabled" := true;
+        end else begin
+            Rec.Code := '';
+            Rec."Monthly Credit Limit" := 0;
+            Rec."Enforcement Enabled" := false;
+            Rec.Insert();
+        end;
+
         Rec.Insert();
     end;
 }
