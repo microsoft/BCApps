@@ -451,6 +451,7 @@ page 149031 "AIT Test Suite"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUptake('0000NEV', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
+        ShowNotifications();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -469,6 +470,14 @@ page 149031 "AIT Test Suite"
         Language := AITTestSuiteLanguage.GetLanguageDisplayName(Rec."Run Language ID");
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(Rec.Code, 0);
+    end;
+
+    local procedure ShowNotifications()
+    var
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
+    begin
+        AITEvalLimitProvider := Rec."Test Type";
+        AITEvalLimitProvider.ShowNotifications();
     end;
 
     local procedure UpdateTotalDuration()

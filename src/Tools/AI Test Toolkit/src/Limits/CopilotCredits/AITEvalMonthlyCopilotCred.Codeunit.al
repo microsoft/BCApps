@@ -27,7 +27,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
     procedure ShowNotifications()
     begin
         if not IsEnforcementEnabled() then
-            ShowNotificationsWhenEnforcementDiabled()
+            ShowNotificationsWhenEnforcementDisabled()
         else
             ShowNotificationsWhenEnforcementEnabled();
     end;
@@ -73,7 +73,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         exit(AITEvalMonthlyCopilotCreditsLimit."Enforcement Enabled");
     end;
 
-    local procedure ShowNotificationsWhenEnforcementDiabled()
+    local procedure ShowNotificationsWhenEnforcementDisabled()
     begin
         RecallAllNotifications();
 
