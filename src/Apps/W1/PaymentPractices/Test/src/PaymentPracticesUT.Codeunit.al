@@ -572,7 +572,7 @@ codeunit 134197 "Payment Practices UT"
     end;
 
     [Test]
-    procedure PaymentPracticeCardLinesPartVisibleAfterGenerate()
+    procedure PaymentPracticeCardLinesPartAlwaysVisible()
     var
         PaymentPracticeHeader: Record "Payment Practice Header";
         PaymentPracticeCard: TestPage "Payment Practice Card";
@@ -591,7 +591,7 @@ codeunit 134197 "Payment Practices UT"
 
         // [WHEN] Open the Payment Practice Card for "PPH"
         PaymentPracticeCard.OpenEdit();
-        PaymentPracticeCard.Filter.SetFilter("No.", PaymentPracticeHeader."No.");
+        PaymentPracticeCard.Filter.SetFilter("No.", Format(PaymentPracticeHeader."No."));
 
         // [THEN] Lines part is visible even before generating
         Assert.IsTrue(PaymentPracticeCard.Lines.Visible(), 'Lines part should be visible before generating.');
