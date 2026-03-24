@@ -30,6 +30,22 @@ import {
   getTeamLabel,
 } from './config.js';
 
+/**
+ * Apply team label to an issue. Always runs regardless of TRIAGE_POST_RESULTS.
+ */
+async function applyTeamLabel(owner, repo, issueNumber, teamLabel) {
+  for (const label of LABELS.team) {
+    if (label.name !== teamLabel) {
+      await removeLabel(owner, repo, issueNumber, label.name);
+    }
+  }
+  await ensureLabel(owner, repo, teamLabel,
+    LABELS.team.find(l => l.name === teamLabel)?.color || 'EDEDED',
+    LABELS.team.find(l => l.name === teamLabel)?.description || '');
+  await addLabels(owner, repo, issueNumber, [teamLabel]);
+  console.log(`Team label applied: ${teamLabel}`);
+}
+
 async function main() {
   // Read environment variables
   const token = process.env.GITHUB_TOKEN;
@@ -42,9 +58,15 @@ async function main() {
     process.exit(1);
   }
 
+  // TRIAGE_POST_RESULTS controls whether comments and triage labels are posted to the issue.
+  // Team assignment (Finance/SCM/Integration) always happens regardless.
+  // Defaults to true if not set.
+  const postResults = (process.env.TRIAGE_POST_RESULTS || 'true').toLowerCase() !== 'false';
+
   console.log(`\n=== Issue Triage Agent ===`);
   console.log(`Repository: ${owner}/${repo}`);
-  console.log(`Issue: #${issueNumber}\n`);
+  console.log(`Issue: #${issueNumber}`);
+  console.log(`Post results to issue: ${postResults}\n`);
 
   try {
     // Step 1: Fetch issue details
@@ -77,6 +99,10 @@ async function main() {
     // Step 2b: Short-circuit for near-empty issues (saves a model call)
     const titleLength = (issue.title || '').trim().length;
     const bodyLength = (issue.body || '').trim().length;
+    // Always apply team label (regardless of postResults setting)
+    const teamLabel = getTeamLabel(issue.title, issue.body, '');
+    await applyTeamLabel(owner, repo, issueNumber, teamLabel);
+
     if (titleLength < 10 && bodyLength < 20) {
       console.log(`Issue too short (title: ${titleLength} chars, body: ${bodyLength} chars) - marking INSUFFICIENT`);
       const emptyPhase1 = {
@@ -98,9 +124,11 @@ async function main() {
         issue_type: 'bug',
         summary: 'Issue has insufficient content for assessment',
       };
-      const comment = formatInsufficientComment(emptyPhase1, duplicates);
-      await postComment(owner, repo, issueNumber, comment);
-      await manageCategoryLabels(owner, repo, issueNumber, 'triage/', 'triage/insufficient', ALL_LABELS);
+      if (postResults) {
+        const comment = formatInsufficientComment(emptyPhase1, duplicates);
+        await postComment(owner, repo, issueNumber, comment);
+        await manageCategoryLabels(owner, repo, issueNumber, 'triage/', 'triage/insufficient', ALL_LABELS);
+      }
       console.log(`\n=== Triage complete (INSUFFICIENT - minimal content) ===`);
       return;
     }
@@ -114,11 +142,14 @@ async function main() {
       // INSUFFICIENT - post needs-info comment, skip Phase 2
       console.log(`Score ${qualityScore} < ${SCORE_THRESHOLDS.NEEDS_WORK}: ${phase1Result.verdict} - skipping Phase 2`);
 
-      const comment = formatInsufficientComment(phase1Result, duplicates);
-      await postComment(owner, repo, issueNumber, comment);
-
-      await manageCategoryLabels(owner, repo, issueNumber, 'triage/', getTriageLabelName(phase1Result.verdict), ALL_LABELS);
-      console.log(`Labels applied: ${getTriageLabelName(phase1Result.verdict)}`);
+      if (postResults) {
+        const comment = formatInsufficientComment(phase1Result, duplicates);
+        await postComment(owner, repo, issueNumber, comment);
+        await manageCategoryLabels(owner, repo, issueNumber, 'triage/', getTriageLabelName(phase1Result.verdict), ALL_LABELS);
+        console.log(`Labels applied: ${getTriageLabelName(phase1Result.verdict)}`);
+      } else {
+        console.log('Post results disabled — skipping comment and labels.');
+      }
 
       console.log(`\n=== Triage complete (${phase1Result.verdict}) ===`);
       return;
@@ -127,7 +158,7 @@ async function main() {
     // Step 5: Phase 2 - Enrichment & Triage
     const phase2Result = await enrichAndTriage(issue, phase1Result);
 
-    // Step 6a: Publish full report to wiki (best-effort)
+    // Step 6a: Publish full report to wiki (always — this is the detailed record)
     const issueMeta = {
       number: issueNumber,
       title: issue.title,
@@ -143,45 +174,42 @@ async function main() {
       console.warn('Wiki report could not be published; falling back to verbose comment.');
     }
 
-    // Step 6b: Post compact comment on the issue (with wiki link if available)
-    const comment = formatTriageComment(phase1Result, phase2Result, isRetriage, duplicates, previousScores, wikiUrl);
-    await postComment(owner, repo, issueNumber, comment);
-    console.log('Triage comment posted.');
-
-    // Step 7: Apply labels
+    // Step 6b: Post comment and apply labels (controlled by TRIAGE_POST_RESULTS)
     const triage = phase2Result.triage;
 
-    const teamLabel = getTeamLabel(issue.title, issue.body, phase1Result.detected_app_area || '');
+    if (postResults) {
+      const comment = formatTriageComment(phase1Result, phase2Result, isRetriage, duplicates, previousScores, wikiUrl);
+      await postComment(owner, repo, issueNumber, comment);
+      console.log('Triage comment posted.');
 
-    const labelOps = [
-      { prefix: 'triage/', label: getTriageLabelName(phase1Result.verdict), category: LABELS.triage },
-      { prefix: 'priority/', label: getPriorityLabelName(triage.priority_score.score), category: LABELS.priority },
-      { prefix: 'complexity/', label: getComplexityLabelName(triage.complexity.rating), category: LABELS.complexity },
-      { prefix: 'effort/', label: getEffortLabelName(triage.effort.rating), category: LABELS.effort },
-      { prefix: 'path/', label: getPathLabelName(triage.implementation_path.rating), category: LABELS.path },
-    ];
+      // Apply triage labels
+      const labelOps = [
+        { prefix: 'triage/', label: getTriageLabelName(phase1Result.verdict), category: LABELS.triage },
+        { prefix: 'priority/', label: getPriorityLabelName(triage.priority_score.score), category: LABELS.priority },
+        { prefix: 'complexity/', label: getComplexityLabelName(triage.complexity.rating), category: LABELS.complexity },
+        { prefix: 'effort/', label: getEffortLabelName(triage.effort.rating), category: LABELS.effort },
+        { prefix: 'path/', label: getPathLabelName(triage.implementation_path.rating), category: LABELS.path },
+      ];
 
-    for (const op of labelOps) {
-      await manageCategoryLabels(owner, repo, issueNumber, op.prefix, op.label, op.category);
-    }
-
-    // Apply team label (remove other team labels first, then add the correct one)
-    for (const label of LABELS.team) {
-      if (label.name !== teamLabel) {
-        await removeLabel(owner, repo, issueNumber, label.name);
+      for (const op of labelOps) {
+        await manageCategoryLabels(owner, repo, issueNumber, op.prefix, op.label, op.category);
       }
-    }
-    await ensureLabel(owner, repo, teamLabel,
-      LABELS.team.find(l => l.name === teamLabel)?.color || 'EDEDED',
-      LABELS.team.find(l => l.name === teamLabel)?.description || '');
-    await addLabels(owner, repo, issueNumber, [teamLabel]);
 
-    // Set GitHub issue type (Bug/Feature/Task) via GraphQL
+      const appliedLabels = labelOps.map(op => op.label).join(', ');
+      console.log(`Labels applied: ${appliedLabels}`);
+    } else {
+      console.log('Post results disabled — skipping comment and labels.');
+    }
+
+    // Set GitHub issue type (Bug/Feature/Task) — always runs
     const issueTypeName = getIssueTypeName(phase1Result.issue_type);
     await setIssueType(owner, repo, issueNumber, issueTypeName);
 
-    const appliedLabels = [...labelOps.map(op => op.label), teamLabel].join(', ');
-    console.log(`Labels applied: ${appliedLabels} | Type: ${issueTypeName}`);
+    // Update team label with Phase 1 app area (more accurate than initial detection)
+    const refinedTeamLabel = getTeamLabel(issue.title, issue.body, phase1Result.detected_app_area || '');
+    if (refinedTeamLabel !== teamLabel) {
+      await applyTeamLabel(owner, repo, issueNumber, refinedTeamLabel);
+    }
 
     console.log(`\n=== Triage complete ===`);
     console.log(`Quality: ${qualityScore}/100 (${phase1Result.verdict})`);
