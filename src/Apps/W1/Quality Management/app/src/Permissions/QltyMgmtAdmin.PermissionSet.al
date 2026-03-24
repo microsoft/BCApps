@@ -20,13 +20,13 @@ using Microsoft.QualityManagement.Workflow;
 /// </summary>
 #pragma warning disable AS0125
 #pragma warning disable AS0090
-permissionset 20405 "QltyMngmnt - Admin"
+permissionset 20405 "QltyMgmt - Admin"
 {
-    Caption = 'Quality Management - Administrator';
+    Caption = 'Quality Admin & Supervisor';
     Access = Public;
     Assignable = true;
 
-    IncludedPermissionSets = "QltyMngmnt - Objects";
+    IncludedPermissionSets = "QltyMgmt - Objects";
 
     Permissions =
         tabledata "Qlty. Management Setup" = RIMD,
