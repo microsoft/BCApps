@@ -41,6 +41,5 @@ jobs:
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
           ADO_PAT: ${{ secrets.ADO_PAT }}
-          TRIAGE_POST_RESULTS: ${{ vars.TRIAGE_POST_RESULTS }}
           TRIAGE_REPO: ${{ vars.TRIAGE_REPO }}
         run: node index.js

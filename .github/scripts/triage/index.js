@@ -58,16 +58,16 @@ async function main() {
     process.exit(1);
   }
 
-  // TRIAGE_POST_RESULTS controls whether comments and triage labels are posted to the issue.
-  // Team assignment (Finance/SCM/Integration) always happens regardless.
-  // Defaults to true if not set.
-  const postResultsRaw = process.env.TRIAGE_POST_RESULTS || '';
-  const postResults = postResultsRaw.toLowerCase() !== 'false';
+  // If TRIAGE_REPO is set, triage reports go to a separate repo's wiki
+  // and only a brief comment is posted on the issue (no labels).
+  // If not set, the full summary is posted on the issue with labels.
+  const triageRepo = process.env.TRIAGE_REPO || '';
+  const postResults = !triageRepo;
 
   console.log(`\n=== Issue Triage Agent ===`);
   console.log(`Repository: ${owner}/${repo}`);
   console.log(`Issue: #${issueNumber}`);
-  console.log(`TRIAGE_POST_RESULTS: "${postResultsRaw}" → postResults=${postResults}\n`);
+  console.log(`Triage repo: ${triageRepo || '(same repo)'} → postResults=${postResults}\n`);
 
   try {
     // Step 1: Fetch issue details
