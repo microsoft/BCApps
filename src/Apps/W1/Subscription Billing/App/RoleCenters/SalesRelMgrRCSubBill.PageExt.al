@@ -6,7 +6,7 @@ using Microsoft.PowerBIReports;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
 
-pageextension 8019 "Sales Rel. Mgr. RC Sub. Bill." extends "Sales & Relationship Mgr. RC"
+pageextension 8018 "Sales Rel. Mgr. RC Sub. Bill." extends "Sales & Relationship Mgr. RC"
 {
     actions
     {
