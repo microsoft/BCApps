@@ -23,6 +23,8 @@ page 8893 "Email Scenario Setup"
     ModifyAllowed = false;
     SourceTable = "Email Account Scenario";
     InstructionalText = 'Assign email scenarios';
+    AboutTitle = 'About Email Scenario Assignment';
+    AboutText = 'Email scenarios define which email account is used when Business Central sends documents or notifications, such as sales orders, purchase documents, or invitations. Assign scenarios to ensure the right sender is used for each process—any scenario not assigned uses the default email account. You can also define default attachments that are automatically added when emails are created for a scenario.';
 
     layout
     {
