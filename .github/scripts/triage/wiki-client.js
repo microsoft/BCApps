@@ -19,13 +19,15 @@ import { tmpdir } from 'os';
  * @returns {Promise<string|null>} Wiki page URL or null
  */
 export async function publishWikiReport(owner, repo, issueNumber, markdownContent) {
-  const token = process.env.GITHUB_TOKEN;
+  const triageRepo = process.env.TRIAGE_REPO || repo;
+  // Use TRIAGE_REPO_PAT for cross-repo wiki access, fall back to GITHUB_TOKEN for same-repo
+  const token = triageRepo !== repo
+    ? (process.env.TRIAGE_REPO_PAT || process.env.GITHUB_TOKEN)
+    : process.env.GITHUB_TOKEN;
   if (!token) {
-    console.warn('Wiki: No GITHUB_TOKEN available, skipping publish');
+    console.warn('Wiki: No token available, skipping publish');
     return null;
   }
-
-  const triageRepo = process.env.TRIAGE_REPO || repo;
   const wikiDir = join(tmpdir(), `wiki-${triageRepo}-${Date.now()}`);
   const cloneUrl = `https://x-access-token:${token}@github.com/${owner}/${triageRepo}.wiki.git`;
   const pageName = `Triage-Report-Issue-${issueNumber}`;
