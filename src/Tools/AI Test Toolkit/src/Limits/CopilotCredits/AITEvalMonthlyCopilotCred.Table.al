@@ -73,13 +73,12 @@ table 149040 "AIT Eval Monthly Copilot Cred."
             Rec.Code := '';
             Rec."Monthly Credit Limit" := 200;
             Rec."Enforcement Enabled" := true;
+            Rec.Insert();
         end else begin
             Rec.Code := '';
             Rec."Monthly Credit Limit" := 0;
             Rec."Enforcement Enabled" := false;
             Rec.Insert();
         end;
-
-        Rec.Insert();
     end;
 }
