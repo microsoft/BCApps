@@ -61,12 +61,13 @@ async function main() {
   // TRIAGE_POST_RESULTS controls whether comments and triage labels are posted to the issue.
   // Team assignment (Finance/SCM/Integration) always happens regardless.
   // Defaults to true if not set.
-  const postResults = (process.env.TRIAGE_POST_RESULTS || 'true').toLowerCase() !== 'false';
+  const postResultsRaw = process.env.TRIAGE_POST_RESULTS || '';
+  const postResults = postResultsRaw.toLowerCase() !== 'false';
 
   console.log(`\n=== Issue Triage Agent ===`);
   console.log(`Repository: ${owner}/${repo}`);
   console.log(`Issue: #${issueNumber}`);
-  console.log(`Post results to issue: ${postResults}\n`);
+  console.log(`TRIAGE_POST_RESULTS: "${postResultsRaw}" → postResults=${postResults}\n`);
 
   try {
     // Step 1: Fetch issue details
