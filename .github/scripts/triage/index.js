@@ -204,7 +204,7 @@ async function main() {
       // Post a minimal comment with just the wiki link
       if (wikiUrl) {
         await postComment(owner, repo, issueNumber,
-          `:robot: AI triage completed. Product Group, please validate results at [Triage Report](${wikiUrl}).`);
+          `:robot: AI triage completed. Product group, please validate the [triage report](${wikiUrl}).`);
       }
       console.log('Post results disabled — skipping labels. Minimal comment posted.');
     }
