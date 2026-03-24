@@ -77,7 +77,7 @@ codeunit 8900 "Email Impl"
 
     procedure SaveAsDraft(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
     var
-        EmailAccountRecord: Record "Email Account";
+        TempEmailAccountRecord: Record "Email Account";
         EmailMessageImpl: Codeunit "Email Message Impl.";
     begin
         if not EmailMessageImpl.Get(EmailMessage.GetId()) then
@@ -87,18 +87,18 @@ codeunit 8900 "Email Impl"
             exit;
 
         // Get email account
-        GetEmailAccount(EmailAccountId, EmailConnector, EmailAccountRecord);
-        CreateOrUpdateEmailOutbox(EmailMessageImpl.GetId(), EmailMessageImpl.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Draft, EmailAccountRecord."Email Address", EmailOutbox);
+        GetEmailAccount(EmailAccountId, EmailConnector, TempEmailAccountRecord);
+        CreateOrUpdateEmailOutbox(EmailMessageImpl.GetId(), EmailMessageImpl.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Draft, TempEmailAccountRecord."Email Address", EmailOutbox);
     end;
 
     procedure Enqueue(EmailMessage: Codeunit "Email Message"; EmailScenario: Enum "Email Scenario"; NotBefore: DateTime)
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailScenarios: Codeunit "Email Scenario";
     begin
-        EmailScenarios.GetEmailAccount(EmailScenario, EmailAccount);
+        EmailScenarios.GetEmailAccount(EmailScenario, TempEmailAccount);
 
-        Enqueue(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, NotBefore);
+        Enqueue(EmailMessage, TempEmailAccount."Account Id", TempEmailAccount.Connector, NotBefore);
     end;
 
     procedure Enqueue(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; NotBefore: DateTime)
@@ -110,12 +110,12 @@ codeunit 8900 "Email Impl"
 
     procedure Send(EmailMessage: Codeunit "Email Message"; EmailScenario: Enum "Email Scenario"): Boolean
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailScenarios: Codeunit "Email Scenario";
     begin
-        EmailScenarios.GetEmailAccount(EmailScenario, EmailAccount);
+        EmailScenarios.GetEmailAccount(EmailScenario, TempEmailAccount);
 
-        exit(Send(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector));
+        exit(Send(EmailMessage, TempEmailAccount."Account Id", TempEmailAccount.Connector));
     end;
 
     procedure Send(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"): Boolean
@@ -156,7 +156,7 @@ codeunit 8900 "Email Impl"
 
     procedure Reply(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox"; NotBefore: DateTime; InBackground: Boolean; ReplyToAll: Boolean): Boolean
     var
-        EmailAccountRec: Record "Email Account";
+        TempEmailAccountRec: Record "Email Account";
         CurrentUser: Record User;
         Email: Codeunit Email;
         EmailDispatcher: Codeunit "Email Dispatcher";
@@ -181,7 +181,7 @@ codeunit 8900 "Email Impl"
             Error(ExternalIdCannotBeEmptyErr);
 
         // Get email account
-        GetEmailAccount(EmailAccountId, EmailConnector, EmailAccountRec);
+        GetEmailAccount(EmailAccountId, EmailConnector, TempEmailAccountRec);
 
         CheckReplySupported(EmailConnector);
 
@@ -190,7 +190,7 @@ codeunit 8900 "Email Impl"
             Email.AddRelation(EmailMessage, Database::User, CurrentUser.SystemId, Enum::"Email Relation Type"::"Related Entity", Enum::"Email Relation Origin"::"Compose Context");
 
         BeforeReplyEmail(EmailMessage);
-        CreateOrUpdateEmailOutbox(EmailMessage.GetId(), EmailMessage.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Queued, EmailAccountRec."Email Address", EmailOutbox);
+        CreateOrUpdateEmailOutbox(EmailMessage.GetId(), EmailMessage.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Queued, TempEmailAccountRec."Email Address", EmailOutbox);
         Email.OnEnqueuedReplyInOutbox(EmailMessage.GetId());
 
         if InBackground then begin
@@ -208,10 +208,10 @@ codeunit 8900 "Email Impl"
 
     procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
     var
-        Filters: Record "Email Retrieval Filters";
+        TempFilters: Record "Email Retrieval Filters";
     begin
-        Filters.Insert();
-        RetrieveEmails(EmailAccountId, Connector, EmailInbox, Filters);
+        TempFilters.Insert();
+        RetrieveEmails(EmailAccountId, Connector, EmailInbox, TempFilters);
     end;
 
     procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox"; var Filters: Record "Email Retrieval Filters" temporary)
@@ -453,12 +453,12 @@ codeunit 8900 "Email Impl"
 
     procedure OpenInEditor(EmailMessage: Codeunit "Email Message"; EmailScenario: Enum "Email Scenario"; IsModal: Boolean): Enum "Email Action"
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailScenarios: Codeunit "Email Scenario";
     begin
-        EmailScenarios.GetEmailAccount(EmailScenario, EmailAccount);
+        EmailScenarios.GetEmailAccount(EmailScenario, TempEmailAccount);
 
-        exit(OpenInEditor(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, IsModal));
+        exit(OpenInEditor(EmailMessage, TempEmailAccount."Account Id", TempEmailAccount.Connector, IsModal));
     end;
 
     procedure OpenInEditor(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; IsModal: Boolean): Enum "Email Action"
@@ -546,7 +546,7 @@ codeunit 8900 "Email Impl"
 
     local procedure Send(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; InBackground: Boolean; NotBefore: DateTime; var EmailOutbox: Record "Email Outbox"): Boolean
     var
-        EmailAccountRec: Record "Email Account";
+        TempEmailAccountRec: Record "Email Account";
         CurrentUser: Record User;
         Email: Codeunit Email;
         EmailMessageImpl: Codeunit "Email Message Impl.";
@@ -567,14 +567,14 @@ codeunit 8900 "Email Impl"
             Error(EmailMessageQueuedErr);
 
         // Get email account
-        GetEmailAccount(EmailAccountId, EmailConnector, EmailAccountRec);
+        GetEmailAccount(EmailAccountId, EmailConnector, TempEmailAccountRec);
 
         // Add user as an related entity on email
         if CurrentUser.Get(UserSecurityId()) then
             Email.AddRelation(EmailMessage, Database::User, CurrentUser.SystemId, Enum::"Email Relation Type"::"Related Entity", Enum::"Email Relation Origin"::"Compose Context");
 
         BeforeSendEmail(EmailMessage);
-        CreateOrUpdateEmailOutbox(EmailMessageImpl.GetId(), EmailMessageImpl.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Queued, EmailAccountRec."Email Address", EmailOutbox);
+        CreateOrUpdateEmailOutbox(EmailMessageImpl.GetId(), EmailMessageImpl.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Queued, TempEmailAccountRec."Email Address", EmailOutbox);
         Email.OnEnqueuedInOutbox(EmailMessage.GetId());
 
         if InBackground then begin

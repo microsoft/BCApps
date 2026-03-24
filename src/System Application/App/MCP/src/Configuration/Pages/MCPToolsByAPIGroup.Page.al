@@ -27,11 +27,11 @@ page 8354 "MCP Tools By API Group"
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
-                        MCPAPIPublisherGroup.Reset();
-                        if MCPAPIPublisherGroup.IsEmpty() then
-                            MCPConfigImplementation.GetAPIPublishers(MCPAPIPublisherGroup);
+                        TempMCPAPIPublisherGroup.Reset();
+                        if TempMCPAPIPublisherGroup.IsEmpty() then
+                            MCPConfigImplementation.GetAPIPublishers(TempMCPAPIPublisherGroup);
 
-                        MCPConfigImplementation.LookupAPIPublisher(MCPAPIPublisherGroup, APIPublisher, APIGroup);
+                        MCPConfigImplementation.LookupAPIPublisher(TempMCPAPIPublisherGroup, APIPublisher, APIGroup);
                     end;
                 }
                 field(APIGroup; APIGroup)
@@ -45,10 +45,10 @@ page 8354 "MCP Tools By API Group"
                         if APIPublisher = '' then
                             Error(APIPublisherNotSelectedErr);
 
-                        if MCPAPIPublisherGroup.IsEmpty() then
-                            MCPConfigImplementation.GetAPIPublishers(MCPAPIPublisherGroup);
+                        if TempMCPAPIPublisherGroup.IsEmpty() then
+                            MCPConfigImplementation.GetAPIPublishers(TempMCPAPIPublisherGroup);
 
-                        MCPConfigImplementation.LookupAPIGroup(MCPAPIPublisherGroup, APIPublisher, APIGroup);
+                        MCPConfigImplementation.LookupAPIGroup(TempMCPAPIPublisherGroup, APIPublisher, APIGroup);
                     end;
                 }
             }
@@ -56,7 +56,7 @@ page 8354 "MCP Tools By API Group"
     }
 
     var
-        MCPAPIPublisherGroup: Record "MCP API Publisher Group";
+        TempMCPAPIPublisherGroup: Record "MCP API Publisher Group";
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         APIPublisher: Text;
         APIGroup: Text;

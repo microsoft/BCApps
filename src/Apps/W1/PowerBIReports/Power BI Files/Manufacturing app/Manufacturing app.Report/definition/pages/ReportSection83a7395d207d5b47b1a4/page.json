@@ -286,6 +286,21 @@
         "howCreated": "User",
         "isHiddenInViewMode": true,
         "isLockedInViewMode": true
+      },
+      {
+        "name": "b9d9cd0318493dcd1d39",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Work Center"
+              }
+            },
+            "Property": "Subcontracting"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
       }
     ],
     "filterSortOrder": "Ascending"
