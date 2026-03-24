@@ -219,7 +219,7 @@ codeunit 2501 "Extension Marketplace"
     [TryFunction]
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text);
     var
-        ExtensionInstallationRecord: Record "Extension Installation";
+        TempExtensionInstallationRecord: Record "Extension Installation";
         ExtensionInstallationPage: Page "Extension Installation";
         AppId: Guid;
     begin
@@ -229,17 +229,17 @@ codeunit 2501 "Extension Marketplace"
             Error(ExtensionNotFoundErr);
         end;
 
-        ExtensionInstallationRecord.SetRange(ID, AppId);
-        ExtensionInstallationRecord.ID := AppId;
-        ExtensionInstallationRecord.ResponseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(ExtensionInstallationRecord.ResponseUrl));
-        ExtensionInstallationPage.SetRecord(ExtensionInstallationRecord);
+        TempExtensionInstallationRecord.SetRange(ID, AppId);
+        TempExtensionInstallationRecord.ID := AppId;
+        TempExtensionInstallationRecord.ResponseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(TempExtensionInstallationRecord.ResponseUrl));
+        ExtensionInstallationPage.SetRecord(TempExtensionInstallationRecord);
         ExtensionInstallationPage.RunModal();
     end;
 
     [TryFunction]
     procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text)
     var
-        ExtensionInstallationRecord: Record "Extension Installation";
+        TempExtensionInstallationRecord: Record "Extension Installation";
         ExtensionInstallationPage: Page "Extension Installation";
     begin
         if IsNullGuid(AppId) then begin
@@ -247,10 +247,10 @@ codeunit 2501 "Extension Marketplace"
             Error(ExtensionNotFoundErr);
         end;
 
-        ExtensionInstallationRecord.SetRange(ID, AppId);
-        ExtensionInstallationRecord.ID := AppId;
-        ExtensionInstallationRecord.ResponseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(ExtensionInstallationRecord.ResponseUrl));
-        ExtensionInstallationPage.SetRecord(ExtensionInstallationRecord);
+        TempExtensionInstallationRecord.SetRange(ID, AppId);
+        TempExtensionInstallationRecord.ID := AppId;
+        TempExtensionInstallationRecord.ResponseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(TempExtensionInstallationRecord.ResponseUrl));
+        ExtensionInstallationPage.SetRecord(TempExtensionInstallationRecord);
         ExtensionInstallationPage.RunModal();
     end;
 

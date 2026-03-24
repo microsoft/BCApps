@@ -67,18 +67,18 @@ codeunit 9856 "Permission Set Relation Impl."
 
     procedure SelectPermissionSets(CurrAppId: Guid; CurrRoleID: Code[30]; CurrScope: Option System,Tenant): Boolean
     var
-        PermissionSetBuffer: Record "PermissionSet Buffer";
+        TempPermissionSetBuffer: Record "PermissionSet Buffer";
         PermissionType: Option Include,Exclude;
     begin
         VerifyUserCanEditPermissionSet(CurrAppId);
 
-        if not LookupAllPermissionSets(true, PermissionSetBuffer) then
+        if not LookupAllPermissionSets(true, TempPermissionSetBuffer) then
             exit(false);
 
-        if PermissionSetBuffer.FindSet() then
+        if TempPermissionSetBuffer.FindSet() then
             repeat
-                AddNewPermissionSet(CurrAppId, CurrRoleID, CurrScope, PermissionSetBuffer."App ID", PermissionSetBuffer."Role ID", PermissionSetBuffer.Scope, PermissionType::Include)
-            until PermissionSetBuffer.Next() = 0;
+                AddNewPermissionSet(CurrAppId, CurrRoleID, CurrScope, TempPermissionSetBuffer."App ID", TempPermissionSetBuffer."Role ID", TempPermissionSetBuffer.Scope, PermissionType::Include)
+            until TempPermissionSetBuffer.Next() = 0;
 
         exit(ValidatePermissionSet(CurrAppId, CurrRoleID, CurrScope))
     end;
@@ -92,18 +92,18 @@ codeunit 9856 "Permission Set Relation Impl."
 
     procedure ModifyPermissionSet(CurrAppId: Guid; CurrRoleID: Code[30]; CurrScope: Option System,Tenant; RelatedAppId: Guid; RelatedRoleId: Code[30]; PermissionType: Option Include,Exclude): Boolean
     var
-        PermissionSetBuffer: Record "PermissionSet Buffer";
+        TempPermissionSetBuffer: Record "PermissionSet Buffer";
         TenantPermissionSetRel: Record "Tenant Permission Set Rel.";
     begin
         VerifyUserCanEditPermissionSet(CurrAppId);
 
-        if not LookupAllPermissionSets(false, PermissionSetBuffer) then
+        if not LookupAllPermissionSets(false, TempPermissionSetBuffer) then
             exit(false);
 
         if TenantPermissionSetRel.Get(CurrAppId, CurrRoleID, RelatedAppId, RelatedRoleId) then
             TenantPermissionSetRel.Delete();
 
-        exit(AddNewPermissionSet(CurrAppId, CurrRoleID, CurrScope, PermissionSetBuffer."App ID", PermissionSetBuffer."Role ID", PermissionSetBuffer.Scope, PermissionType));
+        exit(AddNewPermissionSet(CurrAppId, CurrRoleID, CurrScope, TempPermissionSetBuffer."App ID", TempPermissionSetBuffer."Role ID", TempPermissionSetBuffer.Scope, PermissionType));
     end;
 
     procedure ModifyPermissionSetType(CurrAppId: Guid; CurrRoleID: Code[30]; CurrScope: Option System,Tenant; RelatedAppId: Guid; RelatedRoleID: Code[30]; PermissionType: Option Include,Exclude): Boolean

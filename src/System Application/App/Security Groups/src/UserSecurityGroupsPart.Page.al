@@ -27,11 +27,11 @@ page 9848 "User Security Groups Part"
 
                     trigger OnDrillDown()
                     var
-                        SecurityGroupBuffer: Record "Security Group Buffer";
+                        TempSecurityGroupBuffer: Record "Security Group Buffer";
                         SecurityGroups: Page "Security Groups";
                     begin
-                        SecurityGroupBuffer.SetRange(Code, Rec."Security Group Code");
-                        SecurityGroups.SetTableView(SecurityGroupBuffer);
+                        TempSecurityGroupBuffer.SetRange(Code, Rec."Security Group Code");
+                        SecurityGroups.SetTableView(TempSecurityGroupBuffer);
                         SecurityGroups.Run();
                     end;
                 }
