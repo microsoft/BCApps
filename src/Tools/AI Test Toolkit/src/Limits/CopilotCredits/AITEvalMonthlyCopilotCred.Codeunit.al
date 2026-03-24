@@ -37,12 +37,13 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         Page.Run(Page::"AIT Eval Monthly Copilot Cred.");
     end;
 
-    local procedure IsLimitReached(var CopilotCreditConsumed: Decimal; var MonthlyCreditLimit: Decimal): Boolean
+    procedure IsLimitReached(var CopilotCreditConsumed: Decimal; var MonthlyCreditLimit: Decimal): Boolean
     var
         AITEvalMonthlyCopilotCreditsLimit: Record "AIT Eval Monthly Copilot Cred.";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
     begin
         AITEvalMonthlyCopilotCreditsLimit.GetOrCreate();
+        MonthlyCreditLimit := AITEvalMonthlyCopilotCreditsLimit."Monthly Credit Limit";
 
         if not AITEvalMonthlyCopilotCreditsLimit."Enforcement Enabled" then
             exit(false);
@@ -50,17 +51,16 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         if AITEvalMonthlyCopilotCreditsLimit."Monthly Credit Limit" <= 0 then
             exit(false);
 
-        MonthlyCreditLimit := AITEvalMonthlyCopilotCreditsLimit."Monthly Credit Limit";
         CopilotCreditConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITEvalMonthlyCopilotCreditsLimit.GetPeriodStartDate());
         exit(CopilotCreditConsumed >= AITEvalMonthlyCopilotCreditsLimit."Monthly Credit Limit");
     end;
 
-    local procedure GetCreditUsagePercentage(TotalCreditsConsumed: Decimal; MonthlyCreditLimit: Decimal): Decimal
+    procedure GetCreditUsagePercentage(TotalCreditsConsumed: Decimal; MonthlyCreditLimit: Decimal): Decimal
     begin
         exit(Round(TotalCreditsConsumed / MonthlyCreditLimit * 100, 0.1));
     end;
 
-    local procedure IsApproachingCreditLimit(CreditUsagePercentage: Decimal): Boolean
+    procedure IsApproachingCreditLimit(CreditUsagePercentage: Decimal): Boolean
     begin
         exit(CreditUsagePercentage >= 80);
     end;

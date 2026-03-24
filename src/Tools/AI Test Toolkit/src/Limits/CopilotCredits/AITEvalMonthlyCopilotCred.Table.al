@@ -61,7 +61,10 @@ table 149040 "AIT Eval Monthly Copilot Cred."
         exit(CalcDate('<CM>', Today()));
     end;
 
-    internal procedure InsertDefaultRecord()
+    /// <summary>
+    /// Inserts the default record.
+    /// </summary>
+    procedure InsertDefaultRecord()
     begin
         Rec.Code := '';
         Rec."Monthly Credit Limit" := 200;

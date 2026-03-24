@@ -11,10 +11,12 @@ page 149048 "AIT Eval Monthly Copilot Cred."
     PageType = Worksheet;
     ApplicationArea = All;
     UsageCategory = Administration;
-    SourceTable = "AIT Test Suite";
-    SourceTableView = where("Test Type" = const(Agent));
+    SourceTable = "AIT Eval Suite Usage Buffer";
+    SourceTableTemporary = true;
+    SourceTableView = where(Consumed = filter(<> 0));
     InsertAllowed = false;
     DeleteAllowed = false;
+    ModifyAllowed = false;
     RefreshOnActivate = true;
 
     layout
@@ -59,20 +61,23 @@ page 149048 "AIT Eval Monthly Copilot Cred."
             {
                 Caption = 'Agent Test Suites';
 
-                field("Code"; Rec."Code")
+                field("Code"; Rec."Suite Code")
                 {
                     Editable = false;
 
                     trigger OnDrillDown()
+                    var
+                        AITTestSuite: Record "AIT Test Suite";
                     begin
-                        Page.Run(Page::"AIT Test Suite", Rec);
+                        if AITTestSuite.Get(Rec."Suite Code") then
+                            Page.Run(Page::"AIT Test Suite", AITTestSuite);
                     end;
                 }
-                field(Description; Rec.Description)
+                field(Description; Rec."Suite Description")
                 {
                     Editable = false;
                 }
-                field(SuiteCreditsConsumed; SuiteCreditsConsumed)
+                field(SuiteCreditsConsumed; Rec.Consumed)
                 {
                     AutoFormatType = 0;
                     Caption = 'Copilot Credits Consumed (Month)';
@@ -90,15 +95,24 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                     ToolTip = 'Specifies the date range for the current tracking period.';
                     Editable = false;
                 }
-                field(CreditsConsumed; CreditsConsumed)
+                field(CreditsConsumed; CopilotCreditsConsumed)
                 {
                     AutoFormatType = 0;
                     Caption = 'Copilot Credits Consumed';
-                    ToolTip = 'Specifies the total number of Copilot credits consumed by all agent test suites during the current month.';
+                    ToolTip = 'Specifies the total number of Copilot credits consumed by all agent test suites during the current month, including credits from deleted suites.';
                     Editable = false;
                     DecimalPlaces = 2 : 5;
                 }
-                field(CreditsAvailable; CreditsAvailable)
+                field(DeletedSuiteCredits; DeletedSuiteCreditsConsumed)
+                {
+                    AutoFormatType = 0;
+                    Caption = 'Credits from Deleted Suites';
+                    ToolTip = 'Specifies Copilot credits consumed this month by suites that have since been deleted. These credits are included in the total but are not shown in the list above.';
+                    Editable = false;
+                    DecimalPlaces = 2 : 5;
+                    Visible = DeletedSuiteCreditsConsumed > 0;
+                }
+                field(CreditsAvailable; CopilotCreditsAvailable)
                 {
                     AutoFormatType = 0;
                     Caption = 'Copilot Credits Available';
@@ -130,37 +144,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
                 trigger OnAction()
                 begin
-                    LoadCreditLimitSetup();
-                    UpdateComputedFields();
-                    CurrPage.Update(false);
-                end;
-            }
-            action(ToggleShowAll)
-            {
-                Caption = 'Show all suites';
-                ToolTip = 'Toggle between showing all agent test suites or only those that have consumed Copilot credits.';
-                Image = Filter;
-                Visible = not ShowAllSuites;
-
-                trigger OnAction()
-                begin
-                    ShowAllSuites := not ShowAllSuites;
-                    ApplySuiteFilter();
-                    CurrPage.Update(false);
-                end;
-            }
-            action(ToggleShowExecuted)
-            {
-                Caption = 'Show only executed suites';
-                ToolTip = 'Toggle between showing all agent test suites or only those that have consumed Copilot credits.';
-                Image = Filter;
-                Visible = ShowAllSuites;
-
-                trigger OnAction()
-                begin
-                    ShowAllSuites := not ShowAllSuites;
-                    ApplySuiteFilter();
-                    CurrPage.Update(false);
+                    RefreshPage();
                 end;
             }
         }
@@ -169,156 +153,122 @@ page 149048 "AIT Eval Monthly Copilot Cred."
             actionref(Refresh_Promoted; Refresh)
             {
             }
-            actionref(ToggleShowAll_Promoted; ToggleShowAll)
-            {
-            }
-            actionref(ToggleShowExecuted_Promoted; ToggleShowExecuted)
-            {
-            }
         }
     }
 
     var
-        AITEvalMonthlyCopilotCreditLimits: Record "AIT Eval Monthly Copilot Cred.";
-        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        AITEvalMonthlyCopilotCreditLimitRecord: Record "AIT Eval Monthly Copilot Cred.";
+        AITEvalMonthlyCopilotCreditLimit: Codeunit "AIT Eval Monthly Copilot Cred.";
         MonthlyCreditLimit: Decimal;
+        CopilotCreditsConsumed: Decimal;
+        CopilotCreditsAvailable: Decimal;
+        DeletedSuiteCreditsConsumed: Decimal;
+        LoadedDataCopilotCreditsConsumed: Decimal;
         EnforcementEnabled: Boolean;
-        CreditsConsumed: Decimal;
-        CreditsAvailable: Decimal;
         CreditsUsagePercentage: Text;
-        SuiteCreditsConsumed: Decimal;
         CurrentPeriod: Text;
         CreditsAvailableStyle: Text;
-        ShowAllSuites: Boolean;
-        SuitesWithCredits: List of [Code[100]];
 
     trigger OnOpenPage()
     begin
+        RefreshPage();
+    end;
+
+    local procedure RefreshPage()
+    begin
         LoadCreditLimitSetup();
+        LoadBufferData();
         UpdateComputedFields();
-        BuildSuitesWithCreditsList();
-        ApplySuiteFilter();
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        UpdateSuiteCreditsConsumed();
-    end;
-
-    trigger OnAfterGetRecord()
-    begin
-        UpdateSuiteCreditsConsumed();
+        CurrPage.Update(false);
     end;
 
     local procedure LoadCreditLimitSetup()
     begin
-        AITEvalMonthlyCopilotCreditLimits.GetOrCreate();
-        MonthlyCreditLimit := AITEvalMonthlyCopilotCreditLimits."Monthly Credit Limit";
-        EnforcementEnabled := AITEvalMonthlyCopilotCreditLimits."Enforcement Enabled";
-        CurrentPeriod := Format(AITEvalMonthlyCopilotCreditLimits.GetPeriodStartDate()) + ' - ' + Format(AITEvalMonthlyCopilotCreditLimits.GetPeriodEndDate());
+        AITEvalMonthlyCopilotCreditLimitRecord.GetOrCreate();
+        MonthlyCreditLimit := AITEvalMonthlyCopilotCreditLimitRecord."Monthly Credit Limit";
+        EnforcementEnabled := AITEvalMonthlyCopilotCreditLimitRecord."Enforcement Enabled";
+        CurrentPeriod := Format(AITEvalMonthlyCopilotCreditLimitRecord.GetPeriodStartDate()) + ' - ' + Format(AITEvalMonthlyCopilotCreditLimitRecord.GetPeriodEndDate());
     end;
 
     local procedure SaveCreditLimitSetup()
     begin
-        AITEvalMonthlyCopilotCreditLimits.GetOrCreate();
-        AITEvalMonthlyCopilotCreditLimits."Monthly Credit Limit" := MonthlyCreditLimit;
-        AITEvalMonthlyCopilotCreditLimits."Enforcement Enabled" := EnforcementEnabled;
-        AITEvalMonthlyCopilotCreditLimits.Modify();
+        AITEvalMonthlyCopilotCreditLimitRecord.GetOrCreate();
+        AITEvalMonthlyCopilotCreditLimitRecord."Monthly Credit Limit" := MonthlyCreditLimit;
+        AITEvalMonthlyCopilotCreditLimitRecord."Enforcement Enabled" := EnforcementEnabled;
+        AITEvalMonthlyCopilotCreditLimitRecord.Modify();
+    end;
+
+    local procedure LoadBufferData()
+    var
+        AITTestSuite: Record "AIT Test Suite";
+        AIEvalSuiteUsageBufferTemp: Record "AIT Eval Suite Usage Buffer";
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        SortOrder: Integer;
+    begin
+        Rec.Reset();
+        Rec.DeleteAll();
+        LoadedDataCopilotCreditsConsumed := 0;
+
+        // Load all agent test suites and their credit consumption for the current period into the buffer.
+        AITTestSuite.SetRange("Test Type", AITTestSuite."Test Type"::Agent);
+        if AITTestSuite.FindSet() then
+            repeat
+                SortOrder += 1;
+                AIEvalSuiteUsageBufferTemp.Index := SortOrder;
+                AIEvalSuiteUsageBufferTemp."Suite Code" := AITTestSuite.Code;
+                AIEvalSuiteUsageBufferTemp."Suite Description" := AITTestSuite.Description;
+                AIEvalSuiteUsageBufferTemp.Consumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITEvalMonthlyCopilotCreditLimitRecord.GetPeriodStartDate());
+                AIEvalSuiteUsageBufferTemp.Insert();
+                LoadedDataCopilotCreditsConsumed += AIEvalSuiteUsageBufferTemp.Consumed;
+            until AITTestSuite.Next() = 0;
+
+        // Sort the buffer by consumed credits in descending order.
+        SortOrder := 0;
+        AIEvalSuiteUsageBufferTemp.SetCurrentKey(Consumed);
+#pragma warning disable AA0233, AA0181
+        if AIEvalSuiteUsageBufferTemp.FindLast() then
+            repeat
+                SortOrder += 1;
+                Rec := AIEvalSuiteUsageBufferTemp;
+                Rec.Index := SortOrder;
+                Rec.Insert();
+            until AIEvalSuiteUsageBufferTemp.Next(-1) = 0;
+#pragma warning restore AA0233, AA0181
+
+        if Rec.FindFirst() then;
     end;
 
     local procedure UpdateComputedFields()
     var
         UsagePercent: Decimal;
+        LimitReached: Boolean;
     begin
-        CreditsConsumed := GetTotalCreditsConsumedThisMonth();
+        // Get total consumption.
+        LimitReached := AITEvalMonthlyCopilotCreditLimit.IsLimitReached(CopilotCreditsConsumed, MonthlyCreditLimit);
+
+        // Get orphan consumption.
+        DeletedSuiteCreditsConsumed := CopilotCreditsConsumed - LoadedDataCopilotCreditsConsumed;
+        if DeletedSuiteCreditsConsumed < 0 then
+            DeletedSuiteCreditsConsumed := 0;
+
         if MonthlyCreditLimit > 0 then begin
-            CreditsAvailable := MonthlyCreditLimit - CreditsConsumed;
-            UsagePercent := Round(CreditsConsumed / MonthlyCreditLimit * 100, 0.1);
+            CopilotCreditsAvailable := MonthlyCreditLimit - CopilotCreditsConsumed;
+            UsagePercent := AITEvalMonthlyCopilotCreditLimit.GetCreditUsagePercentage(CopilotCreditsConsumed, MonthlyCreditLimit);
             CreditsUsagePercentage := Format(UsagePercent, 0, '<Precision,1:1><Standard Format,0>') + '%';
         end else begin
-            CreditsAvailable := 0;
+            CopilotCreditsAvailable := 0;
             CreditsUsagePercentage := '';
         end;
 
-        if CreditsAvailable < 0 then
-            CreditsAvailable := 0;
+        if CopilotCreditsAvailable < 0 then
+            CopilotCreditsAvailable := 0;
 
-        if UsagePercent >= 100 then
+        if LimitReached then
             CreditsAvailableStyle := Format(PageStyle::Unfavorable)
         else
-            if UsagePercent >= 80 then
+            if AITEvalMonthlyCopilotCreditLimit.IsApproachingCreditLimit(UsagePercent) then
                 CreditsAvailableStyle := Format(PageStyle::Attention)
             else
                 CreditsAvailableStyle := Format(PageStyle::Favorable);
-    end;
-
-    local procedure GetTotalCreditsConsumedThisMonth(): Decimal
-    var
-        AITTestSuite: Record "AIT Test Suite";
-        TotalCredits: Decimal;
-    begin
-        AITTestSuite.SetRange("Test Type", AITTestSuite."Test Type"::Agent);
-        if AITTestSuite.FindSet() then
-            repeat
-                TotalCredits += GetSuiteCreditsConsumedThisMonth(AITTestSuite.Code);
-            until AITTestSuite.Next() = 0;
-
-        exit(TotalCredits);
-    end;
-
-    local procedure UpdateSuiteCreditsConsumed()
-    begin
-        SuiteCreditsConsumed := GetSuiteCreditsConsumedThisMonth(Rec.Code);
-    end;
-
-    local procedure GetSuiteCreditsConsumedThisMonth(TestSuiteCode: Code[100]): Decimal
-    begin
-        // Get credits consumed for this suite in the current month
-        // We filter by all versions since the start of the month
-        exit(AgentTestContextImpl.GetCopilotCreditsForPeriod(TestSuiteCode, AITEvalMonthlyCopilotCreditLimits.GetPeriodStartDate()));
-    end;
-
-    local procedure BuildSuitesWithCreditsList()
-    var
-        AITTestSuite: Record "AIT Test Suite";
-        SuiteCredits: Decimal;
-    begin
-        Clear(SuitesWithCredits);
-
-        AITTestSuite.SetRange("Test Type", AITTestSuite."Test Type"::Agent);
-        if AITTestSuite.FindSet() then
-            repeat
-                SuiteCredits := GetSuiteCreditsConsumedThisMonth(AITTestSuite.Code);
-                if SuiteCredits > 0 then
-                    SuitesWithCredits.Add(AITTestSuite.Code);
-            until AITTestSuite.Next() = 0;
-    end;
-
-    local procedure ApplySuiteFilter()
-    var
-        FilterText: Text;
-        SuiteCode: Code[100];
-    begin
-        Rec.FilterGroup(2);
-
-        if ShowAllSuites or (SuitesWithCredits.Count() = 0) then begin
-            Rec.SetRange(Code);
-            Rec.FilterGroup(0);
-            exit;
-        end;
-
-        // Build filter for suites with credits consumed
-        foreach SuiteCode in SuitesWithCredits do
-            if FilterText = '' then
-                FilterText := SuiteCode
-            else
-                FilterText := FilterText + '|' + SuiteCode;
-
-        if FilterText <> '' then
-            Rec.SetFilter(Code, FilterText)
-        else
-            Rec.SetRange(Code);
-
-        Rec.FilterGroup(0);
     end;
 }
