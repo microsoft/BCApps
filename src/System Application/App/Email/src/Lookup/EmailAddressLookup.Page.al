@@ -109,19 +109,19 @@ page 8944 "Email Address Lookup"
 
     protected procedure LookupFullAddressList(EmailAddressEntity: Enum "Email Address Entity")
     var
-        EmailAddressLookup: Record "Email Address Lookup";
+        TempEmailAddressLookup: Record "Email Address Lookup";
         EmailAddressLookupImpl: Codeunit "Email Address Lookup Impl";
     begin
-        if EmailAddressLookupImpl.LookupEmailAddress(EmailAddressEntity, EmailAddressLookup) then begin
+        if EmailAddressLookupImpl.LookupEmailAddress(EmailAddressEntity, TempEmailAddressLookup) then begin
             Clear(Rec);
-            EmailAddressLookup.FindSet();
+            TempEmailAddressLookup.FindSet();
             repeat
-                if (not Rec.Get(EmailAddressLookup."E-Mail Address", EmailAddressLookup.Name, EmailAddressLookup."Entity type")) then begin
-                    Rec.TransferFields(EmailAddressLookup);
+                if (not Rec.Get(TempEmailAddressLookup."E-Mail Address", TempEmailAddressLookup.Name, TempEmailAddressLookup."Entity type")) then begin
+                    Rec.TransferFields(TempEmailAddressLookup);
                     Rec.Insert();
                     Rec.Mark(true);
                 end;
-            until EmailAddressLookup.Next() = 0;
+            until TempEmailAddressLookup.Next() = 0;
             FullAddressLookup := true;
 
             EntityType := EmailAddressEntity;
