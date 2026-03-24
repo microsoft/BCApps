@@ -15,8 +15,10 @@ page 149031 "AIT Test Suite"
     PageType = Document;
     SourceTable = "AIT Test Suite";
     Extensible = true;
+    SaveValues = true;
     DataCaptionExpression = PageCaptionLbl + ' - ' + Format(Rec."Test Type") + ' (' + Format(Rec."Copilot Capability") + ') - ' + Rec."Code";
-    UsageCategory = None;
+    UsageCategory = Administration;
+    AdditionalSearchTerms = 'AIT, AI Eval Tool, Eval Tool, AI Eval Suite, Eval Suite, Copilot, Copilot Eval, AI Test Tool, Test Tool, AI Test Suite, Test Suite, Copilot Test';
 
     layout
     {
@@ -27,8 +29,34 @@ page 149031 "AIT Test Suite"
                 Caption = 'AI Eval Suite';
                 Enabled = Rec.Status <> Rec.Status::Running;
 
-                field("Code"; Rec."Code")
+                field("Code"; CurrentSuiteCode)
                 {
+                    Caption = 'Suite Code';
+                    ToolTip = 'Specifies the currently selected AI Eval Suite.';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        AITTestSuite: Record "AIT Test Suite";
+                    begin
+                        AITTestSuite.Get(CurrentSuiteCode);
+                        if not (Page.RunModal(Page::"AIT Test Suite List", AITTestSuite) in [Action::LookupOK, Action::Yes]) then
+                            exit(false);
+
+                        CurrentSuiteCode := AITTestSuite.Code;
+                        ChangeTestSuite();
+                        exit(true);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        if IsNullGuid(Rec.SystemId) then begin
+                            Rec.Code := CurrentSuiteCode;
+                            Rec.Insert();
+                        end;
+
+                        ChangeTestSuite();
+                    end;
+
                 }
                 field(Description; Rec.Description)
                 {
@@ -436,6 +464,7 @@ page 149031 "AIT Test Suite"
 
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+        CurrentSuiteCode: Code[10];
         AvgTimeDuration: Duration;
         AvgTokensConsumed: Integer;
         ExecutionRatio: Decimal;
@@ -452,6 +481,7 @@ page 149031 "AIT Test Suite"
     begin
         FeatureTelemetry.LogUptake('0000NEV', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
         ShowNotifications();
+        SetCurrentTestSuite();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -465,6 +495,7 @@ page 149031 "AIT Test Suite"
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         if Rec.Find() then;
+        CurrentSuiteCode := Rec.Code;
         UpdateTotalDuration();
         UpdateAverages();
         Language := AITTestSuiteLanguage.GetLanguageDisplayName(Rec."Run Language ID");
@@ -500,5 +531,36 @@ page 149031 "AIT Test Suite"
             AvgTokensConsumed := 0;
 
         ExecutionRatio := AITTestSuiteMgt.GetExecution(Rec);
+    end;
+
+    local procedure SetCurrentTestSuite()
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        // If the page was opened with a specific record (e.g. from the list), use that record
+        if Rec.Code <> '' then begin
+            CurrentSuiteCode := Rec.Code;
+            exit;
+        end;
+
+        if CurrentSuiteCode <> '' then
+            if AITTestSuite.Get(CurrentSuiteCode) then
+                CurrentSuiteCode := AITTestSuite.Code
+            else
+                Clear(CurrentSuiteCode);
+
+        if CurrentSuiteCode = '' then begin
+            AITTestSuite.Copy(Rec);
+            AITTestSuite.FindFirst();
+            CurrentSuiteCode := AITTestSuite.Code;
+        end;
+
+        Rec.Get(CurrentSuiteCode);
+    end;
+
+    local procedure ChangeTestSuite()
+    begin
+        Rec.Get(CurrentSuiteCode);
+        CurrPage.Update(false);
     end;
 }
