@@ -276,67 +276,58 @@ The agent operates in two internal phases:
 ```
 .github/
   workflows/
-    issue-triage.yml          # GitHub Action workflow definition
+    issue-triage.yml            # GitHub Action workflow definition
   scripts/
     triage/
-      index.js                # Main orchestration script
-      phase1-assess.js        # Phase 1: quality assessment
-      phase2-enrich.js        # Phase 2: enrichment & triage
-      github-client.js        # GitHub API helper (comments, labels)
-      models-client.js        # Copilot CLI helper (copilot -p)
-      code-reader.js          # Repository AL code reader
-      ado-client.js           # Azure DevOps work item search
-      ideas-client.js         # Dynamics 365 Ideas Portal search
-      format-comment.js       # Markdown comment formatter
-      prompts/
-        system-phase1.md      # System prompt for quality assessment
-        system-phase2.md      # System prompt for enrichment & triage
-      config.js               # Label definitions, scoring thresholds, app area + team mappings
+      index.js                  # Main orchestration script
+      config.js                 # Labels, thresholds, app areas, team keywords, mapping functions
+      models-client.js          # Copilot CLI wrapper (stdin-based, with retry)
+      github-client.js          # GitHub REST/GraphQL client (comments, labels, issue types, re-triage)
+      phase1-assess.js          # Phase 1: quality assessment (reads skill files)
+      phase2-enrich.js          # Phase 2: enrichment & triage (reads skill files, parallel fetches)
+      code-reader.js            # Repository AL code reader (15KB cap)
+      ado-client.js             # Azure DevOps work item search (with relevance scoring)
+      ideas-client.js           # Dynamics 365 Ideas Portal search (fuzzy matching)
+      marketplace-client.js     # AppSource marketplace context
+      duplicate-detector.js     # Jaccard similarity duplicate detection
+      format-comment.js         # Issue comment formatter (compact + verbose fallback)
+      format-report.js          # Wiki report formatter (TL;DR + collapsible details)
+      wiki-client.js            # Wiki publisher (configurable target repo)
+      package.json              # Dependencies and test script
+      tests/                    # Unit tests (50 tests)
+plugins/
+  triage/
+    .claude-plugin/plugin.json  # Plugin metadata
+    skills/triage/
+      SKILL.md                  # BC/AL glossary + process overview (single source of truth)
+      triage-assess.md          # Phase 1 quality rubric (single source of truth)
+      triage-enrich.md          # Phase 2 triage criteria (single source of truth)
+      triage-reference.md       # App areas, team keywords, labels (documents config.js)
 ```
+
+> **Note**: The `prompts/` directory has been removed. Phase 1 and Phase 2 system prompts are now built at runtime from the skill files in `plugins/triage/skills/triage/`, which serve as the single source of truth for all triage domain knowledge.
 
 ### 6.3 GitHub Action workflow design
 
-```yaml
-name: Issue Triage Agent
-on:
-  issues:
-    types: [labeled]
+See `.github/workflows/issue-triage.yml` for the current workflow. Key configuration:
 
-permissions:
-  contents: read
-  issues: write
-
-jobs:
-  triage:
-    if: github.event.label.name == 'ai-triage'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm install -g @github/copilot
-      - run: npm ci
-        working-directory: .github/scripts/triage
-      - run: node index.js
-        working-directory: .github/scripts/triage
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COPILOT_GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          REPO_OWNER: ${{ github.repository_owner }}
-          REPO_NAME: ${{ github.event.repository.name }}
-```
+- **Trigger**: `issues.labeled` when `ai-triage` label is added and issue is open
+- **Permissions**: `contents: write` (for wiki push), `issues: write`
+- **Concurrency**: One triage per issue at a time (`cancel-in-progress: true`)
+- **Environment variables**: `GITHUB_TOKEN`, `COPILOT_GITHUB_TOKEN`, `ISSUE_NUMBER`, `REPO_OWNER`, `REPO_NAME`, `ADO_PAT`, `TRIAGE_REPO`
 
 ### 6.4 Copilot CLI call pattern
 
-Each phase makes a single call to the model via GitHub Copilot CLI in programmatic mode. The system prompt and user message are combined into a temp file and piped to the CLI:
+Each phase makes a single call to the model via GitHub Copilot CLI. The combined prompt is passed via stdin using `execFileSync`:
 
-```bash
-cat /tmp/triage-prompt.md | copilot -s --no-ask-user --no-custom-instructions --model=MODEL_NAME
+```javascript
+execFileSync('copilot',
+  ['-s', '--no-ask-user', '--no-custom-instructions', `--model=${MODEL_NAME}`],
+  { input: combinedPrompt, timeout: 420_000 }
+);
 ```
 
-The `-s` (silent) flag ensures clean output without session metadata. `--no-ask-user` prevents interactive prompts. `--no-custom-instructions` prevents repo instruction files from being loaded. Authentication is via `COPILOT_GITHUB_TOKEN` (a PAT with "Copilot Requests" permission).
+The `-s` (silent) flag ensures clean output. `--no-ask-user` prevents interactive prompts. `--no-custom-instructions` prevents repo instruction files from being loaded. Authentication is via `COPILOT_GITHUB_TOKEN` (a PAT with "Copilot Requests" permission). Timeout is 7 minutes to accommodate large prompts.
 
 ### 6.5 Phase 1 system prompt design
 
@@ -407,24 +398,28 @@ The Phase 2 system prompt receives the Phase 1 output plus search results and in
 }
 ```
 
-### 6.7 Web search strategy
+### 6.7 Enrichment strategy
 
-For each issue, the script constructs 3 targeted search queries:
+Enrichment data is fetched in parallel before the Phase 2 model call:
 
-1. **Microsoft Learn**: `site:learn.microsoft.com dynamics365 business-central [issue keywords]`
-2. **Ideas Portal**: `site:experience.dynamics.com [issue keywords]`
-3. **Community**: `business central [issue keywords] site:stackoverflow.com OR site:github.com OR site:yammer.com`
+1. **Repository code** (`code-reader.js`): Reads AL files from the detected app area directory, scored by keyword relevance, capped at 15KB
+2. **Ideas Portal** (`ideas-client.js`): Fetches from `experience.dynamics.com/_odata/ideas`, filtered to BC forum, matched with fuzzy keyword matching and BC domain synonyms
+3. **Azure DevOps** (`ado-client.js`): WIQL queries against Dynamics SMB project, searches both titles and descriptions, results scored by keyword matches with bracketed tags stripped
+4. **AppSource Marketplace** (`marketplace-client.js`): Provides search terms and URL for the model to estimate ecosystem interest (no public API available)
+5. **Duplicate detection** (`duplicate-detector.js`): Compares against recent open issues using Jaccard similarity on keyword sets
 
-The search is performed using Node.js `fetch` calls (or a search API if available in the action context). For the PoC, the script includes the search result snippets in the Phase 2 prompt for GPT-5.4 to synthesize.
+Key term extraction (`phase2-enrich.js`) prioritizes known BC domain phrases (50+), then bigrams (top 5), then single high-frequency words (top 8), yielding up to 12 search terms.
 
-### 6.8 Idempotency
+### 6.8 Idempotency and re-triage
 
 If the `ai-triage` label is removed and re-added (re-triage):
 
 - The agent detects existing `## :robot: AI Triage Assessment` comments
+- Extracts previous scores (quality, priority, per-dimension) from the last triage comment
 - Notes this is a re-triage in the new comment header
-- Posts a new comment (preserves triage history)
-- Updates labels to reflect the new assessment
+- Wiki report shows a comparison table with score deltas
+- Wiki page is overwritten (previous versions in wiki git history)
+- Labels and issue type are updated to reflect the new assessment
 
 ## 7. Technical considerations
 
@@ -442,17 +437,23 @@ Minimal dependency footprint for fast CI install. Native `fetch` (Node 20) is us
 | Scenario | Behavior |
 |----------|----------|
 | Issue is closed | Skip processing, log info |
-| GitHub Models API rate limit | Retry once after 5s, then fail gracefully with a comment noting the failure |
-| Web search fails | Continue with Phase 2 using only issue content (enrichment section marked "Search unavailable") |
-| GPT-5.4 returns malformed JSON | Retry once, then post a comment noting the assessment could not be completed |
-| Label already processed | Check for existing triage comment, note re-triage |
+| Near-empty issue (title < 10 chars, body < 20 chars) | Short-circuit as INSUFFICIENT without model call |
+| Copilot CLI timeout (7 min) | Retry once, then fail with error comment |
+| Copilot CLI returns malformed JSON | Retry once with 2s delay, then fail |
+| GitHub API 5xx | Retry up to 3 times with increasing delay (3s, 6s) |
+| ADO/Ideas Portal fetch fails | Continue with Phase 2 using available data (graceful degradation) |
+| Wiki publish fails | Fall back to verbose inline comment (no data lost) |
+| Model response has wrong types | Coerce fixable values (e.g., string→number), derive verdict from score if invalid |
+| Label already processed | Check for existing triage comment, note re-triage, show score diff |
 
 ### 7.3 Security
 
-- No secrets beyond `GITHUB_TOKEN` (provided by default in GitHub Actions)
-- No external API keys needed (GitHub Models uses the same token)
-- The agent NEVER modifies issue title, body, or assignees (read issue, write comments and labels only)
-- System prompts stored in the repo, fully auditable
+- `GITHUB_TOKEN` for GitHub API and wiki push (auto-provided or PAT for cross-repo wiki)
+- `COPILOT_GITHUB_TOKEN` for Copilot CLI model inference
+- `ADO_PAT` (optional) for Azure DevOps work item search
+- The agent NEVER modifies issue title, body, or assignees (read issue, write comments/labels/type only)
+- Triage knowledge stored in skill files in the repo, fully auditable
+- Wiki reports can be directed to a private repo via `TRIAGE_REPO` for access control
 
 ### 7.4 Performance target
 
@@ -476,14 +477,14 @@ For the PoC, the repository owner/name comes from the GitHub Action event contex
 - **SM5**: End-to-end execution completes in under 60 seconds per issue
 - **SM6**: Zero false positives on label application (no conflicting labels)
 
-## 9. Open questions
+## 9. Open questions (status)
 
-- **OQ1**: Should the agent also detect duplicate issues by searching existing closed issues? (Recommended for v2)
-- **OQ2**: Should there be a "Suggested Assignee" field based on git blame of related code areas? (Deferred to v2)
-- **OQ3**: How should the agent handle issues that reference internal Microsoft systems or private information? (For PoC: skip, note as limitation)
-- **OQ4**: Should re-triage automatically remove old triage labels, or keep them for history? (Recommended: remove old, apply new)
-- **OQ5**: Should there be a separate `ai-triage-complete` label applied after successful triage? (Recommended: yes, for workflow visibility)
+- **OQ1**: ~~Should the agent also detect duplicate issues?~~ **Resolved** — Implemented via Jaccard similarity against recent open issues (≥ 35% overlap flagged).
+- **OQ2**: Should there be a "Suggested Assignee" field based on git blame of related code areas? (Deferred)
+- **OQ3**: How should the agent handle issues that reference internal Microsoft systems or private information? (Limitation: not handled)
+- **OQ4**: ~~Should re-triage remove old triage labels?~~ **Resolved** — Yes, old labels in each category are removed before applying new ones.
+- **OQ5**: Should there be a separate `ai-triage-complete` label? (Not implemented — the triage status labels serve this purpose)
 
 ---
 
-**Last Updated**: 2026-03-11 by jeschulz
+**Last Updated**: 2026-03-24
