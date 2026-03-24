@@ -149,7 +149,9 @@ async function main() {
         await manageCategoryLabels(owner, repo, issueNumber, 'triage/', getTriageLabelName(phase1Result.verdict), ALL_LABELS);
         console.log(`Labels applied: ${getTriageLabelName(phase1Result.verdict)}`);
       } else {
-        console.log('Post results disabled — skipping comment and labels.');
+        await postComment(owner, repo, issueNumber,
+          `:robot: AI triage completed — issue scored ${qualityScore}/100 (${phase1Result.verdict}). More information is needed before full triage can proceed.`);
+        console.log('Post results disabled — skipping labels. Minimal comment posted.');
       }
 
       console.log(`\n=== Triage complete (${phase1Result.verdict}) ===`);
@@ -199,7 +201,12 @@ async function main() {
       const appliedLabels = labelOps.map(op => op.label).join(', ');
       console.log(`Labels applied: ${appliedLabels}`);
     } else {
-      console.log('Post results disabled — skipping comment and labels.');
+      // Post a minimal comment with just the wiki link
+      if (wikiUrl) {
+        await postComment(owner, repo, issueNumber,
+          `:robot: AI triage completed. Product Group, please validate results at [Triage Report](${wikiUrl}).`);
+      }
+      console.log('Post results disabled — skipping labels. Minimal comment posted.');
     }
 
     // Set GitHub issue type (Bug/Feature/Task) — always runs
