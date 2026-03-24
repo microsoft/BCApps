@@ -141,9 +141,9 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
     var
         SalesLine: Record "Sales Line";
     begin
+        SalesLine.SetLoadFields("Document Type", "Document No.", "Line No.");
         SalesLine.SetRange("Document Type", DocumentType);
         SalesLine.SetRange("Document No.", DocumentNo);
-        SalesLine.LoadFields("Line No.");
         if SalesLine.IsEmpty() then
             exit(10000)
         else
