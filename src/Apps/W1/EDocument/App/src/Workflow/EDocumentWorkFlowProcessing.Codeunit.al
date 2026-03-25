@@ -285,12 +285,20 @@ codeunit 6135 "E-Document WorkFlow Processing"
         WorkflowStepArgument: Record "Workflow Step Argument";
         EDocumentService: Record "E-Document Service";
         EDocument: Record "E-Document";
+        EDocExport: Codeunit "E-Doc. Export";
     begin
         if not GetEDocumentFromRecordRef(RecordRef, EDocument) then
             exit;
         if not ValidateFlowStep(EDocument, WorkflowStepArgument, WorkflowStepInstance, true) then
             exit;
         EDocumentService.Get(WorkflowStepArgument."E-Document Service");
+
+        // Skip if service does not support the document type, but continue workflow
+        if not EDocExport.IsDocumentTypeSupported(EDocumentService, EDocument."Document Type") then begin
+            SkipSendAndContinueWorkflow(EDocument, EDocumentService);
+            exit;
+        end;
+
         SendEDocument(EDocument, EDocumentService);
     end;
 
@@ -481,6 +489,12 @@ codeunit 6135 "E-Document WorkFlow Processing"
 
         EDocumentService.Get(WorkflowStepArgument."E-Document Service");
 
+        // Skip if service does not support the document type, but continue workflow
+        if not EDocExport.IsDocumentTypeSupported(EDocumentService, EDocument."Document Type") then begin
+            WorkflowManagement.HandleEventOnKnownWorkflowInstance(EDocWorkflowSetup.EventEDocExported(), EDocument, EDocument."Workflow Step Instance ID");
+            exit;
+        end;
+
         if EDocExport.ExportEDocument(EDocument, EDocumentService) then
             WorkflowManagement.HandleEventOnKnownWorkflowInstance(EDocWorkflowSetup.EventEDocExported(), EDocument, EDocument."Workflow Step Instance ID");
     end;
@@ -553,6 +567,29 @@ codeunit 6135 "E-Document WorkFlow Processing"
         CannotSendEDocWithoutTypeErr: Label 'Cannot send the E-Document without document type.';
         CannotFindEDocErr: Label 'Cannot find the E-Document with type %1, document number %2.', Comment = '%1 - E-Document type, %2 - Document number';
         NotSupportedEDocTypeErr: Label 'The document type %1 is not supported for sending from email.', Comment = '%1 - E-Document type';
+
+    internal procedure WorkflowHasNonServiceResponses(Workflow: Record Workflow): Boolean
+    var
+        WorkflowStep: Record "Workflow Step";
+        EDocWorkflowSetup: Codeunit "E-Document Workflow Setup";
+    begin
+        WorkflowStep.SetRange("Workflow Code", Workflow.Code);
+        WorkflowStep.SetRange(Type, WorkflowStep.Type::Response);
+        WorkflowStep.SetFilter("Function Name", '%1|%2', EDocWorkflowSetup.ResponseSendEDocByEmail(), EDocWorkflowSetup.ResponseSendEDocAndPDFByEmail());
+        exit(not WorkflowStep.IsEmpty());
+    end;
+
+    local procedure SkipSendAndContinueWorkflow(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service")
+    var
+        EDocumentServiceStatus: Record "E-Document Service Status";
+    begin
+        // Insert a service status to enable workflow continuation through HandleNextEvent
+        if not EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code) then
+            EDocumentProcessing.InsertServiceStatus(EDocument, EDocumentService, Enum::"E-Document Service Status"::Sent);
+
+        EDocument.SetRecFilter();
+        HandleNextEvent(EDocument, EDocumentService);
+    end;
 
     [IntegrationEvent(false, false)]
     local procedure OnBatchSendWithCustomBatchMode(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; var IsHandled: Boolean)
