@@ -140,10 +140,10 @@ jobs:
               [ -f "$REPORT" ] || continue
               # App name from the report filename (set during audit step from app.json)
               APP=$(basename "$REPORT" .md | sed 's/^audit-//')
-              COV=$(copilot -p "Read $REPORT. What is the documentation coverage percentage? Reply with ONLY the number followed by %, like 42%. Nothing else." \
-                -s --no-ask-user --allow-tool=read 2>&1 | grep -oE '[0-9]+%' | head -1)
-              [ "$COV" = "100%" ] && continue
-              BODY+="- **${APP}**: ${COV:-unknown} documentation coverage"$'\n'
+              COV=$(copilot -p "Read $REPORT. What is the documentation coverage number between 0 and 100? Reply with ONLY the number, nothing else." \
+                -s --no-ask-user --allow-tool=read 2>&1 | grep -oE '[0-9]+' | head -1)
+              [ "$COV" = "100" ] && continue
+              BODY+="- **${APP}**: ${COV:-unknown}% documentation coverage"$'\n'
             done
 
             BODY+=$'\n'"To generate documentation, run \`/al-docs init\` or \`/al-docs update\` using [GitHub Copilot CLI](https://github.com/github/copilot-cli) or [Claude Code](https://claude.com/claude-code)."$'\n'
