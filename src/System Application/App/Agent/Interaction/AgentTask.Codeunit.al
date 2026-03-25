@@ -148,6 +148,18 @@ codeunit 4303 "Agent Task"
         exit(AgentTaskImpl.GetCopilotCreditsConsumed(AgentTaskID));
     end;
 
+    /// <summary>
+    /// Gets the details for the specified agent task log entry.
+    /// </summary>
+    /// <param name="AgentTaskLogEntry">The agent task log entry to get details for.</param>
+    /// <returns>The details of the agent task log entry.</returns>
+    procedure GetDetailsForAgentTaskLogEntry(var AgentTaskLogEntry: Record "Agent Task Log Entry"): Text
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        exit(AgentTaskImpl.GetDetailsForAgentTaskLogEntry(AgentTaskLogEntry));
+    end;
+
     var
         FeatureAccessManagement: Codeunit "Feature Access Management";
 

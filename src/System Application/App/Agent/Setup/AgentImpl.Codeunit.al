@@ -268,13 +268,6 @@ codeunit 4301 "Agent Impl."
         exit(false);
     end;
 
-    procedure CanShowMonetizationData(): Boolean
-    var
-        DummyUserAIConsumptionData: Record "User AI Consumption Data";
-    begin
-        exit(DummyUserAIConsumptionData.ReadPermission());
-    end;
-
     local procedure UpdateUserSettingsWithProfile(var TempAllProfile: Record "All Profile" temporary; var UserSettingsRec: Record "User Settings")
     begin
         UserSettingsRec."Profile ID" := TempAllProfile."Profile ID";

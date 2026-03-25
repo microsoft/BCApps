@@ -11,9 +11,9 @@ codeunit 4317 "Agent System Permissions"
     InherentPermissions = X;
 
     /// <summary>
-    /// Gets whether the current user has permissions to see consumption data.
+    /// Gets whether the current user has permissions to see all consumption data.
     /// </summary>
-    /// <returns>True if the user has permissions to see consumption data, false otherwise.</returns>
+    /// <returns>True if the user has permissions to see all consumption data, false otherwise.</returns>
     procedure CurrentUserCanSeeConsumptionData(): Boolean
     begin
         exit(AgentSystemPermissionsImpl.CurrentUserCanSeeConsumptionData());
