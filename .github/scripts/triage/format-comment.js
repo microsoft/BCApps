@@ -59,7 +59,7 @@ export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [],
     }
   }
 
-  md += `\n:clipboard: [View full triage report →](${wikiUrl})\n`;
+  md += `\n:clipboard: <a href="${wikiUrl}" target="_blank">View full triage report →</a>\n`;
 
   return md;
 }
