@@ -55,7 +55,9 @@ codeunit 30107 "Shpfy Sync Countries"
         ShopifyCustomerTemplate."Shop Code" := ShopifyShop.Code;
         ShopifyCustomerTemplate."Country/Region Code" := CopyStr(CountryCode.AsCode(), 1, MaxStrLen(ShopifyCustomerTemplate."Country/Region Code"));
         if (ShopifyCustomerTemplate."Country/Region Code" <> '') and (ShopifyCustomerTemplate."Country/Region Code" <> '*') then begin
-            if not ShopifyCustomerTemplate.Get(ShopifyShop.Code, ShopifyCustomerTemplate."Country/Region Code") then
+            ShopifyCustomerTemplate.SetRange("Shop Code", ShopifyShop.Code);
+            ShopifyCustomerTemplate.SetRange("Country/Region Code", ShopifyCustomerTemplate."Country/Region Code");
+            if ShopifyCustomerTemplate.IsEmpty() then
                 ShopifyCustomerTemplate.Insert();
             ImportProvince(CountryCode);
         end;
@@ -76,7 +78,9 @@ codeunit 30107 "Shpfy Sync Countries"
                         ShopifyTaxArea."Country/Region Code" := CopyStr(CountryCode.AsCode(), 1, MaxStrLen(ShopifyTaxArea."Country/Region Code"));
                         ShopifyTaxArea.County := CopyStr(JsonHelper.GetValueAsText(JProvince, 'name'), 1, MaxStrLen(ShopifyTaxArea.County));
                         ShopifyTaxArea."County Code" := CopyStr(JsonHelper.GetValueAsText(JProvince, 'code'), 1, MaxStrLen(ShopifyTaxArea."County Code"));
-                        if not ShopifyTaxArea.Get(ShopifyTaxArea."Country/Region Code", ShopifyTaxArea.County) then
+                        ShopifyTaxArea.SetRange("Country/Region Code", ShopifyTaxArea."Country/Region Code");
+                        ShopifyTaxArea.SetRange(County, ShopifyTaxArea.County);
+                        if ShopifyTaxArea.IsEmpty() then
                             ShopifyTaxArea.Insert();
                     end;
                 exit;
