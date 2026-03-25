@@ -370,9 +370,11 @@ page 149033 "AIT Log Entries"
     begin
         case Rec.Status of
             Rec.Status::Success:
-                StatusStyleExpr := 'Favorable';
+                StatusStyleExpr := Format(PageStyle::Favorable);
             Rec.Status::Error:
-                StatusStyleExpr := 'Unfavorable';
+                StatusStyleExpr := Format(PageStyle::Unfavorable);
+            Rec.Status::Skipped:
+                StatusStyleExpr := Format(PageStyle::Ambiguous);
             else
                 StatusStyleExpr := '';
         end;
@@ -382,11 +384,11 @@ page 149033 "AIT Log Entries"
     begin
         case Rec."No. of Turns Passed" of
             Rec."No. of Turns":
-                TurnsStyleExpr := 'Favorable';
+                TurnsStyleExpr := Format(PageStyle::Favorable);
             0:
-                TurnsStyleExpr := 'Unfavorable';
+                TurnsStyleExpr := Format(PageStyle::Unfavorable);
             else
-                TurnsStyleExpr := 'Ambiguous';
+                TurnsStyleExpr := Format(PageStyle::Ambiguous);
         end;
     end;
 
