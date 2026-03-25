@@ -231,6 +231,10 @@ codeunit 130458 "Test Inputs Management"
         if MetadataJsonObject.Get(NameTok, MetadataJsonToken) then
             if MetadataJsonToken.IsValue() then
                 GroupName := MetadataJsonToken.AsValue().AsText();
+
+        if MetadataJsonObject.Get(TestSuiteSetupTok, MetadataJsonToken) then
+            if MetadataJsonToken.IsValue() then
+                SuiteSetupResourcePath := MetadataJsonToken.AsValue().AsText();
     end;
 
     local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text; ImportedByAppId: Guid; LanguageID: Integer; GroupName: Text)
@@ -305,7 +309,7 @@ codeunit 130458 "Test Inputs Management"
             exit;
         end;
 
-        InsertDataInputLine(DataInputJsonObject, TestInputGroup);
+        InsertDataInputLine(DataInputJsonToken.AsObject(), TestInputGroup);
     end;
 
     local procedure InsertDataInputsFromJsonArray(var TestInputGroup: Record "Test Input Group"; var DataOnlyTestInputsArray: JsonArray)
@@ -399,12 +403,23 @@ codeunit 130458 "Test Inputs Management"
         TestInput.Code := IncStr(TestInput.Code);
     end;
 
+    /// <summary>
+    /// Gets the suite setup resource path extracted from the last imported YAML file's test_suite_setup field.
+    /// </summary>
+    /// <returns>The resource path as text, or empty string if not specified.</returns>
+    procedure GetSuiteSetupResourcePath(): Text
+    begin
+        exit(SuiteSetupResourcePath);
+    end;
+
     var
+        SuiteSetupResourcePath: Text;
         DataNameTok: Label 'name', Locked = true;
         DescriptionTok: Label 'description', Locked = true;
         LanguageTok: Label 'language', Locked = true;
         NameTok: Label 'name', Locked = true;
         TestsTok: Label 'tests', Locked = true;
+        TestSuiteSetupTok: Label 'test_suite_setup', Locked = true;
         TestInputTok: Label 'testInput', Locked = true;
         ChooseFileLbl: Label 'Choose a file to import';
         TestInputNameTok: Label 'INPUT-', Locked = true;

@@ -266,6 +266,13 @@ table 149030 "AIT Test Suite"
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(2)));
         }
+        field(83; "Suite Setup Done"; Boolean)
+        {
+            Caption = 'Suite Setup Done';
+            ToolTip = 'Specifies whether the per-suite setup has been executed for this eval suite.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
     keys
     {
@@ -296,6 +303,19 @@ table 149030 "AIT Test Suite"
         AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
     begin
         exit(AITTestSuiteLanguage.GetLanguageDataset(Rec."Input Dataset", Rec."Run Language ID"));
+    end;
+
+    internal procedure ResetSuiteSetup()
+    begin
+        Rec."Suite Setup Done" := false;
+        Rec.Modify(true);
+    end;
+
+    internal procedure SetSuiteSetupDone()
+    begin
+        Rec."Suite Setup Done" := true;
+        Rec.Modify(true);
+        Commit();
     end;
 
     var

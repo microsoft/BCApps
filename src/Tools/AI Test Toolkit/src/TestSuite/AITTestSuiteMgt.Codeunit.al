@@ -78,6 +78,7 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITTestSuite."No. of Tests Running" := 0;
         AITTestSuite.Version += 1;
+        AITTestSuite."Suite Setup Done" := false;
         AITTestSuite.Modify(true);
         Commit(); // Ensure that setup is not rolled back
 

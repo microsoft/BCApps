@@ -39,6 +39,10 @@ codeunit 149043 "AIT Test Context Impl."
         RoleTok: Label 'role', Locked = true;
         ContentTok: Label 'content', Locked = true;
         ConversationTok: Label 'conversation', Locked = true;
+        TestSuiteSetupTok: Label 'test_suite_setup', Locked = true;
+        GlobalSuiteSetupJson: Codeunit "Test Input Json";
+        HasSuiteSetupData: Boolean;
+        SuiteSetupDataNotLoadedErr: Label 'Per-suite setup data has not been loaded. Import a YAML file with the test_suite_setup token first.';
 
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
@@ -409,6 +413,39 @@ codeunit 149043 "AIT Test Context Impl."
             exit;
 
         CurrentTestOutputJson.Add(ElementName, TestInput.GetTestInput(ElementName).ValueAsText());
+    end;
+
+    /// <summary>
+    /// Sets the per-suite setup data from a parsed JSON token.
+    /// </summary>
+    /// <param name="SuiteSetupJsonToken">The JSON token containing the parsed suite setup data.</param>
+    internal procedure SetSuiteSetupData(SuiteSetupJsonToken: JsonToken)
+    begin
+        GlobalSuiteSetupJson.Initialize(SuiteSetupJsonToken);
+        HasSuiteSetupData := true;
+    end;
+
+    /// <summary>
+    /// Gets the per-suite setup data as a Test Input Json.
+    /// </summary>
+    /// <returns>Test Input Json containing the suite setup data.</returns>
+    procedure GetSuiteSetupData(): Codeunit "Test Input Json"
+    begin
+        if not HasSuiteSetupData then
+            Error(SuiteSetupDataNotLoadedErr);
+        exit(GlobalSuiteSetupJson);
+    end;
+
+    /// <summary>
+    /// Checks if the per-suite setup has been marked as done on the test suite record.
+    /// </summary>
+    /// <returns>True if suite setup has been executed.</returns>
+    procedure IsSuiteSetupDone(): Boolean
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        GetAITTestSuite(AITTestSuite);
+        exit(AITTestSuite."Suite Setup Done");
     end;
 
     /// <summary>

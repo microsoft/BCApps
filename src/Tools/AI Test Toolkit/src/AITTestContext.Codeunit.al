@@ -205,6 +205,25 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
+    /// Gets the per-suite setup data as a Test Input Json.
+    /// The consuming test app must have imported a YAML file with the test_suite_setup token.
+    /// </summary>
+    /// <returns>Test Input Json containing the suite setup data.</returns>
+    procedure GetSuiteSetupData(): Codeunit "Test Input Json"
+    begin
+        exit(AITTestContextImpl.GetSuiteSetupData());
+    end;
+
+    /// <summary>
+    /// Checks if the per-suite setup has been marked as done on the test suite record.
+    /// </summary>
+    /// <returns>True if suite setup has been executed.</returns>
+    procedure IsSuiteSetupDone(): Boolean
+    begin
+        exit(AITTestContextImpl.IsSuiteSetupDone());
+    end;
+
+    /// <summary>
     /// Integration event that is raised after an eval run is completed.
     /// </summary>
     /// <param name="Code">The code of the eval run.</param>
