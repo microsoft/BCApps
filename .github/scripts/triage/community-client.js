@@ -94,7 +94,17 @@ async function searchDynamicsUserNet(keywords, issueTitle) {
     }
   }
 
-  return [...allTopics.values()]
+  const MIN_SIMILARITY = 25; // At least 25% word overlap with issue title
+  const MIN_VIEWS = 1;       // Skip zero-view dead topics
+
+  const filtered = [...allTopics.values()]
+    .filter(t => t.similarity >= MIN_SIMILARITY && t.views >= MIN_VIEWS);
+
+  if (filtered.length === 0) {
+    console.log('Community: no discussions met relevance threshold');
+  }
+
+  return filtered
     .sort((a, b) => b.similarity - a.similarity || b.views - a.views)
     .slice(0, MAX_RESULTS);
 }
