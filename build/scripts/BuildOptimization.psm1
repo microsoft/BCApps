@@ -142,11 +142,11 @@ function Get-AffectedApps {
             [void]$directlyChanged.Add($appId)
         } elseif ($file.Replace('\', '/') -match '(^|/)src/') {
             # Unmapped file under src/ — safety fallback to full build
-            return @($Graph.Keys)
+            return [string[]]@($Graph.Keys)
         }
     }
 
-    if ($directlyChanged.Count -eq 0) { return @() }
+    if ($directlyChanged.Count -eq 0) { return [string[]]@() }
 
     # BFS downstream: changed apps + everything that depends on them
     $affected = [System.Collections.Generic.HashSet[string]]::new()
@@ -166,7 +166,7 @@ function Get-AffectedApps {
         }
     }
 
-    return @($affected)
+    return [string[]]@($affected)
 }
 
 <#
@@ -202,22 +202,22 @@ function Get-ChangedFilesForCI {
         return $null
     }
 
-    $event = Get-Content $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json
+    $eventPayload = Get-Content $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json
 
     $baseSha = $null
     $headSha = $null
 
     if ($env:GITHUB_EVENT_NAME -match 'pull_request') {
-        $baseSha = $event.pull_request.base.sha
-        $headSha = $event.pull_request.head.sha
+        $baseSha = $eventPayload.pull_request.base.sha
+        $headSha = $eventPayload.pull_request.head.sha
     }
     elseif ($env:GITHUB_EVENT_NAME -eq 'merge_group') {
-        $baseSha = $event.merge_group.base_sha
-        $headSha = $event.merge_group.head_sha
+        $baseSha = $eventPayload.merge_group.base_sha
+        $headSha = $eventPayload.merge_group.head_sha
     }
     elseif ($env:GITHUB_EVENT_NAME -eq 'push') {
-        $baseSha = $event.before
-        $headSha = $event.after
+        $baseSha = $eventPayload.before
+        $headSha = $eventPayload.after
     }
 
     if (-not $baseSha -or -not $headSha) {
@@ -244,7 +244,7 @@ function Get-ChangedFilesForCI {
             return $null
         }
 
-        return $files
+        return [string[]]$files
     }
     finally {
         $ErrorActionPreference = $prevErrorAction
