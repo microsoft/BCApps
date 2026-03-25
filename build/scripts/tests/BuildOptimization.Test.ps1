@@ -275,15 +275,21 @@ Describe "BuildOptimization" {
     }
 
     Context "Test-ShouldSkipTestApp" {
+        BeforeAll {
+            $cacheFile = Join-Path ([System.IO.Path]::GetTempPath()) "BuildOptimization_Test_$([System.Guid]::NewGuid()).json"
+        }
         BeforeEach {
-            Reset-BuildOptimizationCache
+            Remove-Item $cacheFile -ErrorAction SilentlyContinue
+        }
+        AfterAll {
+            Remove-Item $cacheFile -ErrorAction SilentlyContinue
         }
 
         It "returns false when not in CI" {
             $saved = $env:GITHUB_ACTIONS
             try {
                 $env:GITHUB_ACTIONS = $null
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder | Should -BeFalse
+                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
             } finally {
                 $env:GITHUB_ACTIONS = $saved
             }
@@ -295,7 +301,7 @@ Describe "BuildOptimization" {
             try {
                 $env:GITHUB_ACTIONS = 'true'
                 $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder | Should -BeFalse
+                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
@@ -308,7 +314,7 @@ Describe "BuildOptimization" {
             try {
                 $env:BUILD_OPTIMIZATION_DISABLED = 'true'
                 $env:GITHUB_ACTIONS = 'true'
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder | Should -BeFalse
+                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
             } finally {
                 $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
                 $env:GITHUB_ACTIONS = $savedActions
@@ -324,7 +330,7 @@ Describe "BuildOptimization" {
                 $env:GITHUB_EVENT_NAME = 'pull_request'
                 $env:BUILD_OPTIMIZATION_DISABLED = $null
                 Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { return @('build/scripts/SomeScript.ps1') }
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder | Should -BeFalse
+                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
@@ -343,7 +349,7 @@ Describe "BuildOptimization" {
                 Mock -ModuleName BuildOptimization Get-ChangedFilesForCI {
                     return @('src/Apps/W1/EDocument/App/src/SomeFile.al')
                 }
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder | Should -BeTrue
+                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeTrue
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
@@ -351,7 +357,7 @@ Describe "BuildOptimization" {
             }
         }
 
-        It "uses cached result on second call without recomputing" {
+        It "reads from cache file on second call without recomputing" {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
@@ -362,10 +368,11 @@ Describe "BuildOptimization" {
                 Mock -ModuleName BuildOptimization Get-ChangedFilesForCI {
                     return @('src/Apps/W1/EDocument/App/src/SomeFile.al')
                 }
-                # First call computes and caches
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder | Should -BeTrue
-                # Second call should use cache — same result, Get-ChangedFilesForCI called only once
-                Test-ShouldSkipTestApp -AppName 'E-Document Core' -BaseFolder $baseFolder | Should -BeFalse
+                # First call computes and writes cache file
+                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeTrue
+                Test-Path $cacheFile | Should -BeTrue
+                # Second call reads from cache — Get-ChangedFilesForCI not called again
+                Test-ShouldSkipTestApp -AppName 'E-Document Core' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
                 Should -Invoke -ModuleName BuildOptimization Get-ChangedFilesForCI -Times 1 -Exactly
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions

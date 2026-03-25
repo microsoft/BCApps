@@ -8,6 +8,7 @@
 
 $ErrorActionPreference = "Stop"
 
+
 <#
 .SYNOPSIS
     Builds a dependency graph from all app.json files under the given base folder.
@@ -297,15 +298,87 @@ function Test-FullBuildPatternsMatch {
 
 <#
 .SYNOPSIS
+    Computes the set of app names affected by changed files.
+.DESCRIPTION
+    Pure computation — no caching or side effects. Returns a PSCustomObject with
+    two properties: RunAll (bool) and AppNames (string[]). The caller is responsible
+    for persisting/reading the result to avoid recomputing across process invocations.
+.PARAMETER BaseFolder
+    Root of the repository.
+.OUTPUTS
+    PSCustomObject with RunAll (bool) and AppNames (string[]).
+#>
+function Get-AffectedAppNames {
+    [CmdletBinding()]
+    [OutputType([PSCustomObject])]
+    param(
+        [Parameter(Mandatory)]
+        [string] $BaseFolder
+    )
+
+    $runAll = @{ RunAll = $true; AppNames = @() }
+
+    if ($env:BUILD_OPTIMIZATION_DISABLED -eq 'true') {
+        Write-Host "BUILD OPTIMIZATION: Disabled via BUILD_OPTIMIZATION_DISABLED=true"
+        return [PSCustomObject]$runAll
+    }
+    if (-not $env:GITHUB_ACTIONS) {
+        return [PSCustomObject]$runAll
+    }
+    if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+        return [PSCustomObject]$runAll
+    }
+
+    $changedFiles = Get-ChangedFilesForCI
+    if (-not $changedFiles) {
+        Write-Host "BUILD OPTIMIZATION: Running all tests - could not determine changed files"
+        return [PSCustomObject]$runAll
+    }
+
+    Write-Host "BUILD OPTIMIZATION: Changed files ($($changedFiles.Count)):"
+    foreach ($f in $changedFiles) { Write-Host "  - $f" }
+
+    # If any changed file matches fullBuildPatterns, AL-Go compiles everything.
+    # We must run all tests to match — skip nothing.
+    if (Test-FullBuildPatternsMatch -ChangedFiles $changedFiles -BaseFolder $BaseFolder) {
+        Write-Host "BUILD OPTIMIZATION: fullBuildPatterns matched, full test run required"
+        return [PSCustomObject]$runAll
+    }
+
+    $graph = Get-AppDependencyGraph -BaseFolder $BaseFolder
+    $affectedIds = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $BaseFolder -Graph $graph
+
+    # Full build triggered (unmapped src file or all apps affected)
+    if ($affectedIds.Count -ge $graph.Count) {
+        Write-Host "BUILD OPTIMIZATION: Full build triggered ($($affectedIds.Count) apps affected)"
+        return [PSCustomObject]$runAll
+    }
+
+    $affectedNames = @()
+    foreach ($id in $affectedIds) {
+        if ($graph.ContainsKey($id)) { $affectedNames += $graph[$id].Name }
+    }
+
+    $sortedNames = $affectedNames | Sort-Object
+    Write-Host "BUILD OPTIMIZATION: Affected apps ($($affectedNames.Count)):"
+    foreach ($name in $sortedNames) { Write-Host "  - $name" }
+
+    return [PSCustomObject]@{ RunAll = $false; AppNames = $affectedNames }
+}
+
+<#
+.SYNOPSIS
     Determines whether tests for a given app should be skipped.
 .DESCRIPTION
-    Called from RunTestsInBcContainer.ps1 for each test app. Computes the affected
-    app set from changed files and the dependency graph, then checks whether the
-    given app name is in that set. Returns $true to skip, $false to run.
+    Reads the cached affected-apps JSON file written by a prior call in the same
+    CI job. If the file doesn't exist, computes the result and writes the cache.
+    Returns $true to skip, $false to run.
 .PARAMETER AppName
     The display name of the test app (from $parameters["appName"]).
 .PARAMETER BaseFolder
     Root of the repository.
+.PARAMETER CacheFile
+    Path to the JSON cache file. Defaults to $TEMP/BuildOptimization_AffectedApps.json.
 .OUTPUTS
     $true if the test app should be skipped, $false if it should run.
 #>
@@ -316,51 +389,26 @@ function Test-ShouldSkipTestApp {
         [Parameter(Mandatory)]
         [string] $AppName,
         [Parameter(Mandatory)]
-        [string] $BaseFolder
+        [string] $BaseFolder,
+        [string] $CacheFile = (Join-Path ([System.IO.Path]::GetTempPath()) 'BuildOptimization_AffectedApps.json')
     )
 
-    if ($env:BUILD_OPTIMIZATION_DISABLED -eq 'true') {
-        Write-Host "BUILD OPTIMIZATION: Disabled via BUILD_OPTIMIZATION_DISABLED=true"
-        return $false
-    }
-    if (-not $env:GITHUB_ACTIONS) { return $false }
-    if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') { return $false }
-
-    $changedFiles = Get-ChangedFilesForCI
-    if (-not $changedFiles) {
-        Write-Host "BUILD OPTIMIZATION: Running all tests for '$AppName' - could not determine changed files"
-        return $false
+    # Read or compute affected apps
+    if (Test-Path $CacheFile) {
+        Write-Host "BUILD OPTIMIZATION: Reading cached result from $CacheFile"
+        $result = Get-Content $CacheFile -Raw | ConvertFrom-Json
+    } else {
+        $result = Get-AffectedAppNames -BaseFolder $BaseFolder
+        $result | ConvertTo-Json -Compress | Set-Content -Path $CacheFile -Force
+        Write-Host "BUILD OPTIMIZATION: Cache written to $CacheFile"
     }
 
-    Write-Host "BUILD OPTIMIZATION: Changed files ($($changedFiles.Count)):"
-    foreach ($f in $changedFiles) { Write-Host "  - $f" }
-
-    # If any changed file matches fullBuildPatterns, AL-Go compiles everything.
-    # We must run all tests to match — skip nothing.
-    if (Test-FullBuildPatternsMatch -ChangedFiles $changedFiles -BaseFolder $BaseFolder) {
-        Write-Host "BUILD OPTIMIZATION: Running tests for '$AppName' - fullBuildPatterns matched, full test run required"
+    if ($result.RunAll) {
+        Write-Host "BUILD OPTIMIZATION: RUNNING tests for '$AppName'"
         return $false
     }
 
-    $graph = Get-AppDependencyGraph -BaseFolder $BaseFolder
-    $affectedIds = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $BaseFolder -Graph $graph
-
-    # Full build triggered (unmapped src file or all apps affected)
-    if ($affectedIds.Count -ge $graph.Count) {
-        Write-Host "BUILD OPTIMIZATION: Running tests for '$AppName' - full build triggered ($($affectedIds.Count) apps affected)"
-        return $false
-    }
-
-    $affectedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-    foreach ($id in $affectedIds) {
-        if ($graph.ContainsKey($id)) { [void]$affectedNames.Add($graph[$id].Name) }
-    }
-
-    $sortedNames = $affectedNames | Sort-Object
-    Write-Host "BUILD OPTIMIZATION: Affected apps ($($affectedNames.Count)):"
-    foreach ($name in $sortedNames) { Write-Host "  - $name" }
-
-    if (-not $affectedNames.Contains($AppName)) {
+    if ($result.AppNames -notcontains $AppName) {
         Write-Host "BUILD OPTIMIZATION: SKIPPING tests for '$AppName' - not in affected set"
         return $true
     }
@@ -368,4 +416,4 @@ function Test-ShouldSkipTestApp {
     return $false
 }
 
-Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Test-ShouldSkipTestApp
+Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Get-AffectedAppNames, Test-ShouldSkipTestApp
