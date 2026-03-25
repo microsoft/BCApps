@@ -623,6 +623,42 @@ codeunit 139544 "Trial Balance Excel Reports"
         Assert.AreEqual(NonZeroAccount, TrialBalanceData."G/L Account No.", 'The non-zero account should be the one returned');
     end;
 
+    [Test]
+    procedure QueryPathStartingBalanceIncludesClosingDateEntries()
+    var
+        GLAccount: Record "G/L Account";
+        TempDimensionValue: Record "Dimension Value" temporary;
+        TrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        ActivityAmount: Decimal;
+        PriorYear: Integer;
+    begin
+        // [SCENARIO] Starting Balance includes closing date entries from the prior fiscal year, emulating what "Close Income Statement" produces.
+        // [GIVEN] A posting account with activity during the prior year
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        PriorYear := Date2DMY(WorkDate(), 3) - 1;
+        ActivityAmount := 5000;
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(15, 6, PriorYear), ActivityAmount);
+        // [GIVEN] A closing entry on ClosingDate(31/12) that zeroes out the account (emulates Close Income Statement)
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', ClosingDate(DMY2Date(31, 12, PriorYear)), -ActivityAmount);
+        // [GIVEN] An entry on the first day of the current year so the old FindFirst logic derives cutoff ..31/12 (normal date), which misses C31/12
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), 100);
+
+        // [WHEN] Running the trial balance for the current year
+        GLAccount.SetRange("No.", PostingAccount);
+        GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TrialBalanceData);
+
+        // [THEN] Starting Balance is zero because the closing entry zeroed out the account
+        TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        TrialBalanceData.FindFirst();
+        Assert.AreEqual(0, TrialBalanceData."Starting Balance", 'Starting Balance should be zero after closing entries')
+    end;
+
     local procedure CreateSampleBusinessUnits(HowMany: Integer)
     var
         BusinessUnit: Record "Business Unit";
@@ -746,12 +782,14 @@ codeunit 139544 "Trial Balance Excel Reports"
     [RequestPageHandler]
     procedure EXRTrialBalanceExcelHandler(var EXRTrialBalanceExcel: TestRequestPage "EXR Trial Balance Excel")
     begin
+        EXRTrialBalanceExcel.GLAccounts.SetFilter("Date Filter", Format(DMY2Date(1, 1, Date2DMY(WorkDate(), 3))) + '..' + Format(DMY2Date(31, 12, Date2DMY(WorkDate(), 3))));
         EXRTrialBalanceExcel.OK().Invoke();
     end;
 
     [RequestPageHandler]
     procedure EXRTrialBalanceBudgetExcelHandler(var EXRTrialBalanceBudgetExcel: TestRequestPage "EXR Trial BalanceBudgetExcel")
     begin
+        EXRTrialBalanceBudgetExcel.GLAccounts.SetFilter("Date Filter", Format(DMY2Date(1, 1, Date2DMY(WorkDate(), 3))) + '..' + Format(DMY2Date(31, 12, Date2DMY(WorkDate(), 3))));
         EXRTrialBalanceBudgetExcel.OK().Invoke();
     end;
 
