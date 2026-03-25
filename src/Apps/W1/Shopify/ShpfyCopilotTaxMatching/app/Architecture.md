@@ -183,7 +183,11 @@ The feature reads from and writes to the standard Shopify connector tables and B
 |-------|-------|-------|
 | Shpfy Order Header | Tax Area Code (1070) | Written by Tax Area Builder |
 | Shpfy Order Header | Tax Liable (1080) | Set to `true` by Tax Area Builder |
+| Shpfy Order Header | Tax Exempt (1090) | Imported from Shopify `taxExempt` field; guards skip matching |
 | Shpfy Order Tax Line | Tax Jurisdiction Code (10) | Written by Matcher for each matched line |
+| Shpfy Refund Header | Tax Area Code (110) | FlowField → Order Header; shown on Refund page |
+| Shpfy Refund Header | Tax Liable (111) | FlowField → Order Header; inherited by credit memo |
+| Shpfy Refund Header | Tax Exempt (112) | FlowField → Order Header; shown on Refund page |
 | Shpfy Shop | 4 config fields (30470-30473) | Read by Events + Matcher + Builder |
 
 ### BC tax tables (read/write when auto-creating)
@@ -239,3 +243,19 @@ A separate test app (`ShpfyCopilotTaxMatching/test/`, ID range 30490-30499) uses
 - Categories: Jurisdiction Matching (J, H), Jurisdiction Creation (JC), Tax Detail (TD), Tax Area (TA), Guard (G), End-to-End (F)
 
 See `TestMatrix.md` for the full test scenario inventory.
+
+## Refund Support
+
+Refunds inherit all tax context from their parent order — no separate LLM call or tax matching is performed for refunds.
+
+### Data flow
+- **Refund Header** has FlowFields (110-112) that look up Tax Area Code, Tax Liable, and Tax Exempt from the linked `Shpfy Order Header` via `Order Id`. No data duplication.
+- **Credit memo creation** (`ShpfyCreateSalesDocRefund`) reads Tax Area Code and Tax Liable from the original order header and validates both on the Sales Credit Memo header.
+- **Tax-exempt orders**: If the parent order is tax exempt, the credit memo's Tax Liable stays false (no Tax Area Code to trigger the block).
+
+### UI
+- The **Refund page** shows a "Tax" group with Tax Area Code, Tax Liable, and Tax Exempt (read-only, inherited from order).
+- A **"Tax Lines"** navigation action opens the existing `Shpfy Order Tax Lines` page filtered to the parent order's lines, so users can see the tax jurisdiction breakdown without leaving the refund.
+
+### Why no Copilot for refunds
+The Copilot event subscriber (`ShpfyCopilotTaxEvents`) only subscribes to `OnAfterMapShopifyOrder`. Refunds don't go through order mapping — they reference an already-processed order. If the order's tax was matched by Copilot, that data is already on the order and flows through to the refund via FlowFields.

@@ -118,8 +118,10 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                         SalesHeader.Validate("Currency Code", RefundHeader."Presentment Currency Code");
                 end;
                 SalesHeader.Validate("Document Date", DT2Date(RefundHeader."Created At"));
-                if OrderHeader."Tax Area Code" <> '' then
+                if OrderHeader."Tax Area Code" <> '' then begin
                     SalesHeader.Validate("Tax Area Code", OrderHeader."Tax Area Code");
+                    SalesHeader.Validate("Tax Liable", OrderHeader."Tax Liable");
+                end;
                 MapPaymentMethodCode(SalesHeader);
             end;
             SalesHeader."Shpfy Refund Id" := RefundHeader."Refund Id";
