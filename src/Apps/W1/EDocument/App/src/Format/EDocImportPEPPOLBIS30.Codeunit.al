@@ -202,7 +202,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
             until TempXMLBuffer.Next() = 0;
 
         // Insert last document attachment
-        if DocumentAttachment."No." <> '' then begin
+        if (DocumentAttachment."No." <> '') and (DocumentAttachment."File Name" <> '') then begin
             DocumentAttachmentData.CreateInStream(InStream, TextEncoding::UTF8);
             EDocumentAttachmentGen.Insert(EDocument, InStream, DocumentAttachment.FindUniqueFileName(DocumentAttachment."File Name", DocumentAttachment."File Extension"));
             Clear(DocumentAttachment);
@@ -234,7 +234,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
             until TempXMLBuffer.Next() = 0;
 
         // Insert last document attachment
-        if DocumentAttachment."No." <> '' then begin
+        if (DocumentAttachment."No." <> '') and (DocumentAttachment."File Name" <> '') then begin
             DocumentAttachmentData.CreateInStream(InStream, TextEncoding::UTF8);
             EDocumentAttachmentGen.Insert(EDocument, InStream, DocumentAttachment.FindUniqueFileName(DocumentAttachment."File Name", DocumentAttachment."File Extension"));
             Clear(DocumentAttachment);
@@ -352,7 +352,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
                     Evaluate(PurchaseHeader.Amount, Value, 9);
             '/CreditNote/cac:AdditionalDocumentReference/cbc:ID':
                 begin
-                    if DocumentAttachment."No." <> '' then begin
+                    if (DocumentAttachment."No." <> '') and (DocumentAttachment."File Name" <> '') then begin
                         DocumentAttachmentData.CreateInStream(InStream, TextEncoding::UTF8);
                         EDocumentAttachmentGen.Insert(EDocument, InStream, DocumentAttachment.FindUniqueFileName(DocumentAttachment."File Name", DocumentAttachment."File Extension"));
                         Clear(DocumentAttachment);
@@ -464,7 +464,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
                     Evaluate(PurchaseHeader."Document Date", Value, 9);
             '/Invoice/cac:AdditionalDocumentReference/cbc:ID':
                 begin
-                    if DocumentAttachment."No." <> '' then begin
+                    if (DocumentAttachment."No." <> '') and (DocumentAttachment."File Name" <> '') then begin
                         DocumentAttachmentData.CreateInStream(InStream, TextEncoding::UTF8);
                         EDocumentAttachmentGen.Insert(EDocument, InStream, DocumentAttachment.FindUniqueFileName(DocumentAttachment."File Name", DocumentAttachment."File Extension"));
                         Clear(DocumentAttachment);
