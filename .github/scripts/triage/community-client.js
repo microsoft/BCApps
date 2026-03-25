@@ -4,30 +4,29 @@
 
 const MAX_RESULTS = 5;
 
-// DynamicsUser.net (Discourse) — Business Central/NAV category
+// DynamicsUser.net (Discourse) — BC/NAV User Forum subcategory
 const DUG_BASE = 'https://www.dynamicsuser.net';
-const DUG_CATEGORY_ID = 13; // BC/NAV User Forum
+const DUG_CATEGORY_ID = 13;
 
 // Microsoft Dynamics Community — BC forum
 const MDC_FORUM_ID = '5f8261f4-4d87-ef11-ac21-7c1e520a09df';
 const MDC_BASE = 'https://community.dynamics.com';
 
 /**
- * Search community forums for discussions related to the issue keywords.
- * Returns results from DynamicsUser.net (Discourse API) and a search link
- * for community.dynamics.com (no public API available).
+ * Search community forums for discussions related to the issue.
+ * Uses the issue title as the primary search (most natural match),
+ * then supplements with keyword-based searches.
  */
 export async function fetchCommunityDiscussions(keywords, issueTitle = '') {
-  if (!keywords || keywords.length === 0) {
+  if ((!keywords || keywords.length === 0) && !issueTitle) {
     return { discussions: [], dynamicsCommunityUrl: null };
   }
 
-  // Use top 3 most specific keywords for search
   const searchTerms = keywords.slice(0, 3).join(' ');
-  console.log(`Community: searching forums for "${searchTerms}"...`);
+  console.log(`Community: searching forums for "${issueTitle || searchTerms}"...`);
 
   const [dugResults, mdcUrl] = await Promise.all([
-    searchDynamicsUserNet(searchTerms, issueTitle),
+    searchDynamicsUserNet(keywords, issueTitle),
     buildDynamicsCommunityUrl(searchTerms),
   ]);
 
@@ -41,49 +40,63 @@ export async function fetchCommunityDiscussions(keywords, issueTitle = '') {
 
 /**
  * Search DynamicsUser.net via the Discourse search API.
+ * Runs multiple queries (title, then keywords) and merges results
+ * for better coverage.
  */
-async function searchDynamicsUserNet(query, issueTitle) {
-  try {
-    const url = `${DUG_BASE}/search.json?q=${encodeURIComponent(query)}%20category:${DUG_CATEGORY_ID}`;
-    const response = await fetch(url, {
-      headers: { 'Accept': 'application/json' },
-    });
+async function searchDynamicsUserNet(keywords, issueTitle) {
+  const queries = [];
 
-    if (!response.ok) {
-      console.warn(`Community: DynamicsUser.net returned ${response.status}`);
-      return [];
-    }
-
-    const data = await response.json();
-    const topics = data.topics || [];
-
-    if (topics.length === 0) return [];
-
-    // Score by title similarity to the issue
-    const issueTokens = tokenize(issueTitle);
-
-    const scored = topics.map(topic => {
-      const topicTokens = tokenize(topic.title);
-      const similarity = jaccardSimilarity(issueTokens, topicTokens);
-
-      return {
-        title: topic.title,
-        url: `${DUG_BASE}/t/${topic.slug}/${topic.id}`,
-        source: 'DynamicsUser.net',
-        views: topic.views || 0,
-        replies: (topic.posts_count || 1) - 1,
-        created: topic.created_at ? topic.created_at.split('T')[0] : '',
-        similarity: Math.round(similarity * 100),
-      };
-    });
-
-    return scored
-      .sort((a, b) => b.similarity - a.similarity || b.views - a.views)
-      .slice(0, MAX_RESULTS);
-  } catch (err) {
-    console.warn(`Community: DynamicsUser.net search failed - ${err.message}`);
-    return [];
+  // Primary: search by issue title (best for finding exact-match discussions)
+  if (issueTitle) {
+    queries.push(issueTitle);
   }
+
+  // Secondary: search by top keywords individually for broader coverage
+  const topKeywords = (keywords || []).slice(0, 3);
+  for (const kw of topKeywords) {
+    queries.push(kw);
+  }
+
+  const allTopics = new Map(); // deduplicate by topic ID
+  const issueTokens = tokenize(issueTitle);
+
+  for (const query of queries) {
+    try {
+      const url = `${DUG_BASE}/search.json?q=${encodeURIComponent(query)}%20category:${DUG_CATEGORY_ID}`;
+      const response = await fetch(url, {
+        headers: { 'Accept': 'application/json' },
+      });
+
+      if (!response.ok) {
+        console.warn(`Community: DynamicsUser.net query "${query}" returned ${response.status}`);
+        continue;
+      }
+
+      const data = await response.json();
+      for (const topic of (data.topics || [])) {
+        if (!allTopics.has(topic.id)) {
+          const topicTokens = tokenize(topic.title);
+          const similarity = jaccardSimilarity(issueTokens, topicTokens);
+
+          allTopics.set(topic.id, {
+            title: topic.title,
+            url: `${DUG_BASE}/t/${topic.slug}/${topic.id}`,
+            source: 'DynamicsUser.net',
+            views: topic.views || 0,
+            replies: (topic.posts_count || 1) - 1,
+            created: topic.created_at ? topic.created_at.split('T')[0] : '',
+            similarity: Math.round(similarity * 100),
+          });
+        }
+      }
+    } catch (err) {
+      console.warn(`Community: DynamicsUser.net query "${query}" failed - ${err.message}`);
+    }
+  }
+
+  return [...allTopics.values()]
+    .sort((a, b) => b.similarity - a.similarity || b.views - a.views)
+    .slice(0, MAX_RESULTS);
 }
 
 /**
