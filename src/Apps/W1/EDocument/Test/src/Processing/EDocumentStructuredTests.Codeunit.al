@@ -192,6 +192,58 @@ codeunit 139891 "E-Document Structured Tests"
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
     end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_TextOnlyDocumentReferences()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+    begin
+        // [SCENARIO] Import a PEPPOL invoice with AdditionalDocumentReference elements
+        // that have no <cac:Attachment> child (text-only references).
+        // Previously this caused "Please choose a file to attach" error.
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-textonly-docref.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            // Verify the import succeeded and lines were created
+            EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+            Assert.AreEqual(2, EDocumentPurchaseLine.Count(), 'Expected 2 purchase lines to be imported.');
+            EDocumentPurchaseLine.FindFirst();
+            Assert.AreEqual(1, EDocumentPurchaseLine."Quantity", 'First line quantity mismatch.');
+            Assert.AreEqual('Bicycle', EDocumentPurchaseLine.Description, 'First line description mismatch.');
+        end else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_HierarchicalLineIds()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+    begin
+        // [SCENARIO] Import a PEPPOL invoice with non-integer line IDs (e.g., "1.1", "1.2").
+        // Previously this caused "The value '1.1' can't be evaluated into type Integer" error.
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-hierarchical-lineids.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            // Verify the import succeeded and both lines were created
+            EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+            Assert.AreEqual(2, EDocumentPurchaseLine.Count(), 'Expected 2 purchase lines to be imported.');
+
+            EDocumentPurchaseLine.FindFirst();
+            Assert.AreEqual(1, EDocumentPurchaseLine."Quantity", 'First line quantity mismatch.');
+            Assert.AreEqual(4000, EDocumentPurchaseLine."Sub Total", 'First line amount mismatch.');
+            Assert.AreEqual('Bicycle', EDocumentPurchaseLine.Description, 'First line description mismatch.');
+
+            EDocumentPurchaseLine.Next();
+            Assert.AreEqual(2, EDocumentPurchaseLine."Quantity", 'Second line quantity mismatch.');
+            Assert.AreEqual(10000, EDocumentPurchaseLine."Sub Total", 'Second line amount mismatch.');
+            Assert.AreEqual('Bicycle v2', EDocumentPurchaseLine.Description, 'Second line description mismatch.');
+        end else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
     #endregion
 
     local procedure Initialize(Integration: Enum "Service Integration")
