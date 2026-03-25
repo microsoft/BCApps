@@ -259,6 +259,18 @@ function extractKeyTerms(title, body) {
     'open', 'close', 'run', 'use', 'used', 'using', 'work', 'works',
     'need', 'want', 'like', 'make', 'way', 'also', 'just', 'still',
     'appear', 'appears', 'look', 'looks', 'seem', 'seems', 'expected',
+    // Code-level noise that leaks from issue bodies containing AL/code snippets
+    'procedure', 'var', 'begin', 'end', 'local', 'trigger', 'true', 'false',
+    'then', 'else', 'exit', 'repeat', 'until', 'case', 'with', 'rec',
+    'text', 'integer', 'boolean', 'decimal', 'guid', 'enum', 'interface',
+    'try', 'catch', 'throw', 'return', 'call', 'method', 'parameter',
+    'log', 'logging', 'message', 'result', 'response', 'context',
+    'init', 'setup', 'handler', 'helper', 'util', 'utils', 'service',
+    'file', 'files', 'path', 'string', 'object', 'class', 'module',
+    'something', 'anything', 'everything', 'nothing', 'thing', 'things',
+    'however', 'therefore', 'instead', 'already', 'currently', 'actually',
+    'basically', 'simply', 'really', 'always', 'never', 'sometimes',
+    'able', 'unable', 'possible', 'impossible', 'necessary', 'specific',
   ]);
 
   // Step 1: Extract known BC domain phrases found in the text
@@ -277,12 +289,15 @@ function extractKeyTerms(title, body) {
     .filter(w => w.length > 2 && !stopWords.has(w));
 
   // Step 3: Extract bigrams (two-word phrases) for more specific matching
+  // Both words must be non-stop-words and reasonably sized to avoid code noise
   const allWords = text.replace(/[^a-z0-9\s-]/g, ' ').split(/\s+/).filter(w => w.length > 1);
   const bigrams = [];
   for (let i = 0; i < allWords.length - 1; i++) {
-    const pair = `${allWords[i]} ${allWords[i + 1]}`;
-    if (!stopWords.has(allWords[i]) || !stopWords.has(allWords[i + 1])) {
-      bigrams.push(pair);
+    const w1 = allWords[i], w2 = allWords[i + 1];
+    if (!stopWords.has(w1) && !stopWords.has(w2)
+        && w1.length > 2 && w2.length > 2
+        && w1.length < 25 && w2.length < 25) {
+      bigrams.push(`${w1} ${w2}`);
     }
   }
 

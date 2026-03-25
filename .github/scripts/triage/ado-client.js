@@ -24,53 +24,50 @@ export async function fetchRelatedWorkItems(keywords) {
   }
 
   // Separate multi-word phrases (more specific) from single words (broader)
-  const phrases = keywords.filter(kw => kw.includes(' ')).slice(0, 4);
-  const singles = keywords.filter(kw => !kw.includes(' ')).slice(0, 4);
-  const topKeywords = [...phrases, ...singles].slice(0, 7);
+  const phrases = keywords.filter(kw => kw.includes(' ')).slice(0, 3);
+  const singles = keywords.filter(kw => !kw.includes(' ')).slice(0, 3);
+  const topKeywords = [...phrases, ...singles].slice(0, 5);
 
   console.log(`ADO: searching work items for [${topKeywords.join(', ')}]...`);
 
   try {
-    // Build WIQL: if we have specific phrases, require at least one phrase match
-    // combined with broader single-word matches
-    let whereClause;
-    if (phrases.length > 0 && singles.length > 0) {
-      // Require at least one phrase in title/description AND at least one single word
-      const phraseConditions = phrases.flatMap(kw => [
-        `[System.Title] Contains '${escapeWiql(kw)}'`,
-        `[System.Description] Contains '${escapeWiql(kw)}'`,
-      ]).join(' OR ');
-      const singleConditions = singles.flatMap(kw => [
-        `[System.Title] Contains '${escapeWiql(kw)}'`,
-        `[System.Description] Contains '${escapeWiql(kw)}'`,
-      ]).join(' OR ');
-      whereClause = `(${phraseConditions}) AND (${singleConditions})`;
-    } else {
-      // Fallback: OR logic across all keywords
-      const conditions = topKeywords.flatMap(kw => [
-        `[System.Title] Contains '${escapeWiql(kw)}'`,
-        `[System.Description] Contains '${escapeWiql(kw)}'`,
-      ]);
-      whereClause = conditions.join(' OR ');
-    }
-
-    const wiql = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${ADO_PROJECT}' AND (${whereClause}) ORDER BY [System.ChangedDate] DESC`;
-
-    const wiqlUrl = `https://dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_apis/wit/wiql?api-version=${ADO_API_VERSION}&$top=${MAX_RESULTS}`;
     const authHeader = `Basic ${btoa(':' + pat)}`;
+    const wiqlUrl = `https://dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_apis/wit/wiql?api-version=${ADO_API_VERSION}&$top=${MAX_RESULTS}`;
 
-    const wiqlResponse = await fetch(wiqlUrl, {
+    // Primary strategy: title-only search (fast) with OR across all keywords
+    // Title matches are far more relevant than description matches, and
+    // searching description causes WIQL timeouts on large projects
+    const titleConditions = topKeywords.map(kw =>
+      `[System.Title] Contains '${escapeWiql(kw)}'`
+    ).join(' OR ');
+    const primaryWiql = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${ADO_PROJECT}' AND (${titleConditions}) ORDER BY [System.ChangedDate] DESC`;
+
+    let wiqlResponse = await fetch(wiqlUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': authHeader,
-      },
-      body: JSON.stringify({ query: wiql }),
+      headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+      body: JSON.stringify({ query: primaryWiql }),
     });
 
+    // On timeout or failure, retry with just the top 2 most specific keywords
     if (!wiqlResponse.ok) {
-      const text = await wiqlResponse.text();
-      throw new Error(`WIQL query failed (${wiqlResponse.status}): ${text.substring(0, 200)}`);
+      const status = wiqlResponse.status;
+      console.log(`ADO: primary query returned ${status}, retrying with fewer terms...`);
+      const fallbackKeywords = topKeywords.slice(0, 2);
+      const fallbackConditions = fallbackKeywords.map(kw =>
+        `[System.Title] Contains '${escapeWiql(kw)}'`
+      ).join(' OR ');
+      const fallbackWiql = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${ADO_PROJECT}' AND (${fallbackConditions}) ORDER BY [System.ChangedDate] DESC`;
+
+      wiqlResponse = await fetch(wiqlUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+        body: JSON.stringify({ query: fallbackWiql }),
+      });
+
+      if (!wiqlResponse.ok) {
+        const text = await wiqlResponse.text();
+        throw new Error(`WIQL query failed (${wiqlResponse.status}): ${text.substring(0, 200)}`);
+      }
     }
 
     const wiqlData = await wiqlResponse.json();
