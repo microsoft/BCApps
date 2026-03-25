@@ -16,7 +16,7 @@ using System.Automation;
 using System.IO;
 using System.Threading;
 
-codeunit 139891 "E-Doc. Clearance Flow Test"
+codeunit 133529 "E-Doc. Clearance Flow Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
