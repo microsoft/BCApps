@@ -3,7 +3,7 @@ namespace Microsoft.SubscriptionBilling;
 using Microsoft.CRM.RoleCenters;
 using Microsoft.PowerBIReports;
 
-pageextension 8018 "Sales Mkt. Mgr. RC SubBill" extends "Sales & Marketing Manager RC"
+pageextension 8019 "Sales Mkt. Mgr. RC SubBill" extends "Sales & Marketing Manager RC"
 {
     actions
     {
