@@ -275,6 +275,10 @@ Describe "BuildOptimization" {
     }
 
     Context "Test-ShouldSkipTestApp" {
+        BeforeEach {
+            Reset-BuildOptimizationCache
+        }
+
         It "returns false when not in CI" {
             $saved = $env:GITHUB_ACTIONS
             try {
@@ -340,6 +344,29 @@ Describe "BuildOptimization" {
                     return @('src/Apps/W1/EDocument/App/src/SomeFile.al')
                 }
                 Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder | Should -BeTrue
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
+            }
+        }
+
+        It "uses cached result on second call without recomputing" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:BUILD_OPTIMIZATION_DISABLED = $null
+                Mock -ModuleName BuildOptimization Get-ChangedFilesForCI {
+                    return @('src/Apps/W1/EDocument/App/src/SomeFile.al')
+                }
+                # First call computes and caches
+                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder | Should -BeTrue
+                # Second call should use cache — same result, Get-ChangedFilesForCI called only once
+                Test-ShouldSkipTestApp -AppName 'E-Document Core' -BaseFolder $baseFolder | Should -BeFalse
+                Should -Invoke -ModuleName BuildOptimization Get-ChangedFilesForCI -Times 1 -Exactly
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
