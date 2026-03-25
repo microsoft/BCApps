@@ -282,7 +282,9 @@ const BC_DOMAIN_PHRASES = [
   'warehouse receipt', 'warehouse shipment',
   'production order', 'production bom', 'bill of material',
   'work center', 'machine center',
-  'service order', 'service item', 'service contract',
+  'service order', 'service item', 'service contract', 'service document', 'service documents',
+  'service management', 'service price', 'service line',
+  'approval workflow', 'approval entry', 'approval request',
   'cash flow', 'cash flow forecast',
   'cost accounting', 'cost center', 'cost type',
   'assembly order', 'assembly bom',
@@ -341,7 +343,7 @@ function extractKeyTerms(title, body) {
     'text', 'integer', 'boolean', 'decimal', 'guid', 'enum', 'interface',
     'try', 'catch', 'throw', 'return', 'call', 'method', 'parameter',
     'log', 'logging', 'message', 'result', 'response', 'context',
-    'init', 'setup', 'handler', 'helper', 'util', 'utils', 'service',
+    'init', 'setup', 'handler', 'helper', 'util', 'utils',
     'file', 'files', 'path', 'string', 'object', 'class', 'module',
     'something', 'anything', 'everything', 'nothing', 'thing', 'things',
     'however', 'therefore', 'instead', 'already', 'currently', 'actually',
@@ -398,8 +400,18 @@ function extractKeyTerms(title, body) {
     .slice(0, 5)
     .map(([phrase]) => phrase);
 
-  // Combine: domain phrases first (most specific), then bigrams, then single terms
-  const combined = [...domainMatches, ...topBigrams, ...singleTerms];
+  // Step 4: Extract cleaned title as a search phrase
+  // The title is often the single best search term — use it directly
+  const titleCleaned = title.toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !stopWords.has(w))
+    .join(' ')
+    .trim();
+  const titleTerms = titleCleaned.length > 5 ? [titleCleaned] : [];
+
+  // Combine: title phrase first, then domain phrases, then bigrams, then single terms
+  const combined = [...titleTerms, ...domainMatches, ...topBigrams, ...singleTerms];
 
   // Deduplicate while preserving order
   const seen = new Set();

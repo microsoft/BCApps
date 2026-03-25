@@ -110,6 +110,12 @@ const SYNONYM_GROUPS = [
   ['customer', 'cust'],
   ['vendor', 'vend'],
   ['general ledger', 'g/l', 'gl'],
+  ['approval', 'approvals', 'approval workflow'],
+  ['service', 'service management', 'service order'],
+  ['document', 'documents', 'doc'],
+  ['reminder', 'finance charge', 'finance charge memo'],
+  ['reservation', 'reserve', 'reservations'],
+  ['transfer', 'transfer order'],
 ];
 
 // Build lookup: word -> set of synonyms
