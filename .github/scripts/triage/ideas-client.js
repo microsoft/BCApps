@@ -16,7 +16,12 @@ export async function fetchRelatedIdeas(keywords) {
     return { ideas: [], totalFetched: 0 };
   }
 
-  console.log(`Ideas Portal: searching for ideas matching [${keywords.slice(0, 5).join(', ')}]...`);
+  // Separate multi-word phrases (more specific) from single words
+  const phrases = keywords.filter(kw => kw.includes(' ')).slice(0, 4);
+  const singles = keywords.filter(kw => !kw.includes(' ')).slice(0, 4);
+  const topKeywords = [...phrases, ...singles].slice(0, 7);
+
+  console.log(`Ideas Portal: searching for ideas matching [${topKeywords.join(', ')}]...`);
 
   let allIdeas = [];
   let error;
@@ -60,11 +65,11 @@ export async function fetchRelatedIdeas(keywords) {
     category: idea.mip_ideacategory?.Name || 'Unknown',
     description: stripHtml(idea.adx_copy || ''),
     url: `https://experience.dynamics.com/ideas/idea/?ideaid=${idea.adx_ideaid}`,
-    relevance: scoreIdeaRelevance(idea, keywords),
+    relevance: scoreIdeaRelevance(idea, topKeywords),
   }));
 
   const relevant = scored
-    .filter(idea => idea.relevance >= 2)
+    .filter(idea => idea.relevance >= 3)
     .sort((a, b) => b.relevance - a.relevance || b.votes - a.votes)
     .slice(0, MAX_RESULTS);
 
@@ -124,20 +129,37 @@ function expandKeyword(kw) {
   return [kwLower, stemmed];
 }
 
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function textContains(text, term) {
+  // Multi-word phrases use substring matching (already specific)
+  // Single words use word-boundary matching to avoid false positives
+  if (term.includes(' ')) return text.includes(term);
+  return new RegExp(`\\b${escapeRegex(term)}\\b`).test(text);
+}
+
 function scoreIdeaRelevance(idea, keywords) {
   const title = (idea.adx_name || '').toLowerCase();
-  const body = (idea.adx_copy || '').toLowerCase();
+  const body = stripHtml(idea.adx_copy || '').toLowerCase();
 
   let score = 0;
   for (const kw of keywords) {
+    const isPhrase = kw.includes(' ');
     const variants = expandKeyword(kw);
     let matched = false;
+
+    // Multi-word phrases are weighted higher — they signal stronger relevance
+    const titleWeight = isPhrase ? 5 : 3;
+    const descWeight = isPhrase ? 2 : 1;
+
     for (const variant of variants) {
-      if (title.includes(variant)) { score += 3; matched = true; break; }
+      if (textContains(title, variant)) { score += titleWeight; matched = true; break; }
     }
     if (!matched) {
       for (const variant of variants) {
-        if (body.includes(variant)) { score += 1; break; }
+        if (textContains(body, variant)) { score += descWeight; break; }
       }
     }
   }
