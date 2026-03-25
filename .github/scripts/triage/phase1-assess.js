@@ -65,6 +65,16 @@ function validatePhase1Response(result) {
   if (typeof result.detected_app_area !== 'string') {
     result.detected_app_area = 'Unknown';
   }
+
+  // Validate search_terms: must be an array of strings, fall back to empty
+  if (!Array.isArray(result.search_terms)) {
+    result.search_terms = [];
+  } else {
+    result.search_terms = result.search_terms
+      .filter(t => typeof t === 'string' && t.trim().length > 0)
+      .map(t => t.trim().toLowerCase())
+      .slice(0, 8);
+  }
 }
 
 /**
@@ -97,6 +107,14 @@ Classify the issue as one of: "bug", "feature", "enhancement", "question"
 
 The repository contains Business Central apps. Based on keywords in the title and body, detect which app area this relates to. If no area matches, use "Unknown".
 
+## Search term extraction
+
+Based on your understanding of the issue, extract 5-8 search terms that would be most effective for finding related work items in Azure DevOps and ideas on the Dynamics 365 Ideas Portal. These should be:
+- **Business Central domain terms** (e.g., "purchase invoice", "bank reconciliation", "e-document") — not code identifiers or generic words
+- **Multi-word phrases preferred** when they describe a specific BC concept (e.g., "item tracking" is better than just "tracking")
+- **Functional terms** that describe what the user is trying to do, not implementation details (e.g., "posting error" not "codeunit 80")
+- Ordered from most specific/relevant to least
+
 ## Output format
 
 Return a JSON object with this exact structure:
@@ -114,7 +132,8 @@ Return a JSON object with this exact structure:
   "missing_info": ["specific missing item 1", "specific missing item 2"],
   "detected_app_area": "area name",
   "issue_type": "bug|feature|enhancement|question",
-  "summary": "One-line summary of what this issue is about"
+  "summary": "One-line summary of what this issue is about",
+  "search_terms": ["most specific term", "second term", "...up to 8 terms"]
 }
 \`\`\`
 

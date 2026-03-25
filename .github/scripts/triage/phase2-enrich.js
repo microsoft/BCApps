@@ -105,9 +105,11 @@ Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON
   const appArea = detectAppArea(issue.title, issue.body);
   console.log(`Phase 2: Detected app area: ${appArea.name} (${appArea.directory})`);
 
-  // Extract key terms for search context
-  const keyTerms = extractKeyTerms(issue.title, issue.body);
-  console.log(`Phase 2: Key terms: [${keyTerms.join(', ')}]`);
+  // Use LLM-extracted search terms from Phase 1 (with regex fallback)
+  const llmTerms = phase1Result.search_terms || [];
+  const regexTerms = extractKeyTerms(issue.title, issue.body);
+  const keyTerms = llmTerms.length >= 3 ? llmTerms : regexTerms;
+  console.log(`Phase 2: Key terms (${llmTerms.length >= 3 ? 'LLM' : 'regex'}): [${keyTerms.join(', ')}]`);
 
   // Fetch all enrichment context in parallel
   console.log(`Phase 2: Fetching enrichment context (code, Ideas Portal, ADO, AppSource)...`);
@@ -134,13 +136,26 @@ Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON
     ? issue.body.substring(0, maxBodyChars) + '\n... (truncated)'
     : (issue.body || '(empty)');
 
+  // Include issue comments — they often contain clarifications, repro steps, and version info
+  const maxCommentChars = 4000;
+  let commentsBlock = '';
+  if (issue.comments && issue.comments.length > 0) {
+    let commentsText = issue.comments
+      .map(c => `**${c.author}**: ${c.body}`)
+      .join('\n\n');
+    if (commentsText.length > maxCommentChars) {
+      commentsText = commentsText.substring(0, maxCommentChars) + '\n... (truncated)';
+    }
+    commentsBlock = `### Issue comments\n\n${commentsText}\n\n`;
+  }
+
   const userMessage = `## Issue #${issue.number}: ${issue.title}
 
 ### Issue body
 
 ${issueBody}
 
-### Phase 1 assessment
+${commentsBlock}### Phase 1 assessment
 
 - **Quality score**: ${phase1Result.quality_score.total}/100
 - **Verdict**: ${phase1Result.verdict}
