@@ -255,7 +255,7 @@ Then provide your triage assessment as JSON.`;
   result.enrichment.analyzed_files = codeContext.relevantFiles.map(f => f.path);
   result.enrichment.analyzed_directory = codeContext.directory;
   result.enrichment.matched_ideas = [...(ideasResult.activeIdeas || []), ...(ideasResult.closedIdeas || [])].map(i => ({
-    title: i.title, votes: i.votes, status: i.status, url: i.url,
+    title: i.title, votes: i.votes, status: i.status, url: i.url, description: i.description,
   }));
   result.enrichment.ado_work_items = [...(adoResult.activeItems || []), ...(adoResult.closedItems || [])];
   result.enrichment.marketplace = {

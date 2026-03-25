@@ -142,6 +142,12 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
       if (e.matched_ideas && e.matched_ideas.length > 0) {
         for (const idea of e.matched_ideas) {
           md += `- [${idea.title}](${idea.url}) — :thumbsup: ${idea.votes} votes (${idea.status})\n`;
+          if (idea.description) {
+            const snippet = idea.description.length > 200
+              ? idea.description.substring(0, 200) + '...'
+              : idea.description;
+            md += `  > ${snippet}\n`;
+          }
         }
       }
       if (e.ideas_portal && e.ideas_portal.length > 0) {

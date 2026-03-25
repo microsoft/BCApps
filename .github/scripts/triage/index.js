@@ -209,7 +209,7 @@ async function main() {
       // Post a minimal comment with just the wiki link
       if (wikiUrl) {
         await postComment(owner, repo, issueNumber,
-          `:robot: AI triage completed. Product group, please validate the [triage report](${wikiUrl}) (Microsoft internal access only, use Ctrl+Click to open in new tab).`);
+          `:robot: AI triage completed. Product group, please validate the [triage report](${wikiUrl}) (Microsoft internal access only, use Ctrl+Click to open in new tab).\n\n---\n<sub>Was this triage helpful? React with :thumbsup: or :thumbsdown: on this comment to provide feedback.</sub>`);
       }
       console.log('Post results disabled — skipping labels. Minimal comment posted.');
     }
