@@ -153,9 +153,11 @@ function escapeRegex(str) {
 
 function textContains(text, term) {
   // Multi-word phrases use substring matching (already specific)
-  // Single words use word-boundary matching to avoid false positives
+  // Single words use word-start boundary to avoid prefix false positives
+  // (e.g. "order" won't match "reorder") while matching suffixed forms
+  // (e.g. "approval" matches "approvals", "approved")
   if (term.includes(' ')) return text.includes(term);
-  return new RegExp(`\\b${escapeRegex(term)}\\b`).test(text);
+  return new RegExp(`\\b${escapeRegex(term)}`).test(text);
 }
 
 function scoreIdeaRelevance(idea, keywords) {

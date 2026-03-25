@@ -5,7 +5,7 @@
 const ADO_ORG = 'dynamicssmb2';
 const ADO_PROJECT = 'Dynamics SMB';
 const ADO_API_VERSION = '7.1';
-const MAX_RESULTS = 10;
+const MAX_RESULTS = 25;
 const MIN_RELEVANCE = 3; // Require at least a title match or multiple description matches
 
 /**
@@ -162,15 +162,16 @@ function scoreRelevance(title, description, keywords) {
   for (const kw of keywords) {
     const kwLower = kw.toLowerCase();
     const isPhrase = kwLower.includes(' ');
-    // Use word-boundary matching for single words to avoid substring false positives
-    // (e.g. "order" should not match "reorder" or "disorder")
+    // Use word-start boundary matching for single words to avoid substring false positives
+    // (e.g. "order" should not match "reorder") while still matching plurals/variants
+    // (e.g. "approval" matches "approvals", "approved")
     // Phrases use substring matching since they are already specific
     const inTitle = isPhrase
       ? titleLower.includes(kwLower)
-      : new RegExp(`\\b${escapeRegex(kwLower)}\\b`).test(titleLower);
+      : new RegExp(`\\b${escapeRegex(kwLower)}`).test(titleLower);
     const inDesc = isPhrase
       ? descLower.includes(kwLower)
-      : new RegExp(`\\b${escapeRegex(kwLower)}\\b`).test(descLower);
+      : new RegExp(`\\b${escapeRegex(kwLower)}`).test(descLower);
 
     // Multi-word phrases are weighted higher — they signal stronger relevance
     const titleWeight = isPhrase ? 5 : 3;
