@@ -14,9 +14,12 @@ codeunit 149030 "AIT Install"
     trigger OnInstallAppPerDatabase()
     var
         EnvironmentInformation: Codeunit "Environment Information";
+        AITUpgrade: Codeunit "AIT Upgrade";
     begin
         if EnvironmentInformation.IsSaaSInfrastructure() and (not EnvironmentInformation.IsSandbox()) then
             Error(CannotInstallErr);
+
+        AITUpgrade.SetupDefaultCreditLimit();
     end;
 
     var
