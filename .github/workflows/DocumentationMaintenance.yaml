@@ -103,7 +103,7 @@ jobs:
             echo "Auditing $APP_NAME at $APP_PATH..."
 
             timeout 600 copilot -p \
-              "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing." \
+              "Run the al-docs skill in audit mode on the app at $APP_PATH. You have access to read, glob, grep, and these shell commands: find, wc, sort, uniq, jq, git log, git diff. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing." \
               --model claude-opus-4.6 \
               --no-ask-user \
               --autopilot \
@@ -111,6 +111,12 @@ jobs:
               --allow-tool=glob \
               --allow-tool=grep \
               --allow-tool='shell(git log:read)' \
+              --allow-tool='shell(git diff:read)' \
+              --allow-tool='shell(find:read)' \
+              --allow-tool='shell(wc:read)' \
+              --allow-tool='shell(sort:read)' \
+              --allow-tool='shell(uniq:read)' \
+              --allow-tool='shell(jq:read)' \
               --share="$REPORT_FILE" || true
 
           done <<< '${{ steps.scope.outputs.apps }}'
