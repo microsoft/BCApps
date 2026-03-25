@@ -80,15 +80,26 @@ export async function fetchRelatedIdeas(keywords) {
     relevance: scoreIdeaRelevance(idea, topKeywords),
   }));
 
-  const relevant = scored
-    .filter(idea => idea.relevance >= 3)
+  // Statuses considered "active" (not yet delivered or declined)
+  const CLOSED_STATUSES = new Set(['completed', 'declined', 'closed', 'archived', 'delivered']);
+
+  const relevant = scored.filter(idea => idea.relevance >= 3);
+
+  const activeIdeas = relevant
+    .filter(idea => !CLOSED_STATUSES.has(idea.status.toLowerCase()))
     .sort((a, b) => b.relevance - a.relevance || b.votes - a.votes)
     .slice(0, MAX_RESULTS);
 
-  console.log(`Ideas Portal: found ${relevant.length} relevant ideas`);
+  const closedIdeas = relevant
+    .filter(idea => CLOSED_STATUSES.has(idea.status.toLowerCase()))
+    .sort((a, b) => b.relevance - a.relevance || b.votes - a.votes)
+    .slice(0, 3);
+
+  console.log(`Ideas Portal: found ${activeIdeas.length} active + ${closedIdeas.length} closed ideas (from ${relevant.length} relevant)`);
 
   return {
-    ideas: relevant,
+    activeIdeas,
+    closedIdeas,
     totalFetched: allIdeas.length,
     ...(error && { error }),
   };
@@ -190,11 +201,28 @@ function stripHtml(html) {
   return html.replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, ' ').trim();
 }
 
+function formatIdeaEntry(idea) {
+  let entry = `- **${idea.title}** (${idea.votes} votes, ${idea.status})\n`;
+  entry += `  Category: ${idea.category} | [View idea](${idea.url})\n`;
+  if (idea.description) {
+    const snippet = idea.description.length > 200
+      ? idea.description.substring(0, 200) + '...'
+      : idea.description;
+    entry += `  > ${snippet}\n`;
+  }
+  entry += `\n`;
+  return entry;
+}
+
 /**
  * Format ideas results for inclusion in the LLM prompt.
+ * Shows active ideas first, then completed/declined in a separate section.
  */
 export function formatIdeasContext(result) {
-  if (!result || result.ideas.length === 0) {
+  const active = result?.activeIdeas || [];
+  const closed = result?.closedIdeas || [];
+
+  if (active.length === 0 && closed.length === 0) {
     if (result?.error) {
       return `### Ideas Portal\n\nCould not fetch ideas: ${result.error}\n`;
     }
@@ -202,18 +230,20 @@ export function formatIdeasContext(result) {
   }
 
   let output = `### Ideas Portal matches\n\n`;
-  output += `Found ${result.ideas.length} related ideas (from ${result.totalFetched} BC ideas scanned):\n\n`;
+  output += `Scanned ${result.totalFetched} BC ideas.\n\n`;
 
-  for (const idea of result.ideas) {
-    output += `- **${idea.title}** (${idea.votes} votes, ${idea.status})\n`;
-    output += `  Category: ${idea.category} | [View idea](${idea.url})\n`;
-    if (idea.description) {
-      const snippet = idea.description.length > 200
-        ? idea.description.substring(0, 200) + '...'
-        : idea.description;
-      output += `  > ${snippet}\n`;
+  if (active.length > 0) {
+    output += `**Active ideas** (${active.length}):\n\n`;
+    for (const idea of active) {
+      output += formatIdeaEntry(idea);
     }
-    output += `\n`;
+  }
+
+  if (closed.length > 0) {
+    output += `**Previously addressed** (${closed.length}):\n\n`;
+    for (const idea of closed) {
+      output += formatIdeaEntry(idea);
+    }
   }
 
   return output;

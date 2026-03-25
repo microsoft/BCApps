@@ -171,8 +171,8 @@ Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON
   ]);
 
   console.log(`Phase 2: Code context: ${codeContext.relevantFiles?.length || 0} files from ${appArea.directory}`);
-  console.log(`Phase 2: Ideas Portal: ${ideasResult.ideas?.length || 0} matches`);
-  console.log(`Phase 2: ADO: ${adoResult.workItems?.length || 0} work items`);
+  console.log(`Phase 2: Ideas Portal: ${(ideasResult.activeIdeas?.length || 0)} active + ${(ideasResult.closedIdeas?.length || 0)} closed ideas`);
+  console.log(`Phase 2: ADO: ${(adoResult.activeItems?.length || 0)} active + ${(adoResult.closedItems?.length || 0)} closed work items`);
   console.log(`Phase 2: AppSource: search terms "${marketplaceResult.searchTerms}" (LLM will estimate)`);
 
   const codeContextBlock = formatCodeContext(codeContext);
@@ -254,10 +254,10 @@ Then provide your triage assessment as JSON.`;
   if (!result.enrichment) result.enrichment = {};
   result.enrichment.analyzed_files = codeContext.relevantFiles.map(f => f.path);
   result.enrichment.analyzed_directory = codeContext.directory;
-  result.enrichment.matched_ideas = ideasResult.ideas.map(i => ({
+  result.enrichment.matched_ideas = [...(ideasResult.activeIdeas || []), ...(ideasResult.closedIdeas || [])].map(i => ({
     title: i.title, votes: i.votes, status: i.status, url: i.url,
   }));
-  result.enrichment.ado_work_items = adoResult.workItems;
+  result.enrichment.ado_work_items = [...(adoResult.activeItems || []), ...(adoResult.closedItems || [])];
   result.enrichment.marketplace = {
     searchTerms: marketplaceResult.searchTerms,
     searchUrl: marketplaceResult.searchUrl,

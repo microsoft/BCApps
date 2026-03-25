@@ -1,43 +1,48 @@
 // Azure DevOps work item search client
 // Searches for related work items in the Dynamics SMB ADO project
 // using the WIQL (Work Item Query Language) REST API.
+// Runs two queries: active items first, then closed — so the most
+// actionable matches surface even if the project has many closed items.
 
 const ADO_ORG = 'dynamicssmb2';
 const ADO_PROJECT = 'Dynamics SMB';
 const ADO_API_VERSION = '7.1';
-const MAX_RESULTS = 25;
-const MIN_RELEVANCE = 3; // Require at least a title match or multiple description matches
+const MAX_WIQL_RESULTS = 15;
+const MAX_ACTIVE = 5;
+const MAX_CLOSED = 3;
+const MIN_RELEVANCE = 3;
+
+// States considered "active" in ADO (everything else is treated as closed)
+const CLOSED_STATES = new Set(['closed', 'resolved', 'removed', 'done', 'completed', 'cut']);
 
 /**
  * Search for related work items in Azure DevOps using keyword-based WIQL queries.
- * Each result is scored by how many keywords matched its title/description.
+ * Runs separate queries for active and closed items so active results aren't
+ * crowded out by a large volume of closed work items.
  */
 export async function fetchRelatedWorkItems(keywords) {
   const pat = process.env.ADO_PAT;
   if (!pat) {
     console.log('ADO: No ADO_PAT configured, skipping work item search');
-    return { workItems: [], error: 'ADO_PAT not configured' };
+    return { activeItems: [], closedItems: [], error: 'ADO_PAT not configured' };
   }
 
   if (!keywords || keywords.length === 0) {
-    return { workItems: [] };
+    return { activeItems: [], closedItems: [] };
   }
 
   // Normalize keywords: split any 3+ word phrases into 1-2 word terms
-  // WIQL 'Contains' does substring matching, so long phrases rarely match
   const normalized = [];
   for (const kw of keywords) {
     const words = kw.split(/\s+/);
     if (words.length <= 2) {
       normalized.push(kw);
     } else {
-      // Split into 2-word chunks: "service documents approval workflow" → "service documents", "approval workflow"
       for (let i = 0; i < words.length - 1; i += 2) {
         normalized.push(words.slice(i, i + 2).join(' '));
       }
     }
   }
-  // Deduplicate
   const uniqueKeywords = [...new Set(normalized)];
   const phrases = uniqueKeywords.filter(kw => kw.includes(' ')).slice(0, 3);
   const singles = uniqueKeywords.filter(kw => !kw.includes(' ')).slice(0, 3);
@@ -45,58 +50,36 @@ export async function fetchRelatedWorkItems(keywords) {
 
   console.log(`ADO: searching work items for [${topKeywords.join(', ')}]...`);
 
+  const authHeader = `Basic ${btoa(':' + pat)}`;
+  const wiqlUrl = `https://dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_apis/wit/wiql?api-version=${ADO_API_VERSION}&$top=${MAX_WIQL_RESULTS}`;
+
+  const titleConditions = topKeywords.map(kw =>
+    `[System.Title] Contains '${escapeWiql(kw)}'`
+  ).join(' OR ');
+
+  // Run two queries in parallel: active items and all items
+  const activeFilter = `[System.State] NOT IN ('Closed', 'Resolved', 'Removed', 'Done', 'Completed', 'Cut')`;
+  const activeWiql = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${ADO_PROJECT}' AND ${activeFilter} AND (${titleConditions}) ORDER BY [System.ChangedDate] DESC`;
+  const allWiql = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${ADO_PROJECT}' AND (${titleConditions}) ORDER BY [System.ChangedDate] DESC`;
+
   try {
-    const authHeader = `Basic ${btoa(':' + pat)}`;
-    const wiqlUrl = `https://dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_apis/wit/wiql?api-version=${ADO_API_VERSION}&$top=${MAX_RESULTS}`;
+    const [activeResult, allResult] = await Promise.all([
+      runWiqlQuery(wiqlUrl, activeWiql, authHeader),
+      runWiqlQuery(wiqlUrl, allWiql, authHeader),
+    ]);
 
-    // Primary strategy: title-only search (fast) with OR across all keywords
-    // Title matches are far more relevant than description matches, and
-    // searching description causes WIQL timeouts on large projects
-    const titleConditions = topKeywords.map(kw =>
-      `[System.Title] Contains '${escapeWiql(kw)}'`
-    ).join(' OR ');
-    const primaryWiql = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${ADO_PROJECT}' AND (${titleConditions}) ORDER BY [System.ChangedDate] DESC`;
+    // Combine IDs, deduplicate, fetch details
+    const activeIds = new Set(activeResult.map(wi => wi.id));
+    const allIds = allResult.map(wi => wi.id);
+    const combinedIds = [...new Set([...activeIds, ...allIds])].slice(0, MAX_WIQL_RESULTS);
 
-    let wiqlResponse = await fetch(wiqlUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
-      body: JSON.stringify({ query: primaryWiql }),
-    });
-
-    // On timeout or failure, retry with just the top 2 most specific keywords
-    if (!wiqlResponse.ok) {
-      const status = wiqlResponse.status;
-      console.log(`ADO: primary query returned ${status}, retrying with fewer terms...`);
-      const fallbackKeywords = topKeywords.slice(0, 2);
-      const fallbackConditions = fallbackKeywords.map(kw =>
-        `[System.Title] Contains '${escapeWiql(kw)}'`
-      ).join(' OR ');
-      const fallbackWiql = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${ADO_PROJECT}' AND (${fallbackConditions}) ORDER BY [System.ChangedDate] DESC`;
-
-      wiqlResponse = await fetch(wiqlUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
-        body: JSON.stringify({ query: fallbackWiql }),
-      });
-
-      if (!wiqlResponse.ok) {
-        const text = await wiqlResponse.text();
-        throw new Error(`WIQL query failed (${wiqlResponse.status}): ${text.substring(0, 200)}`);
-      }
-    }
-
-    const wiqlData = await wiqlResponse.json();
-    const ids = (wiqlData.workItems || []).map(wi => wi.id);
-
-    if (ids.length === 0) {
+    if (combinedIds.length === 0) {
       console.log('ADO: no matching work items found');
-      return { workItems: [] };
+      return { activeItems: [], closedItems: [] };
     }
 
-    // Fetch details including description for relevance scoring
     const fields = ['System.Id', 'System.Title', 'System.State', 'System.WorkItemType', 'System.Description'].join(',');
-    const idsParam = ids.slice(0, MAX_RESULTS).join(',');
-    const detailsUrl = `https://dev.azure.com/${ADO_ORG}/_apis/wit/workitems?ids=${idsParam}&fields=${fields}&api-version=${ADO_API_VERSION}`;
+    const detailsUrl = `https://dev.azure.com/${ADO_ORG}/_apis/wit/workitems?ids=${combinedIds.join(',')}&fields=${fields}&api-version=${ADO_API_VERSION}`;
 
     const detailsResponse = await fetch(detailsUrl, {
       headers: { 'Authorization': authHeader },
@@ -110,39 +93,65 @@ export async function fetchRelatedWorkItems(keywords) {
     const detailsData = await detailsResponse.json();
     const workItems = (detailsData.value || []).map(wi => {
       const title = wi.fields?.['System.Title'] || '(untitled)';
+      const state = wi.fields?.['System.State'] || 'Unknown';
       const description = stripHtml(wi.fields?.['System.Description'] || '');
       const { score, matchedKeywords } = scoreRelevance(title, description, topKeywords);
 
       return {
         id: wi.id,
         title,
-        state: wi.fields?.['System.State'] || 'Unknown',
+        state,
         type: wi.fields?.['System.WorkItemType'] || 'Unknown',
         url: `https://dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_workitems/edit/${wi.id}`,
         relevanceScore: score,
         matchedKeywords,
         matchReason: buildMatchReason(matchedKeywords),
+        isActive: !CLOSED_STATES.has(state.toLowerCase()),
       };
     });
 
-    // Filter by minimum relevance, sort by score descending, return top 5
-    const relevant = workItems
-      .filter(wi => wi.relevanceScore >= MIN_RELEVANCE)
+    // Split into active and closed, filter by relevance, sort by score
+    const activeItems = workItems
+      .filter(wi => wi.isActive && wi.relevanceScore >= MIN_RELEVANCE)
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
-      .slice(0, 5);
+      .slice(0, MAX_ACTIVE);
 
-    console.log(`ADO: found ${relevant.length} relevant work items (${workItems.length} total matches, min score ${MIN_RELEVANCE})`);
-    return { workItems: relevant };
+    const closedItems = workItems
+      .filter(wi => !wi.isActive && wi.relevanceScore >= MIN_RELEVANCE)
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .slice(0, MAX_CLOSED);
+
+    console.log(`ADO: found ${activeItems.length} active + ${closedItems.length} closed work items (${workItems.length} total)`);
+    return { activeItems, closedItems };
 
   } catch (err) {
     console.warn(`ADO: search failed - ${err.message}`);
-    return { workItems: [], error: err.message };
+    return { activeItems: [], closedItems: [], error: err.message };
   }
 }
 
 /**
+ * Execute a WIQL query with fallback on failure.
+ */
+async function runWiqlQuery(wiqlUrl, wiql, authHeader) {
+  const response = await fetch(wiqlUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+    body: JSON.stringify({ query: wiql }),
+  });
+
+  if (!response.ok) {
+    // Non-fatal: return empty on failure (the other query may succeed)
+    console.log(`ADO: WIQL query returned ${response.status}`);
+    return [];
+  }
+
+  const data = await response.json();
+  return data.workItems || [];
+}
+
+/**
  * Remove bracketed tags like [BC Idea], [Bug], [Feature] from text.
- * These are metadata properties, not descriptive content.
  */
 function stripBracketedTags(text) {
   return text.replace(/\[[^\]]*\]/g, ' ');
@@ -150,8 +159,6 @@ function stripBracketedTags(text) {
 
 /**
  * Score a work item's relevance based on keyword matches in title and description.
- * Title matches are weighted 3x, description matches 1x.
- * Bracketed tags (e.g. [BC Idea]) are stripped before matching.
  */
 function scoreRelevance(title, description, keywords) {
   const titleLower = stripBracketedTags(title).toLowerCase();
@@ -162,10 +169,6 @@ function scoreRelevance(title, description, keywords) {
   for (const kw of keywords) {
     const kwLower = kw.toLowerCase();
     const isPhrase = kwLower.includes(' ');
-    // Use word-start boundary matching for single words to avoid substring false positives
-    // (e.g. "order" should not match "reorder") while still matching plurals/variants
-    // (e.g. "approval" matches "approvals", "approved")
-    // Phrases use substring matching since they are already specific
     const inTitle = isPhrase
       ? titleLower.includes(kwLower)
       : new RegExp(`\\b${escapeRegex(kwLower)}`).test(titleLower);
@@ -173,7 +176,6 @@ function scoreRelevance(title, description, keywords) {
       ? descLower.includes(kwLower)
       : new RegExp(`\\b${escapeRegex(kwLower)}`).test(descLower);
 
-    // Multi-word phrases are weighted higher — they signal stronger relevance
     const titleWeight = isPhrase ? 5 : 3;
     const descWeight = isPhrase ? 2 : 1;
 
@@ -193,9 +195,6 @@ function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/**
- * Build a human-readable match reason from matched keywords.
- */
 function buildMatchReason(matchedKeywords) {
   if (matchedKeywords.length === 0) return 'Weak match';
 
@@ -222,23 +221,41 @@ function stripHtml(html) {
 
 /**
  * Format ADO work items for inclusion in the LLM prompt.
+ * Shows active items first, then closed items in a separate section.
  */
 export function formatAdoContext(result) {
-  if (!result || result.workItems.length === 0) {
-    if (result?.error === 'ADO_PAT not configured') {
-      return '### Azure DevOps\n\nADO work item search is not configured (no ADO_PAT).\n';
-    }
-    if (result?.error) {
-      return `### Azure DevOps\n\nCould not search work items: ${result.error}\n`;
-    }
+  if (!result) {
+    return '### Azure DevOps\n\nNo matching work items found in Dynamics SMB project.\n';
+  }
+  if (result.error === 'ADO_PAT not configured') {
+    return '### Azure DevOps\n\nADO work item search is not configured (no ADO_PAT).\n';
+  }
+  if (result.error) {
+    return `### Azure DevOps\n\nCould not search work items: ${result.error}\n`;
+  }
+
+  const { activeItems = [], closedItems = [] } = result;
+
+  if (activeItems.length === 0 && closedItems.length === 0) {
     return '### Azure DevOps\n\nNo matching work items found in Dynamics SMB project.\n';
   }
 
   let output = `### Azure DevOps related work items\n\n`;
-  output += `Found ${result.workItems.length} related work items in the Dynamics SMB project:\n\n`;
 
-  for (const wi of result.workItems) {
-    output += `- **[${wi.type} #${wi.id}] ${wi.title}** (${wi.state}) — _${wi.matchReason}_\n`;
+  if (activeItems.length > 0) {
+    output += `**Active work items** (${activeItems.length}):\n\n`;
+    for (const wi of activeItems) {
+      output += `- **[${wi.type} #${wi.id}] ${wi.title}** (${wi.state}) — _${wi.matchReason}_\n`;
+    }
+    output += `\n`;
+  }
+
+  if (closedItems.length > 0) {
+    output += `**Previously addressed** (${closedItems.length}):\n\n`;
+    for (const wi of closedItems) {
+      output += `- **[${wi.type} #${wi.id}] ${wi.title}** (${wi.state}) — _${wi.matchReason}_\n`;
+    }
+    output += `\n`;
   }
 
   return output;
