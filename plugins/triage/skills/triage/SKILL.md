@@ -74,6 +74,7 @@ The automated triage agent (`.github/scripts/triage/`) follows this flow:
 
 | File | Content |
 |------|---------|
+| `bc-domain.md` | BC functional domain knowledge — business processes, module relationships, common issue patterns |
 | `triage-assess.md` | Phase 1 quality scoring rubric, verdict rules, issue improvement tips |
 | `triage-enrich.md` | Phase 2 triage criteria, priority formula, confidence rules, action logic |
 | `triage-reference.md` | App area mappings, team ownership keywords, label definitions |

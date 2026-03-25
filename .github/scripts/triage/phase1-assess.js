@@ -78,11 +78,14 @@ export async function assessIssueQuality(issue) {
   const glossary = readFileSync(join(skillDir, 'SKILL.md'), 'utf-8')
     .replace(/^---[\s\S]*?---\n/, '') // strip frontmatter
     .match(/## BC\/AL Domain Glossary[\s\S]*?(?=## Triage Process Overview)/)?.[0] || '';
+  const domainKnowledge = readFileSync(join(skillDir, 'bc-domain.md'), 'utf-8');
   const assessKnowledge = readFileSync(join(skillDir, 'triage-assess.md'), 'utf-8');
 
   const systemPrompt = `You are a senior QA analyst evaluating GitHub issue quality for a Microsoft Dynamics 365 Business Central application repository. Your job is to assess whether an issue has enough information for a developer to start working on it.
 
 ${glossary}
+
+${domainKnowledge}
 
 ${assessKnowledge}
 

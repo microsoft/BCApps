@@ -24,6 +24,7 @@ export async function enrichAndTriage(issue, phase1Result) {
   const glossary = readFileSync(join(skillDir, 'SKILL.md'), 'utf-8')
     .replace(/^---[\s\S]*?---\n/, '')
     .match(/## BC\/AL Domain Glossary[\s\S]*?(?=## Triage Process Overview)/)?.[0] || '';
+  const domainKnowledge = readFileSync(join(skillDir, 'bc-domain.md'), 'utf-8');
   const enrichKnowledge = readFileSync(join(skillDir, 'triage-enrich.md'), 'utf-8');
 
   const systemPrompt = `You are a senior product manager and technical lead performing triage on a GitHub issue for a Microsoft Dynamics 365 Business Central application repository. You have been given the issue content, a quality assessment from Phase 1, and enrichment data including repository code structure, Ideas Portal matches, and Azure DevOps work items.
@@ -31,6 +32,8 @@ export async function enrichAndTriage(issue, phase1Result) {
 Your job is to enrich the issue with external context and produce a triage recommendation that helps a product manager decide: implement, defer, investigate, or reject.
 
 ${glossary}
+
+${domainKnowledge}
 
 ## Enrichment instructions
 
