@@ -137,22 +137,24 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
       md += `\n`;
     }
 
-    if (e.ideas_portal && e.ideas_portal.length > 0) {
+    if ((e.ideas_portal && e.ideas_portal.length > 0) || (e.matched_ideas && e.matched_ideas.length > 0)) {
       md += `#### Ideas Portal\n`;
-      for (const idea of e.ideas_portal) {
-        if (idea.url && idea.url.startsWith('http')) {
-          md += `- [${idea.title}](${idea.url}) — ${idea.relevance}\n`;
-        } else {
-          md += `- **${idea.title}** — ${idea.relevance}\n`;
+      if (e.matched_ideas && e.matched_ideas.length > 0) {
+        for (const idea of e.matched_ideas) {
+          md += `- [${idea.title}](${idea.url}) — :thumbsup: ${idea.votes} votes (${idea.status})\n`;
         }
       }
-      md += `\n`;
-    }
-
-    if (e.matched_ideas && e.matched_ideas.length > 0) {
-      md += `#### Ideas Portal matches\n`;
-      for (const idea of e.matched_ideas) {
-        md += `- [${idea.title}](${idea.url}) — :thumbsup: ${idea.votes} votes (${idea.status})\n`;
+      if (e.ideas_portal && e.ideas_portal.length > 0) {
+        for (const idea of e.ideas_portal) {
+          // Skip LLM-suggested ideas that duplicate a matched idea by title
+          const isDuplicate = e.matched_ideas?.some(m => m.title.toLowerCase() === (idea.title || '').toLowerCase());
+          if (isDuplicate) continue;
+          if (idea.url && idea.url.startsWith('http')) {
+            md += `- [${idea.title}](${idea.url}) — ${idea.relevance}\n`;
+          } else {
+            md += `- **${idea.title}** — ${idea.relevance}\n`;
+          }
+        }
       }
       md += `\n`;
     }
