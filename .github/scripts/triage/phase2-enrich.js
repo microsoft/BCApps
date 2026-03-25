@@ -52,31 +52,28 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
   const glossary = readFileSync(join(skillDir, 'SKILL.md'), 'utf-8')
     .replace(/^---[\s\S]*?---\n/, '')
     .match(/## BC\/AL Domain Glossary[\s\S]*?(?=## Triage Process Overview)/)?.[0] || '';
-  const domainKnowledge = readFileSync(join(skillDir, 'bc-domain.md'), 'utf-8');
   const enrichKnowledge = readFileSync(join(skillDir, 'triage-enrich.md'), 'utf-8');
 
   // Detect app area early so we can load area-specific knowledge into the system prompt
   const appArea = detectAppArea(issue.title, issue.body);
   console.log(`Phase 2: Detected app area: ${appArea.name} (${appArea.directory})`);
 
-  // Load area-specific domain knowledge if available
-  let areaKnowledge = '';
+  // Load domain knowledge: use area-specific file when available (focused and smaller),
+  // fall back to the full bc-domain.md for areas without specific knowledge.
+  let domainContext = '';
   const areaKnowledgeFile = AREA_KNOWLEDGE_MAP[appArea.name];
   if (areaKnowledgeFile) {
     const areaKnowledgePath = join(skillDir, 'area-knowledge', areaKnowledgeFile);
     try {
       if (existsSync(areaKnowledgePath)) {
-        const areaKnowledgeContent = readFileSync(areaKnowledgePath, 'utf-8');
-        areaKnowledge = `## Area-specific domain knowledge: ${appArea.name}\n\n${areaKnowledgeContent}`;
-        console.log(`Phase 2: Loaded area-specific knowledge for ${appArea.name}`);
-      } else {
-        console.log(`Phase 2: No area-specific knowledge for ${appArea.name}`);
+        domainContext = `## Domain knowledge: ${appArea.name}\n\n${readFileSync(areaKnowledgePath, 'utf-8')}`;
+        console.log(`Phase 2: Using area-specific knowledge for ${appArea.name}`);
       }
-    } catch {
-      console.log(`Phase 2: No area-specific knowledge for ${appArea.name}`);
-    }
-  } else {
-    console.log(`Phase 2: No area-specific knowledge for ${appArea.name}`);
+    } catch { /* fall through to general */ }
+  }
+  if (!domainContext) {
+    domainContext = readFileSync(join(skillDir, 'bc-domain.md'), 'utf-8');
+    console.log(`Phase 2: Using general domain knowledge`);
   }
 
   const systemPrompt = `You are a senior product manager and technical lead performing triage on a GitHub issue for a Microsoft Dynamics 365 Business Central application repository. You have been given the issue content, a quality assessment from Phase 1, and enrichment data including repository code structure, Ideas Portal matches, and Azure DevOps work items.
@@ -85,9 +82,7 @@ Your job is to enrich the issue with external context and produce a triage recom
 
 ${glossary}
 
-${domainKnowledge}
-
-${areaKnowledge}
+${domainContext}
 
 ## Enrichment instructions
 
@@ -188,13 +183,13 @@ Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON
   const communityContextBlock = formatCommunityContext(communityResult);
 
   // Truncate very long issue bodies to avoid excessive token usage
-  const maxBodyChars = 8000;
+  const maxBodyChars = 6000;
   const issueBody = (issue.body || '(empty)').length > maxBodyChars
     ? issue.body.substring(0, maxBodyChars) + '\n... (truncated)'
     : (issue.body || '(empty)');
 
   // Include issue comments — they often contain clarifications, repro steps, and version info
-  const maxCommentChars = 4000;
+  const maxCommentChars = 2000;
   let commentsBlock = '';
   if (issue.comments && issue.comments.length > 0) {
     let commentsText = issue.comments
