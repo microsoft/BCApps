@@ -221,9 +221,9 @@ codeunit 139916 "Service Comm. Archive Test"
         // [THEN] Archive preserves Usage Based Billing fields
         ServiceCommitmentArchive.FilterOnServiceCommitment(ServiceCommitment."Entry No.");
         ServiceCommitmentArchive.FindLast();
-        ServiceCommitmentArchive.TestField("Usage Based Billing", true);
-        ServiceCommitmentArchive.TestField("Usage Based Pricing", Enum::"Usage Based Pricing"::"Usage Quantity");
-        ServiceCommitmentArchive.TestField("Pricing Unit Cost Surcharge %", xServiceCommitment."Pricing Unit Cost Surcharge %");
+        Assert.AreEqual(true, ServiceCommitmentArchive."Usage Based Billing", ServiceCommitmentArchive.FieldCaption("Usage Based Billing"));
+        Assert.AreEqual(Enum::"Usage Based Pricing"::"Usage Quantity", ServiceCommitmentArchive."Usage Based Pricing", ServiceCommitmentArchive.FieldCaption("Usage Based Pricing"));
+        Assert.AreEqual(xServiceCommitment."Pricing Unit Cost Surcharge %", ServiceCommitmentArchive."Pricing Unit Cost Surcharge %", ServiceCommitmentArchive.FieldCaption("Pricing Unit Cost Surcharge %"));
     end;
 
     #endregion Tests

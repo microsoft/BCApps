@@ -198,19 +198,16 @@ table 8069 "Sales Sub. Line Archive"
         {
             Caption = 'Usage Based Billing';
             ToolTip = 'Specifies whether usage data is used as the basis for billing via contracts.';
-            DataClassification = CustomerContent;
         }
         field(8001; "Usage Based Pricing"; Enum "Usage Based Pricing")
         {
             Caption = 'Usage Based Pricing';
             ToolTip = 'Specifies the method for customer based pricing.';
-            DataClassification = CustomerContent;
         }
         field(8002; "Pricing Unit Cost Surcharge %"; Decimal)
         {
             Caption = 'Pricing Unit Cost Surcharge %';
             ToolTip = 'Specifies the surcharge in percent for the debit-side price calculation, if a EK surcharge is to be used.';
-            DataClassification = CustomerContent;
             AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
         }

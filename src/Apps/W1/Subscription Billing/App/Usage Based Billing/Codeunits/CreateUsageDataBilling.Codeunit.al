@@ -74,10 +74,7 @@ codeunit 8023 "Create Usage Data Billing"
         if CurrencyCode = TempServiceCommitment."Currency Code" then
             UsageDataBilling."Currency Code" := CurrencyCode
         else
-            if UsageDataBilling.IsPartnerCustomer() then
-                UsageDataBilling.AlignCustomerContractCurrency(TempServiceCommitment, CurrencyCode)
-            else
-                UsageDataBilling.AlignVendorContractCurrency(TempServiceCommitment, CurrencyCode);
+            UsageDataBilling.AlignContractCurrency(TempServiceCommitment, CurrencyCode);
         UsageDataBilling.CalculateAmounts(UsageDataSupplier, CurrencyCode, UnitCost, CostAmount, UnitPrice, NewAmount);
         UsageDataBilling.UpdateRebilling();
         UsageDataBilling."Entry No." := 0;

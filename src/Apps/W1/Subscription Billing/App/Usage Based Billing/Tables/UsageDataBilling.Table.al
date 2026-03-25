@@ -375,43 +375,51 @@ table 8006 "Usage Data Billing"
         Rec.UpdateChargedPeriod();
     end;
 
-    internal procedure AlignVendorContractCurrency(TempSubscriptionLine: Record "Subscription Line"; ImportCurrencyCode: Code[10])
+    internal procedure AlignContractCurrency(TempSubscriptionLine: Record "Subscription Line"; ImportCurrencyCode: Code[10])
+    var
+        AllowDiffCurrency: Boolean;
+        CurrencyMismatchErr: Text;
+    begin
+        if Rec.IsPartnerVendor() then
+            GetVendorContractCurrencyInfo(TempSubscriptionLine."Subscription Contract No.", AllowDiffCurrency, CurrencyMismatchErr, ImportCurrencyCode)
+        else
+            GetCustomerContractCurrencyInfo(TempSubscriptionLine."Subscription Contract No.", AllowDiffCurrency, CurrencyMismatchErr, ImportCurrencyCode);
+
+        if AllowDiffCurrency then
+            Rec."Currency Code" := TempSubscriptionLine."Currency Code"
+        else begin
+            Rec."Currency Code" := ImportCurrencyCode;
+            Rec."Processing Status" := Enum::"Processing Status"::Error;
+            Rec.SetReason(CurrencyMismatchErr);
+        end;
+    end;
+
+    local procedure GetVendorContractCurrencyInfo(ContractNo: Code[20]; var AllowDiffCurrency: Boolean; var CurrencyMismatchErr: Text; ImportCurrencyCode: Code[10])
     var
         VendorContract: Record "Vendor Subscription Contract";
         ContractType: Record "Subscription Contract Type";
     begin
-        VendorContract.Get(TempSubscriptionLine."Subscription Contract No.");
+        VendorContract.Get(ContractNo);
         if VendorContract."Contract Type" <> '' then
             ContractType.Get(VendorContract."Contract Type");
-        if ContractType."Allow Diff. Curr. in Vend. UD" then
-            Rec."Currency Code" := TempSubscriptionLine."Currency Code"
-        else begin
-            Rec."Currency Code" := ImportCurrencyCode;
-            Rec."Processing Status" := Enum::"Processing Status"::Error;
-            Rec.SetReason(StrSubstNo(VendorContractCurrencyMismatchErr, TempSubscriptionLine."Subscription Contract No.", TempSubscriptionLine."Currency Code", ImportCurrencyCode));
-        end;
+        AllowDiffCurrency := ContractType."Allow Diff. Curr. in Vend. UD";
+        CurrencyMismatchErr := StrSubstNo(VendorContractCurrencyMismatchErr, ContractNo, VendorContract."Currency Code", ImportCurrencyCode);
     end;
 
-    internal procedure AlignCustomerContractCurrency(TempSubscriptionLine: Record "Subscription Line"; ImportCurrencyCode: Code[10])
+    local procedure GetCustomerContractCurrencyInfo(ContractNo: Code[20]; var AllowDiffCurrency: Boolean; var CurrencyMismatchErr: Text; ImportCurrencyCode: Code[10])
     var
         CustomerContract: Record "Customer Subscription Contract";
         ContractType: Record "Subscription Contract Type";
     begin
-        CustomerContract.Get(TempSubscriptionLine."Subscription Contract No.");
+        CustomerContract.Get(ContractNo);
         if CustomerContract."Contract Type" <> '' then
             ContractType.Get(CustomerContract."Contract Type");
-        if ContractType."Allow Diff. Curr. in Cust. UD" then
-            Rec."Currency Code" := TempSubscriptionLine."Currency Code"
-        else begin
-            Rec."Currency Code" := ImportCurrencyCode;
-            Rec."Processing Status" := Enum::"Processing Status"::Error;
-            Rec.SetReason(StrSubstNo(CustomerContractCurrencyMismatchErr, TempSubscriptionLine."Subscription Contract No.", TempSubscriptionLine."Currency Code", ImportCurrencyCode));
-        end;
+        AllowDiffCurrency := ContractType."Allow Diff. Curr. in Cust. UD";
+        CurrencyMismatchErr := StrSubstNo(CustomerContractCurrencyMismatchErr, ContractNo, CustomerContract."Currency Code", ImportCurrencyCode);
     end;
 
     internal procedure CalculateAmounts(UsageDataSupplier: Record "Usage Data Supplier"; ImportCurrencyCode: Code[10]; NewUnitCost: Decimal; NewCostAmount: Decimal; NewUnitPrice: Decimal; NewAmount: Decimal)
     var
-        CurrencyExchRate: Record "Currency Exchange Rate";
         Currency: Record Currency;
         NeedsCurrencyConversion: Boolean;
     begin
@@ -422,28 +430,28 @@ table 8006 "Usage Data Billing"
 
         NeedsCurrencyConversion := Rec."Currency Code" <> ImportCurrencyCode;
 
-        if (NewUnitCost = 0) and (NewCostAmount <> 0) and (Rec.Quantity <> 0) then
-            NewUnitCost := NewCostAmount / Rec.Quantity;
-        if (NewCostAmount = 0) and (NewUnitCost <> 0) then
-            NewCostAmount := NewUnitCost * Rec.Quantity;
-        if NeedsCurrencyConversion then begin
-            NewUnitCost := CurrencyExchRate.ExchangeAmtFCYToFCY(Rec."Charge End Date", ImportCurrencyCode, Rec."Currency Code", NewUnitCost);
-            NewCostAmount := CurrencyExchRate.ExchangeAmtFCYToFCY(Rec."Charge End Date", ImportCurrencyCode, Rec."Currency Code", NewCostAmount);
-        end;
+        DeriveAndConvertAmounts(NewUnitCost, NewCostAmount, NeedsCurrencyConversion, ImportCurrencyCode);
         Rec."Unit Cost" := Round(NewUnitCost, Currency."Unit-Amount Rounding Precision");
         Rec."Cost Amount" := Round(NewCostAmount, Currency."Amount Rounding Precision");
 
         if Rec.IsPartnerCustomer() and UsageDataSupplier."Unit Price from Import" then begin
-            if (NewUnitPrice = 0) and (NewAmount <> 0) and (Rec.Quantity <> 0) then
-                NewUnitPrice := NewAmount / Rec.Quantity;
-            if (NewAmount = 0) and (NewUnitPrice <> 0) then
-                NewAmount := NewUnitPrice * Rec.Quantity;
-            if NeedsCurrencyConversion then begin
-                NewUnitPrice := CurrencyExchRate.ExchangeAmtFCYToFCY(Rec."Charge End Date", ImportCurrencyCode, Rec."Currency Code", NewUnitPrice);
-                NewAmount := CurrencyExchRate.ExchangeAmtFCYToFCY(Rec."Charge End Date", ImportCurrencyCode, Rec."Currency Code", NewAmount);
-            end;
+            DeriveAndConvertAmounts(NewUnitPrice, NewAmount, NeedsCurrencyConversion, ImportCurrencyCode);
             Rec."Unit Price" := Round(NewUnitPrice, Currency."Unit-Amount Rounding Precision");
             Rec.Amount := Round(NewAmount, Currency."Amount Rounding Precision");
+        end;
+    end;
+
+    local procedure DeriveAndConvertAmounts(var NewUnitValue: Decimal; var NewTotalValue: Decimal; NeedsCurrencyConversion: Boolean; ImportCurrencyCode: Code[10])
+    var
+        CurrencyExchRate: Record "Currency Exchange Rate";
+    begin
+        if (NewUnitValue = 0) and (NewTotalValue <> 0) and (Rec.Quantity <> 0) then
+            NewUnitValue := NewTotalValue / Rec.Quantity;
+        if (NewTotalValue = 0) and (NewUnitValue <> 0) then
+            NewTotalValue := NewUnitValue * Rec.Quantity;
+        if NeedsCurrencyConversion then begin
+            NewUnitValue := CurrencyExchRate.ExchangeAmtFCYToFCY(Rec."Charge End Date", ImportCurrencyCode, Rec."Currency Code", NewUnitValue);
+            NewTotalValue := CurrencyExchRate.ExchangeAmtFCYToFCY(Rec."Charge End Date", ImportCurrencyCode, Rec."Currency Code", NewTotalValue);
         end;
     end;
 
