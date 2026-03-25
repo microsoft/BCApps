@@ -165,8 +165,8 @@ Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON
   console.log(`Phase 2: Fetching enrichment context (code, Ideas Portal, ADO, AppSource)...`);
   const [codeContext, ideasResult, adoResult, marketplaceResult] = await Promise.all([
     Promise.resolve(fetchCodeContext(appArea.directory, keyTerms)),
-    fetchRelatedIdeas(keyTerms),
-    fetchRelatedWorkItems(keyTerms),
+    fetchRelatedIdeas(keyTerms, issue.title),
+    fetchRelatedWorkItems(keyTerms, issue.title),
     fetchMarketplaceApps(keyTerms),
   ]);
 

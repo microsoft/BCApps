@@ -11,7 +11,7 @@ const MAX_RESULTS = 5;
 /**
  * Fetch ideas from the Dynamics 365 Ideas Portal and match against keywords.
  */
-export async function fetchRelatedIdeas(keywords) {
+export async function fetchRelatedIdeas(keywords, issueTitle = '') {
   if (!keywords || keywords.length === 0) {
     return { ideas: [], totalFetched: 0 };
   }
@@ -77,7 +77,7 @@ export async function fetchRelatedIdeas(keywords) {
     category: idea.mip_ideacategory?.Name || 'Unknown',
     description: stripHtml(idea.adx_copy || ''),
     url: `https://experience.dynamics.com/ideas/idea/?ideaid=${idea.adx_ideaid}`,
-    relevance: scoreIdeaRelevance(idea, topKeywords),
+    relevance: scoreIdeaRelevance(idea, topKeywords, issueTitle),
   }));
 
   // Statuses considered "active" (not yet delivered or declined)
@@ -171,7 +171,32 @@ function textContains(text, term) {
   return new RegExp(`\\b${escapeRegex(term)}`).test(text);
 }
 
-function scoreIdeaRelevance(idea, keywords) {
+/**
+ * Tokenize text into a set of meaningful words for similarity comparison.
+ */
+function tokenize(text) {
+  return new Set(
+    (text || '').toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length > 2)
+  );
+}
+
+/**
+ * Compute Jaccard similarity between two token sets (0-1).
+ */
+function jaccardSimilarity(setA, setB) {
+  if (setA.size === 0 || setB.size === 0) return 0;
+  let intersection = 0;
+  for (const token of setA) {
+    if (setB.has(token)) intersection++;
+  }
+  const union = setA.size + setB.size - intersection;
+  return union === 0 ? 0 : intersection / union;
+}
+
+function scoreIdeaRelevance(idea, keywords, issueTitle = '') {
   const title = (idea.adx_name || '').toLowerCase();
   const body = stripHtml(idea.adx_copy || '').toLowerCase();
 
@@ -181,7 +206,6 @@ function scoreIdeaRelevance(idea, keywords) {
     const variants = expandKeyword(kw);
     let matched = false;
 
-    // Multi-word phrases are weighted higher — they signal stronger relevance
     const titleWeight = isPhrase ? 5 : 3;
     const descWeight = isPhrase ? 2 : 1;
 
@@ -194,6 +218,16 @@ function scoreIdeaRelevance(idea, keywords) {
       }
     }
   }
+
+  // Title similarity bonus: items whose title closely matches the issue title
+  // get a large bonus so near-identical items always rank highest.
+  if (issueTitle) {
+    const issueTokens = tokenize(issueTitle);
+    const ideaTokens = tokenize(title);
+    const similarity = jaccardSimilarity(issueTokens, ideaTokens);
+    score += Math.round(similarity * 25);
+  }
+
   return score;
 }
 

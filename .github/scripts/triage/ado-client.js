@@ -20,7 +20,7 @@ const CLOSED_STATES = new Set(['closed', 'resolved', 'removed', 'done', 'complet
  * Runs separate queries for active and closed items so active results aren't
  * crowded out by a large volume of closed work items.
  */
-export async function fetchRelatedWorkItems(keywords) {
+export async function fetchRelatedWorkItems(keywords, issueTitle = '') {
   const pat = process.env.ADO_PAT;
   if (!pat) {
     console.log('ADO: No ADO_PAT configured, skipping work item search');
@@ -95,7 +95,7 @@ export async function fetchRelatedWorkItems(keywords) {
       const title = wi.fields?.['System.Title'] || '(untitled)';
       const state = wi.fields?.['System.State'] || 'Unknown';
       const description = stripHtml(wi.fields?.['System.Description'] || '');
-      const { score, matchedKeywords } = scoreRelevance(title, description, topKeywords);
+      const { score, matchedKeywords } = scoreRelevance(title, description, topKeywords, issueTitle);
 
       return {
         id: wi.id,
@@ -158,9 +158,36 @@ function stripBracketedTags(text) {
 }
 
 /**
- * Score a work item's relevance based on keyword matches in title and description.
+ * Tokenize text into a set of meaningful words for similarity comparison.
  */
-function scoreRelevance(title, description, keywords) {
+function tokenize(text) {
+  return new Set(
+    (text || '').toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length > 2)
+  );
+}
+
+/**
+ * Compute Jaccard similarity between two token sets (0-1).
+ */
+function jaccardSimilarity(setA, setB) {
+  if (setA.size === 0 || setB.size === 0) return 0;
+  let intersection = 0;
+  for (const token of setA) {
+    if (setB.has(token)) intersection++;
+  }
+  const union = setA.size + setB.size - intersection;
+  return union === 0 ? 0 : intersection / union;
+}
+
+/**
+ * Score a work item's relevance based on keyword matches plus title similarity.
+ * Title similarity adds a large bonus when the candidate title closely matches
+ * the issue title — this ensures near-identical items always rank highest.
+ */
+function scoreRelevance(title, description, keywords, issueTitle = '') {
   const titleLower = stripBracketedTags(title).toLowerCase();
   const descLower = stripBracketedTags(description).toLowerCase();
   let score = 0;
@@ -185,6 +212,20 @@ function scoreRelevance(title, description, keywords) {
     } else if (inDesc) {
       score += descWeight;
       matchedKeywords.push({ keyword: kw, location: 'description' });
+    }
+  }
+
+  // Title similarity bonus: Jaccard similarity between issue title and candidate title.
+  // A 50% word overlap adds +10, a 80%+ overlap adds +20. This ensures items with
+  // nearly identical titles always outrank items that merely share a few keywords.
+  if (issueTitle) {
+    const issueTokens = tokenize(issueTitle);
+    const candidateTokens = tokenize(titleLower);
+    const similarity = jaccardSimilarity(issueTokens, candidateTokens);
+    const similarityBonus = Math.round(similarity * 25);
+    if (similarityBonus > 0) {
+      score += similarityBonus;
+      matchedKeywords.push({ keyword: `${Math.round(similarity * 100)}% title similarity`, location: 'title' });
     }
   }
 
