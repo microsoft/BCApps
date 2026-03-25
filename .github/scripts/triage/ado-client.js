@@ -6,7 +6,7 @@ const ADO_ORG = 'dynamicssmb2';
 const ADO_PROJECT = 'Dynamics SMB';
 const ADO_API_VERSION = '7.1';
 const MAX_RESULTS = 10;
-const MIN_RELEVANCE = 1; // Minimum matched keywords to include
+const MIN_RELEVANCE = 3; // Require at least a title match or multiple description matches
 
 /**
  * Search for related work items in Azure DevOps using keyword-based WIQL queries.
@@ -23,17 +23,36 @@ export async function fetchRelatedWorkItems(keywords) {
     return { workItems: [] };
   }
 
-  console.log(`ADO: searching work items for [${keywords.slice(0, 5).join(', ')}]...`);
+  // Separate multi-word phrases (more specific) from single words (broader)
+  const phrases = keywords.filter(kw => kw.includes(' ')).slice(0, 4);
+  const singles = keywords.filter(kw => !kw.includes(' ')).slice(0, 4);
+  const topKeywords = [...phrases, ...singles].slice(0, 7);
+
+  console.log(`ADO: searching work items for [${topKeywords.join(', ')}]...`);
 
   try {
-    const topKeywords = keywords.slice(0, 5);
-
-    // Search both title and description using OR logic
-    const conditions = topKeywords.flatMap(kw => [
-      `[System.Title] Contains '${escapeWiql(kw)}'`,
-      `[System.Description] Contains '${escapeWiql(kw)}'`,
-    ]);
-    const whereClause = conditions.join(' OR ');
+    // Build WIQL: if we have specific phrases, require at least one phrase match
+    // combined with broader single-word matches
+    let whereClause;
+    if (phrases.length > 0 && singles.length > 0) {
+      // Require at least one phrase in title/description AND at least one single word
+      const phraseConditions = phrases.flatMap(kw => [
+        `[System.Title] Contains '${escapeWiql(kw)}'`,
+        `[System.Description] Contains '${escapeWiql(kw)}'`,
+      ]).join(' OR ');
+      const singleConditions = singles.flatMap(kw => [
+        `[System.Title] Contains '${escapeWiql(kw)}'`,
+        `[System.Description] Contains '${escapeWiql(kw)}'`,
+      ]).join(' OR ');
+      whereClause = `(${phraseConditions}) AND (${singleConditions})`;
+    } else {
+      // Fallback: OR logic across all keywords
+      const conditions = topKeywords.flatMap(kw => [
+        `[System.Title] Contains '${escapeWiql(kw)}'`,
+        `[System.Description] Contains '${escapeWiql(kw)}'`,
+      ]);
+      whereClause = conditions.join(' OR ');
+    }
 
     const wiql = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${ADO_PROJECT}' AND (${whereClause}) ORDER BY [System.ChangedDate] DESC`;
 
@@ -94,12 +113,13 @@ export async function fetchRelatedWorkItems(keywords) {
       };
     });
 
-    // Filter by minimum relevance and sort by score descending
+    // Filter by minimum relevance, sort by score descending, return top 5
     const relevant = workItems
       .filter(wi => wi.relevanceScore >= MIN_RELEVANCE)
-      .sort((a, b) => b.relevanceScore - a.relevanceScore);
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .slice(0, 5);
 
-    console.log(`ADO: found ${relevant.length} relevant work items (${workItems.length} total matches)`);
+    console.log(`ADO: found ${relevant.length} relevant work items (${workItems.length} total matches, min score ${MIN_RELEVANCE})`);
     return { workItems: relevant };
 
   } catch (err) {
@@ -129,18 +149,35 @@ function scoreRelevance(title, description, keywords) {
 
   for (const kw of keywords) {
     const kwLower = kw.toLowerCase();
-    const inTitle = titleLower.includes(kwLower);
-    const inDesc = descLower.includes(kwLower);
+    const isPhrase = kwLower.includes(' ');
+    // Use word-boundary matching for single words to avoid substring false positives
+    // (e.g. "order" should not match "reorder" or "disorder")
+    // Phrases use substring matching since they are already specific
+    const inTitle = isPhrase
+      ? titleLower.includes(kwLower)
+      : new RegExp(`\\b${escapeRegex(kwLower)}\\b`).test(titleLower);
+    const inDesc = isPhrase
+      ? descLower.includes(kwLower)
+      : new RegExp(`\\b${escapeRegex(kwLower)}\\b`).test(descLower);
+
+    // Multi-word phrases are weighted higher — they signal stronger relevance
+    const titleWeight = isPhrase ? 5 : 3;
+    const descWeight = isPhrase ? 2 : 1;
+
     if (inTitle) {
-      score += 3;
+      score += titleWeight;
       matchedKeywords.push({ keyword: kw, location: 'title' });
     } else if (inDesc) {
-      score += 1;
+      score += descWeight;
       matchedKeywords.push({ keyword: kw, location: 'description' });
     }
   }
 
   return { score, matchedKeywords };
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
