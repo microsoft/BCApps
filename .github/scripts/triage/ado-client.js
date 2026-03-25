@@ -225,7 +225,7 @@ function scoreRelevance(title, description, keywords, issueTitle = '') {
     const similarityBonus = Math.round(similarity * 25);
     if (similarityBonus > 0) {
       score += similarityBonus;
-      matchedKeywords.push({ keyword: `${Math.round(similarity * 100)}% title similarity`, location: 'title' });
+      matchedKeywords.push({ keyword: `${Math.round(similarity * 100)}% title overlap`, location: 'similarity' });
     }
   }
 
@@ -239,15 +239,19 @@ function escapeRegex(str) {
 function buildMatchReason(matchedKeywords) {
   if (matchedKeywords.length === 0) return 'Weak match';
 
+  const similarityMatch = matchedKeywords.find(m => m.location === 'similarity');
   const titleMatches = matchedKeywords.filter(m => m.location === 'title').map(m => m.keyword);
   const descMatches = matchedKeywords.filter(m => m.location === 'description').map(m => m.keyword);
 
   const parts = [];
+  if (similarityMatch) {
+    parts.push(similarityMatch.keyword);
+  }
   if (titleMatches.length > 0) {
-    parts.push(`title matches: ${titleMatches.join(', ')}`);
+    parts.push(`title keywords: ${titleMatches.join(', ')}`);
   }
   if (descMatches.length > 0) {
-    parts.push(`description matches: ${descMatches.join(', ')}`);
+    parts.push(`description keywords: ${descMatches.join(', ')}`);
   }
   return parts.join('; ');
 }

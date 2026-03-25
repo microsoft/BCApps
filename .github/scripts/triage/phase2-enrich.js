@@ -135,6 +135,9 @@ Return a JSON object with this exact structure:
     "community": [
       { "title": "Discussion title", "url": "https://...", "relevance": "Why this is relevant" }
     ],
+    "ado_work_items": [
+      { "id": 12345, "relevance": "Why this work item is relevant to the issue" }
+    ],
     "code_areas": [
       { "path": "src/Apps/W1/...", "relevance": "Why this area is relevant" }
     ]
@@ -257,7 +260,17 @@ Then provide your triage assessment as JSON.`;
   result.enrichment.matched_ideas = [...(ideasResult.activeIdeas || []), ...(ideasResult.closedIdeas || [])].map(i => ({
     title: i.title, votes: i.votes, status: i.status, url: i.url, description: i.description,
   }));
-  result.enrichment.ado_work_items = [...(adoResult.activeItems || []), ...(adoResult.closedItems || [])];
+  // Merge LLM relevance explanations into the ADO work items from the search
+  const llmAdoRelevance = new Map();
+  for (const item of (result.enrichment.ado_work_items || [])) {
+    if (item.id && item.relevance) {
+      llmAdoRelevance.set(item.id, item.relevance);
+    }
+  }
+  result.enrichment.ado_work_items = [...(adoResult.activeItems || []), ...(adoResult.closedItems || [])].map(wi => ({
+    ...wi,
+    relevance: llmAdoRelevance.get(wi.id) || wi.matchReason,
+  }));
   result.enrichment.marketplace = {
     searchTerms: marketplaceResult.searchTerms,
     searchUrl: marketplaceResult.searchUrl,
