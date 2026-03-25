@@ -258,8 +258,16 @@ Then provide your triage assessment as JSON.`;
   if (!result.enrichment) result.enrichment = {};
   result.enrichment.analyzed_files = codeContext.relevantFiles.map(f => f.path);
   result.enrichment.analyzed_directory = codeContext.directory;
+  // Merge LLM relevance explanations into the Ideas from the search
+  const llmIdeaRelevance = new Map();
+  for (const item of (result.enrichment.ideas_portal || [])) {
+    if (item.title) {
+      llmIdeaRelevance.set(item.title.toLowerCase(), item.relevance);
+    }
+  }
   result.enrichment.matched_ideas = [...(ideasResult.activeIdeas || []), ...(ideasResult.closedIdeas || [])].map(i => ({
-    title: i.title, votes: i.votes, status: i.status, url: i.url, description: i.description,
+    title: i.title, votes: i.votes, status: i.status, url: i.url,
+    relevance: llmIdeaRelevance.get((i.title || '').toLowerCase()) || '',
   }));
   // Merge LLM relevance explanations into the ADO work items from the search
   const llmAdoRelevance = new Map();
