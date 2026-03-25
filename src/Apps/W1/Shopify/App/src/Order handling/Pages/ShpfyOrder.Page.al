@@ -95,11 +95,6 @@ page 30113 "Shpfy Order"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the purchase order number that is associated with the Shopify order.';
                 }
-                field(UseShopifyOrderNo; Rec."Use Shopify Order No.")
-                {
-                    ApplicationArea = All;
-                    Editable = not Rec.Processed;
-                }
                 field(Closed; Rec.Closed)
                 {
                     ApplicationArea = All;
@@ -236,6 +231,12 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     Importance = Additional;
                     ToolTip = 'Specifies whether the order has had any edits applied.';
+                }
+                field(UseShopifyOrderNo; Rec."Use Shopify Order No.")
+                {
+                    ApplicationArea = All;
+                    Importance = Additional;
+                    Editable = not Rec.Processed;
                 }
                 field(Processed; Rec.Processed)
                 {
