@@ -17,6 +17,7 @@ import { formatTriageComment, formatInsufficientComment } from './format-comment
 import { formatWikiReport } from './format-report.js';
 import { publishWikiReport } from './wiki-client.js';
 import { findDuplicates } from './duplicate-detector.js';
+import { findPrecedents } from './precedent-finder.js';
 import {
   LABELS,
   ALL_LABELS,
@@ -81,9 +82,10 @@ async function main() {
     console.log(`Issue: "${issue.title}" by ${issue.author}`);
 
     // Step 2: Check for existing triage and potential duplicates (in parallel)
-    const [triageCheck, duplicates] = await Promise.all([
+    const [triageCheck, duplicates, precedents] = await Promise.all([
       checkExistingTriage(owner, repo, issueNumber),
       findDuplicates(owner, repo, issueNumber, issue.title, issue.body),
+      findPrecedents(owner, repo, issueNumber, issue.title, issue.body),
     ]);
     const isRetriage = triageCheck.isRetriage;
     const previousScores = triageCheck.previousScores;
@@ -95,6 +97,9 @@ async function main() {
     }
     if (duplicates.length > 0) {
       console.log(`Potential duplicates found: ${duplicates.map(d => `#${d.number}`).join(', ')}`);
+    }
+    if (precedents.length > 0) {
+      console.log(`Similar resolved issues found: ${precedents.map(p => `#${p.number}`).join(', ')}`);
     }
 
     // Step 2b: Short-circuit for near-empty issues (saves a model call)
@@ -159,7 +164,7 @@ async function main() {
     }
 
     // Step 5: Phase 2 - Enrichment & Triage
-    const phase2Result = await enrichAndTriage(issue, phase1Result);
+    const phase2Result = await enrichAndTriage(issue, phase1Result, precedents);
 
     // Step 6a: Publish full report to wiki (always — this is the detailed record)
     const issueMeta = {
@@ -168,7 +173,7 @@ async function main() {
       author: issue.author,
       url: `https://github.com/${owner}/${repo}/issues/${issueNumber}`,
     };
-    const wikiMarkdown = formatWikiReport(phase1Result, phase2Result, isRetriage, duplicates, previousScores, issueMeta);
+    const wikiMarkdown = formatWikiReport(phase1Result, phase2Result, isRetriage, duplicates, previousScores, issueMeta, precedents);
     const wikiUrl = await publishWikiReport(owner, repo, issueNumber, wikiMarkdown);
 
     if (wikiUrl) {
@@ -181,7 +186,7 @@ async function main() {
     const triage = phase2Result.triage;
 
     if (postResults) {
-      const comment = formatTriageComment(phase1Result, phase2Result, isRetriage, duplicates, previousScores, wikiUrl);
+      const comment = formatTriageComment(phase1Result, phase2Result, isRetriage, duplicates, previousScores, wikiUrl, precedents);
       await postComment(owner, repo, issueNumber, comment);
       console.log('Triage comment posted.');
 

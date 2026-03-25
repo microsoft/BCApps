@@ -1,7 +1,7 @@
 // Phase 2: Issue enrichment and triage assessment
 // See: docs/features/issue-triage-agent/design.md (FR9-FR16, section 6.6)
 
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { callGPT } from './models-client.js';
@@ -13,11 +13,38 @@ import { fetchMarketplaceApps, formatMarketplaceContext } from './marketplace-cl
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+/** Maps detected app area names to area-specific knowledge files. */
+const AREA_KNOWLEDGE_MAP = {
+  'BaseApp - Finance': 'finance.md',
+  'BaseApp - Financial Management': 'finance.md',
+  'BaseApp - Purchases': 'purchasing.md',
+  'BaseApp - Sales': 'sales.md',
+  'BaseApp - Inventory': 'inventory.md',
+  'BaseApp - Warehouse': 'warehouse.md',
+  'BaseApp - Manufacturing': 'manufacturing.md',
+  'BaseApp - Assembly': 'manufacturing.md',
+  'E-Document': 'e-document.md',
+  'E-Document Connectors': 'e-document.md',
+  'PEPPOL': 'e-document.md',
+  'BaseApp - Integration': 'integration.md',
+  'System Application': 'integration.md',
+  'Shopify': 'integration.md',
+  'BaseApp - Fixed Assets': 'finance.md',
+  'BaseApp - Cost Accounting': 'finance.md',
+  'BaseApp - Bank': 'finance.md',
+  'BaseApp - Cash Flow': 'finance.md',
+  'Subscription Billing': 'finance.md',
+  'BaseApp - Service': 'sales.md',
+  'BaseApp - CRM': 'sales.md',
+  'BaseApp - Projects': 'finance.md',
+  'Pricing': 'sales.md',
+};
+
 /**
  * Enrich the issue with external context and produce a triage assessment.
  * Takes the original issue and Phase 1 results as input.
  */
-export async function enrichAndTriage(issue, phase1Result) {
+export async function enrichAndTriage(issue, phase1Result, precedents = []) {
   // Build system prompt from skill knowledge files + agent-specific enrichment and output instructions
   const repoRoot = join(__dirname, '..', '..', '..');
   const skillDir = join(repoRoot, 'plugins', 'triage', 'skills', 'triage');
@@ -27,6 +54,30 @@ export async function enrichAndTriage(issue, phase1Result) {
   const domainKnowledge = readFileSync(join(skillDir, 'bc-domain.md'), 'utf-8');
   const enrichKnowledge = readFileSync(join(skillDir, 'triage-enrich.md'), 'utf-8');
 
+  // Detect app area early so we can load area-specific knowledge into the system prompt
+  const appArea = detectAppArea(issue.title, issue.body);
+  console.log(`Phase 2: Detected app area: ${appArea.name} (${appArea.directory})`);
+
+  // Load area-specific domain knowledge if available
+  let areaKnowledge = '';
+  const areaKnowledgeFile = AREA_KNOWLEDGE_MAP[appArea.name];
+  if (areaKnowledgeFile) {
+    const areaKnowledgePath = join(skillDir, 'area-knowledge', areaKnowledgeFile);
+    try {
+      if (existsSync(areaKnowledgePath)) {
+        const areaKnowledgeContent = readFileSync(areaKnowledgePath, 'utf-8');
+        areaKnowledge = `## Area-specific domain knowledge: ${appArea.name}\n\n${areaKnowledgeContent}`;
+        console.log(`Phase 2: Loaded area-specific knowledge for ${appArea.name}`);
+      } else {
+        console.log(`Phase 2: No area-specific knowledge for ${appArea.name}`);
+      }
+    } catch {
+      console.log(`Phase 2: No area-specific knowledge for ${appArea.name}`);
+    }
+  } else {
+    console.log(`Phase 2: No area-specific knowledge for ${appArea.name}`);
+  }
+
   const systemPrompt = `You are a senior product manager and technical lead performing triage on a GitHub issue for a Microsoft Dynamics 365 Business Central application repository. You have been given the issue content, a quality assessment from Phase 1, and enrichment data including repository code structure, Ideas Portal matches, and Azure DevOps work items.
 
 Your job is to enrich the issue with external context and produce a triage recommendation that helps a product manager decide: implement, defer, investigate, or reject.
@@ -34,6 +85,8 @@ Your job is to enrich the issue with external context and produce a triage recom
 ${glossary}
 
 ${domainKnowledge}
+
+${areaKnowledge}
 
 ## Enrichment instructions
 
@@ -102,9 +155,6 @@ Return a JSON object with this exact structure:
 
 Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON.`;
 
-  const appArea = detectAppArea(issue.title, issue.body);
-  console.log(`Phase 2: Detected app area: ${appArea.name} (${appArea.directory})`);
-
   // Use LLM-extracted search terms from Phase 1 (with regex fallback)
   const llmTerms = phase1Result.search_terms || [];
   const regexTerms = extractKeyTerms(issue.title, issue.body);
@@ -149,13 +199,23 @@ Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON
     commentsBlock = `### Issue comments\n\n${commentsText}\n\n`;
   }
 
+  // Format precedents block for LLM context
+  let precedentsBlock = '';
+  if (precedents.length > 0) {
+    precedentsBlock = `### Similar resolved issues\n\nThese closed issues had significant keyword overlap and may provide context:\n\n`;
+    for (const p of precedents) {
+      precedentsBlock += `- #${p.number}: ${p.title} (${p.state_reason}, ${p.similarity}% similarity)\n`;
+    }
+    precedentsBlock += `\n`;
+  }
+
   const userMessage = `## Issue #${issue.number}: ${issue.title}
 
 ### Issue body
 
 ${issueBody}
 
-${commentsBlock}### Phase 1 assessment
+${commentsBlock}${precedentsBlock}### Phase 1 assessment
 
 - **Quality score**: ${phase1Result.quality_score.total}/100
 - **Verdict**: ${phase1Result.verdict}
@@ -202,6 +262,7 @@ Then provide your triage assessment as JSON.`;
     searchTerms: marketplaceResult.searchTerms,
     searchUrl: marketplaceResult.searchUrl,
   };
+  result.enrichment.precedents = precedents;
 
   return result;
 }

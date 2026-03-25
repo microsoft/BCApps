@@ -5,6 +5,7 @@
 // Falls back to the verbose format if the wiki report could not be published.
 
 import { formatDuplicatesSection } from './duplicate-detector.js';
+import { formatPrecedentsSection } from './precedent-finder.js';
 
 const GITHUB_COMMENT_MAX_CHARS = 65536;
 
@@ -20,9 +21,9 @@ const ACTION_EMOJI = {
  * If wikiUrl is provided, links to the full report on the wiki.
  * If wikiUrl is null (publish failed), falls back to verbose inline format.
  */
-export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [], previousScores = null, wikiUrl = null) {
+export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [], previousScores = null, wikiUrl = null, precedents = []) {
   if (!wikiUrl) {
-    return formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousScores);
+    return formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousScores, precedents);
   }
 
   const qs = phase1.quality_score;
@@ -59,6 +60,8 @@ export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [],
     }
   }
 
+  md += `\n---\n<sub>Was this triage helpful? React with :thumbsup: or :thumbsdown: on this comment to provide feedback.</sub>\n`;
+
   md += `\n:clipboard: <a href="${wikiUrl}" target="_blank">View full triage report →</a>\n`;
 
   return md;
@@ -68,7 +71,7 @@ export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [],
  * Verbose fallback comment when wiki publishing fails.
  * Contains the full assessment inline (same as the previous format).
  */
-function formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousScores) {
+function formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousScores, precedents) {
   const qs = phase1.quality_score;
   const t = phase2.triage;
   const e = phase2.enrichment;
@@ -86,6 +89,7 @@ function formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousSc
   md += `\n---\n\n`;
 
   md += formatDuplicatesSection(duplicates);
+  md += formatPrecedentsSection(precedents);
 
   // Quality score table
   md += `### Issue Quality Score: ${qs.total}/100 - ${phase1.verdict}\n\n`;
@@ -237,6 +241,8 @@ function formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousSc
 
   md += `</details>\n`;
 
+  md += `\n---\n<sub>Was this triage helpful? React with :thumbsup: or :thumbsdown: on this comment to provide feedback.</sub>\n`;
+
   return truncateComment(md);
 }
 
@@ -299,6 +305,8 @@ export function formatInsufficientComment(phase1, duplicates = []) {
   }
 
   md += `\n> Once the above information is provided, add the \`ai-triage\` label again to re-run the assessment.\n`;
+
+  md += `\n---\n<sub>Was this triage helpful? React with :thumbsup: or :thumbsdown: on this comment to provide feedback.</sub>\n`;
 
   return md;
 }
