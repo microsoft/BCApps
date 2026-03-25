@@ -355,8 +355,7 @@ codeunit 139891 "E-Doc. Clearance Flow Test"
         TransformationRule.CreateDefaultTransformations();
 
         // Override the workflow: replace simple flow with clearance flow (Export -> Send)
-        DocumentSendingProfile.SetRange("Electronic Document", DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow");
-        DocumentSendingProfile.FindFirst();
+        DocumentSendingProfile.Get(Customer."Document Sending Profile");
 
         // Disable the simple flow before enabling clearance flow to avoid duplicate entry-point event conflict
         if Workflow.Get(DocumentSendingProfile."Electronic Service Flow") then begin
@@ -388,8 +387,7 @@ codeunit 139891 "E-Doc. Clearance Flow Test"
         SyncService.Get(ServiceCode);
 
         // Swap workflows: disable async clearance flow, enable sync clearance flow
-        DocumentSendingProfile.SetRange("Electronic Document", DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow");
-        DocumentSendingProfile.FindFirst();
+        DocumentSendingProfile.Get(Customer."Document Sending Profile");
         OriginalWorkflowCode := DocumentSendingProfile."Electronic Service Flow";
 
         if Workflow.Get(OriginalWorkflowCode) then begin
@@ -429,8 +427,7 @@ codeunit 139891 "E-Doc. Clearance Flow Test"
         end;
 
         // Re-enable original async clearance workflow
-        DocumentSendingProfile.SetRange("Electronic Document", DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow");
-        DocumentSendingProfile.FindFirst();
+        DocumentSendingProfile.Get(Customer."Document Sending Profile");
         DocumentSendingProfile."Electronic Service Flow" := SyncServiceOriginalWorkflow;
         DocumentSendingProfile.Modify();
 
