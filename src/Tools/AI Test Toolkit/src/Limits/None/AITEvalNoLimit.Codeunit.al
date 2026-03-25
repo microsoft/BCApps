@@ -5,17 +5,26 @@
 
 namespace System.TestTools.AITestToolkit;
 
-permissionset 149034 "AI Test Toolkit - View"
+codeunit 149041 "AIT Eval No Limit" implements "AIT Eval Limit Provider"
 {
     Access = Internal;
-    Assignable = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
-    IncludedPermissionSets = "AI Test Toolkit - Read";
+    procedure CheckBeforeRun(AITTestSuite: Record "AIT Test Suite")
+    begin
+    end;
 
-    Permissions = tabledata "AIT Eval Monthly Copilot Cred." = IMD,
-        tabledata "AIT Run History" = IMD,
-        tabledata "AIT Test Suite" = IMD,
-        tabledata "AIT Test Suite Language" = IMD,
-        tabledata "AIT Test Method Line" = IMD,
-        tabledata "AIT Log Entry" = IMD;
+    procedure IsLimitReached(): Boolean
+    begin
+        exit(false);
+    end;
+
+    procedure ShowNotifications()
+    begin
+    end;
+
+    procedure OpenConfigurationPage()
+    begin
+    end;
 }
