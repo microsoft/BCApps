@@ -41,8 +41,7 @@ export async function fetchRelatedIdeas(keywords) {
   try {
     for (let page = 0; page < PAGES_TO_FETCH; page++) {
       const skip = page * PAGE_SIZE;
-      const bcFilter = encodeURIComponent(`adx_ideaforumid/Id eq '${BC_FORUM_ID}'`);
-      const url = `${IDEAS_ODATA_URL}?$filter=${bcFilter}&$top=${PAGE_SIZE}&$skip=${skip}`;
+      const url = `${IDEAS_ODATA_URL}?$top=${PAGE_SIZE}&$skip=${skip}`;
 
       const response = await fetch(url, {
         headers: { 'Accept': 'application/json' },
