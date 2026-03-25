@@ -4,8 +4,8 @@
 
 const IDEAS_ODATA_URL = 'https://experience.dynamics.com/_odata/ideas';
 const BC_FORUM_ID = 'e288ef32-82ed-e611-8101-5065f38b21f1';
-const PAGES_TO_FETCH = 10;
-const PAGE_SIZE = 10;
+const PAGES_TO_FETCH = 20;
+const PAGE_SIZE = 50;
 const MAX_RESULTS = 5;
 
 /**
@@ -16,9 +16,21 @@ export async function fetchRelatedIdeas(keywords) {
     return { ideas: [], totalFetched: 0 };
   }
 
-  // Separate multi-word phrases (more specific) from single words
-  const phrases = keywords.filter(kw => kw.includes(' ')).slice(0, 4);
-  const singles = keywords.filter(kw => !kw.includes(' ')).slice(0, 4);
+  // Normalize keywords: split any 3+ word phrases into 1-2 word terms
+  const normalized = [];
+  for (const kw of keywords) {
+    const words = kw.split(/\s+/);
+    if (words.length <= 2) {
+      normalized.push(kw);
+    } else {
+      for (let i = 0; i < words.length - 1; i += 2) {
+        normalized.push(words.slice(i, i + 2).join(' '));
+      }
+    }
+  }
+  const uniqueKeywords = [...new Set(normalized)];
+  const phrases = uniqueKeywords.filter(kw => kw.includes(' ')).slice(0, 4);
+  const singles = uniqueKeywords.filter(kw => !kw.includes(' ')).slice(0, 4);
   const topKeywords = [...phrases, ...singles].slice(0, 7);
 
   console.log(`Ideas Portal: searching for ideas matching [${topKeywords.join(', ')}]...`);
@@ -29,7 +41,8 @@ export async function fetchRelatedIdeas(keywords) {
   try {
     for (let page = 0; page < PAGES_TO_FETCH; page++) {
       const skip = page * PAGE_SIZE;
-      const url = `${IDEAS_ODATA_URL}?$skip=${skip}`;
+      const bcFilter = encodeURIComponent(`adx_ideaforumid/Id eq '${BC_FORUM_ID}'`);
+      const url = `${IDEAS_ODATA_URL}?$filter=${bcFilter}&$top=${PAGE_SIZE}&$skip=${skip}`;
 
       const response = await fetch(url, {
         headers: { 'Accept': 'application/json' },

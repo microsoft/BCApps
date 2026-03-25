@@ -23,9 +23,24 @@ export async function fetchRelatedWorkItems(keywords) {
     return { workItems: [] };
   }
 
-  // Separate multi-word phrases (more specific) from single words (broader)
-  const phrases = keywords.filter(kw => kw.includes(' ')).slice(0, 3);
-  const singles = keywords.filter(kw => !kw.includes(' ')).slice(0, 3);
+  // Normalize keywords: split any 3+ word phrases into 1-2 word terms
+  // WIQL 'Contains' does substring matching, so long phrases rarely match
+  const normalized = [];
+  for (const kw of keywords) {
+    const words = kw.split(/\s+/);
+    if (words.length <= 2) {
+      normalized.push(kw);
+    } else {
+      // Split into 2-word chunks: "service documents approval workflow" → "service documents", "approval workflow"
+      for (let i = 0; i < words.length - 1; i += 2) {
+        normalized.push(words.slice(i, i + 2).join(' '));
+      }
+    }
+  }
+  // Deduplicate
+  const uniqueKeywords = [...new Set(normalized)];
+  const phrases = uniqueKeywords.filter(kw => kw.includes(' ')).slice(0, 3);
+  const singles = uniqueKeywords.filter(kw => !kw.includes(' ')).slice(0, 3);
   const topKeywords = [...phrases, ...singles].slice(0, 5);
 
   console.log(`ADO: searching work items for [${topKeywords.join(', ')}]...`);

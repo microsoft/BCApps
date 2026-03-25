@@ -66,14 +66,30 @@ function validatePhase1Response(result) {
     result.detected_app_area = 'Unknown';
   }
 
-  // Validate search_terms: must be an array of strings, fall back to empty
+  // Validate search_terms: must be an array of 1-2 word strings
   if (!Array.isArray(result.search_terms)) {
     result.search_terms = [];
   } else {
-    result.search_terms = result.search_terms
-      .filter(t => typeof t === 'string' && t.trim().length > 0)
-      .map(t => t.trim().toLowerCase())
-      .slice(0, 8);
+    const cleaned = [];
+    for (const t of result.search_terms) {
+      if (typeof t !== 'string' || !t.trim()) continue;
+      const term = t.trim().toLowerCase();
+      const words = term.split(/\s+/);
+      if (words.length <= 2) {
+        cleaned.push(term);
+      } else {
+        // Split 3+ word phrases into the first 2 words and last 2 words
+        cleaned.push(words.slice(0, 2).join(' '));
+        if (words.length > 2) cleaned.push(words.slice(-2).join(' '));
+      }
+    }
+    // Deduplicate while preserving order
+    const seen = new Set();
+    result.search_terms = cleaned.filter(t => {
+      if (seen.has(t)) return false;
+      seen.add(t);
+      return true;
+    }).slice(0, 8);
   }
 }
 
@@ -110,10 +126,13 @@ The repository contains Business Central apps. Based on keywords in the title an
 ## Search term extraction
 
 Based on your understanding of the issue, extract 5-8 search terms that would be most effective for finding related work items in Azure DevOps and ideas on the Dynamics 365 Ideas Portal. These should be:
+- **1-2 word terms only** — each term must be at most 2 words (e.g., "purchase invoice", "approval", "service document"). NEVER use 3+ word phrases.
 - **Business Central domain terms** (e.g., "purchase invoice", "bank reconciliation", "e-document") — not code identifiers or generic words
-- **Multi-word phrases preferred** when they describe a specific BC concept (e.g., "item tracking" is better than just "tracking")
+- **Mix of specific and broad** — include both the specific concept (e.g., "service document") and broader category terms (e.g., "approval", "service")
 - **Functional terms** that describe what the user is trying to do, not implementation details (e.g., "posting error" not "codeunit 80")
 - Ordered from most specific/relevant to least
+
+Example for an issue about "Approvals also in Service Documents": ["service document", "approval", "service order", "approval workflow", "service management", "service"]
 
 ## Output format
 
