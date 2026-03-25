@@ -285,7 +285,17 @@ Then provide your triage assessment as JSON.`;
     searchUrl: marketplaceResult.searchUrl,
   };
   result.enrichment.precedents = precedents;
-  result.enrichment.community_discussions = communityResult.discussions || [];
+  // Merge LLM relevance explanations into community discussions from the search
+  const llmCommunityRelevance = new Map();
+  for (const item of (result.enrichment.community || [])) {
+    if (item.title) {
+      llmCommunityRelevance.set(item.title.toLowerCase(), item.relevance);
+    }
+  }
+  result.enrichment.community_discussions = (communityResult.discussions || []).map(d => ({
+    ...d,
+    relevance: llmCommunityRelevance.get((d.title || '').toLowerCase()) || '',
+  }));
   result.enrichment.community_search_url = communityResult.dynamicsCommunityUrl;
 
   return result;

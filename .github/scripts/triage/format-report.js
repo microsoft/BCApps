@@ -180,12 +180,14 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
       if (e.community_discussions && e.community_discussions.length > 0) {
         for (const d of e.community_discussions) {
           md += `- [${d.title}](${d.url}) — ${d.views} views, ${d.replies} replies`;
-          if (d.similarity > 0) md += ` (${d.similarity}% title overlap)`;
-          md += ` _(${d.source})_\n`;
+          if (d.relevance) md += ` — ${d.relevance}`;
+          md += `\n`;
         }
       }
       if (e.community && e.community.length > 0) {
         for (const disc of e.community) {
+          const isDuplicate = e.community_discussions?.some(d => d.title.toLowerCase() === (disc.title || '').toLowerCase());
+          if (isDuplicate) continue;
           if (disc.url && disc.url.startsWith('http')) {
             md += `- [${disc.title}](${disc.url}) — ${disc.relevance}\n`;
           } else {
