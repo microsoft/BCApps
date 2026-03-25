@@ -62,7 +62,7 @@ export function formatTriageComment(phase1, phase2, isRetriage, duplicates = [],
 
   md += `\n---\n<sub>Was this triage helpful? React with :thumbsup: or :thumbsdown: on this comment to provide feedback.</sub>\n`;
 
-  md += `\n:clipboard: <a href="${wikiUrl}" target="_blank">View full triage report →</a>\n`;
+  md += `\n:clipboard: [View full triage report →](${wikiUrl}) _(opens in same tab — use Ctrl+Click to open in new tab)_\n`;
 
   return md;
 }
