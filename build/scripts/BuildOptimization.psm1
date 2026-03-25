@@ -1,0 +1,371 @@
+<#
+.SYNOPSIS
+    Test-skip logic for CI/CD build optimization.
+.DESCRIPTION
+    Determines whether a test app should be skipped based on which files changed
+    and the app dependency graph. Called from RunTestsInBcContainer.ps1.
+#>
+
+$ErrorActionPreference = "Stop"
+
+<#
+.SYNOPSIS
+    Builds a dependency graph from all app.json files under the given base folder.
+.PARAMETER BaseFolder
+    Root of the repository.
+.OUTPUTS
+    Hashtable keyed by lowercase app ID. Each value is a PSCustomObject with
+    Id, Name, AppFolder, Dependencies (string[]), Dependents (List[string]).
+#>
+function Get-AppDependencyGraph {
+    [CmdletBinding()]
+    [OutputType([hashtable])]
+    param(
+        [Parameter(Mandatory)]
+        [string] $BaseFolder
+    )
+
+    $graph = @{}
+    $appJsonFiles = Get-ChildItem -Path $BaseFolder -Recurse -Filter 'app.json' -File |
+        Where-Object { $_.FullName -notmatch '[\\/]\.buildartifacts[\\/]' }
+
+    foreach ($file in $appJsonFiles) {
+        $json = Get-Content -Path $file.FullName -Raw | ConvertFrom-Json
+        if (-not $json.id) { continue }
+
+        $appId = $json.id.ToLowerInvariant()
+        $depIds = @()
+        if ($json.dependencies) {
+            $depIds = @($json.dependencies | ForEach-Object { $_.id.ToLowerInvariant() })
+        }
+
+        $graph[$appId] = [PSCustomObject]@{
+            Id           = $appId
+            Name         = $json.name
+            AppFolder    = $file.DirectoryName
+            Dependencies = $depIds
+            Dependents   = [System.Collections.Generic.List[string]]::new()
+        }
+    }
+
+    foreach ($node in $graph.Values) {
+        foreach ($depId in $node.Dependencies) {
+            if ($graph.ContainsKey($depId)) {
+                $graph[$depId].Dependents.Add($node.Id)
+            }
+        }
+    }
+
+    return $graph
+}
+
+<#
+.SYNOPSIS
+    Determines which app (if any) a file belongs to by walking up to the nearest app.json.
+.PARAMETER FilePath
+    Path to the changed file (absolute or relative to BaseFolder).
+.PARAMETER BaseFolder
+    Root of the repository.
+.OUTPUTS
+    The app ID (lowercase GUID) or $null if the file is not inside any app folder.
+#>
+function Get-AppForFile {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter(Mandatory)]
+        [string] $FilePath,
+        [Parameter(Mandatory)]
+        [string] $BaseFolder
+    )
+
+    if (-not [System.IO.Path]::IsPathRooted($FilePath)) {
+        $FilePath = Join-Path $BaseFolder $FilePath
+    }
+    $FilePath = [System.IO.Path]::GetFullPath($FilePath)
+
+    $dir = [System.IO.Path]::GetDirectoryName($FilePath)
+    $baseFolderNorm = [System.IO.Path]::GetFullPath($BaseFolder).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
+
+    while ($dir -and $dir.Length -ge $baseFolderNorm.Length) {
+        $candidate = Join-Path $dir 'app.json'
+        if (Test-Path $candidate) {
+            $json = Get-Content -Path $candidate -Raw | ConvertFrom-Json
+            if ($json.id) { return $json.id.ToLowerInvariant() }
+        }
+        $parent = [System.IO.Path]::GetDirectoryName($dir)
+        if ($parent -eq $dir) { break }
+        $dir = $parent
+    }
+
+    return $null
+}
+
+<#
+.SYNOPSIS
+    Given changed files, computes the set of affected app IDs via downstream BFS.
+.DESCRIPTION
+    Maps each changed file to its app, then walks dependents (BFS) to find all
+    apps that transitively depend on a changed app. Files under src/ that can't
+    be mapped to an app trigger a full build (returns all app IDs).
+.PARAMETER ChangedFiles
+    Array of changed file paths (relative to BaseFolder or absolute).
+.PARAMETER BaseFolder
+    Root of the repository.
+.PARAMETER Graph
+    Pre-built dependency graph. If not provided, one is built from BaseFolder.
+.OUTPUTS
+    String array of affected app IDs (lowercase GUIDs).
+#>
+function Get-AffectedApps {
+    [CmdletBinding()]
+    [OutputType([string[]])]
+    param(
+        [Parameter(Mandatory)]
+        [string[]] $ChangedFiles,
+        [Parameter(Mandatory)]
+        [string] $BaseFolder,
+        [Parameter()]
+        [hashtable] $Graph
+    )
+
+    if (-not $Graph) {
+        $Graph = Get-AppDependencyGraph -BaseFolder $BaseFolder
+    }
+
+    # Map changed files to apps
+    $directlyChanged = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($file in $ChangedFiles) {
+        $appId = Get-AppForFile -FilePath $file -BaseFolder $BaseFolder
+        if ($appId) {
+            [void]$directlyChanged.Add($appId)
+        } elseif ($file.Replace('\', '/') -match '(^|/)src/') {
+            # Unmapped file under src/ — safety fallback to full build
+            return @($Graph.Keys)
+        }
+    }
+
+    if ($directlyChanged.Count -eq 0) { return @() }
+
+    # BFS downstream: changed apps + everything that depends on them
+    $affected = [System.Collections.Generic.HashSet[string]]::new()
+    $queue = [System.Collections.Generic.Queue[string]]::new()
+    foreach ($appId in $directlyChanged) {
+        if ($Graph.ContainsKey($appId)) { $queue.Enqueue($appId) }
+    }
+
+    while ($queue.Count -gt 0) {
+        $current = $queue.Dequeue()
+        if ($affected.Contains($current)) { continue }
+        [void]$affected.Add($current)
+        if ($Graph.ContainsKey($current)) {
+            foreach ($dep in $Graph[$current].Dependents) {
+                if (-not $affected.Contains($dep)) { $queue.Enqueue($dep) }
+            }
+        }
+    }
+
+    return @($affected)
+}
+
+<#
+.SYNOPSIS
+    Detects changed files from the GitHub Actions CI environment.
+.DESCRIPTION
+    Reads the GitHub event payload ($GITHUB_EVENT_PATH) to extract base/head commit
+    SHAs, then uses git diff with those SHAs. This approach works reliably with
+    shallow clones (unlike three-dot diffs that need the merge base).
+    Supports pull_request, merge_group, and push events.
+    Returns $null when changed files cannot be determined (local, workflow_dispatch, git failure).
+.OUTPUTS
+    String array of changed file paths relative to repo root, or $null.
+#>
+function Get-ChangedFilesForCI {
+    [CmdletBinding()]
+    [OutputType([string[]])]
+    param()
+
+    if (-not $env:GITHUB_ACTIONS) {
+        Write-Host "BUILD OPTIMIZATION: Change detection skipped - not running in GitHub Actions"
+        return $null
+    }
+
+    if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+        Write-Host "BUILD OPTIMIZATION: Change detection skipped - workflow_dispatch event"
+        return $null
+    }
+
+    # Read GitHub event payload for base/head commit SHAs (works with shallow clones)
+    if (-not $env:GITHUB_EVENT_PATH -or -not (Test-Path $env:GITHUB_EVENT_PATH)) {
+        Write-Host "BUILD OPTIMIZATION: GitHub event payload not found at '$($env:GITHUB_EVENT_PATH)'"
+        return $null
+    }
+
+    $event = Get-Content $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json
+
+    $baseSha = $null
+    $headSha = $null
+
+    if ($env:GITHUB_EVENT_NAME -match 'pull_request') {
+        $baseSha = $event.pull_request.base.sha
+        $headSha = $event.pull_request.head.sha
+    }
+    elseif ($env:GITHUB_EVENT_NAME -eq 'merge_group') {
+        $baseSha = $event.merge_group.base_sha
+        $headSha = $event.merge_group.head_sha
+    }
+    elseif ($env:GITHUB_EVENT_NAME -eq 'push') {
+        $baseSha = $event.before
+        $headSha = $event.after
+    }
+
+    if (-not $baseSha -or -not $headSha) {
+        Write-Host "BUILD OPTIMIZATION: Could not extract commit SHAs from event payload (event=$($env:GITHUB_EVENT_NAME))"
+        return $null
+    }
+
+    Write-Host "BUILD OPTIMIZATION: Comparing $($baseSha.Substring(0, 8))...$($headSha.Substring(0, 8))"
+
+    $prevErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        # Best-effort fetch of base commit (may not be in shallow clone)
+        git fetch origin $baseSha --depth=1 2>$null
+
+        $files = @(git diff --name-only $baseSha $headSha 2>$null)
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "BUILD OPTIMIZATION: git diff failed (exitCode=$LASTEXITCODE)"
+            return $null
+        }
+
+        if ($files.Count -eq 0) {
+            Write-Host "BUILD OPTIMIZATION: No changed files detected"
+            return $null
+        }
+
+        return $files
+    }
+    finally {
+        $ErrorActionPreference = $prevErrorAction
+    }
+}
+
+<#
+.SYNOPSIS
+    Checks whether any changed files match the fullBuildPatterns from AL-Go settings.
+.DESCRIPTION
+    Reads the fullBuildPatterns array from .github/AL-Go-Settings.json and tests
+    each changed file path against each pattern using -like. When AL-Go detects
+    matching files it forces a full compile, so the test side must also force a
+    full test run (i.e., skip nothing).
+.PARAMETER ChangedFiles
+    Array of changed file paths (relative to repo root, forward-slash separated).
+.PARAMETER BaseFolder
+    Root of the repository (used to locate .github/AL-Go-Settings.json).
+.OUTPUTS
+    $true if any changed file matches a fullBuildPattern, $false otherwise.
+#>
+function Test-FullBuildPatternsMatch {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory)]
+        [string[]] $ChangedFiles,
+        [Parameter(Mandatory)]
+        [string] $BaseFolder
+    )
+
+    $settingsPath = Join-Path $BaseFolder '.github/AL-Go-Settings.json'
+    if (-not (Test-Path $settingsPath)) { return $false }
+
+    $settings = Get-Content -Path $settingsPath -Raw | ConvertFrom-Json
+    $patterns = $settings.fullBuildPatterns
+    if (-not $patterns -or $patterns.Count -eq 0) { return $false }
+
+    foreach ($file in $ChangedFiles) {
+        $normalized = $file.Replace('\', '/')
+        foreach ($pattern in $patterns) {
+            if ($normalized -like $pattern) {
+                Write-Host "BUILD OPTIMIZATION: File '$normalized' matches fullBuildPattern '$pattern' - forcing full test run"
+                return $true
+            }
+        }
+    }
+
+    return $false
+}
+
+<#
+.SYNOPSIS
+    Determines whether tests for a given app should be skipped.
+.DESCRIPTION
+    Called from RunTestsInBcContainer.ps1 for each test app. Computes the affected
+    app set from changed files and the dependency graph, then checks whether the
+    given app name is in that set. Returns $true to skip, $false to run.
+.PARAMETER AppName
+    The display name of the test app (from $parameters["appName"]).
+.PARAMETER BaseFolder
+    Root of the repository.
+.OUTPUTS
+    $true if the test app should be skipped, $false if it should run.
+#>
+function Test-ShouldSkipTestApp {
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory)]
+        [string] $AppName,
+        [Parameter(Mandatory)]
+        [string] $BaseFolder
+    )
+
+    if ($env:BUILD_OPTIMIZATION_DISABLED -eq 'true') {
+        Write-Host "BUILD OPTIMIZATION: Disabled via BUILD_OPTIMIZATION_DISABLED=true"
+        return $false
+    }
+    if (-not $env:GITHUB_ACTIONS) { return $false }
+    if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') { return $false }
+
+    $changedFiles = Get-ChangedFilesForCI
+    if (-not $changedFiles) {
+        Write-Host "BUILD OPTIMIZATION: Running all tests for '$AppName' - could not determine changed files"
+        return $false
+    }
+
+    Write-Host "BUILD OPTIMIZATION: Changed files ($($changedFiles.Count)):"
+    foreach ($f in $changedFiles) { Write-Host "  - $f" }
+
+    # If any changed file matches fullBuildPatterns, AL-Go compiles everything.
+    # We must run all tests to match — skip nothing.
+    if (Test-FullBuildPatternsMatch -ChangedFiles $changedFiles -BaseFolder $BaseFolder) {
+        Write-Host "BUILD OPTIMIZATION: Running tests for '$AppName' - fullBuildPatterns matched, full test run required"
+        return $false
+    }
+
+    $graph = Get-AppDependencyGraph -BaseFolder $BaseFolder
+    $affectedIds = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $BaseFolder -Graph $graph
+
+    # Full build triggered (unmapped src file or all apps affected)
+    if ($affectedIds.Count -ge $graph.Count) {
+        Write-Host "BUILD OPTIMIZATION: Running tests for '$AppName' - full build triggered ($($affectedIds.Count) apps affected)"
+        return $false
+    }
+
+    $affectedNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($id in $affectedIds) {
+        if ($graph.ContainsKey($id)) { [void]$affectedNames.Add($graph[$id].Name) }
+    }
+
+    $sortedNames = $affectedNames | Sort-Object
+    Write-Host "BUILD OPTIMIZATION: Affected apps ($($affectedNames.Count)):"
+    foreach ($name in $sortedNames) { Write-Host "  - $name" }
+
+    if (-not $affectedNames.Contains($AppName)) {
+        Write-Host "BUILD OPTIMIZATION: SKIPPING tests for '$AppName' - not in affected set"
+        return $true
+    }
+    Write-Host "BUILD OPTIMIZATION: RUNNING tests for '$AppName'"
+    return $false
+}
+
+Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Test-ShouldSkipTestApp
