@@ -301,6 +301,26 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         UsageDataGenericImport.ModifyAll("Service Object Availability", UsageDataGenericImport."Service Object Availability"::Connected);
     end;
 
+    internal procedure GetImportedLineCount(var UsageDataImport: Record "Usage Data Import"; OnlyErrors: Boolean): Integer
+    var
+        UsageDataGenericImport: Record "Usage Data Generic Import";
+    begin
+        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        if OnlyErrors then
+            UsageDataGenericImport.SetRange("Processing Status", "Processing Status"::Error);
+        exit(UsageDataGenericImport.Count());
+    end;
+
+    internal procedure ShowImportedLines(var UsageDataImport: Record "Usage Data Import"; ShowOnlyErrors: Boolean)
+    var
+        UsageDataGenericImport: Record "Usage Data Generic Import";
+    begin
+        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        if ShowOnlyErrors then
+            UsageDataGenericImport.SetRange("Processing Status", "Processing Status"::Error);
+        Page.Run(Page::"Usage Data Generic Import", UsageDataGenericImport);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Process Data Exch.", OnProcessColumnMappingOnBeforeDataExchFieldMappingFindSet, '', false, false)]
     local procedure SetNextEntryNoForUsageDataGenericImport(var RecordRef: RecordRef; LastKeyFieldId: Integer; CurrLineNo: Integer)
     var

@@ -53,4 +53,20 @@ interface "Usage Data Processing"
     /// <param name="SupplierReference">Supplier Reference identifying the subscription in the staging table</param>
     /// <param name="SubscriptionHeaderNo">Subscription Header No. to assign to matching staging records</param>
     procedure UpdateSubscriptionHeaderNo(SupplierReference: Text[80]; SubscriptionHeaderNo: Code[20]);
+
+    /// <summary>
+    /// Get the count of imported lines in the connector-specific staging table.
+    /// </summary>
+    /// <param name="UsageDataImport">Usage Data Import to count lines for</param>
+    /// <param name="OnlyErrors">If true, count only lines with errors</param>
+    /// <returns>The number of imported lines</returns>
+    procedure GetImportedLineCount(var UsageDataImport: Record "Usage Data Import"; OnlyErrors: Boolean): Integer;
+
+    /// <summary>
+    /// Open the connector-specific staging table page for the given Usage Data Import,
+    /// optionally filtered to show only lines with errors.
+    /// </summary>
+    /// <param name="UsageDataImport">Usage Data Import whose staging lines to show</param>
+    /// <param name="ShowOnlyErrors">If true, filter to show only lines with errors</param>
+    procedure ShowImportedLines(var UsageDataImport: Record "Usage Data Import"; ShowOnlyErrors: Boolean);
 }
