@@ -10,6 +10,7 @@ import { fetchCodeContext, formatCodeContext } from './code-reader.js';
 import { fetchRelatedIdeas, formatIdeasContext } from './ideas-client.js';
 import { fetchRelatedWorkItems, formatAdoContext } from './ado-client.js';
 import { fetchMarketplaceApps, formatMarketplaceContext } from './marketplace-client.js';
+import { fetchCommunityDiscussions, formatCommunityContext } from './community-client.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -103,7 +104,7 @@ You will be provided with actual search results from the Dynamics 365 Ideas Port
 You may be provided with related work items from the Dynamics SMB ADO project. Use these to identify if this issue is already tracked internally and factor existing work into your recommended action.
 
 ### Community discussions
-Consider relevant Stack Overflow questions, GitHub issues in related repositories, or community forum discussions.
+You will be provided with search results from DynamicsUser.net (a major BC community forum) and a search link for Microsoft Dynamics Community. Use these to gauge whether users are actively discussing this topic and what workarounds or solutions the community has found. Also consider relevant Stack Overflow questions or GitHub issues.
 
 ### AppSource Marketplace
 You will be provided with search results from the Microsoft AppSource marketplace for Business Central apps. Use the number of related apps as a demand signal:
@@ -165,23 +166,26 @@ Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON
   console.log(`Phase 2: Key terms (${llmTerms.length >= 3 ? 'LLM' : 'regex'}): [${keyTerms.join(', ')}]`);
 
   // Fetch all enrichment context in parallel
-  console.log(`Phase 2: Fetching enrichment context (code, Ideas Portal, ADO, AppSource)...`);
-  const [codeContext, ideasResult, adoResult, marketplaceResult] = await Promise.all([
+  console.log(`Phase 2: Fetching enrichment context (code, Ideas Portal, ADO, AppSource, Community)...`);
+  const [codeContext, ideasResult, adoResult, marketplaceResult, communityResult] = await Promise.all([
     Promise.resolve(fetchCodeContext(appArea.directory, keyTerms)),
     fetchRelatedIdeas(keyTerms, issue.title),
     fetchRelatedWorkItems(keyTerms, issue.title),
     fetchMarketplaceApps(keyTerms),
+    fetchCommunityDiscussions(keyTerms, issue.title),
   ]);
 
   console.log(`Phase 2: Code context: ${codeContext.relevantFiles?.length || 0} files from ${appArea.directory}`);
   console.log(`Phase 2: Ideas Portal: ${(ideasResult.activeIdeas?.length || 0)} active + ${(ideasResult.closedIdeas?.length || 0)} closed ideas`);
   console.log(`Phase 2: ADO: ${(adoResult.activeItems?.length || 0)} active + ${(adoResult.closedItems?.length || 0)} closed work items`);
   console.log(`Phase 2: AppSource: search terms "${marketplaceResult.searchTerms}" (LLM will estimate)`);
+  console.log(`Phase 2: Community: ${communityResult.discussions?.length || 0} discussions`);
 
   const codeContextBlock = formatCodeContext(codeContext);
   const ideasContextBlock = formatIdeasContext(ideasResult);
   const adoContextBlock = formatAdoContext(adoResult);
   const marketplaceContextBlock = formatMarketplaceContext(marketplaceResult);
+  const communityContextBlock = formatCommunityContext(communityResult);
 
   // Truncate very long issue bodies to avoid excessive token usage
   const maxBodyChars = 8000;
@@ -242,7 +246,9 @@ ${adoContextBlock}
 
 ${marketplaceContextBlock}
 
-Please analyze all provided context - source code structure, Ideas Portal matches, ADO work items, AppSource marketplace data, and your knowledge of documentation and community discussions.
+${communityContextBlock}
+
+Please analyze all provided context - source code structure, Ideas Portal matches, ADO work items, AppSource marketplace data, community forum discussions, and your knowledge of documentation.
 Then provide your triage assessment as JSON.`;
 
   console.log(`Phase 2: Enriching and triaging issue #${issue.number}...`);
@@ -276,6 +282,8 @@ Then provide your triage assessment as JSON.`;
     searchUrl: marketplaceResult.searchUrl,
   };
   result.enrichment.precedents = precedents;
+  result.enrichment.community_discussions = communityResult.discussions || [];
+  result.enrichment.community_search_url = communityResult.dynamicsCommunityUrl;
 
   return result;
 }

@@ -119,8 +119,8 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
   // ── Enrichment context (collapsible) ──
   const hasEnrichment = (e.documentation?.length > 0) || (e.ideas_portal?.length > 0) ||
     (e.matched_ideas?.length > 0) || (e.ado_work_items?.length > 0) ||
-    (e.community?.length > 0) || (e.marketplace?.searchUrl) ||
-    (e.code_areas?.length > 0);
+    (e.community?.length > 0) || (e.community_discussions?.length > 0) ||
+    (e.marketplace?.searchUrl) || (e.code_areas?.length > 0);
 
   if (hasEnrichment) {
     md += `<details>\n<summary><strong>Enrichment context</strong> — external sources and references</summary>\n\n`;
@@ -179,14 +179,26 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
       md += `[Search related apps](${e.marketplace.searchUrl})\n\n`;
     }
 
-    if (e.community && e.community.length > 0) {
-      md += `#### Community\n`;
-      for (const disc of e.community) {
-        if (disc.url && disc.url.startsWith('http')) {
-          md += `- [${disc.title}](${disc.url}) — ${disc.relevance}\n`;
-        } else {
-          md += `- **${disc.title}** — ${disc.relevance}\n`;
+    if ((e.community_discussions && e.community_discussions.length > 0) || (e.community && e.community.length > 0) || e.community_search_url) {
+      md += `#### Community discussions\n`;
+      if (e.community_discussions && e.community_discussions.length > 0) {
+        for (const d of e.community_discussions) {
+          md += `- [${d.title}](${d.url}) — ${d.views} views, ${d.replies} replies`;
+          if (d.similarity > 0) md += ` (${d.similarity}% title overlap)`;
+          md += ` _(${d.source})_\n`;
         }
+      }
+      if (e.community && e.community.length > 0) {
+        for (const disc of e.community) {
+          if (disc.url && disc.url.startsWith('http')) {
+            md += `- [${disc.title}](${disc.url}) — ${disc.relevance}\n`;
+          } else {
+            md += `- **${disc.title}** — ${disc.relevance}\n`;
+          }
+        }
+      }
+      if (e.community_search_url) {
+        md += `- [Search Microsoft Dynamics Community](${e.community_search_url})\n`;
       }
       md += `\n`;
     }
