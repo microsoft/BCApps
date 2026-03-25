@@ -4,8 +4,8 @@
 
 const IDEAS_ODATA_URL = 'https://experience.dynamics.com/_odata/ideas';
 const BC_FORUM_ID = 'e288ef32-82ed-e611-8101-5065f38b21f1';
-const PAGES_TO_FETCH = 20;
-const PAGE_SIZE = 50;
+const PAGES_TO_FETCH = 30;
+const PAGE_SIZE = 10;
 const MAX_RESULTS = 5;
 
 /**
@@ -41,7 +41,7 @@ export async function fetchRelatedIdeas(keywords) {
   try {
     for (let page = 0; page < PAGES_TO_FETCH; page++) {
       const skip = page * PAGE_SIZE;
-      const url = `${IDEAS_ODATA_URL}?$top=${PAGE_SIZE}&$skip=${skip}`;
+      const url = `${IDEAS_ODATA_URL}?$skip=${skip}`;
 
       const response = await fetch(url, {
         headers: { 'Accept': 'application/json' },
