@@ -16,7 +16,7 @@ codeunit 30101 "Shpfy Background Syncs"
     Access = Internal;
 
     var
-        SyncDescriptionTxt: Label 'Shopify Sync of %1 for shop(s) %2', Comment = '%1 = Synchronization Type, %2 = Synchronization Code';
+        SyncDescriptionTxt: Label 'Shopify Sync of %1 for shop(s) %2', Comment = '%1 = Synchronization Tyep, %2 = Synchronization Code';
         InventorySyncTypeTxt: Label 'Inventory';
         OrderSyncTypeTxt: Label 'Order';
         PayoutsSyncTypeTxt: Label 'Payouts';
