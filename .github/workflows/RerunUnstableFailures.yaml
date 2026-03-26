@@ -41,7 +41,7 @@ jobs:
 
       - name: Rerun unstable failures
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.YOURPAT }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.RERUNPAT }}
         run: |
           $whatIf = '${{ inputs.WhatIf }}'
           $params = @{
