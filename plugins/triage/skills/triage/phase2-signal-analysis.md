@@ -44,7 +44,7 @@ You will be provided with search context from the Microsoft Dynamics 365 Busines
 - **Unknown**: Not enough information to assess
 
 ### YouTube videos
-You may be provided with Business Central videos from YouTube. Use these to gauge whether the topic has community interest — tutorials and walkthroughs suggest users actively work in this area. Videos from official Microsoft channels or well-known BC community members carry more weight. Factor video presence into your demand assessment.
+You may be provided with Business Central videos from YouTube. For each video, explain its **specific relevance** to the issue — e.g., "Tutorial demonstrating the exact workflow the issue requests changes to" or "General purchasing overview — covers the broader area but not this specific feature." Videos from official Microsoft channels or well-known BC community members carry more weight. Factor video presence into your demand assessment.
 
 ### Competitive landscape
 Based on your knowledge of competing ERP platforms in the small-to-mid-market segment, assess whether this capability is commonly available elsewhere. Do NOT name specific products — instead refer to them generically (e.g., "a major cloud ERP competitor", "most mid-market ERP platforms", "other SMB-focused solutions"). Classify the competitive position as:
@@ -76,6 +76,9 @@ Return a JSON object with this exact structure:
   ],
   "community_discussions": [
     { "title": "Discussion title", "relevance": "Why this discussion is relevant — e.g. confirms user demand, suggests workarounds, or reveals known limitations" }
+  ],
+  "youtube_videos": [
+    { "title": "Video title", "relevance": "Specific connection to the issue — e.g. demonstrates the exact workflow, covers the broader area, or shows a workaround" }
   ],
   "competitive_landscape": {
     "position": "Table stakes",

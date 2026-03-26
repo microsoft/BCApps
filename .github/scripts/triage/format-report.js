@@ -218,9 +218,10 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
     if (e.youtube_videos && e.youtube_videos.length > 0) {
       md += `#### YouTube videos\n`;
       for (const v of e.youtube_videos) {
+        const reason = v.relevance || v.matchReason;
         md += `- [${v.title}](${v.url}) by ${v.channelTitle}`;
         if (v.publishedAt) md += ` (${v.publishedAt})`;
-        if (v.matchReason) md += ` — _${v.matchReason}_`;
+        if (reason) md += ` — _${reason}_`;
         md += `\n`;
       }
       md += `\n`;

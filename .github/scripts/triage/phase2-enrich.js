@@ -416,7 +416,17 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
   delete result.enrichment.documentation;
   result.enrichment.git_history = gitHistoryResult;
   result.enrichment.related_prs = [...(prResult.openPRs || []), ...(prResult.mergedPRs || [])];
-  result.enrichment.youtube_videos = youtubeResult.videos || [];
+  // Merge LLM relevance explanations into the YouTube videos from the search
+  const llmYouTubeRelevance = new Map();
+  for (const item of (signalAnalysis.youtube_videos || [])) {
+    if (item.title) {
+      llmYouTubeRelevance.set(item.title.toLowerCase(), item.relevance);
+    }
+  }
+  result.enrichment.youtube_videos = (youtubeResult.videos || []).map(v => ({
+    ...v,
+    relevance: llmYouTubeRelevance.get((v.title || '').toLowerCase()) || v.matchReason || '',
+  }));
 
   return result;
 }
@@ -460,6 +470,7 @@ function validateSignalAnalysis(r) {
   if (!Array.isArray(r.ideas_portal)) r.ideas_portal = [];
   if (!Array.isArray(r.ado_work_items)) r.ado_work_items = [];
   if (!Array.isArray(r.community_discussions)) r.community_discussions = [];
+  if (!Array.isArray(r.youtube_videos)) r.youtube_videos = [];
   if (!r.competitive_landscape || typeof r.competitive_landscape !== 'object') {
     r.competitive_landscape = { position: 'Unknown', rationale: '' };
   }
