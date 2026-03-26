@@ -66,11 +66,11 @@ export async function findDuplicates(owner, repo, currentIssueNumber, title, bod
 export function formatDuplicatesSection(duplicates) {
   if (!duplicates || duplicates.length === 0) return '';
 
-  let md = `### :warning: Potential duplicates detected\n\n`;
-  md += `The following open issues have significant keyword overlap:\n\n`;
+  let md = `### :warning: Potential Duplicates\n\n`;
+  md += `_These open issues have significant overlap -- check before proceeding to avoid duplicate work._\n\n`;
   for (const dup of duplicates) {
-    md += `- [#${dup.number}: ${dup.title}](${dup.url}) (${dup.similarity}% similarity)\n`;
+    md += `- [**#${dup.number}: ${dup.title}**](${dup.url}) — ${dup.similarity}% similarity\n`;
   }
-  md += `\n> Please check if this issue duplicates one of the above before proceeding.\n\n`;
+  md += `\n`;
   return md;
 }

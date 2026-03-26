@@ -84,20 +84,21 @@ export async function fetchLearnDocs(keywords, issueTitle = '') {
 export function formatLearnContext(result) {
   if (!result || result.articles.length === 0) {
     if (result?.error) {
-      return `### Microsoft Learn documentation\n\nCould not search documentation: ${result.error}\n`;
+      return `### Microsoft Learn\n\nCould not search documentation: ${result.error}\n`;
     }
-    return '### Microsoft Learn documentation\n\nNo matching documentation found on learn.microsoft.com.\n';
+    return '### Microsoft Learn\n\nNo matching documentation found on learn.microsoft.com.\n';
   }
 
-  let output = `### Microsoft Learn documentation\n\n`;
-  output += `Search results from learn.microsoft.com (${result.articles.length} articles):\n\n`;
+  let output = `### Microsoft Learn\n\n`;
+  output += `_Existing docs: if official documentation covers this area, the issue may be about existing functionality or a gap in current behavior._\n\n`;
 
   for (const doc of result.articles) {
-    output += `- **${doc.title}**\n`;
-    output += `  ${doc.url}\n`;
+    output += `- [**${doc.title}**](${doc.url})`;
+    if (doc.similarity > 0) output += ` — ${doc.similarity}% relevance`;
+    output += `\n`;
     if (doc.description) {
-      const snippet = doc.description.length > 300
-        ? doc.description.substring(0, 300) + '...'
+      const snippet = doc.description.length > 250
+        ? doc.description.substring(0, 250) + '...'
         : doc.description;
       output += `  > ${snippet}\n`;
     }

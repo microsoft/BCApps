@@ -20,6 +20,6 @@ describe('formatDuplicatesSection', () => {
     assert.ok(result.includes('#42'));
     assert.ok(result.includes('Similar issue'));
     assert.ok(result.includes('65%'));
-    assert.ok(result.includes('Potential duplicates'));
+    assert.ok(result.includes('Potential Duplicates'));
   });
 });

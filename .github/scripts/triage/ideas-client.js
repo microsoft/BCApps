@@ -243,15 +243,13 @@ function buildSearchFilter(keyword) {
 }
 
 function formatIdeaEntry(idea) {
-  let entry = `- **${idea.title}** (${idea.votes} votes, ${idea.status})\n`;
-  entry += `  Category: ${idea.category} | [View idea](${idea.url})\n`;
+  let entry = `- [**${idea.title}**](${idea.url}) — ${idea.votes} votes, ${idea.status} · ${idea.category}\n`;
   if (idea.description) {
     const snippet = idea.description.length > 200
       ? idea.description.substring(0, 200) + '...'
       : idea.description;
     entry += `  > ${snippet}\n`;
   }
-  entry += `\n`;
   return entry;
 }
 
@@ -270,14 +268,15 @@ export function formatIdeasContext(result) {
     return '### Ideas Portal\n\nNo matching ideas found on the Dynamics 365 Ideas Portal.\n';
   }
 
-  let output = `### Ideas Portal matches\n\n`;
-  output += `Scanned ${result.totalFetched} BC ideas.\n\n`;
+  let output = `### Ideas Portal\n\n`;
+  output += `_Demand signal: community-submitted feature requests and pain points. High-vote ideas indicate widespread need._\n\n`;
 
   if (active.length > 0) {
     output += `**Active ideas** (${active.length}):\n\n`;
     for (const idea of active) {
       output += formatIdeaEntry(idea);
     }
+    output += '\n';
   }
 
   if (closed.length > 0) {
@@ -285,6 +284,7 @@ export function formatIdeasContext(result) {
     for (const idea of closed) {
       output += formatIdeaEntry(idea);
     }
+    output += '\n';
   }
 
   return output;

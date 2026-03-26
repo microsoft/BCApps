@@ -120,13 +120,14 @@ export function formatYouTubeContext(result) {
     return '### YouTube\n\nNo matching Business Central videos found.\n';
   }
 
-  let output = `### YouTube videos\n\n`;
-  output += `Related Business Central videos (${videos.length} results):\n\n`;
+  let output = `### YouTube\n\n`;
+  output += `_Content signal: tutorials and walkthroughs indicate common workflows; their existence suggests established user need._\n\n`;
 
   for (const v of videos) {
-    output += `- **${v.title}** by ${v.channelTitle}`;
-    if (v.publishedAt) output += ` (${v.publishedAt})`;
-    output += `\n  ${v.url}\n`;
+    output += `- [**${v.title}**](${v.url}) — by ${v.channelTitle}`;
+    if (v.publishedAt) output += `, ${v.publishedAt}`;
+    if (v.similarity > 0) output += ` · ${v.similarity}% relevance`;
+    output += `\n`;
     if (v.description) {
       const snippet = v.description.length > 200
         ? v.description.substring(0, 200) + '...'

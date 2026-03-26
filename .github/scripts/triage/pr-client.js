@@ -172,27 +172,28 @@ function buildMatchReason(matchedKeywords) {
  */
 export function formatPRContext(result) {
   if (!result) {
-    return '### Related pull requests\n\nNo PR search results available.\n';
+    return '### Pull Requests\n\nNo PR search results available.\n';
   }
   if (result.error === 'GITHUB_TOKEN not configured' || result.error === 'REPO_OWNER/REPO_NAME not configured') {
-    return '### Related pull requests\n\nPR search is not configured.\n';
+    return '### Pull Requests\n\nPR search is not configured.\n';
   }
   if (result.error) {
-    return `### Related pull requests\n\nCould not search PRs: ${result.error}\n`;
+    return `### Pull Requests\n\nCould not search PRs: ${result.error}\n`;
   }
 
   const { openPRs = [], mergedPRs = [] } = result;
 
   if (openPRs.length === 0 && mergedPRs.length === 0) {
-    return '### Related pull requests\n\nNo matching pull requests found.\n';
+    return '### Pull Requests\n\nNo matching pull requests found.\n';
   }
 
-  let output = '### Related pull requests\n\n';
+  let output = '### Pull Requests\n\n';
+  output += `_Code changes: open PRs may already address this issue; merged PRs show recent changes in the same area._\n\n`;
 
   if (openPRs.length > 0) {
-    output += `**Open PRs** (${openPRs.length}) — work potentially in progress:\n\n`;
+    output += `**Open PRs** (${openPRs.length}):\n\n`;
     for (const pr of openPRs) {
-      output += `- **#${pr.number}: ${pr.title}** by @${pr.author} (updated ${pr.updatedAt}) — _${pr.matchReason}_\n`;
+      output += `- [**#${pr.number}: ${pr.title}**](${pr.url}) — by @${pr.author}, updated ${pr.updatedAt} · ${pr.matchReason}\n`;
     }
     output += '\n';
   }
@@ -200,7 +201,7 @@ export function formatPRContext(result) {
   if (mergedPRs.length > 0) {
     output += `**Recently merged** (${mergedPRs.length}):\n\n`;
     for (const pr of mergedPRs) {
-      output += `- **#${pr.number}: ${pr.title}** by @${pr.author} (updated ${pr.updatedAt}) — _${pr.matchReason}_\n`;
+      output += `- [**#${pr.number}: ${pr.title}**](${pr.url}) — by @${pr.author}, updated ${pr.updatedAt} · ${pr.matchReason}\n`;
     }
     output += '\n';
   }

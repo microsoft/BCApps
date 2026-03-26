@@ -67,10 +67,10 @@ export async function findPrecedents(owner, repo, currentIssueNumber, title, bod
 export function formatPrecedentsSection(precedents) {
   if (!precedents || precedents.length === 0) return '';
 
-  let md = `### Similar resolved issues\n\n`;
-  md += `These closed issues may provide context on how similar problems were handled:\n\n`;
+  let md = `### Similar Resolved Issues\n\n`;
+  md += `_Historical context: these closed issues show how similar problems were previously handled._\n\n`;
   for (const p of precedents) {
-    md += `- [#${p.number}: ${p.title}](${p.url}) (${p.state_reason}, ${p.similarity}% similarity)\n`;
+    md += `- [**#${p.number}: ${p.title}**](${p.url}) — ${p.state_reason} · ${p.similarity}% similarity\n`;
   }
   md += `\n`;
   return md;

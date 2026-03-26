@@ -284,12 +284,13 @@ export function formatAdoContext(result) {
     return '### Azure DevOps\n\nNo matching work items found in Dynamics SMB project.\n';
   }
 
-  let output = `### Azure DevOps related work items\n\n`;
+  let output = `### Azure DevOps\n\n`;
+  output += `_Internal tracking: active items may indicate planned or in-progress work; closed items show how similar requests were previously handled._\n\n`;
 
   if (activeItems.length > 0) {
     output += `**Active work items** (${activeItems.length}):\n\n`;
     for (const wi of activeItems) {
-      output += `- **[${wi.type} #${wi.id}] ${wi.title}** (${wi.state}) — _${wi.matchReason}_\n`;
+      output += `- [**${wi.type} #${wi.id}: ${wi.title}**](${wi.url}) — ${wi.state} · ${wi.matchReason}\n`;
     }
     output += `\n`;
   }
@@ -297,7 +298,7 @@ export function formatAdoContext(result) {
   if (closedItems.length > 0) {
     output += `**Previously addressed** (${closedItems.length}):\n\n`;
     for (const wi of closedItems) {
-      output += `- **[${wi.type} #${wi.id}] ${wi.title}** (${wi.state}) — _${wi.matchReason}_\n`;
+      output += `- [**${wi.type} #${wi.id}: ${wi.title}**](${wi.url}) — ${wi.state} · ${wi.matchReason}\n`;
     }
     output += `\n`;
   }

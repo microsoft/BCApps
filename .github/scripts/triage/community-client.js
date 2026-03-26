@@ -276,23 +276,22 @@ function buildDynamicsCommunityUrl(query) {
  */
 export function formatCommunityContext(result) {
   if (!result) {
-    return '### Community forums\n\nNo community search results available.\n';
+    return '### Community Forums\n\nNo community search results available.\n';
   }
 
   const { discussions = [], dynamicsCommunityUrl } = result;
 
   if (discussions.length === 0 && !dynamicsCommunityUrl) {
-    return '### Community forums\n\nNo matching community discussions found.\n';
+    return '### Community Forums\n\nNo matching community discussions found.\n';
   }
 
-  let output = '### Community forum discussions\n\n';
+  let output = '### Community Forums\n\n';
+  output += `_User discussions: high-view threads indicate common pain points; replies suggest workaround availability._\n\n`;
 
   if (discussions.length > 0) {
     for (const d of discussions) {
-      output += `- **${d.title}** (${d.source})`;
-      if (d.views > 0) output += ` — ${d.views} views, ${d.replies} replies`;
-      if (d.similarity > 0) output += ` (${d.similarity}% title overlap)`;
-      output += `\n  ${d.url}\n`;
+      const signal = d.views > 0 ? `${d.views} views, ${d.replies} replies` : d.source;
+      output += `- [**${d.title}**](${d.url}) — ${signal} · ${d.similarity}% relevance\n`;
     }
     output += '\n';
   }
