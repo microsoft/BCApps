@@ -6,6 +6,7 @@
 
 import { formatDuplicatesSection } from './duplicate-detector.js';
 import { formatPrecedentsSection } from './precedent-finder.js';
+import { escapeMdTable } from './phase2-enrich.js';
 
 const GITHUB_COMMENT_MAX_CHARS = 65536;
 
@@ -95,11 +96,11 @@ function formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousSc
   md += `### Issue Quality Score: ${qs.total}/100 - ${phase1.verdict}\n\n`;
   md += `| Dimension | Score | Notes |\n`;
   md += `|-----------|-------|-------|\n`;
-  md += `| Clarity | ${qs.clarity.score}/20 | ${qs.clarity.notes} |\n`;
-  md += `| Reproducibility | ${qs.reproducibility.score}/20 | ${qs.reproducibility.notes} |\n`;
-  md += `| Context | ${qs.context.score}/20 | ${qs.context.notes} |\n`;
-  md += `| Specificity | ${qs.specificity.score}/20 | ${qs.specificity.notes} |\n`;
-  md += `| Actionability | ${qs.actionability.score}/20 | ${qs.actionability.notes} |\n`;
+  md += `| Clarity | ${qs.clarity.score}/20 | ${escapeMdTable(qs.clarity.notes)} |\n`;
+  md += `| Reproducibility | ${qs.reproducibility.score}/20 | ${escapeMdTable(qs.reproducibility.notes)} |\n`;
+  md += `| Context | ${qs.context.score}/20 | ${escapeMdTable(qs.context.notes)} |\n`;
+  md += `| Specificity | ${qs.specificity.score}/20 | ${escapeMdTable(qs.specificity.notes)} |\n`;
+  md += `| Actionability | ${qs.actionability.score}/20 | ${escapeMdTable(qs.actionability.notes)} |\n`;
 
   // Re-triage comparison
   if (isRetriage && previousScores) {
@@ -148,13 +149,13 @@ function formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousSc
   md += `### Triage Recommendation\n\n`;
   md += `| Aspect | Assessment | Rationale |\n`;
   md += `|--------|-----------|----------|\n`;
-  md += `| Complexity | ${t.complexity.rating} | ${t.complexity.rationale} |\n`;
-  md += `| Value | ${t.value.rating} | ${t.value.rationale} |\n`;
-  md += `| Risk | ${t.risk.rating} | ${t.risk.rationale} |\n`;
-  md += `| Effort | ${t.effort.rating} | ${t.effort.rationale} |\n`;
-  md += `| Impl. Path | ${t.implementation_path.rating} | ${t.implementation_path.rationale} |\n`;
-  md += `| Priority | ${t.priority_score.score}/10 | ${t.priority_score.rationale} |\n`;
-  md += `| Confidence | ${t.confidence.rating} | ${t.confidence.rationale} |\n`;
+  md += `| Complexity | ${t.complexity.rating} | ${escapeMdTable(t.complexity.rationale)} |\n`;
+  md += `| Value | ${t.value.rating} | ${escapeMdTable(t.value.rationale)} |\n`;
+  md += `| Risk | ${t.risk.rating} | ${escapeMdTable(t.risk.rationale)} |\n`;
+  md += `| Effort | ${t.effort.rating} | ${escapeMdTable(t.effort.rationale)} |\n`;
+  md += `| Impl. Path | ${t.implementation_path.rating} | ${escapeMdTable(t.implementation_path.rationale)} |\n`;
+  md += `| Priority | ${t.priority_score.score}/10 | ${escapeMdTable(t.priority_score.rationale)} |\n`;
+  md += `| Confidence | ${t.confidence.rating} | ${escapeMdTable(t.confidence.rationale)} |\n`;
 
   md += `\n**Recommended Action:** ${actionEmoji} **${t.recommended_action.action}**\n\n`;
   md += `> ${t.recommended_action.rationale}\n\n`;
@@ -307,11 +308,11 @@ export function formatInsufficientComment(phase1, duplicates = []) {
   md += `### Issue Quality Score: ${qs.total}/100 - INSUFFICIENT\n\n`;
   md += `| Dimension | Score | Notes |\n`;
   md += `|-----------|-------|-------|\n`;
-  md += `| Clarity | ${qs.clarity.score}/20 | ${qs.clarity.notes} |\n`;
-  md += `| Reproducibility | ${qs.reproducibility.score}/20 | ${qs.reproducibility.notes} |\n`;
-  md += `| Context | ${qs.context.score}/20 | ${qs.context.notes} |\n`;
-  md += `| Specificity | ${qs.specificity.score}/20 | ${qs.specificity.notes} |\n`;
-  md += `| Actionability | ${qs.actionability.score}/20 | ${qs.actionability.notes} |\n`;
+  md += `| Clarity | ${qs.clarity.score}/20 | ${escapeMdTable(qs.clarity.notes)} |\n`;
+  md += `| Reproducibility | ${qs.reproducibility.score}/20 | ${escapeMdTable(qs.reproducibility.notes)} |\n`;
+  md += `| Context | ${qs.context.score}/20 | ${escapeMdTable(qs.context.notes)} |\n`;
+  md += `| Specificity | ${qs.specificity.score}/20 | ${escapeMdTable(qs.specificity.notes)} |\n`;
+  md += `| Actionability | ${qs.actionability.score}/20 | ${escapeMdTable(qs.actionability.notes)} |\n`;
 
   md += `\n---\n\n`;
 

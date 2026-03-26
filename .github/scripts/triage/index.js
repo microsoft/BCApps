@@ -234,10 +234,15 @@ async function main() {
 
     // Best-effort: post error comment so the issue author knows
     try {
+      // Sanitize error message — strip file paths, tokens, and internal details
+      const safeMessage = (err.message || 'Unknown error')
+        .replace(/\/[^\s:]+/g, '[path]')
+        .replace(/[A-Za-z0-9_-]{40,}/g, '[redacted]')
+        .substring(0, 200);
       const errorComment = [
         '## :robot: AI Triage Assessment\n',
         '> :warning: **Triage could not be completed**\n',
-        `Error: ${err.message}\n`,
+        `Error: ${safeMessage}\n`,
         'Please try removing and re-adding the `ai-triage` label to retry.',
       ].join('\n');
       await postComment(owner, repo, issueNumber, errorComment);

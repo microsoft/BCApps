@@ -163,9 +163,9 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
   const keyTerms = llmTerms.length >= 3 ? llmTerms : regexTerms;
   console.log(`Phase 2: Key terms (${llmTerms.length >= 3 ? 'LLM' : 'regex'}): [${keyTerms.join(', ')}]`);
 
-  // Fetch all enrichment context in parallel
+  // Fetch all enrichment context in parallel — use allSettled so one failure doesn't block the rest
   console.log(`Phase 2: Fetching enrichment context (code, git history, Ideas Portal, ADO, Marketplace, Community, Learn, PRs)...`);
-  const [codeContext, gitHistoryResult, ideasResult, adoResult, marketplaceResult, communityResult, learnResult, prResult, youtubeResult] = await Promise.all([
+  const fetchResults = await Promise.allSettled([
     Promise.resolve(fetchCodeContext(appArea.directory, keyTerms)),
     Promise.resolve(fetchGitHistory(appArea.directory, keyTerms)),
     fetchRelatedIdeas(keyTerms, issue.title),
@@ -176,6 +176,33 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
     fetchRelatedPRs(keyTerms, issue.title),
     fetchYouTubeVideos(keyTerms, issue.title),
   ]);
+
+  const FETCH_LABELS = ['Code', 'Git history', 'Ideas Portal', 'ADO', 'Marketplace', 'Community', 'Learn', 'PRs', 'YouTube'];
+  const settled = fetchResults.map((r, i) => {
+    if (r.status === 'fulfilled') return r.value;
+    console.warn(`Phase 2: ${FETCH_LABELS[i]} fetch failed: ${r.reason?.message || r.reason}`);
+    return null;
+  });
+
+  const EMPTY_CODE = { relevantFiles: [], directory: appArea.directory };
+  const EMPTY_GIT = { totalCommits: 0, keywordCommits: [], topChangedFiles: [], topContributors: [] };
+  const EMPTY_IDEAS = { activeIdeas: [], closedIdeas: [] };
+  const EMPTY_ADO = { activeItems: [], closedItems: [] };
+  const EMPTY_MARKETPLACE = { searchTerms: '', searchUrl: null };
+  const EMPTY_COMMUNITY = { discussions: [], dynamicsCommunityUrl: null };
+  const EMPTY_LEARN = { articles: [], searchQuery: '' };
+  const EMPTY_PRS = { openPRs: [], mergedPRs: [] };
+  const EMPTY_YOUTUBE = { videos: [] };
+
+  const codeContext = settled[0] || EMPTY_CODE;
+  const gitHistoryResult = settled[1] || EMPTY_GIT;
+  const ideasResult = settled[2] || EMPTY_IDEAS;
+  const adoResult = settled[3] || EMPTY_ADO;
+  const marketplaceResult = settled[4] || EMPTY_MARKETPLACE;
+  const communityResult = settled[5] || EMPTY_COMMUNITY;
+  const learnResult = settled[6] || EMPTY_LEARN;
+  const prResult = settled[7] || EMPTY_PRS;
+  const youtubeResult = settled[8] || EMPTY_YOUTUBE;
 
   console.log(`Phase 2: Code context: ${codeContext.relevantFiles?.length || 0} files from ${appArea.directory}`);
   console.log(`Phase 2: Git history: ${gitHistoryResult.totalCommits} commits, ${gitHistoryResult.keywordCommits?.length || 0} keyword matches`);
@@ -449,7 +476,7 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
   const confirmedUrls = new Set(confirmedArticles.map(a => (a.url || '').toLowerCase()));
   for (const doc of llmDocs) {
     const urlKey = (doc.url || '').toLowerCase();
-    if (doc.relevance && urlKey.startsWith('http') && !confirmedUrls.has(urlKey)) {
+    if (doc.relevance && isAllowedDocUrl(doc.url) && !confirmedUrls.has(urlKey)) {
       confirmedArticles.push({ title: doc.title, url: doc.url, description: '', relevance: doc.relevance });
       confirmedUrls.add(urlKey);
     }
@@ -485,6 +512,11 @@ const VALID_PATH = new Set(['Manual', 'Copilot-Assisted', 'Agentic']);
 const VALID_CONFIDENCE = new Set(['High', 'Medium', 'Low']);
 const VALID_ACTION = new Set(['Implement', 'Defer', 'Investigate', 'Reject']);
 
+function filterValidObjects(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.filter(item => item && typeof item === 'object' && !Array.isArray(item));
+}
+
 function coerceRating(obj, field, validSet, defaultVal) {
   if (!obj[field] || typeof obj[field] !== 'object') {
     obj[field] = { rating: defaultVal, rationale: 'No rationale provided' };
@@ -504,17 +536,17 @@ function validateCodeAnalysis(r) {
   coerceRating(r, 'effort', VALID_EFFORT, 'M');
   coerceRating(r, 'risk', VALID_RISK, 'Medium');
   coerceRating(r, 'implementation_path', VALID_PATH, 'Copilot-Assisted');
-  if (!Array.isArray(r.code_areas)) r.code_areas = [];
+  r.code_areas = filterValidObjects(r.code_areas).filter(a => a.path);
 }
 
 function validateSignalAnalysis(r) {
   if (!r || typeof r !== 'object') throw new Error('Phase 2b: Invalid signal analysis response');
   coerceRating(r, 'value', VALID_VALUE, 'Medium');
-  if (!Array.isArray(r.documentation)) r.documentation = [];
-  if (!Array.isArray(r.ideas_portal)) r.ideas_portal = [];
-  if (!Array.isArray(r.ado_work_items)) r.ado_work_items = [];
-  if (!Array.isArray(r.community_discussions)) r.community_discussions = [];
-  if (!Array.isArray(r.youtube_videos)) r.youtube_videos = [];
+  r.documentation = filterValidObjects(r.documentation);
+  r.ideas_portal = filterValidObjects(r.ideas_portal);
+  r.ado_work_items = filterValidObjects(r.ado_work_items);
+  r.community_discussions = filterValidObjects(r.community_discussions);
+  r.youtube_videos = filterValidObjects(r.youtube_videos);
   if (!r.competitive_landscape || typeof r.competitive_landscape !== 'object') {
     r.competitive_landscape = { position: 'Unknown', rationale: '' };
   }
@@ -522,6 +554,7 @@ function validateSignalAnalysis(r) {
   if (!validPositions.has(r.competitive_landscape.position)) {
     r.competitive_landscape.position = 'Unknown';
   }
+  r.competitive_landscape.rationale = sanitizeCompetitiveLandscape(r.competitive_landscape.rationale);
   if (!r.marketplace_ecosystem || typeof r.marketplace_ecosystem !== 'object') {
     r.marketplace_ecosystem = { density: 'Unknown', rationale: '' };
   }
@@ -722,4 +755,71 @@ function extractKeyTerms(title, body) {
     seen.add(term);
     return true;
   }).slice(0, 12);
+}
+
+// ─── Exported utilities (used by format-report and tested independently) ───
+
+/**
+ * Escape a string for safe inclusion in a markdown table cell.
+ * Pipes are escaped and newlines replaced with spaces.
+ */
+export function escapeMdTable(str) {
+  if (str == null) return '';
+  return String(str).replace(/\n/g, ' ').replace(/\|/g, '\\|');
+}
+
+/** Allowed documentation URL domains. */
+const ALLOWED_DOC_DOMAINS = [
+  'learn.microsoft.com',
+  'experience.dynamics.com',
+  'github.com',
+  'community.dynamics.com',
+  'www.dynamicsuser.net',
+];
+
+/**
+ * Return true if the URL belongs to one of the allowed documentation domains.
+ */
+export function isAllowedDocUrl(url) {
+  if (!url) return false;
+  try {
+    const hostname = new URL(url).hostname;
+    return ALLOWED_DOC_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d));
+  } catch {
+    return false;
+  }
+}
+
+/** Competing ERP product names to redact from public-facing reports. */
+const COMPETITOR_NAMES = [
+  'SAP Business One',
+  'SAP Business ByDesign',
+  'SAP S/4HANA',
+  'Oracle NetSuite',
+  'Oracle Fusion',
+  'NetSuite',
+  'Sage Intacct',
+  'Sage X3',
+  'Sage',
+  'QuickBooks',
+  'Xero',
+  'Acumatica',
+  'Odoo',
+  'Infor CloudSuite',
+  'Infor',
+  'SAP',
+  'Oracle',
+];
+
+/**
+ * Replace competitor product names with a generic placeholder.
+ * Longer names are matched first to avoid partial replacements.
+ */
+export function sanitizeCompetitiveLandscape(rationale) {
+  if (!rationale) return '';
+  let result = String(rationale);
+  for (const name of COMPETITOR_NAMES) {
+    result = result.split(name).join('[competing ERP]');
+  }
+  return result;
 }
