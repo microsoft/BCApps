@@ -20,11 +20,17 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         NoContractErr: Label 'The %1 %2 in %3 "%4" has not been assigned to a Contract yet.', Comment = '%1 = Subscription Line, %2 = Subscription Line Entry No., %3 = Subscription, %4 = Subscription No.';
         NoServiceCommitmentWithUsageBasedFlagInServiceObjectErr: Label '%1 "%2" has no valid %3 with property "%4": Yes', Comment = '%1 = Subscription, %2 = Subscription No., %3 = Subscription Line, %4 = Usage Based Billing';
 
-    internal procedure ImportUsageData(var UsageDataImport: Record "Usage Data Import")
+    procedure ImportUsageData(var UsageDataImport: Record "Usage Data Import")
     var
         UsageDataBlob: Record "Usage Data Blob";
         UsageDataGenericImport: Record "Usage Data Generic Import";
+        GenericImportSettings: Record "Generic Import Settings";
     begin
+        UsageDataImport.TestField("Supplier No.");
+        GenericImportSettings.Get(UsageDataImport."Supplier No.");
+        if GenericImportSettings."Process without UsageDataBlobs" then
+            exit;
+
         UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
         UsageDataGenericImport.DeleteAll(false);
 
@@ -46,7 +52,6 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         DataExchDef: Record "Data Exch. Def";
         GenericImportSettings: Record "Generic Import Settings";
     begin
-        UsageDataImport.TestField("Supplier No.");
         GenericImportSettings.Get(UsageDataImport."Supplier No.");
         GenericImportSettings.TestField("Data Exchange Definition");
         DataExchDef.Get(GenericImportSettings."Data Exchange Definition");
@@ -72,7 +77,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         DataExch.InsertRec(UsageDataBlob.Source, FileContentInStream, DataExchDefCode);
     end;
 
-    internal procedure ProcessUsageData(var UsageDataImport: Record "Usage Data Import")
+    procedure ProcessUsageData(var UsageDataImport: Record "Usage Data Import")
     var
         UsageDataGenericImport: Record "Usage Data Generic Import";
         ServiceCommitment: Record "Subscription Line";
@@ -181,7 +186,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         UsageDataGenericImport.SetReason(StrSubstNo(NotValidServiceCommitmentErr, ServiceCommitment."Subscription Header No.", ServiceCommitment."Entry No."));
     end;
 
-    internal procedure ValidateImportedData(var UsageDataImport: Record "Usage Data Import")
+    procedure ValidateImportedData(var UsageDataImport: Record "Usage Data Import")
     var
         UsageDataGenImport: Record "Usage Data Generic Import";
     begin
@@ -192,7 +197,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         end;
     end;
 
-    internal procedure CreateBillingData(var UsageDataImport: Record "Usage Data Import")
+    procedure CreateBillingData(var UsageDataImport: Record "Usage Data Import")
     var
         TempServiceCommitment: Record "Subscription Line" temporary;
         UsageDataBilling: Record "Usage Data Billing";
@@ -237,7 +242,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         end;
     end;
 
-    internal procedure UpdateImportStatus(var UsageDataImport: Record "Usage Data Import")
+    procedure UpdateImportStatus(var UsageDataImport: Record "Usage Data Import")
     var
         UsageDataGenericImport: Record "Usage Data Generic Import";
     begin
@@ -283,7 +288,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         UsageDataGenericImport.Modify(false);
     end;
 
-    internal procedure DeleteImportedData(var UsageDataImport: Record "Usage Data Import")
+    procedure DeleteImportedData(var UsageDataImport: Record "Usage Data Import")
     var
         UsageDataGenericImport: Record "Usage Data Generic Import";
     begin
@@ -291,7 +296,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         UsageDataGenericImport.DeleteAll(false);
     end;
 
-    internal procedure UpdateSubscriptionHeaderNo(SupplierReference: Text[80]; SubscriptionHeaderNo: Code[20])
+    procedure UpdateSubscriptionHeaderNo(SupplierReference: Text[80]; SubscriptionHeaderNo: Code[20])
     var
         UsageDataGenericImport: Record "Usage Data Generic Import";
     begin
@@ -301,7 +306,25 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         UsageDataGenericImport.ModifyAll("Service Object Availability", UsageDataGenericImport."Service Object Availability"::Connected);
     end;
 
-    internal procedure GetImportedLineCount(var UsageDataImport: Record "Usage Data Import"; OnlyErrors: Boolean): Integer
+    procedure OpenSupplierSettings(var UsageDataSupplier: Record "Usage Data Supplier")
+    var
+        GenericImportSettings: Record "Generic Import Settings";
+    begin
+        GenericImportSettings.FilterGroup(2);
+        GenericImportSettings.SetRange("Usage Data Supplier No.", UsageDataSupplier."No.");
+        GenericImportSettings.FilterGroup(0);
+        Page.RunModal(Page::"Generic Import Settings Card", GenericImportSettings);
+    end;
+
+    procedure DeleteSupplierData(var UsageDataSupplier: Record "Usage Data Supplier")
+    var
+        GenericImportSettings: Record "Generic Import Settings";
+    begin
+        GenericImportSettings.SetRange("Usage Data Supplier No.", UsageDataSupplier."No.");
+        GenericImportSettings.DeleteAll(false);
+    end;
+
+    procedure GetImportedLineCount(var UsageDataImport: Record "Usage Data Import"; OnlyErrors: Boolean): Integer
     var
         UsageDataGenericImport: Record "Usage Data Generic Import";
     begin
@@ -311,7 +334,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         exit(UsageDataGenericImport.Count());
     end;
 
-    internal procedure ShowImportedLines(var UsageDataImport: Record "Usage Data Import"; ShowOnlyErrors: Boolean)
+    procedure ShowImportedLines(var UsageDataImport: Record "Usage Data Import"; ShowOnlyErrors: Boolean)
     var
         UsageDataGenericImport: Record "Usage Data Generic Import";
     begin

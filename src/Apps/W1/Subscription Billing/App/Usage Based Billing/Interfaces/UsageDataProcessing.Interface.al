@@ -55,6 +55,20 @@ interface "Usage Data Processing"
     procedure UpdateSubscriptionHeaderNo(SupplierReference: Text[80]; SubscriptionHeaderNo: Code[20]);
 
     /// <summary>
+    /// Open the connector-specific supplier settings page.
+    /// Called when the user wants to view or edit settings for a particular Usage Data Supplier.
+    /// </summary>
+    /// <param name="UsageDataSupplier">Usage Data Supplier whose settings page to open</param>
+    procedure OpenSupplierSettings(var UsageDataSupplier: Record "Usage Data Supplier");
+
+    /// <summary>
+    /// Delete connector-specific data associated with a Usage Data Supplier.
+    /// Called when the Usage Data Supplier is deleted.
+    /// </summary>
+    /// <param name="UsageDataSupplier">Usage Data Supplier whose related data should be deleted</param>
+    procedure DeleteSupplierData(var UsageDataSupplier: Record "Usage Data Supplier");
+
+    /// <summary>
     /// Get the count of imported lines in the connector-specific staging table.
     /// </summary>
     /// <param name="UsageDataImport">Usage Data Import to count lines for</param>

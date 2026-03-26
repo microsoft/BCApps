@@ -159,13 +159,10 @@ page 8041 "Usage Data Imports"
                 trigger OnAction()
                 var
                     UsageDataImport: Record "Usage Data Import";
-                    GenericImportSettings: Record "Generic Import Settings";
                 begin
                     CurrPage.SetSelectionFilter(UsageDataImport);
                     Rec.TestField("Supplier No.");
-                    GenericImportSettings.Get(Rec."Supplier No.");
-                    if not GenericImportSettings."Process without UsageDataBlobs" then
-                        Rec.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Imported Lines");
+                    Rec.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Imported Lines");
                     Rec.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Imported Lines");
                     Rec.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
                     Rec.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
