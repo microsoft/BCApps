@@ -78,14 +78,21 @@ export async function callGPT(systemPrompt, userMessage) {
       }
     } catch (err) {
       lastError = err;
-      if (err.stderr) {
-        console.warn(`Copilot CLI stderr: ${err.stderr.substring(0, 300)}`);
-      }
+      const exitCode = err.code ?? err.killed ? 'KILLED' : 'unknown';
+      const signal = err.signal ?? '';
+      const stderrSnippet = err.stderr ? err.stderr.substring(0, 300) : '';
+      const detail = [
+        `exit=${exitCode}`,
+        signal && `signal=${signal}`,
+        err.killed && 'killed=true (timeout?)',
+        stderrSnippet && `stderr="${stderrSnippet}"`,
+      ].filter(Boolean).join(', ');
       if (attempt === 0) {
-        console.warn(`Copilot CLI error (attempt ${attempt + 1}), retrying in 5s...`);
+        console.warn(`Copilot CLI error (attempt ${attempt + 1}): ${detail} — retrying in 5s...`);
         await sleep(5000);
         continue;
       }
+      console.error(`Copilot CLI failed after retries: ${detail}`);
       throw err;
     }
   }
