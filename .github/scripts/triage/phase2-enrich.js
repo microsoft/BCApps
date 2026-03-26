@@ -1,5 +1,11 @@
 // Phase 2: Issue enrichment and triage assessment
 // See: docs/features/issue-triage-agent/design.md (FR9-FR16, section 6.6)
+//
+// Splits the single monolithic LLM call into three focused calls:
+//   2a. Code Analysis  — source code + domain knowledge → complexity, effort, risk, path, code_areas
+//   2b. Signal Analysis — Ideas, ADO, community, marketplace → value, documentation, ideas_portal, community, ado
+//   2c. Synthesis       — merges 2a + 2b + Phase 1 → priority, confidence, action, executive_summary
+// Steps 2a and 2b run in parallel for latency; 2c runs sequentially after both complete.
 
 import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -41,52 +47,127 @@ const AREA_KNOWLEDGE_MAP = {
   'Pricing': 'sales.md',
 };
 
-/**
- * Enrich the issue with external context and produce a triage assessment.
- * Takes the original issue and Phase 1 results as input.
- */
-export async function enrichAndTriage(issue, phase1Result, precedents = []) {
-  // Build system prompt from skill knowledge files + agent-specific enrichment and output instructions
+// ─── Shared helpers ───
+
+function loadSkillFiles() {
   const repoRoot = join(__dirname, '..', '..', '..');
   const skillDir = join(repoRoot, 'plugins', 'triage', 'skills', 'triage');
   const glossary = readFileSync(join(skillDir, 'SKILL.md'), 'utf-8')
     .replace(/^---[\s\S]*?---\n/, '')
     .match(/## BC\/AL Domain Glossary[\s\S]*?(?=## Triage Process Overview)/)?.[0] || '';
   const enrichKnowledge = readFileSync(join(skillDir, 'triage-enrich.md'), 'utf-8');
+  return { skillDir, glossary, enrichKnowledge };
+}
 
-  // Detect app area early so we can load area-specific knowledge into the system prompt
-  const appArea = detectAppArea(issue.title, issue.body);
-  console.log(`Phase 2: Detected app area: ${appArea.name} (${appArea.directory})`);
-
-  // Load domain knowledge: use area-specific file when available (focused and smaller),
-  // fall back to the full bc-domain.md for areas without specific knowledge.
-  let domainContext = '';
+function loadDomainContext(skillDir, appArea) {
   const areaKnowledgeFile = AREA_KNOWLEDGE_MAP[appArea.name];
   if (areaKnowledgeFile) {
     const areaKnowledgePath = join(skillDir, 'area-knowledge', areaKnowledgeFile);
     try {
       if (existsSync(areaKnowledgePath)) {
-        domainContext = `## Domain knowledge: ${appArea.name}\n\n${readFileSync(areaKnowledgePath, 'utf-8')}`;
         console.log(`Phase 2: Using area-specific knowledge for ${appArea.name}`);
+        return `## Domain knowledge: ${appArea.name}\n\n${readFileSync(areaKnowledgePath, 'utf-8')}`;
       }
-    } catch { /* fall through to general */ }
+    } catch { /* fall through */ }
   }
-  if (!domainContext) {
-    domainContext = readFileSync(join(skillDir, 'bc-domain.md'), 'utf-8');
-    console.log(`Phase 2: Using general domain knowledge`);
+  console.log(`Phase 2: Using general domain knowledge`);
+  return readFileSync(join(skillDir, 'bc-domain.md'), 'utf-8');
+}
+
+function formatIssueBlock(issue) {
+  const maxBodyChars = 6000;
+  const issueBody = (issue.body || '(empty)').length > maxBodyChars
+    ? issue.body.substring(0, maxBodyChars) + '\n... (truncated)'
+    : (issue.body || '(empty)');
+
+  const maxCommentChars = 2000;
+  let commentsBlock = '';
+  if (issue.comments && issue.comments.length > 0) {
+    let commentsText = issue.comments
+      .map(c => `**${c.author}**: ${c.body}`)
+      .join('\n\n');
+    if (commentsText.length > maxCommentChars) {
+      commentsText = commentsText.substring(0, maxCommentChars) + '\n... (truncated)';
+    }
+    commentsBlock = `### Issue comments\n\n${commentsText}\n\n`;
   }
 
-  const systemPrompt = `You are a senior product manager and technical lead performing triage on a GitHub issue for a Microsoft Dynamics 365 Business Central application repository. You have been given the issue content, a quality assessment from Phase 1, and enrichment data including repository code structure, Ideas Portal matches, and Azure DevOps work items.
+  return { issueBody, commentsBlock };
+}
 
-Your job is to enrich the issue with external context and produce a triage recommendation that helps a product manager decide: implement, defer, investigate, or reject.
+// ─── Step 2a: Code Analysis ───
+
+function buildCodeAnalysisPrompt(glossary, domainContext, enrichKnowledge) {
+  return `You are a senior AL developer analyzing the source code impact of a GitHub issue for a Microsoft Dynamics 365 Business Central application repository.
+
+Your job is to deeply analyze the provided source code and assess the technical dimensions of implementing this change. Focus exclusively on the code — what needs to change, how complex the change is, what risks exist, and how much effort it will take.
 
 ${glossary}
 
 ${domainContext}
 
-## Enrichment instructions
+## BC-Specific Risk Awareness
 
-Based on the issue content, think about what documentation, community discussions, and ideas portal entries would be relevant. Provide the most relevant links and context you know of.
+- **Posting routine changes** are always high-risk (affect ledger integrity)
+- **Dimension-related changes** often have wide impact across all document types
+- **Event signature changes** are breaking changes (API contract violation)
+- **FlowField CalcFormula changes** can have performance implications
+- **Table schema changes** require upgrade codeunits (adds significant effort)
+- **Test coverage** matters most for posting routines and financial calculations
+
+## Assessment criteria
+
+### Complexity (Low / Medium / High / Very High)
+- **Low**: Simple configuration change, documentation fix, or single-file change with clear pattern
+- **Medium**: Multi-file change following existing patterns, moderate testing needed
+- **High**: Architectural changes, new integration points, or cross-module impact
+- **Very High**: Fundamental design changes, breaking changes, or novel technical challenges
+
+### Effort Estimate (XS / S / M / L / XL)
+- **XS**: < 2 hours (typo fix, config change)
+- **S**: 2-8 hours (single focused change with tests)
+- **M**: 1-3 days (multi-file feature or complex bug fix)
+- **L**: 1-2 weeks (significant feature or refactoring)
+- **XL**: 2+ weeks (major feature, architectural change)
+
+### Risk (Low / Medium / High)
+- **Low**: Isolated change, good test coverage, no breaking changes
+- **Medium**: Some integration points affected, moderate regression risk
+- **High**: Wide-reaching changes, breaking change potential, affects critical paths
+
+### Implementation Path (Manual / Copilot-Assisted / Agentic)
+- **Manual**: Requires deep domain expertise, nuanced judgment, or novel architectural decisions
+- **Copilot-Assisted**: Code changes follow existing patterns where AI can help with boilerplate
+- **Agentic**: Well-defined scope with clear existing patterns — an AI agent could drive the full implementation
+
+## Output format
+
+Return a JSON object with this exact structure:
+\`\`\`json
+{
+  "complexity": { "rating": "Medium", "rationale": "Explanation referencing specific AL objects" },
+  "effort": { "rating": "M", "rationale": "Explanation with specific file/object references" },
+  "risk": { "rating": "Low", "rationale": "Explanation of risk factors from the code" },
+  "implementation_path": { "rating": "Copilot-Assisted", "rationale": "Explanation" },
+  "code_areas": [
+    { "path": "src/Apps/W1/...", "relevance": "Why this area needs modification" }
+  ]
+}
+\`\`\`
+
+Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON.`;
+}
+
+// ─── Step 2b: Signal Analysis ───
+
+function buildSignalAnalysisPrompt(glossary) {
+  return `You are a senior product manager evaluating the business value and community demand for a GitHub issue in a Microsoft Dynamics 365 Business Central application repository.
+
+Your job is to analyze external signals — Ideas Portal data, Azure DevOps work items, community discussions, AppSource marketplace data, and your knowledge of documentation — to assess the value and demand for this change. Focus exclusively on the business impact, not the code.
+
+${glossary}
+
+## Signal interpretation
 
 ### Documentation (Microsoft Learn)
 Search your knowledge for relevant Business Central documentation from learn.microsoft.com. Focus on feature documentation, API documentation, known limitations, and configuration guides.
@@ -96,23 +177,59 @@ Provide actual URLs when confident they exist. Format: \`https://learn.microsoft
 You will be provided with actual search results from the Dynamics 365 Ideas Portal. Use these to gauge community demand, check current status of related ideas, and incorporate high-vote ideas into your value assessment.
 
 ### Azure DevOps work items
-You may be provided with related work items from the Dynamics SMB ADO project. Use these to identify if this issue is already tracked internally and factor existing work into your recommended action.
+You may be provided with related work items from the Dynamics SMB ADO project. Use these to identify if this issue is already tracked internally and factor existing work into your assessment.
 
 ### Community discussions
-You will be provided with search results from DynamicsUser.net (a major BC community forum) and a search link for Microsoft Dynamics Community. Use these to gauge whether users are actively discussing this topic and what workarounds or solutions the community has found. Also consider relevant Stack Overflow questions or GitHub issues.
+You will be provided with search results from DynamicsUser.net (a major BC community forum) and a search link for Microsoft Dynamics Community. Use these to gauge whether users are actively discussing this topic and what workarounds or solutions the community has found.
 
 ### AppSource Marketplace
-You will be provided with search results from the Microsoft AppSource marketplace for Business Central apps. Use the number of related apps as a demand signal:
-- **20+ related apps**: Strong ecosystem interest — the capability is well-established and improvements have high value
-- **5-19 related apps**: Moderate interest — established demand in this area
+You will be provided with search context from the Microsoft AppSource marketplace for Business Central apps. Use the number of related apps as a demand signal:
+- **20+ related apps**: Strong ecosystem interest — improvements have high value
+- **5-19 related apps**: Moderate interest — established demand
 - **<5 related apps**: Niche area — could be an opportunity or low-demand capability
-Factor the marketplace signal into your value and priority assessment.
 
-### Repository source code
-You will be provided with actual source code files from the detected app area. Use this code to identify specific AL objects that would need to change, assess complexity, evaluate risk, estimate effort, and determine the implementation path.
+### Value (Low / Medium / High / Critical)
+- **Low**: Nice-to-have, affects few users, minor convenience improvement
+- **Medium**: Meaningful improvement for a segment of users, noticeable quality-of-life gain
+- **High**: Significant business impact, affects many users, or addresses data integrity issues
+- **Critical**: Data loss, security vulnerability, or blocks core business workflows
 
-### Related code areas
-Based on the detected app area, issue content, and the provided source code, identify which files and directories are most relevant. Be specific about which AL objects would need modification.
+## Output format
+
+Return a JSON object with this exact structure:
+\`\`\`json
+{
+  "value": { "rating": "High", "rationale": "Explanation citing specific signals" },
+  "documentation": [
+    { "title": "Article title", "url": "https://...", "relevance": "Why this is relevant" }
+  ],
+  "ideas_portal": [
+    { "title": "Idea title", "url": "https://experience.dynamics.com/...", "relevance": "Why this is relevant" }
+  ],
+  "community": [
+    { "title": "Discussion title", "url": "https://...", "relevance": "Why this is relevant" }
+  ],
+  "ado_work_items": [
+    { "id": 12345, "relevance": "Why this work item is relevant to the issue" }
+  ]
+}
+\`\`\`
+
+Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON.`;
+}
+
+// ─── Step 2c: Synthesis ───
+
+function buildSynthesisPrompt(enrichKnowledge) {
+  return `You are a senior product manager synthesizing a final triage recommendation for a GitHub issue in a Microsoft Dynamics 365 Business Central repository.
+
+You have been given:
+1. A Phase 1 quality assessment of the issue
+2. A code analysis with complexity, effort, risk, and implementation path assessments (from a separate code-focused analysis)
+3. A signal analysis with value assessment, documentation, ideas, ADO items, and community data (from a separate signal-focused analysis)
+4. Precedents — similar closed issues that may provide historical context
+
+Your job is to integrate ALL of these into a final triage recommendation: priority score, confidence level, recommended action, and an executive summary.
 
 ${enrichKnowledge}
 
@@ -121,38 +238,28 @@ ${enrichKnowledge}
 Return a JSON object with this exact structure:
 \`\`\`json
 {
-  "enrichment": {
-    "documentation": [
-      { "title": "Article title", "url": "https://...", "relevance": "Why this is relevant" }
-    ],
-    "ideas_portal": [
-      { "title": "Idea title", "url": "https://experience.dynamics.com/...", "relevance": "Why this is relevant" }
-    ],
-    "community": [
-      { "title": "Discussion title", "url": "https://...", "relevance": "Why this is relevant" }
-    ],
-    "ado_work_items": [
-      { "id": 12345, "relevance": "Why this work item is relevant to the issue" }
-    ],
-    "code_areas": [
-      { "path": "src/Apps/W1/...", "relevance": "Why this area is relevant" }
-    ]
-  },
-  "triage": {
-    "complexity": { "rating": "Medium", "rationale": "Explanation" },
-    "value": { "rating": "High", "rationale": "Explanation" },
-    "risk": { "rating": "Low", "rationale": "Explanation" },
-    "effort": { "rating": "M", "rationale": "Explanation" },
-    "implementation_path": { "rating": "Copilot-Assisted", "rationale": "Explanation" },
-    "priority_score": { "score": 7, "rationale": "Calculation explanation" },
-    "confidence": { "rating": "High", "rationale": "Explanation" },
-    "recommended_action": { "action": "Implement", "rationale": "Explanation" }
-  },
+  "priority_score": { "score": 7, "rationale": "Calculation: (Value × Urgency) / (Effort × Risk) = X, normalized to Y/10" },
+  "confidence": { "rating": "High", "rationale": "Explanation of what evidence supports or undermines confidence" },
+  "recommended_action": { "action": "Implement", "rationale": "Explanation integrating code analysis and signal analysis" },
   "executive_summary": "2-3 sentence summary for a product manager who needs to make a quick decision."
 }
 \`\`\`
 
 Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON.`;
+}
+
+// ─── Main orchestrator ───
+
+/**
+ * Enrich the issue with external context and produce a triage assessment.
+ * Takes the original issue and Phase 1 results as input.
+ */
+export async function enrichAndTriage(issue, phase1Result, precedents = []) {
+  const { skillDir, glossary, enrichKnowledge } = loadSkillFiles();
+  const appArea = detectAppArea(issue.title, issue.body);
+  console.log(`Phase 2: Detected app area: ${appArea.name} (${appArea.directory})`);
+
+  const domainContext = loadDomainContext(skillDir, appArea);
 
   // Use LLM-extracted search terms from Phase 1 (with regex fallback)
   const llmTerms = phase1Result.search_terms || [];
@@ -182,26 +289,9 @@ Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON
   const marketplaceContextBlock = formatMarketplaceContext(marketplaceResult);
   const communityContextBlock = formatCommunityContext(communityResult);
 
-  // Truncate very long issue bodies to avoid excessive token usage
-  const maxBodyChars = 6000;
-  const issueBody = (issue.body || '(empty)').length > maxBodyChars
-    ? issue.body.substring(0, maxBodyChars) + '\n... (truncated)'
-    : (issue.body || '(empty)');
+  const { issueBody, commentsBlock } = formatIssueBlock(issue);
 
-  // Include issue comments — they often contain clarifications, repro steps, and version info
-  const maxCommentChars = 2000;
-  let commentsBlock = '';
-  if (issue.comments && issue.comments.length > 0) {
-    let commentsText = issue.comments
-      .map(c => `**${c.author}**: ${c.body}`)
-      .join('\n\n');
-    if (commentsText.length > maxCommentChars) {
-      commentsText = commentsText.substring(0, maxCommentChars) + '\n... (truncated)';
-    }
-    commentsBlock = `### Issue comments\n\n${commentsText}\n\n`;
-  }
-
-  // Format precedents block for LLM context
+  // Format precedents block
   let precedentsBlock = '';
   if (precedents.length > 0) {
     precedentsBlock = `### Similar resolved issues\n\nThese closed issues had significant keyword overlap and may provide context:\n\n`;
@@ -211,29 +301,36 @@ Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON
     precedentsBlock += `\n`;
   }
 
-  const userMessage = `## Issue #${issue.number}: ${issue.title}
+  const issueHeader = `## Issue #${issue.number}: ${issue.title}
 
 ### Issue body
 
 ${issueBody}
 
-${commentsBlock}${precedentsBlock}### Phase 1 assessment
+${commentsBlock}### Phase 1 assessment
 
 - **Quality score**: ${phase1Result.quality_score.total}/100
 - **Verdict**: ${phase1Result.verdict}
 - **Issue type**: ${phase1Result.issue_type}
 - **Summary**: ${phase1Result.summary}
-- **Detected app area**: ${phase1Result.detected_app_area}
+- **Detected app area**: ${phase1Result.detected_app_area}`;
 
-### Context for enrichment
+  // ── Step 2a + 2b: Run code analysis and signal analysis in parallel ──
+  console.log(`Phase 2: Starting code analysis and signal analysis in parallel...`);
 
-- **App area directory**: ${appArea.directory}
-- **Key search terms**: ${keyTerms.join(', ')}
-- **Repository**: microsoft/BCAppsCampAIRHack (Business Central applications)
-- **Search scope for documentation**: site:learn.microsoft.com/en-us/dynamics365/business-central/
-- **Search scope for community**: stackoverflow.com, github.com/microsoft/BCApps
+  const codeAnalysisPrompt = buildCodeAnalysisPrompt(glossary, domainContext, enrichKnowledge);
+  const codeAnalysisMessage = `${issueHeader}
+
+### App area directory: ${appArea.directory}
 
 ${codeContextBlock}
+
+Analyze the source code above and assess complexity, effort, risk, and implementation path for this issue.`;
+
+  const signalAnalysisPrompt = buildSignalAnalysisPrompt(glossary);
+  const signalAnalysisMessage = `${issueHeader}
+
+### Key search terms: ${keyTerms.join(', ')}
 
 ${ideasContextBlock}
 
@@ -243,21 +340,81 @@ ${marketplaceContextBlock}
 
 ${communityContextBlock}
 
-Please analyze all provided context - source code structure, Ideas Portal matches, ADO work items, AppSource marketplace data, community forum discussions, and your knowledge of documentation.
-Then provide your triage assessment as JSON.`;
+Analyze all provided external signals and assess the business value of this issue.`;
 
-  console.log(`Phase 2: Enriching and triaging issue #${issue.number}...`);
-  const result = await callGPT(systemPrompt, userMessage);
+  const [codeAnalysis, signalAnalysis] = await Promise.all([
+    callGPT(codeAnalysisPrompt, codeAnalysisMessage).then(r => {
+      validateCodeAnalysis(r);
+      console.log(`Phase 2a: Code analysis complete — Complexity: ${r.complexity.rating}, Effort: ${r.effort.rating}, Risk: ${r.risk.rating}`);
+      return r;
+    }),
+    callGPT(signalAnalysisPrompt, signalAnalysisMessage).then(r => {
+      validateSignalAnalysis(r);
+      console.log(`Phase 2b: Signal analysis complete — Value: ${r.value.rating}`);
+      return r;
+    }),
+  ]);
 
-  // Validate response structure and types
+  // ── Step 2c: Synthesis ──
+  console.log(`Phase 2c: Synthesizing final triage recommendation...`);
+
+  const synthesisPrompt = buildSynthesisPrompt(enrichKnowledge);
+  const synthesisMessage = `${issueHeader}
+
+${precedentsBlock}### Code analysis results
+
+- **Complexity**: ${codeAnalysis.complexity.rating} — ${codeAnalysis.complexity.rationale}
+- **Effort**: ${codeAnalysis.effort.rating} — ${codeAnalysis.effort.rationale}
+- **Risk**: ${codeAnalysis.risk.rating} — ${codeAnalysis.risk.rationale}
+- **Implementation path**: ${codeAnalysis.implementation_path.rating} — ${codeAnalysis.implementation_path.rationale}
+- **Code areas**: ${(codeAnalysis.code_areas || []).map(a => a.path).join(', ') || 'none identified'}
+
+### Signal analysis results
+
+- **Value**: ${signalAnalysis.value.rating} — ${signalAnalysis.value.rationale}
+- **Ideas Portal matches**: ${(signalAnalysis.ideas_portal || []).length} relevant ideas found
+- **ADO work items**: ${(signalAnalysis.ado_work_items || []).length} related items found
+- **Community discussions**: ${(signalAnalysis.community || []).length} relevant discussions found
+- **Documentation**: ${(signalAnalysis.documentation || []).length} relevant articles found
+
+Synthesize the code analysis and signal analysis into a final triage recommendation.`;
+
+  const synthesis = await callGPT(synthesisPrompt, synthesisMessage);
+  validateSynthesis(synthesis);
+
+  console.log(`Phase 2c: Synthesis complete — Priority ${synthesis.priority_score.score}/10, Action: ${synthesis.recommended_action.action}`);
+
+  // ── Assemble final result in the same shape downstream consumers expect ──
+  const result = {
+    enrichment: {
+      documentation: signalAnalysis.documentation || [],
+      ideas_portal: signalAnalysis.ideas_portal || [],
+      community: signalAnalysis.community || [],
+      ado_work_items: signalAnalysis.ado_work_items || [],
+      code_areas: codeAnalysis.code_areas || [],
+    },
+    triage: {
+      complexity: codeAnalysis.complexity,
+      value: signalAnalysis.value,
+      risk: codeAnalysis.risk,
+      effort: codeAnalysis.effort,
+      implementation_path: codeAnalysis.implementation_path,
+      priority_score: synthesis.priority_score,
+      confidence: synthesis.confidence,
+      recommended_action: synthesis.recommended_action,
+    },
+    executive_summary: synthesis.executive_summary,
+  };
+
+  // Validate the assembled result with the same checks as before
   validatePhase2Response(result);
 
   console.log(`Phase 2 complete: Priority ${result.triage.priority_score?.score}/10 - ${result.triage.recommended_action?.action}`);
 
   // Attach analyzed file metadata so the comment formatter can display it
-  if (!result.enrichment) result.enrichment = {};
   result.enrichment.analyzed_files = codeContext.relevantFiles.map(f => f.path);
   result.enrichment.analyzed_directory = codeContext.directory;
+
   // Merge LLM relevance explanations into the Ideas from the search
   const llmIdeaRelevance = new Map();
   for (const item of (result.enrichment.ideas_portal || [])) {
@@ -269,6 +426,7 @@ Then provide your triage assessment as JSON.`;
     title: i.title, votes: i.votes, status: i.status, url: i.url,
     relevance: llmIdeaRelevance.get((i.title || '').toLowerCase()) || '',
   }));
+
   // Merge LLM relevance explanations into the ADO work items from the search
   const llmAdoRelevance = new Map();
   for (const item of (result.enrichment.ado_work_items || [])) {
@@ -280,11 +438,13 @@ Then provide your triage assessment as JSON.`;
     ...wi,
     relevance: llmAdoRelevance.get(wi.id) || wi.matchReason,
   }));
+
   result.enrichment.marketplace = {
     searchTerms: marketplaceResult.searchTerms,
     searchUrl: marketplaceResult.searchUrl,
   };
   result.enrichment.precedents = precedents;
+
   // Merge LLM relevance explanations into community discussions from the search
   const llmCommunityRelevance = new Map();
   for (const item of (result.enrichment.community || [])) {
@@ -301,8 +461,139 @@ Then provide your triage assessment as JSON.`;
   return result;
 }
 
+// ─── Validation helpers ───
+
+const VALID_COMPLEXITY = new Set(['Low', 'Medium', 'High', 'Very High']);
+const VALID_VALUE = new Set(['Low', 'Medium', 'High', 'Critical']);
+const VALID_RISK = new Set(['Low', 'Medium', 'High']);
+const VALID_EFFORT = new Set(['XS', 'S', 'M', 'L', 'XL']);
+const VALID_PATH = new Set(['Manual', 'Copilot-Assisted', 'Agentic']);
+const VALID_CONFIDENCE = new Set(['High', 'Medium', 'Low']);
+const VALID_ACTION = new Set(['Implement', 'Defer', 'Investigate', 'Reject']);
+
+function coerceRating(obj, field, validSet, defaultVal) {
+  if (!obj[field] || typeof obj[field] !== 'object') {
+    obj[field] = { rating: defaultVal, rationale: 'No rationale provided' };
+  }
+  if (!validSet.has(obj[field].rating)) {
+    const match = [...validSet].find(v => v.toLowerCase() === String(obj[field].rating).toLowerCase());
+    obj[field].rating = match || defaultVal;
+  }
+  if (typeof obj[field].rationale !== 'string') {
+    obj[field].rationale = String(obj[field].rationale || '');
+  }
+}
+
+function validateCodeAnalysis(r) {
+  if (!r || typeof r !== 'object') throw new Error('Phase 2a: Invalid code analysis response');
+  coerceRating(r, 'complexity', VALID_COMPLEXITY, 'Medium');
+  coerceRating(r, 'effort', VALID_EFFORT, 'M');
+  coerceRating(r, 'risk', VALID_RISK, 'Medium');
+  coerceRating(r, 'implementation_path', VALID_PATH, 'Copilot-Assisted');
+  if (!Array.isArray(r.code_areas)) r.code_areas = [];
+}
+
+function validateSignalAnalysis(r) {
+  if (!r || typeof r !== 'object') throw new Error('Phase 2b: Invalid signal analysis response');
+  coerceRating(r, 'value', VALID_VALUE, 'Medium');
+  if (!Array.isArray(r.documentation)) r.documentation = [];
+  if (!Array.isArray(r.ideas_portal)) r.ideas_portal = [];
+  if (!Array.isArray(r.community)) r.community = [];
+  if (!Array.isArray(r.ado_work_items)) r.ado_work_items = [];
+}
+
+function validateSynthesis(r) {
+  if (!r || typeof r !== 'object') throw new Error('Phase 2c: Invalid synthesis response');
+
+  // priority_score
+  if (!r.priority_score || typeof r.priority_score !== 'object') {
+    r.priority_score = { score: 5, rationale: 'Default score' };
+  }
+  if (typeof r.priority_score.score !== 'number') {
+    const parsed = Number(r.priority_score.score);
+    r.priority_score.score = isNaN(parsed) ? 5 : parsed;
+  }
+  r.priority_score.score = Math.max(1, Math.min(10, Math.round(r.priority_score.score)));
+  if (typeof r.priority_score.rationale !== 'string') {
+    r.priority_score.rationale = String(r.priority_score.rationale || '');
+  }
+
+  // confidence
+  coerceRating(r, 'confidence', VALID_CONFIDENCE, 'Medium');
+
+  // recommended_action
+  if (!r.recommended_action || typeof r.recommended_action !== 'object') {
+    r.recommended_action = { action: 'Investigate', rationale: 'No rationale provided' };
+  }
+  if (!VALID_ACTION.has(r.recommended_action.action)) {
+    const match = [...VALID_ACTION].find(v => v.toLowerCase() === String(r.recommended_action.action).toLowerCase());
+    r.recommended_action.action = match || 'Investigate';
+  }
+  if (typeof r.recommended_action.rationale !== 'string') {
+    r.recommended_action.rationale = String(r.recommended_action.rationale || '');
+  }
+
+  // executive_summary
+  if (typeof r.executive_summary !== 'string') {
+    r.executive_summary = String(r.executive_summary || 'No summary provided.');
+  }
+}
+
+/**
+ * Validate and coerce the assembled Phase 2 response (same contract as before).
+ */
+function validatePhase2Response(result) {
+  if (!result.triage || typeof result.triage !== 'object') {
+    throw new Error('Phase 2: Invalid response - missing triage object');
+  }
+  if (!result.enrichment || typeof result.enrichment !== 'object') {
+    result.enrichment = {};
+  }
+  if (typeof result.executive_summary !== 'string') {
+    result.executive_summary = String(result.executive_summary || 'No summary provided.');
+  }
+
+  const t = result.triage;
+  coerceRating(t, 'complexity', VALID_COMPLEXITY, 'Medium');
+  coerceRating(t, 'value', VALID_VALUE, 'Medium');
+  coerceRating(t, 'risk', VALID_RISK, 'Medium');
+  coerceRating(t, 'effort', VALID_EFFORT, 'M');
+  coerceRating(t, 'implementation_path', VALID_PATH, 'Copilot-Assisted');
+  coerceRating(t, 'confidence', VALID_CONFIDENCE, 'Medium');
+
+  if (!t.priority_score || typeof t.priority_score !== 'object') {
+    t.priority_score = { score: 5, rationale: 'Default score' };
+  }
+  if (typeof t.priority_score.score !== 'number') {
+    const parsed = Number(t.priority_score.score);
+    t.priority_score.score = isNaN(parsed) ? 5 : parsed;
+  }
+  t.priority_score.score = Math.max(1, Math.min(10, Math.round(t.priority_score.score)));
+  if (typeof t.priority_score.rationale !== 'string') {
+    t.priority_score.rationale = String(t.priority_score.rationale || '');
+  }
+
+  if (!t.recommended_action || typeof t.recommended_action !== 'object') {
+    t.recommended_action = { action: 'Investigate', rationale: 'No rationale provided' };
+  }
+  if (!VALID_ACTION.has(t.recommended_action.action)) {
+    const match = [...VALID_ACTION].find(v => v.toLowerCase() === String(t.recommended_action.action).toLowerCase());
+    t.recommended_action.action = match || 'Investigate';
+  }
+  if (typeof t.recommended_action.rationale !== 'string') {
+    t.recommended_action.rationale = String(t.recommended_action.rationale || '');
+  }
+
+  for (const field of ['documentation', 'ideas_portal', 'community', 'code_areas']) {
+    if (!Array.isArray(result.enrichment[field])) {
+      result.enrichment[field] = [];
+    }
+  }
+}
+
+// ─── Key term extraction (regex fallback when LLM terms unavailable) ───
+
 // Known BC multi-word terms that should be kept intact during extraction.
-// These are matched first (longest first) before falling back to single words / bigrams.
 const BC_DOMAIN_PHRASES = [
   'purchase order', 'purchase invoice', 'purchase line', 'purchase header',
   'sales order', 'sales invoice', 'sales line', 'sales header', 'sales price',
@@ -338,13 +629,8 @@ const BC_DOMAIN_PHRASES = [
   'transfer order', 'location transfer',
   'human resource', 'employment contract',
 ];
-// Sort longest first so longer phrases match before shorter substrings
 const SORTED_PHRASES = [...BC_DOMAIN_PHRASES].sort((a, b) => b.length - a.length);
 
-/**
- * Extract meaningful search terms from issue title and body.
- * Prioritizes known BC domain phrases, then bigrams, then single high-frequency words.
- */
 function extractKeyTerms(title, body) {
   const text = `${title} ${body}`.toLowerCase();
   const stopWords = new Set([
@@ -360,7 +646,6 @@ function extractKeyTerms(title, body) {
     'this', 'that', 'these', 'those', 'i', 'we', 'you', 'he', 'she',
     'they', 'me', 'us', 'him', 'her', 'them', 'my', 'our', 'your', 'his',
     'its', 'their', 'what', 'which', 'who', 'whom', 'about', 'up',
-    // BC-domain generic terms that match too broadly
     'item', 'items', 'page', 'pages', 'table', 'tables', 'field', 'fields',
     'function', 'functions', 'report', 'reports', 'codeunit', 'codeunits',
     'value', 'values', 'number', 'numbers', 'code', 'name', 'list', 'card',
@@ -371,7 +656,6 @@ function extractKeyTerms(title, body) {
     'open', 'close', 'run', 'use', 'used', 'using', 'work', 'works',
     'need', 'want', 'like', 'make', 'way', 'also', 'just', 'still',
     'appear', 'appears', 'look', 'looks', 'seem', 'seems', 'expected',
-    // Code-level noise that leaks from issue bodies containing AL/code snippets
     'procedure', 'var', 'begin', 'end', 'local', 'trigger', 'true', 'false',
     'then', 'else', 'exit', 'repeat', 'until', 'case', 'with', 'rec',
     'text', 'integer', 'boolean', 'decimal', 'guid', 'enum', 'interface',
@@ -385,23 +669,19 @@ function extractKeyTerms(title, body) {
     'able', 'unable', 'possible', 'impossible', 'necessary', 'specific',
   ]);
 
-  // Step 1: Extract known BC domain phrases found in the text
   const domainMatches = [];
   for (const phrase of SORTED_PHRASES) {
     if (text.includes(phrase)) {
       domainMatches.push(phrase);
-      if (domainMatches.length >= 5) break; // cap domain phrases
+      if (domainMatches.length >= 5) break;
     }
   }
 
-  // Step 2: Extract single words
   const words = text
     .replace(/[^a-z0-9\s-]/g, ' ')
     .split(/\s+/)
     .filter(w => w.length > 2 && !stopWords.has(w));
 
-  // Step 3: Extract bigrams (two-word phrases) for more specific matching
-  // Both words must be non-stop-words and reasonably sized to avoid code noise
   const allWords = text.replace(/[^a-z0-9\s-]/g, ' ').split(/\s+/).filter(w => w.length > 1);
   const bigrams = [];
   for (let i = 0; i < allWords.length - 1; i++) {
@@ -413,7 +693,6 @@ function extractKeyTerms(title, body) {
     }
   }
 
-  // Count frequency of single words and return top terms
   const freq = {};
   for (const w of words) {
     freq[w] = (freq[w] || 0) + 1;
@@ -424,7 +703,6 @@ function extractKeyTerms(title, body) {
     .slice(0, 8)
     .map(([word]) => word);
 
-  // Count bigram frequency, pick top 5
   const bigramFreq = {};
   for (const bg of bigrams) {
     bigramFreq[bg] = (bigramFreq[bg] || 0) + 1;
@@ -434,8 +712,6 @@ function extractKeyTerms(title, body) {
     .slice(0, 5)
     .map(([phrase]) => phrase);
 
-  // Step 4: Extract cleaned title as a search phrase
-  // The title is often the single best search term — use it directly
   const titleCleaned = title.toLowerCase()
     .replace(/[^a-z0-9\s-]/g, ' ')
     .split(/\s+/)
@@ -444,93 +720,12 @@ function extractKeyTerms(title, body) {
     .trim();
   const titleTerms = titleCleaned.length > 5 ? [titleCleaned] : [];
 
-  // Combine: title phrase first, then domain phrases, then bigrams, then single terms
   const combined = [...titleTerms, ...domainMatches, ...topBigrams, ...singleTerms];
 
-  // Deduplicate while preserving order
   const seen = new Set();
   return combined.filter(term => {
     if (seen.has(term)) return false;
     seen.add(term);
     return true;
   }).slice(0, 12);
-}
-
-const VALID_COMPLEXITY = new Set(['Low', 'Medium', 'High', 'Very High']);
-const VALID_VALUE = new Set(['Low', 'Medium', 'High', 'Critical']);
-const VALID_RISK = new Set(['Low', 'Medium', 'High']);
-const VALID_EFFORT = new Set(['XS', 'S', 'M', 'L', 'XL']);
-const VALID_PATH = new Set(['Manual', 'Copilot-Assisted', 'Agentic']);
-const VALID_CONFIDENCE = new Set(['High', 'Medium', 'Low']);
-const VALID_ACTION = new Set(['Implement', 'Defer', 'Investigate', 'Reject']);
-
-/**
- * Validate and coerce Phase 2 response structure and types.
- */
-function validatePhase2Response(result) {
-  if (!result.triage || typeof result.triage !== 'object') {
-    throw new Error('Phase 2: Invalid response - missing triage object');
-  }
-  if (!result.enrichment || typeof result.enrichment !== 'object') {
-    result.enrichment = {};
-  }
-  if (typeof result.executive_summary !== 'string') {
-    result.executive_summary = String(result.executive_summary || 'No summary provided.');
-  }
-
-  const t = result.triage;
-
-  // Validate rating fields: ensure object with rating and rationale strings
-  function validateRatingField(field, validSet, defaultVal) {
-    if (!t[field] || typeof t[field] !== 'object') {
-      t[field] = { rating: defaultVal, rationale: 'No rationale provided' };
-    }
-    if (!validSet.has(t[field].rating)) {
-      // Try case-insensitive match
-      const match = [...validSet].find(v => v.toLowerCase() === String(t[field].rating).toLowerCase());
-      t[field].rating = match || defaultVal;
-    }
-    if (typeof t[field].rationale !== 'string') {
-      t[field].rationale = String(t[field].rationale || '');
-    }
-  }
-
-  validateRatingField('complexity', VALID_COMPLEXITY, 'Medium');
-  validateRatingField('value', VALID_VALUE, 'Medium');
-  validateRatingField('risk', VALID_RISK, 'Medium');
-  validateRatingField('effort', VALID_EFFORT, 'M');
-  validateRatingField('implementation_path', VALID_PATH, 'Copilot-Assisted');
-  validateRatingField('confidence', VALID_CONFIDENCE, 'Medium');
-
-  // Validate priority_score: must have numeric score
-  if (!t.priority_score || typeof t.priority_score !== 'object') {
-    t.priority_score = { score: 5, rationale: 'Default score' };
-  }
-  if (typeof t.priority_score.score !== 'number') {
-    const parsed = Number(t.priority_score.score);
-    t.priority_score.score = isNaN(parsed) ? 5 : parsed;
-  }
-  t.priority_score.score = Math.max(1, Math.min(10, Math.round(t.priority_score.score)));
-  if (typeof t.priority_score.rationale !== 'string') {
-    t.priority_score.rationale = String(t.priority_score.rationale || '');
-  }
-
-  // Validate recommended_action
-  if (!t.recommended_action || typeof t.recommended_action !== 'object') {
-    t.recommended_action = { action: 'Investigate', rationale: 'No rationale provided' };
-  }
-  if (!VALID_ACTION.has(t.recommended_action.action)) {
-    const match = [...VALID_ACTION].find(v => v.toLowerCase() === String(t.recommended_action.action).toLowerCase());
-    t.recommended_action.action = match || 'Investigate';
-  }
-  if (typeof t.recommended_action.rationale !== 'string') {
-    t.recommended_action.rationale = String(t.recommended_action.rationale || '');
-  }
-
-  // Validate enrichment arrays
-  for (const field of ['documentation', 'ideas_portal', 'community', 'code_areas']) {
-    if (!Array.isArray(result.enrichment[field])) {
-      result.enrichment[field] = [];
-    }
-  }
 }
