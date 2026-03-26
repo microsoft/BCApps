@@ -38,6 +38,19 @@ codeunit 4318 "Agent System Permissions Impl."
         exit(false);
     end;
 
+    procedure CurrentUserCanUseAgent(AgentUserSecurityId: Guid): Boolean
+    var
+        Agent: Record Agent;
+    begin
+        if (CurrentUserHasCanManageAllAgentsPermission()) then
+            exit(true);
+
+        if Agent.Get(AgentUserSecurityId) then
+            exit(Agent."Can Current User Use Agent");
+
+        exit(false);
+    end;
+
     local procedure CurrentUserHasExecuteSystemPermission(PermissionId: Integer): Boolean
     var
         TempPermission: Record "Expanded Permission" temporary;

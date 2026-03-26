@@ -27,17 +27,6 @@ page 4333 "Agent Consumption Overview"
     {
         area(Content)
         {
-            group(Info)
-            {
-                ShowCaption = false;
-                Visible = not CurrentUserIsAgentAdmin;
-
-                label(NonAdminDisclaimer)
-                {
-                    Caption = 'The consumption data shown only covers the agents you have access to and may be incomplete. Users with Agent-Admin have access to the complete consumption data.';
-                }
-            }
-
             group(Filters)
             {
                 ShowCaption = false;
@@ -306,11 +295,8 @@ page 4333 "Agent Consumption Overview"
     }
 
     trigger OnOpenPage()
-    var
-        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
-        CurrentUserIsAgentAdmin := AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission();
-
+        ValidateAgentAccessControl();
         SetDateRangeFilters();
         OnGetTotalsVisible(TotalsVisible, FilteredToTask);
     end;
@@ -331,27 +317,14 @@ page 4333 "Agent Consumption Overview"
     var
         DescriptionInStream: InStream;
     begin
-        Rec.CalcFields(Description, "Agent User Display Name");
+        Rec.CalcFields(Description, "Agent User Display Name", "Task Title");
         Rec.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
         DescriptionInStream.ReadText(DescriptionTxt);
     end;
 
     local procedure UpdateAgentTaskName()
-    var
-        AgentTask: Record "Agent Task";
     begin
-        // TODO(qutreson) task title could be a flow field.
-        if not AgentTaskDictionary.ContainsKey(Rec."Task ID") then begin
-            if AgentTask.Get(Rec."Task ID") then begin
-                TaskNameTxt := StrSubstNo(AgentTaskNameTxt, AgentTask.ID, AgentTask.Title);
-                AgentTaskDictionary.Add(Rec."Task ID", TaskNameTxt);
-            end else
-                TaskNameTxt := '';
-
-            exit;
-        end;
-
-        TaskNameTxt := AgentTaskDictionary.Get(Rec."Task ID");
+        TaskNameTxt := StrSubstNo(AgentTaskNameTxt, Rec."Task Id", Rec."Task Title");
     end;
 
     local procedure UpdateTotals()
@@ -363,21 +336,13 @@ page 4333 "Agent Consumption Overview"
 
         TotalEntriesCount := Rec.Count();
         AgentTaskConsumption.Copy(Rec);
-        TotalEntriesCopilotCredits := GetCopilotCreditsConsumed(AgentTaskConsumption);
+        AgentTaskConsumption.CalcSums("Copilot Credits");
+        TotalEntriesCopilotCredits := AgentTaskConsumption."Copilot Credits";
 
         AgentTaskConsumption.Copy(Rec);
         AgentTaskConsumption.SetRange("Task Id", Rec."Task ID");
-        TotalTaskConsumedCredits := GetCopilotCreditsConsumed(AgentTaskConsumption);
-    end;
-
-    local procedure GetCopilotCreditsConsumed(AgentTaskConsumption: Record "Agent Task Consumption") ConsumedCredits: Decimal
-    begin
-        if AgentTaskConsumption.FindSet() then
-            repeat
-                ConsumedCredits += AgentTaskConsumption."Copilot Credits";
-            until AgentTaskConsumption.Next() = 0;
-
-        exit(ConsumedCredits);
+        AgentTaskConsumption.CalcSums("Copilot Credits");
+        TotalTaskConsumedCredits := AgentTaskConsumption."Copilot Credits";
     end;
 
     local procedure UpdateTheDescriptionAndTotalsVisibility()
@@ -453,14 +418,72 @@ page 4333 "Agent Consumption Overview"
         Page.Run(Page::"Agent Consumption Overview", AgentTaskConsumption);
     end;
 
+    local procedure ValidateAgentAccessControl()
+    var
+        AgentTask: Record "Agent Task";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+        AgentUserSecurityId: Guid;
+        TaskId: BigInteger;
+    begin
+        RecallNonAdminDisclaimerNotification();
+
+        if AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
+            exit;
+
+        // There is a filter on the agent user security, check that the user has access to the agent.
+        if Rec.GetFilter("Agent User Security Id") <> '' then begin
+            Evaluate(AgentUserSecurityId, Rec.GetFilter("Agent User Security Id"));
+            if not AgentSystemPermissions.CurrentUserCanUseAgent(AgentUserSecurityId) then
+                Error(YouDoNotHaveAccessToTheAgentErr);
+            exit;
+        end;
+
+        // There is a filter on the task ID, check that the user has access to the agent.
+        if Rec.GetFilter("Task Id") <> '' then begin
+            Evaluate(TaskId, Rec.GetFilter("Task Id"));
+            if not AgentTask.Get(TaskId) then
+                Error(YouDoNotHaveAccessToTheAgentErr)
+            else
+                if not AgentSystemPermissions.CurrentUserCanUseAgent(AgentUserSecurityId) then
+                    Error(YouDoNotHaveAccessToTheAgentErr);
+            exit;
+        end;
+
+        SendNonAdminDisclaimerNotification();
+    end;
+
+    local procedure RecallNonAdminDisclaimerNotification()
+    var
+        NonAdminNotification: Notification;
+    begin
+        NonAdminNotification.Id := GetNonAdminDisclaimerNotificationId();
+        NonAdminNotification.Recall();
+    end;
+
+    local procedure SendNonAdminDisclaimerNotification()
+    var
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+        NonAdminNotification: Notification;
+    begin
+        if AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
+            exit;
+
+        NonAdminNotification.Message := NonAdminDisclaimerMsg;
+        NonAdminNotification.Scope := NotificationScope::LocalScope;
+        NonAdminNotification.Send();
+    end;
+
+    local procedure GetNonAdminDisclaimerNotificationId(): Text
+    begin
+        exit('b9234f5f-3e6b-437a-9f34-acdb9bf9fb8f');
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnGetTotalsVisible(var TotalsVisible: Boolean; var AgentTaskTotalsVisible: Boolean)
     begin
     end;
 
     var
-        AgentTaskDictionary: Dictionary of [BigInteger, Text];
-        CurrentUserIsAgentAdmin: Boolean;
         ChangedDateRangeFilters: Boolean;
         StartDate: Date;
         EndDate: Date;
@@ -476,7 +499,8 @@ page 4333 "Agent Consumption Overview"
         TotalsVisible: Boolean;
         EverythingTok: Label 'Everything';
         AgentTaskNameTxt: Label 'Task #%1 - %2', Comment = '%1 - ID of the agent task, %2 - Title of the agent task';
-        YourNotAuthorizedToViewMonetizationDataErr: Label 'You are missing the required permissions to view monetization data.';
         TheEndDateIsTodayMsg: Label 'The end date is already set to today. You cannot move the date range filter further.';
+        NonAdminDisclaimerMsg: Label 'You''re seeing consumption for agents you have access to. For complete data, ask an Agent-Admin.';
+        YouDoNotHaveAccessToTheAgentErr: Label 'You do not have permission to view consumption data for this agent.';
         StartDateTok: Label '<-CM>', Locked = true;
 }

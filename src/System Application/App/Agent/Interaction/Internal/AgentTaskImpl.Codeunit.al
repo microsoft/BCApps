@@ -161,10 +161,8 @@ codeunit 4300 "Agent Task Impl."
             exit(0);
 
         AgentTaskConsumption.SetRange("Task Id", AgentTask.ID);
-        if AgentTaskConsumption.FindSet() then
-            repeat
-                ConsumedCredits += AgentTaskConsumption."Copilot Credits";
-            until AgentTaskConsumption.Next() = 0;
+        AgentTaskConsumption.CalcSums("Copilot Credits");
+        exit(AgentTaskConsumption."Copilot Credits");
     end;
 
     internal procedure TryGetAgentRecordFromTaskId(TaskId: Integer; var Agent: Record Agent): Boolean

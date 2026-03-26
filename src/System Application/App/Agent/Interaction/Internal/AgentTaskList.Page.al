@@ -112,7 +112,6 @@ page 4300 "Agent Task List"
                     ToolTip = 'Specifies the number of Copilot credits consumed by the agent task.';
                     AutoFormatType = 0;
                     DecimalPlaces = 0 : 2;
-                    // Users can only see tasks they have access to, so we can expose the consumed credits.
 
                     trigger OnDrillDown()
                     var
