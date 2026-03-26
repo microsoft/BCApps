@@ -33,6 +33,17 @@ codeunit 689 "Payment Practices"
         PaymentPracticeHeader."Average Actual Payment Period" := PaymentPracticeMath.GetAverageActualPaymentTime(PaymentPracticeData);
         PaymentPracticeHeader."Average Agreed Payment Period" := PaymentPracticeMath.GetAverageAgreedPaymentTime(PaymentPracticeData);
         PaymentPracticeHeader."Pct Paid on Time" := PaymentPracticeMath.GetPercentOfOnTimePayments(PaymentPracticeData);
+
+        if PaymentPracticeHeader."Extra Fields" = PaymentPracticeHeader."Extra Fields"::"Percentiles; Modes; Pct Peppol Enabled; Pct Small Business Payments" then begin
+            PaymentPracticeHeader."Mode Payment Time" := PaymentPracticeMath.GetModePaymentTime(PaymentPracticeData);
+            PaymentPracticeHeader."Mode Payment Time Min." := PaymentPracticeMath.GetModePaymentTimeMin(PaymentPracticeData);
+            PaymentPracticeHeader."Mode Payment Time Max." := PaymentPracticeMath.GetModePaymentTimeMax(PaymentPracticeData);
+            PaymentPracticeHeader."Median Payment Time" := PaymentPracticeMath.GetMedianPaymentTime(PaymentPracticeData);
+            PaymentPracticeHeader."80th Percentile Payment Time" := PaymentPracticeMath.Get80thPercentilePaymentTime(PaymentPracticeData);
+            PaymentPracticeHeader."95th Percentile Payment Time" := PaymentPracticeMath.Get95thPercentilePaymentTime(PaymentPracticeData);
+            PaymentPracticeHeader."Pct Peppol Enabled" := PaymentPracticeMath.GetPctPeppolEnabled(PaymentPracticeData);
+            PaymentPracticeHeader."Pct Small Business Payments" := PaymentPracticeMath.GetPctSmallBusinessPayments(PaymentPracticeData);
+        end;
     end;
 
     local procedure GenerateData(var PaymentPracticeData: Record "Payment Practice Data"; PaymentPracticeHeader: Record "Payment Practice Header"; PaymentPracticeDataGenerator: Interface PaymentPracticeDataGenerator)

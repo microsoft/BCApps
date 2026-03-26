@@ -62,6 +62,14 @@ page 687 "Payment Practice Card"
                     Editable = false;
                     ToolTip = 'Specifies whether the payment practice was modified manually.';
                 }
+                field("Only Small Businesses"; Rec."Only Small Businesses")
+                {
+                    ToolTip = 'Specifies whether only small businesses should be considered for the payment practice.';
+                }
+                field("Extra Fields"; Rec."Extra Fields")
+                {
+                    ToolTip = 'Specifies which extra fields to include in the payment practice.';
+                }
             }
             group("Statistics")
             {
@@ -87,6 +95,85 @@ page 687 "Payment Practice Card"
                 field("Pct Paid on Time"; Rec."Pct Paid on Time")
                 {
                     ToolTip = 'Specifies the percentage paid on time.';
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowHeaderDataLines();
+                    end;
+                }
+                field("Mode Payment Time"; Rec."Mode Payment Time")
+                {
+                    ToolTip = 'Specifies the mode payment time.';
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowHeaderDataLines();
+                    end;
+                }
+                field("Mode Payment Time Min."; Rec."Mode Payment Time Min.")
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies the minimum per vendor mode payment time.';
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowHeaderDataLines();
+                    end;
+                }
+                field("Mode Payment Time Max."; Rec."Mode Payment Time Max.")
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies the maximum per vendor mode payment time.';
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowHeaderDataLines();
+                    end;
+                }
+                field("Median Payment Time"; Rec."Median Payment Time")
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies the median payment time.';
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowHeaderDataLines();
+                    end;
+                }
+                field("80th Percentile Payment Time"; Rec."80th Percentile Payment Time")
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies the 80th percentile payment time.';
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowHeaderDataLines();
+                    end;
+                }
+                field("95th Percentile Payment Time"; Rec."95th Percentile Payment Time")
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies the 95th percentile payment time.';
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowHeaderDataLines();
+                    end;
+                }
+                field("Pct Peppol Enabled"; Rec."Pct Peppol Enabled")
+                {
+                    ToolTip = 'Specifies the percentage of invoices that are PEPPOL enabled.';
+                    Importance = Additional;
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowHeaderDataLines();
+                    end;
+                }
+                field("Pct Small Business Payments"; Rec."Pct Small Business Payments")
+                {
+                    ToolTip = 'Specifies small business payments as a percentage of total payments.';
+                    Importance = Additional;
 
                     trigger OnDrillDown()
                     begin

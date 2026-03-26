@@ -88,6 +88,26 @@ table 687 "Payment Practice Header"
                 Rec."Modified Manually" := true;
             end;
         }
+        field(21; "Pct Peppol Enabled"; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 2;
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(22; "Pct Small Business Payments"; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 2;
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
         field(9; "Generated On"; DateTime)
         {
 
@@ -102,6 +122,59 @@ table 687 "Payment Practice Header"
             FieldClass = FlowField;
         }
         field(12; "Modified Manually"; Boolean)
+        {
+
+        }
+        field(13; "Mode Payment Time"; Integer)
+        {
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(14; "Mode Payment Time Min."; Integer)
+        {
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(15; "Mode Payment Time Max."; Integer)
+        {
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(16; "Median Payment Time"; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 2;
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(17; "80th Percentile Payment Time"; Integer)
+        {
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(18; "95th Percentile Payment Time"; Integer)
+        {
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(19; "Only Small Businesses"; Boolean)
+        {
+
+        }
+        field(20; "Extra Fields"; Enum "Paym. Prac. Extra Fields")
         {
 
         }

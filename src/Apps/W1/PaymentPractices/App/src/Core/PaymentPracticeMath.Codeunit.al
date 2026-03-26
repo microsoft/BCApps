@@ -72,4 +72,120 @@ codeunit 693 "Payment Practice Math"
         foreach Number in List do
             Total += Number;
     end;
+
+    procedure GetModePaymentTime(var PaymentPracticeData: Record "Payment Practice Data"): Integer
+    var
+        ActualPaymentTimes: List of [Integer];
+    begin
+        PaymentPracticeData.SetRange("Invoice Is Open", false);
+        if PaymentPracticeData.FindSet() then
+            repeat
+                ActualPaymentTimes.Add(PaymentPracticeData."Actual Payment Days");
+            until PaymentPracticeData.Next() = 0;
+        PaymentPracticeData.SetRange("Invoice Is Open");
+        exit(Mode(ActualPaymentTimes));
+    end;
+
+    procedure GetModePaymentTimeMin(var PaymentPracticeData: Record "Payment Practice Data"): Integer
+    begin
+        // TODO: Implement minimum mode payment time calculation
+        exit(0);
+    end;
+
+    procedure GetModePaymentTimeMax(var PaymentPracticeData: Record "Payment Practice Data"): Integer
+    begin
+        // TODO: Implement maximum mode payment time calculation
+        exit(0);
+    end;
+
+    procedure GetMedianPaymentTime(var PaymentPracticeData: Record "Payment Practice Data"): Decimal
+    var
+        ActualPaymentTimes: List of [Integer];
+        MiddleIndex: Integer;
+    begin
+        PaymentPracticeData.SetRange("Invoice Is Open", false);
+        if PaymentPracticeData.FindSet() then
+            repeat
+                ActualPaymentTimes.Add(PaymentPracticeData."Actual Payment Days");
+            until PaymentPracticeData.Next() = 0;
+        PaymentPracticeData.SetRange("Invoice Is Open");
+
+        if ActualPaymentTimes.Count() = 0 then
+            exit(0);
+
+        SortIntegerList(ActualPaymentTimes);
+
+        MiddleIndex := ActualPaymentTimes.Count() div 2;
+        if ActualPaymentTimes.Count() mod 2 = 0 then
+            exit((ActualPaymentTimes.Get(MiddleIndex) + ActualPaymentTimes.Get(MiddleIndex + 1)) / 2)
+        else
+            exit(ActualPaymentTimes.Get(MiddleIndex + 1));
+    end;
+
+    procedure Get80thPercentilePaymentTime(var PaymentPracticeData: Record "Payment Practice Data"): Integer
+    begin
+        // TODO: Implement 80th percentile payment time calculation
+        exit(0);
+    end;
+
+    procedure Get95thPercentilePaymentTime(var PaymentPracticeData: Record "Payment Practice Data"): Integer
+    begin
+        // TODO: Implement 95th percentile payment time calculation
+        exit(0);
+    end;
+
+    procedure GetPctPeppolEnabled(var PaymentPracticeData: Record "Payment Practice Data"): Decimal
+    begin
+        // TODO: Implement percentage of PEPPOL enabled invoices calculation
+        exit(0);
+    end;
+
+    procedure GetPctSmallBusinessPayments(var PaymentPracticeData: Record "Payment Practice Data"): Decimal
+    begin
+        // TODO: Implement small business payments percentage calculation
+        exit(0);
+    end;
+
+    local procedure Mode(var List: List of [Integer]): Integer
+    var
+        Frequencies: Dictionary of [Integer, Integer];
+        Value: Integer;
+        Frequency: Integer;
+        MaxFrequency: Integer;
+        ModeValue: Integer;
+    begin
+        if List.Count() = 0 then
+            exit(0);
+
+        foreach Value in List do
+            if Frequencies.ContainsKey(Value) then
+                Frequencies.Set(Value, Frequencies.Get(Value) + 1)
+            else
+                Frequencies.Add(Value, 1);
+
+        foreach Value in Frequencies.Keys() do begin
+            Frequency := Frequencies.Get(Value);
+            if (Frequency > MaxFrequency) or ((Frequency = MaxFrequency) and (Value < ModeValue)) then begin
+                MaxFrequency := Frequency;
+                ModeValue := Value;
+            end;
+        end;
+
+        exit(ModeValue);
+    end;
+
+    local procedure SortIntegerList(var List: List of [Integer])
+    var
+        i: Integer;
+        j: Integer;
+        Temp: Integer;
+    begin
+        for i := 1 to List.Count() - 1 do
+            for j := 1 to List.Count() - i do
+                if List.Get(j) > List.Get(j + 1) then begin
+                    Temp := List.Get(j);
+                    List.Set(j, List.Get(j + 1));
+                    List.Set(j + 1, Temp);
+                end;
+    end;
 }
