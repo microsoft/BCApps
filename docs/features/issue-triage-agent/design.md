@@ -253,7 +253,7 @@ The agent operates in two internal phases:
           ┌──── Fetch enrichment in parallel ────┐
           │ Code, Git history, Learn, Ideas,     │
           │ ADO, PRs, Community, YouTube,        │
-          │ AppSource, Duplicates, Precedents    │
+          │ Marketplace, Duplicates, Precedents  │
           └──────────────┬───────────────────────┘
                          │
             ┌────────────┴────────────┐
@@ -296,9 +296,9 @@ The agent operates in two internal phases:
       text-similarity.js        # Shared text similarity: BC synonym normalization, bigrams, Jaccard
       code-reader.js            # Repository AL code reader (15KB cap, word-boundary scoring)
       git-history-client.js     # Git log analysis: change velocity, contributors, keyword commits
-      ado-client.js             # Azure DevOps WIQL search (with relevance scoring)
-      ideas-client.js           # Dynamics 365 Ideas Portal OData search (fuzzy matching, BC synonyms)
-      marketplace-client.js     # AppSource marketplace context (search URL for LLM estimation)
+      ado-client.js             # Azure DevOps search (Search API primary, WIQL fallback)
+      ideas-client.js           # Dynamics 365 Ideas Portal OData substringof search (sequential, $top=10)
+      marketplace-client.js     # Marketplace ecosystem assessment (LLM-assessed density)
       community-client.js       # DynamicsUser.net Discourse API search (staggered, with retry)
       learn-client.js           # Microsoft Learn API search (live documentation links)
       pr-client.js              # GitHub PR search (open + merged, relevance scored)
@@ -392,9 +392,9 @@ Phase 2 splits the triage into three focused LLM calls for deeper reasoning:
 - Outputs: complexity, effort, risk, implementation_path, code_areas
 
 **Step 2b — Signal Analysis** (PM role):
-- Receives: issue, Learn docs, Ideas Portal, ADO work items, PRs, community, YouTube, AppSource
+- Receives: issue, Learn docs, Ideas Portal, ADO work items, PRs, community, YouTube, Marketplace
 - Prompt template: `phase2-signal-analysis.md`
-- Outputs: value, documentation, ideas_portal, community, ado_work_items
+- Outputs: value, documentation, ideas_portal, community, ado_work_items, competitive_landscape, marketplace_ecosystem, youtube_videos
 
 **Steps 2a and 2b run in parallel** via `Promise.all` for latency optimization.
 
@@ -437,13 +437,14 @@ All enrichment data is fetched in parallel before the Phase 2 model calls. Each 
 | 2 | **Git history** | `git-history-client.js` | Code analysis | Runs `git log --since=3months` on the app area. Returns top 10 most-changed files, top 5 contributors, and keyword-matching commits for risk/effort calibration. |
 | 3 | **Microsoft Learn** | `learn-client.js` | Signal analysis | Searches `learn.microsoft.com/api/search` with BC scope. Returns top 5 articles with real URLs, replacing LLM hallucination of documentation links. |
 | 4 | **Ideas Portal** | `ideas-client.js` | Signal analysis | Fetches from `experience.dynamics.com/_odata/ideas`, filtered to BC forum, matched with fuzzy keyword matching, stemming, and BC domain synonyms. Splits active/closed. |
-| 5 | **Azure DevOps** | `ado-client.js` | Signal analysis | WIQL queries against Dynamics SMB project with sanitized keywords. Title + description matching, relevance scored with Jaccard similarity. Splits active/closed. |
+| 5 | **Azure DevOps** | `ado-client.js` | Signal analysis | Full-text search via ADO Search API (primary), WIQL fallback on title + description. Relevance scored with Jaccard similarity. Splits active/closed. |
 | 6 | **Pull requests** | `pr-client.js` | Signal analysis | Searches GitHub PRs via `search.issuesAndPullRequests`. Identifies in-progress (open) and recently addressed (merged) work. Relevance scored. |
 | 7 | **Community forums** | `community-client.js` | Signal analysis | Searches DynamicsUser.net Discourse API with staggered queries (1.2s delay) and 429 retry. Results filtered by Jaccard similarity and view count. |
-| 8 | **YouTube** | `youtube-client.js` | Signal analysis | Searches YouTube Data API v3 for BC videos. Presence of tutorial/walkthrough content serves as a demand signal. Requires `YOUTUBE_API_KEY`. |
-| 9 | **AppSource** | `marketplace-client.js` | Signal analysis | Provides search URL for model to estimate ecosystem interest (no public API available). |
-| 10 | **Duplicates** | `duplicate-detector.js` | Pre-Phase 2 | Weighted Jaccard similarity (title 2:1 vs body) against recent open issues using BC synonym normalization. |
-| 11 | **Precedents** | `precedent-finder.js` | Synthesis | Similar closed issues found via same weighted similarity, providing historical resolution context. |
+| 8 | **YouTube** | `youtube-client.js` | Signal analysis | Searches YouTube Data API v3 for BC videos. LLM produces per-video relevance explanations. Requires `YOUTUBE_API_KEY`. |
+| 9 | **Marketplace** | `marketplace-client.js` | Signal analysis | LLM-assessed ecosystem density (Rich/Moderate/Sparse) with search URL for manual verification. |
+| 10 | **Competitive landscape** | _(LLM-assessed)_ | Signal analysis | LLM assesses competitive positioning (Table stakes/Common/Differentiator) without naming specific products. |
+| 11 | **Duplicates** | `duplicate-detector.js` | Pre-Phase 2 | Weighted Jaccard similarity (title 2:1 vs body) against recent open issues using BC synonym normalization. |
+| 12 | **Precedents** | `precedent-finder.js` | Synthesis | Similar closed issues found via same weighted similarity, providing historical resolution context. |
 
 **Key term extraction**: Phase 1 extracts 5-8 search terms via the LLM (preferred). If fewer than 3 terms are returned, a regex fallback in `phase2-enrich.js` uses BC domain phrases (70+) and bigrams from `search-vocabulary.md`.
 

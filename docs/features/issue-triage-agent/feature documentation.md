@@ -50,12 +50,12 @@ All sources are fetched in parallel for minimal latency.
 | **Repository code** | `code-reader.js` | Reads AL files from the detected app area (up to 15KB), scored by word-boundary keyword relevance |
 | **Git history** | `git-history-client.js` | Analyzes last 3 months of commits in the app area: most-changed files, active contributors, keyword-matching commits |
 | **Microsoft Learn** | `learn-client.js` | Live search of learn.microsoft.com API — provides real documentation URLs instead of LLM hallucination |
-| **Azure DevOps** | `ado-client.js` | WIQL queries against Dynamics SMB ADO project, with relevance scoring, Jaccard similarity, and matched-keyword display |
-| **Ideas Portal** | `ideas-client.js` | Fetches BC ideas from experience.dynamics.com OData endpoint, matched with fuzzy keyword matching, stemming, and BC synonyms |
+| **Azure DevOps** | `ado-client.js` | Full-text search via ADO Search API (primary) with WIQL fallback; relevance scoring with Jaccard similarity |
+| **Ideas Portal** | `ideas-client.js` | OData `substringof()` queries on idea titles, sequential execution (`$top=10`), fuzzy matching with BC synonyms |
 | **Pull requests** | `pr-client.js` | Searches GitHub PRs in the same repo — identifies in-progress (open) and recently addressed (merged) work |
 | **Community forums** | `community-client.js` | Searches DynamicsUser.net Discourse API with staggered queries and 429 retry; results filtered by similarity and views |
 | **YouTube** | `youtube-client.js` | Searches YouTube Data API v3 for BC tutorial/walkthrough videos as a demand signal |
-| **AppSource Marketplace** | `marketplace-client.js` | Provides search URL for LLM to estimate ecosystem interest (no public API) |
+| **Marketplace** | `marketplace-client.js` | LLM-assessed ecosystem density (Rich/Moderate/Sparse) with search URL for manual verification |
 | **Duplicate detection** | `duplicate-detector.js` | Weighted Jaccard similarity (title-weighted 2:1) against recent open issues with BC synonym normalization |
 | **Precedent finder** | `precedent-finder.js` | Finds similar closed issues for historical resolution context |
 
@@ -94,7 +94,7 @@ Reports are published as wiki pages named `Triage-Report-Issue-{number}`. The re
 - **TL;DR** — verdict, scores, recommended action, and executive summary (visible without expanding)
 - **Triage rationale** — collapsible: full 7-aspect assessment with rationales
 - **Quality breakdown** — collapsible: 5-dimension score table with notes
-- **Enrichment context** — collapsible: Microsoft Learn articles, LLM-suggested documentation, Ideas Portal, ADO work items, related PRs, AppSource, community discussions, YouTube videos, code areas, git history
+- **Enrichment context** — collapsible: Microsoft Learn articles, Ideas Portal, ADO work items, related PRs, Marketplace ecosystem, competitive landscape, community discussions, YouTube videos, code areas, git history
 - **Source files analyzed** — collapsible: list of AL files used as context
 
 Re-triaging an issue overwrites the wiki page (previous versions preserved in wiki git history).
@@ -128,11 +128,11 @@ All files that make up the triage agent. These need to be moved together when po
 | `pr-client.js` | GitHub PR search — open + merged PRs via search API, relevance scored with keyword matching and title similarity |
 | `community-client.js` | DynamicsUser.net Discourse API search — staggered queries (1.2s delay), 429 retry with backoff, similarity/view filtering |
 | `youtube-client.js` | YouTube Data API v3 search — BC video content as demand signal, requires `YOUTUBE_API_KEY` |
-| `marketplace-client.js` | AppSource marketplace context — provides search terms and URL for model estimation |
+| `marketplace-client.js` | Marketplace ecosystem assessment — LLM-assessed density with search URL for verification |
 | `duplicate-detector.js` | Weighted Jaccard duplicate detection — title-weighted 2:1, BC synonym normalization, 100-issue search window |
 | `precedent-finder.js` | Similar closed issue finder — same weighted similarity, provides historical resolution context |
 | `format-comment.js` | Issue comment formatter — compact format with wiki link, or verbose fallback if wiki unavailable |
-| `format-report.js` | Wiki report formatter — TL;DR + collapsible details (Learn, Ideas, ADO, PRs, community, YouTube, code, git history) |
+| `format-report.js` | Wiki report formatter — TL;DR + collapsible details (Learn, Ideas, ADO, PRs, Marketplace, competitive landscape, community, YouTube, code, git history) |
 | `wiki-client.js` | Wiki publisher — clones target wiki repo, writes page, commits, pushes. Target controlled by `TRIAGE_REPO` env var |
 | `package.json` | Node.js project config, dependency on `@octokit/rest`, test script |
 

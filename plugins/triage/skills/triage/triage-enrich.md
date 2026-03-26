@@ -114,14 +114,21 @@ The triage agent gathers context from these sources in parallel before making it
 - Used for: grounding documentation references, identifying known limitations and configuration guides
 
 ### 4. Dynamics 365 Ideas Portal
-- Fetches from `experience.dynamics.com/_odata/ideas`
-- Filters for Business Central forum ideas
-- Matches ideas against extracted keywords (with fuzzy matching, stemming, and BC synonyms)
+- **Endpoint:** `experience.dynamics.com/_odata/ideas` OData API
+- Scoped to BC forum (approved ideas only) via `adx_ideaforumid` filter
+- **Search strategy:** OData `substringof()` on `adx_name` (title), sequential queries per keyword (`$top=10`)
+- Body text (adx_copy) checked client-side during scoring only (server-side body search is too noisy)
+- Synonym expansion (35 BC domain groups) + suffix-stripping stemmer for improved recall
+- Jaccard similarity bonus for issue title overlap
+- Results split into active vs closed; top 5 active + top 3 closed returned
 - Used for: gauging community demand, checking if feature is already requested
 
 ### 5. Azure DevOps Work Items
-- Queries the Dynamics SMB ADO project via WIQL with sanitized keywords
-- Searches both titles and descriptions, scored with Jaccard title similarity
+- **Primary:** ADO Work Item Search API (`almsearch.dev.azure.com`) — full-text, relevance-ranked search
+- **Fallback:** WIQL `Contains` queries on title + description (if Search API unavailable)
+- Queries the Dynamics SMB ADO project (dynamicssmb2)
+- Client-side Jaccard similarity scoring; minimum relevance threshold of 3
+- Results split: top 5 active + top 3 closed work items
 - Used for: checking if issue is already tracked internally, identifying related work
 
 ### 6. Pull Requests
@@ -139,12 +146,11 @@ The triage agent gathers context from these sources in parallel before making it
 - Presence of tutorials/walkthroughs serves as a demand/interest signal
 - Used for: supplementary demand assessment
 
-### 9. AppSource Marketplace
-- Provides search URL for the LLM to estimate ecosystem interest (no public API)
-- The number of related apps serves as a market demand signal:
-  - **20+ apps**: Strong ecosystem interest — improvements have high value
-  - **5-19 apps**: Moderate interest — established demand
-  - **<5 apps**: Niche area — could be an opportunity or low-demand capability
+### 9. Marketplace Ecosystem
+- LLM-assessed ecosystem density based on training knowledge (no public API available)
+- Classifies third-party app ecosystem as Rich / Moderate / Sparse / Unknown
+- Provides a search URL for manual verification
+- Used for: market demand signal — strong ecosystem interest indicates high-value improvements
 
 ### 10. Duplicate Detection
 - Compares against recent open issues (100-issue window) using weighted Jaccard similarity
@@ -155,6 +161,12 @@ The triage agent gathers context from these sources in parallel before making it
 ### 11. Precedent Finder
 - Finds similar closed issues using the same weighted similarity algorithm
 - Used for: historical context on how similar issues were resolved
+
+### 12. Competitive Landscape
+- LLM-assessed competitive positioning (no external API — uses model training knowledge)
+- Classifies as Table stakes / Common / Differentiator / Unknown
+- Must NOT name specific competing products — uses generic descriptors only
+- Used for: strategic priority input — "table stakes" gaps increase urgency
 
 ## BC-Specific Risk Awareness
 
