@@ -58,10 +58,12 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '') {
   const authHeader = `Basic ${Buffer.from(':' + pat).toString('base64')}`;
 
   try {
-    // Run two search strategies and merge:
-    // 1. Keyword search — finds semantically related items
-    // 2. Title search — catches exact/near-exact title matches that keywords might miss
-    let workItems = await searchWithFullTextApi(topKeywords, authHeader, issueTitle);
+    // Build a KQL query for keyword search:
+    // - Multi-word phrases get exact-match quotes: "work description"
+    // - Single words stay as-is
+    // - All joined with OR for broad recall
+    const keywordQuery = topKeywords.map(kw => kw.includes(' ') ? `"${kw}"` : kw).join(' OR ');
+    let workItems = await searchWithFullTextApi(topKeywords, authHeader, issueTitle, keywordQuery, 'keyword');
 
     // Fall back to WIQL if Search API isn't available
     if (!workItems) {
@@ -69,9 +71,11 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '') {
       workItems = await searchWithWiql(topKeywords, authHeader, issueTitle);
     }
 
-    // Run a supplementary title-based search when the issue title differs from keywords
+    // Run a supplementary title-based search using exact phrase + individual words
     if (issueTitle) {
-      const titleItems = await searchWithFullTextApi([], authHeader, issueTitle, issueTitle);
+      const titleWords = issueTitle.replace(/[^\w\s]/g, ' ').split(/\s+/).filter(w => w.length > 2);
+      const titleQuery = `"${issueTitle}" OR ${titleWords.join(' AND ')}`;
+      const titleItems = await searchWithFullTextApi([], authHeader, issueTitle, titleQuery, 'title-match');
       if (titleItems && titleItems.length > 0) {
         const existingIds = new Set(workItems.map(wi => wi.id));
         const newItems = titleItems.filter(wi => !existingIds.has(wi.id));
@@ -104,17 +108,17 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '') {
 
 /**
  * ADO Work Item Search API — full-text, relevance-ranked search.
+ * Supports KQL syntax: "exact phrase", AND, OR, NOT.
  * Returns null if the API is unavailable (e.g., PAT lacks permissions).
- * @param {string[]} topKeywords - keywords for scoring
+ * @param {string[]} scoringKeywords - keywords for relevance scoring (may be empty for title-match)
  * @param {string} authHeader - Basic auth header
  * @param {string} issueTitle - original issue title for similarity scoring
- * @param {string} [searchTextOverride] - if provided, use this as the search query instead of joining keywords
+ * @param {string} searchQuery - KQL search query to send to the API
+ * @param {string} searchLabel - label for logging (e.g., 'keyword' or 'title-match')
  */
-async function searchWithFullTextApi(topKeywords, authHeader, issueTitle, searchTextOverride) {
-  const searchText = searchTextOverride || topKeywords.join(' ');
-  const searchLabel = searchTextOverride ? 'title-match' : 'keyword';
-  if (!searchText.trim()) return [];
-  console.log(`ADO: [${searchLabel}] querying Search API for "${searchText}"`);
+async function searchWithFullTextApi(scoringKeywords, authHeader, issueTitle, searchQuery, searchLabel) {
+  if (!searchQuery.trim()) return [];
+  console.log(`ADO: [${searchLabel}] querying Search API: ${searchQuery}`);
   const searchUrl = `https://almsearch.dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_apis/search/workitemsearchresults?api-version=7.1-preview.1`;
 
   let response;
@@ -123,7 +127,7 @@ async function searchWithFullTextApi(topKeywords, authHeader, issueTitle, search
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
       body: JSON.stringify({
-        searchText,
+        searchText: searchQuery,
         '$top': MAX_WIQL_RESULTS * 2,
         '$skip': 0,
         'filters': {
@@ -154,9 +158,9 @@ async function searchWithFullTextApi(topKeywords, authHeader, issueTitle, search
     const type = fields['system.workitemtype'] || 'Unknown';
     const description = stripHtml(fields['system.description'] || '');
     const id = parseInt(fields['system.id'], 10) || 0;
-    // When called via title search (topKeywords=[]), derive scoring keywords from the issue title
-    const scoringKeywords = topKeywords.length > 0 ? topKeywords : deriveKeywordsFromTitle(issueTitle);
-    const { score, matchedKeywords } = scoreRelevance(title, description, scoringKeywords, issueTitle);
+    // When called via title search (scoringKeywords=[]), derive from issue title
+    const effectiveKeywords = scoringKeywords.length > 0 ? scoringKeywords : deriveKeywordsFromTitle(issueTitle);
+    const { score, matchedKeywords } = scoreRelevance(title, description, effectiveKeywords, issueTitle);
 
     return {
       id,
