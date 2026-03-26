@@ -42,7 +42,9 @@ codeunit 689 "Payment Practices"
             PaymentPracticeHeader."80th Percentile Payment Time" := PaymentPracticeMath.Get80thPercentilePaymentTime(PaymentPracticeData);
             PaymentPracticeHeader."95th Percentile Payment Time" := PaymentPracticeMath.Get95thPercentilePaymentTime(PaymentPracticeData);
             PaymentPracticeHeader."Pct Peppol Enabled" := PaymentPracticeMath.GetPctPeppolEnabled(PaymentPracticeData);
-            PaymentPracticeHeader."Pct Small Business Payments" := PaymentPracticeMath.GetPctSmallBusinessPayments(PaymentPracticeData);
+
+            if PaymentPracticeHeader."Only Small Businesses" then
+                PaymentPracticeHeader."Pct Small Business Payments" := PaymentPracticeMath.GetPctSmallBusinessPayments(PaymentPracticeData, PaymentPracticeHeader);
         end;
     end;
 
