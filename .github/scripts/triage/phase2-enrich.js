@@ -348,8 +348,17 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
   result.enrichment.community_discussions = communityResult.discussions || [];
   result.enrichment.community_search_url = communityResult.dynamicsCommunityUrl;
 
-  // Attach new enrichment sources
-  result.enrichment.learn_articles = learnResult.articles || [];
+  // Merge LLM relevance explanations into Learn articles from the search
+  const llmDocRelevance = new Map();
+  for (const item of (result.enrichment.documentation || [])) {
+    if (item.title) {
+      llmDocRelevance.set(item.title.toLowerCase(), item.relevance);
+    }
+  }
+  result.enrichment.learn_articles = (learnResult.articles || []).map(a => ({
+    ...a,
+    relevance: llmDocRelevance.get((a.title || '').toLowerCase()) || '',
+  }));
   result.enrichment.git_history = gitHistoryResult;
   result.enrichment.related_prs = [...(prResult.openPRs || []), ...(prResult.mergedPRs || [])];
   result.enrichment.youtube_videos = youtubeResult.videos || [];

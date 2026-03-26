@@ -131,7 +131,11 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
       md += `#### Microsoft Learn\n`;
       for (const doc of e.learn_articles) {
         md += `- [${doc.title}](${doc.url})`;
-        if (doc.description) md += ` — ${doc.description.substring(0, 150)}${doc.description.length > 150 ? '...' : ''}`;
+        if (doc.relevance) {
+          md += ` — ${doc.relevance}`;
+        } else if (doc.description) {
+          md += ` — ${doc.description.substring(0, 150)}${doc.description.length > 150 ? '...' : ''}`;
+        }
         md += `\n`;
       }
       md += `\n`;
