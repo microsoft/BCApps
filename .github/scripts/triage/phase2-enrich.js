@@ -105,10 +105,25 @@ function formatIssueBlock(issue) {
 function buildCodeAnalysisPrompt(skillDir, glossary, domainContext, enrichKnowledge) {
   const template = readFileSync(join(skillDir, 'phase2-code-analysis.md'), 'utf-8')
     .replace(/^[\s\S]*?---\n/, '');
+  // Only include assessment criteria and BC risk sections — skip priority formula,
+  // confidence rules, recommended action logic, and enrichment source descriptions
+  // to keep the prompt within model timeout limits.
+  const trimmedKnowledge = extractCodeAnalysisSections(enrichKnowledge);
   return template
     .replace('{{glossary}}', glossary)
     .replace('{{domainContext}}', domainContext)
-    .replace('{{enrichKnowledge}}', enrichKnowledge);
+    .replace('{{enrichKnowledge}}', trimmedKnowledge);
+}
+
+function extractCodeAnalysisSections(enrichKnowledge) {
+  const sections = [];
+  // Keep: Triage Assessment Criteria (Complexity, Value, Risk, Effort, Implementation Path)
+  const criteriaMatch = enrichKnowledge.match(/## Triage Assessment Criteria[\s\S]*?(?=## Priority Score Calculation)/);
+  if (criteriaMatch) sections.push(criteriaMatch[0].trim());
+  // Keep: BC-Specific Risk Awareness
+  const riskMatch = enrichKnowledge.match(/## BC-Specific Risk Awareness[\s\S]*/);
+  if (riskMatch) sections.push(riskMatch[0].trim());
+  return sections.length > 0 ? sections.join('\n\n') : enrichKnowledge;
 }
 
 // ─── Step 2b: Signal Analysis ───
