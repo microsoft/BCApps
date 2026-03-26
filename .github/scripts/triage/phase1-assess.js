@@ -142,11 +142,17 @@ ${commentsText}`;
   // Validate response structure and types
   validatePhase1Response(result);
 
-  // Cross-check with our own app area detection
+  // Cross-check with our own keyword-based app area detection.
+  // Our keyword detector is authoritative when it finds a match because it uses
+  // the exact area names and keywords defined in config.js, whereas the LLM
+  // may hallucinate area names or confuse similarly-named areas.
   const detectedArea = detectAppArea(issue.title, issue.body);
-  if (result.detected_app_area === 'Unknown' && detectedArea.name !== 'Unknown') {
+  if (detectedArea.name !== 'Unknown') {
     result.detected_app_area = detectedArea.name;
+  } else if (result.detected_app_area === 'Unknown' || !result.detected_app_area) {
+    result.detected_app_area = 'Unknown';
   }
+  // If keyword detector returns Unknown but LLM returned a value, keep the LLM's answer as fallback
 
   console.log(`Phase 1 complete (${phase1Elapsed}s): ${result.quality_score.total}/100 ${result.verdict} | type=${result.issue_type} | area=${result.detected_app_area}`);
   return result;
