@@ -121,8 +121,8 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
     (e.ideas_portal?.length > 0) || (e.matched_ideas?.length > 0) ||
     (e.ado_work_items?.length > 0) || (e.related_prs?.length > 0) ||
     (e.community?.length > 0) || (e.community_discussions?.length > 0) ||
-    (e.marketplace?.searchUrl) || (e.code_areas?.length > 0) ||
-    (e.git_history?.totalCommits > 0);
+    (e.marketplace?.searchUrl) || (e.youtube_videos?.length > 0) ||
+    (e.code_areas?.length > 0) || (e.git_history?.totalCommits > 0);
 
   if (hasEnrichment) {
     md += `<details>\n<summary><strong>Enrichment context</strong> — external sources and references</summary>\n\n`;
@@ -219,6 +219,16 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
       }
       if (e.community_search_url) {
         md += `- [Search Microsoft Dynamics Community](${e.community_search_url})\n`;
+      }
+      md += `\n`;
+    }
+
+    if (e.youtube_videos && e.youtube_videos.length > 0) {
+      md += `#### YouTube videos\n`;
+      for (const v of e.youtube_videos) {
+        md += `- [${v.title}](${v.url}) by ${v.channelTitle}`;
+        if (v.publishedAt) md += ` (${v.publishedAt})`;
+        md += `\n`;
       }
       md += `\n`;
     }

@@ -20,6 +20,7 @@ import { fetchCommunityDiscussions, formatCommunityContext } from './community-c
 import { fetchLearnDocs, formatLearnContext } from './learn-client.js';
 import { fetchGitHistory, formatGitHistoryContext } from './git-history-client.js';
 import { fetchRelatedPRs, formatPRContext } from './pr-client.js';
+import { fetchYouTubeVideos, formatYouTubeContext } from './youtube-client.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -148,7 +149,7 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
 
   // Fetch all enrichment context in parallel
   console.log(`Phase 2: Fetching enrichment context (code, git history, Ideas Portal, ADO, AppSource, Community, Learn, PRs)...`);
-  const [codeContext, gitHistoryResult, ideasResult, adoResult, marketplaceResult, communityResult, learnResult, prResult] = await Promise.all([
+  const [codeContext, gitHistoryResult, ideasResult, adoResult, marketplaceResult, communityResult, learnResult, prResult, youtubeResult] = await Promise.all([
     Promise.resolve(fetchCodeContext(appArea.directory, keyTerms)),
     Promise.resolve(fetchGitHistory(appArea.directory, keyTerms)),
     fetchRelatedIdeas(keyTerms, issue.title),
@@ -157,6 +158,7 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
     fetchCommunityDiscussions(keyTerms, issue.title),
     fetchLearnDocs(keyTerms, issue.title),
     fetchRelatedPRs(keyTerms, issue.title),
+    fetchYouTubeVideos(keyTerms, issue.title),
   ]);
 
   console.log(`Phase 2: Code context: ${codeContext.relevantFiles?.length || 0} files from ${appArea.directory}`);
@@ -167,6 +169,7 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
   console.log(`Phase 2: Community: ${communityResult.discussions?.length || 0} discussions`);
   console.log(`Phase 2: Learn: ${learnResult.articles?.length || 0} documentation articles`);
   console.log(`Phase 2: PRs: ${(prResult.openPRs?.length || 0)} open + ${(prResult.mergedPRs?.length || 0)} merged`);
+  console.log(`Phase 2: YouTube: ${youtubeResult.videos?.length || 0} videos`);
 
   const codeContextBlock = formatCodeContext(codeContext);
   const gitHistoryBlock = formatGitHistoryContext(gitHistoryResult);
@@ -176,6 +179,7 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
   const communityContextBlock = formatCommunityContext(communityResult);
   const learnContextBlock = formatLearnContext(learnResult);
   const prContextBlock = formatPRContext(prResult);
+  const youtubeContextBlock = formatYouTubeContext(youtubeResult);
 
   const { issueBody, commentsBlock } = formatIssueBlock(issue);
 
@@ -233,6 +237,8 @@ ${prContextBlock}
 ${marketplaceContextBlock}
 
 ${communityContextBlock}
+
+${youtubeContextBlock}
 
 Analyze all provided external signals and assess the business value of this issue.`;
 
@@ -356,6 +362,7 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
   result.enrichment.learn_articles = learnResult.articles || [];
   result.enrichment.git_history = gitHistoryResult;
   result.enrichment.related_prs = [...(prResult.openPRs || []), ...(prResult.mergedPRs || [])];
+  result.enrichment.youtube_videos = youtubeResult.videos || [];
 
   return result;
 }
