@@ -7,9 +7,6 @@ namespace System.MCP;
 
 using System.Azure.Identity;
 using System.Environment;
-#if not CLEAN28
-using System.Environment.Configuration;
-#endif
 using System.Feedback;
 using System.Reflection;
 using System.Utilities;
