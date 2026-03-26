@@ -647,8 +647,50 @@
     </div>
   </div>
 
-  <!-- ════════════ SLIDE 4: Sources ════════════ -->
+  <!-- ════════════ SLIDE 4: Architecture ════════════ -->
   <div class="slide center" data-slide="3">
+    <div class="stagger">
+      <h3>Architecture</h3>
+      <h2>Knowledge <span class="highlight">separated</span> from orchestration</h2>
+
+      <div class="columns" style="margin-top:1.5rem;">
+        <div style="display:flex; flex-direction:column; gap:1rem;">
+          <div class="card" style="border-left: 3px solid var(--orange);">
+            <h4 style="color:var(--orange);">&#x1F4DD; Skills &amp; Knowledge <code style="font-size:0.7rem;">plugins/triage/skills/</code></h4>
+            <p style="margin-bottom:0.75rem;">Markdown files that define <em>what</em> the LLM should do &mdash; editable without touching code.</p>
+            <div style="display:flex; flex-direction:column; gap:0.4rem; font-family:'JetBrains Mono',monospace; font-size:0.75rem;">
+              <div style="color:var(--text-dim);"><span style="color:var(--orange);">&#x25CF;</span> phase2-code-analysis.md</div>
+              <div style="color:var(--text-dim);"><span style="color:var(--orange);">&#x25CF;</span> phase2-signal-analysis.md</div>
+              <div style="color:var(--text-dim);"><span style="color:var(--orange);">&#x25CF;</span> phase2-synthesis.md</div>
+              <div style="color:var(--text-dim);"><span style="color:var(--orange);">&#x25CF;</span> triage-enrich.md <span style="opacity:0.6;">(criteria &amp; formulas)</span></div>
+              <div style="color:var(--text-dim);"><span style="color:var(--orange);">&#x25CF;</span> bc-domain.md <span style="opacity:0.6;">+ area-specific knowledge</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:1rem;">
+          <div class="card" style="border-left: 3px solid var(--cyan);">
+            <h4 style="color:var(--cyan);">&#x2699;&#xFE0F; Orchestration <code style="font-size:0.7rem;">.github/scripts/triage/</code></h4>
+            <p style="margin-bottom:0.75rem;">JavaScript that controls <em>how</em> &mdash; fetching data, calling models, assembling output.</p>
+            <div style="display:flex; flex-direction:column; gap:0.4rem; font-family:'JetBrains Mono',monospace; font-size:0.75rem;">
+              <div style="color:var(--text-dim);"><span style="color:var(--cyan);">&#x25CF;</span> phase2-enrich.js <span style="opacity:0.6;">(parallel orchestrator)</span></div>
+              <div style="color:var(--text-dim);"><span style="color:var(--cyan);">&#x25CF;</span> models-client.js <span style="opacity:0.6;">(Copilot CLI wrapper)</span></div>
+              <div style="color:var(--text-dim);"><span style="color:var(--cyan);">&#x25CF;</span> learn-client.js, ado-client.js, &hellip;</div>
+              <div style="color:var(--text-dim);"><span style="color:var(--cyan);">&#x25CF;</span> format-report.js <span style="opacity:0.6;">(wiki output)</span></div>
+              <div style="color:var(--text-dim);"><span style="color:var(--cyan);">&#x25CF;</span> format-comment.js <span style="opacity:0.6;">(issue comment)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p style="margin-top:1.5rem; max-width:750px; text-align:center; font-size:1rem; color:var(--text-dim);">
+        A PM can tune assessment criteria, scoring rubrics, or domain knowledge by editing markdown &mdash; <span class="bold">no code changes, no deployments</span>.
+      </p>
+    </div>
+  </div>
+
+  <!-- ════════════ SLIDE 5: Sources ════════════ -->
+  <div class="slide center" data-slide="4">
     <div class="stagger">
       <h3>Enrichment</h3>
       <h2><span class="gradient-text">8 sources</span>, searched in parallel</h2>
@@ -699,8 +741,8 @@
     </div>
   </div>
 
-  <!-- ════════════ SLIDE 5: Output ════════════ -->
-  <div class="slide center" data-slide="4">
+  <!-- ════════════ SLIDE 6: Output ════════════ -->
+  <div class="slide center" data-slide="5">
     <div class="stagger">
       <h3>The Output</h3>
       <h2>Actionable at a <span class="green">glance</span></h2>
@@ -746,8 +788,8 @@
     </div>
   </div>
 
-  <!-- ════════════ SLIDE 6: AI First Principles ════════════ -->
-  <div class="slide center" data-slide="5">
+  <!-- ════════════ SLIDE 7: AI First Principles ════════════ -->
+  <div class="slide center" data-slide="6">
     <div class="stagger">
       <h3>Design Principles</h3>
       <h2><span class="gradient-text">AI First</span>, not AI only</h2>
@@ -773,8 +815,8 @@
     </div>
   </div>
 
-  <!-- ════════════ SLIDE 7: Demo ════════════ -->
-  <div class="slide center" data-slide="6">
+  <!-- ════════════ SLIDE 8: Demo ════════════ -->
+  <div class="slide center" data-slide="7">
     <div class="stagger">
       <h3>Live Demo</h3>
       <h1 class="gradient-text" style="font-size: clamp(2rem, 4vw, 3.5rem);">Let's triage an issue</h1>
@@ -807,7 +849,7 @@
 </div>
 
 <!-- Navigation -->
-<div class="slide-counter"><span id="current">1</span> / <span id="total">7</span></div>
+<div class="slide-counter"><span id="current">1</span> / <span id="total">8</span></div>
 <div class="nav">
   <button onclick="navigate(-1)" aria-label="Previous slide">&#x2190;</button>
   <button onclick="navigate(1)" aria-label="Next slide">&#x2192;</button>
