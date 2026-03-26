@@ -84,7 +84,9 @@ export async function fetchYouTubeVideos(keywords, issueTitle = '') {
         similarity = Math.round(jaccardSimilarity(issueTokens, titleTokens) * 100);
       }
 
-      return { title, url, description, channelTitle, publishedAt, similarity };
+      const matchReason = buildMatchReason(title, description, keywords, similarity);
+
+      return { title, url, description, channelTitle, publishedAt, similarity, matchReason };
     });
 
     // Sort by similarity, filter out very low relevance
@@ -138,4 +140,31 @@ export function formatYouTubeContext(result) {
   output += '\n';
 
   return output;
+}
+
+/**
+ * Build a human-readable explanation of why a video was included.
+ */
+function buildMatchReason(title, description, keywords, similarity) {
+  const titleLower = title.toLowerCase();
+  const descLower = description.toLowerCase();
+  const matched = keywords.filter(kw =>
+    titleLower.includes(kw.toLowerCase()) || descLower.includes(kw.toLowerCase())
+  );
+
+  const parts = [];
+  if (similarity >= 60) {
+    parts.push(`Strong topic overlap (${similarity}%)`);
+  } else if (similarity >= 30) {
+    parts.push(`Moderate topic overlap (${similarity}%)`);
+  }
+
+  if (matched.length > 0) {
+    parts.push(`Covers: ${matched.slice(0, 3).join(', ')}`);
+  }
+
+  if (parts.length === 0) {
+    return 'General Business Central content in this area';
+  }
+  return parts.join(' — ');
 }

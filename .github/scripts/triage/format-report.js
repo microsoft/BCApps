@@ -220,6 +220,7 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
       for (const v of e.youtube_videos) {
         md += `- [${v.title}](${v.url}) by ${v.channelTitle}`;
         if (v.publishedAt) md += ` (${v.publishedAt})`;
+        if (v.matchReason) md += ` — _${v.matchReason}_`;
         md += `\n`;
       }
       md += `\n`;

@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Issue Triage Agent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3a;
+    --text: #e4e4ef;
+    --text-dim: #8888a0;
+    --accent: #6366f1;
+    --accent-glow: #818cf8;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --cyan: #06b6d4;
+    --orange: #f97316;
+    --pink: #ec4899;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── Slide container ── */
+  .deck {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 4vh 6vw;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(30px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  /* ── Typography ── */
+  h1 {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-size: clamp(1.8rem, 3.5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  h3 {
+    font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+    font-weight: 600;
+    color: var(--accent-glow);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.75rem;
+  }
+
+  p, li {
+    font-size: clamp(1rem, 1.6vw, 1.35rem);
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  .highlight { color: var(--accent-glow); }
+  .green { color: var(--green); }
+  .yellow { color: var(--yellow); }
+  .red { color: var(--red); }
+  .cyan { color: var(--cyan); }
+  .orange { color: var(--orange); }
+  .pink { color: var(--pink); }
+  .bold { font-weight: 700; color: var(--text); }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--surface2);
+    padding: 0.15em 0.5em;
+    border-radius: 6px;
+    font-size: 0.85em;
+    color: var(--accent-glow);
+  }
+
+  /* ── Gradient text ── */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--accent-glow), var(--cyan), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Layout helpers ── */
+  .center { text-align: center; }
+  .left { text-align: left; align-items: flex-start; }
+
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 1.5rem;
+  }
+
+  .three-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 1.5rem;
+  }
+
+  .full-width {
+    width: 100%;
+    max-width: 1200px;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .card h4 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  .card p {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── Phase indicator ── */
+  .phase-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25em 0.75em;
+    border-radius: 999px;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .phase-badge.p1 { background: #6366f120; color: var(--accent-glow); border: 1px solid #6366f140; }
+  .phase-badge.p2a { background: #06b6d420; color: var(--cyan); border: 1px solid #06b6d440; }
+  .phase-badge.p2b { background: #f9731620; color: var(--orange); border: 1px solid #f9731640; }
+  .phase-badge.p2c { background: #22c55e20; color: var(--green); border: 1px solid #22c55e40; }
+
+  /* ── Source grid ── */
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    width: 100%;
+    max-width: 1100px;
+    margin-top: 1.5rem;
+  }
+
+  .source-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .source-item:hover {
+    border-color: var(--accent);
+    transform: scale(1.04);
+  }
+
+  .source-icon {
+    font-size: 1.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .source-item .label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .source-item .sublabel {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 0.2rem;
+  }
+
+  /* ── Pipeline diagram ── */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    max-width: 1100px;
+    margin-top: 2rem;
+    position: relative;
+  }
+
+  .pipeline-stage {
+    flex: 1;
+    text-align: center;
+    padding: 1.2rem 0.5rem;
+    position: relative;
+  }
+
+  .pipeline-stage .stage-box {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem 0.8rem;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+  }
+
+  .pipeline-stage .stage-box:hover {
+    transform: scale(1.03);
+  }
+
+  .pipeline-stage.trigger .stage-box { border-color: var(--yellow); }
+  .pipeline-stage.p1 .stage-box { border-color: var(--accent-glow); }
+  .pipeline-stage.p2 .stage-box { border-color: var(--cyan); }
+  .pipeline-stage.output .stage-box { border-color: var(--green); }
+
+  .pipeline-arrow {
+    font-size: 1.5rem;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    width: 2rem;
+    text-align: center;
+  }
+
+  .stage-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+  }
+
+  .stage-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .stage-detail {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 0.3rem;
+  }
+
+  /* ── Output mockup ── */
+  .gh-mockup {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 800px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    text-align: left;
+  }
+
+  .gh-mockup .gh-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #30363d;
+  }
+
+  .gh-mockup .gh-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--cyan));
+  }
+
+  .gh-mockup .gh-bot-name {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text);
+  }
+
+  .gh-mockup .gh-badge {
+    font-size: 0.65rem;
+    background: #30363d;
+    color: var(--text-dim);
+    padding: 0.15em 0.5em;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
+  .gh-mockup table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+    font-size: 0.85rem;
+  }
+
+  .gh-mockup th {
+    text-align: left;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 2px solid #30363d;
+    color: var(--text-dim);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .gh-mockup td {
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid #21262d;
+    color: var(--text);
+  }
+
+  .gh-label {
+    display: inline-block;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin: 0 0.15rem;
+  }
+
+  .gh-label.green-l { background: #22c55e30; color: var(--green); border: 1px solid #22c55e50; }
+  .gh-label.yellow-l { background: #eab30830; color: var(--yellow); border: 1px solid #eab30850; }
+  .gh-label.blue-l { background: #6366f130; color: var(--accent-glow); border: 1px solid #6366f150; }
+  .gh-label.cyan-l { background: #06b6d430; color: var(--cyan); border: 1px solid #06b6d450; }
+
+  /* ── Principle cards ── */
+  .principle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 1000px;
+    margin-top: 1.5rem;
+  }
+
+  .principle {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    border-left: 3px solid var(--accent);
+    transition: all 0.3s;
+  }
+
+  .principle:hover {
+    border-left-color: var(--cyan);
+    transform: translateX(4px);
+  }
+
+  .principle .principle-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 0.4rem;
+    color: var(--text);
+  }
+
+  .principle .principle-desc {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  /* ── Big stat ── */
+  .stat-row {
+    display: flex;
+    gap: 3rem;
+    margin: 1.5rem 0;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat .number {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .stat .unit {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-top: 0.3rem;
+    font-weight: 500;
+  }
+
+  /* ── Subtitle ── */
+  .subtitle {
+    font-size: clamp(1.1rem, 2vw, 1.5rem);
+    color: var(--text-dim);
+    font-weight: 300;
+    max-width: 700px;
+    margin-top: 0.5rem;
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed;
+    bottom: 2rem;
+    right: 3rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 100;
+  }
+
+  .nav button {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav button:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .progress {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--cyan));
+    transition: width 0.4s ease;
+    z-index: 100;
+  }
+
+  .slide-counter {
+    position: fixed;
+    bottom: 2.3rem;
+    left: 3rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    z-index: 100;
+  }
+
+  /* ── Animated background ── */
+  .bg-glow {
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    filter: blur(150px);
+    opacity: 0.07;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .bg-glow.one { background: var(--accent); top: -200px; left: -200px; }
+  .bg-glow.two { background: var(--cyan); bottom: -200px; right: -200px; }
+
+  /* ── Animations ── */
+  .slide.active .stagger > * {
+    animation: fadeUp 0.5s ease both;
+  }
+  .slide.active .stagger > *:nth-child(1) { animation-delay: 0.1s; }
+  .slide.active .stagger > *:nth-child(2) { animation-delay: 0.2s; }
+  .slide.active .stagger > *:nth-child(3) { animation-delay: 0.3s; }
+  .slide.active .stagger > *:nth-child(4) { animation-delay: 0.4s; }
+  .slide.active .stagger > *:nth-child(5) { animation-delay: 0.5s; }
+  .slide.active .stagger > *:nth-child(6) { animation-delay: 0.6s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .columns, .principle-grid { grid-template-columns: 1fr; }
+    .three-columns { grid-template-columns: 1fr 1fr; }
+    .source-grid { grid-template-columns: repeat(2, 1fr); }
+    .pipeline { flex-direction: column; }
+    .pipeline-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-glow one"></div>
+<div class="bg-glow two"></div>
+
+<div class="deck">
+
+  <!-- ════════════ SLIDE 1: Title ════════════ -->
+  <div class="slide active center" data-slide="0">
+    <div class="stagger">
+      <h3>AI First Hackathon</h3>
+      <h1><span class="gradient-text">Issue Triage Agent</span></h1>
+      <p class="subtitle">From label to decision in 60 seconds.<br>An AI agent that reads, researches, and recommends.</p>
+      <div class="stat-row" style="margin-top:2.5rem;">
+        <div class="stat">
+          <div class="number gradient-text">8</div>
+          <div class="unit">external sources</div>
+        </div>
+        <div class="stat">
+          <div class="number gradient-text">3</div>
+          <div class="unit">focused LLM calls</div>
+        </div>
+        <div class="stat">
+          <div class="number gradient-text">~60s</div>
+          <div class="unit">end-to-end</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ SLIDE 2: The Problem ════════════ -->
+  <div class="slide center" data-slide="1">
+    <div class="stagger">
+      <h3>The Problem</h3>
+      <h2>Manual triage is a <span class="red">bottleneck</span></h2>
+      <div class="three-columns" style="margin-top: 1.5rem;">
+        <div class="card">
+          <h4>Read & understand</h4>
+          <p>Parse issue title, body, comments. Figure out what the user actually wants.</p>
+        </div>
+        <div class="card">
+          <h4>Cross-reference</h4>
+          <p>Check ADO, Ideas Portal, community forums, existing PRs. Is this a duplicate? Already planned?</p>
+        </div>
+        <div class="card">
+          <h4>Assess & decide</h4>
+          <p>Estimate complexity, value, effort. Set priority. Assign to a team. Repeat hundreds of times.</p>
+        </div>
+      </div>
+      <p style="margin-top: 2rem; font-size: 1.2rem;">
+        <span class="bold">15-30 min per issue</span> <span class="text-dim">&times; hundreds of issues = PMs drowning in triage</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- ════════════ SLIDE 3: The Pipeline ════════════ -->
+  <div class="slide center" data-slide="2">
+    <div class="stagger">
+      <h3>How It Works</h3>
+      <h2>A two-phase <span class="highlight">agentic pipeline</span></h2>
+
+      <div class="pipeline">
+        <div class="pipeline-stage trigger">
+          <div class="stage-box">
+            <div class="stage-label yellow">Trigger</div>
+            <div class="stage-title">Add label</div>
+            <div class="stage-detail"><code>ai-triage</code></div>
+          </div>
+        </div>
+        <div class="pipeline-arrow">&#x2192;</div>
+        <div class="pipeline-stage p1">
+          <div class="stage-box">
+            <div class="stage-label highlight">Phase 1</div>
+            <div class="stage-title">Quality Gate</div>
+            <div class="stage-detail">Score 0-100<br>READY / NEEDS WORK / INSUFFICIENT</div>
+          </div>
+        </div>
+        <div class="pipeline-arrow">&#x2192;</div>
+        <div class="pipeline-stage p2">
+          <div class="stage-box">
+            <div class="stage-label cyan">Phase 2</div>
+            <div class="stage-title">Enrich & Triage</div>
+            <div class="stage-detail">2a Code + 2b Signals (parallel)<br>2c Synthesis (sequential)</div>
+          </div>
+        </div>
+        <div class="pipeline-arrow">&#x2192;</div>
+        <div class="pipeline-stage output">
+          <div class="stage-box">
+            <div class="stage-label green">Output</div>
+            <div class="stage-title">Comment + Labels</div>
+            <div class="stage-detail">Priority, action,<br>full wiki report</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="columns" style="margin-top: 2rem;">
+        <div class="card">
+          <span class="phase-badge p2a">2a &mdash; Code Analysis</span>
+          <p>Reads source code + git history. Assesses <span class="bold">complexity</span>, <span class="bold">effort</span>, <span class="bold">risk</span>, and <span class="bold">implementation path</span>.</p>
+        </div>
+        <div class="card">
+          <span class="phase-badge p2b">2b &mdash; Signal Analysis</span>
+          <p>Searches 8 external sources. Assesses <span class="bold">business value</span>, <span class="bold">community demand</span>, and <span class="bold">competitive landscape</span>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ SLIDE 4: Sources ════════════ -->
+  <div class="slide center" data-slide="3">
+    <div class="stagger">
+      <h3>Enrichment</h3>
+      <h2><span class="gradient-text">8 sources</span>, searched in parallel</h2>
+      <p style="max-width:700px;">Every result is LLM-filtered &mdash; only items with a confirmed relevance explanation make it into the report.</p>
+
+      <div class="source-grid">
+        <div class="source-item">
+          <div class="source-icon">&#x1F4D6;</div>
+          <div class="label">Microsoft Learn</div>
+          <div class="sublabel">BC documentation</div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">&#x1F4A1;</div>
+          <div class="label">Ideas Portal</div>
+          <div class="sublabel">Feature votes &amp; status</div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">&#x1F4CB;</div>
+          <div class="label">Azure DevOps</div>
+          <div class="sublabel">Internal work items</div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">&#x1F500;</div>
+          <div class="label">GitHub PRs</div>
+          <div class="sublabel">Open &amp; merged</div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">&#x1F4AC;</div>
+          <div class="label">Community</div>
+          <div class="sublabel">DynamicsUser.net &amp; MDC</div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">&#x1F3AC;</div>
+          <div class="label">YouTube</div>
+          <div class="sublabel">Tutorials &amp; walkthroughs</div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">&#x1F3EA;</div>
+          <div class="label">AppSource</div>
+          <div class="sublabel">Marketplace ecosystem</div>
+        </div>
+        <div class="source-item">
+          <div class="source-icon">&#x1F4C2;</div>
+          <div class="label">Source Code</div>
+          <div class="sublabel">AL files &amp; git history</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ SLIDE 5: Output ════════════ -->
+  <div class="slide center" data-slide="4">
+    <div class="stagger">
+      <h3>The Output</h3>
+      <h2>Actionable at a <span class="green">glance</span></h2>
+
+      <div class="gh-mockup">
+        <div class="gh-header">
+          <div class="gh-avatar"></div>
+          <span class="gh-bot-name">github-actions[bot]</span>
+          <span class="gh-badge">BOT</span>
+        </div>
+        <div style="font-size:1.1rem; font-weight:700; margin-bottom:0.75rem;">
+          &#x1F916; AI Triage Assessment
+        </div>
+        <table>
+          <thead>
+            <tr><th>Verdict</th><th>Quality</th><th>Priority</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="green bold">READY</span></td>
+              <td>82/100</td>
+              <td>8/10</td>
+              <td>&#x2705; <span class="bold">Implement</span></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:0.75rem; font-size:0.9rem; color: var(--text-dim);">
+          High-value fix for sales invoice posting rounding. Affects financial accuracy across all localizations.
+        </div>
+        <div style="margin-top:1rem; display:flex; gap:0.4rem; flex-wrap:wrap;">
+          <span class="gh-label green-l">triage/ready</span>
+          <span class="gh-label yellow-l">priority/high</span>
+          <span class="gh-label blue-l">complexity/medium</span>
+          <span class="gh-label cyan-l">effort/m</span>
+          <span class="gh-label blue-l">path/copilot-assisted</span>
+          <span class="gh-label green-l">Finance</span>
+        </div>
+        <div style="margin-top:1rem; font-size:0.8rem;">
+          &#x1F4CB; <a href="#" style="color:var(--accent-glow); text-decoration:none;">View full triage report &rarr;</a>
+        </div>
+      </div>
+      <p style="margin-top:1rem; font-size:0.9rem;">+ full wiki report with enrichment context, quality breakdown, triage rationale</p>
+    </div>
+  </div>
+
+  <!-- ════════════ SLIDE 6: AI First Principles ════════════ -->
+  <div class="slide center" data-slide="5">
+    <div class="stagger">
+      <h3>Design Principles</h3>
+      <h2><span class="gradient-text">AI First</span>, not AI only</h2>
+
+      <div class="principle-grid">
+        <div class="principle">
+          <div class="principle-title">&#x1F50D; LLM as judge, not source</div>
+          <div class="principle-desc">Real APIs provide the data. The LLM evaluates relevance and explains <em>why</em> each result matters.</div>
+        </div>
+        <div class="principle">
+          <div class="principle-title">&#x26A1; Parallel by design</div>
+          <div class="principle-desc">8 enrichment sources + 2 analysis calls run concurrently. 60s total, not 60s &times; 10.</div>
+        </div>
+        <div class="principle">
+          <div class="principle-title">&#x1F6E1;&#xFE0F; Graceful degradation</div>
+          <div class="principle-desc">Missing API keys or failed searches don't block triage. The agent works with what it has.</div>
+        </div>
+        <div class="principle">
+          <div class="principle-title">&#x1F9D1;&#x200D;&#x1F4BB; Human in the loop</div>
+          <div class="principle-desc">The agent recommends. The PM decides. Every assessment includes rationale and confidence level.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ SLIDE 7: Demo ════════════ -->
+  <div class="slide center" data-slide="6">
+    <div class="stagger">
+      <h3>Live Demo</h3>
+      <h1 class="gradient-text" style="font-size: clamp(2rem, 4vw, 3.5rem);">Let's triage an issue</h1>
+      <div style="margin-top:2rem; display:flex; flex-direction:column; gap:1rem; max-width:700px; text-align:left;">
+        <div class="card" style="display:flex; align-items:center; gap:1rem;">
+          <div style="font-size:1.8rem; width:48px; text-align:center; flex-shrink:0;">1</div>
+          <div>
+            <div class="bold">Open a GitHub issue</div>
+            <div style="color:var(--text-dim); font-size:0.9rem;">A real issue in the BC repository</div>
+          </div>
+        </div>
+        <div class="card" style="display:flex; align-items:center; gap:1rem;">
+          <div style="font-size:1.8rem; width:48px; text-align:center; flex-shrink:0;">2</div>
+          <div>
+            <div class="bold">Add the <code>ai-triage</code> label</div>
+            <div style="color:var(--text-dim); font-size:0.9rem;">This triggers the GitHub Actions workflow</div>
+          </div>
+        </div>
+        <div class="card" style="display:flex; align-items:center; gap:1rem;">
+          <div style="font-size:1.8rem; width:48px; text-align:center; flex-shrink:0;">3</div>
+          <div>
+            <div class="bold">Watch the triage appear</div>
+            <div style="color:var(--text-dim); font-size:0.9rem;">Comment, labels, and wiki report &mdash; fully automated</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="slide-counter"><span id="current">1</span> / <span id="total">7</span></div>
+<div class="nav">
+  <button onclick="navigate(-1)" aria-label="Previous slide">&#x2190;</button>
+  <button onclick="navigate(1)" aria-label="Next slide">&#x2192;</button>
+</div>
+<div class="progress" id="progress"></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  function show(index) {
+    current = Math.max(0, Math.min(total - 1, index));
+    slides.forEach((s, i) => s.classList.toggle('active', i === current));
+    document.getElementById('current').textContent = current + 1;
+    document.getElementById('progress').style.width = ((current + 1) / total * 100) + '%';
+  }
+
+  function navigate(delta) {
+    show(current + delta);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); navigate(1); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); navigate(-1); }
+    if (e.key === 'Home') { e.preventDefault(); show(0); }
+    if (e.key === 'End') { e.preventDefault(); show(total - 1); }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) navigate(diff > 0 ? 1 : -1);
+  });
+
+  show(0);
+</script>
+
+</body>
+</html>
