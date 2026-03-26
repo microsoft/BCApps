@@ -106,22 +106,22 @@ export async function fetchRelatedIdeas(keywords, issueTitle = '') {
     category: idea.mip_ideacategory?.Name || 'Unknown',
     description: stripHtml(idea.adx_copy || ''),
     url: `https://experience.dynamics.com/ideas/idea/?ideaid=${idea.adx_ideaid}`,
-    relevance: scoreIdeaRelevance(idea, topKeywords, issueTitle),
+    relevanceScore: scoreIdeaRelevance(idea, topKeywords, issueTitle),
   }));
 
   // Statuses considered "active" (not yet delivered or declined)
   const CLOSED_STATUSES = new Set(['completed', 'declined', 'closed', 'archived', 'delivered', 'won\'t do', 'duplicate', 'out of scope']);
 
-  const relevant = scored.filter(idea => idea.relevance >= 3);
+  const relevant = scored.filter(idea => idea.relevanceScore >= 3);
 
   const activeIdeas = relevant
     .filter(idea => !CLOSED_STATUSES.has(idea.status.toLowerCase()))
-    .sort((a, b) => b.relevance - a.relevance || b.votes - a.votes)
+    .sort((a, b) => b.relevanceScore - a.relevanceScore || b.votes - a.votes)
     .slice(0, MAX_RESULTS);
 
   const closedIdeas = relevant
     .filter(idea => CLOSED_STATUSES.has(idea.status.toLowerCase()))
-    .sort((a, b) => b.relevance - a.relevance || b.votes - a.votes)
+    .sort((a, b) => b.relevanceScore - a.relevanceScore || b.votes - a.votes)
     .slice(0, 3);
 
   console.log(`Ideas Portal: found ${activeIdeas.length} active + ${closedIdeas.length} closed ideas (from ${relevant.length} relevant)`);

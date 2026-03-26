@@ -389,7 +389,7 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
     }
     if (relevance) idea.relevance = relevance;
   }
-  result.enrichment.matched_ideas = allIdeas.filter(i => i.relevance);
+  result.enrichment.matched_ideas = allIdeas.filter(i => typeof i.relevance === 'string' && i.relevance.length > 0);
 
   // ADO work items already have LLM-generated relevance from Stage 2 reranking.
   // Merge with any additional relevance from Phase 2b signal analysis.
