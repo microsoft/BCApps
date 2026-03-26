@@ -65,8 +65,10 @@ codeunit 139687 "Recurring Billing Docs Test"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
+        NextToDateBeforeFromDateErr: Label 'CalculateNextToDate returned %1 which is before FromDate %2. This would cause billing to get stuck.', Locked = true;
         NoContractLinesFoundErr: Label 'No contract lines were found that can be billed with the specified parameters.', Locked = true;
         StrMenuHandlerStep: Integer;
 
@@ -2452,6 +2454,35 @@ codeunit 139687 "Recurring Billing Docs Test"
         CatalogItem.TestField("Subscription Option", "Item Service Commitment Type"::"Service Commitment Item");
     end;
 
+    [Test]
+    procedure CalculateNextToDateAlignEndOfMonthDoesNotReturnDateBeforeFromDate()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        PeriodFormula: DateFormula;
+        FromDate: Date;
+        NextToDate: Date;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 623011] CalculateNextToDate with "Align to End of Month" does not return date before FromDate
+        Initialize();
+
+        // [GIVEN] Subscription Line "SL" with Period Calculation = "Align to End of Month" and start date Jan 29
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine."Period Calculation" := SubscriptionLine."Period Calculation"::"Align to End of Month";
+        SubscriptionLine."Subscription Line Start Date" := DMY2Date(29, 1, 2025);
+        SubscriptionLine.Modify(false);
+
+        // [WHEN] CalculateNextToDate is called with period formula <1D> from Feb 27
+        Evaluate(PeriodFormula, '<1D>');
+        FromDate := DMY2Date(27, 2, 2025);
+        LibraryLowerPermissions.SetO365Full();
+        NextToDate := SubscriptionLine.CalculateNextToDate(PeriodFormula, FromDate);
+
+        // [THEN] NextToDate is not before FromDate
+        Assert.IsTrue(NextToDate >= FromDate,
+            StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -2923,6 +2954,14 @@ codeunit 139687 "Recurring Billing Docs Test"
             FieldType::Boolean:
                 FRef.Value(not FRef.Value);
         end;
+    end;
+
+    local procedure MockSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
+    begin
+        SubscriptionLine.Init();
+        SubscriptionLine."Entry No." := 0;
+        SubscriptionLine."Invoicing via" := SubscriptionLine."Invoicing via"::Contract;
+        SubscriptionLine.Insert(false);
     end;
 
     #endregion Procedures
