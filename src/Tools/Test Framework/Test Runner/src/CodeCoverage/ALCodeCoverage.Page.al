@@ -302,11 +302,11 @@ page 130460 "AL Code Coverage"
     local procedure SetStyles()
     begin
         if Rec."Line Type" = Rec."Line Type"::Empty then
-            CoveragePercentStyle := 'Standard'
+            CoveragePercentStyle := Format(PageStyle::Standard)
         else
             if CoveragePercent < RequiredCoveragePercent then
-                CoveragePercentStyle := 'Unfavorable'
+                CoveragePercentStyle := Format(PageStyle::Unfavorable)
             else
-                CoveragePercentStyle := 'Favorable';
+                CoveragePercentStyle := Format(PageStyle::Favorable);
     end;
 }
