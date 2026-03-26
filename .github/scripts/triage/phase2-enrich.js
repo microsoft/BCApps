@@ -21,6 +21,7 @@ import { fetchLearnDocs, formatLearnContext } from './learn-client.js';
 import { fetchGitHistory, formatGitHistoryContext } from './git-history-client.js';
 import { fetchRelatedPRs, formatPRContext } from './pr-client.js';
 import { fetchYouTubeVideos, formatYouTubeContext } from './youtube-client.js';
+import { tokenize, jaccardSimilarity } from './text-similarity.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -347,37 +348,71 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
   result.enrichment.competitive_landscape = signalAnalysis.competitive_landscape;
   result.enrichment.precedents = precedents;
 
-  // Attach real community discussions from search clients
-  result.enrichment.community_discussions = communityResult.discussions || [];
+  // Merge LLM relevance explanations into community discussions using fuzzy title matching.
+  // Only keep discussions the LLM confirmed as relevant.
+  const llmCommunity = signalAnalysis.community_discussions || [];
+  const searchDiscussions = communityResult.discussions || [];
+  for (const llmDisc of llmCommunity) {
+    if (!llmDisc.relevance) continue;
+    const llmTokens = tokenize(llmDisc.title || '');
+    let bestMatch = null;
+    let bestScore = 0;
+    for (const disc of searchDiscussions) {
+      if (disc.relevance) continue; // already matched
+      const discTokens = tokenize(disc.title || '');
+      const score = jaccardSimilarity(llmTokens, discTokens);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = disc;
+      }
+    }
+    if (bestMatch && bestScore >= 0.3) {
+      bestMatch.relevance = llmDisc.relevance;
+    }
+  }
+  result.enrichment.community_discussions = searchDiscussions.filter(d => d.relevance);
   result.enrichment.community_search_url = communityResult.dynamicsCommunityUrl;
 
-  // Merge Learn API articles and LLM-suggested documentation into a single list.
-  // Prefer grounded Learn articles; add LLM-only entries with valid URLs that aren't duplicates.
+  // Merge Learn API articles with LLM relevance explanations using fuzzy title matching.
+  // Only keep articles the LLM confirmed as relevant — drop noise from keyword search.
   const llmDocs = result.enrichment.documentation || [];
-  const llmDocRelevance = new Map();
-  for (const item of llmDocs) {
-    if (item.title) {
-      llmDocRelevance.set(item.title.toLowerCase(), item.relevance);
+  const learnArticles = (learnResult.articles || []);
+
+  // Build a lookup from LLM docs: for each, find the best-matching Learn article by token overlap
+  for (const llmDoc of llmDocs) {
+    if (!llmDoc.relevance) continue;
+    const llmTokens = tokenize(llmDoc.title || '');
+    let bestMatch = null;
+    let bestScore = 0;
+    for (const article of learnArticles) {
+      if (article.relevance) continue; // already matched
+      const articleTokens = tokenize(article.title || '');
+      const score = jaccardSimilarity(llmTokens, articleTokens);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = article;
+      }
+    }
+    if (bestMatch && bestScore >= 0.3) {
+      bestMatch.relevance = llmDoc.relevance;
     }
   }
-  const learnArticles = (learnResult.articles || []).map(a => ({
-    ...a,
-    relevance: llmDocRelevance.get((a.title || '').toLowerCase()) || '',
-  }));
-  const learnUrls = new Set(learnArticles.map(a => (a.url || '').toLowerCase()));
-  const learnTitles = new Set(learnArticles.map(a => (a.title || '').toLowerCase()));
+
+  // Only keep articles with an LLM relevance explanation (confirmed useful for triage)
+  const confirmedArticles = learnArticles.filter(a => a.relevance);
+
+  // Add LLM-only entries with valid URLs that aren't already in Learn results
+  const confirmedUrls = new Set(confirmedArticles.map(a => (a.url || '').toLowerCase()));
   for (const doc of llmDocs) {
     const urlKey = (doc.url || '').toLowerCase();
-    const titleKey = (doc.title || '').toLowerCase();
-    if (urlKey.startsWith('http') && !learnUrls.has(urlKey) && !learnTitles.has(titleKey)) {
-      learnArticles.push({ title: doc.title, url: doc.url, description: '', relevance: doc.relevance });
-      learnUrls.add(urlKey);
-      learnTitles.add(titleKey);
+    if (doc.relevance && urlKey.startsWith('http') && !confirmedUrls.has(urlKey)) {
+      confirmedArticles.push({ title: doc.title, url: doc.url, description: '', relevance: doc.relevance });
+      confirmedUrls.add(urlKey);
     }
   }
-  // Keep only the most relevant entries
+
   const MAX_DOCS = 5;
-  result.enrichment.learn_articles = learnArticles.slice(0, MAX_DOCS);
+  result.enrichment.learn_articles = confirmedArticles.slice(0, MAX_DOCS);
   delete result.enrichment.documentation;
   result.enrichment.git_history = gitHistoryResult;
   result.enrichment.related_prs = [...(prResult.openPRs || []), ...(prResult.mergedPRs || [])];
@@ -424,6 +459,7 @@ function validateSignalAnalysis(r) {
   if (!Array.isArray(r.documentation)) r.documentation = [];
   if (!Array.isArray(r.ideas_portal)) r.ideas_portal = [];
   if (!Array.isArray(r.ado_work_items)) r.ado_work_items = [];
+  if (!Array.isArray(r.community_discussions)) r.community_discussions = [];
   if (!r.competitive_landscape || typeof r.competitive_landscape !== 'object') {
     r.competitive_landscape = { position: 'Unknown', rationale: '' };
   }

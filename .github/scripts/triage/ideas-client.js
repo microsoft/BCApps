@@ -7,19 +7,39 @@ import { tokenize, jaccardSimilarity } from './text-similarity.js';
 const IDEAS_ODATA_URL = 'https://experience.dynamics.com/_odata/ideas';
 const BC_FORUM_ID = 'e288ef32-82ed-e611-8101-5065f38b21f1';
 const BC_FORUM_FILTER = `adx_ideaforumid/Id eq guid'${BC_FORUM_ID}' and adx_approved eq true`;
-const RESULTS_PER_QUERY = 20;
+const RESULTS_PER_QUERY = 10;
 const MAX_RESULTS = 5;
 const FETCH_TIMEOUT_MS = 10_000;
 const MAX_SYNONYM_VARIANTS = 3;
 
 /**
- * Fetch with an AbortController timeout.
+ * Fetch with timeout + single retry on 500 errors.
+ * The Ideas OData endpoint intermittently returns 500 for valid queries.
  */
-function fetchWithTimeout(url, options = {}) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  return fetch(url, { ...options, signal: controller.signal })
-    .finally(() => clearTimeout(timeout));
+async function fetchWithRetry(url, retries = 2) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { signal: controller.signal, headers: { 'Accept': 'application/json' } });
+      if (res.ok) return res.json();
+      if (res.status === 500 && attempt < retries) {
+        console.warn(`Ideas Portal: got 500, retrying (attempt ${attempt + 1})...`);
+        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+        continue;
+      }
+      return null;
+    } catch (err) {
+      if (attempt < retries && err.name !== 'AbortError') {
+        await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+        continue;
+      }
+      return null;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  return null;
 }
 
 /**
@@ -55,20 +75,15 @@ export async function fetchRelatedIdeas(keywords, issueTitle = '') {
   let error;
 
   try {
-    // Run one targeted OData query per keyword, all in parallel
-    const queryPromises = topKeywords.map(kw => {
+    // Execute queries sequentially — the Ideas OData endpoint rate-limits
+    // concurrent requests aggressively, returning 500 for parallel calls.
+    // Search adx_name only — body (adx_copy) matches are too noisy.
+    // Client-side scoring in scoreIdeaRelevance still checks body text.
+    for (const kw of topKeywords) {
       const filter = buildSearchFilter(kw);
-      const url = `${IDEAS_ODATA_URL}?$top=${RESULTS_PER_QUERY}`
-        + `&$orderby=adx_votestotalnumberof%20desc`
-        + `&$filter=${encodeURIComponent(filter)}`;
-      return fetchWithTimeout(url, { headers: { 'Accept': 'application/json' } })
-        .then(res => res.ok ? res.json() : null)
-        .catch(() => null);
-    });
-
-    const results = await Promise.all(queryPromises);
-
-    for (const data of results) {
+      const url = `${IDEAS_ODATA_URL}?%24top=${RESULTS_PER_QUERY}`
+        + `&%24filter=${encodeURIComponent(filter)}`;
+      const data = await fetchWithRetry(url).catch(() => null);
       if (!data?.value) continue;
       for (const idea of data.value) {
         if (!seenIds.has(idea.adx_ideaid)) {
@@ -228,8 +243,10 @@ function stripHtml(html) {
 }
 
 /**
- * Build an OData $filter clause that searches both title and body for a keyword
+ * Build an OData $filter clause that searches idea titles for a keyword
  * and its synonym variants, scoped to the BC forum with approved ideas only.
+ * Only searches adx_name (title) — body text (adx_copy) is checked client-side
+ * during scoring, since server-side body search returns too many false positives.
  */
 function buildSearchFilter(keyword) {
   const variants = expandKeyword(keyword).slice(0, MAX_SYNONYM_VARIANTS);
@@ -237,7 +254,6 @@ function buildSearchFilter(keyword) {
   for (const variant of variants) {
     const escaped = variant.replace(/'/g, "''");
     clauses.push(`substringof('${escaped}',adx_name)`);
-    clauses.push(`substringof('${escaped}',adx_copy)`);
   }
   return `${BC_FORUM_FILTER} and (${clauses.join(' or ')})`;
 }

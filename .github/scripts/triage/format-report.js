@@ -131,14 +131,9 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
 
     if (e.learn_articles && e.learn_articles.length > 0) {
       md += `#### Microsoft Learn\n`;
+      md += `_Documentation confirmed relevant to this issue by LLM analysis._\n\n`;
       for (const doc of e.learn_articles) {
-        md += `- [${doc.title}](${doc.url})`;
-        if (doc.relevance) {
-          md += ` — ${doc.relevance}`;
-        } else if (doc.description) {
-          md += ` — ${doc.description.substring(0, 150)}${doc.description.length > 150 ? '...' : ''}`;
-        }
-        md += `\n`;
+        md += `- [${doc.title}](${doc.url}) — ${doc.relevance}\n`;
       }
       md += `\n`;
     }
@@ -205,12 +200,13 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
 
     if ((e.community_discussions && e.community_discussions.length > 0) || e.community_search_url) {
       md += `#### Community discussions\n`;
+      md += `_Discussions confirmed relevant to this issue by LLM analysis._\n\n`;
       if (e.community_discussions && e.community_discussions.length > 0) {
         for (const d of e.community_discussions) {
           md += `- [${d.title}](${d.url})`;
           if (d.source) md += ` (${d.source})`;
-          if (d.views > 0) md += ` — ${d.views} views, ${d.replies} replies`;
-          md += `\n`;
+          if (d.views > 0) md += ` · ${d.views} views, ${d.replies} replies`;
+          md += ` — ${d.relevance}\n`;
         }
       }
       if (e.community_search_url) {

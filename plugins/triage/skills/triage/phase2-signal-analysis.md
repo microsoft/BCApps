@@ -74,6 +74,9 @@ Return a JSON object with this exact structure:
   "ado_work_items": [
     { "id": 12345, "relevance": "Why this work item is relevant to the issue" }
   ],
+  "community_discussions": [
+    { "title": "Discussion title", "relevance": "Why this discussion is relevant — e.g. confirms user demand, suggests workarounds, or reveals known limitations" }
+  ],
   "competitive_landscape": {
     "position": "Table stakes",
     "rationale": "Brief assessment of how competing ERP platforms handle this capability, without naming specific products"
