@@ -209,9 +209,14 @@ function formatVerboseComment(phase1, phase2, isRetriage, duplicates, previousSc
     md += `\n`;
   }
 
-  if (e.marketplace && e.marketplace.searchUrl) {
-    md += `#### AppSource Marketplace\n\n`;
-    md += `[Search related apps](${e.marketplace.searchUrl})\n\n`;
+  if (e.marketplace && (e.marketplace.ecosystem?.density !== 'Unknown' || e.marketplace.searchUrl)) {
+    md += `#### Marketplace Ecosystem\n\n`;
+    if (e.marketplace.ecosystem && e.marketplace.ecosystem.density !== 'Unknown') {
+      md += `**${e.marketplace.ecosystem.density}** — ${e.marketplace.ecosystem.rationale}\n\n`;
+    }
+    if (e.marketplace.searchUrl) {
+      md += `[Search related apps on Marketplace](${e.marketplace.searchUrl})\n\n`;
+    }
   }
 
   if ((e.community_discussions && e.community_discussions.length > 0) || (e.community && e.community.length > 0) || e.community_search_url) {

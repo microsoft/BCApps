@@ -121,7 +121,8 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
     (e.ideas_portal?.length > 0) || (e.matched_ideas?.length > 0) ||
     (e.ado_work_items?.length > 0) || (e.related_prs?.length > 0) ||
     (e.community_discussions?.length > 0) ||
-    (e.marketplace?.searchUrl) || (e.youtube_videos?.length > 0) ||
+    (e.marketplace?.ecosystem?.density !== 'Unknown') || (e.marketplace?.searchUrl) ||
+    (e.youtube_videos?.length > 0) ||
     (e.competitive_landscape && e.competitive_landscape.position !== 'Unknown') ||
     (e.code_areas?.length > 0) || (e.git_history?.totalCommits > 0);
 
@@ -185,9 +186,15 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
       md += `\n`;
     }
 
-    if (e.marketplace && e.marketplace.searchUrl) {
-      md += `#### AppSource\n`;
-      md += `[Search related apps](${e.marketplace.searchUrl})\n\n`;
+    if (e.marketplace && (e.marketplace.ecosystem?.density !== 'Unknown' || e.marketplace.searchUrl)) {
+      md += `#### Marketplace Ecosystem\n`;
+      md += `_Third-party app density: signals whether partners actively build solutions in this area._\n\n`;
+      if (e.marketplace.ecosystem && e.marketplace.ecosystem.density !== 'Unknown') {
+        md += `**${e.marketplace.ecosystem.density}** — ${e.marketplace.ecosystem.rationale}\n\n`;
+      }
+      if (e.marketplace.searchUrl) {
+        md += `[Search related apps on Marketplace](${e.marketplace.searchUrl})\n\n`;
+      }
     }
 
     if (e.competitive_landscape && e.competitive_landscape.position !== 'Unknown') {
