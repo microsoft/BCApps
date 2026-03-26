@@ -58,13 +58,28 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '') {
   const authHeader = `Basic ${Buffer.from(':' + pat).toString('base64')}`;
 
   try {
-    // Try the ADO Search API first (full-text, relevance-ranked)
+    // Run two search strategies and merge:
+    // 1. Keyword search — finds semantically related items
+    // 2. Title search — catches exact/near-exact title matches that keywords might miss
     let workItems = await searchWithFullTextApi(topKeywords, authHeader, issueTitle);
 
     // Fall back to WIQL if Search API isn't available
     if (!workItems) {
       console.log('ADO: Search API unavailable, falling back to WIQL');
       workItems = await searchWithWiql(topKeywords, authHeader, issueTitle);
+    }
+
+    // Run a supplementary title-based search when the issue title differs from keywords
+    if (issueTitle) {
+      const titleItems = await searchWithFullTextApi([], authHeader, issueTitle, issueTitle);
+      if (titleItems && titleItems.length > 0) {
+        const existingIds = new Set(workItems.map(wi => wi.id));
+        const newItems = titleItems.filter(wi => !existingIds.has(wi.id));
+        if (newItems.length > 0) {
+          console.log(`ADO: title search found ${newItems.length} additional items`);
+          workItems.push(...newItems);
+        }
+      }
     }
 
     // Split into active and closed, filter by relevance, sort by score
@@ -90,9 +105,16 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '') {
 /**
  * ADO Work Item Search API — full-text, relevance-ranked search.
  * Returns null if the API is unavailable (e.g., PAT lacks permissions).
+ * @param {string[]} topKeywords - keywords for scoring
+ * @param {string} authHeader - Basic auth header
+ * @param {string} issueTitle - original issue title for similarity scoring
+ * @param {string} [searchTextOverride] - if provided, use this as the search query instead of joining keywords
  */
-async function searchWithFullTextApi(topKeywords, authHeader, issueTitle) {
-  const searchText = topKeywords.join(' ');
+async function searchWithFullTextApi(topKeywords, authHeader, issueTitle, searchTextOverride) {
+  const searchText = searchTextOverride || topKeywords.join(' ');
+  const searchLabel = searchTextOverride ? 'title-match' : 'keyword';
+  if (!searchText.trim()) return [];
+  console.log(`ADO: [${searchLabel}] querying Search API for "${searchText}"`);
   const searchUrl = `https://almsearch.dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_apis/search/workitemsearchresults?api-version=7.1-preview.1`;
 
   let response;
@@ -115,13 +137,13 @@ async function searchWithFullTextApi(topKeywords, authHeader, issueTitle) {
   }
 
   if (!response.ok) {
-    console.log(`ADO: Search API returned ${response.status}`);
+    console.log(`ADO: [${searchLabel}] Search API returned ${response.status}`);
     return null;
   }
 
   const data = await response.json();
   const results = data.results || [];
-  console.log(`ADO: Search API returned ${results.length} results for "${searchText}"`);
+  console.log(`ADO: [${searchLabel}] Search API returned ${results.length} results`);
 
   if (results.length === 0) return [];
 
@@ -132,7 +154,9 @@ async function searchWithFullTextApi(topKeywords, authHeader, issueTitle) {
     const type = fields['system.workitemtype'] || 'Unknown';
     const description = stripHtml(fields['system.description'] || '');
     const id = parseInt(fields['system.id'], 10) || 0;
-    const { score, matchedKeywords } = scoreRelevance(title, description, topKeywords, issueTitle);
+    // When called via title search (topKeywords=[]), derive scoring keywords from the issue title
+    const scoringKeywords = topKeywords.length > 0 ? topKeywords : deriveKeywordsFromTitle(issueTitle);
+    const { score, matchedKeywords } = scoreRelevance(title, description, scoringKeywords, issueTitle);
 
     return {
       id,
@@ -153,6 +177,7 @@ async function searchWithFullTextApi(topKeywords, authHeader, issueTitle) {
  * Searches both title and description for keyword matches.
  */
 async function searchWithWiql(topKeywords, authHeader, issueTitle) {
+  console.log(`ADO: [WIQL fallback] querying for [${topKeywords.join(', ')}]`);
   const wiqlUrl = `https://dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_apis/wit/wiql?api-version=${ADO_API_VERSION}&%24top=${MAX_WIQL_RESULTS}`;
 
   // Build conditions that search both title AND description
@@ -177,7 +202,7 @@ async function searchWithWiql(topKeywords, authHeader, issueTitle) {
   const combinedIds = [...new Set([...activeIds, ...allIds])].slice(0, MAX_WIQL_RESULTS);
 
   if (combinedIds.length === 0) {
-    console.log('ADO: no matching work items found');
+    console.log('ADO: [WIQL fallback] no matching work items found');
     return [];
   }
 
@@ -297,6 +322,24 @@ function scoreRelevance(title, description, keywords, issueTitle = '') {
   }
 
   return { score, matchedKeywords };
+}
+
+/**
+ * Derive scoring keywords from the issue title when Phase 1 keywords aren't available.
+ * Extracts individual words and overlapping bigrams (same pattern as the main normalizer).
+ */
+function deriveKeywordsFromTitle(title) {
+  if (!title) return [];
+  const STOP_WORDS = new Set(['a', 'an', 'the', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'is', 'are', 'be', 'it', 'as', 'by', 'with', 'from', 'not', 'no', 'also']);
+  const words = title.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(w => w.length > 1 && !STOP_WORDS.has(w));
+  const keywords = [];
+  // Add bigrams first (more specific)
+  for (let i = 0; i < words.length - 1; i++) {
+    keywords.push(words.slice(i, i + 2).join(' '));
+  }
+  // Then individual words
+  keywords.push(...words);
+  return [...new Set(keywords)].slice(0, 8);
 }
 
 function escapeRegex(str) {
