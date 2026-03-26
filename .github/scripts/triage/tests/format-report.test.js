@@ -33,7 +33,7 @@ const mockPhase2 = {
     recommended_action: { action: 'Implement', rationale: 'Worth doing' },
   },
   enrichment: {
-    documentation: [{ title: 'Shopify docs', url: 'https://learn.microsoft.com/shopify', relevance: 'Main docs' }],
+    learn_articles: [{ title: 'Shopify docs', url: 'https://learn.microsoft.com/shopify', relevance: 'Main docs' }],
     ideas_portal: [],
     community: [],
     code_areas: [{ path: 'src/Apps/W1/Shopify/', relevance: 'Main app directory' }],
