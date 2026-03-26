@@ -84,7 +84,7 @@ page 8889 "Email Attachments"
 
                 trigger OnAction()
                 var
-                    EmailAttachments: Record "Email Attachments";
+                    TempEmailAttachments: Record "Email Attachments";
                     FeatureTelemetry: Codeunit "Feature Telemetry";
                     EmailChooseScenarioAttachments: Page "Email Choose Scenario Attach";
                 begin
@@ -94,9 +94,9 @@ page 8889 "Email Attachments"
                     if EmailChooseScenarioAttachments.RunModal() = Action::LookupOK then begin
                         FeatureTelemetry.LogUptake('0000I8R', 'Email Default Attachments', Enum::"Feature Uptake Status"::Used);
 
-                        EmailChooseScenarioAttachments.GetSelectedAttachments(EmailAttachments);
+                        EmailChooseScenarioAttachments.GetSelectedAttachments(TempEmailAttachments);
                         EmailMessageImpl.Get(EmailMessageId);
-                        EmailMessageImpl.AddAttachmentsFromScenario(EmailAttachments);
+                        EmailMessageImpl.AddAttachmentsFromScenario(TempEmailAttachments);
 
                         FeatureTelemetry.LogUsage('0000I8T', 'Email Default Attachments', 'Upload attachments from scenarios');
                     end;

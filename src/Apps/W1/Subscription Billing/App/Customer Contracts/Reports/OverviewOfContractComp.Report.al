@@ -8,6 +8,7 @@ report 8004 "Overview Of Contract Comp"
     DefaultRenderingLayout = "OverviewOfContractComponents.xlsx";
     ExcelLayoutMultipleDataSheets = true;
     AdditionalSearchTerms = 'Contract Components, Contract Overview, Subscription Elements, Contract Report, Contract Analysis, Contract Details';
+    ToolTip = 'Analyze components of your contracts.';
 
     dataset
     {

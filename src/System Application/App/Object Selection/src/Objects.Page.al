@@ -66,6 +66,13 @@ page 358 Objects
                     ToolTip = 'Specifies the subtype of the object.';
                     Visible = VisibleObjType;
                 }
+                field("AL Namespace"; Rec."AL Namespace")
+                {
+                    ApplicationArea = All;
+                    Caption = 'AL Namespace';
+                    ToolTip = 'Specifies the AL namespace of the object.';
+                    Visible = false;
+                }
                 field(ExtensionName; AppName)
                 {
                     ApplicationArea = All;
