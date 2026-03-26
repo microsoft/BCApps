@@ -2,7 +2,7 @@
 // Uses `copilot -p` in programmatic mode instead of direct REST API calls.
 // See: https://docs.github.com/en/copilot/how-tos/copilot-cli/automate-copilot-cli/run-cli-programmatically
 
-import { execFileSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { MODEL_NAME } from './config.js';
 
 /**
@@ -28,17 +28,24 @@ export async function callGPT(systemPrompt, userMessage) {
   let lastError;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const output = execFileSync(
-        'copilot',
-        ['-s', '--no-ask-user', '--no-custom-instructions', `--model=${MODEL_NAME}`],
-        {
-          encoding: 'utf-8',
-          input: combinedPrompt,
-          timeout: 420_000,
-          maxBuffer: 10 * 1024 * 1024,
-          env: { ...process.env },
-        }
-      );
+      const output = await new Promise((resolve, reject) => {
+        const child = execFile(
+          'copilot',
+          ['-s', '--no-ask-user', '--no-custom-instructions', `--model=${MODEL_NAME}`],
+          {
+            encoding: 'utf-8',
+            timeout: 420_000,
+            maxBuffer: 10 * 1024 * 1024,
+            env: { ...process.env },
+          },
+          (err, stdout) => {
+            if (err) return reject(err);
+            resolve(stdout);
+          }
+        );
+        child.stdin.write(combinedPrompt);
+        child.stdin.end();
+      });
 
       // Extract the JSON object from the output.
       // The CLI may prepend conversational text before the JSON.
