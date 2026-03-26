@@ -941,10 +941,7 @@ codeunit 30178 "Shpfy Product Export"
             exit(false);
         end;
 
-        if not CheckItemVariantCount(Item) then
-            exit(false);
-
-        exit(true);
+        exit(CheckItemVariantCount(Item));
     end;
 
     /// <summary>
