@@ -304,7 +304,7 @@ function escapeRegex(str) {
 }
 
 function buildMatchReason(matchedKeywords) {
-  if (matchedKeywords.length === 0) return 'Weak match';
+  if (matchedKeywords.length === 0) return 'Weak keyword overlap — may not be directly related';
 
   const similarityMatch = matchedKeywords.find(m => m.location === 'similarity');
   const titleMatches = matchedKeywords.filter(m => m.location === 'title').map(m => m.keyword);
@@ -312,13 +312,16 @@ function buildMatchReason(matchedKeywords) {
 
   const parts = [];
   if (similarityMatch) {
-    parts.push(similarityMatch.keyword);
+    const pct = parseInt(similarityMatch.keyword, 10);
+    if (pct >= 60) parts.push(`Strong title similarity (${similarityMatch.keyword}) — likely tracks the same topic`);
+    else if (pct >= 35) parts.push(`Moderate title similarity (${similarityMatch.keyword}) — possibly related`);
+    else parts.push(`Partial title overlap (${similarityMatch.keyword})`);
   }
   if (titleMatches.length > 0) {
-    parts.push(`title keywords: ${titleMatches.join(', ')}`);
+    parts.push(`Title contains: ${titleMatches.join(', ')}`);
   }
   if (descMatches.length > 0) {
-    parts.push(`description keywords: ${descMatches.join(', ')}`);
+    parts.push(`Description mentions: ${descMatches.join(', ')}`);
   }
   return parts.join('; ');
 }

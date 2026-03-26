@@ -24,7 +24,7 @@ If additional documentation is likely to exist beyond the search results, you ma
 You will be provided with actual search results from the Dynamics 365 Ideas Portal. Use these to gauge community demand, check current status of related ideas, and incorporate high-vote ideas into your value assessment.
 
 ### Azure DevOps work items
-You may be provided with related work items from the Dynamics SMB ADO project. Use these to identify if this issue is already tracked internally and factor existing work into your assessment.
+You may be provided with related work items from the Dynamics SMB ADO project. For each work item, assess whether it tracks the same request, a related feature, or merely shares keywords. Explain the **specific connection** to the GitHub issue — e.g., "Tracks the same feature request: adding work description fields to purchase documents" or "Related but different scope: covers tax migration on purchase orders, not work descriptions." This explanation helps the product manager understand overlap at a glance.
 
 ### Pull requests
 You may be provided with related pull requests from the same repository. Use these to identify:
@@ -69,10 +69,10 @@ Return a JSON object with this exact structure:
     { "title": "Article title", "url": "https://...", "relevance": "Why this is relevant" }
   ],
   "ideas_portal": [
-    { "title": "Idea title", "url": "https://experience.dynamics.com/...", "relevance": "Why this is relevant" }
+    { "title": "Idea title", "url": "https://experience.dynamics.com/...", "relevance": "Specific connection — e.g. requests the same capability, overlapping scope, or different area" }
   ],
   "ado_work_items": [
-    { "id": 12345, "relevance": "Why this work item is relevant to the issue" }
+    { "id": 12345, "relevance": "Specific explanation of how this work item relates to the issue — same request, overlapping scope, or merely shared keywords" }
   ],
   "community_discussions": [
     { "title": "Discussion title", "relevance": "Why this discussion is relevant — e.g. confirms user demand, suggests workarounds, or reveals known limitations" }
