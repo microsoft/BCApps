@@ -23,10 +23,11 @@ export async function callGPT(systemPrompt, userMessage) {
     userMessage,
   ].join('\n');
 
-  console.log(`Calling: copilot -s --no-ask-user --model=${MODEL_NAME} (prompt: ${Math.round(combinedPrompt.length / 1024)}KB)`);
-
   let lastError;
   for (let attempt = 0; attempt < 2; attempt++) {
+    const label = attempt === 0 ? '' : ' (retry)';
+    console.log(`Calling${label}: copilot -s --no-ask-user --model=${MODEL_NAME} (prompt: ${Math.round(combinedPrompt.length / 1024)}KB)`);
+    const startTime = Date.now();
     try {
       const output = await new Promise((resolve, reject) => {
         const child = execFile(
@@ -78,13 +79,15 @@ export async function callGPT(systemPrompt, userMessage) {
       }
     } catch (err) {
       lastError = err;
-      const exitCode = err.code ?? err.killed ? 'KILLED' : 'unknown';
+      const elapsed = Math.round((Date.now() - startTime) / 1000);
+      const exitCode = err.code != null ? err.code : (err.killed ? 'KILLED' : 'unknown');
       const signal = err.signal ?? '';
       const stderrSnippet = err.stderr ? err.stderr.substring(0, 300) : '';
       const detail = [
         `exit=${exitCode}`,
         signal && `signal=${signal}`,
         err.killed && 'killed=true (timeout?)',
+        `elapsed=${elapsed}s`,
         stderrSnippet && `stderr="${stderrSnippet}"`,
       ].filter(Boolean).join(', ');
       if (attempt === 0) {
