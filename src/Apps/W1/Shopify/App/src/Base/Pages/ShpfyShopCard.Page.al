@@ -5,7 +5,6 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Setup;
 using System.DateTime;
@@ -97,13 +96,11 @@ page 30101 "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether the log is activated.';
                 }
                 field(AllowBackgroudSyncs; Rec."Allow Background Syncs")
                 {
                     ApplicationArea = All;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether synchronization runs in the background. When enabled, you can continue working while large data sets synchronize. Disable for demos or troubleshooting to see real-time progress and receive detailed error messages.';
                 }
                 field("Allow Outgoing Requests"; Rec."Allow Outgoing Requests")
                 {
