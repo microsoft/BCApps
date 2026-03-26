@@ -115,7 +115,6 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Can Not Have Stock" = X,
         codeunit "Shpfy Catalog API" = X,
         codeunit "Shpfy Checklist Item List" = X,
-        codeunit "Shpfy Communication Events" = X,
         codeunit "Shpfy Communication Mgt." = X,
         codeunit "Shpfy Comp. By Default Comp." = X,
         codeunit "Shpfy Comp. By Email/Phone" = X,
