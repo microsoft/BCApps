@@ -57,7 +57,7 @@ report 4404 "EXR Vendor Top List"
                 {
                     Caption = 'Options';
 
-                    field(Show; TempGlobalExtTopVendorReportBuffer."Ranking Based On")
+                    field(Show; GlobalExtTopVendorReportBuffer."Ranking Based On")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Show';
@@ -66,7 +66,7 @@ report 4404 "EXR Vendor Top List"
 
                         trigger OnValidate()
                         begin
-                            ChangeShowType(TempGlobalExtTopVendorReportBuffer."Ranking Based On");
+                            ChangeShowType(GlobalExtTopVendorReportBuffer."Ranking Based On");
                         end;
                     }
                     field(Quantity; NoOfRecordsToPrint)
@@ -90,7 +90,7 @@ report 4404 "EXR Vendor Top List"
         trigger OnOpenPage()
         begin
             NoOfRecordsToPrint := 10;
-            ChangeShowType(TempGlobalExtTopVendorReportBuffer."Ranking Based On"::"Purchases (LCY)");
+            ChangeShowType(GlobalExtTopVendorReportBuffer."Ranking Based On"::"Purchases (LCY)");
         end;
 
         trigger OnClosePage()
@@ -131,7 +131,9 @@ report 4404 "EXR Vendor Top List"
         DateFilter: Text;
 
     protected var
-        TempGlobalExtTopVendorReportBuffer: Record "EXR Top Vendor Report Buffer";
+#pragma warning disable AA0073
+        GlobalExtTopVendorReportBuffer: Record "EXR Top Vendor Report Buffer";
+#pragma warning restore AA0073
         EXTTopVendorCaptionHandler: Codeunit "EXT Top Vendor Caption Handler";
         NoOfRecordsToPrint: Integer;
 
@@ -146,13 +148,13 @@ report 4404 "EXR Vendor Top List"
     var
         VendorFilter: Text;
     begin
-        if TempGlobalExtTopVendorReportBuffer."Ranking Based On" = TempGlobalExtTopVendorReportBuffer."Ranking Based On"::"Purchases (LCY)" then begin
+        if GlobalExtTopVendorReportBuffer."Ranking Based On" = GlobalExtTopVendorReportBuffer."Ranking Based On"::"Purchases (LCY)" then begin
             VendorFilter := GetEntriesForTopVendorsBasedOnPurchases();
             FillDataForTopVendorsBasedOnPurchases(VendorFilter);
             exit;
         end;
 
-        if TempGlobalExtTopVendorReportBuffer."Ranking Based On" = TempGlobalExtTopVendorReportBuffer."Ranking Based On"::"Balance (LCY)" then begin
+        if GlobalExtTopVendorReportBuffer."Ranking Based On" = GlobalExtTopVendorReportBuffer."Ranking Based On"::"Balance (LCY)" then begin
             VendorFilter := GetEntriesForTopVendorsBasedOnBalance();
             FillDataForTopVendorsBasedOnBalance(VendorFilter);
             exit;
@@ -200,8 +202,8 @@ report 4404 "EXR Vendor Top List"
 
     local procedure ChangeShowType(NewShowType: Option)
     begin
-        TempGlobalExtTopVendorReportBuffer."Ranking Based On" := NewShowType;
-        EXTTopVendorCaptionHandler.SetRankingBasedOn(TempGlobalExtTopVendorReportBuffer."Ranking Based On");
+        GlobalExtTopVendorReportBuffer."Ranking Based On" := NewShowType;
+        EXTTopVendorCaptionHandler.SetRankingBasedOn(GlobalExtTopVendorReportBuffer."Ranking Based On");
     end;
 
     local procedure FillDataForTopVendorsBasedOnBalance(VendorFilter: Text)
@@ -249,7 +251,7 @@ report 4404 "EXR Vendor Top List"
         Clear(TopVendorData);
         TopVendorData."Vendor No." := VendorNo;
         TopVendorData."Amount (LCY)" := AmountLCY;
-        TopVendorData."Ranking Based On" := TempGlobalExtTopVendorReportBuffer."Ranking Based On";
+        TopVendorData."Ranking Based On" := GlobalExtTopVendorReportBuffer."Ranking Based On";
         TopVendorData.Insert();
     end;
 

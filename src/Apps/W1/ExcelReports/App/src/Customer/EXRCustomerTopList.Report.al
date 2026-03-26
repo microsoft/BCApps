@@ -56,7 +56,7 @@ report 4409 "EXR Customer Top List"
                 {
                     Caption = 'Options';
 
-                    field(Show; TempGlobalExtTopCustomerReportBuffer."Ranking Based On")
+                    field(Show; GlobalExtTopCustomerReportBuffer."Ranking Based On")
                     {
                         ApplicationArea = Suite;
                         Caption = 'Show';
@@ -65,7 +65,7 @@ report 4409 "EXR Customer Top List"
 
                         trigger OnValidate()
                         begin
-                            ChangeShowType(TempGlobalExtTopCustomerReportBuffer."Ranking Based On");
+                            ChangeShowType(GlobalExtTopCustomerReportBuffer."Ranking Based On");
                         end;
                     }
                     field(Quantity; NoOfRecordsToPrint)
@@ -89,7 +89,7 @@ report 4409 "EXR Customer Top List"
         trigger OnOpenPage()
         begin
             NoOfRecordsToPrint := 10;
-            ChangeShowType(TempGlobalExtTopCustomerReportBuffer."Ranking Based On"::"Sales (LCY)");
+            ChangeShowType(GlobalExtTopCustomerReportBuffer."Ranking Based On"::"Sales (LCY)");
         end;
 
         trigger OnClosePage()
@@ -130,7 +130,9 @@ report 4409 "EXR Customer Top List"
         DateFilter: Text;
 
     protected var
-        TempGlobalExtTopCustomerReportBuffer: Record "EXR Top Customer Report Buffer";
+#pragma warning disable AA0073
+        GlobalExtTopCustomerReportBuffer: Record "EXR Top Customer Report Buffer";
+#pragma warning restore AA0073
         EXTTopCustomerCaptionHandler: Codeunit "EXT Top Cust. Caption Handler";
         NoOfRecordsToPrint: Integer;
 
@@ -145,13 +147,13 @@ report 4409 "EXR Customer Top List"
     var
         CustomerFilter: Text;
     begin
-        if TempGlobalExtTopCustomerReportBuffer."Ranking Based On" = TempGlobalExtTopCustomerReportBuffer."Ranking Based On"::"Sales (LCY)" then begin
+        if GlobalExtTopCustomerReportBuffer."Ranking Based On" = GlobalExtTopCustomerReportBuffer."Ranking Based On"::"Sales (LCY)" then begin
             CustomerFilter := GetEntriesForTopCustomersBasedOnSales();
             FillDataForTopCustomersBasedOnSales(CustomerFilter);
             exit;
         end;
 
-        if TempGlobalExtTopCustomerReportBuffer."Ranking Based On" = TempGlobalExtTopCustomerReportBuffer."Ranking Based On"::"Balance (LCY)" then begin
+        if GlobalExtTopCustomerReportBuffer."Ranking Based On" = GlobalExtTopCustomerReportBuffer."Ranking Based On"::"Balance (LCY)" then begin
             CustomerFilter := GetEntriesForTopCustomersBasedOnBalance();
             FillDataForTopCustomersBasedOnBalance(CustomerFilter);
             exit;
@@ -199,8 +201,8 @@ report 4409 "EXR Customer Top List"
 
     local procedure ChangeShowType(NewShowType: Option)
     begin
-        TempGlobalExtTopCustomerReportBuffer."Ranking Based On" := NewShowType;
-        EXTTopCustomerCaptionHandler.SetRankingBasedOn(TempGlobalExtTopCustomerReportBuffer."Ranking Based On");
+        GlobalExtTopCustomerReportBuffer."Ranking Based On" := NewShowType;
+        EXTTopCustomerCaptionHandler.SetRankingBasedOn(GlobalExtTopCustomerReportBuffer."Ranking Based On");
     end;
 
     local procedure FillDataForTopCustomersBasedOnBalance(CustomerFilter: Text)
@@ -248,7 +250,7 @@ report 4409 "EXR Customer Top List"
         Clear(TopCustomerData);
         TopCustomerData."Customer No." := CustomerNo;
         TopCustomerData."Amount (LCY)" := AmountLCY;
-        TopCustomerData."Ranking Based On" := TempGlobalExtTopCustomerReportBuffer."Ranking Based On";
+        TopCustomerData."Ranking Based On" := GlobalExtTopCustomerReportBuffer."Ranking Based On";
         TopCustomerData.Insert();
     end;
 
