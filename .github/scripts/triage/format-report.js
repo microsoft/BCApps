@@ -26,16 +26,27 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
   // ── TL;DR ──
   md += `${actionEmoji} **${t.recommended_action.action}** — ${phase2.executive_summary}\n\n`;
 
-  md += `| Quality | Priority | Complexity | Effort | Risk | Path | Confidence |\n`;
-  md += `|---------|----------|------------|--------|------|------|------------|\n`;
-  md += `| ${qs.total}/100 (${phase1.verdict}) | ${t.priority_score.score}/10 | ${t.complexity.rating} | ${t.effort.rating} | ${t.risk.rating} | ${t.implementation_path.rating} | ${t.confidence.rating} |\n`;
+  md += `| Priority | Complexity | Effort | Risk | Path | Confidence |\n`;
+  md += `|----------|------------|--------|------|------|------------|\n`;
+  md += `| ${t.priority_score.score}/10 | ${t.complexity.rating} | ${t.effort.rating} | ${t.risk.rating} | ${t.implementation_path.rating} | ${t.confidence.rating} |\n`;
 
   md += `\n`;
-  md += `> **Type:** ${phase1.issue_type} | **Author:** @${issueMeta.author} | **Date:** ${new Date().toISOString().split('T')[0]} | [View issue](${issueMeta.url})\n`;
+  md += `> **Type:** ${phase1.issue_type} | **Quality:** ${qs.total}/100 (${phase1.verdict}) | **Author:** @${issueMeta.author} | **Date:** ${new Date().toISOString().split('T')[0]} | [View issue](${issueMeta.url})\n`;
 
   if (isRetriage) {
     md += `> :arrows_counterclockwise: **Re-triage** — see earlier versions in wiki history.\n`;
   }
+
+  md += `\n`;
+
+  // ── Key rationales (visible — the "why" behind the recommendation) ──
+  md += `### Why ${t.recommended_action.action}?\n\n`;
+  md += `> ${t.recommended_action.rationale}\n\n`;
+
+  md += `- **Priority ${t.priority_score.score}/10:** ${t.priority_score.rationale}\n`;
+  md += `- **Value — ${t.value.rating}:** ${t.value.rationale}\n`;
+  md += `- **Risk — ${t.risk.rating}:** ${t.risk.rationale}\n`;
+  md += `- **Effort — ${t.effort.rating}:** ${t.effort.rationale}\n`;
 
   md += `\n`;
 
@@ -56,8 +67,8 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
 
   md += `---\n\n`;
 
-  // ── Triage rationale (collapsible) ──
-  md += `<details>\n<summary><strong>Triage rationale</strong> — why ${t.recommended_action.action}?</summary>\n\n`;
+  // ── Full triage rationale (collapsible — all 7 aspects with rationales) ──
+  md += `<details>\n<summary><strong>Full triage rationale</strong> — all assessment aspects</summary>\n\n`;
 
   md += `| Aspect | Assessment | Rationale |\n`;
   md += `|--------|-----------|----------|\n`;
@@ -69,8 +80,7 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
   md += `| Priority | ${t.priority_score.score}/10 | ${escapeMdTable(t.priority_score.rationale)} |\n`;
   md += `| Confidence | ${t.confidence.rating} | ${escapeMdTable(t.confidence.rationale)} |\n`;
 
-  md += `\n> ${t.recommended_action.rationale}\n\n`;
-  md += `</details>\n\n`;
+  md += `\n</details>\n\n`;
 
   // ── Quality breakdown (collapsible) ──
   md += `<details>\n<summary><strong>Quality breakdown</strong> — ${qs.total}/100 (${phase1.verdict})</summary>\n\n`;

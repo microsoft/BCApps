@@ -309,7 +309,7 @@ The agent operates in two internal phases:
       format-report.js          # Wiki report formatter (TL;DR + collapsible details)
       wiki-client.js            # Wiki publisher (configurable target repo)
       package.json              # Dependencies and test script
-      tests/                    # Unit tests (63 tests across 6 test files)
+      tests/                    # Unit tests (97 tests across 8 test files)
 plugins/
   triage/
     .claude-plugin/plugin.json  # Plugin metadata
@@ -342,16 +342,19 @@ See `.github/workflows/issue-triage.yml` for the current workflow. Key configura
 
 ### 6.4 Copilot CLI call pattern
 
-Each phase makes a single call to the model via GitHub Copilot CLI. The combined prompt is passed via stdin using `execFileSync`:
+Each phase makes a single call to the model via GitHub Copilot CLI. The combined prompt is piped via stdin using async `execFile` (enabling true parallel execution of Phase 2a/2b):
 
 ```javascript
-execFileSync('copilot',
+const child = execFile('copilot',
   ['-s', '--no-ask-user', '--no-custom-instructions', `--model=${MODEL_NAME}`],
-  { input: combinedPrompt, timeout: 420_000 }
+  { encoding: 'utf-8', timeout: 420_000, maxBuffer: 10 * 1024 * 1024,
+    env: { PATH, HOME, USERPROFILE, COPILOT_GITHUB_TOKEN, GH_TOKEN, GITHUB_TOKEN } }
 );
+child.stdin.write(combinedPrompt);
+child.stdin.end();
 ```
 
-The `-s` (silent) flag ensures clean output. `--no-ask-user` prevents interactive prompts. `--no-custom-instructions` prevents repo instruction files from being loaded. Authentication is via `COPILOT_GITHUB_TOKEN` (a PAT with "Copilot Requests" permission). Timeout is 7 minutes to accommodate large prompts.
+The `-s` (silent) flag ensures clean output. `--no-ask-user` prevents interactive prompts. `--no-custom-instructions` prevents repo instruction files from being loaded. Authentication is via `COPILOT_GITHUB_TOKEN` (a PAT with "Copilot Requests" permission). Timeout is 7 minutes to accommodate large prompts. Only essential environment variables are forwarded to the child process (security hardening).
 
 ### 6.5 Phase 1 system prompt design
 
@@ -396,7 +399,7 @@ Phase 2 splits the triage into three focused LLM calls for deeper reasoning:
 - Prompt template: `phase2-signal-analysis.md`
 - Outputs: value, documentation, ideas_portal, community, ado_work_items, competitive_landscape, marketplace_ecosystem, youtube_videos
 
-**Steps 2a and 2b run in parallel** via `Promise.all` for latency optimization.
+**Steps 2a and 2b run in parallel** via `Promise.all` for latency optimization. The upstream enrichment fetches (9 sources) use `Promise.allSettled` so that a single source failure doesn't block the entire pipeline — each failed source falls back to an empty default.
 
 **Step 2c — Synthesis** (PM role):
 - Receives: issue, Phase 1 results, code analysis results, signal analysis results, precedents
@@ -481,7 +484,7 @@ Minimal dependency footprint for fast CI install. Native `fetch` (Node 20) is us
 | Copilot CLI timeout (7 min) | Retry once, then fail with error comment |
 | Copilot CLI returns malformed JSON | Retry once with 2s delay, then fail |
 | GitHub API 5xx | Retry up to 3 times with increasing delay (3s, 6s) |
-| ADO/Ideas Portal fetch fails | Continue with Phase 2 using available data (graceful degradation) |
+| Any enrichment source fails | `Promise.allSettled` ensures remaining sources proceed; failed source uses empty default (graceful degradation) |
 | Wiki publish fails | Fall back to verbose inline comment (no data lost) |
 | Model response has wrong types | Coerce fixable values (e.g., string→number), derive verdict from score if invalid |
 | Label already processed | Check for existing triage comment, note re-triage, show score diff |
@@ -495,6 +498,11 @@ Minimal dependency footprint for fast CI install. Native `fetch` (Node 20) is us
 - The agent NEVER modifies issue title, body, or assignees (read issue, write comments/labels/type only)
 - Triage knowledge stored in skill files in the repo, fully auditable
 - Wiki reports can be directed to a private repo via `TRIAGE_REPO` for access control
+- **Env var restriction**: Only essential environment variables (PATH, HOME, USERPROFILE, auth tokens) are forwarded to Copilot CLI child processes — prevents leaking secrets via `process.env`
+- **Error message sanitization**: Error comments posted to public issues strip file paths and long tokens (potential secrets) before posting
+- **URL domain validation**: LLM-suggested documentation URLs are filtered through an allowlist of trusted domains (learn.microsoft.com, github.com, etc.) to prevent hallucinated links
+- **Competitor name redaction**: Competitive landscape rationale is sanitized to replace specific competitor product names with `[competing ERP]` before publishing to public reports
+- **Markdown table escaping**: All LLM-generated text in markdown table cells is escaped (pipe characters, newlines) to prevent table corruption
 
 ### 7.4 Performance target
 

@@ -157,7 +157,7 @@ The skill files are the **single source of truth** for triage domain knowledge. 
 
 ### Tests (`.github/scripts/triage/tests/`)
 
-63 tests across 6 test files:
+97 tests across 8 test files:
 
 | File | Coverage |
 |------|----------|
@@ -167,6 +167,8 @@ The skill files are the **single source of truth** for triage domain knowledge. 
 | `format-report.test.js` | Wiki report structure, metadata, collapsible sections, re-triage diff |
 | `text-similarity.test.js` | Tokenization, BC synonym normalization, Jaccard similarity, weighted similarity |
 | `wiki-client.test.js` | URL generation, TRIAGE_REPO override |
+| `precedent-finder.test.js` | Precedent section formatting (empty/single/multiple precedents) |
+| `phase2-enrich.test.js` | `escapeMdTable`, `isAllowedDocUrl` domain validation, `sanitizeCompetitiveLandscape` competitor redaction |
 
 Run tests: `cd .github/scripts/triage && npm test`
 
