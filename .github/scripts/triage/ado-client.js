@@ -4,6 +4,8 @@
 // Runs two queries: active items first, then closed — so the most
 // actionable matches surface even if the project has many closed items.
 
+import { tokenize, jaccardSimilarity } from './text-similarity.js';
+
 const ADO_ORG = 'dynamicssmb2';
 const ADO_PROJECT = 'Dynamics SMB';
 const ADO_API_VERSION = '7.1';
@@ -11,6 +13,7 @@ const MAX_WIQL_RESULTS = 15;
 const MAX_ACTIVE = 5;
 const MAX_CLOSED = 3;
 const MIN_RELEVANCE = 3;
+const FETCH_TIMEOUT_MS = 15_000;
 
 // States considered "active" in ADO (everything else is treated as closed)
 const CLOSED_STATES = new Set(['closed', 'resolved', 'removed', 'done', 'completed', 'cut']);
@@ -31,14 +34,15 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '') {
     return { activeItems: [], closedItems: [] };
   }
 
-  // Normalize keywords: split any 3+ word phrases into 1-2 word terms
+  // Normalize keywords: split 3+ word phrases into overlapping bigrams
+  // so "approval workflow management" → ["approval workflow", "workflow management"]
   const normalized = [];
   for (const kw of keywords) {
     const words = kw.split(/\s+/);
     if (words.length <= 2) {
       normalized.push(kw);
     } else {
-      for (let i = 0; i < words.length - 1; i += 2) {
+      for (let i = 0; i < words.length - 1; i++) {
         normalized.push(words.slice(i, i + 2).join(' '));
       }
     }
@@ -50,11 +54,11 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '') {
 
   console.log(`ADO: searching work items for [${topKeywords.join(', ')}]...`);
 
-  const authHeader = `Basic ${btoa(':' + pat)}`;
+  const authHeader = `Basic ${Buffer.from(':' + pat).toString('base64')}`;
   const wiqlUrl = `https://dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_apis/wit/wiql?api-version=${ADO_API_VERSION}&$top=${MAX_WIQL_RESULTS}`;
 
   const titleConditions = topKeywords.map(kw =>
-    `[System.Title] Contains '${escapeWiql(kw)}'`
+    `[System.Title] Contains '${sanitizeWiqlValue(kw)}'`
   ).join(' OR ');
 
   // Run two queries in parallel: active items and all items
@@ -81,7 +85,7 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '') {
     const fields = ['System.Id', 'System.Title', 'System.State', 'System.WorkItemType', 'System.Description'].join(',');
     const detailsUrl = `https://dev.azure.com/${ADO_ORG}/_apis/wit/workitems?ids=${combinedIds.join(',')}&fields=${fields}&api-version=${ADO_API_VERSION}`;
 
-    const detailsResponse = await fetch(detailsUrl, {
+    const detailsResponse = await fetchWithTimeout(detailsUrl, {
       headers: { 'Authorization': authHeader },
     });
 
@@ -131,10 +135,20 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '') {
 }
 
 /**
+ * Fetch with an AbortController timeout.
+ */
+function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timeout));
+}
+
+/**
  * Execute a WIQL query with fallback on failure.
  */
 async function runWiqlQuery(wiqlUrl, wiql, authHeader) {
-  const response = await fetch(wiqlUrl, {
+  const response = await fetchWithTimeout(wiqlUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
     body: JSON.stringify({ query: wiql }),
@@ -158,34 +172,9 @@ function stripBracketedTags(text) {
 }
 
 /**
- * Tokenize text into a set of meaningful words for similarity comparison.
- */
-function tokenize(text) {
-  return new Set(
-    (text || '').toLowerCase()
-      .replace(/[^a-z0-9\s]/g, ' ')
-      .split(/\s+/)
-      .filter(w => w.length > 2)
-  );
-}
-
-/**
- * Compute Jaccard similarity between two token sets (0-1).
- */
-function jaccardSimilarity(setA, setB) {
-  if (setA.size === 0 || setB.size === 0) return 0;
-  let intersection = 0;
-  for (const token of setA) {
-    if (setB.has(token)) intersection++;
-  }
-  const union = setA.size + setB.size - intersection;
-  return union === 0 ? 0 : intersection / union;
-}
-
-/**
  * Score a work item's relevance based on keyword matches plus title similarity.
- * Title similarity adds a large bonus when the candidate title closely matches
- * the issue title — this ensures near-identical items always rank highest.
+ * Uses the shared tokenize/jaccardSimilarity from text-similarity.js for
+ * consistent synonym-aware scoring across all connectors.
  */
 function scoreRelevance(title, description, keywords, issueTitle = '') {
   const titleLower = stripBracketedTags(title).toLowerCase();
@@ -215,9 +204,7 @@ function scoreRelevance(title, description, keywords, issueTitle = '') {
     }
   }
 
-  // Title similarity bonus: Jaccard similarity between issue title and candidate title.
-  // A 50% word overlap adds +10, a 80%+ overlap adds +20. This ensures items with
-  // nearly identical titles always outrank items that merely share a few keywords.
+  // Title similarity bonus using shared synonym-aware tokenizer.
   if (issueTitle) {
     const issueTokens = tokenize(issueTitle);
     const candidateTokens = tokenize(titleLower);
@@ -256,12 +243,24 @@ function buildMatchReason(matchedKeywords) {
   return parts.join('; ');
 }
 
-function escapeWiql(str) {
-  return str.replace(/'/g, "''");
+/**
+ * Sanitize a value for safe inclusion in a WIQL Contains clause.
+ * - Escapes single quotes (WIQL string delimiter)
+ * - Strips characters that could break the query structure
+ */
+function sanitizeWiqlValue(str) {
+  return str
+    .replace(/'/g, "''")          // escape single quotes
+    .replace(/[[\](){}]/g, '')    // strip brackets/parens that could break syntax
+    .replace(/\b(AND|OR|NOT)\b/gi, '') // strip WIQL boolean operators
+    .trim();
 }
 
 function stripHtml(html) {
-  return html.replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, ' ').trim();
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&(?:#\d+|#x[\da-fA-F]+|[a-z]+);/gi, ' ')  // handle named + numeric HTML entities
+    .trim();
 }
 
 /**
