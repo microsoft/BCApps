@@ -40,15 +40,14 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '', issueBody
   try {
     // ── Stage 1: Broad retrieval ──
     const candidates = await retrieveCandidates(keywords, issueTitle, authHeader);
-    console.log(`ADO: Stage 1 complete — ${candidates.length} unique candidates retrieved`);
 
     if (candidates.length === 0) {
+      console.log(`ADO: no matching work items found`);
       return { activeItems: [], closedItems: [] };
     }
 
     // ── Stage 2: LLM semantic reranking ──
     const ranked = await rerankWithLLM(candidates, issueTitle, issueBody);
-    console.log(`ADO: Stage 2 complete — ${ranked.length} relevant items identified`);
 
     const activeItems = ranked
       .filter(wi => wi.isActive)
@@ -58,7 +57,7 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '', issueBody
       .filter(wi => !wi.isActive)
       .slice(0, MAX_CLOSED);
 
-    console.log(`ADO: found ${activeItems.length} active + ${closedItems.length} closed work items`);
+    console.log(`ADO: ${candidates.length} candidates → LLM selected ${activeItems.length} active + ${closedItems.length} closed`);
     return { activeItems, closedItems };
 
   } catch (err) {
@@ -74,7 +73,6 @@ export async function fetchRelatedWorkItems(keywords, issueTitle = '', issueBody
  */
 async function retrieveCandidates(keywords, issueTitle, authHeader) {
   const queries = buildSearchQueries(keywords, issueTitle);
-  console.log(`ADO: [retrieve] running ${queries.length} search queries...`);
 
   const searchResults = await Promise.all(
     queries.map(q => searchApi(q.query, q.label, authHeader))
@@ -164,13 +162,11 @@ async function searchApi(searchQuery, label, authHeader) {
   }
 
   if (!response.ok) {
-    console.log(`ADO: [${label}] Search API returned ${response.status}`);
     return null;
   }
 
   const data = await response.json();
   const results = data.results || [];
-  console.log(`ADO: [${label}] "${searchQuery}" → ${results.length} results`);
 
   return results.map(r => {
     const fields = r.fields || {};
@@ -191,7 +187,7 @@ async function searchApi(searchQuery, label, authHeader) {
  * WIQL-based fallback retrieval when Search API is unavailable.
  */
 async function searchWithWiql(keywords, issueTitle, authHeader) {
-  console.log('ADO: [WIQL fallback] querying...');
+  console.log('ADO: Search API unavailable, using WIQL fallback');
   const wiqlUrl = `https://dev.azure.com/${ADO_ORG}/${encodeURIComponent(ADO_PROJECT)}/_apis/wit/wiql?api-version=${ADO_API_VERSION}&%24top=${WIQL_TOP}`;
 
   const titleWords = (issueTitle || '').replace(/[^\w\s]/g, ' ').split(/\s+/).filter(w => w.length > 2);
@@ -212,19 +208,11 @@ async function searchWithWiql(keywords, issueTitle, authHeader) {
     body: JSON.stringify({ query: wiql }),
   });
 
-  if (!response.ok) {
-    console.log(`ADO: [WIQL fallback] returned ${response.status}`);
-    return [];
-  }
+  if (!response.ok) return [];
 
   const data = await response.json();
   const ids = (data.workItems || []).map(wi => wi.id).slice(0, WIQL_TOP);
-  if (ids.length === 0) {
-    console.log('ADO: [WIQL fallback] no results');
-    return [];
-  }
-
-  console.log(`ADO: [WIQL fallback] found ${ids.length} candidates`);
+  if (ids.length === 0) return [];
   const fields = ['System.Id', 'System.Title', 'System.State', 'System.WorkItemType', 'System.Description'].join(',');
   const detailsUrl = `https://dev.azure.com/${ADO_ORG}/_apis/wit/workitems?ids=${ids.join(',')}&fields=${fields}&api-version=${ADO_API_VERSION}`;
 
@@ -288,18 +276,15 @@ ${issueBody ? `**Body (excerpt):** ${issueBody.slice(0, 500)}` : ''}
 
 ${candidateList}`;
 
-  console.log(`ADO: [rerank] sending ${candidates.length} candidates to LLM...`);
-
   let result;
   try {
     result = await callGPT(RERANK_SYSTEM_PROMPT, userMessage);
   } catch (err) {
-    console.warn(`ADO: [rerank] LLM call failed — ${err.message}. Returning top candidates without reranking.`);
+    console.warn(`ADO: LLM rerank failed — ${err.message}. Returning top candidates unranked.`);
     return candidates.slice(0, MAX_ACTIVE + MAX_CLOSED);
   }
 
   const relevantItems = result?.relevant_items || [];
-  console.log(`ADO: [rerank] LLM selected ${relevantItems.length} relevant items`);
 
   const candidateMap = new Map(candidates.map(c => [c.id, c]));
   const ranked = [];

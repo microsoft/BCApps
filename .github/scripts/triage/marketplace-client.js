@@ -17,7 +17,6 @@ export async function fetchMarketplaceApps(keywords) {
   const searchTerms = keywords.slice(0, 3).join(' ');
   const searchUrl = `https://appsource.microsoft.com/en-us/marketplace/apps?product=dynamics-365%3Bdynamics-365-business-central&search=${encodeURIComponent(searchTerms)}`;
 
-  console.log(`Marketplace: built search URL for "${searchTerms}"`);
   return { searchTerms, searchUrl };
 }
 

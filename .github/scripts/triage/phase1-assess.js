@@ -134,8 +134,10 @@ ${issue.body || '(empty)'}
 
 ${commentsText}`;
 
-  console.log(`Phase 1: Assessing issue #${issue.number} quality...`);
+  console.log(`Phase 1: Assessing issue quality...`);
+  const phase1Start = Date.now();
   const result = await callGPT(systemPrompt, userMessage);
+  const phase1Elapsed = ((Date.now() - phase1Start) / 1000).toFixed(1);
 
   // Validate response structure and types
   validatePhase1Response(result);
@@ -146,6 +148,6 @@ ${commentsText}`;
     result.detected_app_area = detectedArea.name;
   }
 
-  console.log(`Phase 1 complete: Score ${result.quality_score.total}/100 - ${result.verdict}`);
+  console.log(`Phase 1 complete (${phase1Elapsed}s): ${result.quality_score.total}/100 ${result.verdict} | type=${result.issue_type} | area=${result.detected_app_area}`);
   return result;
 }

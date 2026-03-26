@@ -164,7 +164,8 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
   console.log(`Phase 2: Key terms (${llmTerms.length >= 3 ? 'LLM' : 'regex'}): [${keyTerms.join(', ')}]`);
 
   // Fetch all enrichment context in parallel — use allSettled so one failure doesn't block the rest
-  console.log(`Phase 2: Fetching enrichment context (code, git history, Ideas Portal, ADO, Marketplace, Community, Learn, PRs)...`);
+  console.log(`Phase 2: Fetching enrichment from 9 sources in parallel...`);
+  const fetchStart = Date.now();
   const fetchResults = await Promise.allSettled([
     Promise.resolve(fetchCodeContext(appArea.directory, keyTerms)),
     Promise.resolve(fetchGitHistory(appArea.directory, keyTerms)),
@@ -204,15 +205,19 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
   const prResult = settled[7] || EMPTY_PRS;
   const youtubeResult = settled[8] || EMPTY_YOUTUBE;
 
-  console.log(`Phase 2: Code context: ${codeContext.relevantFiles?.length || 0} files from ${appArea.directory}`);
-  console.log(`Phase 2: Git history: ${gitHistoryResult.totalCommits} commits, ${gitHistoryResult.keywordCommits?.length || 0} keyword matches`);
-  console.log(`Phase 2: Ideas Portal: ${(ideasResult.activeIdeas?.length || 0)} active + ${(ideasResult.closedIdeas?.length || 0)} closed ideas`);
-  console.log(`Phase 2: ADO: ${(adoResult.activeItems?.length || 0)} active + ${(adoResult.closedItems?.length || 0)} closed work items`);
-  console.log(`Phase 2: Marketplace: search terms "${marketplaceResult.searchTerms}" (LLM will assess ecosystem)`);
-  console.log(`Phase 2: Community: ${communityResult.discussions?.length || 0} discussions`);
-  console.log(`Phase 2: Learn: ${learnResult.articles?.length || 0} documentation articles`);
-  console.log(`Phase 2: PRs: ${(prResult.openPRs?.length || 0)} open + ${(prResult.mergedPRs?.length || 0)} merged`);
-  console.log(`Phase 2: YouTube: ${youtubeResult.videos?.length || 0} videos`);
+  const fetchElapsed = ((Date.now() - fetchStart) / 1000).toFixed(1);
+  const sourcesSummary = [
+    `Code: ${codeContext.relevantFiles?.length || 0} files`,
+    `Git: ${gitHistoryResult.totalCommits} commits`,
+    `Ideas: ${(ideasResult.activeIdeas?.length || 0) + (ideasResult.closedIdeas?.length || 0)}`,
+    `ADO: ${(adoResult.activeItems?.length || 0) + (adoResult.closedItems?.length || 0)}`,
+    `Community: ${communityResult.discussions?.length || 0}`,
+    `Learn: ${learnResult.articles?.length || 0}`,
+    `PRs: ${(prResult.openPRs?.length || 0) + (prResult.mergedPRs?.length || 0)}`,
+    `YouTube: ${youtubeResult.videos?.length || 0}`,
+    `Marketplace: ready`,
+  ].join(' | ');
+  console.log(`Phase 2: Enrichment complete (${fetchElapsed}s) — ${sourcesSummary}`);
 
   const codeContextBlock = formatCodeContext(codeContext);
   const gitHistoryBlock = formatGitHistoryContext(gitHistoryResult);
@@ -226,19 +231,6 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
 
   const { issueBody, commentsBlock } = formatIssueBlock(issue);
 
-  // Log per-block prompt sizes for debugging
-  const blocks = {
-    'Issue body': issueBody, 'Comments': commentsBlock,
-    'Code context': codeContextBlock, 'Git history': gitHistoryBlock,
-    'Ideas Portal': ideasContextBlock, 'ADO': adoContextBlock,
-    'Marketplace': marketplaceContextBlock, 'Community': communityContextBlock,
-    'Learn docs': learnContextBlock, 'PRs': prContextBlock,
-    'YouTube': youtubeContextBlock,
-  };
-  const sizes = Object.entries(blocks)
-    .map(([name, text]) => `${name}: ${Math.round((text || '').length / 1024)}KB`)
-    .join(', ');
-  console.log(`Phase 2: Prompt block sizes — ${sizes}`);
   // Format precedents block
   let precedentsBlock = '';
   if (precedents.length > 0) {
@@ -264,7 +256,8 @@ ${commentsBlock}### Phase 1 assessment
 - **Detected app area**: ${phase1Result.detected_app_area}`;
 
   // ── Step 2a + 2b: Run code analysis and signal analysis in parallel ──
-  console.log(`Phase 2: Starting code analysis and signal analysis in parallel...`);
+  console.log(`Phase 2: Running code analysis (2a) + signal analysis (2b) in parallel...`);
+  const llmParallelStart = Date.now();
 
   const codeAnalysisPrompt = buildCodeAnalysisPrompt(skillDir, glossary, domainContext, enrichKnowledge);
   const codeAnalysisMessage = `${issueHeader}
@@ -301,18 +294,18 @@ Analyze all provided external signals and assess the business value of this issu
   const [codeAnalysis, signalAnalysis] = await Promise.all([
     callGPT(codeAnalysisPrompt, codeAnalysisMessage).then(r => {
       validateCodeAnalysis(r);
-      console.log(`Phase 2a: Code analysis complete — Complexity: ${r.complexity.rating}, Effort: ${r.effort.rating}, Risk: ${r.risk.rating}`);
       return r;
     }),
     callGPT(signalAnalysisPrompt, signalAnalysisMessage).then(r => {
       validateSignalAnalysis(r);
-      console.log(`Phase 2b: Signal analysis complete — Value: ${r.value.rating}`);
       return r;
     }),
   ]);
 
+  const llmParallelElapsed = ((Date.now() - llmParallelStart) / 1000).toFixed(1);
+  console.log(`Phase 2a+2b complete (${llmParallelElapsed}s): Complexity=${codeAnalysis.complexity.rating}, Effort=${codeAnalysis.effort.rating}, Risk=${codeAnalysis.risk.rating}, Value=${signalAnalysis.value.rating}`);
+
   // ── Step 2c: Synthesis ──
-  console.log(`Phase 2c: Synthesizing final triage recommendation...`);
 
   const synthesisPrompt = buildSynthesisPrompt(skillDir, enrichKnowledge);
   const synthesisMessage = `${issueHeader}
@@ -336,10 +329,12 @@ ${precedentsBlock}### Code analysis results
 
 Synthesize the code analysis and signal analysis into a final triage recommendation.`;
 
+  const synthesisStart = Date.now();
   const synthesis = await callGPT(synthesisPrompt, synthesisMessage);
   validateSynthesis(synthesis);
+  const synthesisElapsed = ((Date.now() - synthesisStart) / 1000).toFixed(1);
 
-  console.log(`Phase 2c: Synthesis complete — Priority ${synthesis.priority_score.score}/10, Action: ${synthesis.recommended_action.action}`);
+  console.log(`Phase 2c: Synthesis complete (${synthesisElapsed}s) — Priority: ${synthesis.priority_score.score}/10, Action: ${synthesis.recommended_action.action}`);
 
   // ── Assemble final result in the same shape downstream consumers expect ──
   const result = {
@@ -364,8 +359,6 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
 
   // Validate the assembled result with the same checks as before
   validatePhase2Response(result);
-
-  console.log(`Phase 2 complete: Priority ${result.triage.priority_score?.score}/10 - ${result.triage.recommended_action?.action}`);
 
   // Attach analyzed file metadata so the comment formatter can display it
   result.enrichment.analyzed_files = codeContext.relevantFiles.map(f => f.path);

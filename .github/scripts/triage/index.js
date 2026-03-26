@@ -65,10 +65,9 @@ async function main() {
   const triageRepo = process.env.TRIAGE_REPO || '';
   const postResults = !triageRepo;
 
+  const agentStart = Date.now();
   console.log(`\n=== Issue Triage Agent ===`);
-  console.log(`Repository: ${owner}/${repo}`);
-  console.log(`Issue: #${issueNumber}`);
-  console.log(`Triage repo: ${triageRepo || '(same repo)'} → postResults=${postResults}\n`);
+  console.log(`Repository: ${owner}/${repo} | Issue: #${issueNumber} | Triage repo: ${triageRepo || '(same repo)'} | postResults=${postResults}\n`);
 
   try {
     // Step 1: Fetch issue details
@@ -176,9 +175,7 @@ async function main() {
     const wikiMarkdown = formatWikiReport(phase1Result, phase2Result, isRetriage, duplicates, previousScores, issueMeta, precedents);
     const wikiUrl = await publishWikiReport(owner, repo, issueNumber, wikiMarkdown);
 
-    if (wikiUrl) {
-      console.log(`Wiki report published: ${wikiUrl}`);
-    } else {
+    if (!wikiUrl) {
       console.warn('Wiki report could not be published; falling back to verbose comment.');
     }
 
@@ -224,10 +221,9 @@ async function main() {
       await applyTeamLabel(owner, repo, issueNumber, refinedTeamLabel);
     }
 
-    console.log(`\n=== Triage complete ===`);
-    console.log(`Quality: ${qualityScore}/100 (${phase1Result.verdict})`);
-    console.log(`Priority: ${triage.priority_score.score}/10`);
-    console.log(`Action: ${triage.recommended_action.action}`);
+    const totalElapsed = ((Date.now() - agentStart) / 1000).toFixed(1);
+    console.log(`\n=== Triage complete (${totalElapsed}s) ===`);
+    console.log(`Quality: ${qualityScore}/100 (${phase1Result.verdict}) | Priority: ${triage.priority_score.score}/10 | Action: ${triage.recommended_action.action}`);
 
   } catch (err) {
     console.error(`Triage failed: ${err.message}`);
