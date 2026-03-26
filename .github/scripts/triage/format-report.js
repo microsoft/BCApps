@@ -122,6 +122,7 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
     (e.ado_work_items?.length > 0) || (e.related_prs?.length > 0) ||
     (e.community_discussions?.length > 0) ||
     (e.marketplace?.searchUrl) || (e.youtube_videos?.length > 0) ||
+    (e.competitive_landscape && e.competitive_landscape.position !== 'Unknown') ||
     (e.code_areas?.length > 0) || (e.git_history?.totalCommits > 0);
 
   if (hasEnrichment) {
@@ -187,6 +188,12 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
     if (e.marketplace && e.marketplace.searchUrl) {
       md += `#### AppSource\n`;
       md += `[Search related apps](${e.marketplace.searchUrl})\n\n`;
+    }
+
+    if (e.competitive_landscape && e.competitive_landscape.position !== 'Unknown') {
+      md += `#### Competitive Landscape\n`;
+      md += `_Market positioning: how this capability compares across competing ERP platforms._\n\n`;
+      md += `**${e.competitive_landscape.position}** — ${e.competitive_landscape.rationale}\n\n`;
     }
 
     if ((e.community_discussions && e.community_discussions.length > 0) || e.community_search_url) {

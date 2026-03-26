@@ -15,8 +15,11 @@ You have been given:
 2. A code analysis with complexity, effort, risk, and implementation path assessments (from a separate code-focused analysis)
 3. A signal analysis with value assessment, documentation, ideas, ADO items, and community data (from a separate signal-focused analysis)
 4. Precedents — similar closed issues that may provide historical context
+5. A competitive landscape assessment indicating whether competing ERP platforms already offer this capability
 
 Your job is to integrate ALL of these into a final triage recommendation: priority score, confidence level, recommended action, and an executive summary.
+
+When a capability is classified as "Table stakes" (competitors already offer it), this should increase priority. When it is a "Differentiator" (unique opportunity), factor in the strategic value. Reflect competitive positioning in both the priority rationale and the executive summary without naming specific competing products.
 
 {{enrichKnowledge}}
 

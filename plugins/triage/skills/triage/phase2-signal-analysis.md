@@ -45,6 +45,13 @@ You will be provided with search context from the Microsoft AppSource marketplac
 ### YouTube videos
 You may be provided with Business Central videos from YouTube. Use these to gauge whether the topic has community interest — tutorials and walkthroughs suggest users actively work in this area. Videos from official Microsoft channels or well-known BC community members carry more weight. Factor video presence into your demand assessment.
 
+### Competitive landscape
+Based on your knowledge of competing ERP platforms in the small-to-mid-market segment, assess whether this capability is commonly available elsewhere. Do NOT name specific products — instead refer to them generically (e.g., "a major cloud ERP competitor", "most mid-market ERP platforms", "other SMB-focused solutions"). Classify the competitive position as:
+- **Table stakes**: Most competing platforms already offer this — absence is a gap
+- **Common**: Some competitors offer this — improvement would strengthen positioning
+- **Differentiator**: Few or no competitors offer this — opportunity to stand out
+- **Unknown**: Not enough information to assess competitive positioning
+
 ### Value (Low / Medium / High / Critical)
 - **Low**: Nice-to-have, affects few users, minor convenience improvement
 - **Medium**: Meaningful improvement for a segment of users, noticeable quality-of-life gain
@@ -65,7 +72,11 @@ Return a JSON object with this exact structure:
   ],
   "ado_work_items": [
     { "id": 12345, "relevance": "Why this work item is relevant to the issue" }
-  ]
+  ],
+  "competitive_landscape": {
+    "position": "Table stakes",
+    "rationale": "Brief assessment of how competing ERP platforms handle this capability, without naming specific products"
+  }
 }
 ```
 

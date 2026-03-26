@@ -276,6 +276,7 @@ ${precedentsBlock}### Code analysis results
 - **ADO work items**: ${(signalAnalysis.ado_work_items || []).length} related items found
 - **Community discussions**: ${communityResult.discussions?.length || 0} discussions found
 - **Documentation**: ${(signalAnalysis.documentation || []).length} relevant articles found
+- **Competitive landscape**: ${signalAnalysis.competitive_landscape.position} — ${signalAnalysis.competitive_landscape.rationale}
 
 Synthesize the code analysis and signal analysis into a final triage recommendation.`;
 
@@ -342,6 +343,7 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
     searchTerms: marketplaceResult.searchTerms,
     searchUrl: marketplaceResult.searchUrl,
   };
+  result.enrichment.competitive_landscape = signalAnalysis.competitive_landscape;
   result.enrichment.precedents = precedents;
 
   // Attach real community discussions from search clients
@@ -421,6 +423,13 @@ function validateSignalAnalysis(r) {
   if (!Array.isArray(r.documentation)) r.documentation = [];
   if (!Array.isArray(r.ideas_portal)) r.ideas_portal = [];
   if (!Array.isArray(r.ado_work_items)) r.ado_work_items = [];
+  if (!r.competitive_landscape || typeof r.competitive_landscape !== 'object') {
+    r.competitive_landscape = { position: 'Unknown', rationale: '' };
+  }
+  const validPositions = new Set(['Table stakes', 'Common', 'Differentiator', 'Unknown']);
+  if (!validPositions.has(r.competitive_landscape.position)) {
+    r.competitive_landscape.position = 'Unknown';
+  }
 }
 
 function validateSynthesis(r) {
