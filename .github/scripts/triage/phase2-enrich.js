@@ -344,17 +344,32 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
   result.enrichment.analyzed_files = codeContext.relevantFiles.map(f => f.path);
   result.enrichment.analyzed_directory = codeContext.directory;
 
-  // Merge LLM relevance explanations into the Ideas from the search
+  // Merge LLM relevance explanations into the Ideas from the search.
+  // Only keep ideas the LLM confirmed as relevant (same as community/learn).
   const llmIdeaRelevance = new Map();
   for (const item of (result.enrichment.ideas_portal || [])) {
     if (item.title) {
       llmIdeaRelevance.set(item.title.toLowerCase(), item.relevance);
     }
   }
-  result.enrichment.matched_ideas = [...(ideasResult.activeIdeas || []), ...(ideasResult.closedIdeas || [])].map(i => ({
-    title: i.title, votes: i.votes, status: i.status, url: i.url,
-    relevance: llmIdeaRelevance.get((i.title || '').toLowerCase()) || '',
-  }));
+  const allIdeas = [...(ideasResult.activeIdeas || []), ...(ideasResult.closedIdeas || [])];
+  for (const idea of allIdeas) {
+    const llmTokens = tokenize(idea.title || '');
+    // Try exact match first, then fuzzy
+    let relevance = llmIdeaRelevance.get((idea.title || '').toLowerCase());
+    if (!relevance) {
+      for (const [llmTitle, llmRel] of llmIdeaRelevance) {
+        if (!llmRel) continue;
+        const similarity = jaccardSimilarity(llmTokens, tokenize(llmTitle));
+        if (similarity >= 0.4) {
+          relevance = llmRel;
+          break;
+        }
+      }
+    }
+    if (relevance) idea.relevance = relevance;
+  }
+  result.enrichment.matched_ideas = allIdeas.filter(i => i.relevance);
 
   // ADO work items already have LLM-generated relevance from Stage 2 reranking.
   // Merge with any additional relevance from Phase 2b signal analysis.
