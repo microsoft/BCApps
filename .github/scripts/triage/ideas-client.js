@@ -6,10 +6,12 @@ import { tokenize, jaccardSimilarity } from './text-similarity.js';
 
 const IDEAS_ODATA_URL = 'https://experience.dynamics.com/_odata/ideas';
 const BC_FORUM_ID = 'e288ef32-82ed-e611-8101-5065f38b21f1';
-const PAGES_TO_FETCH = 30;
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 250;
+const PAGES_TO_FETCH = 80;
+const PARALLEL_BATCH = 5;
 const MAX_RESULTS = 5;
 const FETCH_TIMEOUT_MS = 10_000;
+const MAX_TOTAL_FETCH_MS = 25_000;
 
 /**
  * Fetch with an AbortController timeout.
@@ -49,45 +51,68 @@ export async function fetchRelatedIdeas(keywords, issueTitle = '') {
 
   console.log(`Ideas Portal: searching for ideas matching [${topKeywords.join(', ')}]...`);
 
-  let allIdeas = [];
+  const seenIds = new Set();
+  const allIdeas = [];
   let error;
-  let consecutiveEmptyPages = 0;
+  const fetchStart = Date.now();
+  let consecutiveEmptyBatches = 0;
 
   try {
-    for (let page = 0; page < PAGES_TO_FETCH; page++) {
-      const skip = page * PAGE_SIZE;
-      const url = `${IDEAS_ODATA_URL}?$skip=${skip}`;
-
-      const response = await fetchWithTimeout(url, {
-        headers: { 'Accept': 'application/json' },
-      });
-
-      if (!response.ok) {
-        console.warn(`Ideas Portal: page ${page} returned ${response.status}, stopping pagination`);
+    for (let batch = 0; batch < PAGES_TO_FETCH; batch += PARALLEL_BATCH) {
+      if (Date.now() - fetchStart > MAX_TOTAL_FETCH_MS) {
+        console.log(`Ideas Portal: time budget (${MAX_TOTAL_FETCH_MS / 1000}s) reached after ${batch} pages`);
         break;
       }
 
-      const data = await response.json();
-      if (!data.value || data.value.length === 0) break;
+      const batchEnd = Math.min(batch + PARALLEL_BATCH, PAGES_TO_FETCH);
+      const pagePromises = [];
+      for (let page = batch; page < batchEnd; page++) {
+        const skip = page * PAGE_SIZE;
+        const url = `${IDEAS_ODATA_URL}?$top=${PAGE_SIZE}&$skip=${skip}`;
+        pagePromises.push(
+          fetchWithTimeout(url, { headers: { 'Accept': 'application/json' } })
+            .then(res => res.ok ? res.json() : null)
+            .catch(() => null)
+        );
+      }
 
-      const bcIdeas = data.value.filter(
-        idea => idea.adx_ideaforumid?.Id === BC_FORUM_ID && idea.adx_approved
-      );
+      const results = await Promise.all(pagePromises);
+      let batchBcCount = 0;
+      let hitEnd = false;
 
-      allIdeas.push(...bcIdeas);
+      for (const data of results) {
+        if (!data?.value || data.value.length === 0) {
+          hitEnd = true;
+          continue;
+        }
 
-      // Early exit: stop fetching if last pages yielded no BC ideas
-      if (bcIdeas.length === 0) {
-        consecutiveEmptyPages++;
-        if (consecutiveEmptyPages >= 3) {
-          console.log(`Ideas Portal: 3 consecutive pages with no BC ideas, stopping at page ${page}`);
+        for (const idea of data.value) {
+          if (idea.adx_ideaforumid?.Id === BC_FORUM_ID
+              && idea.adx_approved
+              && !seenIds.has(idea.adx_ideaid)) {
+            seenIds.add(idea.adx_ideaid);
+            allIdeas.push(idea);
+            batchBcCount++;
+          }
+        }
+
+        if (data.value.length < PAGE_SIZE) hitEnd = true;
+      }
+
+      if (batchBcCount === 0) {
+        consecutiveEmptyBatches++;
+        if (consecutiveEmptyBatches >= 2) {
+          console.log(`Ideas Portal: ${consecutiveEmptyBatches} consecutive batches with no BC ideas, stopping`);
           break;
         }
       } else {
-        consecutiveEmptyPages = 0;
+        consecutiveEmptyBatches = 0;
       }
 
-      if (!data['odata.nextLink'] && !data['@odata.nextLink']) break;
+      if (hitEnd) {
+        console.log(`Ideas Portal: reached end of results at page ${batchEnd}`);
+        break;
+      }
     }
   } catch (err) {
     console.warn(`Ideas Portal: fetch error - ${err.message}`);
