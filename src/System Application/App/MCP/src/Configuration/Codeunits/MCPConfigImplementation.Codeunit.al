@@ -1196,14 +1196,4 @@ codeunit 8351 "MCP Config Implementation"
         Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditDeletedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
     end;
     #endregion
-
-#if not CLEAN28
-    internal procedure IsFeatureEnabled(): Boolean
-    var
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
-        EnableMcpAccessTok: Label 'EnableMcpAccess', Locked = true;
-    begin
-        exit(FeatureManagementFacade.IsEnabled(EnableMcpAccessTok));
-    end;
-#endif
 }
