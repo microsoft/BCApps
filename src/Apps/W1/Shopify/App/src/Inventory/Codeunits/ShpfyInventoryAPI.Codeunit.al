@@ -149,7 +149,8 @@ codeunit 30195 "Shpfy Inventory API"
                 end;
             until ShopInventory.Next() = 0;
 
-            ExecuteInventoryGraphQL(JGraphQL, IGraphQL.GetExpectedCost());
+            if InputSize > 0 then
+                ExecuteInventoryGraphQL(JGraphQL, IGraphQL.GetExpectedCost());
         end;
     end;
 
