@@ -50,4 +50,12 @@ enum 149031 "AIT Line Status"
     {
         Caption = 'Cancelled';
     }
+
+    /// <summary>
+    /// Specifies that the AI Eval Line was skipped, for instance due to reaching credit limits.
+    /// </summary>
+    value(50; Skipped)
+    {
+        Caption = 'Skipped';
+    }
 }

@@ -148,7 +148,7 @@ table 149030 "AIT Test Suite"
             ToolTip = 'Specifies the number of evals executed for the eval suite.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
         }
         field(22; "No. of Tests Passed"; Integer)
         {
@@ -180,7 +180,7 @@ table 149030 "AIT Test Suite"
             ToolTip = 'Specifies the average accuracy of the eval suite. The accuracy is calculated as the percentage of turns that passed or can be set manually by the eval.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
             AutoFormatType = 0;
         }
         field(30; "Number of Evaluators"; Integer)
@@ -257,6 +257,14 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Eval Type';
             ToolTip = 'Specifies the type of AI eval (Copilot, Agent, or MCP).';
+        }
+        field(82; "No. of Tests Skipped"; Integer)
+        {
+            Caption = 'No. of Tests Skipped';
+            ToolTip = 'Specifies the number of tests that were skipped due to credit limit being reached.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(2)));
         }
     }
     keys
