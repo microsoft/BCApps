@@ -38,8 +38,12 @@ export async function callGPT(systemPrompt, userMessage) {
             maxBuffer: 10 * 1024 * 1024,
             env: { ...process.env },
           },
-          (err, stdout) => {
-            if (err) return reject(err);
+          (err, stdout, stderr) => {
+            if (err) {
+              // Attach stderr for debugging CLI failures
+              if (stderr) err.stderr = stderr.trim();
+              return reject(err);
+            }
             resolve(stdout);
           }
         );
@@ -74,8 +78,11 @@ export async function callGPT(systemPrompt, userMessage) {
       }
     } catch (err) {
       lastError = err;
-      if (attempt === 0 && (err.message?.includes('JSON') || err.status)) {
-        console.warn(`Error, retrying (attempt ${attempt + 1})...`);
+      if (err.stderr) {
+        console.warn(`Copilot CLI stderr: ${err.stderr.substring(0, 300)}`);
+      }
+      if (attempt === 0) {
+        console.warn(`Copilot CLI error (attempt ${attempt + 1}), retrying in 5s...`);
         await sleep(5000);
         continue;
       }
