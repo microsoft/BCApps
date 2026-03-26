@@ -77,7 +77,7 @@ codeunit 8900 "Email Impl"
 
     procedure SaveAsDraft(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
     var
-        TempEmailAccountRecord: Record "Email Account";
+        TempEmailAccountRecord: Record "Email Account" temporary;
         EmailMessageImpl: Codeunit "Email Message Impl.";
     begin
         if not EmailMessageImpl.Get(EmailMessage.GetId()) then
@@ -93,7 +93,7 @@ codeunit 8900 "Email Impl"
 
     procedure Enqueue(EmailMessage: Codeunit "Email Message"; EmailScenario: Enum "Email Scenario"; NotBefore: DateTime)
     var
-        TempEmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account" temporary;
         EmailScenarios: Codeunit "Email Scenario";
     begin
         EmailScenarios.GetEmailAccount(EmailScenario, TempEmailAccount);
@@ -110,7 +110,7 @@ codeunit 8900 "Email Impl"
 
     procedure Send(EmailMessage: Codeunit "Email Message"; EmailScenario: Enum "Email Scenario"): Boolean
     var
-        TempEmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account" temporary;
         EmailScenarios: Codeunit "Email Scenario";
     begin
         EmailScenarios.GetEmailAccount(EmailScenario, TempEmailAccount);
@@ -156,7 +156,7 @@ codeunit 8900 "Email Impl"
 
     procedure Reply(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox"; NotBefore: DateTime; InBackground: Boolean; ReplyToAll: Boolean): Boolean
     var
-        TempEmailAccountRec: Record "Email Account";
+        TempEmailAccountRec: Record "Email Account" temporary;
         CurrentUser: Record User;
         Email: Codeunit Email;
         EmailDispatcher: Codeunit "Email Dispatcher";
@@ -208,7 +208,7 @@ codeunit 8900 "Email Impl"
 
     procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
     var
-        TempFilters: Record "Email Retrieval Filters";
+        TempFilters: Record "Email Retrieval Filters" temporary;
     begin
         TempFilters.Insert();
         RetrieveEmails(EmailAccountId, Connector, EmailInbox, TempFilters);
@@ -453,7 +453,7 @@ codeunit 8900 "Email Impl"
 
     procedure OpenInEditor(EmailMessage: Codeunit "Email Message"; EmailScenario: Enum "Email Scenario"; IsModal: Boolean): Enum "Email Action"
     var
-        TempEmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account" temporary;
         EmailScenarios: Codeunit "Email Scenario";
     begin
         EmailScenarios.GetEmailAccount(EmailScenario, TempEmailAccount);
@@ -546,7 +546,7 @@ codeunit 8900 "Email Impl"
 
     local procedure Send(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; InBackground: Boolean; NotBefore: DateTime; var EmailOutbox: Record "Email Outbox"): Boolean
     var
-        TempEmailAccountRec: Record "Email Account";
+        TempEmailAccountRec: Record "Email Account" temporary;
         CurrentUser: Record User;
         Email: Codeunit Email;
         EmailMessageImpl: Codeunit "Email Message Impl.";

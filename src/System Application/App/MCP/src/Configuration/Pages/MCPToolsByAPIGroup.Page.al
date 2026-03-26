@@ -56,7 +56,7 @@ page 8354 "MCP Tools By API Group"
     }
 
     var
-        TempMCPAPIPublisherGroup: Record "MCP API Publisher Group";
+        TempMCPAPIPublisherGroup: Record "MCP API Publisher Group" temporary;
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         APIPublisher: Text;
         APIGroup: Text;

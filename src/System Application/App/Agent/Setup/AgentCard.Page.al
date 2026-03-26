@@ -253,7 +253,7 @@ page 4315 "Agent Card"
     end;
 
     var
-        TempUserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings" temporary;
         Language: Codeunit Language;
         ProfileDisplayName, CopilotAvailabilityTxt : Text;
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';

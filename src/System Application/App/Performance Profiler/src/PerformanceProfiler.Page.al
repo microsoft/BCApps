@@ -308,8 +308,8 @@ page 24 "Performance Profiler"
 
     procedure UpdateData()
     var
-        TempRawProfilingNodes: Record "Profiling Node";
-        TempCallTreeProfilingNodes: Record "Profiling Node";
+        TempRawProfilingNodes: Record "Profiling Node" temporary;
+        TempCallTreeProfilingNodes: Record "Profiling Node" temporary;
     begin
         FeatureTelemetry.LogUptake('0000GMQ', PerformanceProfilingFeatureTxt, Enum::"Feature Uptake Status"::Used);
         UpdateControlProperties(); // update controls in case the following lines throw an error
