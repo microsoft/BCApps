@@ -169,7 +169,7 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
     Promise.resolve(fetchCodeContext(appArea.directory, keyTerms)),
     Promise.resolve(fetchGitHistory(appArea.directory, keyTerms)),
     fetchRelatedIdeas(keyTerms, issue.title),
-    fetchRelatedWorkItems(keyTerms, issue.title),
+    fetchRelatedWorkItems(keyTerms, issue.title, issue.body),
     fetchMarketplaceApps(keyTerms),
     fetchCommunityDiscussions(keyTerms, issue.title),
     fetchLearnDocs(keyTerms, issue.title),
@@ -343,7 +343,8 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
     relevance: llmIdeaRelevance.get((i.title || '').toLowerCase()) || '',
   }));
 
-  // Merge LLM relevance explanations into the ADO work items from the search
+  // ADO work items already have LLM-generated relevance from Stage 2 reranking.
+  // Merge with any additional relevance from Phase 2b signal analysis.
   const llmAdoRelevance = new Map();
   for (const item of (result.enrichment.ado_work_items || [])) {
     if (item.id && item.relevance) {
@@ -352,7 +353,7 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
   }
   result.enrichment.ado_work_items = [...(adoResult.activeItems || []), ...(adoResult.closedItems || [])].map(wi => ({
     ...wi,
-    relevance: llmAdoRelevance.get(wi.id) || wi.matchReason,
+    relevance: llmAdoRelevance.get(wi.id) || wi.matchReason || '',
   }));
 
   result.enrichment.marketplace = {
