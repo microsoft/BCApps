@@ -199,6 +199,19 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
 
   const { issueBody, commentsBlock } = formatIssueBlock(issue);
 
+  // Log per-block prompt sizes for debugging
+  const blocks = {
+    'Issue body': issueBody, 'Comments': commentsBlock,
+    'Code context': codeContextBlock, 'Git history': gitHistoryBlock,
+    'Ideas Portal': ideasContextBlock, 'ADO': adoContextBlock,
+    'Marketplace': marketplaceContextBlock, 'Community': communityContextBlock,
+    'Learn docs': learnContextBlock, 'PRs': prContextBlock,
+    'YouTube': youtubeContextBlock,
+  };
+  const sizes = Object.entries(blocks)
+    .map(([name, text]) => `${name}: ${Math.round((text || '').length / 1024)}KB`)
+    .join(', ');
+  console.log(`Phase 2: Prompt block sizes — ${sizes}`);
   // Format precedents block
   let precedentsBlock = '';
   if (precedents.length > 0) {
