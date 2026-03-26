@@ -48,7 +48,7 @@ export async function fetchRelatedPRs(keywords, issueTitle = '') {
   try {
     // Search PRs via the issues/PR search API
     const query = `${searchTerms} repo:${owner}/${repo} is:pr`;
-    const { data } = await octokit.rest.search.issues({
+    const { data } = await octokit.request('GET /search/issues', {
       q: query,
       sort: 'updated',
       order: 'desc',
