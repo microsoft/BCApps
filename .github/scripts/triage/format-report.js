@@ -12,6 +12,29 @@ const ACTION_EMOJI = {
   'Reject': ':x:',
 };
 
+/** Color-coded dot for a Low/Medium/High-style rating (green=good, red=bad). */
+function ratingDot(rating) {
+  const r = (rating || '').toLowerCase();
+  if (['low', 'xs', 's', 'xs-s'].includes(r)) return ':green_circle:';
+  if (['medium', 'm'].includes(r)) return ':yellow_circle:';
+  return ':red_circle:'; // High, Very High, L, XL, L-XL
+}
+
+/** Color-coded dot for priority score (inverted — high priority = red = urgent). */
+function priorityDot(score) {
+  if (score >= 8) return ':red_circle:';
+  if (score >= 5) return ':yellow_circle:';
+  return ':green_circle:';
+}
+
+/** Color-coded dot for confidence (green=high confidence). */
+function confidenceDot(rating) {
+  const r = (rating || '').toLowerCase();
+  if (r === 'high') return ':green_circle:';
+  if (r === 'medium') return ':yellow_circle:';
+  return ':red_circle:';
+}
+
 /**
  * Format the full triage report for a GitHub Wiki page.
  */
@@ -26,11 +49,8 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
   // ── TL;DR ──
   md += `${actionEmoji} **${t.recommended_action.action}** — ${phase2.executive_summary}\n\n`;
 
-  md += `| Priority | Complexity | Effort | Risk | Path | Confidence |\n`;
-  md += `|----------|------------|--------|------|------|------------|\n`;
-  md += `| ${t.priority_score.score}/10 | ${t.complexity.rating} | ${t.effort.rating} | ${t.risk.rating} | ${t.implementation_path.rating} | ${t.confidence.rating} |\n`;
+  md += `${priorityDot(t.priority_score.score)} Priority **${t.priority_score.score}/10** · ${ratingDot(t.complexity.rating)} Complexity **${t.complexity.rating}** · ${ratingDot(t.effort.rating)} Effort **${t.effort.rating}** · ${ratingDot(t.risk.rating)} Risk **${t.risk.rating}** · :compass: Path **${t.implementation_path.rating}** · ${confidenceDot(t.confidence.rating)} Confidence **${t.confidence.rating}**\n\n`;
 
-  md += `\n`;
   md += `> **Type:** ${phase1.issue_type} | **Quality:** ${qs.total}/100 (${phase1.verdict}) | **Author:** @${issueMeta.author} | **Date:** ${new Date().toISOString().split('T')[0]} | [View issue](${issueMeta.url})\n`;
 
   if (isRetriage) {
@@ -39,16 +59,8 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
 
   md += `\n`;
 
-  // ── Key rationales (visible — the "why" behind the recommendation) ──
-  md += `### Why ${t.recommended_action.action}?\n\n`;
-  md += `> ${t.recommended_action.rationale}\n\n`;
-
-  md += `- **Priority ${t.priority_score.score}/10:** ${t.priority_score.rationale}\n`;
-  md += `- **Value — ${t.value.rating}:** ${t.value.rationale}\n`;
-  md += `- **Risk — ${t.risk.rating}:** ${t.risk.rationale}\n`;
-  md += `- **Effort — ${t.effort.rating}:** ${t.effort.rationale}\n`;
-
-  md += `\n`;
+  // ── Action rationale (visible — the "why" behind the recommendation) ──
+  md += `> ${actionEmoji} **Why ${t.recommended_action.action}?** ${t.recommended_action.rationale}\n\n`;
 
   // ── Duplicates (if any, shown prominently) ──
   md += formatDuplicatesSection(duplicates);
