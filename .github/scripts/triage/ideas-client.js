@@ -6,12 +6,11 @@ import { tokenize, jaccardSimilarity } from './text-similarity.js';
 
 const IDEAS_ODATA_URL = 'https://experience.dynamics.com/_odata/ideas';
 const BC_FORUM_ID = 'e288ef32-82ed-e611-8101-5065f38b21f1';
-const PAGE_SIZE = 250;
-const PAGES_TO_FETCH = 80;
-const PARALLEL_BATCH = 5;
+const BC_FORUM_FILTER = `adx_ideaforumid/Id eq guid'${BC_FORUM_ID}' and adx_approved eq true`;
+const RESULTS_PER_QUERY = 20;
 const MAX_RESULTS = 5;
 const FETCH_TIMEOUT_MS = 10_000;
-const MAX_TOTAL_FETCH_MS = 25_000;
+const MAX_SYNONYM_VARIANTS = 3;
 
 /**
  * Fetch with an AbortController timeout.
@@ -54,64 +53,28 @@ export async function fetchRelatedIdeas(keywords, issueTitle = '') {
   const seenIds = new Set();
   const allIdeas = [];
   let error;
-  const fetchStart = Date.now();
-  let consecutiveEmptyBatches = 0;
 
   try {
-    for (let batch = 0; batch < PAGES_TO_FETCH; batch += PARALLEL_BATCH) {
-      if (Date.now() - fetchStart > MAX_TOTAL_FETCH_MS) {
-        console.log(`Ideas Portal: time budget (${MAX_TOTAL_FETCH_MS / 1000}s) reached after ${batch} pages`);
-        break;
-      }
+    // Run one targeted OData query per keyword, all in parallel
+    const queryPromises = topKeywords.map(kw => {
+      const filter = buildSearchFilter(kw);
+      const url = `${IDEAS_ODATA_URL}?$top=${RESULTS_PER_QUERY}`
+        + `&$orderby=adx_votestotalnumberof%20desc`
+        + `&$filter=${encodeURIComponent(filter)}`;
+      return fetchWithTimeout(url, { headers: { 'Accept': 'application/json' } })
+        .then(res => res.ok ? res.json() : null)
+        .catch(() => null);
+    });
 
-      const batchEnd = Math.min(batch + PARALLEL_BATCH, PAGES_TO_FETCH);
-      const pagePromises = [];
-      for (let page = batch; page < batchEnd; page++) {
-        const skip = page * PAGE_SIZE;
-        const url = `${IDEAS_ODATA_URL}?$top=${PAGE_SIZE}&$skip=${skip}`;
-        pagePromises.push(
-          fetchWithTimeout(url, { headers: { 'Accept': 'application/json' } })
-            .then(res => res.ok ? res.json() : null)
-            .catch(() => null)
-        );
-      }
+    const results = await Promise.all(queryPromises);
 
-      const results = await Promise.all(pagePromises);
-      let batchBcCount = 0;
-      let hitEnd = false;
-
-      for (const data of results) {
-        if (!data?.value || data.value.length === 0) {
-          hitEnd = true;
-          continue;
+    for (const data of results) {
+      if (!data?.value) continue;
+      for (const idea of data.value) {
+        if (!seenIds.has(idea.adx_ideaid)) {
+          seenIds.add(idea.adx_ideaid);
+          allIdeas.push(idea);
         }
-
-        for (const idea of data.value) {
-          if (idea.adx_ideaforumid?.Id === BC_FORUM_ID
-              && idea.adx_approved
-              && !seenIds.has(idea.adx_ideaid)) {
-            seenIds.add(idea.adx_ideaid);
-            allIdeas.push(idea);
-            batchBcCount++;
-          }
-        }
-
-        if (data.value.length < PAGE_SIZE) hitEnd = true;
-      }
-
-      if (batchBcCount === 0) {
-        consecutiveEmptyBatches++;
-        if (consecutiveEmptyBatches >= 2) {
-          console.log(`Ideas Portal: ${consecutiveEmptyBatches} consecutive batches with no BC ideas, stopping`);
-          break;
-        }
-      } else {
-        consecutiveEmptyBatches = 0;
-      }
-
-      if (hitEnd) {
-        console.log(`Ideas Portal: reached end of results at page ${batchEnd}`);
-        break;
       }
     }
   } catch (err) {
@@ -262,6 +225,21 @@ function stripHtml(html) {
     .replace(/<[^>]*>/g, '')
     .replace(/&(?:#\d+|#x[\da-fA-F]+|[a-z]+);/gi, ' ')  // handle named + numeric HTML entities
     .trim();
+}
+
+/**
+ * Build an OData $filter clause that searches both title and body for a keyword
+ * and its synonym variants, scoped to the BC forum with approved ideas only.
+ */
+function buildSearchFilter(keyword) {
+  const variants = expandKeyword(keyword).slice(0, MAX_SYNONYM_VARIANTS);
+  const clauses = [];
+  for (const variant of variants) {
+    const escaped = variant.replace(/'/g, "''");
+    clauses.push(`substringof('${escaped}',adx_name)`);
+    clauses.push(`substringof('${escaped}',adx_copy)`);
+  }
+  return `${BC_FORUM_FILTER} and (${clauses.join(' or ')})`;
 }
 
 function formatIdeaEntry(idea) {
