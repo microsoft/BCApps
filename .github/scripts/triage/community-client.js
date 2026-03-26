@@ -29,8 +29,8 @@ function fetchWithTimeout(url, options = {}) {
 
 /**
  * Search community forums for discussions related to the issue.
- * Uses the issue title as the primary search (most natural match),
- * then supplements with keyword-based searches.
+ * Searches both DynamicsUser.net (Discourse API) and community.dynamics.com
+ * (HTML scraping of global search) in parallel.
  */
 export async function fetchCommunityDiscussions(keywords, issueTitle = '') {
   if ((!keywords || keywords.length === 0) && !issueTitle) {
@@ -40,16 +40,30 @@ export async function fetchCommunityDiscussions(keywords, issueTitle = '') {
   const searchTerms = keywords.slice(0, 3).join(' ');
   console.log(`Community: searching forums for "${issueTitle || searchTerms}"...`);
 
-  const [dugResults, mdcUrl] = await Promise.all([
+  const [dugResults, mdcResults] = await Promise.all([
     searchDynamicsUserNet(keywords, issueTitle),
-    buildDynamicsCommunityUrl(searchTerms),
+    searchDynamicsCommunity(keywords, issueTitle),
   ]);
 
-  console.log(`Community: found ${dugResults.length} discussions on DynamicsUser.net`);
+  console.log(`Community: found ${dugResults.length} on DynamicsUser.net + ${mdcResults.length} on community.dynamics.com`);
+
+  // Merge and deduplicate across both sources (by title similarity)
+  const allDiscussions = [...dugResults];
+  for (const mdc of mdcResults) {
+    const isDuplicate = allDiscussions.some(d =>
+      d.title.toLowerCase() === mdc.title.toLowerCase()
+    );
+    if (!isDuplicate) allDiscussions.push(mdc);
+  }
+
+  // Sort by similarity then views, take top results
+  const merged = allDiscussions
+    .sort((a, b) => b.similarity - a.similarity || b.views - a.views)
+    .slice(0, MAX_RESULTS);
 
   return {
-    discussions: dugResults,
-    dynamicsCommunityUrl: mdcUrl,
+    discussions: merged,
+    dynamicsCommunityUrl: buildDynamicsCommunityUrl(searchTerms),
   };
 }
 
@@ -166,8 +180,91 @@ async function runDiscourseSearch(query) {
 }
 
 /**
- * Build a search URL for Microsoft Dynamics Community.
- * No public API is available, so we provide a direct link for manual lookup.
+ * Search community.dynamics.com via its global search endpoint.
+ * The endpoint returns server-rendered HTML; we parse thread titles, IDs, and dates.
+ */
+async function searchDynamicsCommunity(keywords, issueTitle) {
+  const queries = [];
+  if (issueTitle) queries.push(issueTitle);
+  const topKeywords = (keywords || []).slice(0, 2);
+  for (const kw of topKeywords) queries.push(kw);
+  if (queries.length === 0) return [];
+
+  const issueTokens = tokenize(issueTitle);
+  const allThreads = new Map();
+
+  for (const query of queries) {
+    try {
+      const threads = await runDynamicsCommunitySearch(query);
+      for (const thread of threads) {
+        if (!allThreads.has(thread.id)) {
+          const topicTokens = tokenize(thread.title);
+          const similarity = jaccardSimilarity(issueTokens, topicTokens);
+          allThreads.set(thread.id, {
+            title: thread.title,
+            url: `${MDC_BASE}/forums/thread/details/?threadid=${thread.id}`,
+            source: 'community.dynamics.com',
+            views: 0,   // not available from global search
+            replies: 0,  // not available from global search
+            created: thread.created || '',
+            similarity: Math.round(similarity * 100),
+          });
+        }
+      }
+    } catch (err) {
+      console.warn(`Community: community.dynamics.com query "${query}" failed - ${err.message}`);
+    }
+  }
+
+  const MIN_SIMILARITY = 20;
+  return [...allThreads.values()]
+    .filter(t => t.similarity >= MIN_SIMILARITY);
+}
+
+/**
+ * Run a single search against community.dynamics.com global search.
+ * Parses thread IDs, titles, and dates from the HTML response.
+ */
+async function runDynamicsCommunitySearch(query) {
+  const url = `${MDC_BASE}/globalsearch/?target=forum&q=${encodeURIComponent(query)}&id=${MDC_FORUM_ID}`;
+
+  const response = await fetchWithTimeout(url, {
+    headers: { 'Accept': 'text/html' },
+  });
+
+  if (!response.ok) {
+    console.warn(`Community: community.dynamics.com returned ${response.status}`);
+    return [];
+  }
+
+  const html = await response.text();
+
+  // Parse thread links: href="/forums/thread/details/?threadid=GUID" class="dc-pane-item-link">Title</a>
+  const threadPattern = /href="\/forums\/thread\/details\/\?threadid=([^"&]+)"[^>]*class="dc-pane-item-link">([^<]+)<\/a>/g;
+  const threads = [];
+  const seen = new Set();
+  let match;
+
+  while ((match = threadPattern.exec(html)) !== null) {
+    const id = match[1];
+    if (seen.has(id)) continue;
+    seen.add(id);
+    threads.push({ id, title: match[2].trim() });
+  }
+
+  // Try to extract dates (data-utc-date-time attributes near each thread)
+  const datePattern = /data-utc-date-time="([^"]+)"/g;
+  let dateIdx = 0;
+  while ((match = datePattern.exec(html)) !== null && dateIdx < threads.length) {
+    threads[dateIdx].created = match[1].split(' ')[0]; // "6/23/2015 12:15:15 PM" → "6/23/2015"
+    dateIdx++;
+  }
+
+  return threads;
+}
+
+/**
+ * Build a search URL for Microsoft Dynamics Community (for manual lookup).
  */
 function buildDynamicsCommunityUrl(query) {
   if (!query) return null;
@@ -191,9 +288,9 @@ export function formatCommunityContext(result) {
   let output = '### Community forum discussions\n\n';
 
   if (discussions.length > 0) {
-    output += `**DynamicsUser.net** (${discussions.length} results):\n\n`;
     for (const d of discussions) {
-      output += `- **${d.title}** — ${d.views} views, ${d.replies} replies`;
+      output += `- **${d.title}** (${d.source})`;
+      if (d.views > 0) output += ` — ${d.views} views, ${d.replies} replies`;
       if (d.similarity > 0) output += ` (${d.similarity}% title overlap)`;
       output += `\n  ${d.url}\n`;
     }
@@ -201,8 +298,7 @@ export function formatCommunityContext(result) {
   }
 
   if (dynamicsCommunityUrl) {
-    output += `**Microsoft Dynamics Community** (no API — manual search):\n`;
-    output += `  [Search BC forum for these keywords](${dynamicsCommunityUrl})\n\n`;
+    output += `[Search Microsoft Dynamics Community](${dynamicsCommunityUrl})\n\n`;
   }
 
   return output;

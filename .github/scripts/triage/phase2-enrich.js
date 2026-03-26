@@ -274,7 +274,7 @@ ${precedentsBlock}### Code analysis results
 - **Value**: ${signalAnalysis.value.rating} — ${signalAnalysis.value.rationale}
 - **Ideas Portal matches**: ${(signalAnalysis.ideas_portal || []).length} relevant ideas found
 - **ADO work items**: ${(signalAnalysis.ado_work_items || []).length} related items found
-- **Community discussions**: ${(signalAnalysis.community || []).length} relevant discussions found
+- **Community discussions**: ${communityResult.discussions?.length || 0} discussions found
 - **Documentation**: ${(signalAnalysis.documentation || []).length} relevant articles found
 
 Synthesize the code analysis and signal analysis into a final triage recommendation.`;
@@ -289,7 +289,6 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
     enrichment: {
       documentation: signalAnalysis.documentation || [],
       ideas_portal: signalAnalysis.ideas_portal || [],
-      community: signalAnalysis.community || [],
       ado_work_items: signalAnalysis.ado_work_items || [],
       code_areas: codeAnalysis.code_areas || [],
     },
@@ -345,17 +344,8 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
   };
   result.enrichment.precedents = precedents;
 
-  // Merge LLM relevance explanations into community discussions from the search
-  const llmCommunityRelevance = new Map();
-  for (const item of (result.enrichment.community || [])) {
-    if (item.title) {
-      llmCommunityRelevance.set(item.title.toLowerCase(), item.relevance);
-    }
-  }
-  result.enrichment.community_discussions = (communityResult.discussions || []).map(d => ({
-    ...d,
-    relevance: llmCommunityRelevance.get((d.title || '').toLowerCase()) || '',
-  }));
+  // Attach real community discussions from search clients
+  result.enrichment.community_discussions = communityResult.discussions || [];
   result.enrichment.community_search_url = communityResult.dynamicsCommunityUrl;
 
   // Attach new enrichment sources
@@ -404,7 +394,6 @@ function validateSignalAnalysis(r) {
   coerceRating(r, 'value', VALID_VALUE, 'Medium');
   if (!Array.isArray(r.documentation)) r.documentation = [];
   if (!Array.isArray(r.ideas_portal)) r.ideas_portal = [];
-  if (!Array.isArray(r.community)) r.community = [];
   if (!Array.isArray(r.ado_work_items)) r.ado_work_items = [];
 }
 
@@ -490,7 +479,7 @@ function validatePhase2Response(result) {
     t.recommended_action.rationale = String(t.recommended_action.rationale || '');
   }
 
-  for (const field of ['documentation', 'ideas_portal', 'community', 'code_areas']) {
+  for (const field of ['documentation', 'ideas_portal', 'code_areas']) {
     if (!Array.isArray(result.enrichment[field])) {
       result.enrichment[field] = [];
     }

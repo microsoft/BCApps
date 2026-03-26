@@ -33,7 +33,8 @@ You may be provided with related pull requests from the same repository. Use the
 Factor PR state and recency into your value and action assessment.
 
 ### Community discussions
-You will be provided with search results from DynamicsUser.net (a major BC community forum) and a search link for Microsoft Dynamics Community. Use these to gauge whether users are actively discussing this topic and what workarounds or solutions the community has found.
+You will be provided with search results from DynamicsUser.net (a major BC community forum) and community.dynamics.com (Microsoft Dynamics Community). Use these to gauge whether users are actively discussing this topic and what workarounds or solutions the community has found.
+Only reference community discussions that appear in the provided search results. Do not generate community URLs from your training data.
 
 ### AppSource Marketplace
 You will be provided with search context from the Microsoft AppSource marketplace for Business Central apps. Use the number of related apps as a demand signal:
@@ -61,9 +62,6 @@ Return a JSON object with this exact structure:
   ],
   "ideas_portal": [
     { "title": "Idea title", "url": "https://experience.dynamics.com/...", "relevance": "Why this is relevant" }
-  ],
-  "community": [
-    { "title": "Discussion title", "url": "https://...", "relevance": "Why this is relevant" }
   ],
   "ado_work_items": [
     { "id": 12345, "relevance": "Why this work item is relevant to the issue" }

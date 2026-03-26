@@ -120,7 +120,7 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
   const hasEnrichment = (e.documentation?.length > 0) || (e.learn_articles?.length > 0) ||
     (e.ideas_portal?.length > 0) || (e.matched_ideas?.length > 0) ||
     (e.ado_work_items?.length > 0) || (e.related_prs?.length > 0) ||
-    (e.community?.length > 0) || (e.community_discussions?.length > 0) ||
+    (e.community_discussions?.length > 0) ||
     (e.marketplace?.searchUrl) || (e.youtube_videos?.length > 0) ||
     (e.code_areas?.length > 0) || (e.git_history?.totalCommits > 0);
 
@@ -197,24 +197,14 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
       md += `[Search related apps](${e.marketplace.searchUrl})\n\n`;
     }
 
-    if ((e.community_discussions && e.community_discussions.length > 0) || (e.community && e.community.length > 0) || e.community_search_url) {
+    if ((e.community_discussions && e.community_discussions.length > 0) || e.community_search_url) {
       md += `#### Community discussions\n`;
       if (e.community_discussions && e.community_discussions.length > 0) {
         for (const d of e.community_discussions) {
-          md += `- [${d.title}](${d.url}) — ${d.views} views, ${d.replies} replies`;
-          if (d.relevance) md += ` — ${d.relevance}`;
+          md += `- [${d.title}](${d.url})`;
+          if (d.source) md += ` (${d.source})`;
+          if (d.views > 0) md += ` — ${d.views} views, ${d.replies} replies`;
           md += `\n`;
-        }
-      }
-      if (e.community && e.community.length > 0) {
-        for (const disc of e.community) {
-          const isDuplicate = e.community_discussions?.some(d => d.title.toLowerCase() === (disc.title || '').toLowerCase());
-          if (isDuplicate) continue;
-          if (disc.url && disc.url.startsWith('http')) {
-            md += `- [${disc.title}](${disc.url}) — ${disc.relevance}\n`;
-          } else {
-            md += `- **${disc.title}** — ${disc.relevance}\n`;
-          }
         }
       }
       if (e.community_search_url) {
