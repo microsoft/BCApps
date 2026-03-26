@@ -14,6 +14,7 @@ report 8051 "Contract Deferrals Release"
     UsageCategory = Tasks;
     ProcessingOnly = true;
     AdditionalSearchTerms = 'Release Deferrals, Contract Deferrals, Release Revenue, Release Cost, Deferral Posting, Contract Release';
+    ToolTip = 'Release the deferrals for all contracts.';
 
     requestpage
     {
