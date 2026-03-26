@@ -3,7 +3,7 @@
 > **Feature**: AI-powered GitHub issue quality assessment, enrichment, and triage
 > **Trigger**: Adding the `ai-triage` label to a GitHub issue
 > **Runtime**: GitHub Action + GitHub Copilot CLI (`copilot -p`)
-> **Last Updated**: 2026-03-17 by jeschulz
+> **Last Updated**: 2026-03-26 by jeschulz
 
 ---
 
@@ -75,9 +75,9 @@ The agent operates in two internal phases:
 ### 4.3 Phase 2 - Enrichment and triage
 
 - **FR9**: Construct targeted search queries based on the issue content and BC app area (e.g., "Business Central Shopify connector API rate limit handling").
-- **FR10**: Search Microsoft Learn BC documentation using web search queries scoped to `site:learn.microsoft.com/en-us/dynamics365/business-central/`.
-- **FR11**: Search the Dynamics 365 Ideas Portal using web search queries scoped to `site:experience.dynamics.com`.
-- **FR12**: Search public forums, Stack Overflow, and community discussions for related topics.
+- **FR10**: Search Microsoft Learn BC documentation via the `learn.microsoft.com/api/search` endpoint, scoped to the `businesscentral` scope.
+- **FR11**: Search the Dynamics 365 Ideas Portal via the OData endpoint at `experience.dynamics.com/_odata/ideas`, filtered to the BC forum.
+- **FR12**: Search community forums (DynamicsUser.net via Discourse API), YouTube (via Data API v3), and GitHub pull requests for related topics.
 - **FR13**: Identify related code areas in the repository by mapping issue keywords to known app directories under `src/` (including `Apps/W1/`, `Business Foundation/`, `System Application/`, and `Tools/`).
 - **FR14**: Compile all enrichment findings into a structured context section.
 - **FR15**: Produce a triage assessment with the following data points:
@@ -214,7 +214,7 @@ The agent operates in two internal phases:
 
 - **NG1**: Auto-assignment of issues to specific developers (PM decides; team assignment via Finance/SCM/Integration labels is automated)
 - **NG2**: Auto-closing or auto-rejecting issues (PM decides)
-- **NG3**: Azure DevOps integration (ADO toggle is OFF in this repo)
+- **NG3**: ~~Azure DevOps integration~~ **Resolved** — ADO work item search is implemented via WIQL queries (requires `ADO_PAT`)
 - **NG4**: Batch processing of multiple issues in one action run
 - **NG5**: Viva Engage integration (requires authenticated corporate access)
 - **NG6**: Automatic re-triage when issue content is updated (future: could re-trigger on `issues.edited`)
@@ -226,14 +226,10 @@ The agent operates in two internal phases:
 ### 6.1 Architecture overview
 
 ```
-                                     GitHub Repository
-                                     microsoft/BCAppsCampAIRHack
-                                     
   User adds                          .github/workflows/
   "ai-triage" ──────────────────────> issue-triage.yml
   label to                                 │
-  Issue #7                                 │ triggers on:
-                                           │ issues.labeled
+  Issue #7                                 │ triggers on: issues.labeled
                                            v
                                      ┌─────────────┐
                                      │ GitHub Action│
@@ -246,29 +242,41 @@ The agent operates in two internal phases:
                     ┌─────────────────┐        ┌───────────────────┐
                     │ Phase 1:        │        │ GitHub REST API   │
                     │ Quality Assess  │        │ (read issue,      │
-                    │ (Copilot CLI)   │        │  post comment,    │
+                    │ (1 LLM call)    │        │  post comment,    │
                     └────────┬────────┘        │  manage labels)   │
                              │                 └───────────────────┘
-                    Score >= 75?
+                    Score >= 40? ─── No ──> Post "insufficient" comment
                     ┌────────┴────────┐
-                    │ Yes             │ No
+                    │ Yes (READY or   │
+                    │ NEEDS WORK)     │
                     v                 v
-          ┌─────────────────┐   Post "needs info"
-          │ Phase 2:        │   comment + label
-          │ Enrichment      │
-          │ (Copilot CLI    │
-          │  + code search) │
-          └────────┬────────┘
-                   │
-                   v
-          ┌─────────────────┐
-          │ Post triage     │
-          │ comment +       │
-          │ apply labels    │
-          │ (incl. team:    │
-          │  Finance/SCM/   │
-          │  Integration)   │
-          └─────────────────┘
+          ┌──── Fetch enrichment in parallel ────┐
+          │ Code, Git history, Learn, Ideas,     │
+          │ ADO, PRs, Community, YouTube,        │
+          │ AppSource, Duplicates, Precedents    │
+          └──────────────┬───────────────────────┘
+                         │
+            ┌────────────┴────────────┐
+            v                         v
+  ┌──────────────────┐    ┌──────────────────┐
+  │ Step 2a: Code    │    │ Step 2b: Signal  │
+  │ Analysis (LLM)   │    │ Analysis (LLM)   │
+  │ (AL developer)   │    │ (PM role)        │
+  └────────┬─────────┘    └────────┬─────────┘
+           │   runs in parallel    │
+           └───────────┬───────────┘
+                       v
+             ┌──────────────────┐
+             │ Step 2c:         │
+             │ Synthesis (LLM)  │
+             │ (PM role)        │
+             └────────┬─────────┘
+                      v
+             ┌──────────────────┐
+             │ Post comment +   │
+             │ publish wiki +   │
+             │ apply labels     │
+             └──────────────────┘
 ```
 
 ### 6.2 File structure
@@ -283,29 +291,45 @@ The agent operates in two internal phases:
       config.js                 # Labels, thresholds, app areas, team keywords, mapping functions
       models-client.js          # Copilot CLI wrapper (stdin-based, with retry)
       github-client.js          # GitHub REST/GraphQL client (comments, labels, issue types, re-triage)
-      phase1-assess.js          # Phase 1: quality assessment (reads skill files)
-      phase2-enrich.js          # Phase 2: enrichment & triage (reads skill files, parallel fetches)
-      code-reader.js            # Repository AL code reader (15KB cap)
-      ado-client.js             # Azure DevOps work item search (with relevance scoring)
-      ideas-client.js           # Dynamics 365 Ideas Portal search (fuzzy matching)
-      marketplace-client.js     # AppSource marketplace context
-      duplicate-detector.js     # Jaccard similarity duplicate detection
+      phase1-assess.js          # Phase 1: quality assessment (loads prompt from skill file)
+      phase2-enrich.js          # Phase 2: enrichment & triage (3-step LLM, loads prompts from skill files)
+      text-similarity.js        # Shared text similarity: BC synonym normalization, bigrams, Jaccard
+      code-reader.js            # Repository AL code reader (15KB cap, word-boundary scoring)
+      git-history-client.js     # Git log analysis: change velocity, contributors, keyword commits
+      ado-client.js             # Azure DevOps WIQL search (with relevance scoring)
+      ideas-client.js           # Dynamics 365 Ideas Portal OData search (fuzzy matching, BC synonyms)
+      marketplace-client.js     # AppSource marketplace context (search URL for LLM estimation)
+      community-client.js       # DynamicsUser.net Discourse API search (staggered, with retry)
+      learn-client.js           # Microsoft Learn API search (live documentation links)
+      pr-client.js              # GitHub PR search (open + merged, relevance scored)
+      youtube-client.js         # YouTube Data API search (BC video content)
+      duplicate-detector.js     # Weighted Jaccard similarity duplicate detection
+      precedent-finder.js       # Similar closed issue finder (historical context)
       format-comment.js         # Issue comment formatter (compact + verbose fallback)
       format-report.js          # Wiki report formatter (TL;DR + collapsible details)
       wiki-client.js            # Wiki publisher (configurable target repo)
       package.json              # Dependencies and test script
-      tests/                    # Unit tests (50 tests)
+      tests/                    # Unit tests (63 tests across 6 test files)
 plugins/
   triage/
     .claude-plugin/plugin.json  # Plugin metadata
     skills/triage/
       SKILL.md                  # BC/AL glossary + process overview (single source of truth)
+      bc-domain.md              # General BC functional domain knowledge
       triage-assess.md          # Phase 1 quality rubric (single source of truth)
-      triage-enrich.md          # Phase 2 triage criteria (single source of truth)
+      triage-enrich.md          # Phase 2 triage criteria, priority formula, confidence rules
       triage-reference.md       # App areas, team keywords, labels (documents config.js)
+      phase1-instructions.md    # Phase 1 LLM system prompt template
+      phase2-code-analysis.md   # Phase 2a LLM system prompt template (code analysis)
+      phase2-signal-analysis.md # Phase 2b LLM system prompt template (signal analysis)
+      phase2-synthesis.md       # Phase 2c LLM system prompt template (synthesis)
+      search-vocabulary.md      # BC domain phrases + stop words for regex fallback
+      area-knowledge/           # Area-specific domain knowledge files
+        finance.md, sales.md, purchasing.md, inventory.md,
+        warehouse.md, manufacturing.md, integration.md, e-document.md
 ```
 
-> **Note**: The `prompts/` directory has been removed. Phase 1 and Phase 2 system prompts are now built at runtime from the skill files in `plugins/triage/skills/triage/`, which serve as the single source of truth for all triage domain knowledge.
+> **Note**: All LLM system prompts are externalized to skill files. Engineers only need to edit files in `plugins/triage/skills/triage/` to change triage behavior — the JS files are pure orchestration.
 
 ### 6.3 GitHub Action workflow design
 
@@ -314,7 +338,7 @@ See `.github/workflows/issue-triage.yml` for the current workflow. Key configura
 - **Trigger**: `issues.labeled` when `ai-triage` label is added and issue is open
 - **Permissions**: `contents: write` (for wiki push), `issues: write`
 - **Concurrency**: One triage per issue at a time (`cancel-in-progress: true`)
-- **Environment variables**: `GITHUB_TOKEN`, `COPILOT_GITHUB_TOKEN`, `ISSUE_NUMBER`, `REPO_OWNER`, `REPO_NAME`, `ADO_PAT`, `TRIAGE_REPO`
+- **Environment variables**: `GITHUB_TOKEN`, `COPILOT_GITHUB_TOKEN`, `ISSUE_NUMBER`, `REPO_OWNER`, `REPO_NAME`, `ADO_PAT`, `TRIAGE_REPO`, `YOUTUBE_API_KEY`
 
 ### 6.4 Copilot CLI call pattern
 
@@ -353,36 +377,41 @@ The Phase 1 system prompt instructs GPT-5.4 to:
   "missing_info": [],
   "detected_app_area": "Shopify",
   "issue_type": "bug",
-  "summary": "Brief one-line summary of what the issue is about"
+  "summary": "Brief one-line summary of what the issue is about",
+  "search_terms": ["shopify connector", "product sync", "api rate limit", "inventory"]
 }
 ```
 
 ### 6.6 Phase 2 system prompt design
 
-The Phase 2 system prompt receives the Phase 1 output plus search results and instructs GPT-5.4 to:
+Phase 2 splits the triage into three focused LLM calls for deeper reasoning:
 
-1. Analyze the enrichment context from web searches
-2. Score complexity, value, risk, and effort
-3. Determine the optimal implementation path
-4. Calculate the priority score
-5. Provide a recommended action with rationale
-6. Return a JSON response:
+**Step 2a — Code Analysis** (AL developer role):
+- Receives: issue, source code context, git history, area-specific domain knowledge
+- Prompt template: `phase2-code-analysis.md` + `triage-enrich.md` (assessment criteria)
+- Outputs: complexity, effort, risk, implementation_path, code_areas
+
+**Step 2b — Signal Analysis** (PM role):
+- Receives: issue, Learn docs, Ideas Portal, ADO work items, PRs, community, YouTube, AppSource
+- Prompt template: `phase2-signal-analysis.md`
+- Outputs: value, documentation, ideas_portal, community, ado_work_items
+
+**Steps 2a and 2b run in parallel** via `Promise.all` for latency optimization.
+
+**Step 2c — Synthesis** (PM role):
+- Receives: issue, Phase 1 results, code analysis results, signal analysis results, precedents
+- Prompt template: `phase2-synthesis.md` + `triage-enrich.md` (priority formula, confidence rules)
+- Outputs: priority_score, confidence, recommended_action, executive_summary
+
+The orchestrator assembles the final result from all three steps into the same shape downstream consumers expect:
 
 ```json
 {
   "enrichment": {
-    "documentation": [
-      { "title": "...", "url": "...", "relevance": "..." }
-    ],
-    "ideas_portal": [
-      { "title": "...", "url": "...", "relevance": "..." }
-    ],
-    "community": [
-      { "title": "...", "url": "...", "relevance": "..." }
-    ],
-    "code_areas": [
-      { "path": "src/Apps/W1/Shopify/...", "relevance": "..." }
-    ]
+    "documentation": [...], "ideas_portal": [...], "community": [...],
+    "ado_work_items": [...], "code_areas": [...], "learn_articles": [...],
+    "related_prs": [...], "youtube_videos": [...], "git_history": {...},
+    "marketplace": {...}, "precedents": [...]
   },
   "triage": {
     "complexity": { "rating": "Medium", "rationale": "..." },
@@ -400,15 +429,25 @@ The Phase 2 system prompt receives the Phase 1 output plus search results and in
 
 ### 6.7 Enrichment strategy
 
-Enrichment data is fetched in parallel before the Phase 2 model call:
+All enrichment data is fetched in parallel before the Phase 2 model calls. Each connector follows the same pattern: `fetchXxx()` returns structured data, `formatXxxContext()` returns a markdown block for the LLM prompt.
 
-1. **Repository code** (`code-reader.js`): Reads AL files from the detected app area directory, scored by keyword relevance, capped at 15KB
-2. **Ideas Portal** (`ideas-client.js`): Fetches from `experience.dynamics.com/_odata/ideas`, filtered to BC forum, matched with fuzzy keyword matching and BC domain synonyms
-3. **Azure DevOps** (`ado-client.js`): WIQL queries against Dynamics SMB project, searches both titles and descriptions, results scored by keyword matches with bracketed tags stripped
-4. **AppSource Marketplace** (`marketplace-client.js`): Provides search terms and URL for the model to estimate ecosystem interest (no public API available)
-5. **Duplicate detection** (`duplicate-detector.js`): Compares against recent open issues using Jaccard similarity on keyword sets
+| # | Source | Client | Feeds into | Description |
+|---|--------|--------|------------|-------------|
+| 1 | **Repository code** | `code-reader.js` | Code analysis | Reads AL files from detected app area, scored by word-boundary keyword matching, capped at 15KB. Skips oversized files via `statSync` before reading. |
+| 2 | **Git history** | `git-history-client.js` | Code analysis | Runs `git log --since=3months` on the app area. Returns top 10 most-changed files, top 5 contributors, and keyword-matching commits for risk/effort calibration. |
+| 3 | **Microsoft Learn** | `learn-client.js` | Signal analysis | Searches `learn.microsoft.com/api/search` with BC scope. Returns top 5 articles with real URLs, replacing LLM hallucination of documentation links. |
+| 4 | **Ideas Portal** | `ideas-client.js` | Signal analysis | Fetches from `experience.dynamics.com/_odata/ideas`, filtered to BC forum, matched with fuzzy keyword matching, stemming, and BC domain synonyms. Splits active/closed. |
+| 5 | **Azure DevOps** | `ado-client.js` | Signal analysis | WIQL queries against Dynamics SMB project with sanitized keywords. Title + description matching, relevance scored with Jaccard similarity. Splits active/closed. |
+| 6 | **Pull requests** | `pr-client.js` | Signal analysis | Searches GitHub PRs via `search.issuesAndPullRequests`. Identifies in-progress (open) and recently addressed (merged) work. Relevance scored. |
+| 7 | **Community forums** | `community-client.js` | Signal analysis | Searches DynamicsUser.net Discourse API with staggered queries (1.2s delay) and 429 retry. Results filtered by Jaccard similarity and view count. |
+| 8 | **YouTube** | `youtube-client.js` | Signal analysis | Searches YouTube Data API v3 for BC videos. Presence of tutorial/walkthrough content serves as a demand signal. Requires `YOUTUBE_API_KEY`. |
+| 9 | **AppSource** | `marketplace-client.js` | Signal analysis | Provides search URL for model to estimate ecosystem interest (no public API available). |
+| 10 | **Duplicates** | `duplicate-detector.js` | Pre-Phase 2 | Weighted Jaccard similarity (title 2:1 vs body) against recent open issues using BC synonym normalization. |
+| 11 | **Precedents** | `precedent-finder.js` | Synthesis | Similar closed issues found via same weighted similarity, providing historical resolution context. |
 
-Key term extraction (`phase2-enrich.js`) prioritizes known BC domain phrases (50+), then bigrams (top 5), then single high-frequency words (top 8), yielding up to 12 search terms.
+**Key term extraction**: Phase 1 extracts 5-8 search terms via the LLM (preferred). If fewer than 3 terms are returned, a regex fallback in `phase2-enrich.js` uses BC domain phrases (70+) and bigrams from `search-vocabulary.md`.
+
+**Shared text similarity** (`text-similarity.js`): All connectors and detectors use a common `tokenize()` / `jaccardSimilarity()` / `weightedSimilarity()` module with BC domain synonym normalization (35 synonym groups) and bigram extraction.
 
 ### 6.8 Idempotency and re-triage
 
@@ -448,20 +487,22 @@ Minimal dependency footprint for fast CI install. Native `fetch` (Node 20) is us
 
 ### 7.3 Security
 
-- `GITHUB_TOKEN` for GitHub API and wiki push (auto-provided or PAT for cross-repo wiki)
+- `GITHUB_TOKEN` for GitHub API, wiki push, and PR search (auto-provided or PAT for cross-repo wiki)
 - `COPILOT_GITHUB_TOKEN` for Copilot CLI model inference
 - `ADO_PAT` (optional) for Azure DevOps work item search
+- `YOUTUBE_API_KEY` (optional) for YouTube video search
 - The agent NEVER modifies issue title, body, or assignees (read issue, write comments/labels/type only)
 - Triage knowledge stored in skill files in the repo, fully auditable
 - Wiki reports can be directed to a private repo via `TRIAGE_REPO` for access control
 
 ### 7.4 Performance target
 
-- Total execution time: under 60 seconds
-- Phase 1 GPT call: ~5-10 seconds
-- Web searches (3 parallel): ~5-10 seconds
-- Phase 2 GPT call: ~10-15 seconds
-- GitHub API calls (read issue, post comment, manage labels): ~5 seconds
+- Total execution time: under 90 seconds
+- Phase 1 LLM call: ~5-10 seconds
+- Enrichment fetches (9 sources in parallel): ~5-15 seconds
+- Phase 2a + 2b LLM calls (parallel): ~10-15 seconds
+- Phase 2c synthesis LLM call: ~5-10 seconds
+- GitHub API calls (read issue, post comment, manage labels, wiki): ~5 seconds
 - Overhead (checkout, npm install, boot): ~15-20 seconds
 
 ### 7.5 Repository context
@@ -487,4 +528,4 @@ For the PoC, the repository owner/name comes from the GitHub Action event contex
 
 ---
 
-**Last Updated**: 2026-03-24
+**Last Updated**: 2026-03-26

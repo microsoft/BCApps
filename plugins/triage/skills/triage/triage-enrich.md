@@ -95,37 +95,66 @@ Normalized to a 1-10 scale.
 
 ## Enrichment Sources
 
-The triage agent gathers context from these sources before making its Phase 2 assessment:
+The triage agent gathers context from these sources in parallel before making its Phase 2 assessment:
 
 ### 1. Repository Source Code
 - Reads AL files from the detected app area directory
-- Scores files by keyword relevance to the issue
-- Provides up to ~30KB of the most relevant code as context
+- Scores files by word-boundary keyword relevance, checks file size before reading
+- Provides up to ~15KB of the most relevant code as context
 - Used for: complexity assessment, identifying specific objects to change, risk evaluation
 
-### 2. Dynamics 365 Ideas Portal
+### 2. Git History
+- Analyzes last 3 months of commits in the detected app area
+- Returns: most-changed files (change velocity), active contributors, keyword-matching commits
+- Used for: risk calibration (volatile files), effort estimation (active vs dormant area), identifying domain experts
+
+### 3. Microsoft Learn Documentation
+- Live search of learn.microsoft.com API scoped to Business Central
+- Returns real, verified documentation URLs (replaces LLM hallucination)
+- Used for: grounding documentation references, identifying known limitations and configuration guides
+
+### 4. Dynamics 365 Ideas Portal
 - Fetches from `experience.dynamics.com/_odata/ideas`
 - Filters for Business Central forum ideas
-- Matches ideas against extracted keywords (with fuzzy matching and BC synonyms)
+- Matches ideas against extracted keywords (with fuzzy matching, stemming, and BC synonyms)
 - Used for: gauging community demand, checking if feature is already requested
 
-### 3. Azure DevOps Work Items
-- Queries the Dynamics SMB ADO project via WIQL
-- Searches both titles and descriptions for top 5 keywords
+### 5. Azure DevOps Work Items
+- Queries the Dynamics SMB ADO project via WIQL with sanitized keywords
+- Searches both titles and descriptions, scored with Jaccard title similarity
 - Used for: checking if issue is already tracked internally, identifying related work
 
-### 4. AppSource Marketplace
-- Searches `appsource.microsoft.com` for Business Central apps matching issue keywords
-- The total count of related apps serves as a market demand signal:
-  - **20+ apps**: Strong ecosystem interest — the capability is well-established, improvements have high value
-  - **5-19 apps**: Moderate interest — established demand in this area
-  - **<5 apps**: Niche area — could be an opportunity or low-demand capability
-- Used for: gauging market demand, assessing value, supporting priority decisions
+### 6. Pull Requests
+- Searches GitHub PRs in the same repository via the search API
+- Splits into open (work in progress) and recently merged (already addressed)
+- Used for: detecting duplicate effort, identifying recent fixes or regressions
 
-### 5. Duplicate Detection
-- Compares against recent open issues using Jaccard similarity on keyword sets
-- Flags issues with ≥35% keyword overlap
+### 7. Community Forums
+- Searches DynamicsUser.net via Discourse API with staggered queries and retry
+- Results filtered by Jaccard similarity to issue title and view count
+- Used for: gauging active discussion, finding workarounds or solutions
+
+### 8. YouTube Videos
+- Searches YouTube Data API v3 for Business Central videos
+- Presence of tutorials/walkthroughs serves as a demand/interest signal
+- Used for: supplementary demand assessment
+
+### 9. AppSource Marketplace
+- Provides search URL for the LLM to estimate ecosystem interest (no public API)
+- The number of related apps serves as a market demand signal:
+  - **20+ apps**: Strong ecosystem interest — improvements have high value
+  - **5-19 apps**: Moderate interest — established demand
+  - **<5 apps**: Niche area — could be an opportunity or low-demand capability
+
+### 10. Duplicate Detection
+- Compares against recent open issues (100-issue window) using weighted Jaccard similarity
+- Title-weighted 2:1 vs body, with BC domain synonym normalization
+- Flags issues with ≥30% similarity
 - Used for: preventing duplicate work, linking related issues
+
+### 11. Precedent Finder
+- Finds similar closed issues using the same weighted similarity algorithm
+- Used for: historical context on how similar issues were resolved
 
 ## BC-Specific Risk Awareness
 

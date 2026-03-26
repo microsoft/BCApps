@@ -41,6 +41,9 @@ You will be provided with search context from the Microsoft AppSource marketplac
 - **5-19 related apps**: Moderate interest — established demand
 - **<5 related apps**: Niche area — could be an opportunity or low-demand capability
 
+### YouTube videos
+You may be provided with Business Central videos from YouTube. Use these to gauge whether the topic has community interest — tutorials and walkthroughs suggest users actively work in this area. Videos from official Microsoft channels or well-known BC community members carry more weight. Factor video presence into your demand assessment.
+
 ### Value (Low / Medium / High / Critical)
 - **Low**: Nice-to-have, affects few users, minor convenience improvement
 - **Medium**: Meaningful improvement for a segment of users, noticeable quality-of-life gain
