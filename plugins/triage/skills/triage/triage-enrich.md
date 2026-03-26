@@ -121,13 +121,19 @@ The triage agent gathers context from these sources in parallel before making it
 - Synonym expansion (35 BC domain groups) + suffix-stripping stemmer for improved recall
 - Jaccard similarity bonus for issue title overlap
 - Results split into active vs closed; top 5 active + top 3 closed returned
+- **LLM filtering:** Phase 2b signal analysis confirms which ideas are relevant; only ideas with LLM-confirmed relevance appear in the final triage output
 - Used for: gauging community demand, checking if feature is already requested
 
 ### 5. Azure DevOps Work Items
-- **Primary:** ADO Work Item Search API (`almsearch.dev.azure.com`) — full-text, relevance-ranked search
-- **Fallback:** WIQL `Contains` queries on title + description (if Search API unavailable)
+- **Stage 1 — Broad retrieval:** 4 parallel ADO Search API queries for maximum recall:
+  1. Exact title phrase match (`"issue title"`)
+  2. Title words with AND logic (all words must appear)
+  3. Phase 1 keywords with OR logic (semantic breadth)
+  4. Title words with OR logic (broadest, catches partial overlaps)
+  - Top 50 results per query, deduplicated into up to 40 candidates
+  - **Fallback:** WIQL `Contains` queries on title + description (if Search API unavailable)
+- **Stage 2 — LLM semantic reranking:** Sends all candidates to the LLM (via `callGPT`) which selects 0-8 most relevant items with 1-2 sentence relevance explanations
 - Queries the Dynamics SMB ADO project (dynamicssmb2)
-- Client-side Jaccard similarity scoring; minimum relevance threshold of 3
 - Results split: top 5 active + top 3 closed work items
 - Used for: checking if issue is already tracked internally, identifying related work
 

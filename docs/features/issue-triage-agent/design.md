@@ -214,7 +214,7 @@ The agent operates in two internal phases:
 
 - **NG1**: Auto-assignment of issues to specific developers (PM decides; team assignment via Finance/SCM/Integration labels is automated)
 - **NG2**: Auto-closing or auto-rejecting issues (PM decides)
-- **NG3**: ~~Azure DevOps integration~~ **Resolved** — ADO work item search is implemented via WIQL queries (requires `ADO_PAT`)
+- **NG3**: ~~Azure DevOps integration~~ **Resolved** — ADO work item search implemented via two-stage approach: Stage 1 (4 parallel ADO Search API queries + WIQL fallback), Stage 2 (LLM semantic reranking via callGPT) (requires `ADO_PAT`)
 - **NG4**: Batch processing of multiple issues in one action run
 - **NG5**: Viva Engage integration (requires authenticated corporate access)
 - **NG6**: Automatic re-triage when issue content is updated (future: could re-trigger on `issues.edited`)
@@ -296,7 +296,7 @@ The agent operates in two internal phases:
       text-similarity.js        # Shared text similarity: BC synonym normalization, bigrams, Jaccard
       code-reader.js            # Repository AL code reader (15KB cap, word-boundary scoring)
       git-history-client.js     # Git log analysis: change velocity, contributors, keyword commits
-      ado-client.js             # Azure DevOps search (Search API primary, WIQL fallback)
+      ado-client.js             # Azure DevOps search (Stage 1: 4 parallel Search API queries + WIQL fallback; Stage 2: LLM reranking via callGPT)
       ideas-client.js           # Dynamics 365 Ideas Portal OData substringof search (sequential, $top=10)
       marketplace-client.js     # Marketplace ecosystem assessment (LLM-assessed density)
       community-client.js       # DynamicsUser.net Discourse API search (staggered, with retry)
@@ -437,7 +437,7 @@ All enrichment data is fetched in parallel before the Phase 2 model calls. Each 
 | 2 | **Git history** | `git-history-client.js` | Code analysis | Runs `git log --since=3months` on the app area. Returns top 10 most-changed files, top 5 contributors, and keyword-matching commits for risk/effort calibration. |
 | 3 | **Microsoft Learn** | `learn-client.js` | Signal analysis | Searches `learn.microsoft.com/api/search` with BC scope. Returns top 5 articles with real URLs, replacing LLM hallucination of documentation links. |
 | 4 | **Ideas Portal** | `ideas-client.js` | Signal analysis | Fetches from `experience.dynamics.com/_odata/ideas`, filtered to BC forum, matched with fuzzy keyword matching, stemming, and BC domain synonyms. Splits active/closed. |
-| 5 | **Azure DevOps** | `ado-client.js` | Signal analysis | Full-text search via ADO Search API (primary), WIQL fallback on title + description. Relevance scored with Jaccard similarity. Splits active/closed. |
+| 5 | **Azure DevOps** | `ado-client.js` | Signal analysis | Two-stage: Stage 1 runs 4 parallel ADO Search API queries (exact-title, title-AND, keywords-OR, title-OR) with WIQL fallback. Stage 2 uses LLM semantic reranking (callGPT) to select and explain 0-8 most relevant items. Splits active/closed. |
 | 6 | **Pull requests** | `pr-client.js` | Signal analysis | Searches GitHub PRs via `search.issuesAndPullRequests`. Identifies in-progress (open) and recently addressed (merged) work. Relevance scored. |
 | 7 | **Community forums** | `community-client.js` | Signal analysis | Searches DynamicsUser.net Discourse API with staggered queries (1.2s delay) and 429 retry. Results filtered by Jaccard similarity and view count. |
 | 8 | **YouTube** | `youtube-client.js` | Signal analysis | Searches YouTube Data API v3 for BC videos. LLM produces per-video relevance explanations. Requires `YOUTUBE_API_KEY`. |
@@ -448,7 +448,7 @@ All enrichment data is fetched in parallel before the Phase 2 model calls. Each 
 
 **Key term extraction**: Phase 1 extracts 5-8 search terms via the LLM (preferred). If fewer than 3 terms are returned, a regex fallback in `phase2-enrich.js` uses BC domain phrases (70+) and bigrams from `search-vocabulary.md`.
 
-**Shared text similarity** (`text-similarity.js`): All connectors and detectors use a common `tokenize()` / `jaccardSimilarity()` / `weightedSimilarity()` module with BC domain synonym normalization (35 synonym groups) and bigram extraction.
+**Shared text similarity** (`text-similarity.js`): Used by duplicate detection, precedent finding, ideas scoring, community filtering, and learn docs ranking. Provides `tokenize()` / `jaccardSimilarity()` / `weightedSimilarity()` with BC domain synonym normalization (35 synonym groups) and bigram extraction. Note: ADO search relevance is determined by LLM-based reranking, not text similarity.
 
 ### 6.8 Idempotency and re-triage
 

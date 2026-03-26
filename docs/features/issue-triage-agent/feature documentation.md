@@ -50,7 +50,7 @@ All sources are fetched in parallel for minimal latency.
 | **Repository code** | `code-reader.js` | Reads AL files from the detected app area (up to 15KB), scored by word-boundary keyword relevance |
 | **Git history** | `git-history-client.js` | Analyzes last 3 months of commits in the app area: most-changed files, active contributors, keyword-matching commits |
 | **Microsoft Learn** | `learn-client.js` | Live search of learn.microsoft.com API — provides real documentation URLs instead of LLM hallucination |
-| **Azure DevOps** | `ado-client.js` | Full-text search via ADO Search API (primary) with WIQL fallback; relevance scoring with Jaccard similarity |
+| **Azure DevOps** | `ado-client.js` | Two-stage: Stage 1 runs 4 parallel Search API queries (exact-title, title-AND, keywords-OR, title-OR) with WIQL fallback. Stage 2 uses LLM semantic reranking to select and explain the most relevant items. |
 | **Ideas Portal** | `ideas-client.js` | OData `substringof()` queries on idea titles, sequential execution (`$top=10`), fuzzy matching with BC synonyms |
 | **Pull requests** | `pr-client.js` | Searches GitHub PRs in the same repo — identifies in-progress (open) and recently addressed (merged) work |
 | **Community forums** | `community-client.js` | Searches DynamicsUser.net Discourse API with staggered queries and 429 retry; results filtered by similarity and views |
@@ -123,7 +123,7 @@ All files that make up the triage agent. These need to be moved together when po
 | `code-reader.js` | Reads AL source files from detected app area, word-boundary keyword scoring, statSync pre-check, caps at 15KB |
 | `git-history-client.js` | Git log analysis — change velocity (top 10 files), active contributors (top 5), keyword-matching commits |
 | `learn-client.js` | Microsoft Learn API search — live BC documentation with real URLs, Jaccard similarity ranking |
-| `ado-client.js` | Azure DevOps WIQL search — sanitized keywords, relevance scoring with Jaccard title similarity, active/closed split |
+| `ado-client.js` | Azure DevOps search — Stage 1 (4 parallel Search API queries + WIQL fallback), Stage 2 (LLM semantic reranking via callGPT), active/closed split |
 | `ideas-client.js` | Dynamics 365 Ideas Portal OData client — fuzzy matching with stemming, BC synonyms, early pagination exit |
 | `pr-client.js` | GitHub PR search — open + merged PRs via search API, relevance scored with keyword matching and title similarity |
 | `community-client.js` | DynamicsUser.net Discourse API search — staggered queries (1.2s delay), 429 retry with backoff, similarity/view filtering |
