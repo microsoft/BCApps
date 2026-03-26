@@ -76,8 +76,21 @@ describe('getTeamLabel', () => {
     assert.equal(getTeamLabel('xyz', 'abc', ''), 'Integration');
   });
 
-  it('should consider app area name in scoring', () => {
+  it('should use authoritative map when app area is known', () => {
     assert.equal(getTeamLabel('some issue', 'details', 'Shopify'), 'Integration');
+    assert.equal(getTeamLabel('some issue', 'details', 'BaseApp - Finance'), 'Finance');
+    assert.equal(getTeamLabel('some issue', 'details', 'BaseApp - Sales'), 'SCM');
+    assert.equal(getTeamLabel('some issue', 'details', 'BaseApp - Warehouse'), 'SCM');
+    assert.equal(getTeamLabel('some issue', 'details', 'E-Document'), 'Integration');
+  });
+
+  it('should override keyword scoring when app area is known', () => {
+    // Issue text has finance keywords, but detected area is SCM
+    assert.equal(getTeamLabel('general ledger budget', 'consolidation', 'BaseApp - Sales'), 'SCM');
+  });
+
+  it('should fall back to keyword scoring for Unknown area', () => {
+    assert.equal(getTeamLabel('General ledger posting', 'budget', 'Unknown'), 'Finance');
   });
 });
 

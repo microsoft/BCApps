@@ -173,8 +173,86 @@ const INTEGRATION_KEYWORDS = [
   'shopify', 'data archive', 'data search',
 ];
 
-// Determine team label from issue text and detected app area
+// Authoritative mapping from detected app area name to owning team.
+// When Phase 1 identifies a specific app area, this map is definitive —
+// no keyword counting needed.
+const APP_AREA_TEAM_MAP = {
+  // Finance team
+  'BaseApp - Finance': 'Finance',
+  'BaseApp - Financial Management': 'Finance',
+  'BaseApp - Fixed Assets': 'Finance',
+  'BaseApp - Cost Accounting': 'Finance',
+  'BaseApp - Bank': 'Finance',
+  'BaseApp - Cash Flow': 'Finance',
+  'BaseApp - Projects': 'Finance',
+  'Subscription Billing': 'Finance',
+  'Data Correction FA': 'Finance',
+  'API Reports Finance': 'Finance',
+  'Payment Practices': 'Finance',
+  'UK Send Remittance Advice': 'Finance',
+  'Power BI Reports': 'Finance',
+  'Excel Reports': 'Finance',
+
+  // SCM team
+  'BaseApp - Sales': 'SCM',
+  'BaseApp - Purchases': 'SCM',
+  'BaseApp - Inventory': 'SCM',
+  'BaseApp - Warehouse': 'SCM',
+  'BaseApp - Manufacturing': 'SCM',
+  'BaseApp - Assembly': 'SCM',
+  'BaseApp - Service': 'SCM',
+  'BaseApp - CRM': 'SCM',
+  'BaseApp - Human Resources': 'SCM',
+  'BaseApp - Invoicing': 'SCM',
+  'Pricing': 'SCM',
+  'Subcontracting': 'SCM',
+  'Quality Management': 'SCM',
+  'Simplified Bank Statement Import': 'SCM',
+
+  // Integration team
+  'System Application': 'Integration',
+  'Business Foundation': 'Integration',
+  'No. Series': 'Integration',
+  'No. Series Copilot': 'Integration',
+  'Audit Codes': 'Integration',
+  'BaseApp - Integration': 'Integration',
+  'BaseApp - Foundation': 'Integration',
+  'BaseApp - eServices': 'Integration',
+  'BaseApp - Role Centers': 'Integration',
+  'Shopify': 'Integration',
+  'E-Document': 'Integration',
+  'E-Document Connectors': 'Integration',
+  'PEPPOL': 'Integration',
+  'Data Archive': 'Integration',
+  'Data Search': 'Integration',
+  'Error Messages with Recommendations': 'Integration',
+  'Essential Business Headlines': 'Integration',
+  'Transaction Storage': 'Integration',
+  'AI Test Toolkit': 'Integration',
+  'Performance Toolkit': 'Integration',
+  'Test Framework': 'Integration',
+  'General / AI': 'Integration',
+  'External File Storage - Azure Blob': 'Integration',
+  'External File Storage - Azure File': 'Integration',
+  'External File Storage - SFTP': 'Integration',
+  'External File Storage - SharePoint': 'Integration',
+  'External Storage - Document Attachments': 'Integration',
+  'Send to Email Printer': 'Integration',
+  'BaseApp': 'Integration',
+};
+
+// Determine team label from issue text and detected app area.
+// If a known app area name is provided (from Phase 1 LLM detection), use
+// the authoritative map directly. Fall back to keyword scoring only when
+// no app area was detected.
 export function getTeamLabel(title, body, appAreaName) {
+  // Authoritative: if the LLM detected a known app area, use the map
+  if (appAreaName && appAreaName !== 'Unknown') {
+    const team = APP_AREA_TEAM_MAP[appAreaName];
+    if (team) return team;
+  }
+
+  // Fallback: keyword scoring for unknown or unmapped areas
   const text = `${title} ${body} ${appAreaName}`.toLowerCase();
 
   let financeScore = 0;
