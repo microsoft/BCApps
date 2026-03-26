@@ -368,6 +368,8 @@ codeunit 30178 "Shpfy Product Export"
             end;
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
+            ShopifyVariant."Tariff No." := Item."Tariff No.";
+            ShopifyVariant."Country/Region of Origin Code" := Item."Country/Region of Origin Code";
             ShopifyVariant."Option 1 Name" := Shop."Option Name for UoM";
             ShopifyVariant."Option 1 Value" := ItemUnitofMeasure.Code;
             ShopifyVariant."Shop Code" := Shop.Code;
@@ -424,6 +426,8 @@ codeunit 30178 "Shpfy Product Export"
             end;
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := Item."Gross Weight";
+            ShopifyVariant."Tariff No." := Item."Tariff No.";
+            ShopifyVariant."Country/Region of Origin Code" := Item."Country/Region of Origin Code";
             if ShopifyVariant."Option 1 Name" = '' then
                 ShopifyVariant."Option 1 Name" := 'Variant';
             if ShopifyVariant."Option 1 Name" = 'Variant' then
@@ -479,6 +483,8 @@ codeunit 30178 "Shpfy Product Export"
             end;
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
+            ShopifyVariant."Tariff No." := Item."Tariff No.";
+            ShopifyVariant."Country/Region of Origin Code" := Item."Country/Region of Origin Code";
             ShopifyVariant."Option 1 Name" := 'Variant';
             ShopifyVariant."Option 1 Value" := ItemVariant.Code;
             ShopifyVariant."Option 2 Name" := Shop."Option Name for UoM";

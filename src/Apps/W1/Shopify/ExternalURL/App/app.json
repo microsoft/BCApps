@@ -1,0 +1,41 @@
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "Shopify External URL",
+  "publisher": "Open Source",
+  "brief": "Syncs external product page URLs to Shopify as variant metafields.",
+  "description": "Syncs external product page URLs to Shopify as variant metafields (namespace: shopify, key: external_url). Configurable URL template with placeholder substitution and per-variant overrides.",
+  "version": "29.0.0.0",
+  "privacyStatement": "https://github.com/microsoft/BCApps",
+  "EULA": "https://github.com/microsoft/BCApps/blob/main/LICENSE",
+  "help": "https://github.com/microsoft/BCApps",
+  "url": "https://github.com/microsoft/BCApps",
+  "contextSensitiveHelpUrl": "https://github.com/microsoft/BCApps",
+  "logo": "ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "ec255f57-31d0-4ca2-b751-f2fa7c745abb",
+      "publisher": "Microsoft",
+      "name": "Shopify Connector",
+      "version": "29.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 50100,
+      "to": 50110
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "application": "29.0.0.0",
+  "target": "Cloud",
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ]
+}
