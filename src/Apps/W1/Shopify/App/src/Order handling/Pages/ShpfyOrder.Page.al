@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.CRM.Contact;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -66,7 +67,7 @@ page 30113 "Shpfy Order"
                 {
                     ApplicationArea = All;
                     Caption = 'Sell-to Contact No.';
-                    Editable = false;
+                    TableRelation = Contact;
                     Visible = false;
                     ToolTip = 'Specifies the number of the contact person at the sell-to customer.';
                 }
@@ -478,7 +479,7 @@ page 30113 "Shpfy Order"
                     {
                         ApplicationArea = All;
                         Caption = 'Ship-to Contact No.';
-                        Editable = false;
+                        TableRelation = Contact;
                         Visible = false;
                         ToolTip = 'Specifies the number of the contact person at the ship-to address.';
                     }
@@ -549,7 +550,7 @@ page 30113 "Shpfy Order"
                     {
                         ApplicationArea = All;
                         Caption = 'Bill-to Contact No.';
-                        Editable = false;
+                        TableRelation = Contact;
                         Visible = false;
                         ToolTip = 'Specifies the number of the contact person at the bill-to customer.';
                     }
