@@ -417,7 +417,7 @@ page 2500 "Extension Management"
         InfoStyle: Boolean;
         HelpActionVisible: Boolean;
         IsSourceSpecificationAvailable: Boolean;
-        UninstalledExtensionsMsg: Label 'There are uninstalled but still synchronized extensions.';
+        UninstalledExtensionsMsg: Label 'There''s orphaned data from uninstalled extensions. Use this action to review the uninstalled extensions';
 
     protected procedure IsSaasEnvironment(): boolean
     begin
