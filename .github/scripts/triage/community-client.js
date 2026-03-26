@@ -6,6 +6,8 @@ import { tokenize, jaccardSimilarity } from './text-similarity.js';
 
 const MAX_RESULTS = 5;
 const FETCH_TIMEOUT_MS = 10_000;
+const STAGGER_DELAY_MS = 1_200;  // Delay between Discourse queries to avoid 429s
+const MAX_RETRIES = 2;
 
 // DynamicsUser.net (Discourse) — BC/NAV User Forum subcategory
 const DUG_BASE = 'https://www.dynamicsuser.net';
@@ -74,13 +76,18 @@ async function searchDynamicsUserNet(keywords, issueTitle) {
 
   const issueTokens = tokenize(issueTitle);
 
-  // Run all queries in parallel instead of sequentially
-  const queryResults = await Promise.all(
-    queries.map(query => runDiscourseSearch(query).catch(err => {
-      console.warn(`Community: DynamicsUser.net query "${query}" failed - ${err.message}`);
-      return [];
-    }))
-  );
+  // Run queries sequentially with stagger delay to respect Discourse rate limits.
+  // Parallel requests reliably trigger 429s on unauthenticated endpoints.
+  const queryResults = [];
+  for (let i = 0; i < queries.length; i++) {
+    if (i > 0) await delay(STAGGER_DELAY_MS);
+    try {
+      queryResults.push(await runDiscourseSearch(queries[i]));
+    } catch (err) {
+      console.warn(`Community: DynamicsUser.net query "${queries[i]}" failed - ${err.message}`);
+      queryResults.push([]);
+    }
+  }
 
   // Merge and deduplicate results across all queries
   const allTopics = new Map();
@@ -118,22 +125,44 @@ async function searchDynamicsUserNet(keywords, issueTitle) {
     .slice(0, MAX_RESULTS);
 }
 
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 /**
  * Run a single Discourse search query and return the topics array.
+ * Retries on 429 (rate limit) with exponential backoff.
  */
 async function runDiscourseSearch(query) {
   const url = `${DUG_BASE}/search.json?q=${encodeURIComponent(query)}%20category:${DUG_CATEGORY_ID}`;
-  const response = await fetchWithTimeout(url, {
-    headers: { 'Accept': 'application/json' },
-  });
 
-  if (!response.ok) {
-    console.warn(`Community: DynamicsUser.net query "${query}" returned ${response.status}`);
-    return [];
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const response = await fetchWithTimeout(url, {
+      headers: { 'Accept': 'application/json' },
+    });
+
+    if (response.status === 429) {
+      const retryAfter = Number(response.headers.get('retry-after')) || (2 ** attempt * 2);
+      const waitMs = Math.min(retryAfter * 1000, 10_000);
+      console.log(`Community: rate-limited on "${query}", waiting ${waitMs}ms (attempt ${attempt + 1}/${MAX_RETRIES + 1})`);
+      if (attempt < MAX_RETRIES) {
+        await delay(waitMs);
+        continue;
+      }
+      console.warn(`Community: DynamicsUser.net query "${query}" returned 429 after ${MAX_RETRIES + 1} attempts`);
+      return [];
+    }
+
+    if (!response.ok) {
+      console.warn(`Community: DynamicsUser.net query "${query}" returned ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    return data.topics || [];
   }
 
-  const data = await response.json();
-  return data.topics || [];
+  return [];
 }
 
 /**
