@@ -2,11 +2,24 @@
 // Fetches ideas from the public OData endpoint at experience.dynamics.com
 // and matches them against issue keywords for enrichment context.
 
+import { tokenize, jaccardSimilarity } from './text-similarity.js';
+
 const IDEAS_ODATA_URL = 'https://experience.dynamics.com/_odata/ideas';
 const BC_FORUM_ID = 'e288ef32-82ed-e611-8101-5065f38b21f1';
 const PAGES_TO_FETCH = 30;
 const PAGE_SIZE = 10;
 const MAX_RESULTS = 5;
+const FETCH_TIMEOUT_MS = 10_000;
+
+/**
+ * Fetch with an AbortController timeout.
+ */
+function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timeout));
+}
 
 /**
  * Fetch ideas from the Dynamics 365 Ideas Portal and match against keywords.
@@ -16,14 +29,15 @@ export async function fetchRelatedIdeas(keywords, issueTitle = '') {
     return { ideas: [], totalFetched: 0 };
   }
 
-  // Normalize keywords: split any 3+ word phrases into 1-2 word terms
+  // Normalize keywords: split 3+ word phrases into overlapping bigrams
+  // so "approval workflow management" → ["approval workflow", "workflow management"]
   const normalized = [];
   for (const kw of keywords) {
     const words = kw.split(/\s+/);
     if (words.length <= 2) {
       normalized.push(kw);
     } else {
-      for (let i = 0; i < words.length - 1; i += 2) {
+      for (let i = 0; i < words.length - 1; i++) {
         normalized.push(words.slice(i, i + 2).join(' '));
       }
     }
@@ -37,13 +51,14 @@ export async function fetchRelatedIdeas(keywords, issueTitle = '') {
 
   let allIdeas = [];
   let error;
+  let consecutiveEmptyPages = 0;
 
   try {
     for (let page = 0; page < PAGES_TO_FETCH; page++) {
       const skip = page * PAGE_SIZE;
       const url = `${IDEAS_ODATA_URL}?$skip=${skip}`;
 
-      const response = await fetch(url, {
+      const response = await fetchWithTimeout(url, {
         headers: { 'Accept': 'application/json' },
       });
 
@@ -61,7 +76,18 @@ export async function fetchRelatedIdeas(keywords, issueTitle = '') {
 
       allIdeas.push(...bcIdeas);
 
-      if (!data['odata.nextLink']) break;
+      // Early exit: stop fetching if last pages yielded no BC ideas
+      if (bcIdeas.length === 0) {
+        consecutiveEmptyPages++;
+        if (consecutiveEmptyPages >= 3) {
+          console.log(`Ideas Portal: 3 consecutive pages with no BC ideas, stopping at page ${page}`);
+          break;
+        }
+      } else {
+        consecutiveEmptyPages = 0;
+      }
+
+      if (!data['odata.nextLink'] && !data['@odata.nextLink']) break;
     }
   } catch (err) {
     console.warn(`Ideas Portal: fetch error - ${err.message}`);
@@ -81,7 +107,7 @@ export async function fetchRelatedIdeas(keywords, issueTitle = '') {
   }));
 
   // Statuses considered "active" (not yet delivered or declined)
-  const CLOSED_STATUSES = new Set(['completed', 'declined', 'closed', 'archived', 'delivered']);
+  const CLOSED_STATUSES = new Set(['completed', 'declined', 'closed', 'archived', 'delivered', 'won\'t do', 'duplicate', 'out of scope']);
 
   const relevant = scored.filter(idea => idea.relevance >= 3);
 
@@ -155,7 +181,8 @@ function expandKeyword(kw) {
   if (synonyms) return synonyms;
   // Also check stemmed form
   const stemmed = stem(kwLower);
-  return [kwLower, stemmed];
+  if (stemmed !== kwLower) return [kwLower, stemmed];
+  return [kwLower];
 }
 
 function escapeRegex(str) {
@@ -169,31 +196,6 @@ function textContains(text, term) {
   // (e.g. "approval" matches "approvals", "approved")
   if (term.includes(' ')) return text.includes(term);
   return new RegExp(`\\b${escapeRegex(term)}`).test(text);
-}
-
-/**
- * Tokenize text into a set of meaningful words for similarity comparison.
- */
-function tokenize(text) {
-  return new Set(
-    (text || '').toLowerCase()
-      .replace(/[^a-z0-9\s]/g, ' ')
-      .split(/\s+/)
-      .filter(w => w.length > 2)
-  );
-}
-
-/**
- * Compute Jaccard similarity between two token sets (0-1).
- */
-function jaccardSimilarity(setA, setB) {
-  if (setA.size === 0 || setB.size === 0) return 0;
-  let intersection = 0;
-  for (const token of setA) {
-    if (setB.has(token)) intersection++;
-  }
-  const union = setA.size + setB.size - intersection;
-  return union === 0 ? 0 : intersection / union;
 }
 
 function scoreIdeaRelevance(idea, keywords, issueTitle = '') {
@@ -219,8 +221,7 @@ function scoreIdeaRelevance(idea, keywords, issueTitle = '') {
     }
   }
 
-  // Title similarity bonus: items whose title closely matches the issue title
-  // get a large bonus so near-identical items always rank highest.
+  // Title similarity bonus using shared synonym-aware tokenizer.
   if (issueTitle) {
     const issueTokens = tokenize(issueTitle);
     const ideaTokens = tokenize(title);
@@ -232,7 +233,10 @@ function scoreIdeaRelevance(idea, keywords, issueTitle = '') {
 }
 
 function stripHtml(html) {
-  return html.replace(/<[^>]*>/g, '').replace(/&[a-z]+;/gi, ' ').trim();
+  return html
+    .replace(/<[^>]*>/g, '')
+    .replace(/&(?:#\d+|#x[\da-fA-F]+|[a-z]+);/gi, ' ')  // handle named + numeric HTML entities
+    .trim();
 }
 
 function formatIdeaEntry(idea) {

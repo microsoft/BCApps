@@ -6,6 +6,7 @@ import { readdirSync, readFileSync, statSync, existsSync } from 'fs';
 import { join, relative, extname } from 'path';
 
 const MAX_CODE_BYTES = 15_000;
+const MAX_FILE_BYTES = 10_000;
 const AL_EXTENSIONS = new Set(['.al']);
 
 /**
@@ -35,8 +36,10 @@ function walkDir(dir, baseDir = dir) {
   for (const entry of entries) {
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
-      // Skip node_modules, .git, etc.
-      if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+      // Skip directories that never contain relevant AL source
+      if (entry.name.startsWith('.') || entry.name === 'node_modules'
+          || entry.name === 'dist' || entry.name === 'build'
+          || entry.name === 'coverage' || entry.name === 'vendor') continue;
       results.push(...walkDir(fullPath, baseDir));
     } else if (entry.isFile() && AL_EXTENSIONS.has(extname(entry.name).toLowerCase())) {
       results.push({
@@ -51,7 +54,8 @@ function walkDir(dir, baseDir = dir) {
 
 /**
  * Score a file's relevance to the issue based on keyword matching.
- * Higher score = more relevant.
+ * Uses word-boundary matching to avoid false positives
+ * (e.g. keyword "order" won't match "reorder.al").
  */
 function scoreFileRelevance(file, keywords) {
   if (keywords.length === 0) return 0;
@@ -62,12 +66,24 @@ function scoreFileRelevance(file, keywords) {
   let score = 0;
   for (const kw of keywords) {
     const kwLower = kw.toLowerCase();
-    // Exact name match is highly valuable
-    if (nameLower.includes(kwLower)) score += 3;
-    // Path match (directory names)
-    else if (pathLower.includes(kwLower)) score += 1;
+    const isPhrase = kwLower.includes(' ');
+
+    // For phrases, use substring match (already specific enough).
+    // For single words, use word-boundary regex to avoid partial matches.
+    if (isPhrase) {
+      if (nameLower.includes(kwLower)) score += 3;
+      else if (pathLower.includes(kwLower)) score += 1;
+    } else {
+      const pattern = new RegExp(`(?:^|[^a-z])${escapeRegex(kwLower)}(?:[^a-z]|$)`);
+      if (pattern.test(nameLower)) score += 3;
+      else if (pattern.test(pathLower)) score += 1;
+    }
   }
   return score;
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
@@ -78,6 +94,17 @@ function safeReadFile(filePath) {
     return readFileSync(filePath, 'utf-8');
   } catch {
     return null;
+  }
+}
+
+/**
+ * Get file size without reading the file. Returns 0 on error.
+ */
+function getFileSize(filePath) {
+  try {
+    return statSync(filePath).size;
+  } catch {
+    return 0;
   }
 }
 
@@ -115,7 +142,8 @@ export function fetchCodeContext(appAreaDirectory, keywords) {
   }));
   scored.sort((a, b) => b.score - a.score);
 
-  // Read top relevant files up to the byte cap
+  // Read top relevant files up to the byte cap.
+  // Check file size with statSync BEFORE reading to avoid loading huge files.
   const relevantFiles = [];
   let totalBytes = 0;
 
@@ -124,15 +152,19 @@ export function fetchCodeContext(appAreaDirectory, keywords) {
     // Only include files that have some keyword relevance, unless we have very few files
     if (file.score === 0 && relevantFiles.length >= 5) break;
 
+    const fileSize = getFileSize(file.fullPath);
+    if (fileSize === 0) continue;
+
+    // Skip large files with low relevance without reading them
+    if (fileSize > MAX_FILE_BYTES && file.score < 2) continue;
+
+    // Don't exceed the byte cap (unless this is the first file)
+    if (totalBytes + fileSize > MAX_CODE_BYTES && relevantFiles.length > 0) break;
+
     const content = safeReadFile(file.fullPath);
     if (!content) continue;
 
     const contentBytes = Buffer.byteLength(content, 'utf-8');
-
-    // Skip very large files (>10KB each) unless they're highly relevant
-    if (contentBytes > 10_000 && file.score < 2) continue;
-
-    if (totalBytes + contentBytes > MAX_CODE_BYTES && relevantFiles.length > 0) break;
 
     relevantFiles.push({
       path: file.relativePath,
