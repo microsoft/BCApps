@@ -263,7 +263,7 @@ page 8850 "Bank Statement File Wizard"
 
                     trigger OnValidate()
                     var
-                        Matches: Record Matches;
+                        TempMatches: Record Matches;
                         Regex: Codeunit Regex;
                         FileLine: Text;
                     begin
@@ -273,11 +273,11 @@ page 8850 "Bank Statement File Wizard"
                             FileLine := FileLinesList.Get(HeaderLines + 1);
                             case ColumnSeperator of
                                 ColumnSeperator::Comma:
-                                    Regex.Match(FileLine, CommaSeperatorRegexLbl, Matches);
+                                    Regex.Match(FileLine, CommaSeperatorRegexLbl, TempMatches);
                                 ColumnSeperator::Semicolon:
-                                    Regex.Match(FileLine, SemicolonSeperatorRegexLbl, Matches);
+                                    Regex.Match(FileLine, SemicolonSeperatorRegexLbl, TempMatches);
                             end;
-                            ColumnCount := Matches.Count();
+                            ColumnCount := TempMatches.Count();
                         end;
                         CurrPage.Update(false);
                     end;
@@ -524,7 +524,7 @@ page 8850 "Bank Statement File Wizard"
 
                     trigger OnDrillDown()
                     var
-                        BankStatementImportPreview: Record "Bank Statement Import Preview";
+                        TempBankStatementImportPreview: Record "Bank Statement Import Preview";
                         BankStatementFileWizard: Codeunit "Bank Statement File Wizard";
                         FileUploaded2: Boolean;
                     begin
@@ -541,8 +541,8 @@ page 8850 "Bank Statement File Wizard"
                         end;
 
                         if FileUploaded or FileUploaded2 then begin
-                            GeneratePreviewData(BankStatementImportPreview);
-                            Page.RunModal(Page::"Bank Statement Import Preview", BankStatementImportPreview);
+                            GeneratePreviewData(TempBankStatementImportPreview);
+                            Page.RunModal(Page::"Bank Statement Import Preview", TempBankStatementImportPreview);
                         end;
                     end;
                 }
@@ -1001,9 +1001,9 @@ page 8850 "Bank Statement File Wizard"
 
     local procedure ReadBankFile()
     var
-        Matches: Record Matches;
-        CommaMatches: Record Matches;
-        SemicolonMatches: Record Matches;
+        TempMatches: Record Matches;
+        TempCommaMatches: Record Matches;
+        TempSemicolonMatches: Record Matches;
         TypeHelper: Codeunit "Type Helper";
         Regex: Codeunit Regex;
         FileInStream: InStream;
@@ -1032,13 +1032,13 @@ page 8850 "Bank Statement File Wizard"
         end;
 
         FileLine := FileLinesList.Get(Round(FileLinesList.Count() / 2, 1, '>'));
-        Regex.Match(FileLine, CommaSeperatorRegexLbl, CommaMatches);
-        Regex.Match(FileLine, SemicolonSeperatorRegexLbl, SemicolonMatches);
+        Regex.Match(FileLine, CommaSeperatorRegexLbl, TempCommaMatches);
+        Regex.Match(FileLine, SemicolonSeperatorRegexLbl, TempSemicolonMatches);
 
-        if CommaMatches.Count() > 2 then
+        if TempCommaMatches.Count() > 2 then
             Seperator := CommaSeperatorRegexLbl;
 
-        if SemicolonMatches.Count() > 2 then
+        if TempSemicolonMatches.Count() > 2 then
             Seperator := SemicolonSeperatorRegexLbl;
 
         if Seperator = '' then begin
@@ -1048,8 +1048,8 @@ page 8850 "Bank Statement File Wizard"
 
         for LineCount := 1 to FileLinesList.Count() do begin
             FileLine := FileLinesList.Get(LineCount);
-            Regex.Match(FileLine, Seperator, Matches);
-            if (Matches.Count() > 2) and not HeaderLinesFound then begin
+            Regex.Match(FileLine, Seperator, TempMatches);
+            if (TempMatches.Count() > 2) and not HeaderLinesFound then begin
                 HeaderLines := LineCount;
                 HeaderLinesFound := true;
             end;
