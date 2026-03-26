@@ -6,12 +6,8 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
-using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
-using Microsoft.Sales.Document;
-using Microsoft.Sales.Setup;
 using System.Automation;
 using System.IO;
 using System.Threading;
@@ -285,15 +281,8 @@ codeunit 133529 "E-Doc. Clearance Flow Test"
         EDocument: Record "E-Document";
         EDocumentServiceStatus: Record "E-Document Service Status";
         DocumentSendingProfile: Record "Document Sending Profile";
-        GeneralPostingSetup: Record "General Posting Setup";
-        InventoryPostingSetup: Record "Inventory Posting Setup";
-        Item: Record Item;
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesSetup: Record "Sales & Receivables Setup";
         TransformationRule: Record "Transformation Rule";
         Workflow: Record Workflow;
-        LibraryERM: Codeunit "Library - ERM";
         WorkflowCode: Code[20];
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
@@ -307,49 +296,6 @@ codeunit 133529 "E-Doc. Clearance Flow Test"
 
         LibraryEDoc.SetupStandardVAT();
         LibraryEDoc.SetupStandardSalesScenario(Customer, ClearanceService, Enum::"E-Document Format"::"Mock", Enum::"Service Integration"::"Mock");
-
-        // Ensure sales number series exist
-        SalesSetup.Get();
-        if SalesSetup."Invoice Nos." = '' then
-            SalesSetup.Validate("Invoice Nos.", LibraryERM.CreateNoSeriesCode());
-        if SalesSetup."Posted Invoice Nos." = '' then
-            SalesSetup.Validate("Posted Invoice Nos.", LibraryERM.CreateNoSeriesCode());
-        SalesSetup.Modify(false);
-
-        // Create temp sales document to discover posting groups, then set up complete posting infrastructure
-        LibraryEDoc.CreateSalesHeaderWithItem(Customer, SalesHeader, Enum::"Sales Document Type"::Invoice);
-        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
-        SalesLine.SetRange("Document No.", SalesHeader."No.");
-        SalesLine.FindFirst();
-
-        // Ensure General Posting Setup has all required GL accounts and is not blocked
-        if not GeneralPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group") then
-            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
-        GeneralPostingSetup.Blocked := false;
-        if GeneralPostingSetup."Sales Account" = '' then
-            GeneralPostingSetup."Sales Account" := LibraryERM.CreateGLAccountNo();
-        if GeneralPostingSetup."COGS Account" = '' then
-            GeneralPostingSetup."COGS Account" := LibraryERM.CreateGLAccountNo();
-        if GeneralPostingSetup."Inventory Adjmt. Account" = '' then
-            GeneralPostingSetup."Inventory Adjmt. Account" := LibraryERM.CreateGLAccountNo();
-        if GeneralPostingSetup."Direct Cost Applied Account" = '' then
-            GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
-        GeneralPostingSetup.Modify(true);
-
-        // Ensure Inventory Posting Setup has Inventory Account
-        Item.Get(SalesLine."No.");
-        if not InventoryPostingSetup.Get('', Item."Inventory Posting Group") then begin
-            InventoryPostingSetup.Init();
-            InventoryPostingSetup."Location Code" := '';
-            InventoryPostingSetup."Invt. Posting Group Code" := Item."Inventory Posting Group";
-            InventoryPostingSetup.Insert();
-        end;
-        if InventoryPostingSetup."Inventory Account" = '' then
-            InventoryPostingSetup."Inventory Account" := LibraryERM.CreateGLAccountNo();
-        InventoryPostingSetup.Modify(true);
-
-        // Clean up temp sales document
-        SalesHeader.Delete(true);
 
         TransformationRule.DeleteAll();
         TransformationRule.CreateDefaultTransformations();
