@@ -107,56 +107,14 @@ export async function assessIssueQuality(issue) {
   const domainKnowledge = readFileSync(join(skillDir, 'bc-domain.md'), 'utf-8');
   const assessKnowledge = readFileSync(join(skillDir, 'triage-assess.md'), 'utf-8');
 
-  const systemPrompt = `You are a senior QA analyst evaluating GitHub issue quality for a Microsoft Dynamics 365 Business Central application repository. Your job is to assess whether an issue has enough information for a developer to start working on it.
+  // Load the Phase 1 system prompt template from skill file
+  const promptTemplate = readFileSync(join(skillDir, 'phase1-instructions.md'), 'utf-8')
+    .replace(/^[\s\S]*?---\n/, ''); // strip header (everything up to and including the --- delimiter)
 
-${glossary}
-
-${domainKnowledge}
-
-${assessKnowledge}
-
-## Issue type classification
-
-Classify the issue as one of: "bug", "feature", "enhancement", "question"
-
-## App area detection
-
-The repository contains Business Central apps. Based on keywords in the title and body, detect which app area this relates to. If no area matches, use "Unknown".
-
-## Search term extraction
-
-Based on your understanding of the issue, extract 5-8 search terms that would be most effective for finding related work items in Azure DevOps and ideas on the Dynamics 365 Ideas Portal. These should be:
-- **1-2 word terms only** — each term must be at most 2 words (e.g., "purchase invoice", "approval", "service document"). NEVER use 3+ word phrases.
-- **Business Central domain terms** (e.g., "purchase invoice", "bank reconciliation", "e-document") — not code identifiers or generic words
-- **Mix of specific and broad** — include both the specific concept (e.g., "service document") and broader category terms (e.g., "approval", "service")
-- **Functional terms** that describe what the user is trying to do, not implementation details (e.g., "posting error" not "codeunit 80")
-- Ordered from most specific/relevant to least
-
-Example for an issue about "Approvals also in Service Documents": ["service document", "approval", "service order", "approval workflow", "service management", "service"]
-
-## Output format
-
-Return a JSON object with this exact structure:
-\`\`\`json
-{
-  "quality_score": {
-    "clarity": { "score": 0, "notes": "explanation" },
-    "reproducibility": { "score": 0, "notes": "explanation" },
-    "context": { "score": 0, "notes": "explanation" },
-    "specificity": { "score": 0, "notes": "explanation" },
-    "actionability": { "score": 0, "notes": "explanation" },
-    "total": 0
-  },
-  "verdict": "READY|NEEDS WORK|INSUFFICIENT",
-  "missing_info": ["specific missing item 1", "specific missing item 2"],
-  "detected_app_area": "area name",
-  "issue_type": "bug|feature|enhancement|question",
-  "summary": "One-line summary of what this issue is about",
-  "search_terms": ["most specific term", "second term", "...up to 8 terms"]
-}
-\`\`\`
-
-Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON.`;
+  const systemPrompt = promptTemplate
+    .replace('{{glossary}}', glossary)
+    .replace('{{domainKnowledge}}', domainKnowledge)
+    .replace('{{assessKnowledge}}', assessKnowledge);
 
   const commentsText = issue.comments.length > 0
     ? issue.comments.map(c => `**${c.author}**: ${c.body}`).join('\n\n')

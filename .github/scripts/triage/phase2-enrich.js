@@ -97,155 +97,31 @@ function formatIssueBlock(issue) {
 
 // ─── Step 2a: Code Analysis ───
 
-function buildCodeAnalysisPrompt(glossary, domainContext, enrichKnowledge) {
-  return `You are a senior AL developer analyzing the source code impact of a GitHub issue for a Microsoft Dynamics 365 Business Central application repository.
-
-Your job is to deeply analyze the provided source code and assess the technical dimensions of implementing this change. Focus exclusively on the code — what needs to change, how complex the change is, what risks exist, and how much effort it will take.
-
-${glossary}
-
-${domainContext}
-
-## BC-Specific Risk Awareness
-
-- **Posting routine changes** are always high-risk (affect ledger integrity)
-- **Dimension-related changes** often have wide impact across all document types
-- **Event signature changes** are breaking changes (API contract violation)
-- **FlowField CalcFormula changes** can have performance implications
-- **Table schema changes** require upgrade codeunits (adds significant effort)
-- **Test coverage** matters most for posting routines and financial calculations
-
-## Assessment criteria
-
-### Complexity (Low / Medium / High / Very High)
-- **Low**: Simple configuration change, documentation fix, or single-file change with clear pattern
-- **Medium**: Multi-file change following existing patterns, moderate testing needed
-- **High**: Architectural changes, new integration points, or cross-module impact
-- **Very High**: Fundamental design changes, breaking changes, or novel technical challenges
-
-### Effort Estimate (XS / S / M / L / XL)
-- **XS**: < 2 hours (typo fix, config change)
-- **S**: 2-8 hours (single focused change with tests)
-- **M**: 1-3 days (multi-file feature or complex bug fix)
-- **L**: 1-2 weeks (significant feature or refactoring)
-- **XL**: 2+ weeks (major feature, architectural change)
-
-### Risk (Low / Medium / High)
-- **Low**: Isolated change, good test coverage, no breaking changes
-- **Medium**: Some integration points affected, moderate regression risk
-- **High**: Wide-reaching changes, breaking change potential, affects critical paths
-
-### Implementation Path (Manual / Copilot-Assisted / Agentic)
-- **Manual**: Requires deep domain expertise, nuanced judgment, or novel architectural decisions
-- **Copilot-Assisted**: Code changes follow existing patterns where AI can help with boilerplate
-- **Agentic**: Well-defined scope with clear existing patterns — an AI agent could drive the full implementation
-
-## Output format
-
-Return a JSON object with this exact structure:
-\`\`\`json
-{
-  "complexity": { "rating": "Medium", "rationale": "Explanation referencing specific AL objects" },
-  "effort": { "rating": "M", "rationale": "Explanation with specific file/object references" },
-  "risk": { "rating": "Low", "rationale": "Explanation of risk factors from the code" },
-  "implementation_path": { "rating": "Copilot-Assisted", "rationale": "Explanation" },
-  "code_areas": [
-    { "path": "src/Apps/W1/...", "relevance": "Why this area needs modification" }
-  ]
-}
-\`\`\`
-
-Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON.`;
+function buildCodeAnalysisPrompt(skillDir, glossary, domainContext, enrichKnowledge) {
+  const template = readFileSync(join(skillDir, 'phase2-code-analysis.md'), 'utf-8')
+    .replace(/^[\s\S]*?---\n/, '');
+  return template
+    .replace('{{glossary}}', glossary)
+    .replace('{{domainContext}}', domainContext)
+    .replace('{{enrichKnowledge}}', enrichKnowledge);
 }
 
 // ─── Step 2b: Signal Analysis ───
 
-function buildSignalAnalysisPrompt(glossary) {
-  return `You are a senior product manager evaluating the business value and community demand for a GitHub issue in a Microsoft Dynamics 365 Business Central application repository.
-
-Your job is to analyze external signals — Ideas Portal data, Azure DevOps work items, community discussions, AppSource marketplace data, and your knowledge of documentation — to assess the value and demand for this change. Focus exclusively on the business impact, not the code.
-
-${glossary}
-
-## Signal interpretation
-
-### Documentation (Microsoft Learn)
-Search your knowledge for relevant Business Central documentation from learn.microsoft.com. Focus on feature documentation, API documentation, known limitations, and configuration guides.
-Provide actual URLs when confident they exist. Format: \`https://learn.microsoft.com/en-us/dynamics365/business-central/...\`
-
-### Ideas Portal (experience.dynamics.com)
-You will be provided with actual search results from the Dynamics 365 Ideas Portal. Use these to gauge community demand, check current status of related ideas, and incorporate high-vote ideas into your value assessment.
-
-### Azure DevOps work items
-You may be provided with related work items from the Dynamics SMB ADO project. Use these to identify if this issue is already tracked internally and factor existing work into your assessment.
-
-### Community discussions
-You will be provided with search results from DynamicsUser.net (a major BC community forum) and a search link for Microsoft Dynamics Community. Use these to gauge whether users are actively discussing this topic and what workarounds or solutions the community has found.
-
-### AppSource Marketplace
-You will be provided with search context from the Microsoft AppSource marketplace for Business Central apps. Use the number of related apps as a demand signal:
-- **20+ related apps**: Strong ecosystem interest — improvements have high value
-- **5-19 related apps**: Moderate interest — established demand
-- **<5 related apps**: Niche area — could be an opportunity or low-demand capability
-
-### Value (Low / Medium / High / Critical)
-- **Low**: Nice-to-have, affects few users, minor convenience improvement
-- **Medium**: Meaningful improvement for a segment of users, noticeable quality-of-life gain
-- **High**: Significant business impact, affects many users, or addresses data integrity issues
-- **Critical**: Data loss, security vulnerability, or blocks core business workflows
-
-## Output format
-
-Return a JSON object with this exact structure:
-\`\`\`json
-{
-  "value": { "rating": "High", "rationale": "Explanation citing specific signals" },
-  "documentation": [
-    { "title": "Article title", "url": "https://...", "relevance": "Why this is relevant" }
-  ],
-  "ideas_portal": [
-    { "title": "Idea title", "url": "https://experience.dynamics.com/...", "relevance": "Why this is relevant" }
-  ],
-  "community": [
-    { "title": "Discussion title", "url": "https://...", "relevance": "Why this is relevant" }
-  ],
-  "ado_work_items": [
-    { "id": 12345, "relevance": "Why this work item is relevant to the issue" }
-  ]
-}
-\`\`\`
-
-Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON.`;
+function buildSignalAnalysisPrompt(skillDir, glossary) {
+  const template = readFileSync(join(skillDir, 'phase2-signal-analysis.md'), 'utf-8')
+    .replace(/^[\s\S]*?---\n/, '');
+  return template
+    .replace('{{glossary}}', glossary);
 }
 
 // ─── Step 2c: Synthesis ───
 
-function buildSynthesisPrompt(enrichKnowledge) {
-  return `You are a senior product manager synthesizing a final triage recommendation for a GitHub issue in a Microsoft Dynamics 365 Business Central repository.
-
-You have been given:
-1. A Phase 1 quality assessment of the issue
-2. A code analysis with complexity, effort, risk, and implementation path assessments (from a separate code-focused analysis)
-3. A signal analysis with value assessment, documentation, ideas, ADO items, and community data (from a separate signal-focused analysis)
-4. Precedents — similar closed issues that may provide historical context
-
-Your job is to integrate ALL of these into a final triage recommendation: priority score, confidence level, recommended action, and an executive summary.
-
-${enrichKnowledge}
-
-## Output format
-
-Return a JSON object with this exact structure:
-\`\`\`json
-{
-  "priority_score": { "score": 7, "rationale": "Calculation: (Value × Urgency) / (Effort × Risk) = X, normalized to Y/10" },
-  "confidence": { "rating": "High", "rationale": "Explanation of what evidence supports or undermines confidence" },
-  "recommended_action": { "action": "Implement", "rationale": "Explanation integrating code analysis and signal analysis" },
-  "executive_summary": "2-3 sentence summary for a product manager who needs to make a quick decision."
-}
-\`\`\`
-
-Return ONLY valid JSON. No markdown fences, no explanation text outside the JSON.`;
+function buildSynthesisPrompt(skillDir, enrichKnowledge) {
+  const template = readFileSync(join(skillDir, 'phase2-synthesis.md'), 'utf-8')
+    .replace(/^[\s\S]*?---\n/, '');
+  return template
+    .replace('{{enrichKnowledge}}', enrichKnowledge);
 }
 
 // ─── Main orchestrator ───
@@ -318,7 +194,7 @@ ${commentsBlock}### Phase 1 assessment
   // ── Step 2a + 2b: Run code analysis and signal analysis in parallel ──
   console.log(`Phase 2: Starting code analysis and signal analysis in parallel...`);
 
-  const codeAnalysisPrompt = buildCodeAnalysisPrompt(glossary, domainContext, enrichKnowledge);
+  const codeAnalysisPrompt = buildCodeAnalysisPrompt(skillDir, glossary, domainContext, enrichKnowledge);
   const codeAnalysisMessage = `${issueHeader}
 
 ### App area directory: ${appArea.directory}
@@ -327,7 +203,7 @@ ${codeContextBlock}
 
 Analyze the source code above and assess complexity, effort, risk, and implementation path for this issue.`;
 
-  const signalAnalysisPrompt = buildSignalAnalysisPrompt(glossary);
+  const signalAnalysisPrompt = buildSignalAnalysisPrompt(skillDir, glossary);
   const signalAnalysisMessage = `${issueHeader}
 
 ### Key search terms: ${keyTerms.join(', ')}
@@ -358,7 +234,7 @@ Analyze all provided external signals and assess the business value of this issu
   // ── Step 2c: Synthesis ──
   console.log(`Phase 2c: Synthesizing final triage recommendation...`);
 
-  const synthesisPrompt = buildSynthesisPrompt(enrichKnowledge);
+  const synthesisPrompt = buildSynthesisPrompt(skillDir, enrichKnowledge);
   const synthesisMessage = `${issueHeader}
 
 ${precedentsBlock}### Code analysis results
@@ -593,81 +469,46 @@ function validatePhase2Response(result) {
 
 // ─── Key term extraction (regex fallback when LLM terms unavailable) ───
 
-// Known BC multi-word terms that should be kept intact during extraction.
-const BC_DOMAIN_PHRASES = [
-  'purchase order', 'purchase invoice', 'purchase line', 'purchase header',
-  'sales order', 'sales invoice', 'sales line', 'sales header', 'sales price',
-  'general ledger', 'general journal', 'chart of accounts',
-  'bank reconciliation', 'bank account',
-  'fixed asset', 'fixed assets',
-  'posting group', 'posting groups',
-  'number series', 'no. series',
-  'dimension value', 'dimension set',
-  'item tracking', 'item charge', 'item journal',
-  'warehouse receipt', 'warehouse shipment',
-  'production order', 'production bom', 'bill of material',
-  'work center', 'machine center',
-  'service order', 'service item', 'service contract', 'service document', 'service documents',
-  'service management', 'service price', 'service line',
-  'approval workflow', 'approval entry', 'approval request',
-  'cash flow', 'cash flow forecast',
-  'cost accounting', 'cost center', 'cost type',
-  'assembly order', 'assembly bom',
-  'data archive', 'data search', 'data exchange',
-  'e-document', 'e-invoice',
-  'subscription billing', 'recurring billing',
-  'quality management', 'quality inspection',
-  'power bi', 'excel report',
-  'role center',
-  'ledger entry', 'customer ledger', 'vendor ledger', 'item ledger',
-  'job queue', 'job journal',
-  'payment journal', 'payment registration',
-  'intercompany', 'responsibility center',
-  'shopify connector',
-  'retention policy',
-  'price list', 'price calculation',
-  'transfer order', 'location transfer',
-  'human resource', 'employment contract',
-];
-const SORTED_PHRASES = [...BC_DOMAIN_PHRASES].sort((a, b) => b.length - a.length);
+/**
+ * Parse the search-vocabulary.md skill file to extract domain phrases and stop words.
+ * Loaded once at module init; cached for the process lifetime.
+ */
+function loadSearchVocabulary() {
+  const repoRoot = join(__dirname, '..', '..', '..');
+  const vocabPath = join(repoRoot, 'plugins', 'triage', 'skills', 'triage', 'search-vocabulary.md');
+  const content = readFileSync(vocabPath, 'utf-8');
+
+  // Extract all code blocks: each ```...``` section contains word lists
+  const codeBlocks = [...content.matchAll(/```\n([\s\S]*?)```/g)].map(m => m[1]);
+
+  // First code block = BC domain phrases (one per line)
+  const phrases = (codeBlocks[0] || '')
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 0);
+
+  // Remaining code blocks = stop words (space or newline separated)
+  const stopWordsList = codeBlocks.slice(1)
+    .join('\n')
+    .split(/\s+/)
+    .map(w => w.trim().toLowerCase())
+    .filter(w => w.length > 0);
+
+  return {
+    phrases: [...phrases].sort((a, b) => b.length - a.length),
+    stopWords: new Set(stopWordsList),
+  };
+}
+
+let _vocabulary = null;
+function getVocabulary() {
+  if (!_vocabulary) _vocabulary = loadSearchVocabulary();
+  return _vocabulary;
+}
 
 function extractKeyTerms(title, body) {
+  const { phrases: SORTED_PHRASES, stopWords } = getVocabulary();
   const text = `${title} ${body}`.toLowerCase();
-  const stopWords = new Set([
-    'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
-    'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
-    'should', 'may', 'might', 'can', 'shall', 'to', 'of', 'in', 'for',
-    'on', 'with', 'at', 'by', 'from', 'as', 'into', 'through', 'during',
-    'before', 'after', 'above', 'below', 'between', 'out', 'off', 'over',
-    'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when',
-    'where', 'why', 'how', 'all', 'each', 'every', 'both', 'few', 'more',
-    'most', 'other', 'some', 'such', 'no', 'not', 'only', 'own', 'same',
-    'so', 'than', 'too', 'very', 'and', 'but', 'or', 'nor', 'if', 'it',
-    'this', 'that', 'these', 'those', 'i', 'we', 'you', 'he', 'she',
-    'they', 'me', 'us', 'him', 'her', 'them', 'my', 'our', 'your', 'his',
-    'its', 'their', 'what', 'which', 'who', 'whom', 'about', 'up',
-    'item', 'items', 'page', 'pages', 'table', 'tables', 'field', 'fields',
-    'function', 'functions', 'report', 'reports', 'codeunit', 'codeunits',
-    'value', 'values', 'number', 'numbers', 'code', 'name', 'list', 'card',
-    'document', 'documents', 'entry', 'entries', 'line', 'lines', 'record',
-    'records', 'data', 'type', 'option', 'action', 'error', 'issue', 'bug',
-    'feature', 'request', 'add', 'added', 'adding', 'change', 'changed',
-    'new', 'create', 'update', 'delete', 'get', 'set', 'show', 'display',
-    'open', 'close', 'run', 'use', 'used', 'using', 'work', 'works',
-    'need', 'want', 'like', 'make', 'way', 'also', 'just', 'still',
-    'appear', 'appears', 'look', 'looks', 'seem', 'seems', 'expected',
-    'procedure', 'var', 'begin', 'end', 'local', 'trigger', 'true', 'false',
-    'then', 'else', 'exit', 'repeat', 'until', 'case', 'with', 'rec',
-    'text', 'integer', 'boolean', 'decimal', 'guid', 'enum', 'interface',
-    'try', 'catch', 'throw', 'return', 'call', 'method', 'parameter',
-    'log', 'logging', 'message', 'result', 'response', 'context',
-    'init', 'setup', 'handler', 'helper', 'util', 'utils',
-    'file', 'files', 'path', 'string', 'object', 'class', 'module',
-    'something', 'anything', 'everything', 'nothing', 'thing', 'things',
-    'however', 'therefore', 'instead', 'already', 'currently', 'actually',
-    'basically', 'simply', 'really', 'always', 'never', 'sometimes',
-    'able', 'unable', 'possible', 'impossible', 'necessary', 'specific',
-  ]);
 
   const domainMatches = [];
   for (const phrase of SORTED_PHRASES) {
