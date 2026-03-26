@@ -348,17 +348,34 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
   result.enrichment.community_discussions = communityResult.discussions || [];
   result.enrichment.community_search_url = communityResult.dynamicsCommunityUrl;
 
-  // Merge LLM relevance explanations into Learn articles from the search
+  // Merge Learn API articles and LLM-suggested documentation into a single list.
+  // Prefer grounded Learn articles; add LLM-only entries with valid URLs that aren't duplicates.
+  const llmDocs = result.enrichment.documentation || [];
   const llmDocRelevance = new Map();
-  for (const item of (result.enrichment.documentation || [])) {
+  for (const item of llmDocs) {
     if (item.title) {
       llmDocRelevance.set(item.title.toLowerCase(), item.relevance);
     }
   }
-  result.enrichment.learn_articles = (learnResult.articles || []).map(a => ({
+  const learnArticles = (learnResult.articles || []).map(a => ({
     ...a,
     relevance: llmDocRelevance.get((a.title || '').toLowerCase()) || '',
   }));
+  const learnUrls = new Set(learnArticles.map(a => (a.url || '').toLowerCase()));
+  const learnTitles = new Set(learnArticles.map(a => (a.title || '').toLowerCase()));
+  for (const doc of llmDocs) {
+    const urlKey = (doc.url || '').toLowerCase();
+    const titleKey = (doc.title || '').toLowerCase();
+    if (urlKey.startsWith('http') && !learnUrls.has(urlKey) && !learnTitles.has(titleKey)) {
+      learnArticles.push({ title: doc.title, url: doc.url, description: '', relevance: doc.relevance });
+      learnUrls.add(urlKey);
+      learnTitles.add(titleKey);
+    }
+  }
+  // Keep only the most relevant entries
+  const MAX_DOCS = 5;
+  result.enrichment.learn_articles = learnArticles.slice(0, MAX_DOCS);
+  delete result.enrichment.documentation;
   result.enrichment.git_history = gitHistoryResult;
   result.enrichment.related_prs = [...(prResult.openPRs || []), ...(prResult.mergedPRs || [])];
   result.enrichment.youtube_videos = youtubeResult.videos || [];

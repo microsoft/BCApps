@@ -117,7 +117,7 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
   md += `\n</details>\n\n`;
 
   // ── Enrichment context (collapsible) ──
-  const hasEnrichment = (e.documentation?.length > 0) || (e.learn_articles?.length > 0) ||
+  const hasEnrichment = (e.learn_articles?.length > 0) ||
     (e.ideas_portal?.length > 0) || (e.matched_ideas?.length > 0) ||
     (e.ado_work_items?.length > 0) || (e.related_prs?.length > 0) ||
     (e.community_discussions?.length > 0) ||
@@ -137,18 +137,6 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
           md += ` — ${doc.description.substring(0, 150)}${doc.description.length > 150 ? '...' : ''}`;
         }
         md += `\n`;
-      }
-      md += `\n`;
-    }
-
-    if (e.documentation && e.documentation.length > 0) {
-      md += `#### Documentation (LLM-suggested)\n`;
-      for (const doc of e.documentation) {
-        if (doc.url && doc.url.startsWith('http')) {
-          md += `- [${doc.title}](${doc.url}) — ${doc.relevance}\n`;
-        } else {
-          md += `- **${doc.title}** — ${doc.relevance}\n`;
-        }
       }
       md += `\n`;
     }
