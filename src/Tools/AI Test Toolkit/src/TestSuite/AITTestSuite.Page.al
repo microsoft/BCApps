@@ -455,9 +455,6 @@ page 149031 "AIT Test Suite"
                 actionref(ResetStatus_Promoted; ResetStatus)
                 {
                 }
-                actionref(ResetSuiteSetup_Promoted; ResetSuiteSetup)
-                {
-                }
                 actionref(Start_Promoted; Start)
                 {
                 }

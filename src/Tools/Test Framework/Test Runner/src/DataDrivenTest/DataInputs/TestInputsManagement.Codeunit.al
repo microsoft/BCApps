@@ -412,8 +412,26 @@ codeunit 130458 "Test Inputs Management"
         exit(SuiteSetupResourcePath);
     end;
 
+    /// <summary>
+    /// Sets the per-suite setup as completed.
+    /// </summary>
+    procedure SetSuiteSetupCompleted(SuiteSetupCompleted: Boolean)
+    begin
+        PerSuiteSetupCompleted := SuiteSetupCompleted;
+    end;
+
+    /// <summary>
+    /// Checks if the per-suite setup has been completed.
+    /// </summary>
+    /// <returns>True if the per-suite setup has been completed.</returns>
+    procedure IsPerSuiteSetupCompleted(): Boolean
+    begin
+        exit(PerSuiteSetupCompleted);
+    end;
+
     var
         SuiteSetupResourcePath: Text;
+        PerSuiteSetupCompleted: Boolean;
         DataNameTok: Label 'name', Locked = true;
         DescriptionTok: Label 'description', Locked = true;
         LanguageTok: Label 'language', Locked = true;

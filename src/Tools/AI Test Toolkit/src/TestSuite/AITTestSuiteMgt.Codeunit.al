@@ -78,7 +78,6 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITTestSuite."No. of Tests Running" := 0;
         AITTestSuite.Version += 1;
-        AITTestSuite."Suite Setup Done" := false;
         AITTestSuite.Modify(true);
         Commit(); // Ensure that setup is not rolled back
 
@@ -591,6 +590,14 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestMethodLine.CalcFields("Codeunit Name");
         LineNoFilter := StrSubstNo(LineNoFilterLbl, AITTestMethodLine."Codeunit ID", AITTestMethodLine."Codeunit Name", AITTestMethodLine."Input Dataset");
         LineNo := AITTestMethodLine."Line No.";
+    end;
+
+    internal procedure SetSuiteSetupCompleted()
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        AITTestSuite.Get(GlobalAITTestSuite.Code);
+        AITTestSuite.SetSuiteSetupDone();
     end;
 
     internal procedure GetFeatureName(): Text
