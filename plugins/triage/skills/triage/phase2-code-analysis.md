@@ -20,6 +20,14 @@ Your job is to deeply analyze the provided source code and assess the technical 
 
 {{enrichKnowledge}}
 
+## Git history context
+
+You will also be provided with git history for the affected area (last 3 months). Use this to:
+- **Assess risk**: Files that changed frequently are more volatile and may carry higher regression risk
+- **Calibrate effort**: If recent commits addressed similar topics, the area is actively maintained and patterns exist to follow — effort may be lower
+- **Identify experts**: Active contributors are domain experts who could review or implement the change
+- If no git history is provided or the area has no recent commits, note this as a signal that the area may be less actively maintained.
+
 ## Output format
 
 Return a JSON object with this exact structure:

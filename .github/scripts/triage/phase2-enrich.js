@@ -17,6 +17,9 @@ import { fetchRelatedIdeas, formatIdeasContext } from './ideas-client.js';
 import { fetchRelatedWorkItems, formatAdoContext } from './ado-client.js';
 import { fetchMarketplaceApps, formatMarketplaceContext } from './marketplace-client.js';
 import { fetchCommunityDiscussions, formatCommunityContext } from './community-client.js';
+import { fetchLearnDocs, formatLearnContext } from './learn-client.js';
+import { fetchGitHistory, formatGitHistoryContext } from './git-history-client.js';
+import { fetchRelatedPRs, formatPRContext } from './pr-client.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -144,26 +147,35 @@ export async function enrichAndTriage(issue, phase1Result, precedents = []) {
   console.log(`Phase 2: Key terms (${llmTerms.length >= 3 ? 'LLM' : 'regex'}): [${keyTerms.join(', ')}]`);
 
   // Fetch all enrichment context in parallel
-  console.log(`Phase 2: Fetching enrichment context (code, Ideas Portal, ADO, AppSource, Community)...`);
-  const [codeContext, ideasResult, adoResult, marketplaceResult, communityResult] = await Promise.all([
+  console.log(`Phase 2: Fetching enrichment context (code, git history, Ideas Portal, ADO, AppSource, Community, Learn, PRs)...`);
+  const [codeContext, gitHistoryResult, ideasResult, adoResult, marketplaceResult, communityResult, learnResult, prResult] = await Promise.all([
     Promise.resolve(fetchCodeContext(appArea.directory, keyTerms)),
+    Promise.resolve(fetchGitHistory(appArea.directory, keyTerms)),
     fetchRelatedIdeas(keyTerms, issue.title),
     fetchRelatedWorkItems(keyTerms, issue.title),
     fetchMarketplaceApps(keyTerms),
     fetchCommunityDiscussions(keyTerms, issue.title),
+    fetchLearnDocs(keyTerms, issue.title),
+    fetchRelatedPRs(keyTerms, issue.title),
   ]);
 
   console.log(`Phase 2: Code context: ${codeContext.relevantFiles?.length || 0} files from ${appArea.directory}`);
+  console.log(`Phase 2: Git history: ${gitHistoryResult.totalCommits} commits, ${gitHistoryResult.keywordCommits?.length || 0} keyword matches`);
   console.log(`Phase 2: Ideas Portal: ${(ideasResult.activeIdeas?.length || 0)} active + ${(ideasResult.closedIdeas?.length || 0)} closed ideas`);
   console.log(`Phase 2: ADO: ${(adoResult.activeItems?.length || 0)} active + ${(adoResult.closedItems?.length || 0)} closed work items`);
   console.log(`Phase 2: AppSource: search terms "${marketplaceResult.searchTerms}" (LLM will estimate)`);
   console.log(`Phase 2: Community: ${communityResult.discussions?.length || 0} discussions`);
+  console.log(`Phase 2: Learn: ${learnResult.articles?.length || 0} documentation articles`);
+  console.log(`Phase 2: PRs: ${(prResult.openPRs?.length || 0)} open + ${(prResult.mergedPRs?.length || 0)} merged`);
 
   const codeContextBlock = formatCodeContext(codeContext);
+  const gitHistoryBlock = formatGitHistoryContext(gitHistoryResult);
   const ideasContextBlock = formatIdeasContext(ideasResult);
   const adoContextBlock = formatAdoContext(adoResult);
   const marketplaceContextBlock = formatMarketplaceContext(marketplaceResult);
   const communityContextBlock = formatCommunityContext(communityResult);
+  const learnContextBlock = formatLearnContext(learnResult);
+  const prContextBlock = formatPRContext(prResult);
 
   const { issueBody, commentsBlock } = formatIssueBlock(issue);
 
@@ -201,16 +213,22 @@ ${commentsBlock}### Phase 1 assessment
 
 ${codeContextBlock}
 
-Analyze the source code above and assess complexity, effort, risk, and implementation path for this issue.`;
+${gitHistoryBlock}
+
+Analyze the source code and git history above and assess complexity, effort, risk, and implementation path for this issue.`;
 
   const signalAnalysisPrompt = buildSignalAnalysisPrompt(skillDir, glossary);
   const signalAnalysisMessage = `${issueHeader}
 
 ### Key search terms: ${keyTerms.join(', ')}
 
+${learnContextBlock}
+
 ${ideasContextBlock}
 
 ${adoContextBlock}
+
+${prContextBlock}
 
 ${marketplaceContextBlock}
 
@@ -333,6 +351,11 @@ Synthesize the code analysis and signal analysis into a final triage recommendat
     relevance: llmCommunityRelevance.get((d.title || '').toLowerCase()) || '',
   }));
   result.enrichment.community_search_url = communityResult.dynamicsCommunityUrl;
+
+  // Attach new enrichment sources
+  result.enrichment.learn_articles = learnResult.articles || [];
+  result.enrichment.git_history = gitHistoryResult;
+  result.enrichment.related_prs = [...(prResult.openPRs || []), ...(prResult.mergedPRs || [])];
 
   return result;
 }

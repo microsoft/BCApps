@@ -117,16 +117,28 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
   md += `\n</details>\n\n`;
 
   // ── Enrichment context (collapsible) ──
-  const hasEnrichment = (e.documentation?.length > 0) || (e.ideas_portal?.length > 0) ||
-    (e.matched_ideas?.length > 0) || (e.ado_work_items?.length > 0) ||
+  const hasEnrichment = (e.documentation?.length > 0) || (e.learn_articles?.length > 0) ||
+    (e.ideas_portal?.length > 0) || (e.matched_ideas?.length > 0) ||
+    (e.ado_work_items?.length > 0) || (e.related_prs?.length > 0) ||
     (e.community?.length > 0) || (e.community_discussions?.length > 0) ||
-    (e.marketplace?.searchUrl) || (e.code_areas?.length > 0);
+    (e.marketplace?.searchUrl) || (e.code_areas?.length > 0) ||
+    (e.git_history?.totalCommits > 0);
 
   if (hasEnrichment) {
     md += `<details>\n<summary><strong>Enrichment context</strong> — external sources and references</summary>\n\n`;
 
+    if (e.learn_articles && e.learn_articles.length > 0) {
+      md += `#### Microsoft Learn\n`;
+      for (const doc of e.learn_articles) {
+        md += `- [${doc.title}](${doc.url})`;
+        if (doc.description) md += ` — ${doc.description.substring(0, 150)}${doc.description.length > 150 ? '...' : ''}`;
+        md += `\n`;
+      }
+      md += `\n`;
+    }
+
     if (e.documentation && e.documentation.length > 0) {
-      md += `#### Documentation\n`;
+      md += `#### Documentation (LLM-suggested)\n`;
       for (const doc of e.documentation) {
         if (doc.url && doc.url.startsWith('http')) {
           md += `- [${doc.title}](${doc.url}) — ${doc.relevance}\n`;
@@ -170,6 +182,16 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
       md += `\n`;
     }
 
+    if (e.related_prs && e.related_prs.length > 0) {
+      md += `#### Related pull requests\n`;
+      for (const pr of e.related_prs) {
+        md += `- [#${pr.number}: ${pr.title}](${pr.url}) (${pr.state}) by @${pr.author}`;
+        if (pr.matchReason) md += ` — _${pr.matchReason}_`;
+        md += `\n`;
+      }
+      md += `\n`;
+    }
+
     if (e.marketplace && e.marketplace.searchUrl) {
       md += `#### AppSource\n`;
       md += `[Search related apps](${e.marketplace.searchUrl})\n\n`;
@@ -207,6 +229,28 @@ export function formatWikiReport(phase1, phase2, isRetriage, duplicates, previou
         md += `- \`${area.path}\` — ${area.relevance}\n`;
       }
       md += `\n`;
+    }
+
+    if (e.git_history && e.git_history.totalCommits > 0) {
+      md += `#### Git history (last 3 months)\n`;
+      md += `${e.git_history.totalCommits} commits in this area.\n\n`;
+      if (e.git_history.topChangedFiles?.length > 0) {
+        md += `**Most changed files:** `;
+        md += e.git_history.topChangedFiles.slice(0, 5).map(f => `\`${f.path}\` (${f.changeCount})`).join(', ');
+        md += `\n\n`;
+      }
+      if (e.git_history.topContributors?.length > 0) {
+        md += `**Active contributors:** `;
+        md += e.git_history.topContributors.map(c => `${c.name} (${c.commits})`).join(', ');
+        md += `\n\n`;
+      }
+      if (e.git_history.keywordCommits?.length > 0) {
+        md += `**Keyword-matching commits:**\n`;
+        for (const c of e.git_history.keywordCommits.slice(0, 5)) {
+          md += `- \`${c.hash}\` ${c.date} — ${c.subject}\n`;
+        }
+        md += `\n`;
+      }
     }
 
     md += `</details>\n\n`;
