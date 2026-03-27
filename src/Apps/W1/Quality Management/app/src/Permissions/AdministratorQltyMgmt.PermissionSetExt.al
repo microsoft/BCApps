@@ -6,7 +6,9 @@ namespace Microsoft.QualityManagement.Permissions;
 
 using System.Security.AccessControl;
 
-permissionsetextension 20401 "D365 BUS FULL ACCESS - QltyMngmnt" extends "D365 BUS FULL ACCESS"
+#pragma warning disable AS0090
+permissionsetextension 20402 "Administrator - QltyMgmt" extends "Administrator"
 {
-    IncludedPermissionSets = "QltyMngmnt - Edit";
+    IncludedPermissionSets = "QltyMgmt - Admin";
 }
+#pragma warning restore AS0090
