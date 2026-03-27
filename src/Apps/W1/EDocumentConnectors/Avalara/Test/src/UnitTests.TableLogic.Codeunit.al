@@ -66,14 +66,14 @@ codeunit 133633 "Unit Tests - Table Logic"
     procedure TestConnectionSetup_SetClientSecret_StoresSecurely()
     var
         ConnectionSetup: Record "Connection Setup";
-        TestSecret: Text;
+        TestSecret: SecretText;
     begin
         // [SCENARIO] Connection Setup stores client secret securely
 
         // [GIVEN] A connection setup record
         Initialize();
         CreateConnectionSetup(ConnectionSetup);
-        TestSecret := 'super-secret-password-123';
+        TestSecret := SecretText.SecretStrSubstNo('super-secret-password-123');
 
         // [WHEN] Setting client secret
         ConnectionSetup.SetClientSecret(TestSecret);
@@ -430,7 +430,7 @@ codeunit 133633 "Unit Tests - Table Logic"
         ConnectionSetup.Init();
         ConnectionSetup.Insert(true);
         ConnectionSetup."Client Id" := 'test-client';
-        ConnectionSetup.SetClientSecret('test-secret');
+        ConnectionSetup.SetClientSecret(SecretText.SecretStrSubstNo('test-secret'));
         ConnectionSetup."Environment Url" := 'https://test.avalara.com';
         ConnectionSetup.Modify();
     end;

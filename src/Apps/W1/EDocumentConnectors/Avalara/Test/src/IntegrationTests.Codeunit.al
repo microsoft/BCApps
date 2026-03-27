@@ -553,9 +553,9 @@ codeunit 133626 "Integration Tests"
         AvalaraAuth.CreateConnectionSetupRecord();
 
         ConnectionSetup.Get();
-        AvalaraAuth.SetClientId(KeyGuid, MockServiceGuid());
+        AvalaraAuth.SetClientId(KeyGuid, SecretText.SecretStrSubstNo(MockServiceGuid()));
         ConnectionSetup."Client Id - Key" := KeyGuid;
-        AvalaraAuth.SetClientSecret(KeyGuid, MockServiceGuid());
+        AvalaraAuth.SetClientSecret(KeyGuid, SecretText.SecretStrSubstNo(MockServiceGuid()));
         ConnectionSetup."Client Secret - Key" := KeyGuid;
         ConnectionSetup.Modify(true);
 

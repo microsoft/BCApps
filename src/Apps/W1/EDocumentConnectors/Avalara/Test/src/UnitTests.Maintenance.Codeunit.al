@@ -249,7 +249,7 @@ codeunit 133629 "Unit Tests - Maintenance"
         end;
 
         ConnectionSetup."Client Id" := 'TestClientId';
-        ConnectionSetup.SetClientSecret('TestClientSecret');
+        ConnectionSetup.SetClientSecret(SecretText.SecretStrSubstNo('TestClientSecret'));
         ConnectionSetup."Environment Url" := 'https://test.avalara.com';
         ConnectionSetup.Modify();
 

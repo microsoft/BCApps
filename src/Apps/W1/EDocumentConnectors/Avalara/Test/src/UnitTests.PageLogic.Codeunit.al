@@ -272,7 +272,7 @@ codeunit 133631 "Unit Tests - Page Logic"
         ConnectionSetup.Init();
         ConnectionSetup.Insert(true);
         ConnectionSetup."Client Id" := 'test-client-id';
-        ConnectionSetup.SetClientSecret('test-secret');
+        ConnectionSetup.SetClientSecret(SecretText.SecretStrSubstNo('test-secret'));
         ConnectionSetup."Environment Url" := 'https://test.avalara.com';
         ConnectionSetup.Modify();
     end;

@@ -262,7 +262,7 @@ codeunit 133632 "Unit Tests - Table Extensions"
         ConnectionSetup.Init();
         ConnectionSetup.Insert(true);
         ConnectionSetup."Client Id" := 'test-client';
-        ConnectionSetup.SetClientSecret('test-secret');
+        ConnectionSetup.SetClientSecret(SecretText.SecretStrSubstNo('test-secret'));
         ConnectionSetup."Environment Url" := 'https://test.avalara.com';
         ConnectionSetup.Modify();
     end;

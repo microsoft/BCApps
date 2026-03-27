@@ -239,9 +239,9 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
             ConnectionSetup.Get();
         end;
 
-        AvalaraAuth.SetClientId(KeyGuid, 'mock-client-id');
+        AvalaraAuth.SetClientId(KeyGuid, SecretText.SecretStrSubstNo('mock-client-id'));
         ConnectionSetup."Client Id - Key" := KeyGuid;
-        AvalaraAuth.SetClientSecret(KeyGuid, 'mock-client-secret');
+        AvalaraAuth.SetClientSecret(KeyGuid, SecretText.SecretStrSubstNo('mock-client-secret'));
         ConnectionSetup."Client Secret - Key" := KeyGuid;
         ConnectionSetup."Company Id" := 'test-company-id';
         ConnectionSetup.Modify(true);

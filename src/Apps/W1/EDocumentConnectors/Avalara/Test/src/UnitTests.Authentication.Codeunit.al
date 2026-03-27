@@ -130,7 +130,7 @@ codeunit 133628 "Unit Tests - Authentication"
             ConnectionSetup.Get();
         end;
 
-        Authenticator.SetClientId(KeyGuid, 'test-client-id');
+        Authenticator.SetClientId(KeyGuid, SecretText.SecretStrSubstNo('test-client-id'));
         ConnectionSetup."Client Id - Key" := KeyGuid;
         ConnectionSetup."Client Secret - Key" := CreateGuid(); // Invalid key
         ConnectionSetup.Modify();
@@ -245,9 +245,9 @@ codeunit 133628 "Unit Tests - Authentication"
             ConnectionSetup.Get();
         end;
 
-        AvalaraAuth.SetClientId(KeyGuid, 'mock-client-id');
+        AvalaraAuth.SetClientId(KeyGuid, SecretText.SecretStrSubstNo('mock-client-id'));
         ConnectionSetup."Client Id - Key" := KeyGuid;
-        AvalaraAuth.SetClientSecret(KeyGuid, 'mock-client-secret');
+        AvalaraAuth.SetClientSecret(KeyGuid, SecretText.SecretStrSubstNo('mock-client-secret'));
         ConnectionSetup."Client Secret - Key" := KeyGuid;
         ConnectionSetup.Modify(true);
     end;
