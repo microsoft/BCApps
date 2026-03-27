@@ -209,7 +209,7 @@ page 8893 "Email Scenario Setup"
     end;
 
     var
-        TempSelectedEmailAccountScenario: Record "Email Account Scenario";
+        TempSelectedEmailAccountScenario: Record "Email Account Scenario" temporary;
         EmailScenarioImpl: Codeunit "Email Scenario Impl.";
         EmailAccountImpl: Codeunit "Email Account Impl.";
         EmailAccountId: Guid;

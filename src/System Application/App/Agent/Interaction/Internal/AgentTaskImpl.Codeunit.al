@@ -186,7 +186,7 @@ codeunit 4300 "Agent Task Impl."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetPageSummary, '', true, true)]
     local procedure OnGetGetPageSummary(PageId: Integer; Bookmark: Text; var Summary: Text)
     var
-        TempPageSummaryParameters: Record "Page Summary Parameters";
+        TempPageSummaryParameters: Record "Page Summary Parameters" temporary;
         PageSummaryProvider: Codeunit "Page Summary Provider";
     begin
         if PageId = 0 then begin

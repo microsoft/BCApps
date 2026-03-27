@@ -28,7 +28,7 @@ codeunit 1926 "Profiling Chart Helper"
     /// <remarks>ProfilingDataProcessor must be initialized for this method to work.</remarks>
     procedure GetChartData(ProfilingAggregationType: Enum "Profiling Aggregation Type"; AggregateBySelfTime: Boolean; ChartLabels: List of [Text]; ChartValues: List of [Integer])
     var
-        TempAggregatedProfilingNode: Record "Profiling Node";
+        TempAggregatedProfilingNode: Record "Profiling Node" temporary;
         ProfilingDataProcessor: Codeunit "Profiling Data Processor";
         Identifier: Text;
     begin

@@ -319,7 +319,7 @@ codeunit 3961 "Regex Impl."
 
     procedure Regex(Pattern: Text)
     var
-        TempRegexOptions: Record "Regex Options";
+        TempRegexOptions: Record "Regex Options" temporary;
     begin
         Regex(Pattern, TempRegexOptions);
     end;

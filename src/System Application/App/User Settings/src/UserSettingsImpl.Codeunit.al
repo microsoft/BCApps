@@ -155,7 +155,7 @@ codeunit 9175 "User Settings Impl."
 
     procedure UpdateUserSettings(NewUserSettings: Record "User Settings")
     var
-        TempCurrentUserSettings: Record "User Settings";
+        TempCurrentUserSettings: Record "User Settings" temporary;
     begin
         GetUserSettings(NewUserSettings."User Security ID", TempCurrentUserSettings);
         UpdateUserSettings(TempCurrentUserSettings, NewUserSettings);
@@ -458,7 +458,7 @@ codeunit 9175 "User Settings Impl."
 
     procedure OpenUserSettings(UserSecurityID: Guid)
     var
-        TempUserSettingsRec: Record "User Settings";
+        TempUserSettingsRec: Record "User Settings" temporary;
         UserSettings: Codeunit "User Settings";
         SettingsPageID: Integer;
         Handled: Boolean;

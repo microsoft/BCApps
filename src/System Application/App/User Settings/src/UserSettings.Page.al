@@ -158,7 +158,7 @@ page 9204 "User Settings"
     end;
 
     var
-        TempOldUserSettings: Record "User Settings";
+        TempOldUserSettings: Record "User Settings" temporary;
         Language: Codeunit Language;
         TimeZoneSelection: Codeunit "Time Zone Selection";
         UserSettingsImpl: Codeunit "User Settings Impl.";

@@ -109,7 +109,7 @@ page 8944 "Email Address Lookup"
 
     protected procedure LookupFullAddressList(EmailAddressEntity: Enum "Email Address Entity")
     var
-        TempEmailAddressLookup: Record "Email Address Lookup";
+        TempEmailAddressLookup: Record "Email Address Lookup" temporary;
         EmailAddressLookupImpl: Codeunit "Email Address Lookup Impl";
     begin
         if EmailAddressLookupImpl.LookupEmailAddress(EmailAddressEntity, TempEmailAddressLookup) then begin

@@ -619,7 +619,7 @@ codeunit 8905 "Email Message Impl."
 
     procedure GetRelatedAttachments(EmailMessageId: Guid; var EmailRelatedAttachmentOut: Record "Email Related Attachment"): Boolean
     var
-        TempEmailRelatedAttachment: Record "Email Related Attachment";
+        TempEmailRelatedAttachment: Record "Email Related Attachment" temporary;
         EmailRelatedRecord: Record "Email Related Record";
         Email: Codeunit Email;
         EmailImpl: Codeunit "Email Impl";

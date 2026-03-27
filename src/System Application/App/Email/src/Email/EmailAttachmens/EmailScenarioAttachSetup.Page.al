@@ -104,7 +104,7 @@ page 8897 "Email Scenario Attach Setup"
                 trigger OnAction()
                 var
                     EmailScenarioAttachments: Record "Email Scenario Attachments";
-                    TempSelectedScenarios: Record "Email Account Scenario";
+                    TempSelectedScenarios: Record "Email Account Scenario" temporary;
                     FeatureTelemetry: Codeunit "Feature Telemetry";
                     ScenariosForAccount: Page "Email Scenarios for Account";
                 begin

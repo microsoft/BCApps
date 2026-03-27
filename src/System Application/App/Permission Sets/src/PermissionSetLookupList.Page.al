@@ -62,7 +62,7 @@ page 9878 "Permission Set Lookup List"
     end;
 
     var
-        TempSelectedRecord: Record "PermissionSet Buffer";
+        TempSelectedRecord: Record "PermissionSet Buffer" temporary;
 
     internal procedure GetSelectedRecord(var CurrSelectedRecord: Record "PermissionSet Buffer")
     begin
