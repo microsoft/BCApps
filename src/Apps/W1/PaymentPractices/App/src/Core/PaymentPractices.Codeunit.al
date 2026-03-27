@@ -33,6 +33,27 @@ codeunit 689 "Payment Practices"
         PaymentPracticeHeader."Average Actual Payment Period" := PaymentPracticeMath.GetAverageActualPaymentTime(PaymentPracticeData);
         PaymentPracticeHeader."Average Agreed Payment Period" := PaymentPracticeMath.GetAverageAgreedPaymentTime(PaymentPracticeData);
         PaymentPracticeHeader."Pct Paid on Time" := PaymentPracticeMath.GetPercentOfOnTimePayments(PaymentPracticeData);
+        PaymentPracticeHeader."Mode Payment Time" := PaymentPracticeMath.GetModePaymentTime(PaymentPracticeData);
+
+        PaymentPracticeHeader."Mode Payment Time Min." := 0;
+        PaymentPracticeHeader."Mode Payment Time Max." := 0;
+        PaymentPracticeHeader."Median Payment Time" := 0;
+        PaymentPracticeHeader."80th Percentile Payment Time" := 0;
+        PaymentPracticeHeader."95th Percentile Payment Time" := 0;
+        PaymentPracticeHeader."Pct Peppol Enabled" := 0;
+        PaymentPracticeHeader."Pct Small Business Payments" := 0;
+
+        if PaymentPracticeHeader."Reporting Scheme" = PaymentPracticeHeader."Reporting Scheme"::"Percentiles; Modes; Pct Peppol Enabled; Pct Small Business Payments" then begin
+            PaymentPracticeHeader."Mode Payment Time Min." := PaymentPracticeMath.GetModePaymentTimeMin(PaymentPracticeData);
+            PaymentPracticeHeader."Mode Payment Time Max." := PaymentPracticeMath.GetModePaymentTimeMax(PaymentPracticeData);
+            PaymentPracticeHeader."Median Payment Time" := PaymentPracticeMath.GetMedianPaymentTime(PaymentPracticeData);
+            PaymentPracticeHeader."80th Percentile Payment Time" := PaymentPracticeMath.Get80thPercentilePaymentTime(PaymentPracticeData);
+            PaymentPracticeHeader."95th Percentile Payment Time" := PaymentPracticeMath.Get95thPercentilePaymentTime(PaymentPracticeData);
+            PaymentPracticeHeader."Pct Peppol Enabled" := PaymentPracticeMath.GetPctPeppolEnabled(PaymentPracticeData);
+
+            if PaymentPracticeHeader."Only Small Businesses" then
+                PaymentPracticeHeader."Pct Small Business Payments" := PaymentPracticeMath.GetPctSmallBusinessPayments(PaymentPracticeData, PaymentPracticeHeader);
+        end;
     end;
 
     local procedure GenerateData(var PaymentPracticeData: Record "Payment Practice Data"; PaymentPracticeHeader: Record "Payment Practice Header"; PaymentPracticeDataGenerator: Interface PaymentPracticeDataGenerator)
