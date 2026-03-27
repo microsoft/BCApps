@@ -108,7 +108,6 @@ page 4300 "Agent Task List"
                 }
                 field(Credits; ConsumedCredits)
                 {
-                    Visible = ConsumedCreditsVisible;
                     Caption = 'Copilot credits';
                     ToolTip = 'Specifies the number of Copilot credits consumed by the agent task.';
                     AutoFormatType = 0;
@@ -116,10 +115,10 @@ page 4300 "Agent Task List"
 
                     trigger OnDrillDown()
                     var
-                        UserAIConsumptionData: Record "User AI Consumption Data";
+                        AgentTaskConsumption: Record "Agent Task Consumption";
                     begin
-                        UserAIConsumptionData.SetRange("Agent Task Id", Rec.ID);
-                        Page.Run(Page::"Agent Consumption Overview", UserAIConsumptionData);
+                        AgentTaskConsumption.SetRange("Task Id", Rec.ID);
+                        Page.Run(Page::"Agent Consumption Overview", AgentTaskConsumption);
                     end;
                 }
             }
@@ -205,13 +204,6 @@ page 4300 "Agent Task List"
         }
     }
 
-    trigger OnOpenPage()
-    var
-        AgentSystemPermissions: Codeunit "Agent System Permissions";
-    begin
-        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
-    end;
-
     trigger OnAfterGetRecord()
     begin
         UpdateControls();
@@ -226,16 +218,15 @@ page 4300 "Agent Task List"
 
     local procedure CalculateTaskConsumedCredits()
     var
-        UserAIConsumptionData: Record "User AI Consumption Data";
+        AgentTaskConsumption: Record "Agent Task Consumption";
     begin
-        if not ConsumedCreditsVisible then begin
-            Clear(ConsumedCredits);
-            exit;
-        end;
+        ConsumedCredits := 0;
 
-        UserAIConsumptionData.SetRange("Agent Task Id", Rec.ID);
-        UserAIConsumptionData.CalcSums("Copilot Credits");
-        ConsumedCredits := UserAIConsumptionData."Copilot Credits";
+        AgentTaskConsumption.SetRange("Task Id", Rec.ID);
+        if AgentTaskConsumption.FindSet() then
+            repeat
+                ConsumedCredits += AgentTaskConsumption."Copilot Credits";
+            until AgentTaskConsumption.Next() = 0;
     end;
 
     local procedure UpdateControls()
@@ -258,5 +249,4 @@ page 4300 "Agent Task List"
         NumberOfStepsDone: Integer;
         TaskSelected: Boolean;
         ConsumedCredits: Decimal;
-        ConsumedCreditsVisible: Boolean;
 }
