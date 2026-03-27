@@ -2960,7 +2960,7 @@ codeunit 139687 "Recurring Billing Docs Test"
     local procedure MockSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
     begin
         SubscriptionLine.Init();
-        SubscriptionLine."Invoicing via" := SubscriptionLine."Invoicing via"::Contract;
+        SubscriptionLine.Validate("Invoicing via", SubscriptionLine."Invoicing via"::Contract);
         SubscriptionLine.Insert(true);
     end;
 
