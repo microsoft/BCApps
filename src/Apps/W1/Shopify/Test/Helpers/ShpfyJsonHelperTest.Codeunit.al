@@ -875,8 +875,8 @@ codeunit 139574 "Shpfy Json Helper Test"
     [Test]
     procedure UnitTestValueIntoField()
     var
-        TestFields: Record "Shpfy Test Fields";
-        TestFields2: Record "Shpfy Test Fields";
+        TempTestFields: Record "Shpfy Test Fields";
+        TempTestFields2: Record "Shpfy Test Fields";
         RecordRef: RecordRef;
         FieldRef: FieldRef;
         FieldNo: Integer;
@@ -884,191 +884,191 @@ codeunit 139574 "Shpfy Json Helper Test"
         Path: Text;
     begin
         // Creating Test data and expected results.
-        TestFields := TestFields.CreateNewRecordWithAnyValues();
-        JObject.Add(TestFields.FieldName(BigIntegerField), TestFields.BigIntegerField);
-        JObject.Add(TestFields.FieldName(BlobField), TestFields.GetBlobData());
-        JObject.Add(TestFields.FieldName(BooleanField), TestFields.BooleanField);
-        JObject.Add(TestFields.FieldName(CodeField), TestFields.CodeField);
-        JObject.Add(TestFields.FieldName(TextField), TestFields.TextField);
-        JObject.Add(TestFields.FieldName(DateField), TestFields.DateField);
-        JObject.Add(TestFields.FieldName(DateTimeField), TestFields.DateTimeField);
-        JObject.Add(TestFields.FieldName(DecimalField), TestFields.DecimalField);
-        JObject.Add(TestFields.FieldName(DurationField), TestFields.DurationField);
-        JObject.Add(TestFields.FieldName(GuidField), TestFields.GuidField);
-        JObject.Add(TestFields.FieldName(IntegerField), TestFields.IntegerField);
-        JObject.Add(TestFields.FieldName(OptionField), TestFields.OptionField);
-        JObject.Add(TestFields.FieldName(TimeField), TestFields.TimeField);
+        TempTestFields := TempTestFields.CreateNewRecordWithAnyValues();
+        JObject.Add(TempTestFields.FieldName(BigIntegerField), TempTestFields.BigIntegerField);
+        JObject.Add(TempTestFields.FieldName(BlobField), TempTestFields.GetBlobData());
+        JObject.Add(TempTestFields.FieldName(BooleanField), TempTestFields.BooleanField);
+        JObject.Add(TempTestFields.FieldName(CodeField), TempTestFields.CodeField);
+        JObject.Add(TempTestFields.FieldName(TextField), TempTestFields.TextField);
+        JObject.Add(TempTestFields.FieldName(DateField), TempTestFields.DateField);
+        JObject.Add(TempTestFields.FieldName(DateTimeField), TempTestFields.DateTimeField);
+        JObject.Add(TempTestFields.FieldName(DecimalField), TempTestFields.DecimalField);
+        JObject.Add(TempTestFields.FieldName(DurationField), TempTestFields.DurationField);
+        JObject.Add(TempTestFields.FieldName(GuidField), TempTestFields.GuidField);
+        JObject.Add(TempTestFields.FieldName(IntegerField), TempTestFields.IntegerField);
+        JObject.Add(TempTestFields.FieldName(OptionField), TempTestFields.OptionField);
+        JObject.Add(TempTestFields.FieldName(TimeField), TempTestFields.TimeField);
         RecordRef.Open(Database::"Shpfy Test Fields");
 
         // [SCENARIO] Get values out of a Json structure and put the in to a field of a record.
         #region BigInteger
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(BigIntegerField);
+        Path := TempTestFields.FieldName(BigIntegerField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a BigInteger field
-        FieldNo := TestFields.FieldNo(BigIntegerField);
+        FieldNo := TempTestFields.FieldNo(BigIntegerField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.BigIntegerField = RecRef.Field(TestField.FieldNo(BigIntegerField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(BigIntegerField));
-        LibraryAssert.AreEqual(TestFields.BigIntegerField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(BigIntegerField));
+        LibraryAssert.AreEqual(TempTestFields.BigIntegerField, FieldRef.Value, Format(FieldRef.Type));
         #endregion BigInteger
 
         #region Blob
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(BlobField);
+        Path := TempTestFields.FieldName(BlobField);
         // [GIVEN] A RecordRef of an record.
         // [GIVEN] A FieldNo of a BlobField field
-        FieldNo := TestFields.FieldNo(BlobField);
+        FieldNo := TempTestFields.FieldNo(BlobField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.GetBlobData() = TestField2.GetBlobData()
-        FieldRef := RecordRef.Field(TestFields.FieldNo(BigIntegerField));
-        RecordRef.SetTable(TestFields2);
-        LibraryAssert.AreEqual(TestFields.GetBlobData(), TestFields2.GetBlobData(), Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(BigIntegerField));
+        RecordRef.SetTable(TempTestFields2);
+        LibraryAssert.AreEqual(TempTestFields.GetBlobData(), TempTestFields2.GetBlobData(), Format(FieldRef.Type));
         #endregion
 
         #region Boolean
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(BooleanField);
+        Path := TempTestFields.FieldName(BooleanField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a BooleanField field
-        FieldNo := TestFields.FieldNo(BooleanField);
+        FieldNo := TempTestFields.FieldNo(BooleanField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.BooleanField = RecRef.Field(TestField.FieldNo(BooleanField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(BooleanField));
-        LibraryAssert.AreEqual(TestFields.BooleanField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(BooleanField));
+        LibraryAssert.AreEqual(TempTestFields.BooleanField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Boolean
 
         #region Code
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(CodeField);
+        Path := TempTestFields.FieldName(CodeField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a CodeField field
-        FieldNo := TestFields.FieldNo(CodeField);
+        FieldNo := TempTestFields.FieldNo(CodeField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.CodeField = RecRef.Field(TestField.FieldNo(CodeField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(CodeField));
-        LibraryAssert.AreEqual(TestFields.CodeField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(CodeField));
+        LibraryAssert.AreEqual(TempTestFields.CodeField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Code
 
         #region Text
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(TextField);
+        Path := TempTestFields.FieldName(TextField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a TextField field
-        FieldNo := TestFields.FieldNo(TextField);
+        FieldNo := TempTestFields.FieldNo(TextField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.TextField = RecRef.Field(TestField.FieldNo(TextField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(TextField));
-        LibraryAssert.AreEqual(TestFields.TextField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(TextField));
+        LibraryAssert.AreEqual(TempTestFields.TextField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Text
 
         #region Date
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(DateField);
+        Path := TempTestFields.FieldName(DateField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a DateField field
-        FieldNo := TestFields.FieldNo(DateField);
+        FieldNo := TempTestFields.FieldNo(DateField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.DateField = RecRef.Field(TestField.FieldNo(DateField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(DateField));
-        LibraryAssert.AreEqual(TestFields.DateField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(DateField));
+        LibraryAssert.AreEqual(TempTestFields.DateField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Date
 
         #region DateTime
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(DateTimeField);
+        Path := TempTestFields.FieldName(DateTimeField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a DateTimeField field
-        FieldNo := TestFields.FieldNo(DateTimeField);
+        FieldNo := TempTestFields.FieldNo(DateTimeField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.DateTimeField = RecRef.Field(TestField.FieldNo(DateTimeField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(DateTimeField));
-        LibraryAssert.AreEqual(TestFields.DateTimeField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(DateTimeField));
+        LibraryAssert.AreEqual(TempTestFields.DateTimeField, FieldRef.Value, Format(FieldRef.Type));
         #endregion DateTime
 
         #region Decimal
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(DecimalField);
+        Path := TempTestFields.FieldName(DecimalField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a DecimalField field
-        FieldNo := TestFields.FieldNo(DecimalField);
+        FieldNo := TempTestFields.FieldNo(DecimalField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.DecimalField = RecRef.Field(TestField.FieldNo(DecimalField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(DecimalField));
-        LibraryAssert.AreEqual(TestFields.DecimalField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(DecimalField));
+        LibraryAssert.AreEqual(TempTestFields.DecimalField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Decimal
 
         #region Duration
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(DurationField);
+        Path := TempTestFields.FieldName(DurationField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a DurationField field
-        FieldNo := TestFields.FieldNo(DurationField);
+        FieldNo := TempTestFields.FieldNo(DurationField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.DurationField = RecRef.Field(TestField.FieldNo(DurationField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(DurationField));
-        LibraryAssert.AreEqual(TestFields.DurationField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(DurationField));
+        LibraryAssert.AreEqual(TempTestFields.DurationField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Duration
 
         #region Guid
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(GuidField);
+        Path := TempTestFields.FieldName(GuidField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a GuidField field
-        FieldNo := TestFields.FieldNo(GuidField);
+        FieldNo := TempTestFields.FieldNo(GuidField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.GuidField = RecRef.Field(TestField.FieldNo(GuidField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(GuidField));
-        LibraryAssert.AreEqual(TestFields.GuidField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(GuidField));
+        LibraryAssert.AreEqual(TempTestFields.GuidField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Guid
 
         #region Integer
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(IntegerField);
+        Path := TempTestFields.FieldName(IntegerField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a IntegerField field
-        FieldNo := TestFields.FieldNo(IntegerField);
+        FieldNo := TempTestFields.FieldNo(IntegerField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.IntegerField = RecRef.Field(TestField.FieldNo(IntegerField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(IntegerField));
-        LibraryAssert.AreEqual(TestFields.IntegerField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(IntegerField));
+        LibraryAssert.AreEqual(TempTestFields.IntegerField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Integer
 
         #region Option
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(OptionField);
+        Path := TempTestFields.FieldName(OptionField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a OptionField field
-        FieldNo := TestFields.FieldNo(OptionField);
+        FieldNo := TempTestFields.FieldNo(OptionField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.OptionField = RecRef.Field(TestField.FieldNo(OptionField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(OptionField));
-        LibraryAssert.AreEqual(TestFields.OptionField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(OptionField));
+        LibraryAssert.AreEqual(TempTestFields.OptionField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Option
 
         #region Time
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(TimeField);
+        Path := TempTestFields.FieldName(TimeField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a TimeField field
-        FieldNo := TestFields.FieldNo(TimeField);
+        FieldNo := TempTestFields.FieldNo(TimeField);
         JsonHelper.GetValueIntoField(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.TimeField = RecRef.Field(TestField.FieldNo(TimeField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(TimeField));
-        LibraryAssert.AreEqual(TestFields.TimeField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(TimeField));
+        LibraryAssert.AreEqual(TempTestFields.TimeField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Time
     end;
 
@@ -1076,8 +1076,8 @@ codeunit 139574 "Shpfy Json Helper Test"
     [HandlerFunctions('ValidationMessageHandler')]
     procedure UnitTestGetValueIntoFieldWithValidation()
     var
-        TestFields: Record "Shpfy Test Fields";
-        TestFields2: Record "Shpfy Test Fields";
+        TempTestFields: Record "Shpfy Test Fields";
+        TempTestFields2: Record "Shpfy Test Fields";
         RecordRef: RecordRef;
         FieldRef: FieldRef;
         FieldNo: Integer;
@@ -1085,191 +1085,191 @@ codeunit 139574 "Shpfy Json Helper Test"
         Path: Text;
     begin
         // Creating Test data and expected results.
-        TestFields := TestFields.CreateNewRecordWithAnyValues();
-        JObject.Add(TestFields.FieldName(BigIntegerField), TestFields.BigIntegerField);
-        JObject.Add(TestFields.FieldName(BlobField), TestFields.GetBlobData());
-        JObject.Add(TestFields.FieldName(BooleanField), TestFields.BooleanField);
-        JObject.Add(TestFields.FieldName(CodeField), TestFields.CodeField);
-        JObject.Add(TestFields.FieldName(TextField), TestFields.TextField);
-        JObject.Add(TestFields.FieldName(DateField), TestFields.DateField);
-        JObject.Add(TestFields.FieldName(DateTimeField), TestFields.DateTimeField);
-        JObject.Add(TestFields.FieldName(DecimalField), TestFields.DecimalField);
-        JObject.Add(TestFields.FieldName(DurationField), TestFields.DurationField);
-        JObject.Add(TestFields.FieldName(GuidField), TestFields.GuidField);
-        JObject.Add(TestFields.FieldName(IntegerField), TestFields.IntegerField);
-        JObject.Add(TestFields.FieldName(OptionField), TestFields.OptionField);
-        JObject.Add(TestFields.FieldName(TimeField), TestFields.TimeField);
+        TempTestFields := TempTestFields.CreateNewRecordWithAnyValues();
+        JObject.Add(TempTestFields.FieldName(BigIntegerField), TempTestFields.BigIntegerField);
+        JObject.Add(TempTestFields.FieldName(BlobField), TempTestFields.GetBlobData());
+        JObject.Add(TempTestFields.FieldName(BooleanField), TempTestFields.BooleanField);
+        JObject.Add(TempTestFields.FieldName(CodeField), TempTestFields.CodeField);
+        JObject.Add(TempTestFields.FieldName(TextField), TempTestFields.TextField);
+        JObject.Add(TempTestFields.FieldName(DateField), TempTestFields.DateField);
+        JObject.Add(TempTestFields.FieldName(DateTimeField), TempTestFields.DateTimeField);
+        JObject.Add(TempTestFields.FieldName(DecimalField), TempTestFields.DecimalField);
+        JObject.Add(TempTestFields.FieldName(DurationField), TempTestFields.DurationField);
+        JObject.Add(TempTestFields.FieldName(GuidField), TempTestFields.GuidField);
+        JObject.Add(TempTestFields.FieldName(IntegerField), TempTestFields.IntegerField);
+        JObject.Add(TempTestFields.FieldName(OptionField), TempTestFields.OptionField);
+        JObject.Add(TempTestFields.FieldName(TimeField), TempTestFields.TimeField);
         RecordRef.Open(Database::"Shpfy Test Fields");
 
         // [SCENARIO] Get values out of a Json structure and put the in to a field of a record.
         #region BigInteger
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(BigIntegerField);
+        Path := TempTestFields.FieldName(BigIntegerField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a BigInteger field
-        FieldNo := TestFields.FieldNo(BigIntegerField);
+        FieldNo := TempTestFields.FieldNo(BigIntegerField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.BigIntegerField = RecRef.Field(TestField.FieldNo(BigIntegerField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(BigIntegerField));
-        LibraryAssert.AreEqual(TestFields.BigIntegerField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(BigIntegerField));
+        LibraryAssert.AreEqual(TempTestFields.BigIntegerField, FieldRef.Value, Format(FieldRef.Type));
         #endregion BigInteger
 
         #region Blob
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(BlobField);
+        Path := TempTestFields.FieldName(BlobField);
         // [GIVEN] A RecordRef of an record.
         // [GIVEN] A FieldNo of a BlobField field
-        FieldNo := TestFields.FieldNo(BlobField);
+        FieldNo := TempTestFields.FieldNo(BlobField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.GetBlobData() = TestField2.GetBlobData()
-        FieldRef := RecordRef.Field(TestFields.FieldNo(BigIntegerField));
-        RecordRef.SetTable(TestFields2);
-        LibraryAssert.AreEqual(TestFields.GetBlobData(), TestFields2.GetBlobData(), Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(BigIntegerField));
+        RecordRef.SetTable(TempTestFields2);
+        LibraryAssert.AreEqual(TempTestFields.GetBlobData(), TempTestFields2.GetBlobData(), Format(FieldRef.Type));
         #endregion
 
         #region Boolean
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(BooleanField);
+        Path := TempTestFields.FieldName(BooleanField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a BooleanField field
-        FieldNo := TestFields.FieldNo(BooleanField);
+        FieldNo := TempTestFields.FieldNo(BooleanField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.BooleanField = RecRef.Field(TestField.FieldNo(BooleanField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(BooleanField));
-        LibraryAssert.AreEqual(TestFields.BooleanField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(BooleanField));
+        LibraryAssert.AreEqual(TempTestFields.BooleanField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Boolean
 
         #region Code
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(CodeField);
+        Path := TempTestFields.FieldName(CodeField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a CodeField field
-        FieldNo := TestFields.FieldNo(CodeField);
+        FieldNo := TempTestFields.FieldNo(CodeField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.CodeField = RecRef.Field(TestField.FieldNo(CodeField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(CodeField));
-        LibraryAssert.AreEqual(TestFields.CodeField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(CodeField));
+        LibraryAssert.AreEqual(TempTestFields.CodeField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Code
 
         #region Text
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(TextField);
+        Path := TempTestFields.FieldName(TextField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a TextField field
-        FieldNo := TestFields.FieldNo(TextField);
+        FieldNo := TempTestFields.FieldNo(TextField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.TextField = RecRef.Field(TestField.FieldNo(TextField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(TextField));
-        LibraryAssert.AreEqual(TestFields.TextField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(TextField));
+        LibraryAssert.AreEqual(TempTestFields.TextField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Text
 
         #region Date
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(DateField);
+        Path := TempTestFields.FieldName(DateField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a DateField field
-        FieldNo := TestFields.FieldNo(DateField);
+        FieldNo := TempTestFields.FieldNo(DateField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.DateField = RecRef.Field(TestField.FieldNo(DateField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(DateField));
-        LibraryAssert.AreEqual(TestFields.DateField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(DateField));
+        LibraryAssert.AreEqual(TempTestFields.DateField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Date
 
         #region DateTime
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(DateTimeField);
+        Path := TempTestFields.FieldName(DateTimeField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a DateTimeField field
-        FieldNo := TestFields.FieldNo(DateTimeField);
+        FieldNo := TempTestFields.FieldNo(DateTimeField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.DateTimeField = RecRef.Field(TestField.FieldNo(DateTimeField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(DateTimeField));
-        LibraryAssert.AreEqual(TestFields.DateTimeField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(DateTimeField));
+        LibraryAssert.AreEqual(TempTestFields.DateTimeField, FieldRef.Value, Format(FieldRef.Type));
         #endregion DateTime
 
         #region Decimal
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(DecimalField);
+        Path := TempTestFields.FieldName(DecimalField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a DecimalField field
-        FieldNo := TestFields.FieldNo(DecimalField);
+        FieldNo := TempTestFields.FieldNo(DecimalField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.DecimalField = RecRef.Field(TestField.FieldNo(DecimalField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(DecimalField));
-        LibraryAssert.AreEqual(TestFields.DecimalField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(DecimalField));
+        LibraryAssert.AreEqual(TempTestFields.DecimalField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Decimal
 
         #region Duration
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(DurationField);
+        Path := TempTestFields.FieldName(DurationField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a DurationField field
-        FieldNo := TestFields.FieldNo(DurationField);
+        FieldNo := TempTestFields.FieldNo(DurationField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.DurationField = RecRef.Field(TestField.FieldNo(DurationField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(DurationField));
-        LibraryAssert.AreEqual(TestFields.DurationField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(DurationField));
+        LibraryAssert.AreEqual(TempTestFields.DurationField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Duration
 
         #region Guid
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(GuidField);
+        Path := TempTestFields.FieldName(GuidField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a GuidField field
-        FieldNo := TestFields.FieldNo(GuidField);
+        FieldNo := TempTestFields.FieldNo(GuidField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.GuidField = RecRef.Field(TestField.FieldNo(GuidField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(GuidField));
-        LibraryAssert.AreEqual(TestFields.GuidField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(GuidField));
+        LibraryAssert.AreEqual(TempTestFields.GuidField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Guid
 
         #region Integer
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(IntegerField);
+        Path := TempTestFields.FieldName(IntegerField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a IntegerField field
-        FieldNo := TestFields.FieldNo(IntegerField);
+        FieldNo := TempTestFields.FieldNo(IntegerField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.IntegerField = RecRef.Field(TestField.FieldNo(IntegerField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(IntegerField));
-        LibraryAssert.AreEqual(TestFields.IntegerField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(IntegerField));
+        LibraryAssert.AreEqual(TempTestFields.IntegerField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Integer
 
         #region Option
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(OptionField);
+        Path := TempTestFields.FieldName(OptionField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a OptionField field
-        FieldNo := TestFields.FieldNo(OptionField);
+        FieldNo := TempTestFields.FieldNo(OptionField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.OptionField = RecRef.Field(TestField.FieldNo(OptionField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(OptionField));
-        LibraryAssert.AreEqual(TestFields.OptionField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(OptionField));
+        LibraryAssert.AreEqual(TempTestFields.OptionField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Option
 
         #region Time
         // [GIVEN] A JsonObject that contains the data.
         // [GIVEN] A Path to the value.
-        Path := TestFields.FieldName(TimeField);
+        Path := TempTestFields.FieldName(TimeField);
         // [GIVEN] A RecordRef of an record.      
         // [GIVEN] A FieldNo of a TimeField field
-        FieldNo := TestFields.FieldNo(TimeField);
+        FieldNo := TempTestFields.FieldNo(TimeField);
         JsonHelper.GetValueIntoFieldWithValidation(JObject, Path, RecordRef, FieldNo);
         // [THEN] TestField.TimeField = RecRef.Field(TestField.FieldNo(TimeField)).Value
-        FieldRef := RecordRef.Field(TestFields.FieldNo(TimeField));
-        LibraryAssert.AreEqual(TestFields.TimeField, FieldRef.Value, Format(FieldRef.Type));
+        FieldRef := RecordRef.Field(TempTestFields.FieldNo(TimeField));
+        LibraryAssert.AreEqual(TempTestFields.TimeField, FieldRef.Value, Format(FieldRef.Type));
         #endregion Time
     end;
 
