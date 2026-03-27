@@ -43,7 +43,9 @@
   ],
   "features": [
     "TranslationFile",
-    "GenerateCaptions"
+    "GenerateCaptions",
+    "NoImplicitWith",
+    "NoPromotedActionProperties"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,
