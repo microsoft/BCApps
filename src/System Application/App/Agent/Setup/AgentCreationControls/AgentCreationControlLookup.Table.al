@@ -9,6 +9,8 @@ table 4331 "Agent Creation Control Lookup"
     Access = Internal;
     Caption = 'Agent Creation Control Lookup';
     DataClassification = CustomerContent;
+    InherentEntitlements = RIMDX;
+    InherentPermissions = RIMDX;
     TableType = Temporary;
 
     fields
