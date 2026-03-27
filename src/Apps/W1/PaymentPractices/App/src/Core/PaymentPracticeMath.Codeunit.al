@@ -186,6 +186,7 @@ codeunit 693 "Payment Practice Math"
         VendorLedgerEntry.SetRange("Posting Date", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
         if VendorLedgerEntry.FindSet() then
             repeat
+                VendorLedgerEntry.CalcFields(Amount);
                 TotalAmountAllVendors += -VendorLedgerEntry.Amount;
             until VendorLedgerEntry.Next() = 0;
 

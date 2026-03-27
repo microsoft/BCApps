@@ -37,6 +37,9 @@ table 687 "Payment Practice Header"
 
             trigger OnValidate()
             begin
+                if Rec."Aggregation Type" <> Rec."Aggregation Type"::Period then
+                    Rec."Only Small Businesses" := false;
+
                 ValidateFieldChange(Rec."Aggregation Type");
                 Rec.CalcFields("Lines Exist");
                 if not Rec."Lines Exist" then
@@ -54,6 +57,9 @@ table 687 "Payment Practice Header"
 
             trigger OnValidate()
             begin
+                if Rec."Header Type" <> Rec."Header Type"::Vendor then
+                    Rec."Only Small Businesses" := false;
+
                 ValidateFieldChange(Rec."Aggregation Type");
                 Rec.CalcFields("Lines Exist");
                 if not Rec."Lines Exist" then
@@ -82,26 +88,6 @@ table 687 "Payment Practice Header"
         field(8; "Pct Paid on Time"; Decimal)
         {
             AutoFormatType = 0;
-
-            trigger OnValidate()
-            begin
-                Rec."Modified Manually" := true;
-            end;
-        }
-        field(21; "Pct Peppol Enabled"; Decimal)
-        {
-            AutoFormatType = 0;
-            DecimalPlaces = 2;
-
-            trigger OnValidate()
-            begin
-                Rec."Modified Manually" := true;
-            end;
-        }
-        field(22; "Pct Small Business Payments"; Decimal)
-        {
-            AutoFormatType = 0;
-            DecimalPlaces = 2;
 
             trigger OnValidate()
             begin
@@ -174,9 +160,29 @@ table 687 "Payment Practice Header"
         {
 
         }
-        field(20; "Extra Fields"; Enum "Paym. Prac. Extra Fields")
+        field(20; "Reporting Scheme"; Enum "Paym. Prac. Reporting Scheme")
         {
 
+        }
+        field(21; "Pct Peppol Enabled"; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 2;
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(22; "Pct Small Business Payments"; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 2;
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
         }
     }
 
