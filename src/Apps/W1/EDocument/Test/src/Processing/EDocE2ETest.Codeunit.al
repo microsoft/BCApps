@@ -1750,6 +1750,59 @@ codeunit 139624 "E-Doc E2E Test"
         Assert.AreEqual(Enum::"E-Document Status"::"In Progress", EDocument.Status, 'E-Document should be in In Progress status.');
     end;
 
+    [Test]
+    procedure ImportPEPPOLInvoiceWithTextOnlyDocumentReferences()
+    var
+        EDocument: Record "E-Document";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocImportParams: Record "E-Doc. Import Parameters";
+    begin
+        // [SCENARIO] Import a PEPPOL invoice with AdditionalDocumentReference elements
+        // that have no <cac:Attachment> child (text-only references).
+        // Previously this caused "Please choose a file to attach" error.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        WorkDate(DMY2Date(1, 1, 2027));
+        Assert.IsTrue(
+            LibraryEDoc.CreateInboundPEPPOLDocumentToState(
+                EDocument, EDocumentService, 'peppol/peppol-invoice-textonly-docref.xml', EDocImportParams),
+            'The e-document should be processed');
+
+        EDocument.Get(EDocument."Entry No");
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.AreEqual(2, PurchaseLine.Count(), 'Expected 2 purchase lines to be imported.');
+    end;
+
+    [Test]
+    procedure ImportPEPPOLInvoiceWithHierarchicalLineIds()
+    var
+        EDocument: Record "E-Document";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocImportParams: Record "E-Doc. Import Parameters";
+    begin
+        // [SCENARIO] Import a PEPPOL invoice with non-integer line IDs (e.g., "1.1", "1.2").
+        // Previously this caused "The value '1.1' can't be evaluated into type Integer" error.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        WorkDate(DMY2Date(1, 1, 2027));
+        Assert.IsTrue(
+            LibraryEDoc.CreateInboundPEPPOLDocumentToState(
+                EDocument, EDocumentService, 'peppol/peppol-invoice-hierarchical-lineids.xml', EDocImportParams),
+            'The e-document should be processed');
+
+        EDocument.Get(EDocument."Entry No");
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.AreEqual(2, PurchaseLine.Count(), 'Expected 2 purchase lines to be imported.');
+    end;
+
     local procedure CheckPDFEmbedToXML(TempBlob: Codeunit "Temp Blob")
     var
         TempXMLBuffer: Record "XML Buffer" temporary;

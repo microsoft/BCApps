@@ -287,6 +287,6 @@ table 6100 "E-Document Purchase Header"
 
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        DeleteDraftPerformedTxt: Label 'User deleted the draft.';
+        DeleteDraftPerformedTxt: Label 'User deleted the draft.', Locked = true;
 
 }

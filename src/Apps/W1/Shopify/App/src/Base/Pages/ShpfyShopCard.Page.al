@@ -5,7 +5,9 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Foundation.Company;
 using System.DateTime;
+using System.Environment;
 using System.Telemetry;
 
 /// <summary>
@@ -97,13 +99,11 @@ page 30101 "Shpfy Shop Card"
                 field(LoggingMode; Rec."Logging Mode")
                 {
                     ApplicationArea = All;
-                    Importance = Additional;
                     ToolTip = 'Specifies whether the log is activated.';
                 }
                 field(AllowBackgroudSyncs; Rec."Allow Background Syncs")
                 {
                     ApplicationArea = All;
-                    Importance = Additional;
                     ToolTip = 'Specifies whether synchronization runs in the background. When enabled, you can continue working while large data sets synchronize. Disable for demos or troubleshooting to see real-time progress and receive detailed error messages.';
                 }
                 field("Allow Outgoing Requests"; Rec."Allow Outgoing Requests")
@@ -579,6 +579,10 @@ page 30101 "Shpfy Shop Card"
                         ApplicationArea = All;
                         Caption = 'Return Location Priority';
                         ToolTip = 'Specifies the priority of the return location.';
+                    }
+                    field("Process Returns As"; Rec."Process Returns As")
+                    {
+                        ApplicationArea = All;
                     }
                     field("Location Code of Returns"; Rec."Return Location")
                     {
@@ -1301,6 +1305,15 @@ page 30101 "Shpfy Shop Card"
     trigger OnAfterGetCurrRecord()
     begin
         CheckReturnRefundsVisible();
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyInformationMgt: Codeunit "Company Information Mgt.";
+    begin
+        if EnvironmentInformation.IsSandbox() or CompanyInformationMgt.IsDemoCompany() then
+            Rec."Allow Background Syncs" := false;
     end;
 
     local procedure GetResetSyncTo(InitDateTime: DateTime): DateTime

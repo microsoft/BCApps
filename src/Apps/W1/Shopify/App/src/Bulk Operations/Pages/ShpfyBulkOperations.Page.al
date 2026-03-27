@@ -71,6 +71,7 @@ page 30152 "Shpfy Bulk Operations"
             {
                 ApplicationArea = All;
                 Caption = 'Get Data';
+                Enabled = HasDataUrl;
                 Image = Download;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -135,6 +136,7 @@ page 30152 "Shpfy Bulk Operations"
     }
 
     var
+        HasDataUrl: Boolean;
         CurrentStatus: Text;
         InProgressLbl: Label 'In Progress';
         ErrorLbl: Label 'Error';
@@ -142,6 +144,7 @@ page 30152 "Shpfy Bulk Operations"
 
     trigger OnAfterGetRecord()
     begin
+        HasDataUrl := (Rec.Url <> '') or (Rec."Partial Data Url" <> '');
         if Rec.Status in [Rec.Status::Created, Rec.Status::Running, Rec.Status::Canceled] then
             CurrentStatus := InProgressLbl;
         if Rec.Status in [Rec.Status::Canceled, Rec.Status::Failed, Rec.Status::Expired] then

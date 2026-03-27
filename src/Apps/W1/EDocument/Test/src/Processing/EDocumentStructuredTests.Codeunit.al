@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Format;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
@@ -13,6 +14,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.IO;
+using System.TestLibraries.Config;
 using System.TestLibraries.Utilities;
 
 codeunit 139891 "E-Document Structured Tests"
@@ -29,8 +31,7 @@ codeunit 139891 "E-Document Structured Tests"
         LibraryEDoc: Codeunit "Library - E-Document";
         EDocImplState: Codeunit "E-Doc. Impl. State";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
-        CAPIStructuredValidations: Codeunit "CAPI Structured Validations";
-        PEPPOLStructuredValidations: Codeunit "PEPPOL Structured Validations";
+        StructuredValidations: Codeunit "EDoc Structured Validations";
         IsInitialized: Boolean;
         EDocumentStatusNotUpdatedErr: Label 'The status of the EDocument was not updated to the expected status after the step was executed.';
 
@@ -44,7 +45,7 @@ codeunit 139891 "E-Document Structured Tests"
         SetupCAPIEDocumentService();
         CreateInboundEDocumentFromJSON(EDocument, 'capi/capi-invoice-valid-0.json');
         if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
-            CAPIStructuredValidations.AssertFullEDocumentContentExtracted(EDocument."Entry No")
+            StructuredValidations.AssertFullCAPIDocumentExtracted(EDocument."Entry No")
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
     end;
@@ -59,7 +60,7 @@ codeunit 139891 "E-Document Structured Tests"
         SetupCAPIEDocumentService();
         CreateInboundEDocumentFromJSON(EDocument, 'capi/capi-invoice-unexpected-values-0.json');
         if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
-            CAPIStructuredValidations.AssertMinimalEDocumentContentParsed(EDocument."Entry No");
+            StructuredValidations.AssertMinimalCAPIDocumentParsed(EDocument."Entry No");
             EDocumentPurchaseHeader.Get(EDocument."Entry No");
             // "value_text": null
             Assert.AreEqual('', EDocumentPurchaseHeader."Shipping Address", 'Text field should be empty when JSON value is null');
@@ -93,10 +94,105 @@ codeunit 139891 "E-Document Structured Tests"
         SetupPEPPOLEDocumentService();
         CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-0.xml');
         if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
-            PEPPOLStructuredValidations.AssertFullEDocumentContentExtracted(EDocument."Entry No")
+            StructuredValidations.AssertFullPEPPOLDocumentExtracted(EDocument."Entry No")
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
     end;
+    #endregion
+
+    #region MLLM JSON
+    [Test]
+    procedure TestMLLMInvoice_ValidDocument()
+    var
+        EDocument: Record "E-Document";
+    begin
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupMLLMEDocumentService();
+        CreateInboundEDocumentFromJSON(EDocument, 'mllm/mllm-invoice-valid-0.json');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertFullMLLMDocumentExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+    #endregion
+
+    #region Experiment Configuration
+    [Test]
+    procedure TestExperiment_ControlAllocation_PreferredImplIsADI()
+    var
+        EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
+        FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
+    begin
+        // [SCENARIO] With control allocation, the PDF file format returns ADI as the preferred implementation
+        LibraryLowerPermission.SetOutsideO365Scope();
+
+        FeatureConfigTestLib.UseControlAllocation();
+
+        Assert.AreEqual(
+            "Structure Received E-Doc."::ADI,
+            EDocPDFFileFormat.PreferredStructureDataImplementation(),
+            'Control allocation should prefer ADI for PDF processing');
+    end;
+
+    // Todo: Reenable once #624677 is fixed
+    // [Test]
+    // procedure TestExperiment_TreatmentAllocation_PreferredImplIsMLLM()
+    // var
+    //     EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
+    //     FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
+    // begin
+    //     // [SCENARIO] With treatment allocation, the PDF file format returns MLLM as the preferred implementation
+    //     LibraryLowerPermission.SetOutsideO365Scope();
+
+    //     FeatureConfigTestLib.UseTreatmentAllocation();
+
+    //     Assert.AreEqual(
+    //         "Structure Received E-Doc."::MLLM,
+    //         EDocPDFFileFormat.PreferredStructureDataImplementation(),
+    //         'Treatment allocation should prefer MLLM for PDF processing');
+    // end;
+
+    // Todo: Reenable once #624677 is fixed
+    // [Test]
+    // procedure TestExperiment_TreatmentAllocation_MLLMProcessesValidDocument()
+    // var
+    //     EDocument: Record "E-Document";
+    //     FeatureConfigTestLib: Codeunit "Feature Config Test Lib.";
+    // begin
+    //     // [SCENARIO] With treatment allocation active, MLLM is used to process a valid UBL invoice E2E
+    //     Initialize(Enum::"Service Integration"::"Mock");
+    //     SetupMLLMEDocumentService();
+
+    //     FeatureConfigTestLib.UseTreatmentAllocation();
+
+    //     CreateInboundEDocumentFromJSON(EDocument, 'mllm/mllm-invoice-valid-0.json');
+    //     if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+    //         StructuredValidations.AssertFullMLLMDocumentExtracted(EDocument."Entry No")
+    //     else
+    //         Assert.Fail(EDocumentStatusNotUpdatedErr);
+    // end;
+    #endregion
+
+    #region Fallback
+    [Test]
+    procedure TestMLLM_InvalidJson_ProducesEmptyDraft()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        // [SCENARIO] When MLLM produces invalid/empty JSON, ReadIntoDraft creates a minimal draft without error
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupMLLMEDocumentService();
+        CreateInboundEDocumentFromJSON(EDocument, 'mllm/mllm-invoice-empty.json');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            EDocumentPurchaseHeader.Get(EDocument."Entry No");
+            Assert.AreEqual('', EDocumentPurchaseHeader."Sales Invoice No.", 'Empty JSON should produce empty header fields');
+            Assert.AreEqual(0, EDocumentPurchaseHeader.Total, 'Empty JSON should produce zero totals');
+        end
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
     #endregion
 
     local procedure Initialize(Integration: Enum "Service Integration")
@@ -153,6 +249,12 @@ codeunit 139891 "E-Document Structured Tests"
     local procedure SetupPEPPOLEDocumentService()
     begin
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+    end;
+
+    local procedure SetupMLLMEDocumentService()
+    begin
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::MLLM;
         EDocumentService.Modify();
     end;
 
