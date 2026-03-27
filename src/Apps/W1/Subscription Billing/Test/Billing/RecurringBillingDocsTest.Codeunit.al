@@ -2477,6 +2477,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         FromDate := DMY2Date(27, 2, 2025);
         LibraryLowerPermissions.SetO365Full();
         NextToDate := SubscriptionLine.CalculateNextToDate(PeriodFormula, FromDate);
+        LibraryLowerPermissions.RestoreO365Permissions();
 
         // [THEN] NextToDate is not before FromDate
         Assert.IsTrue(NextToDate >= FromDate,
