@@ -22,7 +22,6 @@ codeunit 139889 "Item Reference Test"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemReference: Codeunit "Library - Item Reference";
         LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryRandom: Codeunit "Library - Random";
         UsageBasedBTestLibrary: Codeunit "Usage Based B. Test Library";
 
     #region Tests
@@ -33,7 +32,7 @@ codeunit 139889 "Item Reference Test"
         Initialize();
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
-        CreateUsageDataSupplier();
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(UsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, false, Enum::"Vendor Invoice Per"::Import);
         UsageBasedBTestLibrary.CreateUsageDataSupplierReference(UsageDataSupplierReference, UsageDataSupplier."No.", "Usage Data Reference Type"::Product);
 
         ItemVendor.Init();
@@ -49,7 +48,7 @@ codeunit 139889 "Item Reference Test"
         Initialize();
         LibraryInventory.CreateItem(Item);
         LibraryPurchase.CreateVendor(Vendor);
-        CreateUsageDataSupplier();
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(UsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, false, Enum::"Vendor Invoice Per"::Import);
         UsageBasedBTestLibrary.CreateUsageDataSupplierReference(UsageDataSupplierReference, UsageDataSupplier."No.", "Usage Data Reference Type"::Product);
 
         ItemReference.Init();
@@ -65,7 +64,7 @@ codeunit 139889 "Item Reference Test"
         Initialize();
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
         LibraryPurchase.CreateVendor(Vendor);
-        CreateUsageDataSupplier();
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(UsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, false, Enum::"Vendor Invoice Per"::Import);
         UsageBasedBTestLibrary.CreateUsageDataSupplierReference(UsageDataSupplierReference, UsageDataSupplier."No.", "Usage Data Reference Type"::Product);
 
         ItemVendor.Init();
@@ -83,7 +82,7 @@ codeunit 139889 "Item Reference Test"
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
         LibraryPurchase.CreateVendor(Vendor);
         LibraryItemReference.CreateItemReference(ItemReference, Item."No.", Enum::"Item Reference Type"::Vendor, Vendor."No.");
-        CreateUsageDataSupplier();
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(UsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, false, Enum::"Vendor Invoice Per"::Import);
         UsageBasedBTestLibrary.CreateUsageDataSupplierReference(UsageDataSupplierReference, UsageDataSupplier."No.", "Usage Data Reference Type"::Product);
         ItemReference.Validate("Supplier Ref. Entry No.", UsageDataSupplierReference."Entry No.");
         ItemReference.Modify(true);
@@ -97,7 +96,7 @@ codeunit 139889 "Item Reference Test"
         Initialize();
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
         LibraryPurchase.CreateVendor(Vendor);
-        CreateUsageDataSupplier();
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(UsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, false, Enum::"Vendor Invoice Per"::Import);
         UsageBasedBTestLibrary.CreateUsageDataSupplierReference(UsageDataSupplierReference, UsageDataSupplier."No.", "Usage Data Reference Type"::Product);
 
         ItemVendor.Init();
@@ -116,7 +115,7 @@ codeunit 139889 "Item Reference Test"
         Initialize();
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
         LibraryPurchase.CreateVendor(Vendor);
-        CreateUsageDataSupplier();
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(UsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, false, Enum::"Vendor Invoice Per"::Import);
         UsageBasedBTestLibrary.CreateUsageDataSupplierReference(UsageDataSupplierReference, UsageDataSupplier."No.", "Usage Data Reference Type"::Product);
 
         ItemVendor.Init();
@@ -133,14 +132,6 @@ codeunit 139889 "Item Reference Test"
     #endregion Tests
 
     #region Procedures
-
-    local procedure CreateUsageDataSupplier()
-    begin
-        UsageDataSupplier.Init();
-        UsageDataSupplier."No." := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(UsageDataSupplier."No."));
-        UsageDataSupplier.Description := CopyStr(LibraryRandom.RandText(80), 1, MaxStrLen(UsageDataSupplier."No."));
-        UsageDataSupplier.Insert(false);
-    end;
 
     local procedure Initialize()
     begin
