@@ -2470,7 +2470,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         MockSubscriptionLine(SubscriptionLine);
         SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
         SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(29, 1, 2025));
-        SubscriptionLine.Modify();
+        SubscriptionLine.Modify(true);
 
         // [WHEN] CalculateNextToDate is called with period formula <1D> from Feb 27
         Evaluate(PeriodFormula, '<1D>');
