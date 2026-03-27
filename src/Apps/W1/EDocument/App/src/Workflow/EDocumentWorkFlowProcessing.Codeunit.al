@@ -468,6 +468,7 @@ codeunit 6135 "E-Document WorkFlow Processing"
     var
         WorkflowStepArgument: Record "Workflow Step Argument";
         EDocumentService: Record "E-Document Service";
+        EDocServiceStatus: Record "E-Document Service Status";
         EDocument: Record "E-Document";
         EDocExport: Codeunit "E-Doc. Export";
         WorkflowManagement: Codeunit "Workflow Management";
@@ -480,6 +481,13 @@ codeunit 6135 "E-Document WorkFlow Processing"
             exit;
 
         EDocumentService.Get(WorkflowStepArgument."E-Document Service");
+
+        // If the E-Document has already been exported, skip re-exporting it.
+        if EDocServiceStatus.Get(EDocument."Entry No", EDocumentService.Code) then
+            if EDocServiceStatus.Status = Enum::"E-Document Service Status"::Exported then begin
+                WorkflowManagement.HandleEventOnKnownWorkflowInstance(EDocWorkflowSetup.EventEDocExported(), EDocument, EDocument."Workflow Step Instance ID");
+                exit;
+            end;
 
         if EDocExport.ExportEDocument(EDocument, EDocumentService) then
             WorkflowManagement.HandleEventOnKnownWorkflowInstance(EDocWorkflowSetup.EventEDocExported(), EDocument, EDocument."Workflow Step Instance ID");
