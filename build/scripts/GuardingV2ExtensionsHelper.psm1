@@ -1,3 +1,30 @@
+function Enable-BreakingChangesCheckForWorkspace {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $AppSymbolsFolder,
+        [Parameter(Mandatory = $true)]
+        [string] $WorkspaceFile,
+        [Parameter(Mandatory = $true)]
+        [string] $BuildMode,
+        [Parameter(Mandatory = $false)]
+        [string] $CountryCode = "W1"
+    )
+
+    # Load the workspace file
+    $workspace = Get-Content -Path $WorkspaceFile -Raw | ConvertFrom-Json
+    $projects = $workspace.folders
+    $workspaceDir = Split-Path -Path $WorkspaceFile
+    foreach ($project in $projects) {
+        if ([System.IO.Path]::IsPathRooted($project.path)) {
+            $projectPath = $project.path
+        } else {
+            $projectPath = Join-Path -Path $workspaceDir -ChildPath $project.path
+        }
+        Write-Host "Enabling breaking changes check for project: $($project.name) with path: $projectPath"
+        Enable-BreakingChangesCheck -AppSymbolsFolder $AppSymbolsFolder -AppProjectFolder $projectPath -BuildMode $BuildMode -CountryCode $CountryCode | Out-Null
+    }
+}
+
 <#
 .Synopsis
     Configure breaking changes check
@@ -30,6 +57,7 @@ function Enable-BreakingChangesCheck {
     $appJsonFilePath = Join-Path $AppProjectFolder "app.json"
     $appJson = Get-Content -Path $appJsonFilePath -Raw | ConvertFrom-Json
     $appName = $appJson.name
+    $appPublisher = $appJson.publisher
 
     Write-Host "Enabling breaking changes check for app: $appName, build mode: $BuildMode"
 
@@ -40,7 +68,7 @@ function Enable-BreakingChangesCheck {
         'Clean' {
             Write-Host "Looking for baseline app to use in the baseline folder: $baselineFolder"
 
-            $baselineAppFile = Get-ChildItem -Path $baselineFolder -Filter "$($appName)_clean.app"
+            $baselineAppFile = Get-ChildItem -Path $baselineFolder -Filter "$($appPublisher)_$($appName)_*_clean.app"
 
             if(-not ($baselineAppFile)) {
                 throw "Unable to find baseline app in $baselineFolder"
@@ -184,7 +212,7 @@ function Update-AppSourceCopVersion
     }
 
     if (-not ($BaselineVersion -and $BaselineVersion -match "^([0-9]+\.){3}[0-9]+$" )) {
-        throw "Extension Compatibile Version cannot be null or invalid format. Valid format should be like '1.0.2.0'"
+        throw "Extension Compatible Version cannot be null or invalid format. Valid format should be like '1.0.2.0'"
     }
 
     $appSourceCopJsonPath = Join-Path $AppProjectFolder AppSourceCop.json
@@ -195,7 +223,7 @@ function Update-AppSourceCopVersion
         $appSourceJson = @{version = '' }
     }
     else {
-        $appSourceJson = Get-Content $appSourceCopJsonPath -Raw | ConvertFrom-Json
+        $appSourceJson = Get-Content $appSourceCopJsonPath -Raw | ConvertFrom-Json -AsHashtable
     }
 
     Write-Host "Setting 'version:$BaselineVersion' in AppSourceCop.json" -ForegroundColor Yellow

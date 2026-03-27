@@ -10,100 +10,57 @@ Param(
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
 
+# Clean the package cache on the first invocation, keeping only System.app
+$cache = $parameters.Value["PackageCachePath"]
+$cacheCleanedMarker = Join-Path $cache ".cache_cleaned"
+if (-not (Test-Path $cacheCleanedMarker)) {
+    Write-Host "First invocation: cleaning package cache at $cache (keeping System.app)"
+    Get-ChildItem -Path $cache -File | Where-Object { $_.Name -ne 'System.app' } | Remove-Item -Force
+    New-Item -ItemType File -Path $cacheCleanedMarker | Out-Null
+}
+
 if($GDLDevelopment) {
     Import-Module $PSScriptRoot\GDLDevelopment\GDLDevelopment.psm1
 
     New-GDLView -CountryCode $countryCode -skipSetupDevelopmentSettings
-
-    # The view folder for GDL Development is under 'Views\<country>': this is the folder that contains the app project for compilation for the specified country
-    # replace '\Layers\W1' with '\Views\$countryCode' in the appProjectFolder path
-    $appProjectFolder = $parameters.Value["appProjectFolder"].Replace("\Layers\W1", "\Views\$countryCode") # TODO: make it a bit smarter
-
-    Write-Host "Using GDL Development view folder for app project: $appProjectFolder"
-    $parameters.Value["appProjectFolder"] = $appProjectFolder
+    $WorkspaceFilePath = $parameters.Value["WorkspaceFile"]
+    $workspace = Get-Content -Path $WorkspaceFilePath -Raw | ConvertFrom-Json
+    $projects = $workspace.folders
+    foreach ($project in $projects) {
+        # The view folder for GDL Development is under 'Views\<country>': this is the folder that contains the app project for compilation for the specified country
+        # replace '\Layers\W1' with '\Views\$countryCode' in the appProjectFolder path
+        $project.path = $project.path.Replace("\Layers\W1", "\Views\$countryCode") # TODO: make it a bit smarter
+        Write-Host "Updated project path for GDL Development: $($project.path)"
+    }
+    # Save the updated workspace file
+    $workspace | ConvertTo-Json -Depth 10 | Set-Content -Path $WorkspaceFilePath
 }
 
 $appBuildMode = Get-BuildMode
 
 if($appType -eq 'app')
 {
-    # Setup compiler features to generate captions and LCGs
-    if (!$parameters.Value.ContainsKey("Features")) {
-        $parameters.Value["Features"] = @()
-    }
-    $parameters.Value["Features"] += @("generateCaptions")
-
-    # Setup compiler features to generate LCGs for the default build mode
-    if($appBuildMode -eq 'Default') {
-        $parameters.Value["Features"] += @("lcgtranslationfile")
-    }
-
-    # Disable report layout generation for the app compilation to how apps are built internally
-    $parameters.Value["GenerateReportLayout"] = "No"
-
-    if($appBuildMode -eq 'Translated') {
-        Import-Module $PSScriptRoot\AppTranslations.psm1
-        Restore-TranslationsForApp -AppProjectFolder $parameters.Value["appProjectFolder"]
-    }
-
-    if(($appBuildMode -eq 'Clean') -and ($recompileDependencies.Count -gt 0)) {
-        # In CLEAN mode we might need to recompile some of the dependencies before we can compile the app (in case the dependencies are not within the repository)
-        $recompileDependencies | ForEach-Object {
-            $dependenciesParameters = $parameters.Value.Clone()
-            $dependenciesParameters["appOutputFolder"] = $dependenciesParameters["appSymbolsFolder"] # Output the apps into the symbols folder so we can use them for the clean build later
-            Build-App -App $_ -CompilationParameters $dependenciesParameters
-        }
-    }
-
     # Restore the baseline app and generate the AppSourceCop.json file
-    if($gitHubActions) {
-        if (($parameters.Value.ContainsKey("EnableAppSourceCop") -and $parameters.Value["EnableAppSourceCop"]) -or ($parameters.Value.ContainsKey("EnablePerTenantExtensionCop") -and $parameters.Value["EnablePerTenantExtensionCop"])) {
+    $analyzersEnabled = $parameters.Value.ContainsKey("Analyzers") -and @($parameters.Value["Analyzers"]).Count -gt 0
+    if($ENV:CI) {
+        if ($analyzersEnabled) {
+            Write-Host "Analyzers are enabled. Setting up the baseline app and analyzers for breaking changes check."
             Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
 
             if($appBuildMode -eq 'Clean') {
                 Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"
 
-                # Create a new empty folder for the apps without preprocessor symbols
-                $defaultSymbolsPath = Join-Path (Split-Path $parameters.Value["appSymbolsFolder"] -Parent) "DefaultModeSymbols"
-                if (-not (Test-Path $defaultSymbolsPath)) {
-                    New-Item -Path $defaultSymbolsPath -ItemType Directory -Force | Out-Null
-                }
-
-                # Recompile dependencies if needed and place them in the default symbols folder
-                if ($recompileDependencies.Count -gt 0) {
-                    $recompileDependencies | ForEach-Object {
-                        $dependenciesParameters = $parameters.Value.Clone()
-                        $dependenciesParameters["preprocessorsymbols"] = @() # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
-                        $dependenciesParameters["appOutputFolder"] = $defaultSymbolsPath # Use the default symbols folder as appOutputFolder
-                        $dependenciesParameters["appSymbolsFolder"] = $defaultSymbolsPath # Use the default symbols folder as appSymbolsFolder
-                        Build-App -App $_ -CompilationParameters $dependenciesParameters
-                    }
-                }
-
                 $tempParameters = $parameters.Value.Clone()
-                $tempParameters["preprocessorsymbols"] = @() # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
-                $tempParameters["appOutputFolder"] = $defaultSymbolsPath # Output the default app into the default symbols folder
-                $tempParameters["appSymbolsFolder"] = $defaultSymbolsPath # Use the default symbols folder as appSymbolsFolder
+                $tempParameters["PreprocessorSymbols"] = @() # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
+                $tempParameters["OutFolder"] = $tempParameters["PackageCachePath"] # Output the baseline app into the package cache folder
 
-                $appName = (Get-Content -Path (Join-Path $tempParameters["appProjectFolder"] "app.json" -Resolve) | ConvertFrom-Json).Name
-                # If the app has already been restored to the default symbols folder, remove it before recompiling
-                Get-ChildItem -Path $defaultSymbolsPath -Filter "Microsoft_$($appName)*.app" | ForEach-Object {
-                    Write-Host "Removing existing app file in symbols folder: $($_.FullName)"
-                    Remove-Item -Path $_.FullName -Force
-                }
+                $baselineAppFiles = CompileAppsInWorkspace @tempParameters
 
-                if($useCompilerFolder) {
-                    Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
+                # Rename baseline apps to end with _clean.app
+                foreach ($appFile in $baselineAppFiles) {
+                    $appFileItem = Get-Item $appFile
+                    Rename-Item -Path $appFile -NewName ($appFileItem.Name.Replace(".app", "_clean.app"))
                 }
-                else {
-                    Compile-AppInBcContainer @tempParameters | Out-Null
-                }
-
-                # Copy the the generated app to the symbols folder for the CLEAN mode build
-                $appFile = Get-ChildItem -Path $tempParameters["appOutputFolder"] -Filter "Microsoft_$($appName)*.app" | Select-Object -First 1
-                $location = Join-Path $parameters.Value["appSymbolsFolder"] "$($appName)_clean.app"
-                Write-Host "Copying $($appFile.FullName) to $location"
-                Copy-Item -Path $appFile.FullName -Destination $location -Force
             }
 
             if($appBuildMode -eq 'Strict') {
@@ -116,7 +73,7 @@ if($appType -eq 'app')
                 }
             }
 
-            Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode -CountryCode $countryCode | Out-Null
+            Enable-BreakingChangesCheckForWorkspace -AppSymbolsFolder $parameters.Value["PackageCachePath"] -WorkspaceFile $parameters.Value["WorkspaceFile"] -BuildMode $appBuildMode -CountryCode $countryCode | Out-Null
         }
     }
 }

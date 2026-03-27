@@ -30,6 +30,11 @@
   ],
   "rules": [
     {
+      "id": "AL1085",
+      "action": "Warning",
+      "justification": "Allows compilation to pass with file locking issues."
+    },
+    {
       "id": "AS0077",
       "action": "None",
       "justification": "Adding a var modifier in events should be allowed in main, as it only will break the runtime behavior of extensions subscribing to it when used in hotfix scenarios."

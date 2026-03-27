@@ -6,10 +6,16 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
+  "gitHubRunner": "windows-latest",
+  "githubRunnerShell": "pwsh",
   "artifact": "bcinsider/Sandbox/29.0.46901.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "29.0",
+  "workspaceCompilation": {
+    "enabled": true,
+    "parallelism": -1
+  },
   "conditionalSettings": [
     {
       "buildModes": [
@@ -139,5 +145,8 @@
       "Automation"
     ]
   },
+  "features": [
+    "generateCaptions"
+  ],
   "runNumberOffset": 60000
 }
