@@ -16,7 +16,7 @@ codeunit 686 "Paym. Prac. Size Aggregator" implements PaymentPracticeLinesAggreg
         FeatureTelemetry: Codeunit "Feature Telemetry";
         WrongHeaderTypeErr: Label 'Payment Practice Header Type must be Vendor for this aggregation type.';
 
-    procedure PrepareLayout(ExtraFields: Enum "Paym. Prac. Reporting Scheme");
+    procedure PrepareLayout(ReportingScheme: Enum "Paym. Prac. Reporting Scheme");
     var
         DesignTimeReportSelection: Codeunit "Design-time Report Selection";
     begin

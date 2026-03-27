@@ -14,13 +14,13 @@ codeunit 685 "Paym. Prac. Period Aggregator" implements PaymentPracticeLinesAggr
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
 
-    procedure PrepareLayout(ExtraFields: Enum "Paym. Prac. Reporting Scheme");
+    procedure PrepareLayout(ReportingScheme: Enum "Paym. Prac. Reporting Scheme");
     var
         DesignTimeReportSelection: Codeunit "Design-time Report Selection";
     begin
 
-        case ExtraFields of
-            ExtraFields::"Percentiles; Modes; Pct Peppol Enabled; Pct Small Business Payments":
+        case ReportingScheme of
+            ReportingScheme::"Percentiles; Modes; Pct Peppol Enabled; Pct Small Business Payments":
                 begin
                     DesignTimeReportSelection.SetSelectedLayout('PaymentPractice_PeriodDetailedLayout');
                     FeatureTelemetry.LogUsage('0000KSY', 'Payment Practices', 'Period detailed layout used.')
