@@ -101,13 +101,12 @@ page 4316 "Agent List"
 
                 trigger OnAction()
                 var
-                    AgentTaskConsumption: Record "Agent Task Consumption";
+                    AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
                 begin
                     if Rec.IsEmpty() then
                         Error(NoAgentSetupErr);
 
-                    AgentTaskConsumption.SetRange("Agent User Security ID", Rec."User Security ID");
-                    Page.Run(Page::"Agent Consumption Overview", AgentTaskConsumption);
+                    AgentConsumptionOverview.OpenAgentConsumptionOverview(Rec."User Security ID");
                 end;
             }
         }

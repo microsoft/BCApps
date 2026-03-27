@@ -5,6 +5,8 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.Agents;
+
 page 149048 "AIT Eval Monthly Copilot Cred."
 {
     Caption = 'AI Eval Monthly Copilot Credit Limits';
@@ -31,10 +33,12 @@ page 149048 "AIT Eval Monthly Copilot Cred."
             group(CreditLimitSetup)
             {
                 ShowCaption = false;
+                Enabled = CurrentUserIsAgentAdmin;
                 field(EnforcementEnabled; EnforcementEnabled)
                 {
                     Caption = 'Limits Enabled';
                     ToolTip = 'Specifies whether the credit limit enforcement is enabled. When disabled, suites can consume unlimited credits.';
+                    Enabled = CurrentUserIsAgentAdmin;
 
                     trigger OnValidate()
                     begin
@@ -46,9 +50,9 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                 {
                     AutoFormatType = 0;
                     Caption = 'Monthly Copilot Credit Limit';
-                    ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed by all agent test suites during the current month.';
+                    ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed by all agent test suites in this environment during the current month.';
                     DecimalPlaces = 2 : 5;
-                    Editable = EnforcementEnabled;
+                    Editable = EnforcementEnabled and CurrentUserIsAgentAdmin;
 
                     trigger OnValidate()
                     begin
@@ -59,7 +63,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
             }
             repeater(AgentSuites)
             {
-                Caption = 'Agent Test Suites';
+                Caption = 'Agent test suites in this company';
 
                 field("Code"; Rec."Suite Code")
                 {
@@ -81,7 +85,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                 {
                     AutoFormatType = 0;
                     Caption = 'Copilot Credits Consumed (Month)';
-                    ToolTip = 'Specifies the number of Copilot credits consumed by this test suite during the current month.';
+                    ToolTip = 'Specifies the number of Copilot credits consumed by this test suite in this environment during the current month.';
                     Editable = false;
                     DecimalPlaces = 2 : 5;
                 }
@@ -99,7 +103,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                 {
                     AutoFormatType = 0;
                     Caption = 'Copilot Credits Consumed';
-                    ToolTip = 'Specifies the total number of Copilot credits consumed by all agent test suites during the current month, including credits from deleted suites.';
+                    ToolTip = 'Specifies the total number of Copilot credits consumed by all agent test suites in this environment during the current month, including credits from deleted suites.';
                     Editable = false;
                     DecimalPlaces = 2 : 5;
                 }
@@ -165,6 +169,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         DeletedSuiteCreditsConsumed: Decimal;
         LoadedDataCopilotCreditsConsumed: Decimal;
         EnforcementEnabled: Boolean;
+        CurrentUserIsAgentAdmin: Boolean;
         CreditsUsagePercentage: Text;
         CurrentPeriod: Text;
         CreditsAvailableStyle: Text;
@@ -176,10 +181,18 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
     local procedure RefreshPage()
     begin
+        LoadCurrentUserIsAgentAdmin();
         LoadCreditLimitSetup();
         LoadBufferData();
         UpdateComputedFields();
         CurrPage.Update(false);
+    end;
+
+    local procedure LoadCurrentUserIsAgentAdmin()
+    var
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+    begin
+        CurrentUserIsAgentAdmin := AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission();
     end;
 
     local procedure LoadCreditLimitSetup()
@@ -201,7 +214,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
     local procedure LoadBufferData()
     var
         AITTestSuite: Record "AIT Test Suite";
-        AIEvalSuiteUsageBufferTemp: Record "AIT Eval Suite Usage Buffer";
+        TempAIEvalSuiteUsageBuffer: Record "AIT Eval Suite Usage Buffer";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         SortOrder: Integer;
     begin
@@ -214,25 +227,25 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         if AITTestSuite.FindSet() then
             repeat
                 SortOrder += 1;
-                AIEvalSuiteUsageBufferTemp.Index := SortOrder;
-                AIEvalSuiteUsageBufferTemp."Suite Code" := AITTestSuite.Code;
-                AIEvalSuiteUsageBufferTemp."Suite Description" := AITTestSuite.Description;
-                AIEvalSuiteUsageBufferTemp.Consumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITEvalMonthlyCopilotCreditLimitRecord.GetPeriodStartDate());
-                AIEvalSuiteUsageBufferTemp.Insert();
-                LoadedDataCopilotCreditsConsumed += AIEvalSuiteUsageBufferTemp.Consumed;
+                TempAIEvalSuiteUsageBuffer.Index := SortOrder;
+                TempAIEvalSuiteUsageBuffer."Suite Code" := AITTestSuite.Code;
+                TempAIEvalSuiteUsageBuffer."Suite Description" := AITTestSuite.Description;
+                TempAIEvalSuiteUsageBuffer.Consumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITEvalMonthlyCopilotCreditLimitRecord.GetPeriodStartDate());
+                TempAIEvalSuiteUsageBuffer.Insert();
+                LoadedDataCopilotCreditsConsumed += TempAIEvalSuiteUsageBuffer.Consumed;
             until AITTestSuite.Next() = 0;
 
         // Sort the buffer by consumed credits in descending order.
         SortOrder := 0;
-        AIEvalSuiteUsageBufferTemp.SetCurrentKey(Consumed);
+        TempAIEvalSuiteUsageBuffer.SetCurrentKey(Consumed);
 #pragma warning disable AA0233, AA0181
-        if AIEvalSuiteUsageBufferTemp.FindLast() then
+        if TempAIEvalSuiteUsageBuffer.FindLast() then
             repeat
                 SortOrder += 1;
-                Rec := AIEvalSuiteUsageBufferTemp;
+                Rec := TempAIEvalSuiteUsageBuffer;
                 Rec.Index := SortOrder;
                 Rec.Insert();
-            until AIEvalSuiteUsageBufferTemp.Next(-1) = 0;
+            until TempAIEvalSuiteUsageBuffer.Next(-1) = 0;
 #pragma warning restore AA0233, AA0181
 
         if Rec.FindFirst() then;

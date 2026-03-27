@@ -23,7 +23,6 @@ codeunit 4317 "Agent System Permissions"
     /// Gets whether the current user has permissions to manage all agents.
     /// </summary>
     /// <returns>True if the user has permissions to manage all agents, false otherwise.</returns>
-    [Scope('OnPrem')]
     procedure CurrentUserHasCanManageAllAgentsPermission(): Boolean
     begin
         exit(AgentSystemPermissionsImpl.CurrentUserHasCanManageAllAgentsPermission());

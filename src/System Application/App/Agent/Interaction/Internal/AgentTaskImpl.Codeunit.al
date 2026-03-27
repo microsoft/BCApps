@@ -152,19 +152,6 @@ codeunit 4300 "Agent Task Impl."
         exit((AgentTask.Status = AgentTask.Status::"Stopped by User") or (AgentTask.Status = AgentTask.Status::"Stopped by System"));
     end;
 
-    procedure GetCopilotCreditsConsumed(AgentTaskID: BigInteger) ConsumedCredits: Decimal
-    var
-        AgentTask: Record "Agent Task";
-        AgentTaskConsumption: Record "Agent Task Consumption";
-    begin
-        if not AgentTask.Get(AgentTaskID) then
-            exit(0);
-
-        AgentTaskConsumption.SetRange("Task Id", AgentTask.ID);
-        AgentTaskConsumption.CalcSums("Copilot Credits");
-        exit(AgentTaskConsumption."Copilot Credits");
-    end;
-
     internal procedure TryGetAgentRecordFromTaskId(TaskId: Integer; var Agent: Record Agent): Boolean
     var
         AgentTask: Record "Agent Task";

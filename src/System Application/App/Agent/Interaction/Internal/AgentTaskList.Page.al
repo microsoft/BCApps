@@ -115,10 +115,9 @@ page 4300 "Agent Task List"
 
                     trigger OnDrillDown()
                     var
-                        AgentTaskConsumption: Record "Agent Task Consumption";
+                        AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
                     begin
-                        AgentTaskConsumption.SetRange("Task Id", Rec.ID);
-                        Page.Run(Page::"Agent Consumption Overview", AgentTaskConsumption);
+                        AgentConsumptionOverview.OpenAgentTaskConsumptionOverview(Rec.ID);
                     end;
                 }
             }
@@ -218,15 +217,9 @@ page 4300 "Agent Task List"
 
     local procedure CalculateTaskConsumedCredits()
     var
-        AgentTaskConsumption: Record "Agent Task Consumption";
+        AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
     begin
-        ConsumedCredits := 0;
-
-        AgentTaskConsumption.SetRange("Task Id", Rec.ID);
-        if AgentTaskConsumption.FindSet() then
-            repeat
-                ConsumedCredits += AgentTaskConsumption."Copilot Credits";
-            until AgentTaskConsumption.Next() = 0;
+        ConsumedCredits := AgentConsumptionOverview.GetCopilotCreditsConsumed(Rec.ID);
     end;
 
     local procedure UpdateControls()

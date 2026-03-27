@@ -51,7 +51,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         if AITEvalMonthlyCopilotCreditsLimit."Monthly Credit Limit" <= 0 then
             exit(false);
 
-        CopilotCreditConsumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITEvalMonthlyCopilotCreditsLimit.GetPeriodStartDate());
+        CopilotCreditConsumed := AgentTestContextImpl.GetCopilotCreditsAcrossCompaniesForPeriod(AITEvalMonthlyCopilotCreditsLimit.GetPeriodStartDate());
         exit(CopilotCreditConsumed >= AITEvalMonthlyCopilotCreditsLimit."Monthly Credit Limit");
     end;
 

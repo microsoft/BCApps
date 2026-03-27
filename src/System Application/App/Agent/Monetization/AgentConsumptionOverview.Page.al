@@ -18,7 +18,7 @@ page 4333 "Agent Consumption Overview"
     Caption = 'Agent consumption overview';
     InherentEntitlements = X;
     InherentPermissions = X;
-    SourceTableView = sorting("Consumption DateTime") order(descending);
+    SourceTableView = sorting("Consumption Timestamp") order(descending);
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
@@ -59,7 +59,7 @@ page 4333 "Agent Consumption Overview"
             repeater(GroupName)
             {
                 Editable = false;
-                field(ConsumptionDateTime; Rec."Consumption DateTime")
+                field(ConsumptionDateTime; Rec."Consumption Timestamp")
                 {
                     Caption = 'Created at';
                     ToolTip = 'Specifies the date and time when the consumption was created.';
@@ -389,7 +389,7 @@ page 4333 "Agent Consumption Overview"
 
     local procedure ClearDateRangeFilters()
     begin
-        Rec.SetRange("Consumption DateTime");
+        Rec.SetRange("Consumption Timestamp");
         Clear(StartDate);
         Clear(EndDate);
     end;
@@ -399,7 +399,7 @@ page 4333 "Agent Consumption Overview"
         StartDate := NewStartDate;
         EndDate := NewEndDate;
 
-        Rec.SetRange("Consumption DateTime", CreateDateTime(StartDate, 0T), CreateDateTime(EndDate, 235959.999T));
+        Rec.SetRange("Consumption Timestamp", CreateDateTime(StartDate, 0T), CreateDateTime(EndDate, 235959.999T));
     end;
 
     local procedure DrillDownToAgentTask()
@@ -412,10 +412,9 @@ page 4333 "Agent Consumption Overview"
 
     local procedure DrillDownToAgentTaskConsumption()
     var
-        AgentTaskConsumption: Record "Agent Task Consumption";
+        AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
     begin
-        AgentTaskConsumption.SetRange("Task Id", Rec."Task ID");
-        Page.Run(Page::"Agent Consumption Overview", AgentTaskConsumption);
+        AgentConsumptionOverview.OpenAgentTaskConsumptionOverview(Rec."Task ID");
     end;
 
     local procedure ValidateAgentAccessControl()
@@ -444,7 +443,7 @@ page 4333 "Agent Consumption Overview"
             if not AgentTask.Get(TaskId) then
                 Error(YouDoNotHaveAccessToTheAgentErr)
             else
-                if not AgentSystemPermissions.CurrentUserCanUseAgent(AgentUserSecurityId) then
+                if not AgentSystemPermissions.CurrentUserCanUseAgent(AgentTask."Agent User Security ID") then
                     Error(YouDoNotHaveAccessToTheAgentErr);
             exit;
         end;

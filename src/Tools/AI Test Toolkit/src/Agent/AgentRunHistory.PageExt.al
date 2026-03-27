@@ -17,10 +17,17 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
-                Visible = (ViewBy = ViewBy::Version) and ConsumedCreditsVisible;
+                Visible = ViewBy = ViewBy::Version;
                 Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
                 Editable = false;
+
+                trigger OnDrillDown()
+                var
+                    AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+                begin
+                    AgentTestContextImpl.OpenAgentConsumptionOverview(Rec."Agent Task IDs");
+                end;
             }
             field("Agent Task Count - By Version"; AgentTaskCountByVersion)
             {
@@ -44,10 +51,17 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
-                Visible = (ViewBy = ViewBy::Tag) and ConsumedCreditsVisible;
+                Visible = ViewBy = ViewBy::Tag;
                 Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for the tag.';
                 Editable = false;
+
+                trigger OnDrillDown()
+                var
+                    AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+                begin
+                    AgentTestContextImpl.OpenAgentTaskList(Rec."Agent Task IDs - By Tag");
+                end;
             }
             field("Agent Task Count - By Tag"; AgentTaskCountByTag)
             {
@@ -66,13 +80,6 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             }
         }
     }
-
-    trigger OnOpenPage()
-    var
-        AgentSystemPermissions: Codeunit "Agent System Permissions";
-    begin
-        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
-    end;
 
     trigger OnAfterGetRecord()
     begin
@@ -94,7 +101,6 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         AgentTaskCountByVersion: Integer;
         AgentTaskCountByTag: Integer;
-        ConsumedCreditsVisible: Boolean;
 
 }
 
