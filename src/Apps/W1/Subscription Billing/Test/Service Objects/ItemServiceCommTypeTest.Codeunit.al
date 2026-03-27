@@ -2,6 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
@@ -23,6 +24,7 @@ codeunit 139885 "Item Service Comm. Type Test"
     var
         BOMComponent: Record "BOM Component";
         Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         SalesHeader: Record "Sales Header";
@@ -30,6 +32,7 @@ codeunit 139885 "Item Service Comm. Type Test"
         ContractTestLibrary: Codeunit "Contract Test Library";
         LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         AssertThat: Codeunit Assert;
@@ -173,11 +176,107 @@ codeunit 139885 "Item Service Comm. Type Test"
         asserterror LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", 1);
     end;
 
+    [Test]
+    procedure ExpectErrorWhenSubscriptionOptionIsChangedOnItemWithExistingSalesDocuments()
+    var
+        InitialServiceCommitmentType: Enum "Item Service Commitment Type";
+    begin
+        // Test for each service commitment type except Invoicing items which have different behavior
+        foreach InitialServiceCommitmentType in Enum::"Item Service Commitment Type".Ordinals() do begin
+            if InitialServiceCommitmentType = Enum::"Item Service Commitment Type"::"Invoicing Item" then
+                continue;
+            ClearAll();
+
+            // [GIVEN] Item with specific Subscription Option
+            ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, InitialServiceCommitmentType);
+            // [GIVEN] Open sales order with the item
+            CreateSalesDocumentWithItem();
+            Commit(); // retain test data
+
+            // [WHEN] Attempting to change the Subscription Option
+            // [THEN] Error is thrown pointing to the open Sales Line
+            TestSubscriptionOptionChangeExpectsError(SalesLine.TableCaption());
+
+            // [GIVEN] Posted sales document
+            LibrarySales.PostSalesDocument(SalesHeader, true, true);
+            Commit(); // retain test data after posting
+
+            // [WHEN] Attempting to change the Subscription Option
+            // [THEN] Error is thrown pointing to the Item Ledger Entry
+            TestSubscriptionOptionChangeExpectsError(ItemLedgerEntry.TableCaption());
+        end;
+    end;
+
+    [Test]
+    procedure ExpectErrorWhenSubscriptionOptionIsChangedOnItemWithExistingPurchaseDocuments()
+    var
+        InitialServiceCommitmentType: Enum "Item Service Commitment Type";
+    begin
+        // Test for each service commitment type except Invoicing items which have different behavior
+        foreach InitialServiceCommitmentType in Enum::"Item Service Commitment Type".Ordinals() do begin
+            if InitialServiceCommitmentType = Enum::"Item Service Commitment Type"::"Invoicing Item" then
+                continue;
+            ClearAll();
+
+            // [GIVEN] Item with specific Subscription Option
+            ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, InitialServiceCommitmentType);
+            // [GIVEN] Open purchase order with the item
+            CreatePurchaseDocumentWithItem();
+            Commit(); // retain test data
+
+            // [WHEN] Attempting to change the Subscription Option
+            // [THEN] Error is thrown pointing to the open Purchase Line
+            TestSubscriptionOptionChangeExpectsError(PurchaseLine.TableCaption());
+
+            // [GIVEN] Posted purchase document
+            LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+            Commit(); // retain test data after posting
+
+            // [WHEN] Attempting to change the Subscription Option
+            // [THEN] Error is thrown pointing to the Item Ledger Entry
+            TestSubscriptionOptionChangeExpectsError(ItemLedgerEntry.TableCaption());
+        end;
+    end;
+
     #endregion Tests
+
+    #region Helpers
+
+    local procedure CreateSalesDocumentWithItem()
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", LibraryRandom.RandDec(10, 2));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        SalesLine.Modify(true);
+    end;
+
+    local procedure CreatePurchaseDocumentWithItem()
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, Enum::"Purchase Line Type"::Item, Item."No.", LibraryRandom.RandDec(10, 2));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(50, 2));
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure TestSubscriptionOptionChangeExpectsError(ExpectedDocumentTableCaption: Text)
+    var
+        CurrentItem: Record Item;
+        ServiceCommitmentType: Enum "Item Service Commitment Type";
+    begin
+        CurrentItem.Get(Item."No.");
+        foreach ServiceCommitmentType in Enum::"Item Service Commitment Type".Ordinals() do
+            if ServiceCommitmentType <> CurrentItem."Subscription Option" then begin
+                asserterror CurrentItem.Validate("Subscription Option", ServiceCommitmentType);
+                AssertThat.ExpectedError(StrSubstNo(CurrentItem.GetCannotChangeItemWithExistingDocumentLinesErr(),
+                    CurrentItem.FieldCaption("Subscription Option"), CurrentItem.TableCaption(), CurrentItem."No.", ExpectedDocumentTableCaption));
+            end;
+    end;
 
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Item Service Comm. Type Test");
         ClearAll();
     end;
+
+    #endregion Helpers
 }

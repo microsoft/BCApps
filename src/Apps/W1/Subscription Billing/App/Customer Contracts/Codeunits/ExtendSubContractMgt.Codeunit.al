@@ -6,7 +6,12 @@ codeunit 8075 "Extend Sub. Contract Mgt."
         HideDialog: Boolean;
         ExtensionCompletedMsg: Label 'Contract Extension completed.';
 
-    internal procedure ExtendContract(var ServiceObject: Record "Subscription Header"; var TempServiceCommitmentPackage: Record "Subscription Package" temporary; ExtendCustomerContract: Boolean; var CustomerContract: Record "Customer Subscription Contract"; ExtendVendorContract: Boolean; var VendorContract: Record "Vendor Subscription Contract"; UsageBasedBillingPackageLinesOnly: Boolean; SupplierReferenceEntryNo: Integer)
+    procedure SetHideDialog(Hide: Boolean)
+    begin
+        HideDialog := Hide;
+    end;
+
+    procedure ExtendContract(var ServiceObject: Record "Subscription Header"; var TempServiceCommitmentPackage: Record "Subscription Package" temporary; ExtendCustomerContract: Boolean; var CustomerContract: Record "Customer Subscription Contract"; ExtendVendorContract: Boolean; var VendorContract: Record "Vendor Subscription Contract"; UsageBasedBillingPackageLinesOnly: Boolean; SupplierReferenceEntryNo: Integer)
     var
         ServiceCommitment: Record "Subscription Line";
         CustomerContractLine: Record "Cust. Sub. Contract Line";

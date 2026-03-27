@@ -10,7 +10,6 @@ using Microsoft.Finance.Consolidation;
 #endif
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.GeneralLedger.Ledger;
 #if not CLEAN27
 using System.Environment.Configuration;
 #endif
@@ -147,18 +146,14 @@ codeunit 4410 "Trial Balance"
     local procedure InsertTrialBalanceDataForGLAccountWithFilters(var GLAccount: Record "G/L Account"; Dimension1ValueCode: Code[20]; Dimension2ValueCode: Code[20]; BusinessUnitCode: Code[20]; var TrialBalanceData: Record "EXR Trial Balance Buffer"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary)
     var
         GLAccount2: Record "G/L Account";
-        GLEntry: Record "G/L Entry";
     begin
         Clear(TrialBalanceData);
         if GLAccount.GetFilter("Date Filter") <> '' then begin
-            GLEntry.SetFilter("Posting Date", GLAccount.GetFilter("Date Filter"));
-            if GLEntry.FindFirst() then begin
-                GLAccount2.Copy(GLAccount);
-                GLAccount2.SetFilter("Date Filter", '..%1', GLEntry."Posting Date" - 1);
-                GLAccount2.CalcFields("Balance at Date", "Add.-Currency Balance at Date");
-                TrialBalanceData.Validate("Starting Balance", GLAccount2."Balance at Date");
-                TrialBalanceData.Validate("Starting Balance (ACY)", GLAccount2."Add.-Currency Balance at Date");
-            end;
+            GLAccount2.Copy(GLAccount);
+            GLAccount2.SetFilter("Date Filter", '..%1', ClosingDate(GLAccount2.GetRangeMin("Date Filter") - 1));
+            GLAccount2.CalcFields("Balance at Date", "Add.-Currency Balance at Date");
+            TrialBalanceData.Validate("Starting Balance", GLAccount2."Balance at Date");
+            TrialBalanceData.Validate("Starting Balance (ACY)", GLAccount2."Add.-Currency Balance at Date");
         end;
         GlAccount.CalcFields("Net Change", "Balance at Date", "Additional-Currency Net Change", "Add.-Currency Balance at Date", "Budgeted Amount", "Budget at Date");
         TrialBalanceData."G/L Account No." := GlAccount."No.";
@@ -244,7 +239,7 @@ codeunit 4410 "Trial Balance"
         EXRTrialBalanceQuery.Close();
 
         // And now we get the balances at the starting date and modify the ones we have already inserted
-        EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.PostingDate, '..%1', StartDate - 1);
+        EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.PostingDate, '..%1', ClosingDate(StartDate - 1));
         EXRTrialBalanceQuery.Open();
         while EXRTrialBalanceQuery.Read() do begin
             TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceQuery.AccountNumber);
@@ -296,7 +291,7 @@ codeunit 4410 "Trial Balance"
         EXRTrialBalanceBUQuery.Close();
 
         // And now we get the balances at the starting date and modify the ones we have already inserted
-        EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.PostingDate, '..%1', StartDate - 1);
+        EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.PostingDate, '..%1', ClosingDate(StartDate - 1));
         EXRTrialBalanceBUQuery.Open();
         while EXRTrialBalanceBUQuery.Read() do begin
             TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceBUQuery.AccountNumber);
@@ -441,16 +436,11 @@ codeunit 4410 "Trial Balance"
 
     local procedure GetRangeDatesForGLAccountFilter(GLAccountDateFilter: Text; var StartDate: Date; var EndDate: Date)
     var
-        GLEntry: Record "G/L Entry";
+        GLAccount: Record "G/L Account";
     begin
-        GLEntry.SetFilter("Posting Date", GLAccountDateFilter);
-        GLEntry.SetLoadFields("Posting Date");
-        GLEntry.SetCurrentKey("Posting Date");
-        GLEntry.SetAscending("Posting Date", true);
-        if GLEntry.FindFirst() then
-            StartDate := GLEntry."Posting Date";
-        if GLEntry.FindLast() then
-            EndDate := GLEntry."Posting Date";
+        GLAccount.SetFilter("Date Filter", GLAccountDateFilter);
+        StartDate := GLAccount.GetRangeMin("Date Filter");
+        EndDate := GLAccount.GetRangeMax("Date Filter");
         if StartDate = 0D then
             StartDate := WorkDate();
         if EndDate = 0D then

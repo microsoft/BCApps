@@ -10,11 +10,15 @@ permissionset 149031 "AI Test Toolkit - Obj"
     Assignable = false;
     Access = Public;
 
-    Permissions = table "AIT Run History" = X,
+    Permissions = table "AIT Eval Monthly Copilot Cred." = X,
+        table "AIT Run History" = X,
         table "AIT Test Suite" = X,
         table "AIT Test Method Line" = X,
         table "AIT Test Suite Language" = X,
         table "AIT Log Entry" = X,
+        codeunit "AIT Eval No Limit" = X,
+        codeunit "AIT Eval Monthly Copilot Cred." = X,
+        codeunit "AIT Upgrade" = X,
         codeunit "AIT AL Test Suite Mgt" = X,
         codeunit "AIT Install" = X,
         codeunit "AIT Log Entry" = X,
@@ -25,6 +29,7 @@ permissionset 149031 "AI Test Toolkit - Obj"
         codeunit "AIT Test Context Impl." = X,
         codeunit "AIT Run History" = X,
         xmlport "AIT Test Suite Import/Export" = X,
+        page "AIT Eval Monthly Copilot Cred." = X,
         page "AIT CommandLine Card" = X,
         page "AIT Column Mappings" = X,
         page "AIT Evaluators" = X,

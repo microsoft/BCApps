@@ -52,8 +52,8 @@ codeunit 99001546 "Subc. Whse Direct Posting"
         CommitIsSuppressed := IsDirectTransfer(TransferHeader);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnAfterPostWhseActivHeader, '', false, false)]
-    local procedure OnAfterPostWhseActivHeader(WhseActivHeader: Record "Warehouse Activity Header"; var PurchaseHeader: Record "Purchase Header"; var SalesHeader: Record "Sales Header"; var TransferHeader: Record "Transfer Header")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnAfterPostWhseActivityCompleted, '', false, false)]
+    local procedure OnAfterPostWhseActivityCompleted(WhseActivHeader: Record "Warehouse Activity Header"; var PurchaseHeader: Record "Purchase Header"; var SalesHeader: Record "Sales Header"; var TransferHeader: Record "Transfer Header"; SuppressCommit: Boolean; IsPreview: Boolean)
     begin
         if not PostInboundTransferInOneStep(WhseActivHeader) then
             exit;
