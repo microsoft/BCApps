@@ -1,0 +1,56 @@
+name: Rerun Unstable Failures
+on:
+  workflow_dispatch:
+    inputs:
+      WhatIf:
+        description: 'WhatIf'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '0 * * * *'
+
+permissions: read-all
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  RerunUnstableFailures:
+    runs-on: ubuntu-slim
+    permissions:
+      actions: write
+      contents: read
+    env:
+      MAX_FAILED_JOBS: 3 # Maximum number of failed jobs in order to consider rerunning
+      MIN_TOTAL_JOBS: 10 # Minimum number of jobs that has run in order to consider rerunning
+      MAX_ATTEMPTS: 1 # Maximum number of attempts to rerun a failed job
+      LOOKBACK_HOURS: 24 # How far back to look for failed jobs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create GitHub App Token
+        id: app-token
+        if: vars.APP_ID != ''
+        continue-on-error: true
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+
+      - name: Rerun unstable failures
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.RERUNPAT }}
+        run: |
+          $whatIf = '${{ inputs.WhatIf }}'
+          $params = @{
+            Owner = "microsoft"
+            Repo = "BCApps"
+            MaxFailedJobs = $env:MAX_FAILED_JOBS
+            MinTotalJobs = $env:MIN_TOTAL_JOBS
+            MaxAttempts = $env:MAX_ATTEMPTS
+            LookbackHours = $env:LOOKBACK_HOURS
+          }
+          if ($whatIf -ne 'false') { $params.WhatIf = $true }
+          build/scripts/RerunUnstableFailures.ps1 @params
