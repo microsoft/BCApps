@@ -322,8 +322,6 @@ codeunit 30166 "Shpfy Process Order"
                                 SalesLine.Validate("Line Discount Amount", OrderShippingCharges."Presentment Discount Amount");
                             end;
                     end;
-                    SalesLine.Validate("Unit Price", OrderShippingCharges.Amount);
-                    SalesLine.Validate("Line Discount Amount", OrderShippingCharges."Discount Amount");
                     SalesLine."Shpfy Order No." := ShopifyOrderHeader."Shopify Order No.";
                     SalesLine.Modify(true);
 
