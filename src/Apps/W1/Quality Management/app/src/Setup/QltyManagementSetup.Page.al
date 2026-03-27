@@ -236,7 +236,7 @@ page 20400 "Qlty. Management Setup"
                 ApplicationArea = All;
                 Caption = 'Inspection Generation Rules';
                 ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
-                Image = FilterLines;
+                Image = CopyFromTask;
                 RunObject = Page "Qlty. Inspection Gen. Rules";
                 RunPageMode = Edit;
             }
@@ -254,7 +254,7 @@ page 20400 "Qlty. Management Setup"
                 ApplicationArea = All;
                 Caption = 'Tests';
                 ToolTip = 'View the Quality Tests. Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
-                Image = Task;
+                Image = TaskQualityMeasure;
                 RunObject = Page "Qlty. Tests";
                 RunPageMode = Edit;
             }
