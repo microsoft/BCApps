@@ -24,7 +24,7 @@ codeunit 133626 "Integration Tests"
                   tabledata "E-Document" = r;
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
-    TestType = Uncategorized;
+    TestType = UnitTest;
 
     [Test]
     [HandlerFunctions('HttpSubmitHandler')]
