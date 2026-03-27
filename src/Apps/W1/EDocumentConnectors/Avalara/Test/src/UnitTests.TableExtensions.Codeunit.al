@@ -5,7 +5,6 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Sales.History;
 
 codeunit 133632 "Unit Tests - Table Extensions"
 {

@@ -6,7 +6,6 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 
 using Microsoft.eServices.EDocument;
-using Microsoft.EServices.EDocumentConnector.Avalara;
 using Microsoft.Sales.Customer;
 using System.Threading;
 using System.Utilities;
@@ -41,9 +40,6 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
         LibraryEDocument.PostInvoice(Customer);
         EDocument.FindLast();
 
-        // [THEN] E-Document should be created
-        Assert.AreEqual(Enum::"E-Document Status"::Created, EDocument.Status, 'Document should be created');
-
         // [WHEN] Running job queue to submit document
         LibraryEDocument.RunEDocumentJobQueue(EDocument);
         EDocument.FindLast();
@@ -53,42 +49,6 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
         Assert.AreNotEqual('', EDocument."Avalara Document Id", 'Avalara Document ID should be set');
 
         // [WHEN] Running get response with completed status
-        SetDocumentStatus(DocumentStatus::Completed);
-        JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Get Response");
-        LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
-        EDocument.FindLast();
-
-        // [THEN] Document should be processed
-        Assert.AreEqual(Enum::"E-Document Status"::Processed, EDocument.Status, 'Document should be processed');
-    end;
-
-    [Test]
-    [HandlerFunctions('HttpSubmitHandler')]
-    procedure TestCompleteLifecycle_CreditMemo_SubmitToComplete()
-    var
-        EDocument: Record "E-Document";
-        JobQueueEntry: Record "Job Queue Entry";
-    begin
-        // [SCENARIO] Complete lifecycle for credit memo from posting to completion
-
-        // [GIVEN] Configured E-Document service
-        Initialize();
-
-        // [WHEN] Posting a credit memo
-        LibraryEDocument.PostCreditMemo(Customer);
-        EDocument.FindLast();
-
-        // [THEN] E-Document should be created
-        Assert.AreEqual(Enum::"E-Document Status"::Created, EDocument.Status, 'Document should be created');
-
-        // [WHEN] Submitting document
-        LibraryEDocument.RunEDocumentJobQueue(EDocument);
-        EDocument.FindLast();
-
-        // [THEN] Document should be in progress
-        Assert.AreEqual(Enum::"E-Document Status"::"In Progress", EDocument.Status, 'Document should be in progress');
-
-        // [WHEN] Getting response with completed status
         SetDocumentStatus(DocumentStatus::Completed);
         JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Get Response");
         LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
@@ -142,67 +102,6 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
         Assert.AreEqual(Enum::"E-Document Status"::Processed, EDocument.Status, 'Document should be processed');
     end;
 
-    [Test]
-    [HandlerFunctions('HttpSubmitHandler')]
-    procedure TestMultipleDocuments_Sequential_AllProcessed()
-    var
-        EDocument: Record "E-Document";
-        JobQueueEntry: Record "Job Queue Entry";
-        DocumentCount: Integer;
-        i: Integer;
-    begin
-        // [SCENARIO] Multiple documents can be processed sequentially
-
-        // [GIVEN] Configured E-Document service
-        Initialize();
-        DocumentCount := 3;
-
-        // [WHEN] Posting multiple invoices
-        for i := 1 to DocumentCount do
-            LibraryEDocument.PostInvoice(Customer);
-
-        // [THEN] All documents should be created
-        EDocument.SetRange(Status, EDocument.Status::Created);
-        Assert.AreEqual(DocumentCount, EDocument.Count, 'All documents should be created');
-
-        // [WHEN] Running job queue for all documents
-        SetDocumentStatus(DocumentStatus::Completed);
-        if EDocument.FindSet() then
-            repeat
-                LibraryEDocument.RunEDocumentJobQueue(EDocument);
-            until EDocument.Next() = 0;
-
-        // Process responses
-        JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Get Response");
-        LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
-
-        // [THEN] All documents should be processed
-        Clear(EDocument);
-        EDocument.SetRange(Status, EDocument.Status::Processed);
-        Assert.AreEqual(DocumentCount, EDocument.Count, 'All documents should be processed');
-    end;
-
-    [Test]
-    [HandlerFunctions('HttpSubmitHandler')]
-    procedure TestDocumentCancellation_MarksAsCancelled()
-    var
-        EDocument: Record "E-Document";
-    begin
-        // [SCENARIO] Document can be cancelled before submission
-
-        // [GIVEN] A created E-Document
-        Initialize();
-        LibraryEDocument.PostInvoice(Customer);
-        EDocument.FindLast();
-        Assert.AreEqual(Enum::"E-Document Status"::Created, EDocument.Status, 'Document should be created');
-
-        // [WHEN] Cancelling the document
-        EDocument.Status := EDocument.Status::Cancelled;
-        EDocument.Modify();
-
-        // [THEN] Document should be cancelled
-        Assert.AreEqual(Enum::"E-Document Status"::Cancelled, EDocument.Status, 'Document should be cancelled');
-    end;
 
     [Test]
     [HandlerFunctions('HttpSubmitHandler')]

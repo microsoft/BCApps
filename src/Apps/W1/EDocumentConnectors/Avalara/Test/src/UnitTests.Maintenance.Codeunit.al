@@ -5,7 +5,6 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
-using System.Utilities;
 
 codeunit 133629 "Unit Tests - Maintenance"
 {

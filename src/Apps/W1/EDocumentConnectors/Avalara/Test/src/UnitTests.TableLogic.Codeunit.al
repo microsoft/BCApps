@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-using Microsoft.eServices.EDocument;
-
 codeunit 133633 "Unit Tests - Table Logic"
 {
     Subtype = Test;

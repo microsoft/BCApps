@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-using System.Utilities;
-
 codeunit 133628 "Unit Tests - Authentication"
 {
     Subtype = Test;

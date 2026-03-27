@@ -5,7 +5,6 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
-using System.Utilities;
 
 codeunit 148192 "Unit Tests - Avalara Functions"
 {
