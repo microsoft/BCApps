@@ -6,7 +6,7 @@ namespace Microsoft.QualityManagement.Permissions;
 
 using System.Security.AccessControl;
 
-permissionsetextension 20400 "D365 BASIC - QltyMngmnt" extends "D365 BASIC"
+permissionsetextension 20400 "D365 BASIC ISV - QltyMngmnt" extends "D365 BASIC ISV"
 {
-    IncludedPermissionSets = "QltyMngmnt - Edit";
+    IncludedPermissionSets = "QltyMngmnt - Admin";
 }
