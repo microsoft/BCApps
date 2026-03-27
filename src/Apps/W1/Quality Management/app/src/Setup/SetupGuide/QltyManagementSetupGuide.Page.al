@@ -55,6 +55,8 @@ page 20438 "Qlty. Management Setup Guide"
                     Caption = 'Let''s go!';
                     InstructionalText = 'Select the link below to open the Quality Manager Role Center and follow the guided tours.';
                 }
+#pragma warning disable AS0031
+#pragma warning disable AS0032
                 field(SettingsLink; SettingsLinkLbl)
                 {
                     Caption = 'Open My Settings';
@@ -68,6 +70,8 @@ page 20438 "Qlty. Management Setup Guide"
                     end;
 
                 }
+#pragma warning restore AS0032
+#pragma warning restore AS0031
             }
         }
     }
@@ -76,6 +80,8 @@ page 20438 "Qlty. Management Setup Guide"
     {
         area(Processing)
         {
+#pragma warning disable AS0031
+#pragma warning disable AS0032
             action(Done)
             {
                 ApplicationArea = QualityManagement;
@@ -89,6 +95,8 @@ page 20438 "Qlty. Management Setup Guide"
                     DoneAction();
                 end;
             }
+#pragma warning restore AS0032
+#pragma warning restore AS0031
         }
     }
 

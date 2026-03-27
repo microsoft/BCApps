@@ -551,6 +551,7 @@ page 20408 "Qlty. Inspection List"
                 end;
             }
 #pragma warning disable AS0031
+#pragma warning disable AS0032
             group(ItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
@@ -631,6 +632,7 @@ page 20408 "Qlty. Inspection List"
                     ToolTip = 'View the quantities of the item in each bin where it exists. You can see all the important parameters relating to bin content, and you can modify certain bin content parameters in this window.';
                 }
             }
+#pragma warning restore AS0032
 #pragma warning restore AS0031
         }
     }
