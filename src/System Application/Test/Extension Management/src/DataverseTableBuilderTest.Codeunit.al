@@ -100,20 +100,8 @@ codeunit 133103 "Dataverse Table Builder Test"
     end;
 
     local procedure Initialize()
-    var
-        PublishedApplication: Record "Published Application";
-        ExtensionManagement: Codeunit "Extension Management";
     begin
         UninstallExtension();
-        // Ensure no previously published CRM Sync Designer extensions remain, as they
-        // would cause AL0155 conflicts when CommitGeneration() tries to add the same fields.
-        PublishedApplication.SetRange(Name, 'CRM Sync Designer');
-        PublishedApplication.SetRange(Publisher, 'Designer');
-        if PublishedApplication.FindSet() then
-            repeat
-                ExtensionManagement.UnpublishExtension(PublishedApplication."Package ID");
-            until PublishedApplication.Next() = 0;
-        Commit();
         DataverseTableBuilder.ClearGeneration();
     end;
 
