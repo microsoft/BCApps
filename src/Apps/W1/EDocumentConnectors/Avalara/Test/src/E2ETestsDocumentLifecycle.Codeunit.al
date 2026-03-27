@@ -163,7 +163,7 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
             exit;
 
         LibraryEDocument.SetupStandardVAT();
-        LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
+        LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration V2"::Avalara);
         EDocumentService."Avalara Mandate" := 'GB-TEST';
         EDocumentService.Modify();
 
