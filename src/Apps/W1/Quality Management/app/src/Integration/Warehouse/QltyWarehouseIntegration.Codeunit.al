@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Integration.Warehouse;
 
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
@@ -12,11 +14,17 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 
 codeunit 20438 "Qlty. Warehouse Integration"
 {
+    SingleInstance = true;
+
+    var
+        ListOfCreatedInspectionIds: List of [RecordId];
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Jnl.-Register Line", 'OnAfterInsertWhseEntry', '', true, true)]
     local procedure HandleOnAfterInsertWhseEntry(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line")
     var
@@ -63,15 +71,20 @@ codeunit 20438 "Qlty. Warehouse Integration"
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.FindSet() then
             repeat
+                Clear(QltyInspectionHeader);
                 if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, TempTrackingSpecification, DummyVariant, false, QltyInspectionGenRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                    if QltyInspectionHeader."No." <> '' then
+                        ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
                 end;
             until TempTrackingSpecification.Next() = 0
         else
             if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
                 HasInspection := true;
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                if QltyInspectionHeader."No." <> '' then
+                    ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
             end;
 
         OnAfterWarehouseAttemptCreateInspectionWithWhseJournalLine(HasInspection, QltyInspectionHeader, WarehouseEntry, WarehouseJournalLine, DoNotSendSourceVariant);
@@ -146,6 +159,57 @@ codeunit 20438 "Qlty. Warehouse Integration"
                 TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
                 TempTrackingSpecification.Insert();
             until ReservationEntry.Next() = 0;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnBeforeCode', '', true, true)]
+    local procedure HandleOnBeforeCodeWhseActivityRegister(var WarehouseActivityLine: Record "Warehouse Activity Line")
+    begin
+        Clear(ListOfCreatedInspectionIds);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnAfterRegisterWhseActivity', '', true, true)]
+    local procedure HandleOnAfterRegisterWhseActivity(var WarehouseActivityHeader: Record "Warehouse Activity Header")
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        if ListOfCreatedInspectionIds.Count() > 0 then begin
+            QltyInspectionCreate.DisplayInspectionsIfConfigured(false, ListOfCreatedInspectionIds);
+            Clear(ListOfCreatedInspectionIds);
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnBeforePostWhseJnlLines', '', true, true)]
+    local procedure HandleOnBeforePostWhseJnlLines(ItemJnlLine: Record "Item Journal Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; ItemJnlTemplateType: Enum "Item Journal Template Type"; ToTransfer: Boolean; var IsHandled: Boolean)
+    begin
+        Clear(ListOfCreatedInspectionIds);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnPostLinesOnAfterPostWhseJnlLine', '', true, true)]
+    local procedure HandleOnPostLinesOnAfterPostWhseJnlLine(var ItemJournalLine: Record "Item Journal Line"; CommitIsSuppressed: Boolean)
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        if ListOfCreatedInspectionIds.Count() > 0 then begin
+            QltyInspectionCreate.DisplayInspectionsIfConfigured(false, ListOfCreatedInspectionIds);
+            Clear(ListOfCreatedInspectionIds);
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Jnl.-Register Batch", 'OnBeforeCode', '', true, true)]
+    local procedure HandleOnBeforeCodeWhseJnlRegisterBatch(var WarehouseJournalLine: Record "Warehouse Journal Line"; var HideDialog: Boolean; var SuppressCommit: Boolean; var IsHandled: Boolean)
+    begin
+        Clear(ListOfCreatedInspectionIds);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Jnl.-Register Batch", 'OnAfterCode', '', true, true)]
+    local procedure HandleOnAfterCodeWhseJnlRegisterBatch(var WarehouseJournalLine: Record "Warehouse Journal Line"; WarehouseJournalBatch: Record "Warehouse Journal Batch"; WhseRegNo: Integer)
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        if ListOfCreatedInspectionIds.Count() > 0 then begin
+            QltyInspectionCreate.DisplayInspectionsIfConfigured(false, ListOfCreatedInspectionIds);
+            Clear(ListOfCreatedInspectionIds);
+        end;
     end;
 
     /// <summary>
