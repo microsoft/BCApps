@@ -188,10 +188,10 @@ page 12 "Email Viewer"
     begin
         EmailViewer.CheckPermissions(Rec);
 
-        EmailViewer.GetEmailAccount(Rec, EmailAccount);
+        EmailViewer.GetEmailAccount(Rec, TempEmailAccount);
         EmailViewer.GetEmailMessage(Rec, EmailMessageImpl);
 
-        UpdateFromField(EmailAccount);
+        UpdateFromField(TempEmailAccount);
         EmailSubject := EmailMessageImpl.GetSubject();
         ToRecipient := EmailMessageImpl.GetRecipientsAsText(Enum::"Email Recipient Type"::"To");
         CcRecipient := EmailMessageImpl.GetRecipientsAsText(Enum::"Email Recipient Type"::Cc);
@@ -227,7 +227,7 @@ page 12 "Email Viewer"
     end;
 
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailMessageImpl: Codeunit "Email Message Impl.";
         EmailViewer: Codeunit "Email Viewer";
         EmailImpl: Codeunit "Email Impl";
