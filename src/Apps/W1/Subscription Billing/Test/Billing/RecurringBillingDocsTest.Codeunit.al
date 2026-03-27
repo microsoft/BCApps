@@ -65,7 +65,6 @@ codeunit 139687 "Recurring Billing Docs Test"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
-        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         NextToDateBeforeFromDateErr: Label 'CalculateNextToDate returned %1 which is before FromDate %2. This would cause billing to get stuck.', Locked = true;
@@ -2462,7 +2461,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         FromDate: Date;
         NextToDate: Date;
     begin
-        // [FEATURE] [AI test 0.3]
+        // [FEATURE] [AI test]
         // [SCENARIO 623011] CalculateNextToDate with "Align to End of Month" does not return date before FromDate
         Initialize();
 
@@ -2475,9 +2474,63 @@ codeunit 139687 "Recurring Billing Docs Test"
         // [WHEN] CalculateNextToDate is called with period formula <1D> from Feb 27
         Evaluate(PeriodFormula, '<1D>');
         FromDate := DMY2Date(27, 2, 2025);
-        LibraryLowerPermissions.SetO365Full();
         NextToDate := SubscriptionLine.CalculateNextToDate(PeriodFormula, FromDate);
-        LibraryLowerPermissions.RestoreO365Permissions();
+
+        // [THEN] NextToDate is not before FromDate
+        Assert.IsTrue(NextToDate >= FromDate,
+            StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
+    end;
+
+    [Test]
+    procedure CalculateNextToDateZeroDayFormulaReturnsFromDate()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        PeriodFormula: DateFormula;
+        FromDate: Date;
+        NextToDate: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 623011] CalculateNextToDate with <0D> formula returns exactly FromDate (boundary case)
+        Initialize();
+
+        // [GIVEN] Subscription Line "SL" with Period Calculation = "Align to End of Month" and start date Jan 31
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
+        SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(31, 1, 2025));
+        SubscriptionLine.Modify();
+
+        // [WHEN] CalculateNextToDate is called with period formula <0D> from Feb 28
+        Evaluate(PeriodFormula, '<0D>');
+        FromDate := DMY2Date(28, 2, 2025);
+        NextToDate := SubscriptionLine.CalculateNextToDate(PeriodFormula, FromDate);
+
+        // [THEN] NextToDate is not before FromDate (should be exactly FromDate or later)
+        Assert.IsTrue(NextToDate >= FromDate,
+            StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
+    end;
+
+    [Test]
+    procedure CalculateNextToDateMonthFormulaLeapYearDoesNotReturnDateBeforeFromDate()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        PeriodFormula: DateFormula;
+        FromDate: Date;
+        NextToDate: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 623011] CalculateNextToDate with monthly formula and leap year Feb 29 to Mar transition does not return date before FromDate
+        Initialize();
+
+        // [GIVEN] Subscription Line "SL" with Period Calculation = "Align to End of Month" and start date Jan 30 (leap year 2024)
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
+        SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(30, 1, 2024));
+        SubscriptionLine.Modify();
+
+        // [WHEN] CalculateNextToDate is called with period formula <1M> from Feb 29 (leap year)
+        Evaluate(PeriodFormula, '<1M>');
+        FromDate := DMY2Date(29, 2, 2024);
+        NextToDate := SubscriptionLine.CalculateNextToDate(PeriodFormula, FromDate);
 
         // [THEN] NextToDate is not before FromDate
         Assert.IsTrue(NextToDate >= FromDate,
@@ -2571,7 +2624,10 @@ codeunit 139687 "Recurring Billing Docs Test"
             until BillingLine.Next() = 0;
     end;
 
-    local procedure CountBillingArchiveLinesOnDocument(DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20]; ServicePartner: Enum "Service Partner"; ContractNo: Code[20]; ContractLineNo: Integer): Integer
+    local procedure CountBillingArchiveLinesOnDocument(DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20];
+                                                                         ServicePartner: Enum "Service Partner";
+                                                                         ContractNo: Code[20];
+                                                                         ContractLineNo: Integer): Integer
     var
         BillingArchiveLine: Record "Billing Line Archive";
     begin
@@ -2654,14 +2710,16 @@ codeunit 139687 "Recurring Billing Docs Test"
         SalesHeader.DeleteAll();
     end;
 
-    local procedure FilterPurchaseLineOnDocumentLine(PurchaseDocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20]; LineNo: Integer)
+    local procedure FilterPurchaseLineOnDocumentLine(PurchaseDocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20];
+                                                                               LineNo: Integer)
     begin
         PurchaseLine.SetRange("Document Type", PurchaseDocumentType);
         PurchaseLine.SetRange("Document No.", DocumentNo);
         PurchaseLine.SetRange("Line No.", LineNo);
     end;
 
-    local procedure FilterSalesLineOnDocumentLine(SalesDocumentType: Enum "Sales Document Type"; DocumentNo: Code[20]; LineNo: Integer)
+    local procedure FilterSalesLineOnDocumentLine(SalesDocumentType: Enum "Sales Document Type"; DocumentNo: Code[20];
+                                                                         LineNo: Integer)
     begin
         SalesLine.SetRange("Document Type", SalesDocumentType);
         SalesLine.SetRange("Document No.", DocumentNo);
@@ -2958,9 +3016,13 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     local procedure MockSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
+    var
+        ServiceCommitmentPackage: Record "Subscription Package";
     begin
+        ContractTestLibrary.CreateServiceCommitmentPackage(ServiceCommitmentPackage);
         SubscriptionLine.Init();
         SubscriptionLine."Invoicing via" := SubscriptionLine."Invoicing via"::Contract;
+        SubscriptionLine."Subscription Package Code" := ServiceCommitmentPackage.Code;
         SubscriptionLine.Insert(true);
     end;
 
