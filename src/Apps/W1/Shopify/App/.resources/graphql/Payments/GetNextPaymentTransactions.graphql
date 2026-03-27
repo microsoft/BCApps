@@ -1,0 +1,2 @@
+# cost: 30
+{"query":"{ shopifyPaymentsAccount { balanceTransactions(first: 100, query: \"id:>={{SinceId}}\", after: \"{{After}}\") { edges { node { id test associatedPayout { id } amount { amount currencyCode } fee { amount currencyCode } net { amount currencyCode } sourceId sourceOrderTransactionId transactionDate type associatedOrder { id } } cursor } pageInfo { hasNextPage } } } }"}

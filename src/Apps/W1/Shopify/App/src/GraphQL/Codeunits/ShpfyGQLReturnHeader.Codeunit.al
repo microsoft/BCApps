@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,16 +6,27 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30225 "Shpfy GQL ReturnHeader" implements "Shpfy IGraphQL"
+codeunit 30225 "Shpfy GQL ReturnHeader"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by .graphql resource files. Use "Shpfy GraphQL Queries".GetQueryWithCost() instead.';
+    ObsoleteTag = '29.0';
 
-    internal procedure GetGraphQL(): Text
+    procedure GetGraphQL(): Text
+    var
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
     begin
-        exit('{"query":"{ return(id: \"gid://shopify/Return/{{ReturnId}}\") { order { legacyResourceId } id name status totalQuantity decline { reason note }}}"}');
+        exit(GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Returns_GetReturnHeader, ExpectedCost));
     end;
 
-    internal procedure GetExpectedCost(): Integer
+    procedure GetExpectedCost(): Integer
+    var
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
     begin
-        exit(3);
+        GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Returns_GetReturnHeader, ExpectedCost);
+        exit(ExpectedCost);
     end;
 }
+#endif
