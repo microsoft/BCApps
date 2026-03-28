@@ -1951,6 +1951,8 @@ table 8059 "Subscription Line"
                     end;
                 end;
         end;
+        if NextToDate < FromDate then
+            NextToDate := FromDate;
     end;
 
     local procedure GetBillingReferenceDate() BillingReferenceDate: Date
