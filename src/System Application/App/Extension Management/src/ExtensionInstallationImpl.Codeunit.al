@@ -417,5 +417,52 @@ codeunit 2500 "Extension Installation Impl"
 
         exit(Result = PolicyToTestFor);
     end;
+
+    procedure ReinstallExtension(PackageId: Guid; lcid: Integer; IsUIEnabled: Boolean): Boolean
+    var
+        DependentModules: List of [ModuleInfo];
+        DependentModule: ModuleInfo;
+        Success: Boolean;
+    begin
+        Success := true;
+        DependentModules := GetDependentModulesForExtensionToReinstall(PackageId);
+
+        if not UninstallExtension(PackageId, IsUIEnabled) then
+            Success := false;
+
+        if not InstallExtension(PackageId, lcid, IsUIEnabled) then
+            Success := false;
+
+        foreach DependentModule in DependentModules do
+            if not InstallExtension(DependentModule.PackageId, lcid, IsUIEnabled) then
+                Success := false;
+
+        exit(Success);
+    end;
+
+    local procedure GetDependentModulesForExtensionToReinstall(PackageId: Guid): List of [ModuleInfo]
+    var
+        DependencyApp: Record "NAV App Installed App";
+        NAVAppInstalledApp: Record "NAV App Installed App";
+        InstalledModuleDependencies: List of [ModuleDependencyInfo];
+        DependentModules: List of [ModuleInfo];
+        InstalledModuleDependency: ModuleDependencyInfo;
+        InstalledModule: ModuleInfo;
+    begin
+        if NAVAppInstalledApp.FindSet() then
+            repeat
+                NavApp.GetModuleInfo(NAVAppInstalledApp."App ID", InstalledModule);
+                InstalledModuleDependencies := InstalledModule.Dependencies();
+                foreach InstalledModuleDependency in InstalledModuleDependencies do begin
+                    DependencyApp.Get(InstalledModuleDependency.Id);
+                    if DependencyApp."Package ID" = PackageId then begin
+                        if not DependentModules.Contains(InstalledModule) then
+                            DependentModules.Add(InstalledModule);
+                    end;
+                end;
+            until NAVAppInstalledApp.Next() = 0;
+        exit(DependentModules);
+    end;
+
 }
 
