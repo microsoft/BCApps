@@ -24,6 +24,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.IO;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 139883 "E-Doc Process Test"
 {
@@ -578,6 +579,66 @@ codeunit 139883 "E-Doc Process Test"
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.FindFirst();
         Assert.AreNotEqual(Location.Code, PurchaseLine."Location Code", 'The location code should not be set on the purchase line.');
+    end;
+
+    [Test]
+    procedure AdditionalFieldValueExceedingFieldLengthShouldWarn()
+    var
+        EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
+        PurchaseInvoiceLine: Record "Purch. Inv. Line";
+        EDocument: Record "E-Document";
+        EDocImportParams: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        EDocPurchLineField: Record "E-Document Line - Field";
+        EDocPurchaseLine: Record "E-Document Purchase Line";
+        ErrorMessage: Record "Error Message";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        FieldValue: Code[2048];
+    begin
+        // [SCENARIO] An additional field is configured, and the stored value exceeds the target field's maximum length.
+        // When finalizing the draft, the system should skip the field, log a warning, and still create the purchase document.
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        // [GIVEN] An additional field is configured for Location Code (Code[10])
+        EDocPurchLineFieldSetup."Field No." := PurchaseInvoiceLine.FieldNo("Location Code");
+        EDocPurchLineFieldSetup.Insert();
+
+        // [GIVEN] An inbound e-document is received and a draft created
+        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        WorkDate(DMY2Date(1, 1, 2027));
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The draft for the e-document should be created');
+
+        // [GIVEN] A custom value that exceeds the target field length is stored for the additional field
+        FieldValue := 'LONGLOCCODE1'; // 12 characters, exceeds Code[10]
+        EDocPurchLineField."E-Document Entry No." := EDocument."Entry No";
+        EDocPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPurchaseLine.FindFirst();
+        EDocPurchLineField."Line No." := EDocPurchaseLine."Line No.";
+        EDocPurchLineField."Field No." := PurchaseInvoiceLine.FieldNo("Location Code");
+        EDocPurchLineField."Code Value" := FieldValue;
+        EDocPurchLineField.Insert();
+
+        // [WHEN] Finalizing the draft
+        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams), 'The finalization should succeed despite field length exceeded');
+
+        // [THEN] The e-document should not have errors
+        EDocument.Get(EDocument."Entry No");
+        Assert.IsFalse(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should not have errors');
+
+        // [THEN] A warning message should reference the field name and value
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Warning);
+        ErrorMessage.FindFirst();
+        Assert.ExpectedMessage('Location Code', ErrorMessage."Message");
+        Assert.ExpectedMessage(FieldValue, ErrorMessage."Message");
+
+        // [THEN] A purchase invoice should have been created
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        Assert.RecordIsNotEmpty(PurchaseHeader);
     end;
 
     [Test]
