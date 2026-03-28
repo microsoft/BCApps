@@ -652,6 +652,17 @@ codeunit 134686 "Email Accounts Test"
         Assert.AreEqual(SecondAccountId, TempEmailAccount."Account Id", 'The second email account should still exist.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestInvalidEmailAddress()
+    var
+        EmailAccount: Codeunit "Email Account";
+    begin
+        asserterror EmailAccount.ValidateEmailAddress('a@contoso');
+        asserterror EmailAccount.ValidateEmailAddress('a@contoso.');
+        asserterror EmailAccount.ValidateEmailAddress('a@contoso.b');
+    end;
+
     [ModalPageHandler]
     procedure AddAccountModalPageHandler(var AccountWizardTestPage: TestPage "Email Account Wizard")
     begin
