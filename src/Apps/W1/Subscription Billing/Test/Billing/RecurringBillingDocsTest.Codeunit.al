@@ -3016,8 +3016,8 @@ codeunit 139687 "Recurring Billing Docs Test"
     begin
         ContractTestLibrary.CreateServiceCommitmentPackage(ServiceCommitmentPackage);
         SubscriptionLine.Init();
-        SubscriptionLine."Invoicing via" := SubscriptionLine."Invoicing via"::Contract;
-        SubscriptionLine."Subscription Package Code" := ServiceCommitmentPackage.Code;
+        SubscriptionLine.Validate("Invoicing via", SubscriptionLine."Invoicing via"::Contract);
+        SubscriptionLine.Validate("Subscription Package Code", ServiceCommitmentPackage.Code);
         SubscriptionLine.Insert(true);
     end;
 
