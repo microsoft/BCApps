@@ -12,10 +12,10 @@ reportextension 6168 PostedSalesCrdMemoWithQR extends "Standard Sales - Credit M
     {
         add(Header)
         {
-            column(QR_Code_Image; "QR Code Image")
+            column(QR_Code_Image; "CrdMemo QR Code Image")
             {
             }
-            column(QR_Code_Image_Lbl; FieldCaption("QR Code Image"))
+            column(QR_Code_Image_Lbl; FieldCaption("CrdMemo QR Code Image"))
             {
             }
         }
