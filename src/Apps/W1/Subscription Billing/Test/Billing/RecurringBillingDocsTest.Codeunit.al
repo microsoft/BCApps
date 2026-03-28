@@ -2469,7 +2469,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         MockSubscriptionLine(SubscriptionLine);
         SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
         SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(29, 1, 2025));
-        SubscriptionLine.Modify();
+        SubscriptionLine.Modify(true);
 
         // [WHEN] CalculateNextToDate is called with period formula <1D> from Feb 27
         Evaluate(PeriodFormula, '<1D>');
@@ -2497,7 +2497,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         MockSubscriptionLine(SubscriptionLine);
         SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
         SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(31, 1, 2025));
-        SubscriptionLine.Modify();
+        SubscriptionLine.Modify(true);
 
         // [WHEN] CalculateNextToDate is called with period formula <0D> from Feb 28
         Evaluate(PeriodFormula, '<0D>');
@@ -2525,7 +2525,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         MockSubscriptionLine(SubscriptionLine);
         SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
         SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(30, 1, 2024));
-        SubscriptionLine.Modify();
+        SubscriptionLine.Modify(true);
 
         // [WHEN] CalculateNextToDate is called with period formula <1M> from Feb 29 (leap year)
         Evaluate(PeriodFormula, '<1M>');
