@@ -5,6 +5,7 @@
 
 namespace System.DataAdministration;
 
+using System.Security.User;
 using System.Telemetry;
 
 /// <summary>
@@ -203,6 +204,21 @@ page 3901 "Retention Policy Setup Card"
                     RetenPolAllowedTables.OnRefreshAllowedTables();
                 end;
             }
+            action(TruncateAll)
+            {
+                Caption = 'Truncate All';
+                ApplicationArea = All;
+                Image = Delete;
+                ToolTip = 'Truncate all records in the selected table. This action is restricted to SUPER users and specific tables only.';
+                Visible = IsSuperUser;
+
+                trigger OnAction()
+                var
+                    RetentionPolicySetupImpl: Codeunit "Retention Policy Setup Impl.";
+                begin
+                    RetentionPolicySetupImpl.TruncateTableRecords(Rec);
+                end;
+            }
         }
     }
 
@@ -216,15 +232,18 @@ page 3901 "Retention Policy Setup Card"
         ExpiredRecordCountStyleTxt: Text;
         ReadPermissionNotificationId: Guid;
         ShowExpiredRecordExpirationDate: Boolean;
+        IsSuperUser: Boolean;
         PBTNotificationMsg: Label 'The number of expired records is being calculated in the background. This may take a while.';
         PBTNotificationId: Guid;
 
     trigger OnOpenPage()
     var
+        UserPermissions: Codeunit "User Permissions";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUptake('0000FVZ', 'Retention policies', Enum::"Feature Uptake Status"::Discovered);
         ShowExpiredRecordExpirationDate := not Rec."Apply to all records";
+        IsSuperUser := UserPermissions.IsSuper(UserSecurityId());
     end;
 
     trigger OnAfterGetCurrRecord()

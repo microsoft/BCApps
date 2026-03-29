@@ -6,6 +6,8 @@
 namespace System.DataAdministration;
 
 using System.Reflection;
+using System.Security.User;
+using System.Telemetry;
 
 codeunit 3903 "Retention Policy Setup Impl."
 {
@@ -31,6 +33,13 @@ codeunit 3903 "Retention Policy Setup Impl."
         DeleteAllowedList: List of [Integer];
         ReadPermissionNotificationLbl: Label 'The number of expired records cannot be calculated because you do not have read permission on table %1, %2.', Comment = '%1 = table number, %2 = table caption';
         TableDoesNotExistLbl: Label 'Table %1 does not exist.', Comment = '%1 = table number';
+        NotAllowedErr: Label 'Only SUPER users can execute this action.';
+        TruncateNotAllowedForTableErr: Label 'Truncate is not allowed for table %1.', Comment = '%1 = Table caption';
+        TruncateConfirmQst: Label 'This will truncate ALL records in table %1. Continue?', Comment = '%1 = Table caption';
+        TruncateFinalConfirmQst: Label 'This action cannot be undone. Are you absolutely sure?';
+        TruncateSuccessMsg: Label 'All records in table %1 have been truncated successfully.', Comment = '%1 = Table caption';
+        TruncateNotSupportedErr: Label 'Truncate is not supported for table %1.', Comment = '%1 = Table caption';
+        TruncateTableInfoLbl: Label 'Table %1, %2 was truncated by user %3.', Comment = '%1 = Table Id, %2 = Table caption, %3 = User Security Id';
 
     procedure SetTableFilterView(var RetentionPolicySetupLine: Record "Retention Policy Setup Line"): Text
     var
@@ -465,5 +474,40 @@ codeunit 3903 "Retention Policy Setup Impl."
             end;
             RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(RetentionPolicySetupLineLockedErr, RetentionPolicySetupLine."Table ID", RetentionPolicySetupLine."Table Caption"));
         end;
+    end;
+
+    procedure TruncateTableRecords(RetentionPolicySetup: Record "Retention Policy Setup")
+    var
+        UserPermissions: Codeunit "User Permissions";
+        RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
+        RetentionPolicyLog: Codeunit "Retention Policy Log";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        RecRef: RecordRef;
+        Ok: Boolean;
+    begin
+        if not UserPermissions.IsSuper(UserSecurityId()) then
+            Error(NotAllowedErr);
+
+        if not RetenPolAllowedTblImpl.IsTruncateAllowed(RetentionPolicySetup."Table Id") then
+            Error(TruncateNotAllowedForTableErr, RetentionPolicySetup."Table Caption");
+
+        if not Confirm(TruncateConfirmQst, false, RetentionPolicySetup."Table Caption") then
+            exit;
+
+        if not Confirm(TruncateFinalConfirmQst, false) then
+            exit;
+
+        RecRef.Open(RetentionPolicySetup."Table Id");
+        RecRef.Reset();
+        Ok := RecRef.Truncate(true);
+        RecRef.Close();
+
+        if Ok then begin
+            RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(TruncateTableInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption", UserSecurityId()));
+            Session.LogAuditMessage(StrSubstNo(TruncateTableInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+            FeatureTelemetry.LogUsage('0000F6L', 'Retention policies', 'Table truncated');
+            Message(TruncateSuccessMsg, RetentionPolicySetup."Table Caption");
+        end else
+            Error(TruncateNotSupportedErr, RetentionPolicySetup."Table Caption");
     end;
 }

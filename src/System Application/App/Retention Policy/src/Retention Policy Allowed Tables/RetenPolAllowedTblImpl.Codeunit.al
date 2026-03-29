@@ -438,4 +438,26 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
 
         exit(false);
     end;
+
+    procedure VerifyTruncateAllowed(TableId: Integer; TruncateAllowed: Boolean)
+    var
+        RetentionPolicyAllowedTable: Record "Retention Policy Allowed Table";
+        RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
+    begin
+        if RetentionPolicyAllowedTable.Get(TableId) then begin
+            RetentionPolicyAllowedTable."Truncate Allowed" := TruncateAllowed;
+            BindSubscription(RetenPolAllowedTblImpl);
+            RetentionPolicyAllowedTable.Modify();
+            UnbindSubscription(RetenPolAllowedTblImpl);
+        end;
+    end;
+
+    procedure IsTruncateAllowed(TableId: Integer): Boolean
+    var
+        RetentionPolicyAllowedTable: Record "Retention Policy Allowed Table";
+    begin
+        if RetentionPolicyAllowedTable.Get(TableId) then
+            exit(RetentionPolicyAllowedTable."Truncate Allowed");
+        exit(false);
+    end;
 }

@@ -261,6 +261,30 @@ codeunit 3905 "Reten. Pol. Allowed Tables"
     end;
 
     /// <summary>
+    /// Sets whether truncation is allowed for a given table.
+    /// </summary>
+    /// <param name="TableId">The ID of the table.</param>
+    /// <param name="TruncateAllowed">True if truncation should be allowed for this table.</param>
+    procedure VerifyTruncateAllowed(TableId: Integer; TruncateAllowed: Boolean)
+    var
+        RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
+    begin
+        RetenPolAllowedTblImpl.VerifyTruncateAllowed(TableId, TruncateAllowed);
+    end;
+
+    /// <summary>
+    /// Checks whether truncation is allowed for a given table.
+    /// </summary>
+    /// <param name="TableId">The ID of the table to check.</param>
+    /// <returns>True if truncation is allowed for this table.</returns>
+    procedure IsTruncateAllowed(TableId: Integer): Boolean
+    var
+        RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
+    begin
+        exit(RetenPolAllowedTblImpl.IsTruncateAllowed(TableId));
+    end;
+
+    /// <summary>
     /// This event is called when the user chooses to refresh the allowed tables.
     /// </summary>
     [IntegrationEvent(false, false)]

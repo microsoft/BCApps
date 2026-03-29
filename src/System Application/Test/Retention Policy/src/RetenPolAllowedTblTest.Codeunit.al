@@ -204,4 +204,57 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
         // verify
         Assert.AreEqual(CalcDate(MaxExpirationDateFormula, Today()), ExpirationDate, CalcExpirationDateErr);
     end;
+
+    [Test]
+    procedure TestIsTruncateAllowedDefaultFalse()
+    var
+        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+    begin
+        PermissionsMock.Set('Retention Pol. Admin');
+        // setup
+
+        // execute
+
+        // verify
+        Assert.IsFalse(RetenPolAllowedTables.IsTruncateAllowed(Database::"Retention Policy Test Data"), 'Truncate should not be allowed by default');
+    end;
+
+    [Test]
+    procedure TestVerifyTruncateAllowedToggle()
+    var
+        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+    begin
+        PermissionsMock.Set('Retention Pol. Admin');
+        // setup
+        Assert.IsFalse(RetenPolAllowedTables.IsTruncateAllowed(Database::"Retention Policy Test Data"), 'Truncate should not be allowed by default');
+
+        // execute - set to true
+        RetenPolAllowedTables.VerifyTruncateAllowed(Database::"Retention Policy Test Data", true);
+
+        // verify
+        Assert.IsTrue(RetenPolAllowedTables.IsTruncateAllowed(Database::"Retention Policy Test Data"), 'Truncate should be allowed after setting to true');
+
+        // execute - set back to false
+        RetenPolAllowedTables.VerifyTruncateAllowed(Database::"Retention Policy Test Data", false);
+
+        // verify
+        Assert.IsFalse(RetenPolAllowedTables.IsTruncateAllowed(Database::"Retention Policy Test Data"), 'Truncate should not be allowed after setting to false');
+
+        // roll back the change
+        asserterror error('')
+    end;
+
+    [Test]
+    procedure TestIsTruncateAllowedForNonAllowedTable()
+    var
+        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+    begin
+        PermissionsMock.Set('Retention Pol. Admin');
+        // setup
+
+        // execute
+
+        // verify
+        Assert.IsFalse(RetenPolAllowedTables.IsTruncateAllowed(17), 'Truncate should not be allowed for a table not in the allowed list');
+    end;
 }
