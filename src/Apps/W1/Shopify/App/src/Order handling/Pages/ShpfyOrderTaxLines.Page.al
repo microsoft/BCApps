@@ -58,6 +58,11 @@ page 30168 "Shpfy Order Tax Lines"
                     ApplicationArea = All;
                     ToolTip = 'Specifies if the channel that submitted the tax line is liable for remitting.';
                 }
+                field("Tax Jurisdiction Code"; Rec."Tax Jurisdiction Code")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the BC Tax Jurisdiction that matches this Shopify tax line.';
+                }
             }
         }
     }
