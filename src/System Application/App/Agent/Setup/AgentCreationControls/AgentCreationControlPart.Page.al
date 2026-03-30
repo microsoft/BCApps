@@ -101,7 +101,7 @@ page 4332 "Agent Creation Control Part"
         if CreationControlLookup.RunModal() = Action::LookupOK then begin
             CreationControlLookup.GetRecord(TempAgentCreationControlLookup);
             Rec."Company Name" := CopyStr(TempAgentCreationControlLookup."Key", 1, MaxStrLen(Rec."Company Name"));
-            Rec.Modify();
+            if Rec.Modify() then;
             UpdateDisplayTexts();
         end;
     end;
@@ -143,7 +143,7 @@ page 4332 "Agent Creation Control Part"
                 Evaluate(EnumIndex, TempAgentCreationControlLookup."Key");
                 Rec.Validate(Rec."Agent Metadata Provider", EnumIndex);
             end;
-            Rec.Modify();
+            if Rec.Modify() then;
             UpdateDisplayTexts();
         end;
     end;
@@ -178,7 +178,7 @@ page 4332 "Agent Creation Control Part"
                 Evaluate(UserSecurityId, TempAgentCreationControlLookup."Key");
                 Rec.Validate(Rec."User Security ID", UserSecurityId);
             end;
-            Rec.Modify();
+            if Rec.Modify() then;
             UpdateDisplayTexts();
         end;
     end;
@@ -227,7 +227,7 @@ page 4332 "Agent Creation Control Part"
 
     var
         UserDisplayText, AgentMetadataProviderDisplayText, CompanyDisplayText : Text;
-        AllUsersLbl: Label '(All Users)', MaxLength = 2048;
-        AllCompaniesLbl: Label '(All Companies)', MaxLength = 2048;
-        AllAgentMetadataProvidersLbl: Label '(All Agent Types)', MaxLength = 2048;
+        AllUsersLbl: Label 'All users', MaxLength = 2048;
+        AllCompaniesLbl: Label 'All companies', MaxLength = 2048;
+        AllAgentMetadataProvidersLbl: Label 'All agent types', MaxLength = 2048;
 }
