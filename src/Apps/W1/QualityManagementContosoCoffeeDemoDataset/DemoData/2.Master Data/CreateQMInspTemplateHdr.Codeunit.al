@@ -91,6 +91,7 @@ codeunit 5596 "Create QM Insp. Template Hdr"
         ProductionFoodTok: Label 'PRODUCTIONFOOD', Locked = true, MaxLength = 20;
         ReceiveTok: Label 'RECEIVE', Locked = true, MaxLength = 20;
         ScheduleChangeTok: Label 'SCHEDULECHANGE', Locked = true, MaxLength = 20;
+        BeansTok: Label 'BEANS', Locked = true, MaxLength = 20;
 
         BicycleChecklistDescLbl: Label 'Bicycle Checklist', MaxLength = 100;
         CorrectiveActionDescLbl: Label 'Corrective Action', MaxLength = 100;

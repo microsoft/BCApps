@@ -99,7 +99,7 @@ page 687 "Payment Practice Card"
                 ApplicationArea = All;
                 SubPageLink = "Header No." = field("No.");
                 UpdatePropagation = Both;
-                Visible = Rec."Lines Exist";
+                Visible = true;
             }
         }
     }
