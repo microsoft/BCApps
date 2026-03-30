@@ -490,21 +490,12 @@ codeunit 3903 "Retention Policy Setup Impl."
             exit;
 
         RecRef.Open(RetentionPolicySetup."Table Id");
-        if not TryTruncateTable(RecRef) then begin
-            RecRef.Close();
-            Error(GetLastErrorText());
-        end;
+        RecRef.Truncate(true);
         RecRef.Close();
 
         RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(TruncateTableInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption", UserSecurityId()));
         Session.LogAuditMessage(StrSubstNo(TruncateTableInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
         FeatureTelemetry.LogUsage('0000F6L', 'Retention policies', 'Table truncated');
         Message(TruncateSuccessMsg, RetentionPolicySetup."Table Caption");
-    end;
-
-    [TryFunction]
-    local procedure TryTruncateTable(var RecRef: RecordRef)
-    begin
-        RecRef.Truncate(true);
     end;
 }
