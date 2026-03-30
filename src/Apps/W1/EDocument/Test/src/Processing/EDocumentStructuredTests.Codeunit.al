@@ -97,6 +97,7 @@ codeunit 139891 "E-Document Structured Tests"
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
     end;
+
     #endregion
 
     local procedure Initialize(Integration: Enum "Service Integration")
