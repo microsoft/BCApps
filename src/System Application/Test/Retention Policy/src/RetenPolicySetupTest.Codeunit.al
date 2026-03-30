@@ -680,7 +680,6 @@ codeunit 138701 "Reten. Policy Setup Test"
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
         RetentionPolicyTestData: Record "Retention Policy Test Data";
-        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
         RetentionPolicy: Codeunit "Retention Policy Setup";
     begin
         PermissionsMock.Set('Retention Pol. Admin');
@@ -696,8 +695,8 @@ codeunit 138701 "Reten. Policy Setup Test"
         RetentionPolicyTestData.Insert();
         Assert.AreEqual(2, RetentionPolicyTestData.Count(), 'There should be 2 records before truncate');
 
-        // enable truncate for the table
-        RetenPolAllowedTables.SetTruncateAllowed(Database::"Retention Policy Test Data", true);
+        // enable truncate for the table (call through test library which owns the table)
+        RetentionPolicyTestLibrary.SetTruncateAllowed(Database::"Retention Policy Test Data", true);
 
         // execute
         RetentionPolicy.TruncateTableRecords(RetentionPolicySetup);
@@ -707,7 +706,7 @@ codeunit 138701 "Reten. Policy Setup Test"
         Assert.AreEqual(0, RetentionPolicyTestData.Count(), 'All records should be deleted after truncate');
 
         // clean up: reset truncate allowed
-        RetenPolAllowedTables.SetTruncateAllowed(Database::"Retention Policy Test Data", false);
+        RetentionPolicyTestLibrary.SetTruncateAllowed(Database::"Retention Policy Test Data", false);
     end;
 
     [FilterPageHandler]

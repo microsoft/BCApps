@@ -228,14 +228,14 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
         // setup
         Assert.IsFalse(RetenPolAllowedTables.IsTruncateAllowed(Database::"Retention Policy Test Data"), 'Truncate should not be allowed by default');
 
-        // execute - set to true
-        RetenPolAllowedTables.SetTruncateAllowed(Database::"Retention Policy Test Data", true);
+        // execute - set to true (call through test library which owns the table)
+        RetentionPolicyTestLibrary.SetTruncateAllowed(Database::"Retention Policy Test Data", true);
 
         // verify
         Assert.IsTrue(RetenPolAllowedTables.IsTruncateAllowed(Database::"Retention Policy Test Data"), 'Truncate should be allowed after setting to true');
 
         // execute - set back to false
-        RetenPolAllowedTables.SetTruncateAllowed(Database::"Retention Policy Test Data", false);
+        RetentionPolicyTestLibrary.SetTruncateAllowed(Database::"Retention Policy Test Data", false);
 
         // verify
         Assert.IsFalse(RetenPolAllowedTables.IsTruncateAllowed(Database::"Retention Policy Test Data"), 'Truncate should not be allowed after setting to false');
