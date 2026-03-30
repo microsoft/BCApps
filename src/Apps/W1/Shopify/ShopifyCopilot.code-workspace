@@ -4,10 +4,10 @@
             "path": "App"
         },
         {
-            "path": "ShpfyCopilotTaxMatching/app"
+            "path": "CopilotTaxMatching/app"
         },
         {
-            "path": "ShpfyCopilotTaxMatching/test"
+            "path": "CopilotTaxMatching/test"
         }
     ],
     "settings": {}
