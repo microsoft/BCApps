@@ -265,11 +265,11 @@ codeunit 3905 "Reten. Pol. Allowed Tables"
     /// </summary>
     /// <param name="TableId">The ID of the table.</param>
     /// <param name="TruncateAllowed">True if truncation should be allowed for this table.</param>
-    procedure VerifyTruncateAllowed(TableId: Integer; TruncateAllowed: Boolean)
+    procedure SetTruncateAllowed(TableId: Integer; TruncateAllowed: Boolean)
     var
         RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
     begin
-        RetenPolAllowedTblImpl.VerifyTruncateAllowed(TableId, TruncateAllowed);
+        RetenPolAllowedTblImpl.SetTruncateAllowed(TableId, TruncateAllowed);
     end;
 
     /// <summary>

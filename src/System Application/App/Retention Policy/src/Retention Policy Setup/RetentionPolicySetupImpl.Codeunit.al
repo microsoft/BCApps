@@ -36,7 +36,7 @@ codeunit 3903 "Retention Policy Setup Impl."
         NotAllowedErr: Label 'Only SUPER users can execute this action.';
         TruncateNotAllowedForTableErr: Label 'Truncate is not allowed for table %1.', Comment = '%1 = Table caption';
         TruncateConfirmQst: Label 'This will truncate ALL records in table %1. Continue?', Comment = '%1 = Table caption';
-        TruncateFinalConfirmQst: Label 'This action cannot be undone. Are you absolutely sure?';
+        TruncateFinalConfirmQst: Label 'This action cannot be undone. Are you absolutely sure?', Comment = 'Final confirmation before truncating all records in a table. No placeholders.';
         TruncateSuccessMsg: Label 'All records in table %1 have been truncated successfully.', Comment = '%1 = Table caption';
         TruncateNotSupportedErr: Label 'Truncate is not supported for table %1.', Comment = '%1 = Table caption';
         TruncateTableInfoLbl: Label 'Table %1, %2 was truncated by user %3.', Comment = '%1 = Table Id, %2 = Table caption, %3 = User Security Id';
