@@ -271,6 +271,12 @@ table 30133 "Shpfy Order Transaction"
             Caption = 'Shop Code';
             TableRelation = "Shpfy Shop";
         }
+        field(109; "Shpfy Order No."; Text[50])
+        {
+            Caption = 'Shopify Order No.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Shpfy Order Header"."Shopify Order No." where("Shopify Order Id" = field("Shopify Order Id")));
+        }
     }
 
     keys
