@@ -6,6 +6,7 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Document;
@@ -63,6 +64,48 @@ codeunit 139611 "Shpfy Order Refund Test"
         SalesHeader.CalcFields("Amount Including VAT");
         LibraryAssert.AreEqual(RefundHeader."Total Refunded Amount", SalesHeader."Amount Including VAT", 'The SalesHeader."Amount Including VAT" must be equal to RefundHeader."Total Refunded Amount".');
         // Tear down
+        ResetProcessOnRefund(RefundId);
+    end;
+
+    [Test]
+    procedure UnitTestCrMemoInheritsTaxAreaAndTaxLiable()
+    var
+        SalesHeader: Record "Sales Header";
+        RefundHeader: Record "Shpfy Refund Header";
+        OrderHeader: Record "Shpfy Order Header";
+        RefundId: BigInteger;
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        CanCreateDocument: Boolean;
+        ErrorInfo: ErrorInfo;
+    begin
+        // [SCENARIO] Credit memo from refund inherits Tax Area Code and Tax Liable from parent order
+        Initialize();
+
+        // [GIVEN] Set the process of the document: "Auto Create Credit Memo"
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        RefundId := ShopifyIds.Get('Refund').Get(1);
+
+        // [GIVEN] Parent order has Tax Area Code and Tax Liable = true
+        RefundHeader.Get(RefundId);
+        OrderHeader.Get(RefundHeader."Order Id");
+        EnsureTaxAreaExists('SHPFY-TEST');
+        OrderHeader."Tax Area Code" := 'SHPFY-TEST';
+        OrderHeader."Tax Liable" := true;
+        OrderHeader.Modify();
+
+        // [WHEN] Credit memo is created from refund
+        CanCreateDocument := IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, ErrorInfo);
+        LibraryAssert.IsTrue(CanCreateDocument, 'Must be able to create credit memo');
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+
+        // [THEN] Credit memo has Tax Area Code and Tax Liable from parent order
+        LibraryAssert.AreEqual(OrderHeader."Tax Area Code", SalesHeader."Tax Area Code", 'Credit memo Tax Area Code must match parent order');
+        LibraryAssert.IsTrue(SalesHeader."Tax Liable", 'Credit memo Tax Liable must be true when parent order is Tax Liable');
+
+        // Tear down — restore order header and remove doc link
+        OrderHeader."Tax Area Code" := '';
+        OrderHeader."Tax Liable" := false;
+        OrderHeader.Modify();
         ResetProcessOnRefund(RefundId);
     end;
 
@@ -533,6 +576,16 @@ codeunit 139611 "Shpfy Order Refund Test"
 
         IsInitialized := true;
         Commit();
+    end;
+
+    local procedure EnsureTaxAreaExists(TaxAreaCode: Code[20])
+    var
+        TaxArea: Record "Tax Area";
+    begin
+        if not TaxArea.Get(TaxAreaCode) then begin
+            TaxArea.Code := TaxAreaCode;
+            TaxArea.Insert();
+        end;
     end;
 
     local procedure ResetProcessOnRefund(ReFundId: Integer)
