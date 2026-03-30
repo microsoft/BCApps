@@ -22,12 +22,15 @@ This causes incorrect VAT amounts on posted invoices, wrong VAT reporting, and m
 
 **File:** `EDocumentADIHandler.Codeunit.al` — `PopulateEDocumentPurchaseLine`
 
-**Change:** Replace the current `tax` → `"VAT Rate"` mapping (which stores a monetary amount) with a computation that produces a percentage:
+**ADI schema context ([2024-11-30-ga](https://github.com/Azure-Samples/document-intelligence-code-samples/blob/main/schema/2024-11-30-ga/invoice.md)):** The `Items.*.Tax` field is ambiguous by design — "Possible values include tax amount, tax %, and tax Y/N". A separate `Items.*.TaxRate` (string) field provides the unambiguous percentage.
 
-1. Read ADI's `tax` field into a local decimal variable (tax amount).
-2. If the line has both a tax amount > 0 and `Sub Total` > 0, compute: `VAT Rate = (tax amount / Sub Total) * 100`.
-3. If tax amount = 0, set `VAT Rate = 0` (zero-rated — valid and useful).
-4. If `Sub Total` = 0, skip — leave `VAT Rate` as 0.
+**Change:** Replace the current `tax` → `"VAT Rate"` mapping with a multi-step resolution:
+
+1. **Prefer `TaxRate`** (string field) — parse the numeric percentage from it (e.g., "20%", "VAT 20%", "20" → 20). This is the unambiguous source.
+2. **Fallback to `Tax`** — if `TaxRate` is unavailable, read the `Tax` field. Check `value_text` to disambiguate:
+   - If `value_text` contains `%` → the value is a percentage, use it directly.
+   - Otherwise → assume monetary amount, compute: `VAT Rate = (Tax / Sub Total) * 100`.
+3. If neither field provides usable data, leave `VAT Rate` as 0.
 
 After this change, all three handlers (ADI, PEPPOL, MLLM) consistently populate `"VAT Rate"` as a percentage.
 
@@ -101,7 +104,7 @@ If the field is blank (resolution failed or user didn't set it), do nothing — 
 
 - **Combinatorial solving** — No attempt to find posting group combinations that make line VATs add up to the header total for multi-line invoices without per-line VAT data.
 - **Blocking finalization** — VAT mismatch is informational, not a hard block. The existing document totals validation at posting time remains the enforcement mechanism.
-- **ADI `taxRate` field** — The ADI invoice model may provide a `taxRate` string field. This design computes the rate from `tax / amount` instead, which works regardless of whether ADI provides `taxRate`. Adding direct `taxRate` extraction can be done as a follow-up.
+- **ADI `TaxDetails` header field** — The ADI model provides `TaxDetails` with per-rate breakdowns at the header level. This could be used as an additional data source but is not consumed in this design.
 
 ## Key Files
 

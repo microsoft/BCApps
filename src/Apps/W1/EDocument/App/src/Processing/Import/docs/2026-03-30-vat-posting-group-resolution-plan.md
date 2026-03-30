@@ -10,13 +10,21 @@
 
 ---
 
-### Task 1: Normalize ADI handler — compute VAT percentage from tax amount
+### Task 1: Normalize ADI handler — extract VAT percentage from ADI data
 
 **Files:**
 - Modify: `src/Apps/W1/EDocument/App/src/Processing/Import/StructureReceivedEDocument/EDocumentADIHandler.Codeunit.al:174-188`
 - Modify: `src/Apps/W1/EDocument/Test/src/Processing/EDocStructuredValidations.Codeunit.al:59,70,80`
 
-The ADI handler currently stores the `tax` monetary amount directly into `"VAT Rate"`. After this change, it computes a percentage: `(tax / Sub Total) * 100`.
+**Background — ADI schema ambiguity (from [ADI invoice schema 2024-11-30-ga](https://github.com/Azure-Samples/document-intelligence-code-samples/blob/main/schema/2024-11-30-ga/invoice.md)):**
+- `Items.*.Tax` (currency type) — "Possible values include tax amount, tax %, and tax Y/N" — **ambiguous by design**
+- `Items.*.TaxRate` (string type) — "Tax rate associated with each line item" — **unambiguous percentage**
+- `TotalTax` (currency) — header-level total tax amount
+- `TaxDetails.*.Rate` (string) — per-rate breakdown at header level
+
+The current code maps `Tax` directly to `"VAT Rate"`, storing a monetary amount (e.g., `$6.00` → `6`) in a field meant for a percentage.
+
+**Strategy:** Prefer `TaxRate` (unambiguous string percentage). Fall back to computing from `Tax / Sub Total * 100` only when `TaxRate` is absent and `Tax` looks like a monetary amount (check `value_text` for `%` sign to detect when `Tax` contains a percentage instead of an amount).
 
 - [ ] **Step 1: Update `PopulateEDocumentPurchaseLine` in the ADI handler**
 
@@ -27,20 +35,60 @@ EDocumentJsonHelper.SetCurrencyValueInField('tax', FieldsJsonObject, TempEDocPur
 
 With:
 ```al
-        ComputeVATRateFromTaxAmount(FieldsJsonObject, TempEDocPurchaseLine);
+        ResolveVATRateFromADI(FieldsJsonObject, TempEDocPurchaseLine);
 ```
 
 Add a new local procedure after `PopulateEDocumentPurchaseLine`:
 ```al
-    local procedure ComputeVATRateFromTaxAmount(FieldsJsonObject: JsonObject; var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
+    local procedure ResolveVATRateFromADI(FieldsJsonObject: JsonObject; var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
     var
+        TaxRateText: Text;
         TaxAmount: Decimal;
+        TaxValueText: Text;
+        ParsedRate: Decimal;
         UnusedCurrencyCode: Code[10];
     begin
+        // 1. Prefer TaxRate (string) — unambiguous percentage field from ADI
+        EDocumentJsonHelper.SetStringValueInField('taxRate', MaxStrLen(TaxRateText), FieldsJsonObject, TaxRateText);
+        if TaxRateText <> '' then begin
+            ParsedRate := ParsePercentageFromText(TaxRateText);
+            if ParsedRate >= 0 then begin
+                TempEDocPurchaseLine."VAT Rate" := ParsedRate;
+                exit;
+            end;
+        end;
+
+        // 2. Fallback to Tax field — but it's ambiguous (can be amount, %, or Y/N)
         EDocumentJsonHelper.SetCurrencyValueInField('tax', FieldsJsonObject, TaxAmount, UnusedCurrencyCode);
-        if (TaxAmount = 0) or (TempEDocPurchaseLine."Sub Total" = 0) then
+        if TaxAmount = 0 then
             exit;
-        TempEDocPurchaseLine."VAT Rate" := Round((TaxAmount / TempEDocPurchaseLine."Sub Total") * 100, 0.01);
+
+        // Check value_text to disambiguate
+        EDocumentJsonHelper.SetStringValueInField('tax', MaxStrLen(TaxValueText), FieldsJsonObject, TaxValueText);
+        if TaxValueText.Contains('%') then
+            // Tax field contains a percentage (e.g., "20%")
+            TempEDocPurchaseLine."VAT Rate" := TaxAmount
+        else
+            // Tax field contains a monetary amount (e.g., "$6.00") — compute percentage
+            if TempEDocPurchaseLine."Sub Total" > 0 then
+                TempEDocPurchaseLine."VAT Rate" := Round((TaxAmount / TempEDocPurchaseLine."Sub Total") * 100, 0.01);
+    end;
+
+    local procedure ParsePercentageFromText(TaxRateText: Text): Decimal
+    var
+        CleanedText: Text;
+        ParsedValue: Decimal;
+    begin
+        // Strip common non-numeric prefixes/suffixes: "VAT 20%", "20%", "20.0%", "20"
+        CleanedText := TaxRateText.Replace('%', '').Trim();
+        // Remove common prefixes like "VAT ", "Tax ", etc.
+        if CleanedText.StartsWith('VAT ') then
+            CleanedText := CopyStr(CleanedText, 5).Trim();
+        if CleanedText.StartsWith('Tax ') then
+            CleanedText := CopyStr(CleanedText, 5).Trim();
+        if Evaluate(ParsedValue, CleanedText) then
+            exit(ParsedValue);
+        exit(-1); // Signal parse failure
     end;
 ```
 
@@ -48,7 +96,7 @@ Note: `"Sub Total"` is already populated from `amount` at line 176 before this r
 
 - [ ] **Step 2: Update existing CAPI test assertions**
 
-In `EDocStructuredValidations.Codeunit.al`, the CAPI test fixture has three lines with tax amounts $6, $3, $1 on sub totals 60, 30, 10 — all computing to 10%.
+In `EDocStructuredValidations.Codeunit.al`, the CAPI test fixture has three lines with `Tax` as monetary amounts (`$6.00`, `$3.00`, `$1.00`) and no `TaxRate` field. The `value_text` contains `$` (not `%`), so the fallback path computes: `$6/$60 = 10%`, `$3/$30 = 10%`, `$1/$10 = 10%`.
 
 Update line 59:
 ```al
@@ -80,7 +128,11 @@ Expected: All existing CAPI, PEPPOL, and MLLM structured tests pass with the upd
 ```bash
 git add src/Apps/W1/EDocument/App/src/Processing/Import/StructureReceivedEDocument/EDocumentADIHandler.Codeunit.al
 git add src/Apps/W1/EDocument/Test/src/Processing/EDocStructuredValidations.Codeunit.al
-git commit -m "fix: normalize ADI tax amount to VAT percentage in E-Document Purchase Line"
+git commit -m "fix: normalize ADI tax data to VAT percentage in E-Document Purchase Line
+
+Prefer TaxRate (string, unambiguous percentage) over Tax (currency,
+ambiguous). Fall back to computing Tax/Amount*100 only when Tax
+contains a monetary amount (no % in value_text)."
 ```
 
 ---
