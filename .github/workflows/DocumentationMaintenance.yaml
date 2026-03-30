@@ -103,7 +103,7 @@ jobs:
             echo "Auditing $APP_NAME at $APP_PATH..."
 
             timeout 600 copilot -p \
-              "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing. IMPORTANT: Use only Read, Glob, and Grep tools. Do NOT use shell/Bash commands." \
+              "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing." \
               --model claude-opus-4.6 \
               --no-ask-user \
               --autopilot \
