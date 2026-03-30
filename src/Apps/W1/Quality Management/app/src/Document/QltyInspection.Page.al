@@ -732,6 +732,7 @@ page 20406 "Qlty. Inspection"
                 end;
             }
 #pragma warning disable AS0031
+#pragma warning disable AS0032
             group(ItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
@@ -817,6 +818,7 @@ page 20406 "Qlty. Inspection"
                     Rec.RunModalRelatedTransfers();
                 end;
             }
+#pragma warning restore AS0032
 #pragma warning restore AS0031
         }
     }
