@@ -76,6 +76,35 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         }
     }
 
+    actions
+    {
+        addlast(Navigation)
+        {
+            action(CreditLimits)
+            {
+                ApplicationArea = All;
+                Caption = 'View credit limits';
+                ToolTip = 'View and configure credit limits for agent test suites.';
+                Image = Cost;
+                Visible = IsAgentTestType;
+
+                trigger OnAction()
+                var
+                    AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
+                begin
+                    AITEvalLimitProvider := Rec."Test Type";
+                    AITEvalLimitProvider.OpenConfigurationPage();
+                end;
+            }
+        }
+        addlast(Category_Process)
+        {
+            actionref(CreditLimits_Promoted; CreditLimits)
+            {
+            }
+        }
+    }
+
     trigger OnOpenPage()
     var
         AgentSystemPermissions: Codeunit "Agent System Permissions";
@@ -88,6 +117,7 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
     begin
         UpdateAgentTaskMetrics();
         UpdateAgentUserName();
+        ShowNotifications();
     end;
 
     local procedure UpdateIsAgentTestType()
@@ -112,6 +142,14 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
             exit;
 
         AgentUserName := Agent.GetUserName(Rec."Agent User Security ID");
+    end;
+
+    local procedure ShowNotifications()
+    var
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
+    begin
+        AITEvalLimitProvider := Rec."Test Type";
+        AITEvalLimitProvider.ShowNotifications();
     end;
 
     local procedure LookupAgent()
