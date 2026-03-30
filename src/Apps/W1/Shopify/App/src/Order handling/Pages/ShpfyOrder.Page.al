@@ -362,6 +362,22 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     ToolTip = 'Specifies if any tax line on the order is liable to be charged by the sales channel.';
                 }
+                field("Tax Area Code"; Rec."Tax Area Code")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the tax area code for the order. This determines which tax jurisdictions apply when creating the sales document.';
+                }
+                field("Tax Liable"; Rec."Tax Liable")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether the order is liable for sales tax. When set, this value is carried to the sales document.';
+                }
+                field("Tax Exempt"; Rec."Tax Exempt")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies whether this Shopify order is exempt from tax (e.g. tax was disabled at POS).';
+                }
                 field(CurrencyCode; Rec."Currency Code")
                 {
                     ApplicationArea = All;
