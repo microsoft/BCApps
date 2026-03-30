@@ -440,17 +440,20 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         exit(false);
     end;
 
-    procedure SetTruncateAllowed(TableId: Integer; TruncateAllowed: Boolean)
+    procedure SetTruncateAllowed(TableId: Integer; TruncateAllowed: Boolean; CallerModuleInfo: ModuleInfo)
     var
         RetentionPolicyAllowedTable: Record "Retention Policy Allowed Table";
         RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
     begin
+        if not ModuleOwnsTable(CallerModuleInfo, TableId) then
+            exit;
+
         if not RetentionPolicyAllowedTable.Get(TableId) then
             Error(MissingRetentionPolicyAllowedTableErr, TableId);
 
         RetentionPolicyAllowedTable."Truncate Allowed" := TruncateAllowed;
         BindSubscription(RetenPolAllowedTblImpl);
-        RetentionPolicyAllowedTable.Modify();
+        RetentionPolicyAllowedTable.Modify(true);
         UnbindSubscription(RetenPolAllowedTblImpl);
     end;
 

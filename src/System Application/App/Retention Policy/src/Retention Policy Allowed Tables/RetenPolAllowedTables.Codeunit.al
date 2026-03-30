@@ -268,8 +268,10 @@ codeunit 3905 "Reten. Pol. Allowed Tables"
     procedure SetTruncateAllowed(TableId: Integer; TruncateAllowed: Boolean)
     var
         RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
+        CallerModuleInfo: ModuleInfo;
     begin
-        RetenPolAllowedTblImpl.SetTruncateAllowed(TableId, TruncateAllowed);
+        NavApp.GetCallerModuleInfo(CallerModuleInfo); // This line of code must be here, in the facade to catch the correct caller module info.
+        RetenPolAllowedTblImpl.SetTruncateAllowed(TableId, TruncateAllowed, CallerModuleInfo);
     end;
 
     /// <summary>
