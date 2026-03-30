@@ -1,0 +1,2 @@
+# cost: 16
+{"query":"{ metafieldDefinitions(ownerType: {{OwnerType}}, first: 50) { edges { node { namespace key type { name } } } } }"}

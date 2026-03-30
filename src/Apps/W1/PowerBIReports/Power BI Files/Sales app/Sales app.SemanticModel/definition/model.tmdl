@@ -33,7 +33,7 @@ queryGroup 'Document and Line Type Enums'
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["Sales Lines","Sales Value Entries","Sales Budget","Item","Location","Customer","Salesperson","Sales Budget Name","Dimension Sets","ENVIRONMENT","COMPANY","API_ENDPOINT","ConvertUTC","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","GetDimCode","GetDimCodeCaption","GetDimNameCaption","InvertSignsSalesLines","InvertSignsResourceLedgerEntries","InvertSignsGeneralLedgerEntries","Standard Calendar Time Intelligence","Fiscal Calendar Time Intelligence","Weekly Calendar Time Intelligence","Date Table Setup","Working Days","Opportunity Entries","Contacts","Reason Codes","Item Category","Opportunities","Sales Cycle Stages","Close Opportunity Codes","Resources","G/L Accounts","Documents","Sales Invoice Lines","Sales Credit Lines","Type","Sales Invoice Project Ledger Entries","Sales Credit Project Ledger Entries","Project Ledger Entries","Project","Sales Line Type","Sales Document Type","Project Journal Line Type","Item Ledger Document Type"]
+annotation PBI_QueryOrder = ["Sales Lines","Sales Value Entries","Sales Budget","Item","Location","Customer","Salesperson","Sales Budget Name","Dimension Sets","ENVIRONMENT","COMPANY","API_ENDPOINT","ConvertUTC","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","GetDimCode","GetDimCodeCaption","GetDimNameCaption","InvertSignsSalesLines","InvertSignsResourceLedgerEntries","InvertSignsGeneralLedgerEntries","Standard Calendar Time Intelligence","Fiscal Calendar Time Intelligence","Weekly Calendar Time Intelligence","Date Table Setup","Working Days","Opportunity Entries","Contacts","Reason Codes","Item Category","Opportunities","Sales Cycle Stages","Close Opportunity Codes","Resources","G/L Accounts","Documents","Sales Invoice Lines","Sales Credit Lines","Type","Sales Invoice Project Ledger Entries","Sales Credit Project Ledger Entries","Project Ledger Entries","Project","Sales Line Type","Sales Document Type","Project Journal Line Type","Item Ledger Document Type","Company Encoding"]
 
 annotation __TEdtr = 1
 
@@ -82,6 +82,7 @@ ref table 'Sales Document Type'
 ref table 'Project Journal Line Type'
 ref table 'Item Ledger Document Type'
 ref table 'Lost Customer Month Range'
+ref table 'Company Encoding'
 
 ref cultureInfo en-US
 ref cultureInfo es-ES

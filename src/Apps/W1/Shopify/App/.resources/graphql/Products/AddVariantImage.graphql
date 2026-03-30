@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { productVariantsBulkUpdate(productId: \"gid://shopify/Product/{{ProductId}}\" variants: {id: \"gid://shopify/ProductVariant/{{VariantId}}\" mediaSrc: \"{{ResourceUrl}}\"} media: {mediaContentType: IMAGE originalSource: \"{{ResourceUrl}}\"}) { userErrors { code field message } productVariants { media(first: 1){ edges { node { id }}}}}} "}
