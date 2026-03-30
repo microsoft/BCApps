@@ -1,0 +1,2 @@
+# cost: 4
+{"query":"{productVariants(query: \"barcode:{{Barcode}}\", first: 1) { edges { node { legacyResourceId product { legacyResourceId }}}}}"}

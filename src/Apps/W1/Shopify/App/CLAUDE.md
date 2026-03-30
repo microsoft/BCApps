@@ -11,7 +11,9 @@ The Shopify Connector bridges Shopify e-commerce with Business Central ERP, bi-d
 
 The Shop table (`ShpfyShop.Table.al`, ID 30102) is the god object. Nearly every configuration setting lives there: sync directions for items/customers/companies, mapping strategies, customer/item template codes, G/L account mappings for shipping/tips/gift cards/refunds, B2B flags, currency handling, webhook settings, and fulfillment service configuration. A single BC company can connect to multiple Shopify shops (each with its own Shop Code), and each shop gets its own set of configuration.
 
-All Shopify API communication goes through GraphQL. The `ShpfyCommunicationMgt.Codeunit.al` is the single entry point for API calls. It constructs URLs using a versioned API path (currently `2026-01`), handles authentication, rate limiting, and retry logic. The 145 codeunit files in `src/GraphQL/Codeunits/` each implement the `IGraphQL` interface, which requires two methods: `GetGraphQL()` returning the query text and `GetExpectedCost()` returning the estimated query cost. The `ShpfyGraphQLRateLimit` codeunit (singleton) tracks Shopify's cost-based throttle -- it reads `restoreRate` and `currentlyAvailable` from responses and sleeps before issuing requests that would exceed the budget.
+All Shopify API communication goes through GraphQL. The `ShpfyCommunicationMgt.Codeunit.al` is the single entry point for API calls. It constructs URLs using a versioned API path (currently `2026-01`), handles authentication, rate limiting, and retry logic. GraphQL queries are stored as `.graphql` resource files under `.resources/graphql/{Area}/`, loaded at runtime via `NavApp.GetResourceAsText()`. The `ShpfyGraphQLType` enum maps each query to its resource file using `{Area}_{QueryName}` naming, and the dispatcher loads the corresponding file instead of calling interface methods. The `ShpfyGraphQLRateLimit` codeunit (singleton) tracks Shopify's cost-based throttle -- it reads `restoreRate` and `currentlyAvailable` from responses and sleeps before issuing requests that would exceed the budget.
+
+*Updated: 2026-03-24 -- GraphQL resource file refactoring*
 
 Mapping strategies are interface-driven throughout. Customer mapping (`ICustomerMapping`) selects between by-email/phone, by-bill-to, or default-customer strategies. Company mapping (`ICompanyMapping`) can match by email/phone or tax ID. Stock calculation uses `IStockAvailable` and `IStockCalculation` interfaces. Product status on creation, removal actions for blocked items, county resolution, and customer name formatting are all interface-backed enums. The Shop record's enum fields (e.g., `"Customer Mapping Type"`, `"Stock Calculation"`, `"Status for Created Products"`) select which implementation to use at runtime.
 
@@ -28,7 +30,7 @@ Records link to BC entities via SystemId (GUID), not Code/No. For example, `Shpf
 - `src/Companies/` -- B2B company and company location management, company mapping strategies, tax ID mapping
 - `src/Catalogs/` -- B2B catalog and catalog pricing management
 - `src/Inventory/` -- Stock level sync to Shopify, location mapping, stock calculation strategies
-- `src/GraphQL/` -- 145 query builder codeunits implementing IGraphQL, rate limiting, query management
+- `src/GraphQL/` -- GraphQL dispatcher, rate limiting, query enum; queries live as .graphql resource files in `.resources/graphql/{Area}/`
 - `src/Metafields/` -- Extensible custom field system with polymorphic owners and typed values
 - `src/Order Fulfillments/` -- Fulfillment order headers/lines and actual fulfillment records
 - `src/Order Returns/` -- Return headers and lines from Shopify
@@ -55,7 +57,7 @@ Records link to BC entities via SystemId (GUID), not Code/No. For example, `Shpf
 ## Things to know
 
 - The Shop table is the god object -- nearly every configuration setting lives there, with over 100 fields controlling sync directions, mapping strategies, account mappings, B2B flags, webhook config, and more.
-- All API calls go through GraphQL, never REST. 145 codeunits in `src/GraphQL/Codeunits/` implement `IGraphQL` for type-safe query building with cost estimation.
+- All API calls go through GraphQL, never REST. Queries are `.graphql` resource files in `.resources/graphql/{Area}/`, loaded via `NavApp.GetResourceAsText()` and dispatched through the `ShpfyGraphQLType` enum.
 - Products use hash-based change detection (`"Image Hash"`, `"Tags Hash"`, `"Description Html Hash"`) via a custom hash algorithm to skip unnecessary API calls when nothing has changed.
 - Records link to BC entities via SystemId (GUID), not Code/No. -- FlowFields like `"Item No."` display the human-readable values via CalcFormula lookup. Renumbering BC items does not break Shopify links.
 - Orders store every monetary amount in dual currency: shop currency fields (`"Total Amount"`, `"VAT Amount"`) and presentment/customer-facing currency fields (`"Presentment Total Amount"`, `"Presentment VAT Amount"`). The `"Currency Handling"` setting on Shop controls which is used for BC documents.

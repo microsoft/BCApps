@@ -133,9 +133,9 @@ page 2680 "Data Search"
     [TryFunction]
     local procedure ValidateFilter(FilterValue: text)
     var
-        DataSearchResultFilterTest: Record "Data Search Result";
+        TempDataSearchResultFilterTest: Record "Data Search Result";
     begin
-        DataSearchResultFilterTest.SetFilter(Description, '*' + FilterValue + '*');  // will throw an error if filter is illegal
+        TempDataSearchResultFilterTest.SetFilter(Description, '*' + FilterValue + '*');  // will throw an error if filter is illegal
     end;
 
     internal procedure LaunchSearch()
