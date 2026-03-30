@@ -14,7 +14,7 @@ codeunit 30492 "Shpfy CTM Verify"
     begin
         Expected.ElementExists('taxLineJurisdictions', ElementExists);
         if ElementExists then
-            VerifyTaxLineJurisdictions(Expected.Element('taxLineJurisdictions'), OrderHeader);
+            VerifyTaxLineJurisdictions(Expected.Element('taxLineJurisdictions'));
 
         Expected.ElementExists('allTaxLinesMatched', ElementExists);
         if ElementExists then
@@ -74,13 +74,12 @@ codeunit 30492 "Shpfy CTM Verify"
                 VerifyOrderUnchanged(OrderHeader);
     end;
 
-    local procedure VerifyTaxLineJurisdictions(ExpectedArray: Codeunit "Test Input Json"; OrderHeader: Record "Shpfy Order Header")
+    local procedure VerifyTaxLineJurisdictions(ExpectedArray: Codeunit "Test Input Json")
     var
         TaxLine: Record "Shpfy Order Tax Line";
         ExpectedItem: Codeunit "Test Input Json";
         ParentId: BigInteger;
         LineNo: Integer;
-        ExpectedCode: Code[10];
         ElementExists: Boolean;
         i: Integer;
     begin
@@ -90,20 +89,20 @@ codeunit 30492 "Shpfy CTM Verify"
             Evaluate(LineNo, ExpectedItem.Element('lineNo').ValueAsText());
 
             LibraryAssert.IsTrue(TaxLine.Get(ParentId, LineNo),
-                StrSubstNo('Tax line %1-%2 should exist', ParentId, LineNo));
+                StrSubstNo(TaxLineShouldExistLbl, ParentId, LineNo));
 
             ExpectedItem.ElementExists('jurisdictionCode', ElementExists);
             if ElementExists then
                 LibraryAssert.AreEqual(
                     CopyStr(ExpectedItem.Element('jurisdictionCode').ValueAsText(), 1, 10),
                     TaxLine."Tax Jurisdiction Code",
-                    StrSubstNo('Tax line %1-%2 jurisdiction code', ParentId, LineNo));
+                    StrSubstNo(TaxLineJurisdictionCodeLbl, ParentId, LineNo));
 
             ExpectedItem.ElementExists('hasJurisdictionCode', ElementExists);
             if ElementExists then
                 if ExpectedItem.Element('hasJurisdictionCode').ValueAsBoolean() then
                     LibraryAssert.AreNotEqual('', TaxLine."Tax Jurisdiction Code",
-                        StrSubstNo('Tax line %1-%2 should have a jurisdiction code', ParentId, LineNo));
+                        StrSubstNo(TaxLineShouldHaveCodeLbl, ParentId, LineNo));
         end;
     end;
 
@@ -119,7 +118,7 @@ codeunit 30492 "Shpfy CTM Verify"
                 if TaxLine.FindSet() then
                     repeat
                         LibraryAssert.AreNotEqual('', TaxLine."Tax Jurisdiction Code",
-                            StrSubstNo('Tax line %1-%2 should be matched', TaxLine."Parent Id", TaxLine."Line No."));
+                            StrSubstNo(TaxLineShouldBeMatchedLbl, TaxLine."Parent Id", TaxLine."Line No."));
                     until TaxLine.Next() = 0;
             until OrderLine.Next() = 0;
     end;
@@ -141,7 +140,7 @@ codeunit 30492 "Shpfy CTM Verify"
                                 LibraryAssert.AreEqual(
                                     ExpectedCountryRegion,
                                     Format(TaxJurisdiction."Country/Region"),
-                                    StrSubstNo('Jurisdiction %1 Country/Region', TaxJurisdiction.Code));
+                                    StrSubstNo(JurisdictionCountryRegionLbl, TaxJurisdiction.Code));
                     until TaxLine.Next() = 0;
             until OrderLine.Next() = 0;
     end;
@@ -161,14 +160,13 @@ codeunit 30492 "Shpfy CTM Verify"
                 if TaxLine.FindSet() then
                     repeat
                         if TaxLine."Tax Jurisdiction Code" <> '' then
-                            if TaxJurisdiction.Get(TaxLine."Tax Jurisdiction Code") then begin
+                            if TaxJurisdiction.Get(TaxLine."Tax Jurisdiction Code") then
                                 if not FoundFirst then begin
                                     FirstReportTo := TaxJurisdiction."Report-to Jurisdiction";
                                     FoundFirst := true;
                                 end else
                                     LibraryAssert.AreEqual(FirstReportTo, TaxJurisdiction."Report-to Jurisdiction",
-                                        StrSubstNo('Jurisdiction %1 Report-to should match first', TaxJurisdiction.Code));
-                            end;
+                                        StrSubstNo(JurisdictionReportToLbl, TaxJurisdiction.Code));
                     until TaxLine.Next() = 0;
             until OrderLine.Next() = 0;
 
@@ -202,7 +200,7 @@ codeunit 30492 "Shpfy CTM Verify"
                         TaxDetail.SetRange("Tax Group Code", TaxGroupCode);
                         TaxDetail.SetRange("Tax Below Maximum", RatePct);
                         LibraryAssert.IsTrue(TaxDetail.FindFirst(),
-                            StrSubstNo('Tax Detail should exist for %1 / %2 / %3',
+                            StrSubstNo(TaxDetailShouldExistLbl,
                                 TaxLine."Tax Jurisdiction Code", TaxGroupCode, RatePct));
                     end;
                 until OrderLine.Next() = 0;
@@ -223,7 +221,7 @@ codeunit 30492 "Shpfy CTM Verify"
         TaxDetail.SetRange("Tax Jurisdiction Code", JurisdictionCode);
         TaxDetail.SetRange("Tax Group Code", TaxGroupCode);
         LibraryAssert.AreEqual(ExpectedCount, TaxDetail.Count(),
-            StrSubstNo('Tax Detail count for %1/%2', JurisdictionCode, TaxGroupCode));
+            StrSubstNo(TaxDetailCountLbl, JurisdictionCode, TaxGroupCode));
     end;
 
     local procedure VerifyTaxAreaOnOrder(OrderHeader: Record "Shpfy Order Header"; Expected: Codeunit "Test Input Json")
@@ -247,7 +245,7 @@ codeunit 30492 "Shpfy CTM Verify"
         Expected.ElementExists('taxAreaCreated', ElementExists);
         if ElementExists and Expected.Element('taxAreaCreated').ValueAsBoolean() then begin
             LibraryAssert.IsTrue(TaxArea.Get(TaxAreaCode),
-                StrSubstNo('Tax Area %1 should exist', TaxAreaCode));
+                StrSubstNo(TaxAreaShouldExistLbl, TaxAreaCode));
 
             Expected.ElementExists('taxAreaDescription', ElementExists);
             if ElementExists then
@@ -267,11 +265,22 @@ codeunit 30492 "Shpfy CTM Verify"
 
     internal procedure VerifyOrderUnchanged(OrderHeader: Record "Shpfy Order Header")
     begin
+#pragma warning disable AA0181
         OrderHeader.Find();
+#pragma warning restore AA0181
         LibraryAssert.AreEqual('', OrderHeader."Tax Area Code", 'Tax Area Code should be blank');
         LibraryAssert.IsFalse(OrderHeader."Tax Liable", 'Tax Liable should be false');
     end;
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        TaxLineShouldExistLbl: Label 'Tax line %1-%2 should exist', Locked = true;
+        TaxLineJurisdictionCodeLbl: Label 'Tax line %1-%2 jurisdiction code', Locked = true;
+        TaxLineShouldHaveCodeLbl: Label 'Tax line %1-%2 should have a jurisdiction code', Locked = true;
+        TaxLineShouldBeMatchedLbl: Label 'Tax line %1-%2 should be matched', Locked = true;
+        JurisdictionCountryRegionLbl: Label 'Jurisdiction %1 Country/Region', Locked = true;
+        JurisdictionReportToLbl: Label 'Jurisdiction %1 Report-to should match first', Locked = true;
+        TaxDetailShouldExistLbl: Label 'Tax Detail should exist for %1 / %2 / %3', Locked = true;
+        TaxDetailCountLbl: Label 'Tax Detail count for %1/%2', Locked = true;
+        TaxAreaShouldExistLbl: Label 'Tax Area %1 should exist', Locked = true;
 }
