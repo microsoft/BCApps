@@ -28,6 +28,8 @@ codeunit 20411 "Qlty. Receiving Integration"
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         ApplicableReceivingQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        BatchCreatedInspectionIds: List of [Code[20]];
+        IsBatchingNotifications: Boolean;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPurchRcptLineInsert', '', true, true)]
     local procedure HandleOnAfterPurchRcptLineInsert(PurchaseLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line"; ItemLedgShptEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSupressed: Boolean; PurchInvHeader: Record "Purch. Inv. Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; PurchRcptHeader: Record "Purch. Rcpt. Header"; TempWhseRcptHeader: Record "Warehouse Receipt Header"; xPurchLine: Record "Purchase Line"; var TempPurchLineGlobal: Record "Purchase Line" temporary)
@@ -59,6 +61,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         TempTrackingSpecification.SetRange("Source Ref. No.", PurchaseLine."Line No.");
         TempTrackingSpecification.SetRange("Source Type", Database::"Purchase Line");
 
+        BeginBatchNotification();
         ExpectedCountOfInspections := TempTrackingSpecification.Count();
         if ExpectedCountOfInspections = 0 then begin
             ExpectedCountOfInspections := 1;
@@ -77,6 +80,7 @@ codeunit 20411 "Qlty. Receiving Integration"
                         TempSingleBufferTrackingSpecification.SetRecFilter();
                         AttemptCreateInspectionWithPurchaseLineAndTracking(PurchaseLine, PurchaseHeader, TempTrackingSpecification);
                     until TempTrackingSpecification.Next() = 0;
+        EndBatchNotification();
 
         TempTrackingSpecification.SetRange("Qty. to Invoice (Base)");
         TempTrackingSpecification.SetRange("Source ID");
@@ -98,8 +102,11 @@ codeunit 20411 "Qlty. Receiving Integration"
         ApplicableReceivingQltyInspectionGenRule.Reset();
         ApplicableReceivingQltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", ApplicableReceivingQltyInspectionGenRule."Warehouse Receipt Trigger"::OnWarehouseReceiptPost);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
+        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
+            BeginBatchNotification();
             AttemptCreateInspectionWithWhseJournalLine(WarehouseJournalLine, PostedWhseReceiptHeader);
+            EndBatchNotification();
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purchases Warehouse Mgt.", 'OnAfterCreateRcptLineFromPurchLine', '', true, true)]
@@ -118,7 +125,9 @@ codeunit 20411 "Qlty. Receiving Integration"
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
         if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
             OptionalSource := PurchaseLine;
+            BeginBatchNotification();
             AttemptCreateInspectionWithReceiptLine(WarehouseReceiptLine, WarehouseReceiptHeader, OptionalSource);
+            EndBatchNotification();
         end;
     end;
 
@@ -153,19 +162,24 @@ codeunit 20411 "Qlty. Receiving Integration"
             if IsHandled then
                 exit;
 
+            BeginBatchNotification();
+            QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
             TempTrackingSpecification.Reset();
             if TempTrackingSpecification.FindSet() then
                 repeat
                     if QltyInspectionCreate.CreateInspectionWithMultiVariants(SalesLine, TempTrackingSpecification, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
                         HasInspection := true;
                         QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                        TrackCreatedInspection(QltyInspectionHeader."No.");
                     end;
                 until TempTrackingSpecification.Next() = 0
             else
                 if QltyInspectionCreate.CreateInspectionWithMultiVariants(SalesLine, DummyVariant, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                    TrackCreatedInspection(QltyInspectionHeader."No.");
                 end;
+            EndBatchNotification();
         end;
 
         OnAfterSalesReturnCreateInspectionWithSalesLine(SalesHeader, SalesLine, TempItemLedgEntryNotInvoiced, TempTrackingSpecification, HasInspection, QltyInspectionHeader);
@@ -185,8 +199,11 @@ codeunit 20411 "Qlty. Receiving Integration"
         ApplicableReceivingQltyInspectionGenRule.Reset();
         ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
+        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
+            BeginBatchNotification();
             AttemptCreateInspectionWithReceiveTransferLine(TransLine, UnusedTransTransferReceiptHeader, DirectTransHeader);
+            EndBatchNotification();
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Receipt", 'OnAfterInsertTransRcptLine', '', true, true)]
@@ -203,8 +220,11 @@ codeunit 20411 "Qlty. Receiving Integration"
         ApplicableReceivingQltyInspectionGenRule.Reset();
         ApplicableReceivingQltyInspectionGenRule.SetRange("Transfer Order Trigger", ApplicableReceivingQltyInspectionGenRule."Transfer Order Trigger"::OnTransferOrderPostReceive);
         ApplicableReceivingQltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", ApplicableReceivingQltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
+        if not ApplicableReceivingQltyInspectionGenRule.IsEmpty() then begin
+            BeginBatchNotification();
             AttemptCreateInspectionWithReceiveTransferLine(TransLine, TransferReceiptHeader, UnusedDirectTransHeader);
+            EndBatchNotification();
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnAfterReleasePurchaseDoc', '', true, true)]
@@ -227,6 +247,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         if ApplicableReceivingQltyInspectionGenRule.IsEmpty() then
             exit;
 
+        BeginBatchNotification();
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
@@ -255,6 +276,7 @@ codeunit 20411 "Qlty. Receiving Integration"
                     AttemptCreateInspectionWithPurchaseLineAndTracking(PurchaseLine, PurchaseHeader, TempTrackingSpecification);
                 end;
             until PurchaseLine.Next() = 0;
+        EndBatchNotification();
     end;
 
     local procedure AttemptCreateInspectionWithReceiptLine(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var OptionalSourceLineVariant: Variant)
@@ -272,6 +294,9 @@ codeunit 20411 "Qlty. Receiving Integration"
         if IsHandled then
             exit;
 
+        if IsBatchingNotifications then
+            QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+
         QltyWarehouseIntegration.CollectSourceItemTracking(OptionalSourceLineVariant, TempTrackingSpecification);
 
         TempTrackingSpecification.Reset();
@@ -282,6 +307,7 @@ codeunit 20411 "Qlty. Receiving Integration"
                 if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseReceiptLine, OptionalSourceLineVariant, WarehouseReceiptHeader, TempTrackingSpecification, false, TempQltyInspectionGenRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                    TrackCreatedInspection(QltyInspectionHeader."No.");
                 end;
             until TempTrackingSpecification.Next() = 0
         else begin
@@ -289,6 +315,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseReceiptLine, OptionalSourceLineVariant, WarehouseReceiptHeader, DummyVariant, false, TempQltyInspectionGenRule) then begin
                 HasInspection := true;
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                TrackCreatedInspection(QltyInspectionHeader."No.");
             end;
         end;
 
@@ -311,6 +338,9 @@ codeunit 20411 "Qlty. Receiving Integration"
         if IsHandled then
             exit;
 
+        if IsBatchingNotifications then
+            QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+
         if QltyWarehouseIntegration.GetOptionalSourceVariantForWarehouseJournalLine(WarehouseJournalLine, OptionalSourceRecordVariant) then
             QltyWarehouseIntegration.CollectSourceItemTracking(OptionalSourceRecordVariant, TempTrackingSpecification);
 
@@ -322,6 +352,7 @@ codeunit 20411 "Qlty. Receiving Integration"
                 if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseJournalLine, OptionalSourceRecordVariant, PostedWhseReceiptHeader, TempTrackingSpecification, false, TempQltyInspectionGenRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                    TrackCreatedInspection(QltyInspectionHeader."No.");
                 end;
             until TempTrackingSpecification.Next() = 0
         else begin
@@ -329,6 +360,7 @@ codeunit 20411 "Qlty. Receiving Integration"
             if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseJournalLine, OptionalSourceRecordVariant, PostedWhseReceiptHeader, DummyVariant, false, TempQltyInspectionGenRule) then begin
                 HasInspection := true;
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                TrackCreatedInspection(QltyInspectionHeader."No.");
             end;
         end;
 
@@ -348,10 +380,15 @@ codeunit 20411 "Qlty. Receiving Integration"
         if IsHandled then
             exit;
 
+        if IsBatchingNotifications then
+            QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+
         TempQltyInspectionGenRule.CopyFilters(ApplicableReceivingQltyInspectionGenRule);
         HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PurchaseLine, PurchaseHeader, TempTrackingSpecification, DummyVariant, false, TempQltyInspectionGenRule);
-        if HasInspection then
+        if HasInspection then begin
             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+            TrackCreatedInspection(QltyInspectionHeader."No.");
+        end;
 
         OnAfterPurchaseAttemptCreateInspectionWithPurchaseLine(HasInspection, QltyInspectionHeader, PurchaseLine, PurchaseHeader, TempTrackingSpecification);
     end;
@@ -371,6 +408,10 @@ codeunit 20411 "Qlty. Receiving Integration"
         OnBeforeAttemptCreateInspectionWithInboundTransferLine(TransTransferLine, OptionalTransferReceiptHeader, OptionalDirectTransHeader, TempTrackingSpecification, QltyInspectionHeader, HasInspection, IsHandled);
         if IsHandled then
             exit;
+
+        if IsBatchingNotifications then
+            QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+
         CurrentVariant := TransTransferLine;
         QltyWarehouseIntegration.CollectSourceItemTracking(CurrentVariant, TempTrackingSpecification);
         TempTrackingSpecification.Reset();
@@ -384,8 +425,10 @@ codeunit 20411 "Qlty. Receiving Integration"
                 if OptionalDirectTransHeader."No." <> '' then
                     HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TransTransferLine, OptionalDirectTransHeader, TempTrackingSpecification, OptionalTransferReceiptHeader, false, TempQltyInspectionGenRule);
 
-                if HasInspection then
+                if HasInspection then begin
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                    TrackCreatedInspection(QltyInspectionHeader."No.");
+                end;
             until TempTrackingSpecification.Next() = 0
         else begin
             TempQltyInspectionGenRule.CopyFilters(ApplicableReceivingQltyInspectionGenRule);
@@ -395,10 +438,45 @@ codeunit 20411 "Qlty. Receiving Integration"
             if OptionalDirectTransHeader."No." <> '' then
                 HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(TransTransferLine, OptionalDirectTransHeader, OptionalTransferReceiptHeader, TempTrackingSpecification, false, TempQltyInspectionGenRule);
 
-            if HasInspection then
+            if HasInspection then begin
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                TrackCreatedInspection(QltyInspectionHeader."No.");
+            end;
         end;
         OnAfterTransferAttemptCreateInspectionWithInboundTransferLine(TransTransferLine, OptionalTransferReceiptHeader, OptionalDirectTransHeader, TempTrackingSpecification, QltyInspectionHeader, HasInspection);
+    end;
+
+    local procedure BeginBatchNotification()
+    begin
+        Clear(BatchCreatedInspectionIds);
+        IsBatchingNotifications := true;
+    end;
+
+    local procedure EndBatchNotification()
+    var
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+    begin
+        if not IsBatchingNotifications then
+            exit;
+
+        IsBatchingNotifications := false;
+        if BatchCreatedInspectionIds.Count() = 0 then
+            exit;
+
+        QltyInspectionCreate.DisplayInspectionsIfConfigured(false, BatchCreatedInspectionIds);
+        Clear(BatchCreatedInspectionIds);
+    end;
+
+    local procedure TrackCreatedInspection(InspectionNo: Code[20])
+    begin
+        if not IsBatchingNotifications then
+            exit;
+
+        if InspectionNo = '' then
+            exit;
+
+        if not BatchCreatedInspectionIds.Contains(InspectionNo) then
+            BatchCreatedInspectionIds.Add(InspectionNo);
     end;
 
     local procedure DetectIsPreviewPosting() IsInPreviewPostingMode: Boolean
