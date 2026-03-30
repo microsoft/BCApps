@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,15 +6,27 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30102 "Shpfy GQL Modify Inventory" implements "Shpfy IGraphQL"
+codeunit 30102 "Shpfy GQL Modify Inventory"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by .graphql resource files. Use "Shpfy GraphQL Queries".GetQueryWithCost() instead.';
+    ObsoleteTag = '29.0';
+
     procedure GetGraphQL(): Text
+    var
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
     begin
-        exit('{"query":"mutation inventorySetQuantities($input: InventorySetQuantitiesInput!) { inventorySetQuantities(input: $input) @idempotent(key: \"{{IdempotencyKey}}\") { inventoryAdjustmentGroup { id } userErrors { field message code }}}","variables":{"input":{"name":"on_hand","reason":"correction","quantities":[]}}}');
+        exit(GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Inventory_ModifyInventory, ExpectedCost));
     end;
 
     procedure GetExpectedCost(): Integer
+    var
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
     begin
-        exit(10);
+        GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Inventory_ModifyInventory, ExpectedCost);
+        exit(ExpectedCost);
     end;
 }
+#endif

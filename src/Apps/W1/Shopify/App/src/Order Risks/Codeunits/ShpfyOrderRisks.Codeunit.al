@@ -41,7 +41,7 @@ codeunit 30170 "Shpfy Order Risks"
     begin
         CommunicationMgt.SetShop(OrderHeader."Shop Code");
         Parameters.Add('OrderId', Format(OrderHeader."Shopify Order Id"));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::OrderRisks, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Orders_OrderRisks, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JRiskAssessments, 'data.order.risk.assessments') then
             UpdateOrderRisks(OrderHeader, JRiskAssessments);
     end;

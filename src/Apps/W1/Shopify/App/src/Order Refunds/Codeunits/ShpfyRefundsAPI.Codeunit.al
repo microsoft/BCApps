@@ -58,7 +58,7 @@ codeunit 30228 "Shpfy Refunds API"
             if RefundHeader."Updated At" >= UpdatedAt then
                 exit;
         Parameters.Add('RefundId', Format(RefundId));
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::GetRefundHeader, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Refunds_GetRefundHeader, Parameters);
         JRefund := JsonHelper.GetJsonObject(JResponse, 'data.refund');
         if IsNew then begin
             Clear(RefundHeader);
@@ -95,10 +95,10 @@ codeunit 30228 "Shpfy Refunds API"
         JLine: JsonToken;
     begin
         Parameters.Add('RefundId', Format(RefundId));
-        GraphQLType := "Shpfy GraphQL Type"::GetRefundLines;
+        GraphQLType := "Shpfy GraphQL Type"::Refunds_GetRefundLines;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
-            GraphQLType := "Shpfy GraphQL Type"::GetNextRefundLines;
+            GraphQLType := "Shpfy GraphQL Type"::Refunds_GetNextRefundLines;
             JLines := JsonHelper.GetJsonArray(JResponse, 'data.refund.refundLineItems.nodes');
             if Parameters.ContainsKey('After') then
                 Parameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.refund.refundLineItems.pageInfo.endCursor'))
@@ -119,10 +119,10 @@ codeunit 30228 "Shpfy Refunds API"
         JLine: JsonToken;
     begin
         Parameters.Add('RefundId', Format(RefundId));
-        GraphQLType := "Shpfy GraphQL Type"::GetRefundShippingLines;
+        GraphQLType := "Shpfy GraphQL Type"::Refunds_GetRefundShippingLines;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
-            GraphQLType := "Shpfy GraphQL Type"::GetNextRefundShippingLines;
+            GraphQLType := "Shpfy GraphQL Type"::Refunds_GetNextRefundShippingLines;
             JLines := JsonHelper.GetJsonArray(JResponse, 'data.refund.refundShippingLines.nodes');
             if Parameters.ContainsKey('After') then
                 Parameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.refund.refundShippingLines.pageInfo.endCursor'))

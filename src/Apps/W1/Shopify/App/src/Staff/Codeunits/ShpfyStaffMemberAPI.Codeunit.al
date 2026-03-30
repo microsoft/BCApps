@@ -33,7 +33,7 @@ codeunit 30105 "Shpfy Staff Member API"
 
         CommunicationMgt.SetShop(Shop.Code);
 
-        GraphQLType := GraphQLType::GetStaffMembers;
+        GraphQLType := GraphQLType::Base_GetStaffMembers;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             if JResponse.IsObject() then begin
@@ -42,7 +42,7 @@ codeunit 30105 "Shpfy Staff Member API"
                     Parameters.Set('After', Cursor)
                 else
                     Parameters.Add('After', Cursor);
-                GraphQLType := GraphQLType::GetNextStaffMembers;
+                GraphQLType := GraphQLType::Base_GetNextStaffMembers;
             end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.staffMembers.pageInfo.hasNextPage');
         CreateUpdateStaffMembers(ShopCode, TempStaffMember);
