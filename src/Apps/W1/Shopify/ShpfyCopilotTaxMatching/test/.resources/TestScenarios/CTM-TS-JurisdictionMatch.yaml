@@ -1,0 +1,771 @@
+test_setup: CTM-Setup.yaml
+
+tests:
+  - name: J1-ExactMatchAllLines
+    description: All tax lines match existing jurisdictions with high confidence
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+        - Code: NYCTAX
+          Description: New York City Tax
+        - Code: MTATAX
+          Description: MTA Surcharge
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+            - lineNo: 3
+              title: MTA SURCHARGE
+              ratePct: 0.375
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: NYCTAX
+        - parentId: 10001
+          lineNo: 3
+          jurisdictionCode: MTATAX
+      matchResult: true
+
+  - name: J2-PartialMatchNoAutoCreate
+    description: Some lines match, others don't; auto-create disabled so unmatched are skipped
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+      matchResult: true
+
+  - name: J3-PartialMatchAutoCreate
+    description: Some lines match, unmatched get auto-created
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+        - parentId: 10001
+          lineNo: 2
+          hasJurisdictionCode: true
+      matchResult: true
+
+  - name: J4-NoMatchNoAutoCreate
+    description: All lines unmatched; auto-create disabled, all skipped
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      matchResult: false
+
+  - name: J5-NoMatchAutoCreate
+    description: No existing jurisdictions; auto-create enabled, all created
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+            - lineNo: 3
+              title: MTA SURCHARGE
+              ratePct: 0.375
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      matchResult: true
+
+  - name: J7-MediumConfidenceMatch
+    description: Medium confidence match to existing jurisdiction — accepted
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NY STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+      matchResult: true
+
+  - name: J8-DuplicateJurisdictionCodes
+    description: Same jurisdiction should be used for multiple tax lines on different order lines
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NY STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: NY STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+      matchResult: true
+
+  - name: F1-FullAutoCreate
+    description: Full auto-create flow — 3 tax lines, new jurisdictions, new tax area
+    setup:
+      shopSettings:
+        copilotTaxMatchingEnabled: true
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+            - lineNo: 3
+              title: MTA SURCHARGE
+              ratePct: 0.375
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      taxAreaAssigned: true
+      taxLiable: true
+      matchResult: true
+
+  - name: F2-MatchOnlyNoCreate
+    description: All jurisdictions and tax area pre-exist — matched without creating
+    setup:
+      shopSettings:
+        copilotTaxMatchingEnabled: true
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: false
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+        - Code: NYCTAX
+          Description: New York City Tax
+        - Code: MTATAX
+          Description: MTA Surcharge
+      existingTaxAreas:
+        - Code: EXISTING-NY
+          Description: Existing NY Area
+          jurisdictions:
+            - NYSTAX
+            - NYCTAX
+            - MTATAX
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+            - lineNo: 3
+              title: MTA SURCHARGE
+              ratePct: 0.375
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: NYCTAX
+        - parentId: 10001
+          lineNo: 3
+          jurisdictionCode: MTATAX
+      taxAreaCode: EXISTING-NY
+      taxLiable: true
+      matchResult: true
+
+  - name: H1-SimilarCodesDifferentStates
+    description: CASTAX (California) vs CATAX (Canada) — geographic context disambiguates CA = California
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: CASTAX
+          Description: California State Tax
+        - Code: CATAX
+          Description: Canada Tax
+        - Code: COSTAX
+          Description: Colorado State Tax
+      orderAddress:
+        countryRegionCode: US
+        county: CA
+        city: Los Angeles
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: CA STATE TAX
+              ratePct: 7.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: CASTAX
+      matchResult: true
+
+  - name: H2-AbbreviatedTitleMultipleSimilar
+    description: '"NYC MTA" with multiple MTA-related jurisdictions — any match is acceptable'
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: MTATAX
+          Description: MTA Surcharge
+        - Code: MTANYC
+          Description: MTA NYC District
+        - Code: MTANYS
+          Description: MTA NY State
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NYC MTA
+              ratePct: 0.375
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      matchResult: true
+
+  - name: H3-MultiStateDistractors
+    description: Texas order with 15+ distractor jurisdictions from other states
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+        - Code: NYCTAX
+          Description: New York City Tax
+        - Code: CASTAX
+          Description: California State Tax
+        - Code: FLTAX
+          Description: Florida State Tax
+        - Code: WATAX
+          Description: Washington State Tax
+        - Code: ILTAX
+          Description: Illinois State Tax
+        - Code: NJTAX
+          Description: New Jersey State Tax
+        - Code: PATAX
+          Description: Pennsylvania State Tax
+        - Code: GATAX
+          Description: Georgia State Tax
+        - Code: COTAX
+          Description: Colorado State Tax
+        - Code: MATAX
+          Description: Massachusetts State Tax
+        - Code: MDTAX
+          Description: Maryland State Tax
+        - Code: VATAX
+          Description: Virginia State Tax
+        - Code: TXSTAX
+          Description: Texas State Sales Tax
+        - Code: TXCTAX
+          Description: Texas City Tax Houston
+      orderAddress:
+        countryRegionCode: US
+        county: TX
+        city: Houston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: TEXAS STATE SALES TAX
+              ratePct: 6.25
+              channelLiable: false
+            - lineNo: 2
+              title: HOUSTON CITY TAX
+              ratePct: 2.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: TXSTAX
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: TXCTAX
+      matchResult: true
+
+  - name: H4-TruncatedShopifyTitle
+    description: 'Truncated Shopify title "METROPOLITAN COMMUTE" must match full jurisdiction description'
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: MTATAX
+          Description: MTA Surcharge
+        - Code: MCTMTX
+          Description: Metropolitan Commuter Transportation Mobility Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: METROPOLITAN COMMUTE
+              ratePct: 0.375
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: MCTMTX
+      matchResult: true
+
+  - name: H5-CanadianHSTGSTPSTDisambiguation
+    description: Ontario order should match HST, not GST or PST
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: CAHST
+          Description: Canada HST
+        - Code: CAGST
+          Description: Canada GST
+        - Code: CAPST
+          Description: Canada PST
+        - Code: BCPST
+          Description: British Columbia PST
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: HST
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: CAHST
+      matchResult: true
+
+  - name: H6-SameRateDifferentJurisdictions
+    description: Two jurisdictions with similar names but different scopes — county tax vs transit tax
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: LACOTR
+          Description: LA County Transit Tax
+        - Code: LACOTX
+          Description: Los Angeles County Tax
+        - Code: CASTAX
+          Description: California State Tax
+      orderAddress:
+        countryRegionCode: US
+        county: CA
+        city: Los Angeles
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: LOS ANGELES COUNTY TAX
+              ratePct: 1.0
+              channelLiable: false
+            - lineNo: 2
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: LACOTX
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: CASTAX
+      matchResult: true
+
+  - name: H7-UnusualFormattingAndCasing
+    description: Mixed case and unusual wording in tax line titles — semantic match required
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+        - Code: NYCTAX
+          Description: New York City Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "State of New York - Sales & Use Tax"
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 2
+              title: The City of New York Tax
+              ratePct: 4.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: NYCTAX
+      matchResult: true
+
+  - name: H8-GeographicDisambiguation
+    description: '"NEW YORK SALES TAX" from Albany should match state-level, not city-level'
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: NYCSAL
+          Description: New York City Sales Tax
+        - Code: NYSSAL
+          Description: New York State Sales Tax
+        - Code: NJSSAL
+          Description: New Jersey State Sales Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: Albany
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK SALES TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSSAL
+      matchResult: true
+
+  - name: H9-FiveTaxLinesMixedDifficulty
+    description: Large order with 5 tax lines — some trivial, others require semantic reasoning
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: TXSTAX
+          Description: Texas State Sales Tax
+        - Code: TXHTAX
+          Description: Houston City Sales Tax
+        - Code: TXHCTX
+          Description: Harris County Tax
+        - Code: TXMTD
+          Description: Houston Metro Transit
+        - Code: TXESD
+          Description: Emergency Services District
+      orderAddress:
+        countryRegionCode: US
+        county: TX
+        city: Houston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: TEXAS STATE SALES TAX
+              ratePct: 6.25
+              channelLiable: false
+            - lineNo: 2
+              title: CITY OF HOUSTON TAX
+              ratePct: 1.0
+              channelLiable: false
+            - lineNo: 3
+              title: HARRIS CO TAX
+              ratePct: 0.5
+              channelLiable: false
+            - lineNo: 4
+              title: METRO TRANSIT AUTHORITY
+              ratePct: 1.0
+              channelLiable: false
+            - lineNo: 5
+              title: "ESD #1"
+              ratePct: 0.1
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      matchResult: true
+
+  - name: H10-MisleadingJurisdictionCode
+    description: 'WATAX code looks like "WATERLOO" but is Washington — LLM must not be fooled'
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: WATAX
+          Description: Washington State Tax
+        - Code: IASTAX
+          Description: Iowa State Tax
+        - Code: IACTAX
+          Description: Iowa Local Option Sales Tax
+      orderAddress:
+        countryRegionCode: US
+        county: IA
+        city: Waterloo
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: IOWA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+            - lineNo: 2
+              title: WATERLOO LOCAL TAX
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: IASTAX
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: IACTAX
+      matchResult: true
+
+  - name: H11-AutoCreateWithDistractors
+    description: Auto-create enabled with 10+ existing distractors — match what fits, create new for the rest
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+        - Code: NYCTAX
+          Description: New York City Tax
+        - Code: MTATAX
+          Description: MTA Surcharge
+        - Code: CASTAX
+          Description: California State Tax
+        - Code: TXSTAX
+          Description: Texas State Sales Tax
+        - Code: FLTAX
+          Description: Florida State Tax
+        - Code: WATAX
+          Description: Washington State Tax
+        - Code: ILTAX
+          Description: Illinois State Tax
+        - Code: NJTAX
+          Description: New Jersey State Tax
+        - Code: PATAX
+          Description: Pennsylvania State Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: Yonkers
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 2
+              title: YONKERS SURCHARGE
+              ratePct: 1.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+        - parentId: 10001
+          lineNo: 2
+          hasJurisdictionCode: true
+      matchResult: true
+
+  - name: H12-NonEnglishTaxTitle
+    description: French Canadian tax abbreviations TPS/GST and TVQ/QST must match Quebec jurisdictions
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: QCGST
+          Description: Quebec GST
+        - Code: QCQST
+          Description: Quebec QST
+        - Code: CAHST
+          Description: Canada HST
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: TPS/GST
+              ratePct: 5.0
+              channelLiable: false
+            - lineNo: 2
+              title: TVQ/QST
+              ratePct: 9.975
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: QCGST
+        - parentId: 10001
+          lineNo: 2
+          jurisdictionCode: QCQST
+      matchResult: true

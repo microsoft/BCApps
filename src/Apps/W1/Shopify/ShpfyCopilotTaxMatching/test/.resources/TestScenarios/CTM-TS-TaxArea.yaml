@@ -1,0 +1,233 @@
+test_setup: CTM-Setup.yaml
+
+tests:
+  - name: TA1-ExactAreaExists
+    description: Existing Tax Area with exactly the matched jurisdictions — reused
+    setup:
+      shopSettings:
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      jurisdictionCodes:
+        - NYSTAX
+        - NYCTAX
+        - MTATAX
+      existingTaxAreas:
+        - Code: EXISTING-NY
+          Description: Existing NY Tax Area
+          jurisdictions:
+            - NYSTAX
+            - NYCTAX
+            - MTATAX
+    expected:
+      taxAreaCode: EXISTING-NY
+      taxAreaCreated: false
+
+  - name: TA2-SupersetAreaExists
+    description: Area with extra jurisdiction — not matched (line count differs)
+    setup:
+      shopSettings:
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      jurisdictionCodes:
+        - NYSTAX
+        - NYCTAX
+        - MTATAX
+      existingTaxAreas:
+        - Code: SUPERSET-NY
+          Description: Superset NY
+          jurisdictions:
+            - NYSTAX
+            - NYCTAX
+            - MTATAX
+            - EXTRATAX
+    expected:
+      taxAreaCode: SHPFY-MTATAX
+      taxAreaCreated: true
+
+  - name: TA3-SubsetAreaExists
+    description: Area with fewer jurisdictions — not matched
+    setup:
+      shopSettings:
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      jurisdictionCodes:
+        - NYSTAX
+        - NYCTAX
+        - MTATAX
+      existingTaxAreas:
+        - Code: SUBSET-NY
+          Description: Subset NY
+          jurisdictions:
+            - NYSTAX
+            - NYCTAX
+    expected:
+      taxAreaCode: SHPFY-MTATAX
+      taxAreaCreated: true
+
+  - name: TA4-NoMatchAutoCreate
+    description: No matching area; auto-create enabled — new area created
+    setup:
+      shopSettings:
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+        - Code: NYCTAX
+          Description: New York City Tax
+        - Code: MTATAX
+          Description: MTA Surcharge
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      jurisdictionCodes:
+        - NYSTAX
+        - NYCTAX
+        - MTATAX
+      existingTaxAreas: []
+    expected:
+      taxAreaCode: SHPFY-MTATAX
+      taxAreaCreated: true
+      taxAreaDescription: "Shopify - New York State Tax+New York City Tax+MTA Surcharge"
+      taxAreaCountryRegion: US
+
+  - name: TA5-NoMatchNoAutoCreate
+    description: No matching area; auto-create disabled — Tax Area Code remains blank
+    setup:
+      shopSettings:
+        autoCreateTaxAreas: false
+        taxAreaNamingPattern: SHPFY-
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      jurisdictionCodes:
+        - NYSTAX
+        - NYCTAX
+        - MTATAX
+      existingTaxAreas: []
+    expected:
+      taxAreaCode: ""
+      taxAreaCreated: false
+
+  - name: TA6-AreaCodeCollision
+    description: SHPFY-MTATAX already exists with different jurisdictions — creates SHPFY-MTATAX-2
+    setup:
+      shopSettings:
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      jurisdictionCodes:
+        - NYSTAX
+        - NYCTAX
+        - MTATAX
+      existingTaxAreas:
+        - Code: SHPFY-MTATAX
+          Description: Different Area
+          jurisdictions:
+            - OTHERTAX
+    expected:
+      taxAreaCode: SHPFY-MTATAX-2
+      taxAreaCreated: true
+
+  - name: TA7-CountryRegionOnArea
+    description: New Tax Area gets Country/Region from order Ship-to
+    setup:
+      shopSettings:
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      orderAddress:
+        countryRegionCode: US
+        county: CA
+        city: Los Angeles
+      jurisdictionCodes:
+        - CATAX
+      existingTaxAreas: []
+    expected:
+      taxAreaCode: SHPFY-CATAX
+      taxAreaCreated: true
+      taxAreaCountryRegion: US
+
+  - name: TA8-TaxLiableFlag
+    description: Order Header has Tax Liable = true after area assigned
+    setup:
+      shopSettings:
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      jurisdictionCodes:
+        - NYSTAX
+      existingTaxAreas: []
+    expected:
+      taxAreaCode: SHPFY-NYSTAX
+      taxLiable: true
+      taxAreaCreated: true
+
+  - name: TA9-CustomNamingPattern
+    description: Custom naming pattern TAX- instead of SHPFY-
+    setup:
+      shopSettings:
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: "TAX-"
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      jurisdictionCodes:
+        - MTATAX
+      existingTaxAreas: []
+    expected:
+      taxAreaCode: TAX-MTATAX
+      taxAreaCreated: true
+
+  - name: TA10-EmptyNamingPattern
+    description: Empty naming pattern — area code = jurisdiction code only
+    setup:
+      shopSettings:
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: ""
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      jurisdictionCodes:
+        - MTATAX
+      existingTaxAreas: []
+    expected:
+      taxAreaCode: MTATAX
+      taxAreaCreated: true
+
+  - name: TA11-NoMatchedJurisdictions
+    description: Empty jurisdiction list — FindOrCreateTaxArea returns false
+    setup:
+      shopSettings:
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      jurisdictionCodes: []
+      existingTaxAreas: []
+    expected:
+      taxAreaCode: ""
+      taxAreaCreated: false
