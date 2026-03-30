@@ -117,9 +117,13 @@ codeunit 30165 "Shpfy Orders API"
         Clear(OrderAttribute);
         OrderAttribute."Order Id" := OrderHeader."Shopify Order Id";
         OrderAttribute."Key" := CopyStr(KeyName, 1, MaxStrLen(OrderAttribute."Key"));
-        OrderAttribute."Attribute Value" := CopyStr(Value, 1, MaxStrLen(OrderAttribute."Attribute Value"));
-        if not OrderAttribute.Insert() then
+        if OrderAttribute.Get(OrderAttribute."Order Id", OrderAttribute."Key") then begin
+            OrderAttribute."Attribute Value" := CopyStr(Value, 1, MaxStrLen(OrderAttribute."Attribute Value"));
             OrderAttribute.Modify();
+        end else begin
+            OrderAttribute."Attribute Value" := CopyStr(Value, 1, MaxStrLen(OrderAttribute."Attribute Value"));
+            OrderAttribute.Insert();
+        end;
 
         Clear(OrderAttribute);
         OrderAttribute.SetRange("Order Id", OrderHeader."Shopify Order Id");

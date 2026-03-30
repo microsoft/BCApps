@@ -674,7 +674,7 @@ table 'Subscription Billing KPIs'
 			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
 			VAR TenantID = VALUES('Date Table Setup'[tenantID])
 			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
-			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			VAR Company = "?company=" & VALUES('Company Encoding'[Encoded Company Name])
 			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
 		isHidden
 		displayFolder: Back Links

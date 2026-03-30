@@ -32,8 +32,8 @@ codeunit 134853 "Email Default Attachment Tests"
     [Scope('OnPrem')]
     procedure SetUpEmailScenarioWithNoAttachments()
     var
-        EmailAccount: Record "Email Account";
-        EmailAttachment: Record "Email Attachments";
+        TempEmailAccount: Record "Email Account";
+        TempEmailAttachment: Record "Email Attachments";
         EmailScenarioAttachment: Record "Email Scenario Attachments";
         TempBLob: Codeunit "Temp Blob";
         AccountId: Guid;
@@ -51,17 +51,17 @@ codeunit 134853 "Email Default Attachment Tests"
 
         // [When] calling GetEmailAccount
         // [Then] true is returned and the email account is as expected
-        Assert.IsTrue(EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Test Email Scenario", EmailAccount), 'There should be an email account');
-        Assert.AreEqual(AccountId, EmailAccount."Account Id", 'Wrong account ID');
-        Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector", EmailAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Test Email Scenario", TempEmailAccount), 'There should be an email account');
+        Assert.AreEqual(AccountId, TempEmailAccount."Account Id", 'Wrong account ID');
+        Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector", TempEmailAccount.Connector, 'Wrong connector');
 
         // [Then] the Email Scenario Attachments table should be empty
         Assert.IsTrue(EmailScenarioAttachment.IsEmpty(), 'The Email Scenario Attachment should be empty');
 
         // [When] calling GetEmailAttachmentsByEmailScenario
         // [Then] Get the Attachment and the number of the email attachment should be 0
-        EmailScenarioAttachImpl.GetEmailAttachmentsByEmailScenarios(EmailAttachment, Enum::"Email Scenario"::"Test Email Scenario".AsInteger());
-        Assert.AreEqual(EmailAttachment.Count(), 0, 'Wrong Attachment Number');
+        EmailScenarioAttachImpl.GetEmailAttachmentsByEmailScenarios(TempEmailAttachment, Enum::"Email Scenario"::"Test Email Scenario".AsInteger());
+        Assert.AreEqual(TempEmailAttachment.Count(), 0, 'Wrong Attachment Number');
 
     end;
 
@@ -69,9 +69,9 @@ codeunit 134853 "Email Default Attachment Tests"
     [Scope('OnPrem')]
     procedure SetTwoEmailAttachmentsWithOneDefault()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailScenarioAttachments: Record "Email Scenario Attachments";
-        EmailAttachments: Record "Email Attachments";
+        TempEmailAttachments: Record "Email Attachments";
         Document: Codeunit "Temp Blob";
         AccountId: Guid;
         OutStream: OutStream;
@@ -93,17 +93,17 @@ codeunit 134853 "Email Default Attachment Tests"
 
         // [When] calling GetEmailAccount
         // [Then] true is returned and the email account is as expected
-        Assert.IsTrue(EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Test Email Scenario", EmailAccount), 'There should be an email account');
-        Assert.AreEqual(AccountId, EmailAccount."Account Id", 'Wrong account ID');
-        Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector", EmailAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Test Email Scenario", TempEmailAccount), 'There should be an email account');
+        Assert.AreEqual(AccountId, TempEmailAccount."Account Id", 'Wrong account ID');
+        Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector", TempEmailAccount.Connector, 'Wrong connector');
 
         // [Then] There should be two record in the EmailScenarioAttachments Table
         Assert.AreEqual(2, EmailScenarioAttachments.Count(), 'Wrong total attachment number');
 
         // [When] calling GetEmailAttachmentsByEmailScenario
         // [Then] Get the default attachment and the number of the email attachment should be 1 and 
-        EmailScenarioAttachImpl.GetEmailAttachmentsByEmailScenarios(EmailAttachments, Enum::"Email Scenario"::"Test Email Scenario".AsInteger());
-        Assert.AreEqual(2, EmailAttachments.Count(), 'Wrong current attachment number');
+        EmailScenarioAttachImpl.GetEmailAttachmentsByEmailScenarios(TempEmailAttachments, Enum::"Email Scenario"::"Test Email Scenario".AsInteger());
+        Assert.AreEqual(2, TempEmailAttachments.Count(), 'Wrong current attachment number');
     end;
 
     [Test]
@@ -111,7 +111,7 @@ codeunit 134853 "Email Default Attachment Tests"
     procedure DefaultScenarioShowAllAttachments()
     var
         EmailScenarioAttachments: Record "Email Scenario Attachments";
-        EmailAttachments: Record "Email Attachments";
+        TempEmailAttachments: Record "Email Attachments";
         Document: Codeunit "Temp Blob";
         AccountId: Guid;
         DefaultAccountId: Guid;
@@ -138,15 +138,15 @@ codeunit 134853 "Email Default Attachment Tests"
 
         // [When] calling GetEmailAttachmentsByEmailScenario
         // [Then] Get the attachment and the number of the email attachment should be 1 and with right status
-        EmailScenarioAttachImpl.GetEmailAttachmentsByEmailScenarios(EmailAttachments, Enum::"Email Scenario"::"Test Email Scenario".AsInteger());
-        Assert.AreEqual(EmailAttachments.AttachmentDefaultStatus, false, 'The status of the attachment should be not default');
-        Assert.AreEqual(1, EmailAttachments.Count(), 'Wrong current attachment number');
+        EmailScenarioAttachImpl.GetEmailAttachmentsByEmailScenarios(TempEmailAttachments, Enum::"Email Scenario"::"Test Email Scenario".AsInteger());
+        Assert.AreEqual(TempEmailAttachments.AttachmentDefaultStatus, false, 'The status of the attachment should be not default');
+        Assert.AreEqual(1, TempEmailAttachments.Count(), 'Wrong current attachment number');
 
         // [When] The default account have only default scenario. Calling GetEmailAttachmentsByEmailScenario
         // [Then] For default scenario, return all the attachment for all scenarios
-        EmailScenarioAttachImpl.GetEmailAttachmentsByEmailScenarios(EmailAttachments, Enum::"Email Scenario"::"Default".AsInteger());
-        Assert.AreEqual(EmailAttachments.AttachmentDefaultStatus, false, 'The status of the attachment should be default');
-        Assert.AreEqual(1, EmailAttachments.Count(), 'Wrong current attachment number');
+        EmailScenarioAttachImpl.GetEmailAttachmentsByEmailScenarios(TempEmailAttachments, Enum::"Email Scenario"::"Default".AsInteger());
+        Assert.AreEqual(TempEmailAttachments.AttachmentDefaultStatus, false, 'The status of the attachment should be default');
+        Assert.AreEqual(1, TempEmailAttachments.Count(), 'Wrong current attachment number');
     end;
 
 
@@ -294,7 +294,7 @@ codeunit 134853 "Email Default Attachment Tests"
     procedure AddAttachment(AttachmentName: Text[250]; AttachmentInStream: InStream; Scenario: Enum "Email Scenario"; Status: Boolean)
     var
         EmailScenarioAttachments: Record "Email Scenario Attachments";
-    // EmailAttachment: Record "Email Attachments";
+    // TempEmailAttachment: Record "Email Attachments";
     begin
         EmailScenarioAttachments."Attachment Name" := AttachmentName;
         EmailScenarioAttachments."Email Attachment".ImportStream(AttachmentInStream, AttachmentName);
@@ -312,11 +312,11 @@ codeunit 134853 "Email Default Attachment Tests"
 
     local procedure Initialize()
     var
-        EmailAttachments: Record "Email Attachments";
+        TempEmailAttachments: Record "Email Attachments";
         EmailScenarioAttachments: Record "Email Scenario Attachments";
     begin
         EmailScenarioMock.DeleteAllMappings();
-        EmailAttachments.DeleteAll();
+        TempEmailAttachments.DeleteAll();
         EmailScenarioAttachments.DeleteAll();
     end;
 }

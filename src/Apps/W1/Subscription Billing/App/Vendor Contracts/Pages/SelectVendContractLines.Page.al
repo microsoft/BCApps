@@ -57,14 +57,8 @@ page 8092 "Select Vend. Contract Lines"
     }
     trigger OnAfterGetRecord()
     begin
-        InitializePageVariables();
-    end;
-
-    local procedure InitializePageVariables()
-    var
-    begin
-        ServiceObject.Get(Rec."Subscription Header No.");
-        ServiceCommitment.Get(Rec."Subscription Line Entry No.");
+        Rec.GetServiceObject(ServiceObject);
+        Rec.LoadServiceCommitmentForContractLine(ServiceCommitment);
     end;
 
     local procedure ErrorIfMoreThanOneLineIsSelected(var VendorContractLine: Record "Vend. Sub. Contract Line")

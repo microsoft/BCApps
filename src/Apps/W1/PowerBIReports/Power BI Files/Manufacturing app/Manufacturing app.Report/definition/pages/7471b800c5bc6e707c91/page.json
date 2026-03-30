@@ -224,6 +224,21 @@
             }
           ]
         }
+      },
+      {
+        "name": "91f27b8c68ea25144c02",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Work Center"
+              }
+            },
+            "Property": "Subcontracting"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
       }
     ]
   },
@@ -326,6 +341,22 @@
               }
             },
             "Property": "Work Center No."
+          }
+        }
+      },
+      {
+        "name": "94b666bc703e5113a58c",
+        "boundFilter": "91f27b8c68ea25144c02",
+        "asAggregation": false,
+        "qnaSingleSelectRequired": false,
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Work Center"
+              }
+            },
+            "Property": "Subcontracting"
           }
         }
       }
