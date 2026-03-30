@@ -15,6 +15,15 @@ tableextension 50100 "Shpfy Shop Ext." extends "Shpfy Shop"
         {
             Caption = 'Product URL Template';
             DataClassification = SystemMetadata;
+
+            trigger OnValidate()
+            var
+                MustStartWithSchemeLbl: Label 'The URL template must start with https:// or http://';
+            begin
+                if "Product URL Template" <> '' then
+                    if not "Product URL Template".StartsWith('https://') and not "Product URL Template".StartsWith('http://') then
+                        Error(MustStartWithSchemeLbl);
+            end;
         }
     }
 }

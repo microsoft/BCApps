@@ -25,6 +25,8 @@ Shopify's [Agentic Plan](https://www.shopify.com/agentic-plan) enables merchants
 
 **Example:** `https://mywebshop.com/products/{item-no}?variant={variant-code}`
 
+> The template must start with `https://` or `http://`. Shopify rejects URLs without a scheme.
+
 ## Per-variant override
 
 You can set a specific URL per variant on the Shopify Variants page. When set, it takes priority over the template.
