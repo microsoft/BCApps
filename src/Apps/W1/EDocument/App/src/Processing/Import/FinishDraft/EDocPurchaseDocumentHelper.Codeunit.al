@@ -21,7 +21,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
     Permissions = tabledata "Dimension Set Tree Node" = im,
                   tabledata "Dimension Set Entry" = im;
 
-    procedure CreatePurchaseLineFromDraft(PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; HasTotalDiscount: Boolean; var PurchaseLineNo: Integer)
+    procedure CreatePurchaseLineFromDraft(PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; HasTotalDiscount: Boolean; LineNo: Integer)
     var
         PurchaseLine: Record "Purchase Line";
         EDocRecordLink: Record "E-Doc. Record Link";
@@ -32,8 +32,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
     begin
         PurchaseLine."Document Type" := PurchaseHeader."Document Type";
         PurchaseLine."Document No." := PurchaseHeader."No.";
-        PurchaseLineNo += 10000;
-        PurchaseLine."Line No." := PurchaseLineNo;
+        PurchaseLine."Line No." := LineNo;
         PurchaseLine."Unit of Measure Code" := CopyStr(EDocumentPurchaseLine."[BC] Unit of Measure", 1, MaxStrLen(PurchaseLine."Unit of Measure Code"));
         PurchaseLine."Variant Code" := EDocumentPurchaseLine."[BC] Variant Code";
         PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";

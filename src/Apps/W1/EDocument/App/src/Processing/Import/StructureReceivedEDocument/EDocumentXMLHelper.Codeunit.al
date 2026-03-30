@@ -57,6 +57,9 @@ codeunit 6401 "E-Document XML Helper"
         if not XMLDocument.SelectSingleNode(Path, XMLNamespaces, XMLNode) then
             exit;
 
+        if not XMLNode.IsXmlElement() then
+            exit;
+
         if XMLNode.AsXmlElement().InnerText() <> '' then
             Evaluate(DecimalValue, XMLNode.AsXmlElement().InnerText(), 9);
     end;
@@ -66,6 +69,9 @@ codeunit 6401 "E-Document XML Helper"
         XMLNode: XmlNode;
     begin
         if not XMLDocument.SelectSingleNode(Path, XMLNamespaces, XMLNode) then
+            exit;
+
+        if not XMLNode.IsXmlElement() then
             exit;
 
         if XMLNode.AsXmlElement().InnerText() <> '' then
@@ -81,7 +87,7 @@ codeunit 6401 "E-Document XML Helper"
         if not XMLDocument.SelectSingleNode(Path, XMLNamespaces, XMLNode) then
             exit;
 
-        GLSetup.Get();
+        GLSetup.GetRecordOnce();
 
         if XMLNode.IsXmlElement() then begin
             CurrencyCode := CopyStr(XMLNode.AsXmlElement().InnerText(), 1, MaxLength);

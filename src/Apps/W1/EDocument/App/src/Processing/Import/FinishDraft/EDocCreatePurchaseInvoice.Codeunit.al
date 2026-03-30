@@ -165,6 +165,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EDocLineByReceipt.Open();
         while EDocLineByReceipt.Read() do begin
             EDocumentPurchaseLine.GetBySystemId(EDocLineByReceipt.SystemId);
+            PurchaseLineNo += 10000;
             EDocPurchaseDocumentHelper.CreatePurchaseLineFromDraft(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
         end;
         EDocLineByReceipt.Close();
@@ -186,6 +187,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
                 PurchaseLine.Insert();
             end;
             EDocumentPurchaseLine.GetBySystemId(EDocLineByReceipt.SystemId);
+            PurchaseLineNo += 10000;
             EDocPurchaseDocumentHelper.CreatePurchaseLineFromDraft(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
             LastReceiptNo := EDocLineByReceipt.ReceiptNo;
         end;
