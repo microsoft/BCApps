@@ -166,11 +166,11 @@ table 30142 "Shpfy Refund Header"
         RefundShippingLine: Record "Shpfy Refund Shipping Line";
         DataCapture: Record "Shpfy Data Capture";
     begin
-        RefundLine.SetRange("Refund Id");
+        RefundLine.SetRange("Refund Id", Rec."Refund Id");
         if not RefundLine.IsEmpty() then
             RefundLine.DeleteAll(true);
 
-        RefundShippingLine.SetRange("Refund Id");
+        RefundShippingLine.SetRange("Refund Id", Rec."Refund Id");
         if not RefundShippingLine.IsEmpty() then
             RefundShippingLine.DeleteAll(true);
 
