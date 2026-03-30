@@ -192,7 +192,7 @@ codeunit 30161 "Shpfy Import Order"
         OrderLine.DeleteAll();
     end;
 
-    local procedure ConsiderRefundsInQuantityAndAmounts(var OrderHeader: Record "Shpfy Order Header")
+    internal procedure ConsiderRefundsInQuantityAndAmounts(var OrderHeader: Record "Shpfy Order Header")
     var
         OrderLine: Record "Shpfy Order Line";
         RefundLine: Record "Shpfy Refund Line";
@@ -222,9 +222,9 @@ codeunit 30161 "Shpfy Import Order"
             RefundLine.CalcSums(Quantity, Amount, "Presentment Amount", "Subtotal Amount", "Presentment Subtotal Amount", "Total Tax Amount", "Presentment Total Tax Amount");
             OrderLine.Quantity -= RefundLine.Quantity;
             OrderLine.Modify();
-            OrderHeader."Total Amount" -= RefundLine."Subtotal Amount";
+            OrderHeader."Total Amount" -= RefundLine."Subtotal Amount" + RefundLine."Total Tax Amount";
             OrderHeader."Subtotal Amount" -= RefundLine."Subtotal Amount";
-            OrderHeader."Presentment Total Amount" -= RefundLine."Presentment Subtotal Amount";
+            OrderHeader."Presentment Total Amount" -= RefundLine."Presentment Subtotal Amount" + RefundLine."Presentment Total Tax Amount";
             OrderHeader."Presentment Subtotal Amount" -= RefundLine."Presentment Subtotal Amount";
             OrderHeader."VAT Amount" -= RefundLine."Total Tax Amount";
             OrderHeader."Presentment VAT Amount" -= RefundLine."Presentment Total Tax Amount";
