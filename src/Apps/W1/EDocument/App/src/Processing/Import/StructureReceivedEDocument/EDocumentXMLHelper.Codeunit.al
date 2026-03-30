@@ -31,23 +31,23 @@ codeunit 6401 "E-Document XML Helper"
         XmlNamespaces.AddNamespace('cre', DefaultCreditNoteLbl);
     end;
 
-#pragma warning disable AA0139 // false positive: overflow handled by MaxLength parameter
     procedure SetStringValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; MaxLength: Integer; var Field: Text)
     var
         XMLNode: XmlNode;
+        NodeValue: Text;
     begin
         if not XMLDocument.SelectSingleNode(Path, XMLNamespaces, XMLNode) then
             exit;
 
-        if XMLNode.IsXmlElement() then begin
-            Field := CopyStr(XMLNode.AsXmlElement().InnerText(), 1, MaxLength);
-            exit;
-        end;
+        if XMLNode.IsXmlElement() then
+            NodeValue := XMLNode.AsXmlElement().InnerText()
+        else
+            if XMLNode.IsXmlAttribute() then
+                NodeValue := XMLNode.AsXmlAttribute().Value()
+            else
+                exit;
 
-        if XMLNode.IsXmlAttribute() then begin
-            Field := CopyStr(XMLNode.AsXmlAttribute().Value(), 1, MaxLength);
-            exit;
-        end;
+        Field := CopyStr(NodeValue, 1, MaxLength);
     end;
 
     procedure SetNumberValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; var DecimalValue: Decimal)
@@ -82,26 +82,23 @@ codeunit 6401 "E-Document XML Helper"
     var
         GLSetup: Record "General Ledger Setup";
         XMLNode: XmlNode;
+        NodeValue: Text;
         CurrencyCode: Code[10];
     begin
         if not XMLDocument.SelectSingleNode(Path, XMLNamespaces, XMLNode) then
             exit;
 
+        if XMLNode.IsXmlElement() then
+            NodeValue := XMLNode.AsXmlElement().InnerText()
+        else
+            if XMLNode.IsXmlAttribute() then
+                NodeValue := XMLNode.AsXmlAttribute().Value()
+            else
+                exit;
+
         GLSetup.GetRecordOnce();
-
-        if XMLNode.IsXmlElement() then begin
-            CurrencyCode := CopyStr(XMLNode.AsXmlElement().InnerText(), 1, MaxLength);
-            if GLSetup."LCY Code" <> CurrencyCode then
-                CurrencyField := CurrencyCode;
-            exit;
-        end;
-
-        if XMLNode.IsXmlAttribute() then begin
-            CurrencyCode := CopyStr(XMLNode.AsXmlAttribute().Value, 1, MaxLength);
-            if GLSetup."LCY Code" <> CurrencyCode then
-                CurrencyField := CurrencyCode;
-            exit;
-        end;
+        CurrencyCode := CopyStr(NodeValue, 1, MaxStrLen(CurrencyCode));
+        if GLSetup."LCY Code" <> CurrencyCode then
+            CurrencyField := CurrencyCode;
     end;
-#pragma warning restore AA0139
 }
