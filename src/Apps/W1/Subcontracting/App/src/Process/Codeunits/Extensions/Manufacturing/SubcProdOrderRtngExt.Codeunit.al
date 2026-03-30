@@ -60,6 +60,12 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
         SubcPriceManagement.GetSubcPriceList(ProdOrderRoutingLine);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Route Management", OnCalculateOnBeforeProdOrderRtngLineLoopIteration, '', false, false)]
+    local procedure CheckSubcontractingOnCalculateOnBeforeProdOrderRtngLineLoopIteration(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    begin
+        ProdOrderRoutingLine.CheckForSubcontractingPurchaseLineTypeMismatch();
+    end;
+
     local procedure HandleRoutingLinkCodeValidation(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var xProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         ProdOrderRoutingLine2: Record "Prod. Order Routing Line";
