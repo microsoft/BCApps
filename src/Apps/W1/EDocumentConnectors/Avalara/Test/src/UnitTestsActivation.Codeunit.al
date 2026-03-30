@@ -141,7 +141,6 @@ codeunit 133627 "Unit Tests - Activation"
     procedure TestClearExistingData_RemovesAllRecords()
     var
         ActivationHeader: Record "Activation Header";
-        ActivationMandate: Record "Activation Mandate";
         Activation: Codeunit Activation;
         ValidJson: Text;
     begin
@@ -269,7 +268,6 @@ codeunit 133627 "Unit Tests - Activation"
     procedure TestActivation_CompanyIdMatching()
     var
         ActivationHeader: Record "Activation Header";
-        ConnectionSetup: Record "Connection Setup";
         Activation: Codeunit Activation;
         ValidJson: Text;
     begin
@@ -305,7 +303,6 @@ codeunit 133627 "Unit Tests - Activation"
     var
         ActivationHeader: Record "Activation Header";
         ActivationMandate: Record "Activation Mandate";
-        ConnectionSetup: Record "Connection Setup";
     begin
         if not ActivationHeader.IsEmpty() then
             ActivationHeader.DeleteAll(true);

@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.Sales.Customer;
 using System.Threading;
 using System.Utilities;
+using Microsoft.eServices.EDocument.Integration;
 
 codeunit 133624 "E2E Tests - Document Lifecycle"
 {
@@ -163,7 +164,7 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
             exit;
 
         LibraryEDocument.SetupStandardVAT();
-        LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration V2"::Avalara);
+        LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
         EDocumentService."Avalara Mandate" := 'GB-TEST';
         EDocumentService.Modify();
 

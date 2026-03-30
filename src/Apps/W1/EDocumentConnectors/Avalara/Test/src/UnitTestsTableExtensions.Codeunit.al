@@ -13,7 +13,6 @@ codeunit 133632 "Unit Tests - Table Extensions"
 
     var
         Assert: Codeunit Assert;
-        LibraryEDocument: Codeunit "Library - E-Document";
         IsInitialized: Boolean;
 
     // AvalaraSalesHeader.TableExt Tests
@@ -55,7 +54,7 @@ codeunit 133632 "Unit Tests - Table Extensions"
         EDocument.Modify();
 
         // [WHEN] Modifying other fields
-        EDocument.Status := EDocument.Status::Sent;
+        EDocument.Status := EDocument.Status::Processed;
         EDocument.Modify();
 
         // [THEN] Document ID should still be present
@@ -133,7 +132,7 @@ codeunit 133632 "Unit Tests - Table Extensions"
         LongDocumentId := PadStr('', MaxLength + 50, 'A');  // Longer than field length
 
         // [WHEN] Setting the long document ID
-        EDocument."Avalara Document Id" := CopyStr(LongDocumentId, 1, MaxLength);
+        EDocument."Avalara Document Id" := CopyStr(LongDocumentId, 1, MaxStrLen(EDocument."Avalara Document Id"));
         EDocument.Modify();
 
         // [THEN] Should be truncated to max length
@@ -177,7 +176,7 @@ codeunit 133632 "Unit Tests - Table Extensions"
         Assert.IsTrue(FilteredDocuments.FindFirst(), 'Should find document 2');
 
         FilteredDocuments.SetRange("Entry No", EDocument3."Entry No");
-        Assert.IsFalse(FilteredDocuments.FindFirst(), 'Should not find document 3 without ID');
+        Assert.IsTrue(FilteredDocuments.IsEmpty(), 'Should not find document 3 without ID');
 
         // Cleanup
         EDocument1.Delete();
@@ -255,15 +254,20 @@ codeunit 133632 "Unit Tests - Table Extensions"
     end;
 
     local procedure CreateConnectionSetup(var ConnectionSetup: Record "Connection Setup")
+    var
+        AvalaraAuth: Codeunit Authenticator;
+        KeyGuid: Guid;
     begin
         if ConnectionSetup.Get() then
             ConnectionSetup.Delete();
 
         ConnectionSetup.Init();
         ConnectionSetup.Insert(true);
-        ConnectionSetup."Client Id" := 'test-client';
-        ConnectionSetup.SetClientSecret(SecretText.SecretStrSubstNo('test-secret'));
-        ConnectionSetup."Environment Url" := 'https://test.avalara.com';
+        AvalaraAuth.SetClientId(KeyGuid, SecretText.SecretStrSubstNo('test-client'));
+        ConnectionSetup."Client Id - Key" := KeyGuid;
+        AvalaraAuth.SetClientSecret(KeyGuid, SecretText.SecretStrSubstNo('test-secret'));
+        ConnectionSetup."Client Secret - Key" := KeyGuid;
+        ConnectionSetup."API URL" := 'https://test.avalara.com';
         ConnectionSetup.Modify();
     end;
 }

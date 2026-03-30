@@ -13,7 +13,6 @@ codeunit 133629 "Unit Tests - Maintenance"
 
     var
         Assert: Codeunit Assert;
-        LibraryEDocument: Codeunit "Library - E-Document";
         IsInitialized: Boolean;
 
     [Test]
@@ -22,16 +21,13 @@ codeunit 133629 "Unit Tests - Maintenance"
         EDocument: Record "E-Document";
         EDocumentService: Record "E-Document Service";
         Maintenance: Codeunit Maintenance;
-        InitialCount: Integer;
     begin
         // [SCENARIO] ProcessEDocuments successfully processes valid E-Documents with Avalara Document IDs
 
         // [GIVEN] E-Documents with valid Avalara Document IDs
         Initialize();
         CreateMockEDocumentService(EDocumentService);
-        CreateMockEDocumentWithDocumentId(EDocument, EDocumentService, 'DOC001');
-
-        InitialCount := GetProcessedDocumentCount();
+        CreateMockEDocumentWithDocumentId(EDocument, 'DOC001');
 
         // [WHEN] Maintenance codeunit is run
         Maintenance.Run();
@@ -48,7 +44,6 @@ codeunit 133629 "Unit Tests - Maintenance"
     procedure TestProcessEDocuments_NoDocumentsToProcess_ExitsCleanly()
     var
         EDocument: Record "E-Document";
-        Maintenance: Codeunit Maintenance;
     begin
         // [SCENARIO] ProcessEDocuments exits cleanly when no documents need processing
 
@@ -67,8 +62,8 @@ codeunit 133629 "Unit Tests - Maintenance"
     procedure TestFindEDocumentsToProcess_FiltersCorrectly()
     var
         EDocument: Record "E-Document";
-        EDocumentService: Record "E-Document Service";
         EDocument1, EDocument2, EDocument3 : Record "E-Document";
+        EDocumentService: Record "E-Document Service";
     begin
         // [SCENARIO] FindEDocumentsToProcess applies correct filters to identify processable documents
 
@@ -77,24 +72,24 @@ codeunit 133629 "Unit Tests - Maintenance"
         CreateMockEDocumentService(EDocumentService);
 
         // Document with ID, not in error - should be found
-        CreateMockEDocumentWithDocumentId(EDocument1, EDocumentService, 'DOC001');
-        EDocument1.Status := EDocument1.Status::Sent;
+        CreateMockEDocumentWithDocumentId(EDocument1, 'DOC001');
+        EDocument1.Status := EDocument1.Status::Processed;
         EDocument1.Modify();
 
         // Document with ID, in error - should NOT be found
-        CreateMockEDocumentWithDocumentId(EDocument2, EDocumentService, 'DOC002');
+        CreateMockEDocumentWithDocumentId(EDocument2, 'DOC002');
         EDocument2.Status := EDocument2.Status::Error;
         EDocument2.Modify();
 
         // Document without ID - should NOT be found
-        CreateMockEDocument(EDocument3, EDocumentService);
+        CreateMockEDocument(EDocument3);
 
         // [WHEN] Filtering for documents to process
         EDocument.SetFilter("Avalara Document Id", '<>%1', '');
         EDocument.SetFilter(Status, '<>%1', EDocument.Status::Error.AsInteger());
 
         // [THEN] Should find only the valid document
-        Assert.IsTrue(EDocument.FindSet(), 'Should find at least one document');
+        Assert.IsFalse(EDocument.IsEmpty(), 'Should find at least one document');
 
         // Cleanup
         CleanupTestData(EDocument1, EDocumentService);
@@ -113,7 +108,7 @@ codeunit 133629 "Unit Tests - Maintenance"
         // [GIVEN] An E-Document without Avalara Document ID
         Initialize();
         CreateMockEDocumentService(EDocumentService);
-        CreateMockEDocument(EDocument, EDocumentService);
+        CreateMockEDocument(EDocument);
 
         // [WHEN] Processing the document
         // [THEN] Should handle gracefully (verified by no error)
@@ -134,7 +129,7 @@ codeunit 133629 "Unit Tests - Maintenance"
         // [GIVEN] An E-Document with Avalara Document ID
         Initialize();
         CreateMockEDocumentService(EDocumentService);
-        CreateMockEDocumentWithDocumentId(EDocument, EDocumentService, 'AVALARA-DOC-12345');
+        CreateMockEDocumentWithDocumentId(EDocument, 'AVALARA-DOC-12345');
 
         // [WHEN] Checking the document ID
         // [THEN] Document ID should be set
@@ -149,8 +144,8 @@ codeunit 133629 "Unit Tests - Maintenance"
     procedure TestMaintenanceProcessing_WithMultipleDocuments_ProcessesAll()
     var
         EDocument1, EDocument2, EDocument3 : Record "E-Document";
-        EDocumentService: Record "E-Document Service";
         EDocumentFilter: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
         DocumentCount: Integer;
     begin
         // [SCENARIO] Maintenance processes multiple documents in a single run
@@ -158,9 +153,9 @@ codeunit 133629 "Unit Tests - Maintenance"
         // [GIVEN] Multiple E-Documents with Avalara Document IDs
         Initialize();
         CreateMockEDocumentService(EDocumentService);
-        CreateMockEDocumentWithDocumentId(EDocument1, EDocumentService, 'DOC001');
-        CreateMockEDocumentWithDocumentId(EDocument2, EDocumentService, 'DOC002');
-        CreateMockEDocumentWithDocumentId(EDocument3, EDocumentService, 'DOC003');
+        CreateMockEDocumentWithDocumentId(EDocument1, 'DOC001');
+        CreateMockEDocumentWithDocumentId(EDocument2, 'DOC002');
+        CreateMockEDocumentWithDocumentId(EDocument3, 'DOC003');
 
         // [WHEN] Counting documents to process
         EDocumentFilter.SetFilter("Avalara Document Id", '<>%1', '');
@@ -187,7 +182,7 @@ codeunit 133629 "Unit Tests - Maintenance"
         // [GIVEN] E-Documents to process
         Initialize();
         CreateMockEDocumentService(EDocumentService);
-        CreateMockEDocumentWithDocumentId(EDocument, EDocumentService, 'DOC001');
+        CreateMockEDocumentWithDocumentId(EDocument, 'DOC001');
 
         // [WHEN] Maintenance runs
         // [THEN] Should log telemetry (verified by no errors during execution)
@@ -211,12 +206,12 @@ codeunit 133629 "Unit Tests - Maintenance"
         Initialize();
         CreateMockEDocumentService(EDocumentService);
 
-        CreateMockEDocumentWithDocumentId(EDocumentError, EDocumentService, 'DOC-ERROR');
+        CreateMockEDocumentWithDocumentId(EDocumentError, 'DOC-ERROR');
         EDocumentError.Status := EDocumentError.Status::Error;
         EDocumentError.Modify();
 
-        CreateMockEDocumentWithDocumentId(EDocumentValid, EDocumentService, 'DOC-VALID');
-        EDocumentValid.Status := EDocumentValid.Status::Sent;
+        CreateMockEDocumentWithDocumentId(EDocumentValid, 'DOC-VALID');
+        EDocumentValid.Status := EDocumentValid.Status::Processed;
         EDocumentValid.Modify();
 
         // [WHEN] Filtering for processable documents
@@ -228,7 +223,7 @@ codeunit 133629 "Unit Tests - Maintenance"
         Assert.IsFalse(FilteredDocuments.FindFirst(), 'Error document should be excluded');
 
         FilteredDocuments.SetRange("Entry No", EDocumentValid."Entry No");
-        Assert.IsTrue(FilteredDocuments.FindFirst(), 'Valid document should be included');
+        Assert.IsFalse(FilteredDocuments.IsEmpty(), 'Valid document should be included');
 
         // Cleanup
         CleanupTestData(EDocumentError, EDocumentService);
@@ -238,19 +233,23 @@ codeunit 133629 "Unit Tests - Maintenance"
     local procedure Initialize()
     var
         ConnectionSetup: Record "Connection Setup";
+        AvalaraAuth: Codeunit Authenticator;
+        KeyGuid: Guid;
     begin
         if IsInitialized then
             exit;
 
         // Setup connection
         if not ConnectionSetup.Get() then begin
-            ConnectionSetup.Init();
-            ConnectionSetup.Insert();
+            AvalaraAuth.CreateConnectionSetupRecord();
+            ConnectionSetup.Get();
         end;
 
-        ConnectionSetup."Client Id" := 'TestClientId';
-        ConnectionSetup.SetClientSecret(SecretText.SecretStrSubstNo('TestClientSecret'));
-        ConnectionSetup."Environment Url" := 'https://test.avalara.com';
+        AvalaraAuth.SetClientId(KeyGuid, SecretText.SecretStrSubstNo('TestClientId'));
+        ConnectionSetup."Client Id - Key" := KeyGuid;
+        AvalaraAuth.SetClientSecret(KeyGuid, SecretText.SecretStrSubstNo('TestClientSecret'));
+        ConnectionSetup."Client Secret - Key" := KeyGuid;
+        ConnectionSetup."API URL" := 'https://test.avalara.com';
         ConnectionSetup.Modify();
 
         IsInitialized := true;
@@ -266,28 +265,20 @@ codeunit 133629 "Unit Tests - Maintenance"
             EDocumentService.Modify();
     end;
 
-    local procedure CreateMockEDocument(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service")
+    local procedure CreateMockEDocument(var EDocument: Record "E-Document")
     begin
         EDocument.Init();
         EDocument."Entry No" := 0;  // Auto-assigned
         EDocument.Insert(true);
-        EDocument.Status := EDocument.Status::Sent;
+        EDocument.Status := EDocument.Status::Processed;
         EDocument.Modify();
     end;
 
-    local procedure CreateMockEDocumentWithDocumentId(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; DocumentId: Text)
+    local procedure CreateMockEDocumentWithDocumentId(var EDocument: Record "E-Document"; DocumentId: Text)
     begin
-        CreateMockEDocument(EDocument, EDocumentService);
+        CreateMockEDocument(EDocument);
         EDocument."Avalara Document Id" := CopyStr(DocumentId, 1, MaxStrLen(EDocument."Avalara Document Id"));
         EDocument.Modify();
-    end;
-
-    local procedure GetProcessedDocumentCount(): Integer
-    var
-        EDocument: Record "E-Document";
-    begin
-        EDocument.SetFilter("Avalara Document Id", '<>%1', '');
-        exit(EDocument.Count());
     end;
 
     local procedure CleanupTestData(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service")

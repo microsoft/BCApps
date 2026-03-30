@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+using Microsoft.EServices.EDocumentConnector.Avalara.Models;
+
 codeunit 148191 "Unit Tests - HTTP & Processing"
 {
     Subtype = Test;
@@ -117,7 +119,7 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
     [HandlerFunctions('HttpCompaniesHandler')]
     procedure TestProcessing_GetCompanyList_Success()
     var
-        AvalaraCompany: Record "Avalara Company" temporary;
+        TempAvalaraCompany: Record "Avalara Company" temporary;
         Processing: Codeunit Processing;
     begin
         // [SCENARIO] Processing.GetCompanyList retrieves companies
@@ -127,17 +129,15 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
         CreateMockConnectionSetup();
 
         // [WHEN] Getting company list
-        Processing.GetCompanyList(AvalaraCompany);
+        Processing.GetCompanyList(TempAvalaraCompany);
 
         // [THEN] Companies should be loaded
-        Assert.RecordIsNotEmpty(AvalaraCompany);
+        Assert.RecordIsNotEmpty(TempAvalaraCompany);
     end;
 
     [Test]
     [HandlerFunctions('HttpMandatesHandler')]
     procedure TestProcessing_GetMandates_Success()
-    var
-        Processing: Codeunit Processing;
     begin
         // [SCENARIO] Processing can retrieve mandates from API
 
@@ -178,7 +178,7 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
     [Test]
     procedure TestRequests_CreateSubmitDocumentRequest_SetsCorrectMethod()
     var
-        MetaData: Codeunit Requests;
+        MetaData: Codeunit Metadata;
         Request: Codeunit Requests;
         RequestContent: Text;
     begin

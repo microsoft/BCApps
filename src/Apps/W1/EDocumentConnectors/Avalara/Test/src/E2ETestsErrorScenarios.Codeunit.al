@@ -137,7 +137,6 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     procedure TestDownloadDocument_NotFound_LogsError()
     var
         EDocument: Record "E-Document";
-        EDocService: Record "E-Document Service";
         AvalaraDocMgt: Codeunit "Avalara Document Management";
         Result: Boolean;
     begin
@@ -184,7 +183,7 @@ codeunit 133625 "E2E Tests - Error Scenarios"
             exit;
 
         LibraryEDocument.SetupStandardVAT();
-        LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration V2"::Avalara);
+        LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
         EDocumentService."Avalara Mandate" := 'GB-TEST';
         EDocumentService.Modify();
 
@@ -231,20 +230,10 @@ codeunit 133625 "E2E Tests - Error Scenarios"
         end;
     end;
 
-    local procedure CreateMockPendingEDocument(var EDocument: Record "E-Document")
-    begin
-        EDocument.Init();
-        EDocument."Entry No" := 999;
-        EDocument.Status := EDocument.Status::"In Progress";
-        EDocument."Avalara Document Id" := 'test-pending-doc-id';
-        if EDocument.Insert() then;
-    end;
-
     [HttpClientHandler]
     internal procedure HttpNetworkErrorHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
         // Simulate network error by not setting response properly
-        Response.HttpStatusCode := 0;
         exit(false);
     end;
 
@@ -321,8 +310,9 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     begin
         if Request.Path.Contains('/connect/token') then
             LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response)
-        else if Request.Path.Contains('/einvoicing/documents') then
-            LoadResourceIntoHttpResponse(SubmitDocumentFileTok, Response);
+        else
+            if Request.Path.Contains('/einvoicing/documents') then
+                LoadResourceIntoHttpResponse(SubmitDocumentFileTok, Response);
     end;
 
     local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
@@ -331,6 +321,4 @@ codeunit 133625 "E2E Tests - Error Scenarios"
         Response.HttpStatusCode := 200;
     end;
 
-    var
-        LibraryJobQueue: Codeunit "Library - Job Queue";
 }

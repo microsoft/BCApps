@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-using Microsoft.eServices.EDocument;
-
 codeunit 148192 "Unit Tests - Avalara Functions"
 {
     Subtype = Test;
@@ -13,7 +11,6 @@ codeunit 148192 "Unit Tests - Avalara Functions"
 
     var
         Assert: Codeunit Assert;
-        LibraryEDocument: Codeunit "Library - E-Document";
         IsInitialized: Boolean;
 
     [Test]
@@ -110,8 +107,8 @@ codeunit 148192 "Unit Tests - Avalara Functions"
 
         // [THEN] Fields should be inserted into the table
         AvalaraInputField.SetRange(Mandate, 'GB-TEST');
-        AvalaraInputField.SetRange("Document Type", 'ubl-invoice');
-        AvalaraInputField.SetRange("Document Version", '2.1');
+        AvalaraInputField.SetRange(DocumentType, 'ubl-invoice');
+        AvalaraInputField.SetRange(DocumentVersion, '2.1');
         Assert.RecordIsNotEmpty(AvalaraInputField);
 
         // Cleanup
@@ -126,13 +123,22 @@ codeunit 148192 "Unit Tests - Avalara Functions"
         IsInitialized := true;
     end;
 
-    local procedure CreateMockEDocumentService(var EDocumentService: Record "E-Document Service"; Mandate: Code[40])
+    local procedure CreateMockConnectionSetup(var ConnectionSetup: Record "Connection Setup")
+    var
+        AvalaraAuth: Codeunit Authenticator;
+        KeyGuid: Guid;
     begin
-        EDocumentService.Init();
-        EDocumentService.Code := 'AVALARA-TEST';
-        EDocumentService."Service Integration V2" := EDocumentService."Service Integration V2"::Avalara;
-        EDocumentService."Avalara Mandate" := Mandate;
-        if EDocumentService.Insert() then;
+        if not ConnectionSetup.Get() then begin
+            AvalaraAuth.CreateConnectionSetupRecord();
+            ConnectionSetup.Get();
+        end;
+
+        AvalaraAuth.SetClientId(KeyGuid, SecretText.SecretStrSubstNo('mock-client-id'));
+        ConnectionSetup."Client Id - Key" := KeyGuid;
+        AvalaraAuth.SetClientSecret(KeyGuid, SecretText.SecretStrSubstNo('mock-client-secret'));
+        ConnectionSetup."Client Secret - Key" := KeyGuid;
+        ConnectionSetup."Company Id" := 'test-company-id';
+        ConnectionSetup.Modify(true);
     end;
 
     local procedure GetMockFieldsJson(): Text

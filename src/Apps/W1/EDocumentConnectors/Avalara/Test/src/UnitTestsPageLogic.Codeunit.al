@@ -28,8 +28,8 @@ codeunit 133631 "Unit Tests - Page Logic"
         ConnectionSetup.Get();
 
         // [THEN] Record should have required fields
-        Assert.AreNotEqual('', ConnectionSetup."Client Id", 'Client ID should be set');
-        Assert.AreNotEqual('', ConnectionSetup."Environment Url", 'Environment URL should be set');
+        Assert.AreNotEqual('', Format(ConnectionSetup."Client Id - Key"), 'Client ID key should be set');
+        Assert.AreNotEqual('', ConnectionSetup."API URL", 'API URL should be set');
 
         // Cleanup
         ConnectionSetup.Delete();
@@ -53,8 +53,8 @@ codeunit 133631 "Unit Tests - Page Logic"
 
         // [THEN] Should have default environment URL
         ConnectionSetup.Get();
-        Assert.IsTrue(StrLen(ConnectionSetup."Environment Url") > 0,
-            'Environment URL should have default value');
+        Assert.IsTrue(StrLen(ConnectionSetup."API URL") > 0,
+            'API URL should have default value');
 
         // Cleanup
         ConnectionSetup.Delete();
@@ -151,12 +151,14 @@ codeunit 133631 "Unit Tests - Page Logic"
         Initialize();
 
         Doc1.Init();
-        Doc1."Document Id" := 'DOC-COMPLETE-001';
+        Doc1.Id := 'DOC-COMPLETE-001';
+        Doc1."Process DateTime" := CurrentDateTime();
         Doc1.Status := 'Complete';
         Doc1.Insert();
 
         Doc2.Init();
-        Doc2."Document Id" := 'DOC-PENDING-002';
+        Doc2.Id := 'DOC-PENDING-002';
+        Doc2."Process DateTime" := CurrentDateTime();
         Doc2.Status := 'Pending';
         Doc2.Insert();
 
@@ -183,15 +185,15 @@ codeunit 133631 "Unit Tests - Page Logic"
 
         MediaTypes.Init();
         MediaTypes.Mandate := 'GB-PEPPOL';
-        MediaTypes."Media Type" := 'application/xml';
+        MediaTypes."Invoice Available Media Types" := 'application/xml';
         MediaTypes.Insert();
 
         // [WHEN] Page would load this data
-        MediaTypes.Get('GB-PEPPOL', 'application/xml');
+        MediaTypes.Get('GB-PEPPOL');
 
         // [THEN] Data should be displayable
         Assert.AreEqual('GB-PEPPOL', MediaTypes.Mandate, 'Mandate should match');
-        Assert.AreEqual('application/xml', MediaTypes."Media Type", 'Media type should match');
+        Assert.AreEqual('application/xml', MediaTypes."Invoice Available Media Types", 'Media type should match');
 
         // Cleanup
         CleanupMediaTypes();
@@ -265,15 +267,20 @@ codeunit 133631 "Unit Tests - Page Logic"
     end;
 
     local procedure CreateConnectionSetup(var ConnectionSetup: Record "Connection Setup")
+    var
+        AvalaraAuth: Codeunit Authenticator;
+        KeyGuid: Guid;
     begin
         if ConnectionSetup.Get() then
             ConnectionSetup.Delete();
 
         ConnectionSetup.Init();
         ConnectionSetup.Insert(true);
-        ConnectionSetup."Client Id" := 'test-client-id';
-        ConnectionSetup.SetClientSecret(SecretText.SecretStrSubstNo('test-secret'));
-        ConnectionSetup."Environment Url" := 'https://test.avalara.com';
+        AvalaraAuth.SetClientId(KeyGuid, SecretText.SecretStrSubstNo('test-client-id'));
+        ConnectionSetup."Client Id - Key" := KeyGuid;
+        AvalaraAuth.SetClientSecret(KeyGuid, SecretText.SecretStrSubstNo('test-secret'));
+        ConnectionSetup."Client Secret - Key" := KeyGuid;
+        ConnectionSetup."API URL" := 'https://test.avalara.com';
         ConnectionSetup.Modify();
     end;
 

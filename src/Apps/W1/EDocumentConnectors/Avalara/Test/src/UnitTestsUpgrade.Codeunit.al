@@ -18,7 +18,6 @@ codeunit 133634 "Unit Tests - Upgrade"
     [Test]
     procedure TestUpgradeTags_AreRegistered()
     var
-        UpgradeTag: Codeunit "Upgrade Tag";
         PerCompanyUpgradeTags: List of [Code[250]];
     begin
         // [SCENARIO] Upgrade tags are properly registered for per-company upgrades
@@ -137,8 +136,8 @@ codeunit 133634 "Unit Tests - Upgrade"
     [Test]
     procedure TestUpgradeTagList_ContainsExpectedTags()
     var
-        PerCompanyUpgradeTags: List of [Code[250]];
         ExpectedTag1, ExpectedTag2 : Code[250];
+        PerCompanyUpgradeTags: List of [Code[250]];
     begin
         // [SCENARIO] Per-company upgrade tag list contains all required tags
 
@@ -217,9 +216,9 @@ codeunit 133634 "Unit Tests - Upgrade"
     begin
         // Note: In production, upgrade tags should not be cleared
         // This is only for test cleanup purposes
-        if UpgradeTag.HasUpgradeTag(TagValue) then begin
+        if UpgradeTag.HasUpgradeTag(TagValue) then
             // Tag clearing would require system permissions
             // In tests, we acknowledge the tag exists
-        end;
+            ;
     end;
 }

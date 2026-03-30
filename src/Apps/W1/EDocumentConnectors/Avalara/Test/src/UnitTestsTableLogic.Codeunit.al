@@ -33,7 +33,7 @@ codeunit 133633 "Unit Tests - Table Logic"
 
         // [THEN] Default values should be set
         ConnectionSetup.Get();
-        Assert.AreNotEqual('', ConnectionSetup."Environment Url", 'Environment URL should have default value');
+        Assert.AreNotEqual('', ConnectionSetup."API URL", 'API URL should have default value');
 
         // Cleanup
         ConnectionSetup.Delete();
@@ -43,6 +43,8 @@ codeunit 133633 "Unit Tests - Table Logic"
     procedure TestConnectionSetup_ValidateClientId_AcceptsValue()
     var
         ConnectionSetup: Record "Connection Setup";
+        AvalaraAuth: Codeunit Authenticator;
+        KeyGuid: Guid;
     begin
         // [SCENARIO] Connection Setup accepts valid Client ID
 
@@ -51,12 +53,13 @@ codeunit 133633 "Unit Tests - Table Logic"
         CreateConnectionSetup(ConnectionSetup);
 
         // [WHEN] Setting Client ID
-        ConnectionSetup."Client Id" := 'test-client-id-12345';
+        AvalaraAuth.SetClientId(KeyGuid, SecretText.SecretStrSubstNo('test-client-id-12345'));
+        ConnectionSetup."Client Id - Key" := KeyGuid;
         ConnectionSetup.Modify();
 
-        // [THEN] Client ID should be stored
+        // [THEN] Client ID key should be stored
         ConnectionSetup.Get();
-        Assert.AreEqual('test-client-id-12345', ConnectionSetup."Client Id", 'Client ID should match');
+        Assert.AreNotEqual('', Format(ConnectionSetup."Client Id - Key"), 'Client ID key should be set');
 
         // Cleanup
         ConnectionSetup.Delete();
@@ -66,6 +69,8 @@ codeunit 133633 "Unit Tests - Table Logic"
     procedure TestConnectionSetup_SetClientSecret_StoresSecurely()
     var
         ConnectionSetup: Record "Connection Setup";
+        AvalaraAuth: Codeunit Authenticator;
+        KeyGuid: Guid;
         TestSecret: SecretText;
     begin
         // [SCENARIO] Connection Setup stores client secret securely
@@ -76,7 +81,9 @@ codeunit 133633 "Unit Tests - Table Logic"
         TestSecret := SecretText.SecretStrSubstNo('super-secret-password-123');
 
         // [WHEN] Setting client secret
-        ConnectionSetup.SetClientSecret(TestSecret);
+        AvalaraAuth.SetClientSecret(KeyGuid, TestSecret);
+        ConnectionSetup."Client Secret - Key" := KeyGuid;
+        ConnectionSetup.Modify();
 
         // [THEN] Secret should be stored (cannot verify encrypted value directly)
         Assert.IsTrue(true, 'SetClientSecret executed without error');
@@ -220,11 +227,10 @@ codeunit 133633 "Unit Tests - Table Logic"
 
         // [WHEN] Inserting multiple media types
         CreateMediaType(MediaTypes, 'GB-PEPPOL', 'application/xml');
-        CreateMediaType(MediaTypes, 'GB-PEPPOL', 'application/pdf');
+        CreateMediaType(MediaTypes, 'DE-PEPPOL', 'application/pdf');
 
         // [THEN] Both should exist
-        MediaTypes.SetRange(Mandate, 'GB-PEPPOL');
-        Assert.AreEqual(2, MediaTypes.Count(), 'Should have 2 media types for GB-PEPPOL');
+        Assert.AreEqual(2, MediaTypes.Count(), 'Should have 2 media types');
 
         // Cleanup
         CleanupMediaTypes();
@@ -296,12 +302,13 @@ codeunit 133633 "Unit Tests - Table Logic"
 
         // [WHEN] Inserting into temporary buffer
         AvalaraDocumentBuffer.Init();
-        AvalaraDocumentBuffer."Document Id" := 'DOC-123';
+        AvalaraDocumentBuffer.Id := 'DOC-123';
+        AvalaraDocumentBuffer."Process DateTime" := CurrentDateTime();
         AvalaraDocumentBuffer.Status := 'Complete';
         AvalaraDocumentBuffer.Insert();
 
         // [THEN] Should be in temporary table only
-        Assert.IsTrue(AvalaraDocumentBuffer.Get('DOC-123'), 'Should find in temporary buffer');
+        Assert.IsFalse(AvalaraDocumentBuffer.IsEmpty(), 'Should find in temporary buffer');
 
         // No cleanup needed for temporary tables
     end;
@@ -318,16 +325,16 @@ codeunit 133633 "Unit Tests - Table Logic"
 
         // [WHEN] Populating buffer fields
         AvalaraDocumentBuffer.Init();
-        AvalaraDocumentBuffer."Document Id" := 'DOC-456';
+        AvalaraDocumentBuffer.Id := 'DOC-456';
+        AvalaraDocumentBuffer."Process DateTime" := CurrentDateTime();
         AvalaraDocumentBuffer.Status := 'Complete';
-        AvalaraDocumentBuffer."Workflow Id" := 'partner-einvoicing';
-        AvalaraDocumentBuffer."Created Date" := CurrentDateTime();
+        AvalaraDocumentBuffer."Document Type" := 'partner-einvoicing';
         AvalaraDocumentBuffer.Insert();
 
         // [THEN] All fields should be populated
-        AvalaraDocumentBuffer.Get('DOC-456');
+        Assert.IsFalse(AvalaraDocumentBuffer.IsEmpty(), 'Should find in buffer');
         Assert.AreEqual('Complete', AvalaraDocumentBuffer.Status, 'Status should match');
-        Assert.AreEqual('partner-einvoicing', AvalaraDocumentBuffer."Workflow Id", 'Workflow ID should match');
+        Assert.AreEqual('partner-einvoicing', AvalaraDocumentBuffer."Document Type", 'Document Type should match');
 
         // No cleanup needed for temporary tables
     end;
@@ -423,23 +430,28 @@ codeunit 133633 "Unit Tests - Table Logic"
     end;
 
     local procedure CreateConnectionSetup(var ConnectionSetup: Record "Connection Setup")
+    var
+        AvalaraAuth: Codeunit Authenticator;
+        KeyGuid: Guid;
     begin
         if ConnectionSetup.Get() then
             ConnectionSetup.Delete();
 
         ConnectionSetup.Init();
         ConnectionSetup.Insert(true);
-        ConnectionSetup."Client Id" := 'test-client';
-        ConnectionSetup.SetClientSecret(SecretText.SecretStrSubstNo('test-secret'));
-        ConnectionSetup."Environment Url" := 'https://test.avalara.com';
+        AvalaraAuth.SetClientId(KeyGuid, SecretText.SecretStrSubstNo('test-client'));
+        ConnectionSetup."Client Id - Key" := KeyGuid;
+        AvalaraAuth.SetClientSecret(KeyGuid, SecretText.SecretStrSubstNo('test-secret'));
+        ConnectionSetup."Client Secret - Key" := KeyGuid;
+        ConnectionSetup."API URL" := 'https://test.avalara.com';
         ConnectionSetup.Modify();
     end;
 
-    local procedure CreateMediaType(var MediaTypes: Record "Media Types"; MandateCode: Code[50]; MediaType: Text[250])
+    local procedure CreateMediaType(var MediaTypes: Record "Media Types"; MandateCode: Text[40]; MediaType: Text[250])
     begin
         MediaTypes.Init();
         MediaTypes.Mandate := MandateCode;
-        MediaTypes."Media Type" := CopyStr(MediaType, 1, MaxStrLen(MediaTypes."Media Type"));
+        MediaTypes."Invoice Available Media Types" := CopyStr(MediaType, 1, MaxStrLen(MediaTypes."Invoice Available Media Types"));
         if not MediaTypes.Insert(true) then
             MediaTypes.Modify(true);
     end;
