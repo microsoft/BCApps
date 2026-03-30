@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
-using Microsoft.Finance.GeneralLedger.Setup;
-
 codeunit 6401 "E-Document XML Helper"
 {
     Access = Public;
@@ -78,27 +76,4 @@ codeunit 6401 "E-Document XML Helper"
             Evaluate(DateValue, XMLNode.AsXmlElement().InnerText(), 9);
     end;
 
-    procedure SetCurrencyValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; MaxLength: Integer; var CurrencyField: Code[10])
-    var
-        GLSetup: Record "General Ledger Setup";
-        XMLNode: XmlNode;
-        NodeValue: Text;
-        CurrencyCode: Code[10];
-    begin
-        if not XMLDocument.SelectSingleNode(Path, XMLNamespaces, XMLNode) then
-            exit;
-
-        if XMLNode.IsXmlElement() then
-            NodeValue := XMLNode.AsXmlElement().InnerText()
-        else
-            if XMLNode.IsXmlAttribute() then
-                NodeValue := XMLNode.AsXmlAttribute().Value()
-            else
-                exit;
-
-        GLSetup.GetRecordOnce();
-        CurrencyCode := CopyStr(NodeValue, 1, MaxStrLen(CurrencyCode));
-        if GLSetup."LCY Code" <> CurrencyCode then
-            CurrencyField := CurrencyCode;
-    end;
 }
