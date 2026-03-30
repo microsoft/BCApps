@@ -57,6 +57,18 @@ We have the VAT rate from ADI (Azure Document Intelligence). When we create a pu
 
 5. **Possible middle ground** — A warning that something is off with VAT early in the draft page would help. The fix could be scoped to cases where the tax amount is specified per line on the invoice, which is more deterministic. However, the ambiguity problem (concern #3) can still apply even with per-line amounts.
 
+## Design Decision
+
+Design spec: [2026-03-30-vat-posting-group-resolution-design.md](src/Apps/W1/EDocument/App/src/Processing/Import/docs/2026-03-30-vat-posting-group-resolution-design.md)
+
+Key decisions:
+1. **Normalize ADI handler** — compute VAT percentage from `tax / Sub Total * 100` instead of storing the raw tax amount
+2. **New `[BC] VAT Prod. Posting Group` field** (field 110) on E-Document Purchase Line, resolved during Prepare Draft
+3. **Lookup in Prepare Draft** — query VAT Posting Setup by vendor's VAT Bus. Posting Group + extracted VAT %. Single match → set. Zero/multiple → leave blank.
+4. **Single-line fallback** — if no per-line VAT data but only one line, compute rate from header Total VAT
+5. **Notification banner** — new "VAT Rate Mismatch" notification when resolution fails (line has VAT Rate but no match found)
+6. **No combinatorial solving** — explicitly out of scope for multi-line invoices without per-line VAT data
+
 ## Notes
 
 - Continia (competing product) handles this correctly — it can post by line item and apply a VAT posting group per item type.
