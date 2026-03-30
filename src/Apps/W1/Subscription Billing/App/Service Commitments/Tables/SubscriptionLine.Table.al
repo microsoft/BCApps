@@ -1918,6 +1918,8 @@ table 8059 "Subscription Line"
                         LastDateInLastMonth := CalcDate(PeriodFormula, FromDate);
                         LastDateInLastMonth := CalcDate('<CM>', LastDateInLastMonth);
                         NextToDate := LastDateInLastMonth - DistanceToEndOfMonth - 1;
+                        if NextToDate < FromDate then
+                            NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
                     end;
                 end;
         end;
