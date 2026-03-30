@@ -64,12 +64,11 @@ codeunit 30495 "Shpfy CTM Tax Area Test"
         Expected := Input.Element('expected');
 
         Expected.ElementExists('taxAreaCreated', ElementExists);
-        if ElementExists then begin
+        if ElementExists then
             if Expected.Element('taxAreaCode').ValueAsText() = '' then
                 LibraryAssert.IsFalse(Result, 'FindOrCreateTaxArea should return false')
             else
                 LibraryAssert.IsTrue(Result, 'FindOrCreateTaxArea should return true');
-        end;
 
         Expected.ElementExists('taxAreaCode', ElementExists);
         if ElementExists then begin
@@ -82,7 +81,9 @@ codeunit 30495 "Shpfy CTM Tax Area Test"
 
         Expected.ElementExists('taxLiable', ElementExists);
         if ElementExists then begin
+#pragma warning disable AA0181
             OrderHeader.Find();
+#pragma warning restore AA0181
             LibraryAssert.AreEqual(Expected.Element('taxLiable').ValueAsBoolean(), OrderHeader."Tax Liable", 'Order Tax Liable');
         end;
 

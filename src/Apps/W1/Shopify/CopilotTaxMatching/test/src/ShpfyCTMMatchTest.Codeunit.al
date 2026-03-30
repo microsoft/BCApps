@@ -82,7 +82,9 @@ codeunit 30494 "Shpfy CTM Match Test"
             MatchedArray.Add(JurisdictionCode);
         AnswerJson.Add('matchedJurisdictions', MatchedArray);
 
+#pragma warning disable AA0181
         OrderHeader.Find();
+#pragma warning restore AA0181
         AnswerJson.Add('taxAreaCode', OrderHeader."Tax Area Code");
         AnswerJson.Add('taxLiable', OrderHeader."Tax Liable");
 

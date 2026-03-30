@@ -47,7 +47,9 @@ codeunit 30497 "Shpfy CTM Guard Test"
 
         Expected.ElementExists('existingTaxAreaKept', ElementExists);
         if ElementExists then begin
+#pragma warning disable AA0181
             OrderHeader.Find();
+#pragma warning restore AA0181
             LibraryAssert.AreEqual(
                 CopyStr(Expected.Element('existingTaxAreaKept').ValueAsText(), 1, 20),
                 OrderHeader."Tax Area Code",
