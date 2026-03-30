@@ -1,0 +1,2 @@
+# cost: 11
+{"query":"{customers(first:100){pageInfo{endCursor hasNextPage} nodes{ legacyResourceId }}}"}

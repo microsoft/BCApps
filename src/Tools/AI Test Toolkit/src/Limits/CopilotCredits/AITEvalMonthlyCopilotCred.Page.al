@@ -201,7 +201,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
     local procedure LoadBufferData()
     var
         AITTestSuite: Record "AIT Test Suite";
-        AIEvalSuiteUsageBufferTemp: Record "AIT Eval Suite Usage Buffer";
+        TempAIEvalSuiteUsageBuffer: Record "AIT Eval Suite Usage Buffer";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         SortOrder: Integer;
     begin
@@ -214,25 +214,25 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         if AITTestSuite.FindSet() then
             repeat
                 SortOrder += 1;
-                AIEvalSuiteUsageBufferTemp.Index := SortOrder;
-                AIEvalSuiteUsageBufferTemp."Suite Code" := AITTestSuite.Code;
-                AIEvalSuiteUsageBufferTemp."Suite Description" := AITTestSuite.Description;
-                AIEvalSuiteUsageBufferTemp.Consumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITEvalMonthlyCopilotCreditLimitRecord.GetPeriodStartDate());
-                AIEvalSuiteUsageBufferTemp.Insert();
-                LoadedDataCopilotCreditsConsumed += AIEvalSuiteUsageBufferTemp.Consumed;
+                TempAIEvalSuiteUsageBuffer.Index := SortOrder;
+                TempAIEvalSuiteUsageBuffer."Suite Code" := AITTestSuite.Code;
+                TempAIEvalSuiteUsageBuffer."Suite Description" := AITTestSuite.Description;
+                TempAIEvalSuiteUsageBuffer.Consumed := AgentTestContextImpl.GetCopilotCreditsForPeriod(AITTestSuite.Code, AITEvalMonthlyCopilotCreditLimitRecord.GetPeriodStartDate());
+                TempAIEvalSuiteUsageBuffer.Insert();
+                LoadedDataCopilotCreditsConsumed += TempAIEvalSuiteUsageBuffer.Consumed;
             until AITTestSuite.Next() = 0;
 
         // Sort the buffer by consumed credits in descending order.
         SortOrder := 0;
-        AIEvalSuiteUsageBufferTemp.SetCurrentKey(Consumed);
+        TempAIEvalSuiteUsageBuffer.SetCurrentKey(Consumed);
 #pragma warning disable AA0233, AA0181
-        if AIEvalSuiteUsageBufferTemp.FindLast() then
+        if TempAIEvalSuiteUsageBuffer.FindLast() then
             repeat
                 SortOrder += 1;
-                Rec := AIEvalSuiteUsageBufferTemp;
+                Rec := TempAIEvalSuiteUsageBuffer;
                 Rec.Index := SortOrder;
                 Rec.Insert();
-            until AIEvalSuiteUsageBufferTemp.Next(-1) = 0;
+            until TempAIEvalSuiteUsageBuffer.Next(-1) = 0;
 #pragma warning restore AA0233, AA0181
 
         if Rec.FindFirst() then;
