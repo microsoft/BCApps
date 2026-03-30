@@ -318,7 +318,7 @@ codeunit 30161 "Shpfy Import Order"
             Parameters.Add('StaffMember', 'staffMember { id }')
         else
             Parameters.Add('StaffMember', '');
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::GetOrderHeader, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Orders_GetOrderHeader, Parameters);
         exit(JsonHelper.GetJsonObject(JResponse, JOrder, 'data.order'));
     end;
 
@@ -330,9 +330,9 @@ codeunit 30161 "Shpfy Import Order"
         JResponse: JsonToken;
     begin
         Parameters.Add('OrderId', Format(OrderId));
-        GraphQLType := "Shpfy GraphQL Type"::GetOrderLines;
+        GraphQLType := "Shpfy GraphQL Type"::Orders_GetOrderLines;
         if After <> '' then begin
-            GraphQLType := "Shpfy GraphQL Type"::GetNextOrderLines;
+            GraphQLType := "Shpfy GraphQL Type"::Orders_GetNextOrderLines;
             Parameters.Add('After', After);
         end;
 
@@ -755,7 +755,7 @@ codeunit 30161 "Shpfy Import Order"
     begin
         CommunicationMgt.SetShop(OrderHeader."Shop Code");
         Parameters.Add('OrderId', Format(OrderHeader."Shopify Order Id"));
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::CloseOrder, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Orders_CloseOrder, Parameters);
         if JsonHelper.GetValueAsBigInteger(JResponse, 'data.orderClose.order.legacyResourceId') = OrderHeader."Shopify Order Id" then begin
             OrderHeaderRecordRef.GetTable(OrderHeader);
             JsonHelper.GetValueIntoField(JResponse, 'data.orderClose.order.closed', OrderHeaderRecordRef, OrderHeader.FieldNo(Closed));
