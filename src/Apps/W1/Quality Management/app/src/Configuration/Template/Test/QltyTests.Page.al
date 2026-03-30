@@ -218,7 +218,42 @@ page 20401 "Qlty. Tests"
         }
     }
 
+#if not CLEAN29
+    actions
+    {
+        area(Processing)
+        {
+            action(DeleteRecordSafe)
+            {
+                Caption = 'Delete';
+                Image = Delete;
+                Scope = Repeater;
+                ToolTip = 'Deletes this test. A test can only be deleted if it is not being used on an existing inspection.';
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Deletion is handled by standard page behavior through the OnDelete trigger on Qlty. Test table.';
+                ObsoleteTag = '29.0';
 
+                trigger OnAction()
+                begin
+                    Rec.CheckDeleteConstraints(true);
+                    Rec.Delete(true);
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+
+        area(Promoted)
+        {
+            actionref(DeleteRecordSafe_Promoted; DeleteRecordSafe)
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Deletion is handled by standard page behavior through the OnDelete trigger on Qlty. Test table.';
+                ObsoleteTag = '29.0';
+            }
+        }
+    }
+#endif
 
     var
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
@@ -243,8 +278,6 @@ page 20401 "Qlty. Tests"
     trigger OnOpenPage()
     begin
     end;
-
-
 
     trigger OnAfterGetRecord()
     begin
