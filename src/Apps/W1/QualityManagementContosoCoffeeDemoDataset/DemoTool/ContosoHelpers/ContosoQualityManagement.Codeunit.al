@@ -147,6 +147,29 @@ codeunit 5710 "Contoso Quality Management"
             QltyInspectionTemplateHdr.Insert(true);
     end;
 
+    procedure InsertQualityInspectionTemplateHdr(Code: Code[20]; Description: Text[100]; SampleSource: Enum "Qlty. Sample Size Source"; SamplePercentage: Decimal)
+    var
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        Exists: Boolean;
+    begin
+        if QltyInspectionTemplateHdr.Get(Code) then begin
+            Exists := true;
+
+            if not OverwriteData then
+                exit;
+        end;
+
+        QltyInspectionTemplateHdr.Validate(Code, Code);
+        QltyInspectionTemplateHdr.Validate(Description, Description);
+        QltyInspectionTemplateHdr.Validate("Sample Source", SampleSource);
+        QltyInspectionTemplateHdr.Validate("Sample Percentage", SamplePercentage);
+
+        if Exists then
+            QltyInspectionTemplateHdr.Modify(true)
+        else
+            QltyInspectionTemplateHdr.Insert(true);
+    end;
+
     procedure InsertQualityInspectionTemplateLine(TemplateCode: Code[20]; LineNo: Integer; TestCode: Code[20]; Description: Text[100])
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";

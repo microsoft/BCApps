@@ -895,6 +895,35 @@ codeunit 134530 "No. Series Tests"
     end;
 
     [Test]
+    procedure TestManualShouldAllowBlankNoSeriesCode()
+    var
+        NoSeriesCU: Codeunit "No. Series";
+    begin
+        // [SCENARIO] TestManual should allow blank No. Series Code to enable users to enter manual numbers
+        // when no number series is configured in the setup page.
+        Initialize();
+
+        // [GIVEN] No number series is configured (empty code)
+        // [WHEN] TestManual is called with blank code
+        // [THEN] No error should be thrown - blank codes indicate manual entry is allowed
+        NoSeriesCU.TestManual('');
+    end;
+
+    [Test]
+    procedure TestManualWithDocNoShouldAllowBlankNoSeriesCode()
+    var
+        NoSeriesCU: Codeunit "No. Series";
+    begin
+        // [SCENARIO] TestManual with DocumentNo should allow blank No. Series Code
+        Initialize();
+
+        // [GIVEN] No number series is configured (empty code)
+        // [WHEN] TestManual is called with blank code and a document number
+        // [THEN] No error should be thrown
+        NoSeriesCU.TestManual('', 'MANUAL-001');
+    end;
+
+    [Test]
     [HandlerFunctions('NoSeriesLinesPageHandler')]
     procedure TestEditNoSeriesLinePreservesFilter()
     var
