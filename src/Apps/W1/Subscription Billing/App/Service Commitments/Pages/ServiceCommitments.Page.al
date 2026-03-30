@@ -266,6 +266,16 @@ page 8064 "Service Commitments"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the sequence number of the related reference.';
                 }
+                field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Visible = false;
+                }
+                field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Visible = false;
+                }
 
             }
         }

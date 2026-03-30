@@ -144,16 +144,6 @@ codeunit 8069 "Sales Subscription Line Mgmt."
         exit(true);
     end;
 
-    internal procedure IsSalesLineWithSalesServiceCommitmentsToShip(SalesLine: Record "Sales Line"; QuantityToCheck: Decimal): Boolean
-    begin
-        if not IsSalesLineWithSalesServiceCommitmentsToShip(SalesLine) then
-            exit(false);
-        if CheckNegativeQuantityAndShowMessageForServiceCommitment(QuantityToCheck) then
-            exit(false);
-
-        exit(true);
-    end;
-
     internal procedure IsSalesLineWithServiceCommitmentItemToShip(SalesLine: Record "Sales Line"): Boolean
     begin
         if not IsSalesLineWithServiceCommitmentItem(SalesLine, true) then
@@ -370,7 +360,11 @@ codeunit 8069 "Sales Subscription Line Mgmt."
         Item.Get(ItemNo);
         case Item."Subscription Option" of
             Item."Subscription Option"::"Service Commitment Item":
-                exit(Item."No.");
+                begin
+                    if ServiceCommitmentPackageLine."Invoicing Item No." <> '' then
+                        exit(ServiceCommitmentPackageLine."Invoicing Item No.");
+                    exit(Item."No.");
+                end;
             Item."Subscription Option"::"Sales with Service Commitment":
                 begin
                     if ServiceCommitmentPackageLine."Invoicing via" = Enum::"Invoicing Via"::Contract then
@@ -413,23 +407,6 @@ codeunit 8069 "Sales Subscription Line Mgmt."
     begin
     end;
 
-    local procedure CheckNegativeQuantityAndShowMessageForServiceCommitment(Quantity: Decimal): Boolean
-    begin
-        if Quantity <= 0 then begin
-            if not ServiceCommitmentWithNegativeQtyMessageThrown then begin
-                Message(ServiceObjectNotCreatedMsg);
-                ServiceCommitmentWithNegativeQtyMessageThrown := true;
-            end;
-            exit(true);
-        end;
-        exit(false);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnAfterPostSalesLines, '', false, false)]
-    local procedure ResetServiceCommitmentWithNegativeQtyMessageThrownOnAfterPostSalesLines()
-    begin
-        ServiceCommitmentWithNegativeQtyMessageThrown := false;
-    end;
 
     [IntegrationEvent(false, false)]
     local procedure OnAddAdditionalSalesSubscriptionLinesForSalesLineAfterApplyFilters(var SubscriptionPackage: Record "Subscription Package"; var SalesLine: Record "Sales Line")
@@ -517,7 +494,5 @@ codeunit 8069 "Sales Subscription Line Mgmt."
 
     var
         ItemManagement: Codeunit "Sub. Contracts Item Management";
-        ServiceCommitmentWithNegativeQtyMessageThrown: Boolean;
         SalesLineRestoreInProgress: Boolean;
-        ServiceObjectNotCreatedMsg: Label 'For negative quantity the Subscription is not created.';
 }
