@@ -1968,5 +1968,15 @@
     "codeunitId": 132985,
     "codeunitName": "SharePoint Graph Advanced Test",
     "method": "TestCopyItemByPath"
+  },
+  {
+    "codeunitId": 135003,
+    "codeunitName": "Feature Key Test",
+    "method": "T008_EnableOneWayFeatureRunIncompleteUpdate"
+  },
+  {
+    "codeunitId": 135003,
+    "codeunitName": "Feature Key Test",
+    "method": "T100_EnabledNoneIsEnabledFalse"
   }
 ]

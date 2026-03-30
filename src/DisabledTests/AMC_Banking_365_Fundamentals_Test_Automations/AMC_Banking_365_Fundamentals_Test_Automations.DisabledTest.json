@@ -128,5 +128,10 @@
     "codeunitId": 135087,
     "codeunitName": "AMC CT E2E Web Service Test",
     "method": "TestSyslogResponseErrors"
+  },
+  {
+    "codeunitId": 134423,
+    "codeunitName": "Payment Export XMLPort",
+    "method": "ExportAMCXMLSunshine"
   }
 ]

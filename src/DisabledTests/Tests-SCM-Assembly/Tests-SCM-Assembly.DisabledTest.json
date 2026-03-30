@@ -188,5 +188,10 @@
     "codeunitId": 137101,
     "codeunitName": "SCM Kitting",
     "method": "ModifyPostingDateOnAssemblyOrder"
+  },
+  {
+    "codeunitId": 137096,
+    "codeunitName": "SCM Kitting - ATO",
+    "method": "SalesLineSetQtyWithExistingLateShippedATO"
   }
 ]

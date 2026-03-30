@@ -2013,5 +2013,10 @@
     "codeunitId": 138044,
     "codeunitName": "Simple UI: Cust. Address Sync",
     "method": "TestReplaceExistingSellToCustomerByCustomerWithoutAddress"
+  },
+  {
+    "codeunitId": 134331,
+    "codeunitName": "ERM Purchase Payables",
+    "method": "PreciseCalcOfPlannedReceiptDateBackFromExpectedReceiptDate"
   }
 ]

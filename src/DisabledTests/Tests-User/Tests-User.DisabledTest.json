@@ -138,5 +138,45 @@
     "codeunitId": 135415,
     "codeunitName": "Reserv. & Order Promising E2E",
     "method": "CreateReservationAndOrderPromisingAsTeamMember"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodLIFOAsBusinessManager"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodLIFOAsExternalAccountant"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodLIFOAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodLIFOAsDeviceISVEmbUser"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodStandardAsBusinessManager"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodStandardAsExternalAccountant"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodStandardAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodStandardAsDeviceISVEmbUser"
   }
 ]
