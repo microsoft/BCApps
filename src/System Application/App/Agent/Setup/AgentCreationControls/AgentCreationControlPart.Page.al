@@ -101,7 +101,6 @@ page 4332 "Agent Creation Control Part"
         if CreationControlLookup.RunModal() = Action::LookupOK then begin
             CreationControlLookup.GetRecord(TempAgentCreationControlLookup);
             Rec."Company Name" := CopyStr(TempAgentCreationControlLookup."Key", 1, MaxStrLen(Rec."Company Name"));
-            if Rec.Modify() then;
             UpdateDisplayTexts();
         end;
     end;
@@ -143,7 +142,6 @@ page 4332 "Agent Creation Control Part"
                 Evaluate(EnumIndex, TempAgentCreationControlLookup."Key");
                 Rec.Validate(Rec."Agent Metadata Provider", EnumIndex);
             end;
-            if Rec.Modify() then;
             UpdateDisplayTexts();
         end;
     end;
@@ -178,7 +176,6 @@ page 4332 "Agent Creation Control Part"
                 Evaluate(UserSecurityId, TempAgentCreationControlLookup."Key");
                 Rec.Validate(Rec."User Security ID", UserSecurityId);
             end;
-            if Rec.Modify() then;
             UpdateDisplayTexts();
         end;
     end;
