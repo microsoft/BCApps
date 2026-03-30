@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,6 +15,10 @@ using Microsoft.QualityManagement.Setup;
 
 pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role Center"
 {
+    ObsoleteReason = 'Quality Management references not needed in Business Manager Role Center.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+
     actions
     {
         addlast(processing)
@@ -23,6 +28,7 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
                 Image = CheckList;
                 Caption = 'Quality Management';
                 ToolTip = 'Work with Quality Inspections.';
+                Visible = false;
 
                 action(Qlty_ShowQualityInspections)
                 {
@@ -104,6 +110,7 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
             group(Qlty_QualityManagement_Sections_Group)
             {
                 Caption = 'Quality Management';
+                Visible = false;
 
                 action(Qlty_Sections_ShowQualityInspections)
                 {
@@ -125,3 +132,4 @@ pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role C
         }
     }
 }
+#endif
