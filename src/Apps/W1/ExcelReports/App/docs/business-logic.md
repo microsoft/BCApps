@@ -8,7 +8,7 @@ The Trial Balance engine (codeunit 4410, 20+ procedures) is the most sophisticat
 
 ### Modern path (query-based, v28+)
 
-This is the preferred path, active when the `EXRPerformantTrialBalance` feature flag is enabled. It uses SQL queries for efficient aggregation.
+This is the only path in v28+ where `CLEAN27` is defined. In pre-v28 builds, this path was active when the `EXRPerformantTrialBalance` feature flag was enabled. It uses SQL queries for efficient aggregation.
 
 **Key procedure:** `InsertTrialBalanceReportDataFromQueries()`
 
@@ -94,7 +94,7 @@ This is the preferred path, active when the `EXRPerformantTrialBalance` feature 
 
 ### Legacy path (looping-based, #if not CLEAN27)
 
-This path runs when the feature flag is disabled. It uses triple-nested loops:
+This path exists in the source only for pre-v28 builds (`#if not CLEAN27`). It runs when the feature flag is disabled. It uses triple-nested loops:
 
 ```
 For each GL Account
@@ -110,7 +110,7 @@ For each GL Account
 
 **Gated by:** Feature flag `EXRPerformantTrialBalance` (checked via `IsPerformantTrialBalanceFeatureActive()`).
 
-**Removal:** This code will be deleted when CLEAN27 ships.
+**Removal:** `CLEAN27` is defined from v28+; this code no longer compiles in current builds and will be physically deleted in a future cleanup pass.
 
 ### Configuration
 

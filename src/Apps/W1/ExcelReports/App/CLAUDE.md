@@ -127,8 +127,9 @@ report start/end for trial balance data collection.
 
 - **All data tables are temporary** (TableType=Temporary) -- reports populate these
   buffers on every run. No schema upgrades needed for data changes.
-- **Query-based vs looping**: Trial Balance uses feature flag to switch execution paths.
-  When CLEAN27 ships, looping code will be removed.
+- **Query-based vs looping**: In v28+ (`CLEAN27` defined), only the query path compiles.
+  Pre-v28, a feature flag (`EXRPerformantTrialBalance`) switched between paths. The
+  looping code (`#if not CLEAN27`) is still in source but no longer compiles.
 - **Manual event subscription**: Caption handlers require explicit `BindSubscription` in
   OnPreReport. They do not auto-subscribe globally.
 - **Multi-currency throughout**: Trial Balance tracks LCY and ACY in parallel. Other
