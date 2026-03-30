@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.CRM.Contact;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -66,7 +67,7 @@ page 30113 "Shpfy Order"
                 {
                     ApplicationArea = All;
                     Caption = 'Sell-to Contact No.';
-                    Editable = false;
+                    TableRelation = Contact;
                     Visible = false;
                     ToolTip = 'Specifies the number of the contact person at the sell-to customer.';
                 }
@@ -94,11 +95,6 @@ page 30113 "Shpfy Order"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the purchase order number that is associated with the Shopify order.';
-                }
-                field(UseShopifyOrderNo; Rec."Use Shopify Order No.")
-                {
-                    ApplicationArea = All;
-                    Editable = not Rec.Processed;
                 }
                 field(Closed; Rec.Closed)
                 {
@@ -236,6 +232,12 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     Importance = Additional;
                     ToolTip = 'Specifies whether the order has had any edits applied.';
+                }
+                field(UseShopifyOrderNo; Rec."Use Shopify Order No.")
+                {
+                    ApplicationArea = All;
+                    Importance = Additional;
+                    Editable = not Rec.Processed;
                 }
                 field(Processed; Rec.Processed)
                 {
@@ -478,7 +480,7 @@ page 30113 "Shpfy Order"
                     {
                         ApplicationArea = All;
                         Caption = 'Ship-to Contact No.';
-                        Editable = false;
+                        TableRelation = Contact;
                         Visible = false;
                         ToolTip = 'Specifies the number of the contact person at the ship-to address.';
                     }
@@ -549,7 +551,7 @@ page 30113 "Shpfy Order"
                     {
                         ApplicationArea = All;
                         Caption = 'Bill-to Contact No.';
-                        Editable = false;
+                        TableRelation = Contact;
                         Visible = false;
                         ToolTip = 'Specifies the number of the contact person at the bill-to customer.';
                     }

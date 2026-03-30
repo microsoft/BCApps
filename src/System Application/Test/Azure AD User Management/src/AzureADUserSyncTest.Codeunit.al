@@ -720,7 +720,7 @@ codeunit 132928 "Azure AD User Sync Test"
     procedure TestArePermissionsCustomizedNo()
     var
         User: Record User;
-        AzureADUserUpdateBuffer: Record "Azure AD User Update Buffer";
+        TempAzureADUserUpdateBuffer: Record "Azure AD User Update Buffer";
         AzureADPlanTestLibrary: Codeunit "Azure AD Plan Test Library";
         PlanConfiguration: Codeunit "Plan Configuration";
         AzureADUserSyncImpl: Codeunit "Azure AD User Sync Impl.";
@@ -740,8 +740,8 @@ codeunit 132928 "Azure AD User Sync Test"
         MockGraphQueryTestLibrary.AddUserPlan(GraphUser.ObjectId, TestPlanId, '', 'Enabled');
 
         // [WHEN] The information from M365 is fetched and applied
-        AzureADUserSyncImpl.FetchUpdatesFromAzureGraph(AzureADUserUpdateBuffer);
-        AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(AzureADUserUpdateBuffer);
+        AzureADUserSyncImpl.FetchUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
+        AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
 
         User.SetRange("Authentication Email", NonBcEmailTxt);
         LibraryAssert.IsTrue(User.FindFirst(), UserWasNotCreatedErr);
@@ -762,7 +762,7 @@ codeunit 132928 "Azure AD User Sync Test"
     procedure TestArePermissionsCustomizedYes()
     var
         User: Record User;
-        AzureADUserUpdateBuffer: Record "Azure AD User Update Buffer";
+        TempAzureADUserUpdateBuffer: Record "Azure AD User Update Buffer";
         AccessControl: Record "Access Control";
         AzureADPlanTestLibrary: Codeunit "Azure AD Plan Test Library";
         PlanConfiguration: Codeunit "Plan Configuration";
@@ -783,8 +783,8 @@ codeunit 132928 "Azure AD User Sync Test"
         MockGraphQueryTestLibrary.AddUserPlan(GraphUser.ObjectId, TestPlanId, '', 'Enabled');
 
         // [GIVEN] The information from M365 is fetched and applied
-        AzureADUserSyncImpl.FetchUpdatesFromAzureGraph(AzureADUserUpdateBuffer);
-        AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(AzureADUserUpdateBuffer);
+        AzureADUserSyncImpl.FetchUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
+        AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
 
         User.SetRange("Authentication Email", NonBcEmailTxt);
         LibraryAssert.IsTrue(User.FindFirst(), UserWasNotCreatedErr);

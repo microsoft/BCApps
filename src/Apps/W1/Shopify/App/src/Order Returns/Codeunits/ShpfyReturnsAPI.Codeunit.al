@@ -30,7 +30,7 @@ codeunit 30250 "Shpfy Returns API"
                 Parameters.Set('After', JsonHelper.GetValueAsText(JReturns, 'pageInfo.endCursor'))
             else
                 Parameters.Add('After', JsonHelper.GetValueAsText(JReturns, 'pageInfo.endCursor'));
-            JResult := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::NextOrderReturns);
+            JResult := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Returns_NextOrderReturns);
             GetReturns(OrderId, JsonHelper.GetJsonObject(JResult, 'data.order.returns'));
         end;
     end;
@@ -48,10 +48,10 @@ codeunit 30250 "Shpfy Returns API"
         ReturnLocations := GetReturnLocations(ReturnId);
 
         LineParameters.Add('ReturnId', Format(ReturnId));
-        GraphQLType := "Shpfy GraphQL Type"::GetReturnLines;
+        GraphQLType := "Shpfy GraphQL Type"::Returns_GetReturnLines;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, LineParameters);
-            GraphQLType := "Shpfy GraphQL Type"::GetNextReturnLines;
+            GraphQLType := "Shpfy GraphQL Type"::Returns_GetNextReturnLines;
             JLines := JsonHelper.GetJsonArray(JResponse, 'data.return.returnLineItems.nodes');
             if LineParameters.ContainsKey('After') then
                 LineParameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.return.returnLineItems.pageInfo.endCursor'))
@@ -76,7 +76,7 @@ codeunit 30250 "Shpfy Returns API"
         JReturn: JsonObject;
     begin
         HeaderParameters.Add('ReturnId', Format(ReturnId));
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::GetReturnHeader, HeaderParameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Returns_GetReturnHeader, HeaderParameters);
         JReturn := JsonHelper.GetJsonObject(JResponse, 'data.return');
         if not ReturnHeader.Get(ReturnId) then begin
             ReturnHeader."Return Id" := ReturnId;
@@ -113,11 +113,11 @@ codeunit 30250 "Shpfy Returns API"
         JOrder: JsonToken;
     begin
         LineParameters.Add('ReturnId', Format(ReturnId));
-        GraphQLType := "Shpfy GraphQL Type"::GetReverseFulfillmentOrders;
+        GraphQLType := "Shpfy GraphQL Type"::Returns_GetReverseFulfillmentOrders;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, LineParameters);
 
-            GraphQLType := "Shpfy GraphQL Type"::GetNextReverseFulfillmentOrders;
+            GraphQLType := "Shpfy GraphQL Type"::Returns_GetNextReverseFulfillmentOrders;
             JOrders := JsonHelper.GetJsonArray(JResponse, 'data.return.reverseFulfillmentOrders.nodes');
             if Parameters.ContainsKey('After') then
                 Parameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.return.reverseFulfillmentOrders.pageInfo.endCursor'))
@@ -138,11 +138,11 @@ codeunit 30250 "Shpfy Returns API"
         JLine: JsonToken;
     begin
         LineParameters.Add('FulfillOrderId', FulfillOrderId);
-        GraphQLType := "Shpfy GraphQL Type"::GetReverseFulfillmentOrderLines;
+        GraphQLType := "Shpfy GraphQL Type"::Returns_GetReverseFulfillmentOrderLines;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, LineParameters);
 
-            GraphQLType := "Shpfy GraphQL Type"::GetNextReverseFulfillmentOrders;
+            GraphQLType := "Shpfy GraphQL Type"::Returns_GetNextReverseFulfillmentOrderLines;
             JLines := JsonHelper.GetJsonArray(JResponse, 'data.reverseFulfillmentOrder.lineItems.nodes');
             if Parameters.ContainsKey('After') then
                 Parameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.reverseFulfillmentOrder.lineItems.pageInfo.endCursor'))

@@ -324,12 +324,12 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         IsInitialized: Boolean;
         ControlNotExistMsg: Label 'Control %1 does not exist.', Comment = '%1 = field caption';
 }

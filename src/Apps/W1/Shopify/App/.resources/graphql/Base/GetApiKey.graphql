@@ -1,0 +1,2 @@
+# cost: 3
+{"query": "{app {apiKey installation {activeSubscriptions {currentPeriodEnd test status name}}}}"}

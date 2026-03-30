@@ -29,15 +29,22 @@ codeunit 30116 "Shpfy Customer Export"
         if Customer.FindSet(false) then begin
             CustomerMapping.SetShop(Shop);
             repeat
-                CustomerId := CustomerMapping.FindMapping(Customer, CreateCustomers);
-                if CustomerId = 0 then begin
-                    if CreateCustomers then
-                        CreateShopifyCustomer(Customer);
+                if CreateCustomers then begin
+                    CustomerId := CustomerMapping.FindMapping(Customer, CreateCustomers);
+                    if CustomerId = 0 then
+                        CreateShopifyCustomer(Customer)
+                    else begin
+                        ShopifyCustomer.Get(CustomerId);
+                        if ShopifyCustomer."Customer SystemId" <> Customer.SystemId then
+                            SkippedRecord.LogSkippedRecord(Customer.RecordId, CustomerWithPhoneNoOrEmailExistsLbl, Shop)
+                        else
+                            if Shop."Can Update Shopify Customer" then
+                                UpdateShopifyCustomer(Customer, ShopifyCustomer);
+                    end;
                 end else begin
-                    ShopifyCustomer.Get(CustomerId);
-                    if ShopifyCustomer."Customer SystemId" <> Customer.SystemId then
-                        SkippedRecord.LogSkippedRecord(Customer.RecordId, CustomerWithPhoneNoOrEmailExistsLbl, Shop)
-                    else
+                    ShopifyCustomer.SetRange("Shop Id", Shop."Shop Id");
+                    ShopifyCustomer.SetRange("Customer SystemId", Customer.SystemId);
+                    if ShopifyCustomer.FindFirst() then
                         if Shop."Can Update Shopify Customer" then
                             UpdateShopifyCustomer(Customer, ShopifyCustomer);
                 end;
