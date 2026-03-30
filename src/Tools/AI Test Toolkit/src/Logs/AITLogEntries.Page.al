@@ -249,7 +249,7 @@ page 149033 "AIT Log Entries"
             }
             action("Download Test Output")
             {
-                Caption = 'Download Eval Output';
+                Caption = 'Download eval output';
                 Image = Download;
                 ToolTip = 'Download the eval output.';
 
@@ -262,9 +262,9 @@ page 149033 "AIT Log Entries"
             }
             action("View Test Data")
             {
-                Caption = 'View Eval Data';
+                Caption = 'View eval data';
                 Image = CompareCOA;
-                ToolTip = 'View Eval Data.';
+                ToolTip = 'View eval data.';
 
                 trigger OnAction()
                 begin
@@ -273,7 +273,7 @@ page 149033 "AIT Log Entries"
             }
             action("Download Test Summary")
             {
-                Caption = 'Download Eval Summary';
+                Caption = 'Download eval summary';
                 Image = Export;
                 ToolTip = 'Downloads a summary of the eval results.';
 
@@ -370,9 +370,11 @@ page 149033 "AIT Log Entries"
     begin
         case Rec.Status of
             Rec.Status::Success:
-                StatusStyleExpr := 'Favorable';
+                StatusStyleExpr := Format(PageStyle::Favorable);
             Rec.Status::Error:
-                StatusStyleExpr := 'Unfavorable';
+                StatusStyleExpr := Format(PageStyle::Unfavorable);
+            Rec.Status::Skipped:
+                StatusStyleExpr := Format(PageStyle::Ambiguous);
             else
                 StatusStyleExpr := '';
         end;
@@ -382,11 +384,11 @@ page 149033 "AIT Log Entries"
     begin
         case Rec."No. of Turns Passed" of
             Rec."No. of Turns":
-                TurnsStyleExpr := 'Favorable';
+                TurnsStyleExpr := Format(PageStyle::Favorable);
             0:
-                TurnsStyleExpr := 'Unfavorable';
+                TurnsStyleExpr := Format(PageStyle::Unfavorable);
             else
-                TurnsStyleExpr := 'Ambiguous';
+                TurnsStyleExpr := Format(PageStyle::Ambiguous);
         end;
     end;
 

@@ -123,7 +123,7 @@ codeunit 20402 "Qlty. Auto Configure"
         exit(DefaultResult0InProgressDescriptionTxt);
     end;
 
-    internal procedure EnsureBasicSetupExists(ShowMessage: Boolean)
+    procedure EnsureBasicSetupExists(ShowMessage: Boolean)
     begin
         EnsureSetupRecordExists();
         EnsureResultExists();
