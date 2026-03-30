@@ -342,12 +342,12 @@ page 6121 "E-Document"
 
                     trigger OnAction()
                     var
-                        EDocImportParameters: Record "E-Doc. Import Parameters";
+                        TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     begin
-                        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-                        EDocImportParameters."Purch. Journal V1 Behavior" := EDocImportParameters."Purch. Journal V1 Behavior"::"Create purchase document";
-                        EDocImportParameters."Create Document V1 Behavior" := true;
-                        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+                        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+                        TempEDocImportParameters."Purch. Journal V1 Behavior" := TempEDocImportParameters."Purch. Journal V1 Behavior"::"Create purchase document";
+                        TempEDocImportParameters."Create Document V1 Behavior" := true;
+                        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
                         if EDocumentErrorHelper.HasErrors(Rec) then
                             Message(DocNotCreatedMsg, Rec."Document Type");
                     end;
@@ -361,12 +361,12 @@ page 6121 "E-Document"
 
                     trigger OnAction()
                     var
-                        EDocImportParameters: Record "E-Doc. Import Parameters";
+                        TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     begin
-                        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-                        EDocImportParameters."Purch. Journal V1 Behavior" := EDocImportParameters."Purch. Journal V1 Behavior"::"Create journal line";
-                        EDocImportParameters."Create Document V1 Behavior" := true;
-                        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+                        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+                        TempEDocImportParameters."Purch. Journal V1 Behavior" := TempEDocImportParameters."Purch. Journal V1 Behavior"::"Create journal line";
+                        TempEDocImportParameters."Create Document V1 Behavior" := true;
+                        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
                         if EDocumentErrorHelper.HasErrors(Rec) then
                             Message(DocNotCreatedMsg, Rec."Document Type");
                     end;

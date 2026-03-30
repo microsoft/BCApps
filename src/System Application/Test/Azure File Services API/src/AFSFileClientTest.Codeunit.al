@@ -99,7 +99,7 @@ codeunit 132520 "AFS File Client Test"
     [Test]
     procedure MaxResultsAndMarkerTest()
     var
-        AFSDirectoryContent: Record "AFS Directory Content";
+        TempAFSDirectoryContent: Record "AFS Directory Content";
         AFSFileClient: Codeunit "AFS File Client";
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOptionalParameters: Codeunit "AFS Optional Parameters";
@@ -127,33 +127,33 @@ codeunit 132520 "AFS File Client Test"
 
         // [WHEN] The programmer runs a list operation on the root directory
         AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
-        AFSOperationResponse := AFSFileClient.ListDirectory('', AFSDirectoryContent, AFSOptionalParameters);
+        AFSOperationResponse := AFSFileClient.ListDirectory('', TempAFSDirectoryContent, AFSOptionalParameters);
         LibraryAssert.IsTrue(AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
         // [THEN] Only the first entry parentdir must be returned and a marker must be set
-        LibraryAssert.AreEqual(1, AFSDirectoryContent.Count(), 'Wrong number of files and/or directories returned with MaxResults set.');
-        LibraryAssert.AreNotEqual('', AFSDirectoryContent."Next Marker", 'Next Marker must not be empty.');
+        LibraryAssert.AreEqual(1, TempAFSDirectoryContent.Count(), 'Wrong number of files and/or directories returned with MaxResults set.');
+        LibraryAssert.AreNotEqual('', TempAFSDirectoryContent."Next Marker", 'Next Marker must not be empty.');
 
-        AFSDirectoryContent.SetRange("Full Name", 'parentdir');
-        LibraryAssert.RecordIsNotEmpty(AFSDirectoryContent);
+        TempAFSDirectoryContent.SetRange("Full Name", 'parentdir');
+        LibraryAssert.RecordIsNotEmpty(TempAFSDirectoryContent);
 
         // [WHEN] The programmer runs a further list operation on the root directory with the returned marker set
-        AFSOptionalParameters.Marker(AFSDirectoryContent."Next Marker");
-        AFSOperationResponse := AFSFileClient.ListDirectory('', AFSDirectoryContent, AFSOptionalParameters);
+        AFSOptionalParameters.Marker(TempAFSDirectoryContent."Next Marker");
+        AFSOperationResponse := AFSFileClient.ListDirectory('', TempAFSDirectoryContent, AFSOptionalParameters);
         LibraryAssert.IsTrue(AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
         // [THEN] The second entry anotherdir must be returned and the marker must be cleared
-        LibraryAssert.AreEqual(1, AFSDirectoryContent.Count(), 'Wrong number of files and/or directories returned with MaxResults set.');
-        LibraryAssert.AreEqual('', AFSDirectoryContent."Next Marker", 'Next Marker must be empty.');
+        LibraryAssert.AreEqual(1, TempAFSDirectoryContent.Count(), 'Wrong number of files and/or directories returned with MaxResults set.');
+        LibraryAssert.AreEqual('', TempAFSDirectoryContent."Next Marker", 'Next Marker must be empty.');
 
-        AFSDirectoryContent.SetRange("Full Name", 'anotherdir');
-        LibraryAssert.RecordIsNotEmpty(AFSDirectoryContent);
+        TempAFSDirectoryContent.SetRange("Full Name", 'anotherdir');
+        LibraryAssert.RecordIsNotEmpty(TempAFSDirectoryContent);
     end;
 
     [Test]
     procedure ListDirectoryTest()
     var
-        AFSDirectoryContent: Record "AFS Directory Content";
+        TempAFSDirectoryContent: Record "AFS Directory Content";
         AFSFileClient: Codeunit "AFS File Client";
         AFSOperationResponse: Codeunit "AFS Operation Response";
     begin
@@ -177,21 +177,21 @@ codeunit 132520 "AFS File Client Test"
 
         // [WHEN] The programmer runs a list operation on the parent directory
         AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
-        AFSOperationResponse := AFSFileClient.ListDirectory('', AFSDirectoryContent);
+        AFSOperationResponse := AFSFileClient.ListDirectory('', TempAFSDirectoryContent);
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
         // [THEN] A correct list of files and/or directories is returned
-        LibraryAssert.AreEqual(2, AFSDirectoryContent.Count(), 'Wrong number of files and/or directories returned.');
-        AFSDirectoryContent.SetRange("Full Name", 'parentdir');
-        LibraryAssert.RecordIsNotEmpty(AFSDirectoryContent);
-        AFSDirectoryContent.SetRange("Full Name", 'anotherdir');
-        LibraryAssert.RecordIsNotEmpty(AFSDirectoryContent);
+        LibraryAssert.AreEqual(2, TempAFSDirectoryContent.Count(), 'Wrong number of files and/or directories returned.');
+        TempAFSDirectoryContent.SetRange("Full Name", 'parentdir');
+        LibraryAssert.RecordIsNotEmpty(TempAFSDirectoryContent);
+        TempAFSDirectoryContent.SetRange("Full Name", 'anotherdir');
+        LibraryAssert.RecordIsNotEmpty(TempAFSDirectoryContent);
     end;
 
     [Test]
     procedure ListDirectoryWithTimestampsAndEtagTest()
     var
-        AFSDirectoryContent: Record "AFS Directory Content";
+        TempAFSDirectoryContent: Record "AFS Directory Content";
         AFSFileClient: Codeunit "AFS File Client";
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOptionalParameters: Codeunit "AFS Optional Parameters";
@@ -222,16 +222,16 @@ codeunit 132520 "AFS File Client Test"
 
         // [WHEN] The programmer runs a list operation on the anotherdir/ directory with the parameters requesting timestamps and etag
         AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
-        AFSOperationResponse := AFSFileClient.ListDirectory('anotherdir/', AFSDirectoryContent, AFSOptionalParameters);
+        AFSOperationResponse := AFSFileClient.ListDirectory('anotherdir/', TempAFSDirectoryContent, AFSOptionalParameters);
         LibraryAssert.IsTrue(AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
         // [THEN] Directory and file entries must contain timestamps and etag
-        AFSDirectoryContent.FindSet();
+        TempAFSDirectoryContent.FindSet();
 
         repeat
-            LibraryAssert.AreNotEqual(0DT, AFSDirectoryContent."Creation Time", 'Timestamp CreationTime must be set');
-            LibraryAssert.AreNotEqual('', AFSDirectoryContent.Etag, 'Etag must be set');
-        until AFSDirectoryContent.Next() = 0;
+            LibraryAssert.AreNotEqual(0DT, TempAFSDirectoryContent."Creation Time", 'Timestamp CreationTime must be set');
+            LibraryAssert.AreNotEqual('', TempAFSDirectoryContent.Etag, 'Etag must be set');
+        until TempAFSDirectoryContent.Next() = 0;
     end;
 
     [Test]
@@ -313,7 +313,7 @@ codeunit 132520 "AFS File Client Test"
     [Test]
     procedure DeleteDirectoryTest()
     var
-        AFSDirectoryContent: Record "AFS Directory Content";
+        TempAFSDirectoryContent: Record "AFS Directory Content";
         AFSFileClient: Codeunit "AFS File Client";
         AFSOperationResponse: Codeunit "AFS Operation Response";
     begin
@@ -341,7 +341,7 @@ codeunit 132520 "AFS File Client Test"
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
         // [THEN] The operation is succesful and the directory is deleted
-        AFSOperationResponse := AFSFileClient.ListDirectory('anotherdir/emptydir', AFSDirectoryContent);
+        AFSOperationResponse := AFSFileClient.ListDirectory('anotherdir/emptydir', TempAFSDirectoryContent);
         LibraryAssert.AreEqual(false, AFSOperationResponse.IsSuccessful(), 'The directory should not exist.');
     end;
 

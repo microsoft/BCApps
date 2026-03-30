@@ -667,10 +667,10 @@ codeunit 6109 "E-Document Import Helper"
     [Obsolete('Use codeunit 6140 "E-Doc. Import"''s method ProcessIncomingEDocument', '26.0')]
     procedure ProcessDocument(var EDocument: Record "E-Document"; CreateJnlLine: Boolean)
     var
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
     begin
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocumentImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocumentImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
     end;
 #endif
 

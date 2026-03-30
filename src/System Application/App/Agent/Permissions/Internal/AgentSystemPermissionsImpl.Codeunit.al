@@ -5,6 +5,7 @@
 
 namespace System.Agents;
 
+using System.Environment.Consumption;
 using System.Security.AccessControl;
 using System.Security.User;
 
@@ -13,6 +14,13 @@ codeunit 4318 "Agent System Permissions Impl."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+
+    procedure CurrentUserCanSeeConsumptionData(): Boolean
+    var
+        DummyUserAIConsumptionData: Record "User AI Consumption Data";
+    begin
+        exit(DummyUserAIConsumptionData.ReadPermission());
+    end;
 
     procedure CurrentUserHasCanManageAllAgentsPermission(): Boolean
     begin
@@ -27,6 +35,20 @@ codeunit 4318 "Agent System Permissions Impl."
     procedure CurrentUserHasCanCreateCustomAgent(): Boolean
     begin
         // exit(CurrentUserHasExecuteSystemPermission(9667)); // "Create Custom Agent", not supported yet.
+        exit(false);
+    end;
+
+    procedure CurrentUserCanManageAgent(AgentUserSecurityId: Guid): Boolean
+    var
+        Agent: Record Agent;
+    begin
+        if (CurrentUserHasCanManageAllAgentsPermission()) then
+            exit(true);
+
+        if Agent.Get(AgentUserSecurityId) then
+            if Agent."Can Curr. User Configure Agent" then
+                exit(true);
+
         exit(false);
     end;
 

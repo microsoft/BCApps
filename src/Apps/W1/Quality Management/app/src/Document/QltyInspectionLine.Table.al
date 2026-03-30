@@ -22,6 +22,7 @@ table 20406 "Qlty. Inspection Line"
     LookupPageId = "Qlty. Inspection Lines";
     DrillDownPageId = "Qlty. Inspection Lines";
     DataClassification = CustomerContent;
+    Permissions = tabledata "Qlty. I. Result Condit. Conf." = d;
 
     fields
     {
@@ -147,10 +148,10 @@ table 20406 "Qlty. Inspection Line"
 
             trigger OnValidate()
             var
-                QltyResult: Record "Qlty. Inspection Result";
+                QltyInspectionResult: Record "Qlty. Inspection Result";
             begin
-                if QltyResult.Get(Rec."Result Code") then begin
-                    Rec."Evaluation Sequence" := QltyResult."Evaluation Sequence";
+                if QltyInspectionResult.Get(Rec."Result Code") then begin
+                    Rec."Evaluation Sequence" := QltyInspectionResult."Evaluation Sequence";
                     Rec.CalcFields("Result Description");
                 end;
             end;
@@ -389,6 +390,10 @@ table 20406 "Qlty. Inspection Line"
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
     begin
+        if Rec."Result Code" = '' then
+            exit('');
+
+        QltyInspectionResult.SetLoadFields("Override Style", "Result Category");
         if QltyInspectionResult.Get(Rec."Result Code") then
             exit(QltyInspectionResult.GetResultStyle());
     end;

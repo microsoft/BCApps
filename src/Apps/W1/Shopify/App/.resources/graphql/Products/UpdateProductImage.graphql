@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { productUpdateMedia(media: {id: \"gid://shopify/MediaImage/{{ImageId}}\" previewImageSource: \"{{ResourceUrl}}\"}, productId: \"gid://shopify/Product/{{ProductId}}\") { media { ...mediaFieldsByType } mediaUserErrors {code field message}}} fragment mediaFieldsByType on Media { ... on MediaImage { id }}"}

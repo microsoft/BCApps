@@ -689,6 +689,12 @@ table 30118 "Shpfy Order Header"
             FieldClass = FlowField;
             CalcFormula = exist("Shpfy Order Tax Line" where("Parent Id" = field("Shopify Order Id"), "Channel Liable" = const(true)));
         }
+        field(135; "Use Shopify Order No."; Boolean)
+        {
+            Caption = 'Use Shopify Order No.';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether the Shopify order number is used as the document number for this specific order.';
+        }
         field(500; "Shop Code"; Code[20])
         {
             Caption = 'Shop Code';
@@ -730,6 +736,14 @@ table 30118 "Shpfy Order Header"
             Caption = 'Sell-to Customer No.';
             DataClassification = SystemMetadata;
             TableRelation = Customer;
+
+            trigger OnValidate()
+            var
+                OrderMapping: Codeunit "Shpfy Order Mapping";
+            begin
+                "Sell-to Contact No." := OrderMapping.FindContactNo("Sell-to Contact Name", "Sell-to Customer No.");
+                "Ship-to Contact No." := OrderMapping.FindContactNo("Ship-to Contact Name", "Sell-to Customer No.");
+            end;
         }
         field(1001; "Sales Order No."; Code[20])
         {
@@ -796,6 +810,13 @@ table 30118 "Shpfy Order Header"
             Caption = 'Bill-to Customer No.';
             DataClassification = CustomerContent;
             TableRelation = Customer;
+
+            trigger OnValidate()
+            var
+                OrderMapping: Codeunit "Shpfy Order Mapping";
+            begin
+                "Bill-to Contact No." := OrderMapping.FindContactNo("Bill-to Contact Name", "Bill-to Customer No.");
+            end;
         }
         field(1012; "Shipping Method Code"; Code[10])
         {
@@ -1012,4 +1033,5 @@ table 30118 "Shpfy Order Header"
         Shop.Get(Rec."Shop Code");
         exit(Shop."Currency Handling" = "Shpfy Currency Handling"::"Presentment Currency");
     end;
+
 }

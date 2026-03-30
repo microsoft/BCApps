@@ -26,6 +26,7 @@ codeunit 139593 "Shpfy Inventory Subscriber"
     begin
         RetryScenario := NewScenario;
         CallCount := 0;
+        LastGraphQLRequest := '';
     end;
 
     internal procedure SetErrorCode(NewErrorCode: Text)

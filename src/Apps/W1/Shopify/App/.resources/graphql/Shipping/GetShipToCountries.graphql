@@ -1,0 +1,2 @@
+# cost: 1
+{"query":"{ shop { shipsToCountries } }"}

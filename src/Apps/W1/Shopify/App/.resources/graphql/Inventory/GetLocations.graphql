@@ -1,0 +1,2 @@
+# cost: 12
+{"query":"{ locations(first: 20, includeLegacy: true) { pageInfo { hasNextPage endCursor } nodes { legacyResourceId isActive isPrimary name fulfillmentService { id callbackUrl }}}}"}
