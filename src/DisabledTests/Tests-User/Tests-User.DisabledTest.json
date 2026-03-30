@@ -55,6 +55,46 @@
     "method": "CreateSalesReturnOrderAsTeamMemberISVEmb"
   },
   {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodLIFOAsBusinessManager"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodLIFOAsExternalAccountant"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodLIFOAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodLIFOAsDeviceISVEmbUser"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodStandardAsBusinessManager"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodStandardAsExternalAccountant"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodStandardAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135409,
+    "codeunitName": "Item Costing Plan-based E2E",
+    "method": "ItemCostingMethodStandardAsDeviceISVEmbUser"
+  },
+  {
     "codeunitId": 135414,
     "codeunitName": "Purchase Quote Plan-based E2E",
     "method": "TestCreatePurchaseOrderFromPurchaseQuoteAsAccountant"

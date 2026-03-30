@@ -78,5 +78,10 @@
     "codeunitId": 134263,
     "codeunitName": "Test Bank Payment Application",
     "method": "PostPmtWithDateLessThanInvoicePostingDateByUpdateStatementDate"
+  },
+  {
+    "codeunitId": 134141,
+    "codeunitName": "ERM Bank Reconciliation",
+    "method": "BankReconciliationPageChangingStatementDateShouldNotRemoveOrUnmatchEntriesAndCanBePosted"
   }
 ]

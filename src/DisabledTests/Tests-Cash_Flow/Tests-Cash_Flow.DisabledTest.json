@@ -118,5 +118,25 @@
     "codeunitId": 134559,
     "codeunitName": "ERM Cash Flow Navigate",
     "method": "InsertNewCashFlowManualRevenuesWithoutAccount"
+  },
+  {
+    "codeunitId": 134553,
+    "codeunitName": "ERM Cash Flow - Filling II",
+    "method": "SalesOrderListShownOrdersOnlyWithVATWhenSkipNoVATIsTrue"
+  },
+  {
+    "codeunitId": 134553,
+    "codeunitName": "ERM Cash Flow - Filling II",
+    "method": "SalesOrderListShownAllOrdersWhenSkipNoVATIsFalse"
+  },
+  {
+    "codeunitId": 134553,
+    "codeunitName": "ERM Cash Flow - Filling II",
+    "method": "PurchaseOrderListShownOrdersOnlyWithVATWhenSkipNoVATIsTrue"
+  },
+  {
+    "codeunitId": 134553,
+    "codeunitName": "ERM Cash Flow - Filling II",
+    "method": "PurchaseOrderListShownAllOrdersWhenSkipNoVATIsFalse"
   }
 ]
