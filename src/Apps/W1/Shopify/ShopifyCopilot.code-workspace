@@ -1,0 +1,14 @@
+{
+    "folders": [
+        {
+            "path": "App"
+        },
+        {
+            "path": "ShpfyCopilotTaxMatching/app"
+        },
+        {
+            "path": "ShpfyCopilotTaxMatching/test"
+        }
+    ],
+    "settings": {}
+}

@@ -5,12 +5,6 @@
         },
         {
             "path": "Test"
-        },
-        {
-            "path": "ShpfyCopilotTaxMatching/app"
-        },
-        {
-            "path": "ShpfyCopilotTaxMatching/test"
         }
     ],
     "settings": {}
