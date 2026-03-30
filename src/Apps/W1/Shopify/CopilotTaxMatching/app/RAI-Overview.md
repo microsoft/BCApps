@@ -13,6 +13,7 @@ The feature triggers automatically during Shopify order import, only when all of
 - The shop has **Copilot Tax Matching Enabled** = Yes
 - The **Copilot capability** is registered and active in the Copilot AI Capabilities page
 - The order does **not** already have a Tax Area Code (i.e. the standard address-based mapping didn't find a match)
+- The order is **not tax exempt** (i.e. tax was not disabled at POS)
 - The order has **unmatched tax lines** (tax lines without a Tax Jurisdiction Code)
 
 If any condition is not met, the feature does nothing and the order is processed normally.

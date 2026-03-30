@@ -6,6 +6,7 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;

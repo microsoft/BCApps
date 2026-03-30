@@ -90,9 +90,10 @@
 | G2 | Copilot capability not registered | No LLM call; order unchanged |
 | G3 | Copilot capability inactive | No LLM call; order unchanged |
 | G4 | Tax Area already set by MapTaxArea | Copilot skipped; existing Tax Area kept |
-| G5 | No order lines | MatchTaxLines returns false |
-| G6 | All tax lines already have jurisdiction codes | MatchTaxLines returns false (no unmatched lines) |
-| G7 | Order import Result = false | Event subscriber exits immediately |
+| G5 | Order is Tax Exempt | Copilot skipped; order unchanged |
+| G6 | No order lines | MatchTaxLines returns false |
+| G7 | All tax lines already have jurisdiction codes | MatchTaxLines returns false (no unmatched lines) |
+| G8 | Order import Result = false | Event subscriber exits immediately |
 
 ---
 

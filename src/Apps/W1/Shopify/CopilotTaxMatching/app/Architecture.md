@@ -8,7 +8,7 @@ This feature uses an LLM to automate the mapping from free-text Shopify tax desc
 
 ## Design Principles
 
-- **Non-invasive**: Ships as a separate app. Zero modifications to the standard Shopify connector — hooks in via integration events only.
+- **Minimal footprint**: Ships as a separate app. Requires a small set of additions to the standard connector (integration event, Tax Jurisdiction Code field on tax lines, Tax Area/Tax Liable/Tax Exempt fields on order header, MapTaxArea procedure). The Copilot app hooks in via the integration event.
 - **Sync, invisible**: Runs inline during order import with no user interaction. No Copilot dialog, chat, or wizard.
 - **Fail-safe**: If the LLM call fails or returns bad data, the order proceeds unchanged — same as if the feature were disabled.
 - **Admin-controlled**: Every creation action (jurisdictions, areas) requires explicit opt-in per shop. The feature itself requires both a per-shop toggle and Copilot AI Capabilities activation.
@@ -46,13 +46,16 @@ Shopify Order Import (standard connector)
   |
   v
 OrderMapping.DoMapping()
-  |-- MapHeaderFields() --> MapTaxArea()  (address-based lookup)
+  |-- MapHeaderFields() or MapB2BHeaderFields()
+  |     |-- MapTaxArea() (address-based lookup, respects Tax Exempt)
+  |-- Map order lines (items, tips, gift cards)
   |-- OnAfterMapShopifyOrder event fires
   |
   v
 Copilot Tax Events (30473) — Event Subscriber
   |-- Guard: Result = true?
   |-- Guard: Tax Area Code still blank?
+  |-- Guard: Tax Exempt = false?
   |-- Guard: Shop.Get + Copilot Tax Matching Enabled?
   |-- Guard: Capability registered + active?
   |-- Telemetry: log start
@@ -235,7 +238,7 @@ Registration follows the standard BC Copilot pattern:
 
 ## Test App
 
-A separate test app (`ShpfyCopilotTaxMatching/test/`, ID range 30490-30499) uses the **AI Test Toolkit** framework:
+A separate test app (`CopilotTaxMatching/test/`, ID range 30490-30499) uses the **AI Test Toolkit** framework:
 
 - Data-driven YAML scenarios iterated by the framework
 - Real LLM calls (no mocking) for matching tests

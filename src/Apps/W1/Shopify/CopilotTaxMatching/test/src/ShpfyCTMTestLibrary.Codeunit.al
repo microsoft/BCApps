@@ -176,7 +176,6 @@ codeunit 30491 "Shpfy CTM Test Library"
         LineInput: Codeunit "Test Input Json";
         TaxLinesArray: Codeunit "Test Input Json";
         TaxLineInput: Codeunit "Test Input Json";
-        Item: Record Item;
         ElementExists: Boolean;
         i: Integer;
         j: Integer;
