@@ -29,23 +29,24 @@ codeunit 6401 "E-Document XML Helper"
         XmlNamespaces.AddNamespace('cre', DefaultCreditNoteLbl);
     end;
 
-    procedure SetStringValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; MaxLength: Integer; var Field: Text)
+    procedure TryGetStringValue(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; var Value: Text): Boolean
     var
         XMLNode: XmlNode;
-        NodeValue: Text;
     begin
         if not XMLDocument.SelectSingleNode(Path, XMLNamespaces, XMLNode) then
-            exit;
+            exit(false);
 
-        if XMLNode.IsXmlElement() then
-            NodeValue := XMLNode.AsXmlElement().InnerText()
-        else
-            if XMLNode.IsXmlAttribute() then
-                NodeValue := XMLNode.AsXmlAttribute().Value()
-            else
-                exit;
+        if XMLNode.IsXmlElement() then begin
+            Value := XMLNode.AsXmlElement().InnerText();
+            exit(true);
+        end;
 
-        Field := CopyStr(NodeValue, 1, MaxLength);
+        if XMLNode.IsXmlAttribute() then begin
+            Value := XMLNode.AsXmlAttribute().Value();
+            exit(true);
+        end;
+
+        exit(false);
     end;
 
     procedure SetNumberValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; var DecimalValue: Decimal)
