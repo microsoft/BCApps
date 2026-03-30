@@ -392,7 +392,7 @@ page 2500 "Extension Management"
         Uninstalled.SetFilter(Status, '<>%1', Uninstalled.Status::Installed);
         if not Uninstalled.IsEmpty() then begin
             Notif.Message(UninstalledExtensionsMsg);
-            Notif.AddAction('Show Extensions', Codeunit::"Extension Operation Impl", 'ShowExtensions');
+            Notif.AddAction('Show', Codeunit::"Extension Operation Impl", 'HandleOrphanedDataNotification');
             Notif.Send();
         end;
     end;
@@ -417,7 +417,7 @@ page 2500 "Extension Management"
         InfoStyle: Boolean;
         HelpActionVisible: Boolean;
         IsSourceSpecificationAvailable: Boolean;
-        UninstalledExtensionsMsg: Label 'There''s orphaned data from uninstalled extensions. Use this action to review the uninstalled extensions';
+        UninstalledExtensionsMsg: Label 'There''s orphaned data from uninstalled extensions. Use the Delete Orphaned Extension Data page to review';
 
     protected procedure IsSaasEnvironment(): boolean
     begin

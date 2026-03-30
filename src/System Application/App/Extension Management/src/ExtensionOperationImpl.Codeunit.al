@@ -436,7 +436,7 @@ codeunit 2503 "Extension Operation Impl"
         end;
     end;
 
-    procedure ShowExtensions(Notif: Notification)
+    procedure HandleOrphanedDataNotification(Notif: Notification)
     begin
         Page.Run(Page::"Delete Orphaned Extension Data");
     end;
