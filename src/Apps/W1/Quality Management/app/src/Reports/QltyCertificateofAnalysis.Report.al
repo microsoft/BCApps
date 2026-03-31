@@ -16,9 +16,10 @@ using Microsoft.QualityManagement.Utilities;
 
 report 20401 "Qlty. Certificate of Analysis"
 {
-    ApplicationArea = QualityManagement;
-    UsageCategory = ReportsAndAnalysis;
     Caption = 'Quality Management - Certificate of Analysis';
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+    UsageCategory = ReportsAndAnalysis;
+    ApplicationArea = QualityManagement;
     DefaultRenderingLayout = QltyCertificateOfAnalysisDefault;
     Extensible = true;
 
