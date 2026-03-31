@@ -662,7 +662,7 @@ codeunit 9018 "Azure AD Plan Impl."
         PlanIds: Codeunit "Plan Ids";
         PlanConfigurationImpl: Codeunit "Plan Configuration Impl.";
         UserPermissions: Codeunit "User Permissions";
-        UserGroupsAdded, ShouldRemoveSuper, HasPlans : Boolean;
+        UserGroupsAdded, ShouldRemoveSuper : Boolean;
         PlanId: Guid;
     begin
         case true of
@@ -682,9 +682,6 @@ codeunit 9018 "Azure AD Plan Impl."
 
         Session.LogMessage('0000IC4', StrSubstNo(AssigningPlanForDelegatedRoleTxt, PlanId, not SkipUpdateUserAccess), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
 
-        // Check if the user have any plans assigned before removing
-        HasPlans := DoesUserHavePlans(UserSID);
-
         // Delete any existing plans for the user
         UserPlan.SetRange("User Security ID", UserSID);
         UserPlan.DeleteAll();
@@ -695,14 +692,10 @@ codeunit 9018 "Azure AD Plan Impl."
         UserPlan."User Security ID" := UserSID;
         UserPlan.Insert();
 
-        // Exit if user access should not be updated
-        if SkipUpdateUserAccess then
-            exit;
-
+        // Fix for ADO #612420: Removed early-exit checks on SkipUpdateUserAccess and HasPlans
+        // that prevented access updates when a user's plan changed (e.g., guest to GDAP).
+        // The IsPlanAssignedToUser guard above already prevents re-processing unchanged plans.
         if not UserProperty.Get(UserSID) then
-            exit;
-
-        if HasPlans then
             exit;
 
         // Assign user groups for the user
