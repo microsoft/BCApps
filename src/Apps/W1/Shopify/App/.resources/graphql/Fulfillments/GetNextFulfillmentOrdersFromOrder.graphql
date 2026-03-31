@@ -1,0 +1,2 @@
+# cost: 33
+{"query":"{order(id: \"gid:\/\/shopify\/Order\/{{OrderId}}\") { legacyResourceId fulfillmentOrders(first: 25, after:\"{{After}}\") { pageInfo { hasNextPage } edges { cursor node { id updatedAt status requestStatus assignedLocation {location {legacyResourceId}} order {legacyResourceId} deliveryMethod {methodType}}}}}}"}
