@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { productOptionUpdate(productId: \"gid://shopify/Product/{{ProductId}}\", option: {id: \"gid://shopify/ProductOption/{{OptionId}}\", name: \"{{OptionName}}\"}) { product { id } userErrors { field message } } }"}

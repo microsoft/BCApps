@@ -1,0 +1,2 @@
+# cost: 27
+{"query":"{fulfillmentOrder(id: \"gid:\/\/shopify\/FulfillmentOrder\/{{FulfillmentOrderId}}\") {lineItems(first: 25, after:\"{{After}}\") {pageInfo {hasNextPage} edges {cursor node {id totalQuantity remainingQuantity lineItem {id product {legacyResourceId} variant {legacyResourceId}}}}}}}"}

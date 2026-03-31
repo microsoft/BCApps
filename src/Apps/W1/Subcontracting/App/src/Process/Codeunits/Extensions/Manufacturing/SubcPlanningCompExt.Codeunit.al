@@ -15,6 +15,8 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterValidateEvent, "Routing Link Code", false, false)]
     local procedure OnAfterValidateRoutingLinkCode(var Rec: Record "Planning Component"; var xRec: Record "Planning Component"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
         HandleRoutingLinkCodeValidation(Rec, xRec);
     end;
 
@@ -29,6 +31,8 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterValidateEvent, "Location Code", false, false)]
     local procedure OnAfterValidateLocationCode(var Rec: Record "Planning Component"; var xRec: Record "Planning Component"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
         if Rec."Location Code" <> xRec."Location Code" then
             Rec."Orig. Location Code" := xRec."Location Code";
     end;
@@ -36,6 +40,8 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterValidateEvent, "Bin Code", false, false)]
     local procedure OnAfterValidateBinCode(var Rec: Record "Planning Component"; var xRec: Record "Planning Component"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
         if Rec."Bin Code" <> xRec."Bin Code" then
             Rec."Orig. Bin Code" := xRec."Bin Code";
     end;

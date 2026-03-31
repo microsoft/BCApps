@@ -26,6 +26,7 @@ codeunit 139999 "Subc. Wiz. Put-Away Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
@@ -34,7 +35,6 @@ codeunit 139999 "Subc. Wiz. Put-Away Test"
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         ProdOrderCheckLib: Codeunit "Subc. ProdOrderCheckLib";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         IsInitialized: Boolean;
 
     // ==================== SCENARIO L: Put-Away Operations ====================

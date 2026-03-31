@@ -1,7 +1,11 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item;
+using Microsoft.Pricing.Asset;
+using Microsoft.Pricing.PriceList;
+using Microsoft.Pricing.Source;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
@@ -26,6 +30,7 @@ codeunit 139690 "Contract Price Proposal Test"
         Currency: Record Currency;
         Customer: Record Customer;
         Customer2: Record Customer;
+        GLAccount: Record "G/L Account";
         Item: Record Item;
         PriceUpdateTemplateCustomer: Record "Price Update Template";
         PriceUpdateTemplateVendor: Record "Price Update Template";
@@ -39,6 +44,7 @@ codeunit 139690 "Contract Price Proposal Test"
         Assert: Codeunit Assert;
         ContractTestLibrary: Codeunit "Contract Test Library";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
@@ -668,6 +674,37 @@ codeunit 139690 "Contract Price Proposal Test"
         Assert.AreEqual(ServiceCommitment."Next Price Update", ContractPriceUpdateLine."Perform Update On", 'UpdatePerformUpdateOn did not return correct value');
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure CreateVendorGLAccountPriceUpdateProposalRecentItemPrices()
+    var
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        VendorContract: Record "Vendor Subscription Contract";
+    begin
+        // [SCENARIO 622207] Verify that a price update proposal line is created for a vendor contract with a G/L Account service commitment using Recent Item Prices.
+        Initialize();
+
+        // [GIVEN] Create a vendor in LCY with a G/L Account service commitment in a vendor contract
+        SetupVendorGLAccountContractForPriceUpdate(VendorContract);
+
+        // [GIVEN] Create an active All Vendors purchase price list with a direct unit cost for G/L Account
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Purchase, "Price Source Type"::"All Vendors", '');
+        LibraryPriceCalculation.CreatePurchPriceLine(PriceListLine, PriceListHeader.Code, "Price Source Type"::"All Vendors", '', "Price Asset Type"::"G/L Account", GLAccount."No.");
+        PriceListHeader.Validate(Status, PriceListHeader.Status::Active);
+        PriceListHeader.Modify(true);
+
+        // [WHEN] Create a price update proposal with Recent Item Prices method.
+        ContractTestLibrary.CreatePriceUpdateTemplate(PriceUpdateTemplateVendor, "Service Partner"::Vendor, "Price Update Method"::"Recent Item Prices", 0, '<12M>', '<12M>', '<12M>');
+        PriceUpdateManagement.CreatePriceUpdateProposal(PriceUpdateTemplateVendor.Code, CalcDate(PriceUpdateTemplateVendor.InclContrLinesUpToDateFormula, WorkDate()), WorkDate());
+
+        // [THEN] Verify a price update line is created with New Calculation Base matching the G/L Account purchase price.
+        ContractPriceUpdateLine.SetRange("Price Update Template Code", PriceUpdateTemplateVendor.Code);
+        Assert.RecordIsNotEmpty(ContractPriceUpdateLine);
+        ContractPriceUpdateLine.FindFirst();
+        Assert.AreEqual(PriceListLine."Direct Unit Cost", ContractPriceUpdateLine."New Calculation Base", 'New Calculation Base must equal the purchase price of the G/L Account');
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -864,6 +901,16 @@ codeunit 139690 "Contract Price Proposal Test"
             until ServiceCommitment.Next() = 0;
     end;
 
+    local procedure SetupVendorGLAccountContractForPriceUpdate(var VendorContract: Record "Vendor Subscription Contract")
+    var
+        VendorContractLine: Record "Vend. Sub. Contract Line";
+    begin
+        ContractTestLibrary.CreateVendorInLCY(Vendor);
+        ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
+        ContractTestLibrary.InsertVendorContractGLAccountLine(VendorContract, VendorContractLine);
+        GLAccount.Get(VendorContractLine."No.");
+    end;
+
     #endregion Procedures
 
     #region Handlers
@@ -889,6 +936,12 @@ codeunit 139690 "Contract Price Proposal Test"
     [MessageHandler]
     procedure MessageHandler(Message: Text[1024])
     begin
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 
     [StrMenuHandler]
