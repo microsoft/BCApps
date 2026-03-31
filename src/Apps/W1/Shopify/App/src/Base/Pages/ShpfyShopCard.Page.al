@@ -49,10 +49,9 @@ page 30101 "Shpfy Shop Card"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Code = '' then
-                            Error(CodeMustBeFilledBeforeUrlErr);
                         Rec.TestField(Enabled, false);
-                        CurrPage.SaveRecord();
+                        if Rec."Code" <> '' then
+                            CurrPage.SaveRecord();
                     end;
                 }
                 field(Enabled; Rec.Enabled)
@@ -1210,7 +1209,6 @@ page 30101 "Shpfy Shop Card"
         IsReturnRefundsVisible: Boolean;
         ApiVersion: Text;
         ApiVersionExpiryDate: Date;
-        CodeMustBeFilledBeforeUrlErr: Label 'You must fill in the Code field before you can enter the Shopify URL.';
         ScopeChangeConfirmLbl: Label 'The access scope of shop %1 for the Shopify connector has changed. Do you want to request a new access token?', Comment = '%1 - Shop Code';
         ConnectionSuccessfulMsg: Label 'Connection successful.';
         ConnectionAndWebhooksSuccessfulMsg: Label 'Connection successful and auto synchronize orders is configured correctly.';
