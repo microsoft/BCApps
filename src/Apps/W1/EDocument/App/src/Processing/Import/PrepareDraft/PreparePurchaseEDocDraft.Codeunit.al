@@ -16,7 +16,13 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
         PrepareDraftHelper: Codeunit "EDoc Prepare Purch. Draft";
 
     procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"): Enum "E-Document Type"
+    var
+        IPrepareDraftGuard: Interface IPrepareDraftGuard;
     begin
+        IPrepareDraftGuard := EDocImportParameters."Processing Customizations";
+        if IPrepareDraftGuard.SkipPrepareDraft() then
+            exit("E-Document Type"::"Purchase Invoice");
+
         PrepareDraftHelper.PrepareDraft(EDocument, EDocImportParameters);
         exit("E-Document Type"::"Purchase Invoice");
     end;
