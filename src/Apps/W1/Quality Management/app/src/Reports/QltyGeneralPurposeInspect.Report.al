@@ -16,10 +16,11 @@ using Microsoft.QualityManagement.Utilities;
 
 report 20405 "Qlty. General Purpose Inspect."
 {
-    ApplicationArea = QualityManagement;
-    UsageCategory = ReportsAndAnalysis;
     Caption = 'Quality Management - General Purpose Inspection Report';
     ToolTip = 'A printable general purpose inspection report.';
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+    UsageCategory = ReportsAndAnalysis;
+    ApplicationArea = QualityManagement;
     DefaultRenderingLayout = QltyGeneralPurposeInspectionDefault;
     Extensible = true;
 
