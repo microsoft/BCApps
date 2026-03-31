@@ -22,8 +22,8 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
 
-      - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
+      - uses: microsoft/BCAppsPrivate/.github/actions/TestPreprocessorSymbols@main  # TODO: update to microsoft/BCApps
 
-      - uses: microsoft/BCApps/.github/actions/TestObjectIdsAndManifests@main
+      - uses: microsoft/BCAppsPrivate/.github/actions/TestObjectIdsAndManifests@main  # TODO: update to microsoft/BCApps
 
       - uses: microsoft/BCAppsPrivate/.github/actions/VerifyMiappSync@main # TODO: update to microsoft/BCApps/.github/actions/VerifyMiappSync@main
