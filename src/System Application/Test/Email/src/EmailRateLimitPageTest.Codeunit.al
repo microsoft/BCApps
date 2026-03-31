@@ -25,7 +25,7 @@ codeunit 134705 "Email Rate Limit Page Test"
     [Scope('OnPrem')]
     procedure DefaultRateLimiteSendMultipleEmails()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailOutbox: Record "Email Outbox";
         Email: Codeunit Email;
         EmailMessage: Codeunit "Email Message";
@@ -35,25 +35,25 @@ codeunit 134705 "Email Rate Limit Page Test"
 
         // [Given] One email account is registered
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
 
         // [Then] Send the first email, it should be sucessful
         CreateEmail(EmailMessage);
         Assert.IsTrue(EmailMessage.Get(EmailMessage.GetId()), 'The first email should exist');
-        Assert.IsTrue(Email.Send(EmailMessage, EmailAccount), 'Sending one email should be successful');
+        Assert.IsTrue(Email.Send(EmailMessage, TempEmailAccount), 'Sending one email should be successful');
 
         // [Then] Send two emails, should be sucessful
         CreateEmail(EmailMessage);
         Assert.IsTrue(EmailMessage.Get(EmailMessage.GetId()), 'The second email should exist');
-        Assert.IsTrue(Email.Send(EmailMessage, EmailAccount), 'Sending two emails should be successful');
+        Assert.IsTrue(Email.Send(EmailMessage, TempEmailAccount), 'Sending two emails should be successful');
 
         // [Then] Send three emails, should be sucessful
         CreateEmail(EmailMessage);
         Assert.IsTrue(EmailMessage.Get(EmailMessage.GetId()), 'The third email should exist');
-        Assert.IsTrue(Email.Send(EmailMessage, EmailAccount), 'Sending three emails should be successful');
+        Assert.IsTrue(Email.Send(EmailMessage, TempEmailAccount), 'Sending three emails should be successful');
 
         // [Then] Check the email outbox, should be empty
-        EmailOutbox.SetRange("Account Id", EmailAccount."Account Id");
+        EmailOutbox.SetRange("Account Id", TempEmailAccount."Account Id");
         Assert.AreEqual(0, EmailOutbox.Count(), 'Email Outbox should be empty.');
     end;
 
@@ -61,7 +61,7 @@ codeunit 134705 "Email Rate Limit Page Test"
     [Scope('OnPrem')]
     procedure RateLimitEqualsOneSendTwoEmails()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailRateLimit: Record "Email Rate Limit";
         EmailOutbox: Record "Email Outbox";
         Email: Codeunit Email;
@@ -72,28 +72,28 @@ codeunit 134705 "Email Rate Limit Page Test"
 
         // [Given] One email account is registered
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
 
         // [Then] Editing the rate limit, set the rate limit to 1
-        EmailRateLimit.Get(EmailAccount."Account Id", EmailAccount.Connector);
+        EmailRateLimit.Get(TempEmailAccount."Account Id", TempEmailAccount.Connector);
         EmailRateLimit."Rate Limit" := 1;
         EmailRateLimit.Modify();
 
         // [Then] Send the first email, it should be successful. The Outbox should be empty
         CreateEmail(EmailMessage);
         Assert.IsTrue(EmailMessage.Get(EmailMessage.GetId()), 'The email should exist');
-        Assert.IsTrue(Email.Send(EmailMessage, EmailAccount), 'Sending an email should be successful');
+        Assert.IsTrue(Email.Send(EmailMessage, TempEmailAccount), 'Sending an email should be successful');
 
-        EmailOutbox.SetRange("Account Id", EmailAccount."Account Id");
+        EmailOutbox.SetRange("Account Id", TempEmailAccount."Account Id");
         Assert.AreEqual(0, EmailOutbox.Count(), 'Email Outbox should be empty.');
 
         // [Then] Send the second email, it should succeed (and be rescheduled)
         CreateEmail(EmailMessage);
         Assert.IsTrue(EmailMessage.Get(EmailMessage.GetId()), 'The email should exist');
-        Assert.IsTrue(Email.Send(EmailMessage, EmailAccount), 'Sending an email should be successful');
+        Assert.IsTrue(Email.Send(EmailMessage, TempEmailAccount), 'Sending an email should be successful');
 
         // [Then] Check the email outbox, there should be one rescheduled email.
-        EmailOutbox.SetRange("Account Id", EmailAccount."Account Id");
+        EmailOutbox.SetRange("Account Id", TempEmailAccount."Account Id");
         EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
         Assert.IsTrue(EmailOutbox.FindFirst(), 'The email outbox entry should exist');
 
