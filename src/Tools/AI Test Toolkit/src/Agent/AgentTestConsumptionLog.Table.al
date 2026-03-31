@@ -21,19 +21,30 @@ table 149049 "Agent Test Consumption Log"
         {
             Caption = 'Entry No.';
             AutoIncrement = true;
-            ToolTip = 'Specifies the Log Entry No..';
+            ToolTip = 'Specifies the Log Entry No.';
         }
         field(2; "Agent Task ID"; BigInteger)
         {
             Caption = 'Agent Task ID';
             NotBlank = true;
-            ToolTip = 'Specifies the Agent Task ID.';
+            ToolTip = 'Specifies the ID of the agent task executed.';
         }
-        field(3; "Copilot Credits"; Decimal)
+        field(3; Company; Text[50])
+        {
+            Caption = 'Company';
+            NotBlank = false;
+            ToolTip = 'Specifies the Company in which the agent task was executed.';
+        }
+        field(4; "Copilot Credits"; Decimal)
         {
             Caption = 'Copilot Credits';
             ToolTip = 'Specifies the Copilot Credits consumed.';
             NotBlank = true;
+        }
+        field(5; "Test Suite Code"; Code[100])
+        {
+            Caption = 'Test Suite Code';
+            ToolTip = 'Specifies the code of the test suite that generated this consumption.';
         }
     }
 
@@ -45,6 +56,10 @@ table 149049 "Agent Test Consumption Log"
         }
         key(Key2; "Agent Task ID")
         {
+        }
+        key(Key3; "Test Suite Code", Company)
+        {
+            SumIndexFields = "Copilot Credits";
         }
     }
 }

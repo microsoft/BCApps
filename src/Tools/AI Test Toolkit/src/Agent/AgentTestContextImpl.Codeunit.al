@@ -58,6 +58,10 @@ codeunit 149049 "Agent Test Context Impl."
 
         // Insert database level consumption tracking.
         AgentTestConsumptionLog."Agent Task ID" := AgentTaskId;
+#pragma warning disable AA0139
+        AgentTestConsumptionLog."Company" := CompanyName();
+#pragma warning restore AA0139
+        AgentTestConsumptionLog."Test Suite Code" := AITLogEntry."Test Suite Code";
         AgentTestConsumptionLog."Copilot Credits" := AgentConsumptionOverview.GetCopilotCreditsConsumed(AgentTaskId);
         AgentTestConsumptionLog.Insert();
     end;
@@ -236,34 +240,6 @@ codeunit 149049 "Agent Test Context Impl."
                 Result += Separator + Item;
 
         exit(Result);
-    end;
-
-    procedure GetCopilotCreditsForPeriod(TestSuiteCode: Code[100]; PeriodStartDate: Date): Decimal
-    begin
-        exit(GetCopilotCreditsForPeriod(TestSuiteCode, PeriodStartDate, DT2Date(CurrentDateTime())));
-    end;
-
-    procedure GetCopilotCreditsForPeriod(TestSuiteCode: Code[100]; PeriodStartDate: Date; PeriodEndDate: Date): Decimal
-    var
-        AgentTestTaskLog: Record "Agent Test Task Log";
-    begin
-        AgentTestTaskLog.SetRange("Test Suite Code", TestSuiteCode);
-        AgentTestTaskLog.SetFilter(SystemCreatedAt, '>=%1&<=%2', CreateDateTime(PeriodStartDate, 0T), CreateDateTime(PeriodEndDate, 235959.999T));
-        exit(GetCopilotCredits(AgentTestTaskLog));
-    end;
-
-    procedure GetCopilotCreditsAcrossCompaniesForPeriod(PeriodStartDate: Date): Decimal
-    begin
-        exit(GetCopilotCreditsAcrossCompaniesForPeriod(PeriodStartDate, DT2Date(CurrentDateTime())));
-    end;
-
-    procedure GetCopilotCreditsAcrossCompaniesForPeriod(PeriodStartDate: Date; PeriodEndDate: Date): Decimal
-    var
-        AgentTestConsumptionLog: Record "Agent Test Consumption Log";
-    begin
-        AgentTestConsumptionLog.SetFilter(SystemCreatedAt, '>=%1&<=%2', CreateDateTime(PeriodStartDate, 0T), CreateDateTime(PeriodEndDate, 235959.999T));
-        AgentTestConsumptionLog.CalcSums("Copilot Credits");
-        exit(AgentTestConsumptionLog."Copilot Credits");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnRunTestSuite, '', false, false)]

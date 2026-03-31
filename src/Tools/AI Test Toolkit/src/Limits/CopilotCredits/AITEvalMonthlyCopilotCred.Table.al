@@ -18,38 +18,52 @@ table 149040 "AIT Eval Monthly Copilot Cred."
 
     fields
     {
-        field(1; Code; Code[10])
+        field(1; "Company Name"; Text[30])
         {
-            Caption = 'Code';
+            Caption = 'Company Name';
+            ToolTip = 'Specifies the company this limit applies to. An empty value means the limit applies to the entire environment (across all companies).';
+            TableRelation = Company.Name;
         }
         field(2; "Monthly Credit Limit"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Monthly Credit Limit';
-            ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed by agent test suites during the current month.';
+            ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed during the current month.';
             MinValue = 0;
             DecimalPlaces = 2 : 5;
         }
         field(3; "Enforcement Enabled"; Boolean)
         {
             Caption = 'Enforcement Enabled';
-            ToolTip = 'Specifies whether the credit limit enforcement is enabled. When disabled, suites can consume unlimited credits.';
+            ToolTip = 'Specifies whether the credit limit enforcement is enabled for this scope.';
             InitValue = true;
         }
     }
 
     keys
     {
-        key(PK; Code)
+        key(PK; "Company Name")
         {
             Clustered = true;
         }
     }
 
-    procedure GetOrCreate()
+    /// <summary>
+    /// Gets or creates the environment-level record.
+    /// </summary>
+    procedure GetOrCreateEnvironmentLimits()
     begin
-        if not Get() then
-            InsertDefaultRecord();
+        if not Get(GetAllCompaniesTok()) then
+            InsertEnvironmentDefaultRecord();
+    end;
+
+    /// <summary>
+    /// Gets or creates the record for a specific company.
+    /// </summary>
+    procedure GetOrCreateCompanyLimits(CompanyName: Text[30])
+    begin
+        if not Get(CompanyName) then
+            InsertCompanyDefaultRecord(CompanyName);
     end;
 
     procedure GetPeriodStartDate(): Date
@@ -62,23 +76,33 @@ table 149040 "AIT Eval Monthly Copilot Cred."
         exit(CalcDate('<CM>', Today()));
     end;
 
-    /// <summary>
-    /// Inserts the default record.
-    /// </summary>
-    procedure InsertDefaultRecord()
+    local procedure InsertEnvironmentDefaultRecord()
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         if EnvironmentInformation.IsSaaSInfrastructure() then begin
-            Rec.Code := '';
+            Rec."Company Name" := GetAllCompaniesTok();
             Rec."Monthly Credit Limit" := 200;
             Rec."Enforcement Enabled" := true;
-            Rec.Insert();
         end else begin
-            Rec.Code := '';
+            Rec."Company Name" := GetAllCompaniesTok();
             Rec."Monthly Credit Limit" := 0;
             Rec."Enforcement Enabled" := false;
-            Rec.Insert();
         end;
+
+        Rec.Insert();
+    end;
+
+    local procedure InsertCompanyDefaultRecord(CompanyName: Text[30])
+    begin
+        Rec."Company Name" := CompanyName;
+        Rec."Monthly Credit Limit" := 0;
+        Rec."Enforcement Enabled" := false;
+        Rec.Insert();
+    end;
+
+    local procedure GetAllCompaniesTok(): Text[30]
+    begin
+        exit('');
     end;
 }
