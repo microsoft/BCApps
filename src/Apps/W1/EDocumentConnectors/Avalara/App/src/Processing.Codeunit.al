@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.EServices.EDocumentConnector.Avalara.Models;
+using System.RestClient;
 using System.Utilities;
 
 codeunit 6379 Processing
@@ -124,8 +125,10 @@ codeunit 6379 Processing
         RequestContent: Text;
         ResponseContent: Text;
     begin
-        if not ConnectionSetup.Get() then
+        if not ConnectionSetup.Get() then begin
+            EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, ConnectionSetupMissingErr);
             exit;
+        end;
 
         TempBlob := SendContext.GetTempBlob();
         AvalaraMandate := EDocumentService."Avalara Mandate";
@@ -464,19 +467,32 @@ ValueObject : JsonToken;
 
     procedure GetInvoiceFieldsForMandate(Mandate: Text; DocumentType: Text; DocumentVersion: Text)
     var
+        AvalaraAuth: Codeunit Authenticator;
+        ResponseMessage: Codeunit "Http Response Message";
         Request: Codeunit Requests;
-        HttpClient: HttpClient;
-        Response: HttpResponseMessage;
-        //HttpExecutor: Codeunit "Http Executor";
+        RestClient: Codeunit "Rest Client";
+        BearerLbl: Label 'Bearer %1', Locked = true;
+        RequestPath: Text;
         ResponseContent: Text;
-
     begin
         Request.Init();
-        Request.Authenticate().CreateGetFields(Mandate, DocumentType, DocumentVersion);
-        HttpClient.Send(Request.GetRequest(), Response);
-        Response.Content.ReadAs(ResponseContent);
-        if Response.HttpStatusCode = 200 then
-            ParseFields(ResponseContent, Mandate, DocumentType, DocumentVersion);
+
+        RestClient.Initialize();
+        RestClient.SetBaseAddress(Request.GetBaseUrl());
+        RestClient.SetAuthorizationHeader(SecretStrSubstNo(BearerLbl, AvalaraAuth.GetAccessToken()));
+        RestClient.SetDefaultRequestHeader('avalara-version', '1.4');
+        RestClient.SetDefaultRequestHeader('X-Avalara-Client', AvalaraClientTok);
+
+        RequestPath := StrSubstNo(GetFieldsPathLbl, Mandate, DocumentType, DocumentVersion);
+        ResponseMessage := RestClient.Get(RequestPath);
+
+        if not ResponseMessage.GetIsSuccessStatusCode() then begin
+            Session.LogMessage('0000NHE', StrSubstNo(GetFieldsFailedErr, ResponseMessage.GetHttpStatusCode(), ResponseMessage.GetReasonPhrase()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraTok);
+            exit;
+        end;
+
+        ResponseContent := ResponseMessage.GetContent().AsText();
+        ParseFields(ResponseContent, Mandate, DocumentType, DocumentVersion);
     end;
 
     local procedure ParseFields(ResponseContent: Text; Mandate: Text; DocumentType: Text; DocumentVersion: Text)
@@ -738,8 +754,10 @@ MessageToken,
     end;
 
     procedure CreateBatch(EDocService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeaders: RecordRef; var SourceDocumentsLines: RecordRef; var TempBlob: Codeunit "Temp Blob");
+    var
+        NotImplementedErr: Label 'Implementation Coming soon', Locked = true;
     begin
-        Message('Implementation Coming soon');
+        Error(NotImplementedErr);
     end;
 
     procedure GetMandateTypeFromName(MandateText: Text): Text
@@ -758,6 +776,7 @@ MessageToken,
         TempAvalaraCompanies: Record "Avalara Company" temporary;
         TempMandates: Record Mandate temporary;
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        AvalaraClientTok: Label 'a0nUz00000YrkE1IAJ', Locked = true;
 
         // Error messages
         AvalaraCountryIdLongerErr: Label 'Avalara company id is longer than what is supported by framework.';
@@ -772,10 +791,13 @@ MessageToken,
         AvalaraProcessingDocFailedErr: Label 'An error has been identified in the submitted document.';
         AvalaraTok: Label 'E-Document - Avalara', Locked = true;
         AvaralaCountryNameLongerErr: Label 'Avalara company name is longer than what is supported by framework.';
+        ConnectionSetupMissingErr: Label 'Avalara connection setup is not configured. Please complete the setup before sending documents.';
         DataFormatCreditNoteTok: Label 'ubl-creditnote', Locked = true;
         DataFormatInvoiceTok: Label 'ubl-invoice', Locked = true;
         DataFormatVersionTok: Label '2.1', Locked = true;
         DocumentIdNotFoundErr: Label 'Document ID not found in response.';
+        GetFieldsFailedErr: Label 'Failed to get invoice fields: HTTP %1 - %2', Comment = '%1 = HTTP status code, %2 = reason phrase';
+        GetFieldsPathLbl: Label '/einvoicing/mandates/%1/data-input-fields?documentType=%2&documentVersion=%3', Locked = true, Comment = '%1 = Mandate, %2 = Document Type, %3 = Document Version';
         IncorrectDocumentIdInResponseErr: Label 'Document ID returned by API does not match E-Document.';
         InvalidJsonResponseErr: Label 'Invalid JSON response.';
         JsonFieldCompanyIdTok: Label 'companyId', Locked = true;
