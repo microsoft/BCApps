@@ -4,15 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.RoleCenters;
 
-using Microsoft.Manufacturing.RoleCenters;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.Warehouse.RoleCenters;
 
-pageextension 20417 "Qlty. Machine Operator RC" extends "Machine Operator Role Center"
+pageextension 20421 "Qlty. Whse. Basic RC" extends "Whse. Basic Role Center"
 {
     actions
     {
