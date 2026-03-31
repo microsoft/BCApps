@@ -296,21 +296,7 @@ report 20401 "Qlty. Certificate of Analysis"
             Type = RDLC;
             Caption = 'Default Layout';
             Summary = 'The default certificate of analysis report.';
-            LayoutFile = './src/Reports/QltyCertificateOfAnalysisDefault.rdl';
-        }
-        layout(QltyCertificateOfAnalysisAlternate)
-        {
-            Type = RDLC;
-            Caption = 'Alternate Layout';
-            Summary = 'Alternate certificate of analysis report.';
             LayoutFile = './src/Reports/QltyCertificateOfAnalysisAlternate.rdl';
-        }
-        layout(QualityManagement_CertificateOfAnalysis_Default)
-        {
-            Type = Word;
-            Caption = 'Word Layout';
-            Summary = 'Word layout for certificate of analysis report.';
-            LayoutFile = './src/Reports/QltyCertificateOfAnalysis.docx';
         }
     }
 
