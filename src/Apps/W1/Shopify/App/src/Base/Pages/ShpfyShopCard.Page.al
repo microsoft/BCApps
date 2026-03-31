@@ -49,8 +49,8 @@ page 30101 "Shpfy Shop Card"
 
                     trigger OnValidate()
                     begin
-                        Rec.TestField(Enabled, false);
-                        CurrPage.SaveRecord();
+                        if Rec."Code" <> '' then
+                            CurrPage.SaveRecord();
                     end;
                 }
                 field(Enabled; Rec.Enabled)
