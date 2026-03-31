@@ -47,7 +47,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
                         trigger OnValidate()
                         begin
-                            SaveCreditLimitSetup();
+                            SaveEnvironmentCreditLimitSetup();
                             CurrPage.Update(false);
                         end;
                     }
@@ -61,7 +61,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
                         trigger OnValidate()
                         begin
-                            SaveCreditLimitSetup();
+                            SaveEnvironmentCreditLimitSetup();
                             UpdateComputedFields();
                         end;
                     }
@@ -79,7 +79,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
                         trigger OnValidate()
                         begin
-                            SaveCreditLimitSetup();
+                            SaveCompanyCreditLimit();
                             CurrPage.Update(false);
                         end;
                     }
@@ -93,7 +93,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
                         trigger OnValidate()
                         begin
-                            SaveCreditLimitSetup();
+                            SaveCompanyCreditLimit();
                             UpdateComputedFields();
                         end;
                     }
@@ -298,13 +298,16 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         CompanyEnforcementEnabled := CompanyLimitRecord."Enforcement Enabled";
     end;
 
-    local procedure SaveCreditLimitSetup()
+    local procedure SaveEnvironmentCreditLimitSetup()
     begin
         EnvironmentLimitRecord.GetOrCreateEnvironmentLimits();
         EnvironmentLimitRecord."Monthly Credit Limit" := EnvironmentMonthlyCreditLimit;
         EnvironmentLimitRecord."Enforcement Enabled" := EnvironmentEnforcementEnabled;
-        EnvironmentLimitRecord.Modify();
+        CompanyLimitRecord.Modify();
+    end;
 
+    local procedure SaveCompanyCreditLimit()
+    begin
         CompanyLimitRecord.GetOrCreateCompanyLimits(CopyStr(CompanyName(), 1, 30));
         CompanyLimitRecord."Monthly Credit Limit" := CompanyMonthlyCreditLimit;
         CompanyLimitRecord."Enforcement Enabled" := CompanyEnforcementEnabled;

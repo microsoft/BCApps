@@ -249,6 +249,42 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         OpenConfigurationPage()
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"AIT Eval Monthly Copilot Cred.", OnBeforeInsertEvent, '', false, false)]
+    local procedure OnBeforeInsertMonthlyCopilotCreditLimits(var Rec: Record "AIT Eval Monthly Copilot Cred.")
+    begin
+        Rec.VerifyWriteOperationAllowed();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"AIT Eval Monthly Copilot Cred.", OnAfterInsertEvent, '', false, false)]
+    local procedure OnAfterInsertMonthlyCopilotCreditLimits(var Rec: Record "AIT Eval Monthly Copilot Cred.")
+    begin
+        Rec.LogInsertedAuditMessage();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"AIT Eval Monthly Copilot Cred.", OnBeforeModifyEvent, '', false, false)]
+    local procedure OnBeforeModifyMonthlyCopilotCreditLimits(var Rec: Record "AIT Eval Monthly Copilot Cred.")
+    begin
+        Rec.VerifyWriteOperationAllowed();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"AIT Eval Monthly Copilot Cred.", OnAfterModifyEvent, '', false, false)]
+    local procedure OnAfterModifyMonthlyCopilotCreditLimits(var Rec: Record "AIT Eval Monthly Copilot Cred.")
+    begin
+        Rec.LogModifiedAuditMessage();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"AIT Eval Monthly Copilot Cred.", OnBeforeDeleteEvent, '', false, false)]
+    local procedure OnBeforeDeleteMonthlyCopilotCreditLimits(var Rec: Record "AIT Eval Monthly Copilot Cred.")
+    begin
+        Rec.VerifyWriteOperationAllowed();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"AIT Eval Monthly Copilot Cred.", OnAfterDeleteEvent, '', false, false)]
+    local procedure OnAfterDeleteMonthlyCopilotCreditLimits(var Rec: Record "AIT Eval Monthly Copilot Cred.")
+    begin
+        Rec.LogDeletedAuditMessage();
+    end;
+
     var
         ViewCopilotCreditLimitsLbl: Label 'View credit limits';
         EnvironmentCreditLimitExceededErr: Label 'Cannot start the agent eval suite. The environment monthly credit limit of %1 has been reached. Current environment consumption: %2.', Comment = '%1 = Credit limit, %2 = Credits consumed';

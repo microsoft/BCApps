@@ -5,6 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 using System.Environment;
+using System.Telemetry;
 
 table 149040 "AIT Eval Monthly Copilot Cred."
 {
@@ -47,6 +48,45 @@ table 149040 "AIT Eval Monthly Copilot Cred."
             Clustered = true;
         }
     }
+
+    var
+        CompanyCreditLimitUpdatedLbl: Label 'Company monthly AI eval credit limit %1 for Company %2 by the UserSecurityId %3, Enabled %4, Credit Limit %5', Locked = true;
+        EnvironmentCreditLimitUpdatedLbl: Label 'Environment monthly AI eval credit limit %1 by the UserSecurityId %2, Enabled %3, Credit Limit %4', Locked = true;
+        NotUIClientSessionErr: Label 'Modifying AI Eval Monthly Copilot Credit Limits is only allowed from UI sessions.', Locked = true;
+        InsertedLbl: Label 'inserted', Locked = true;
+        ModifiedLbl: Label 'modified', Locked = true;
+        DeletedLbl: Label 'deleted', Locked = true;
+
+    procedure LogInsertedAuditMessage()
+    begin
+        LogAuditMessage(InsertedLbl);
+    end;
+
+    procedure LogModifiedAuditMessage()
+    begin
+        LogAuditMessage(ModifiedLbl);
+    end;
+
+    procedure LogDeletedAuditMessage()
+    begin
+        LogAuditMessage(DeletedLbl);
+    end;
+
+    procedure VerifyWriteOperationAllowed()
+    var
+        CallerModule, CurrentModule : ModuleInfo;
+    begin
+        if Session.GetExecutionContext() in [ExecutionContext::Upgrade, ExecutionContext::Install] then begin
+            NavApp.GetCallerModuleInfo(CallerModule);
+            NavApp.GetCurrentModuleInfo(CurrentModule);
+            if CallerModule.Id = CurrentModule.Id then
+                // Allow upgrade/install code from the current app to insert the default records.
+                exit;
+        end;
+
+        if not (Session.CurrentClientType in [ClientType::Web, ClientType::Phone, ClientType::Tablet]) then
+            Error(NotUIClientSessionErr);
+    end;
 
     /// <summary>
     /// Gets or creates the environment-level record.
@@ -104,5 +144,22 @@ table 149040 "AIT Eval Monthly Copilot Cred."
     local procedure GetAllCompaniesTok(): Text[30]
     begin
         exit('');
+    end;
+
+    local procedure LogAuditMessage(Operation: Text)
+    begin
+        if (Rec."Company Name" = GetAllCompaniesTok()) then begin
+            LogAuditMessageCore(StrSubstNo(EnvironmentCreditLimitUpdatedLbl, Operation, UserSecurityId(), Rec."Enforcement Enabled", Rec."Monthly Credit Limit"), 0 /* AdministeredEnvironment */);
+            exit;
+        end;
+
+        LogAuditMessageCore(StrSubstNo(CompanyCreditLimitUpdatedLbl, Operation, Rec."Company Name", UserSecurityId(), Rec."Enforcement Enabled", Rec."Monthly Credit Limit"), 3 /* AdministeredCompany */);
+    end;
+
+    local procedure LogAuditMessageCore(SecurityAuditDescription: Text; AuditMessageOperation: Integer)
+    var
+        AuditLog: Codeunit "Audit Log";
+    begin
+        AuditLog.LogAuditMessage(SecurityAuditDescription, SecurityOperationResult::Success, AuditCategory::PolicyManagement, AuditMessageOperation, 0 /* Succeeded */);
     end;
 }
