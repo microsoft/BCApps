@@ -148,14 +148,14 @@ page 6372 "Connection Setup Card"
 
                 trigger OnAction()
                 var
-                    Mandate: Record Mandate;
+                    TempMandate: Record Mandate temporary;
                     MandateSelected: Text;
                 begin
                     MandateSelected := '';
 
                     AvalaraProcessing.UpdateMandate(MandateSelected);
                     if MandateSelected <> '' then
-                        AvalaraProcessing.GetSingleMandate(Mandate, MandateSelected);
+                        AvalaraProcessing.GetSingleMandate(TempMandate, MandateSelected);
                 end;
             }
 
