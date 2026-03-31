@@ -323,21 +323,7 @@ report 20405 "Qlty. General Purpose Inspect."
             Type = RDLC;
             Caption = 'Default Layout';
             Summary = 'The default general purpose quality inspection report.';
-            LayoutFile = './src/Reports/QltyGeneralPurposeInspectionDefault.rdl';
-        }
-        layout(QltyGeneralPurposeInspectionAlternate)
-        {
-            Type = RDLC;
-            Caption = 'Alternate Layout';
-            Summary = 'An alternate general purpose quality inspection report.';
             LayoutFile = './src/Reports/QltyGeneralPurposeInspectionAlternate.rdl';
-        }
-        layout(QualityManagement_GeneralPurposeInspection_Default)
-        {
-            Type = Word;
-            Caption = 'Word Layout';
-            Summary = 'Word layout for general purpose quality inspection report.';
-            LayoutFile = './src/Reports/QltyGeneralPurposeInspection.docx';
         }
     }
 
