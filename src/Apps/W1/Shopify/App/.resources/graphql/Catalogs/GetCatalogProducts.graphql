@@ -1,0 +1,2 @@
+# cost: 16
+{"query":"{catalog(id: \"gid://shopify/Catalog/{{CatalogId}}\"){ id priceList { currency } publication { id products(first: 250) { edges { cursor node { id }} pageInfo { hasNextPage }}}}}"}

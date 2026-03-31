@@ -14,6 +14,7 @@ report 20412 "Qlty. Schedule Inspection"
     AdditionalSearchTerms = 'Periodic inspections';
     ToolTip = 'Run this report to bulk create inspections based on generation rules for the selected template, or schedule it in the job queue for periodic inspection creation.';
     ProcessingOnly = true;
+    AccessByPermission = tabledata "Qlty. Inspection Gen. Rule" = R;
     ApplicationArea = QualityManagement;
     UsageCategory = Tasks;
     AllowScheduling = true;

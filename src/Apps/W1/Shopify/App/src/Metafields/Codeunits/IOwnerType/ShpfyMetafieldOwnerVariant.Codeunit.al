@@ -27,7 +27,7 @@ codeunit 30335 "Shpfy Metafield Owner Variant" implements "Shpfy IMetafield Owne
         UpdatedAt: DateTime;
     begin
         Parameters.Add('VariantId', Format(OwnerId));
-        GraphQLType := GraphQLType::VariantMetafieldIds;
+        GraphQLType := GraphQLType::Metafields_VariantMetafieldIds;
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JProductVariant, 'data.productVariant') then
             if JsonHelper.GetJsonArray(JResponse, JMetafields, 'data.productVariant.metafields.edges') then
