@@ -33,7 +33,12 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
         IUnitOfMeasureProvider: Interface IUnitOfMeasureProvider;
         IPurchaseLineProvider: Interface IPurchaseLineProvider;
         IPurchaseOrderProvider: Interface IPurchaseOrderProvider;
+        IPrepareDraftGuard: Interface IPrepareDraftGuard;
     begin
+        IPrepareDraftGuard := EDocImportParameters."Processing Customizations";
+        if IPrepareDraftGuard.SkipPrepareDraft() then
+            exit("E-Document Type"::"Purchase Invoice");
+
         IUnitOfMeasureProvider := EDocImportParameters."Processing Customizations";
         IPurchaseLineProvider := EDocImportParameters."Processing Customizations";
         IPurchaseOrderProvider := EDocImportParameters."Processing Customizations";
