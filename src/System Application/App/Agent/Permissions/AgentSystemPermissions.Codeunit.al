@@ -59,6 +59,16 @@ codeunit 4317 "Agent System Permissions"
         exit(AgentSystemPermissionsImpl.CurrentUserCanUseAgent(AgentUserSecurityId));
     end;
 
+    /// Gets whether the current user has permissions to manage a specific agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityId">The user security id associated with the agent.</param>
+    /// <returns>True if the user has manage permissions for the specified agent, false otherwise.</returns>
+    [Scope('OnPrem')]
+    procedure CurrentUserCanManageAgent(AgentUserSecurityId: Guid): Boolean
+    begin
+        exit(AgentSystemPermissionsImpl.CurrentUserCanManageAgent(AgentUserSecurityId));
+    end;
+
     var
         AgentSystemPermissionsImpl: Codeunit "Agent System Permissions Impl.";
 }

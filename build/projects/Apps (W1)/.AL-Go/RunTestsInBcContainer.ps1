@@ -2,6 +2,12 @@ Param(
     [Hashtable]$parameters
 )
 Import-Module (Join-Path $PSScriptRoot "../../../scripts/EnlistmentHelperFunctions.psm1" -Resolve)
+Import-Module (Join-Path $PSScriptRoot "../../../scripts/BuildOptimization.psm1" -Resolve)
+
+$baseFolder = Get-BaseFolder
+if (Test-ShouldSkipTestApp -AppName $parameters["appName"] -BaseFolder $baseFolder) {
+    return $true
+}
 
 #TODO: Revert this when 616057 is fixed
 if (((Get-BuildMode) -eq "CZ") -and ($parameters["appName"] -eq "Quality Management-Tests")) {

@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { fulfillmentCreate ( fulfillment: { lineItemsByFulfillmentOrder: [{ fulfillmentOrderId: \"gid://shopify/FulfillmentOrder/{{FulfillmentOrderId}}\" }] }) { fulfillment {id, status} userErrors {field, message}}}"}
