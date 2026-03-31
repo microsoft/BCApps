@@ -567,16 +567,6 @@ page 20479 "Qlty. Test Card"
                 end;
             }
         }
-
-        area(Promoted)
-        {
-            actionref(DeleteRecordSafe_Promoted; DeleteRecordSafe)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Deletion is handled by standard page behavior through the OnDelete trigger on Qlty. Test table.';
-                ObsoleteTag = '29.0';
-            }
-        }
     }
 #endif
 
