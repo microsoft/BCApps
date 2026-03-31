@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
-codeunit 6401 "E-Document XML Helper"
+codeunit 6401 "E-Document PEPPOL Utility"
 {
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    procedure InitializePEPPOLNamespaces(var XmlNamespaces: XmlNamespaceManager)
+    procedure InitializePEPPOL3Namespaces(var XmlNamespaces: XmlNamespaceManager)
     var
         CommonAggregateComponentsLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2';
         CommonBasicComponentsLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2';
