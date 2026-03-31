@@ -42,6 +42,7 @@ page 20416 "Qlty. Inspection Result List"
                 }
                 field("Copy Behavior"; Rec."Copy Behavior")
                 {
+                    Visible = false;
                 }
                 field("Result Visibility"; Rec."Result Visibility")
                 {
