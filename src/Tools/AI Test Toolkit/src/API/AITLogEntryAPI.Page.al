@@ -139,13 +139,6 @@ page 149038 "AIT Log Entry API"
         }
     }
 
-    trigger OnOpenPage()
-    var
-        AgentSystemPermissions: Codeunit "Agent System Permissions";
-    begin
-        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
-    end;
-
     trigger OnAfterGetRecord()
     var
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
@@ -156,7 +149,7 @@ page 149038 "AIT Log Entry API"
         ErrorCallStackText := Rec.GetErrorCallStack();
         SuiteDescription := Rec.GetSuiteDescription();
         TestMethodLineDescription := Rec.GetTestMethodLineDescription();
-        CopilotCredits := ConsumedCreditsVisible ? AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.") : -1;
+        CopilotCredits := AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.");
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDsForLogEntry(Rec."Entry No.");
     end;
 
@@ -168,6 +161,5 @@ page 149038 "AIT Log Entry API"
         SuiteDescription: Text[250];
         TestMethodLineDescription: Text[250];
         CopilotCredits: Decimal;
-        ConsumedCreditsVisible: Boolean;
         AgentTaskIDs: Text;
 }

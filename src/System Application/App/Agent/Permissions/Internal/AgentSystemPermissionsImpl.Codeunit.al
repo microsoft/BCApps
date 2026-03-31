@@ -38,6 +38,19 @@ codeunit 4318 "Agent System Permissions Impl."
         exit(false);
     end;
 
+    procedure CurrentUserCanUseAgent(AgentUserSecurityId: Guid): Boolean
+    var
+        Agent: Record Agent;
+    begin
+        if (CurrentUserHasCanManageAllAgentsPermission()) then
+            exit(true);
+
+        if Agent.Get(AgentUserSecurityId) then
+            exit(Agent."Can Current User Use Agent");
+
+        exit(false);
+    end;
+
     procedure CurrentUserCanManageAgent(AgentUserSecurityId: Guid): Boolean
     var
         Agent: Record Agent;
@@ -46,8 +59,7 @@ codeunit 4318 "Agent System Permissions Impl."
             exit(true);
 
         if Agent.Get(AgentUserSecurityId) then
-            if Agent."Can Curr. User Configure Agent" then
-                exit(true);
+            exit(Agent."Can Curr. User Configure Agent");
 
         exit(false);
     end;

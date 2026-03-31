@@ -137,15 +137,15 @@ codeunit 4303 "Agent Task"
     end;
 
     /// <summary>
-    /// Gets the total Copilot credits consumed by the agent task.
+    /// Gets the details for the specified agent task log entry.
     /// </summary>
-    /// <param name="AgentTaskID">The ID of the agent task to get consumed credits for.</param>
-    /// <returns>The total Copilot credits consumed by the agent task.</returns>
-    procedure GetCopilotCreditsConsumed(AgentTaskID: BigInteger): Decimal
+    /// <param name="AgentTaskLogEntry">The agent task log entry to get details for.</param>
+    /// <returns>The details of the agent task log entry.</returns>
+    procedure GetDetailsForAgentTaskLogEntry(var AgentTaskLogEntry: Record "Agent Task Log Entry"): Text
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        exit(AgentTaskImpl.GetCopilotCreditsConsumed(AgentTaskID));
+        exit(AgentTaskImpl.GetDetailsForAgentTaskLogEntry(AgentTaskLogEntry));
     end;
 
     var

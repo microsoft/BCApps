@@ -4,10 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+using System.Environment;
 
-table 149050 "Agent Task Log"
+table 149050 "Agent Test Task Log"
 {
-    Caption = 'AI Agent Task Log';
+    Caption = 'Agent Eval Task Log';
     DataClassification = SystemMetadata;
     Extensible = true;
     Access = Internal;
@@ -27,7 +28,7 @@ table 149050 "Agent Task Log"
         {
             Caption = 'Eval Suite Code';
             NotBlank = true;
-            TableRelation = "AIT Test Suite";
+            TableRelation = "AIT Test Suite".Code;
             ToolTip = 'Specifies the Eval Suite Code.';
         }
         field(3; "Test Method Line No."; Integer)
@@ -87,6 +88,9 @@ table 149050 "Agent Task Log"
             IncludedFields = Status;
         }
         key(Key3; "Test Log Entry ID", "Agent Task ID")
+        {
+        }
+        key(Key4; "Agent Task ID")
         {
         }
     }
