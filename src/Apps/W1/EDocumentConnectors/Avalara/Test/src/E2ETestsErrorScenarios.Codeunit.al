@@ -5,8 +5,8 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Sales.Customer;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Sales.Customer;
 
 codeunit 133625 "E2E Tests - Error Scenarios"
 {

@@ -466,9 +466,9 @@ codeunit 133633 "Unit Tests - Table Logic"
 
     local procedure CleanupAvalaraCompany()
     var
-        AvalaraCompany: Record "Avalara Company";
+        TempAvalaraCompany: Record "Avalara Company" temporary;
     begin
-        if not AvalaraCompany.IsEmpty() then
-            AvalaraCompany.DeleteAll(true);
+        if not TempAvalaraCompany.IsEmpty() then
+            TempAvalaraCompany.DeleteAll(true);
     end;
 }

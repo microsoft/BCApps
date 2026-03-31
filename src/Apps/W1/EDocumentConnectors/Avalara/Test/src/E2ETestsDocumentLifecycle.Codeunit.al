@@ -6,10 +6,10 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Sales.Customer;
 using System.Threading;
 using System.Utilities;
-using Microsoft.eServices.EDocument.Integration;
 
 codeunit 133624 "E2E Tests - Document Lifecycle"
 {
