@@ -1,7 +1,8 @@
 Describe "BuildOptimization" {
     BeforeAll {
+        Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -Force
         Import-Module "$PSScriptRoot\..\BuildOptimization.psm1" -Force
-        $baseFolder = (Resolve-Path "$PSScriptRoot\..\..\..").Path
+        $baseFolder = Get-BaseFolder
         $graph = Get-AppDependencyGraph -BaseFolder $baseFolder
     }
 
@@ -271,6 +272,54 @@ Describe "BuildOptimization" {
         It "returns false when settings file is missing" {
             $result = Test-FullBuildPatternsMatch -ChangedFiles @('build/scripts/foo.ps1') -BaseFolder 'C:\nonexistent\path'
             $result | Should -BeFalse
+        }
+    }
+
+    Context "BaseFolder must be repo root, not build/" {
+        It "graph is empty when BaseFolder points to build/ instead of repo root" {
+            # The old RunTestsInBcContainer.ps1 code computed BaseFolder as:
+            #   Join-Path $PSScriptRoot "../../.." from .AL-Go/ → resolves to build/
+            # This is wrong because app.json files live under src/ at the repo root.
+            $buildFolder = (Resolve-Path "$PSScriptRoot\..\..").Path  # build/
+            $wrongGraph = Get-AppDependencyGraph -BaseFolder $buildFolder
+            $wrongGraph.Count | Should -Be 0 -Because 'build/ contains no app.json files; BaseFolder must be the repo root'
+        }
+
+        It "affected apps returns empty array with wrong BaseFolder, causing silent full-build" {
+            $buildFolder = (Resolve-Path "$PSScriptRoot\..\..").Path  # build/
+            $wrongGraph = Get-AppDependencyGraph -BaseFolder $buildFolder
+
+            $changedFiles = @(
+                'src/Apps/W1/EDocument/App/src/Processing/Import/FinishDraft/EDocCreatePurchaseInvoice.Codeunit.al'
+            )
+            $affected = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $buildFolder -Graph $wrongGraph
+
+            # With wrong BaseFolder: graph is empty, unmapped src/ file returns @($Graph.Keys) = @()
+            # Then 0 >= 0 is true, so Get-AffectedAppNames treats this as "full build"
+            # even though zero apps were actually identified
+            $affected.Count | Should -Be 0 -Because 'empty graph means no apps can be found'
+            $affected.Count -ge $wrongGraph.Count | Should -BeTrue -Because 'this is the condition that triggers the false full-build (0 >= 0)'
+        }
+
+        It "correct BaseFolder (repo root) finds apps for the same changed files" {
+            $changedFiles = @(
+                'src/Apps/W1/EDocument/App/src/Processing/Import/FinishDraft/EDocCreatePurchaseInvoice.Codeunit.al'
+            )
+            $affected = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $baseFolder -Graph $graph
+            $affected.Count | Should -BeGreaterThan 0 -Because 'repo root BaseFolder correctly maps EDocument files to apps'
+            $affectedNames = $affected | ForEach-Object { $graph[$_].Name }
+            $affectedNames | Should -Contain 'E-Document Core'
+        }
+
+        It "RunTestsInBcContainer scripts use Get-BaseFolder, not relative path resolution" {
+            $scripts = Get-ChildItem -Path (Resolve-Path "$PSScriptRoot\..\..\projects").Path -Recurse -Filter 'RunTestsInBcContainer.ps1'
+            $scripts.Count | Should -BeGreaterOrEqual 4
+
+            foreach ($script in $scripts) {
+                $content = Get-Content $script.FullName -Raw
+                $content | Should -Match 'Get-BaseFolder' -Because "$($script.FullName) must use Get-BaseFolder for repo root"
+                $content | Should -Not -Match '\$baseFolder\s*=.*Join-Path.*\$PSScriptRoot' -Because "$($script.FullName) must not compute baseFolder via relative path"
+            }
         }
     }
 
