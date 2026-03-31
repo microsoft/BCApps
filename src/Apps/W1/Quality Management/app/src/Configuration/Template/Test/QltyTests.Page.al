@@ -242,6 +242,18 @@ page 20401 "Qlty. Tests"
                 end;
             }
         }
+
+        area(Promoted)
+        {
+#pragma warning disable AL0432
+            actionref(DeleteRecordSafe_Promoted; DeleteRecordSafe)
+#pragma warning restore AL0432
+            {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Deletion is handled by standard page behavior through the OnDelete trigger on Qlty. Test table.';
+                ObsoleteTag = '29.0';
+            }
+        }
     }
 #endif
 
