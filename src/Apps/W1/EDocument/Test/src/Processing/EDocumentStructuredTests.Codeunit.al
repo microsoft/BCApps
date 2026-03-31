@@ -98,6 +98,40 @@ codeunit 139891 "E-Document Structured Tests"
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
     end;
+    [Test]
+    procedure TestPEPPOLCreditNote_ValidDocument()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] A valid PEPPOL CreditNote XML is parsed into the staging tables with correct header, lines, and BillingReference
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-creditnote-0.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            StructuredValidations.AssertFullPEPPOLCreditNoteExtracted(EDocument."Entry No");
+            EDocument.Get(EDocument."Entry No");
+            Assert.AreEqual(Enum::"E-Doc. Process Draft"::"Purchase Credit Memo", EDocument."Process Draft Impl.", 'The process draft implementation should be set to Purchase Credit Memo for credit notes.');
+        end
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_ReturnsInvoiceProcessDraftImpl()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] After parsing a PEPPOL Invoice, the Process Draft Impl. is set to "Purchase Invoice" (not the obsoleted "Purchase Document")
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-0.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            EDocument.Get(EDocument."Entry No");
+            Assert.AreEqual(Enum::"E-Doc. Process Draft"::"Purchase Invoice", EDocument."Process Draft Impl.", 'The process draft implementation should be set to Purchase Invoice for invoices.');
+        end
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
     #endregion
 
     #region MLLM JSON

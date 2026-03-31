@@ -154,6 +154,41 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual(5000, EDocumentPurchaseLine."Unit Price", 'The unit price in the purchase line does not allign with the mock data.');
 
     end;
+    internal procedure AssertFullPEPPOLCreditNoteExtracted(EDocumentEntryNo: Integer)
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+    begin
+        EDocumentPurchaseHeader.Get(EDocumentEntryNo);
+        Assert.AreEqual('CN-5001', EDocumentPurchaseHeader."Sales Invoice No.", 'The credit note number does not match the mock data.');
+        Assert.AreEqual(DMY2Date(15, 02, 2026), EDocumentPurchaseHeader."Document Date", 'The document date does not match the mock data.');
+        Assert.AreEqual(DMY2Date(15, 03, 2026), EDocumentPurchaseHeader."Due Date", 'The due date does not match the mock data.');
+        Assert.AreEqual('XYZ', EDocumentPurchaseHeader."Currency Code", 'The currency code does not match the mock data.');
+        Assert.AreEqual('5', EDocumentPurchaseHeader."Purchase Order No.", 'The order reference does not match the mock data.');
+        Assert.AreEqual('103033', EDocumentPurchaseHeader."Applies-to Doc. No.", 'The billing reference (applies-to doc. no.) does not match the mock data.');
+        Assert.AreEqual('CRONUS International', EDocumentPurchaseHeader."Vendor Company Name", 'The vendor name does not match the mock data.');
+        Assert.AreEqual('Main Street, 14', EDocumentPurchaseHeader."Vendor Address", 'The vendor street does not match the mock data.');
+        Assert.AreEqual('GB123456789', EDocumentPurchaseHeader."Vendor VAT Id", 'The vendor VAT id does not match the mock data.');
+        Assert.AreEqual('Jim Olive', EDocumentPurchaseHeader."Vendor Contact Name", 'The vendor contact name does not match the mock data.');
+        Assert.AreEqual('The Cannon Group PLC', EDocumentPurchaseHeader."Customer Company Name", 'The customer name does not match the mock data.');
+        Assert.AreEqual('GB789456278', EDocumentPurchaseHeader."Customer VAT Id", 'The customer VAT id does not match the mock data.');
+        Assert.AreEqual('192 Market Square', EDocumentPurchaseHeader."Customer Address", 'The customer address does not match the mock data.');
+        Assert.AreEqual(2500, EDocumentPurchaseHeader.Total, 'The total does not match the mock data.');
+        Assert.AreEqual(2000, EDocumentPurchaseHeader."Sub Total", 'The sub total does not match the mock data.');
+        Assert.AreEqual(0, EDocumentPurchaseHeader."Total Discount", 'The total discount does not match the mock data.');
+        Assert.AreEqual(500, EDocumentPurchaseHeader."Total VAT", 'The total VAT does not match the mock data.');
+
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        EDocumentPurchaseLine.FindSet();
+        Assert.AreEqual(1, EDocumentPurchaseLine."Quantity", 'The quantity in the credit note line does not match the mock data.');
+        Assert.AreEqual('PCS', EDocumentPurchaseLine."Unit of Measure", 'The unit of measure in the credit note line does not match the mock data.');
+        Assert.AreEqual(2000, EDocumentPurchaseLine."Sub Total", 'The line extension amount does not match the mock data.');
+        Assert.AreEqual('XYZ', EDocumentPurchaseLine."Currency Code", 'The currency code in the credit note line does not match the mock data.');
+        Assert.AreEqual('Bicycle - Return', EDocumentPurchaseLine.Description, 'The description in the credit note line does not match the mock data.');
+        Assert.AreEqual('1000', EDocumentPurchaseLine."Product Code", 'The product code in the credit note line does not match the mock data.');
+        Assert.AreEqual(25, EDocumentPurchaseLine."VAT Rate", 'The VAT rate in the credit note line does not match the mock data.');
+        Assert.AreEqual(2000, EDocumentPurchaseLine."Unit Price", 'The unit price in the credit note line does not match the mock data.');
+    end;
     #endregion
 
     #region MLLM

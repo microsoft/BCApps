@@ -17,5 +17,18 @@ enum 6107 "E-Doc. Process Draft" implements IProcessStructuredData
     {
         Caption = 'Purchase Document';
         Implementation = IProcessStructuredData = "Prepare Purchase E-Doc. Draft";
+        ObsoleteState = Pending;
+        ObsoleteReason = 'Use "Purchase Invoice" or "Purchase Credit Memo" instead.';
+        ObsoleteTag = '29.0';
+    }
+    value(1; "Purchase Invoice")
+    {
+        Caption = 'Purchase Invoice';
+        Implementation = IProcessStructuredData = "Prepare Purchase E-Doc. Draft";
+    }
+    value(2; "Purchase Credit Memo")
+    {
+        Caption = 'Purchase Credit Memo';
+        Implementation = IProcessStructuredData = "Prepare Purch. Cr. Memo Draft";
     }
 }

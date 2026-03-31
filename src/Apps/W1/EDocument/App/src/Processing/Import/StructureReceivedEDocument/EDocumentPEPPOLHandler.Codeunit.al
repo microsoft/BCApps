@@ -27,7 +27,6 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         PeppolXML: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
         RootElement: XmlElement;
-        CreditNoteNotSupportedLbl: Label 'Credit notes are not supported';
     begin
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);
 
@@ -40,26 +39,46 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
             'INVOICE':
                 begin
                     PopulatePurchaseInvoiceHeader(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader);
-                    InsertPurchaseInvoiceLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.");
+                    InsertPurchaseLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/inv:Invoice/cac:InvoiceLine', 'cac:InvoiceLine', 'cbc:InvoicedQuantity');
                 end;
             'CREDITNOTE':
-                Error(CreditNoteNotSupportedLbl);
+                begin
+                    PopulatePurchaseCreditMemoHeader(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader);
+                    InsertPurchaseLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/cre:CreditNote/cac:CreditNoteLine', 'cac:CreditNoteLine', 'cbc:CreditedQuantity');
+                end;
         end;
         EDocumentPurchaseHeader.Modify();
         EDocument.Direction := EDocument.Direction::Incoming;
-        exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
+
+        case UpperCase(RootElement.LocalName()) of
+            'INVOICE':
+                exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
+            'CREDITNOTE':
+                exit(Enum::"E-Doc. Process Draft"::"Purchase Credit Memo");
+            else
+                exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
+        end;
     end;
 
     local procedure PopulatePurchaseInvoiceHeader(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
     begin
-        PopulateDocumentInfo(PeppolXML, XmlNamespaces, Header);
-        PopulateSupplierInfo(PeppolXML, XmlNamespaces, Header);
-        PopulateCustomerInfo(PeppolXML, XmlNamespaces, Header);
-        PopulateAmountsAndDates(PeppolXML, XmlNamespaces, Header);
-        PopulateCurrency(PeppolXML, XmlNamespaces, Header);
+        PopulateInvoiceDocumentInfo(PeppolXML, XmlNamespaces, Header);
+        PopulateSupplierInfo(PeppolXML, XmlNamespaces, '/inv:Invoice', Header);
+        PopulateCustomerInfo(PeppolXML, XmlNamespaces, '/inv:Invoice', Header);
+        PopulateAmountsAndDates(PeppolXML, XmlNamespaces, '/inv:Invoice', Header);
+        PopulateCurrency(PeppolXML, XmlNamespaces, '/inv:Invoice', Header);
     end;
 
-    local procedure PopulateDocumentInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    local procedure PopulatePurchaseCreditMemoHeader(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    begin
+        PopulateCreditNoteDocumentInfo(PeppolXML, XmlNamespaces, Header);
+        PopulateSupplierInfo(PeppolXML, XmlNamespaces, '/cre:CreditNote', Header);
+        PopulateCustomerInfo(PeppolXML, XmlNamespaces, '/cre:CreditNote', Header);
+        PopulateAmountsAndDates(PeppolXML, XmlNamespaces, '/cre:CreditNote', Header);
+        PopulateCurrency(PeppolXML, XmlNamespaces, '/cre:CreditNote', Header);
+    end;
+
+    local procedure PopulateInvoiceDocumentInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
     var
         Value: Text;
     begin
@@ -69,79 +88,92 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
             Header."Purchase Order No." := CopyStr(Value, 1, MaxStrLen(Header."Purchase Order No."));
     end;
 
-    local procedure PopulateSupplierInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    local procedure PopulateCreditNoteDocumentInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    var
+        Value: Text;
+    begin
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cbc:ID', Value) then
+            Header."Sales Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Sales Invoice No."));
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:OrderReference/cbc:ID', Value) then
+            Header."Purchase Order No." := CopyStr(Value, 1, MaxStrLen(Header."Purchase Order No."));
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', Value) then
+            Header."Applies-to Doc. No." := CopyStr(Value, 1, MaxStrLen(Header."Applies-to Doc. No."));
+        if Header."Applies-to Doc. No." = '' then
+            Session.LogMessage('0000PRF', BillingReferenceEmptyTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+    end;
+
+    local procedure PopulateSupplierInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Purchase Header")
     var
         XmlNode: XmlNode;
         Value: Text;
     begin
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name', Value) then
             Header."Vendor Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Company Name"));
         // PayeeParty is used when the Payee is different from the Seller. Otherwise, it will not be shown in the XML.
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:PayeeParty/cac:PartyName/cbc:Name', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:PayeeParty/cac:PartyName/cbc:Name', Value) then
             Header."Vendor Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Company Name"));
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cac:Contact/cbc:Name', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:Contact/cbc:Name', Value) then
             Header."Vendor Contact Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Contact Name"));
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:StreetName', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:StreetName', Value) then
             Header."Vendor Address" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Address"));
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', Value) then
             Header."Vendor VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Vendor VAT Id"));
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:PayeeParty/cac:PartyLegalEntity/cbc:CompanyID', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:PayeeParty/cac:PartyLegalEntity/cbc:CompanyID', Value) then
             Header."Vendor VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Vendor VAT Id"));
 
         // Vendor GLN: only populate when EndpointID schemeID = 0088
-        if PeppolXML.SelectSingleNode('/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID', XmlNamespaces, XmlNode) then
+        if PeppolXML.SelectSingleNode(RootPath + '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID', XmlNamespaces, XmlNode) then
             if XmlNode.AsXmlAttribute().Value() = '0088' then
-                if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID', Value) then
+                if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID', Value) then
                     Header."Vendor GLN" := CopyStr(Value, 1, MaxStrLen(Header."Vendor GLN"));
     end;
 
-    local procedure PopulateCustomerInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    local procedure PopulateCustomerInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Purchase Header")
     var
         Value: Text;
     begin
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyName/cbc:Name', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PartyName/cbc:Name', Value) then
             Header."Customer Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Customer Company Name"));
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Value) then
             Header."Customer VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Customer VAT Id"));
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', Value) then
             Header."Customer VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Customer VAT Id"));
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cbc:StreetName', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cbc:StreetName', Value) then
             Header."Customer Address" := CopyStr(Value, 1, MaxStrLen(Header."Customer Address"));
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID', Value) then
             Header."Customer GLN" := CopyStr(Value, 1, MaxStrLen(Header."Customer GLN"));
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID', Value) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID', Value) then
             Header."Customer Company Id" := CopyStr(Value, 1, MaxStrLen(Header."Customer Company Id"));
     end;
 
-    local procedure PopulateAmountsAndDates(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    local procedure PopulateAmountsAndDates(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Purchase Header")
     begin
-        XmlHelper.SetNumberValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:PayableAmount', Header.Total);
-        XmlHelper.SetNumberValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', Header."Sub Total");
-        XmlHelper.SetNumberValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:AllowanceTotalAmount', Header."Total Discount");
+        XmlHelper.SetNumberValueInField(PeppolXML, XmlNamespaces, RootPath + '/cac:LegalMonetaryTotal/cbc:PayableAmount', Header.Total);
+        XmlHelper.SetNumberValueInField(PeppolXML, XmlNamespaces, RootPath + '/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', Header."Sub Total");
+        XmlHelper.SetNumberValueInField(PeppolXML, XmlNamespaces, RootPath + '/cac:LegalMonetaryTotal/cbc:AllowanceTotalAmount', Header."Total Discount");
         Header."Total VAT" := Header."Total" - Header."Sub Total" - Header."Total Discount";
 
-        XmlHelper.SetDateValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cbc:DueDate', Header."Due Date");
-        XmlHelper.SetDateValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cbc:IssueDate', Header."Document Date");
+        XmlHelper.SetDateValueInField(PeppolXML, XmlNamespaces, RootPath + '/cbc:DueDate', Header."Due Date");
+        XmlHelper.SetDateValueInField(PeppolXML, XmlNamespaces, RootPath + '/cbc:IssueDate', Header."Document Date");
     end;
 
-    local procedure PopulateCurrency(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    local procedure PopulateCurrency(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Purchase Header")
     var
         DocumentCurrencyCode: Text;
     begin
-        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cbc:DocumentCurrencyCode', DocumentCurrencyCode) then
+        if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cbc:DocumentCurrencyCode', DocumentCurrencyCode) then
             SetCurrencyIfForeign(DocumentCurrencyCode, Header."Currency Code");
     end;
 
-    local procedure InsertPurchaseInvoiceLines(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; EDocumentEntryNo: Integer)
+    local procedure InsertPurchaseLines(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; EDocumentEntryNo: Integer; LineXPath: Text; LineElementName: Text; QuantityElementName: Text)
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         NewLineXML: XmlDocument;
         LineXMLList: XmlNodeList;
         LineXMLNode: XmlNode;
         i: Integer;
-        InvoiceLinePathLbl: Label '/inv:Invoice/cac:InvoiceLine';
     begin
-        if not PeppolXML.SelectNodes(InvoiceLinePathLbl, XmlNamespaces, LineXMLList) then
+        if not PeppolXML.SelectNodes(LineXPath, XmlNamespaces, LineXMLList) then
             exit;
 
         for i := 1 to LineXMLList.Count do begin
@@ -150,40 +182,40 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
             EDocumentPurchaseLine."Line No." := EDocumentPurchaseLine.GetNextLineNo(EDocumentEntryNo);
             LineXMLList.Get(i, LineXMLNode);
             NewLineXML.ReplaceNodes(LineXMLNode);
-            PopulateEDocumentPurchaseLine(NewLineXML, XmlNamespaces, EDocumentPurchaseLine);
+            PopulateEDocumentPurchaseLine(NewLineXML, XmlNamespaces, EDocumentPurchaseLine, LineElementName, QuantityElementName);
             EDocumentPurchaseLine.Insert();
         end;
     end;
 
-    local procedure PopulateEDocumentPurchaseLine(LineXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Line: Record "E-Document Purchase Line")
+    local procedure PopulateEDocumentPurchaseLine(LineXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Line: Record "E-Document Purchase Line"; LineElementName: Text; QuantityElementName: Text)
     var
         Value: Text;
     begin
-        XmlHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:InvoicedQuantity', Line.Quantity);
-        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:InvoicedQuantity/@unitCode', Value) then
+        XmlHelper.SetNumberValueInField(LineXML, XmlNamespaces, LineElementName + '/' + QuantityElementName, Line.Quantity);
+        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, LineElementName + '/' + QuantityElementName + '/@unitCode', Value) then
             Line."Unit of Measure" := CopyStr(Value, 1, MaxStrLen(Line."Unit of Measure"));
-        XmlHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:LineExtensionAmount', Line."Sub Total");
-        XmlHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:AllowanceCharge/cbc:Amount', Line."Total Discount");
-        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:Note', Value) then
+        XmlHelper.SetNumberValueInField(LineXML, XmlNamespaces, LineElementName + '/cbc:LineExtensionAmount', Line."Sub Total");
+        XmlHelper.SetNumberValueInField(LineXML, XmlNamespaces, LineElementName + '/cac:AllowanceCharge/cbc:Amount', Line."Total Discount");
+        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, LineElementName + '/cbc:Note', Value) then
             Line.Description := CopyStr(Value, 1, MaxStrLen(Line.Description));
-        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Item/cbc:Name', Value) then
+        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, LineElementName + '/cac:Item/cbc:Name', Value) then
             Line.Description := CopyStr(Value, 1, MaxStrLen(Line.Description));
-        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Item/cbc:Description', Value) then
+        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, LineElementName + '/cac:Item/cbc:Description', Value) then
             Line.Description := CopyStr(Value, 1, MaxStrLen(Line.Description));
-        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Item/cac:SellersItemIdentification/cbc:ID', Value) then
+        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, LineElementName + '/cac:Item/cac:SellersItemIdentification/cbc:ID', Value) then
             Line."Product Code" := CopyStr(Value, 1, MaxStrLen(Line."Product Code"));
-        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Item/cac:StandardItemIdentification/cbc:ID', Value) then
+        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, LineElementName + '/cac:Item/cac:StandardItemIdentification/cbc:ID', Value) then
             Line."Product Code" := CopyStr(Value, 1, MaxStrLen(Line."Product Code"));
-        XmlHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Item/cac:ClassifiedTaxCategory/cbc:Percent', Line."VAT Rate");
-        XmlHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Price/cbc:PriceAmount', Line."Unit Price");
-        PopulateCurrencyForLine(LineXML, XmlNamespaces, Line);
+        XmlHelper.SetNumberValueInField(LineXML, XmlNamespaces, LineElementName + '/cac:Item/cac:ClassifiedTaxCategory/cbc:Percent', Line."VAT Rate");
+        XmlHelper.SetNumberValueInField(LineXML, XmlNamespaces, LineElementName + '/cac:Price/cbc:PriceAmount', Line."Unit Price");
+        PopulateCurrencyForLine(LineXML, XmlNamespaces, Line, LineElementName);
     end;
 
-    local procedure PopulateCurrencyForLine(LineXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Line: Record "E-Document Purchase Line")
+    local procedure PopulateCurrencyForLine(LineXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Line: Record "E-Document Purchase Line"; LineElementName: Text)
     var
         LineCurrencyCode: Text;
     begin
-        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:LineExtensionAmount/@currencyID', LineCurrencyCode) then
+        if XmlHelper.TryGetStringValue(LineXML, XmlNamespaces, LineElementName + '/cbc:LineExtensionAmount/@currencyID', LineCurrencyCode) then
             SetCurrencyIfForeign(LineCurrencyCode, Line."Currency Code");
     end;
 
@@ -209,4 +241,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
     begin
         Error('A view is not implemented for this handler.');
     end;
+
+    var
+        BillingReferenceEmptyTelemetryTxt: Label 'CreditNote BillingReference is empty - no originating invoice reference found.', Locked = true;
 }
