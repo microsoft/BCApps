@@ -8,12 +8,10 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
-using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
-using Microsoft.Purchases.Posting;
 using System.Telemetry;
 
 /// <summary>
@@ -22,8 +20,6 @@ using System.Telemetry;
 codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft, IEDocumentCreatePurchaseInvoice
 {
     Access = Internal;
-    Permissions = tabledata "Dimension Set Tree Node" = im,
-                  tabledata "Dimension Set Entry" = im;
 
     var
         Telemetry: Codeunit "Telemetry";
@@ -37,6 +33,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseHeader: Record "Purchase Header";
         TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
+        EDocPurchaseDocumentHelper: Codeunit "E-Doc. Purch. Doc. Helper";
         DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
         EmptyRecordId: RecordId;
         IEDocumentFinishPurchaseDraft: Interface IEDocumentCreatePurchaseInvoice;
@@ -79,7 +76,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         DocumentAttachmentMgt.DeleteAttachedDocuments(EDocument);
 
         // Post document validation - Silently emit telemetry
-        EDocImpSessionTelemetry.SetBool('Totals Validation', TryValidateDocumentTotals(PurchaseHeader));
+        EDocImpSessionTelemetry.SetBool('Totals Validation', EDocPurchaseDocumentHelper.TryValidateDocumentTotals(PurchaseHeader));
 
         exit(PurchaseHeader.RecordId);
     end;
@@ -123,7 +120,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         NullGuid: Guid;
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
-        if not AllDraftLinesHaveTypeAndNumberSpecificed(EDocumentPurchaseHeader) then begin
+        if not EDocPurchaseDocumentHelper.AllDraftLinesHaveTypeAndNumber(EDocumentPurchaseHeader) then begin
             Telemetry.LogMessage('0000PLY', 'Draft line does not contain type or number', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All);
             Error(DraftLineDoesNotConstantTypeAndNumberErr);
         end;
@@ -162,7 +159,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         end;
         EDocRecordLink.InsertEDocumentHeaderLink(EDocumentPurchaseHeader, PurchaseHeader);
 
-        PurchaseLineNo := GetLastLineNumberOnPurchaseInvoice(PurchaseHeader."No."); // We get the last line number, even if this is a new document since recurrent lines get inserted on the header's creation
+        PurchaseLineNo := EDocPurchaseDocumentHelper.GetLastPurchaseLineNo("Purchase Document Type"::Invoice, PurchaseHeader."No."); // We get the last line number, even if this is a new document since recurrent lines get inserted on the header's creation
         // We create first the lines without any PO matches
         EDocLineByReceipt.SetRange(EDocumentEntryNo, EDocument."Entry No");
         EDocLineByReceipt.SetRange(ReceiptNo, '');
@@ -170,7 +167,8 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EDocLineByReceipt.Open();
         while EDocLineByReceipt.Read() do begin
             EDocumentPurchaseLine.GetBySystemId(EDocLineByReceipt.SystemId);
-            CreatePurchaseInvoiceLine(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
+            PurchaseLineNo += 10000;
+            EDocPurchaseDocumentHelper.CreatePurchaseLineFromDraft(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
         end;
         EDocLineByReceipt.Close();
 
@@ -191,7 +189,8 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
                 PurchaseLine.Insert();
             end;
             EDocumentPurchaseLine.GetBySystemId(EDocLineByReceipt.SystemId);
-            CreatePurchaseInvoiceLine(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
+            PurchaseLineNo += 10000;
+            EDocPurchaseDocumentHelper.CreatePurchaseLineFromDraft(PurchaseHeader, EDocumentPurchaseLine, EDocumentPurchaseHeader."Total Discount" > 0, PurchaseLineNo);
             LastReceiptNo := EDocLineByReceipt.ReceiptNo;
         end;
         EDocLineByReceipt.Close();
