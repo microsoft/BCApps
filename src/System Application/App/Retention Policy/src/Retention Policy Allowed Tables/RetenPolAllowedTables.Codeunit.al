@@ -270,7 +270,7 @@ codeunit 3905 "Reten. Pol. Allowed Tables"
         RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
         CallerModuleInfo: ModuleInfo;
     begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo); // This line of code must be here, in the facade to catch the correct caller module info.
+        NavApp.GetCallerModuleInfo(CallerModuleInfo); 
         RetenPolAllowedTblImpl.SetTruncateAllowed(TableId, TruncateAllowed, CallerModuleInfo);
     end;
 

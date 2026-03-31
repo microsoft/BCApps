@@ -36,7 +36,9 @@ codeunit 3903 "Retention Policy Setup Impl."
         TruncateConfirmQst: Label 'This will truncate ALL records in table %1. Continue?', Comment = '%1 = Table caption';
         TruncateFinalConfirmQst: Label 'This action cannot be undone. Are you absolutely sure?', Comment = 'Final confirmation before truncating all records in a table. No placeholders.';
         TruncateSuccessMsg: Label 'All records in table %1 have been truncated successfully.', Comment = '%1 = Table caption';
-        TruncateTableInfoLbl: Label 'Table %1, %2 was truncated by user %3.', Comment = '%1 = Table Id, %2 = Table caption, %3 = User Security Id';
+        TruncateTableInfoLbl: Label 'Table %1, %2 was truncated.', Comment = '%1 = Table Id, %2 = Table caption';
+        TruncateFirstConfirmDeclinedLbl: Label 'The first truncate confirmation was declined for table %1, %2.', Comment = '%1 = Table Id, %2 = Table caption';
+        TruncateSecondConfirmDeclinedLbl: Label 'The final truncate confirmation was declined for table %1, %2.', Comment = '%1 = Table Id, %2 = Table caption';
 
     procedure SetTableFilterView(var RetentionPolicySetupLine: Record "Retention Policy Setup Line"): Text
     var
@@ -483,19 +485,25 @@ codeunit 3903 "Retention Policy Setup Impl."
         if not RetenPolAllowedTblImpl.IsTruncateAllowed(RetentionPolicySetup."Table Id") then
             Error(TruncateNotAllowedForTableErr, RetentionPolicySetup."Table Caption");
 
-        if not Confirm(TruncateConfirmQst, false, RetentionPolicySetup."Table Caption") then
+        if not Confirm(TruncateConfirmQst, false, RetentionPolicySetup."Table Caption") then begin
+            RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(TruncateFirstConfirmDeclinedLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
+            FeatureTelemetry.LogUsage('0000F6L', 'Retention policies', 'Truncate first confirm declined');
             exit;
+        end;
 
-        if not Confirm(TruncateFinalConfirmQst, false) then
+        if not Confirm(TruncateFinalConfirmQst, false) then begin
+            RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(TruncateSecondConfirmDeclinedLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
+            FeatureTelemetry.LogUsage('0000F6M', 'Retention policies', 'Truncate final confirm declined');
             exit;
+        end;
 
         RecRef.Open(RetentionPolicySetup."Table Id");
         RecRef.Truncate(true);
         RecRef.Close();
 
-        RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(TruncateTableInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption", UserSecurityId()));
-        Session.LogAuditMessage(StrSubstNo(TruncateTableInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
-        FeatureTelemetry.LogUsage('0000F6L', 'Retention policies', 'Table truncated');
+        RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(TruncateTableInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
+        Session.LogAuditMessage(StrSubstNo(TruncateTableInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+        FeatureTelemetry.LogUsage('0000F6N', 'Retention policies', 'Table truncated');
         Message(TruncateSuccessMsg, RetentionPolicySetup."Table Caption");
     end;
 }
