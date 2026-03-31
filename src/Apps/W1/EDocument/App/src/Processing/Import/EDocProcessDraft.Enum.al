@@ -13,6 +13,7 @@ enum 6107 "E-Doc. Process Draft" implements IProcessStructuredData
 {
     Extensible = true;
 
+#if not CLEAN29
     value(0; "Purchase Document")
     {
         Caption = 'Purchase Document';
@@ -21,6 +22,7 @@ enum 6107 "E-Doc. Process Draft" implements IProcessStructuredData
         ObsoleteReason = 'Use "Purchase Invoice" or "Purchase Credit Memo" instead.';
         ObsoleteTag = '29.0';
     }
+#endif
     value(1; "Purchase Invoice")
     {
         Caption = 'Purchase Invoice';

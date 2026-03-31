@@ -9,7 +9,6 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using System.Telemetry;
@@ -23,21 +22,17 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
 
     var
         Telemetry: Codeunit "Telemetry";
-        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         CrMemoAlreadyExistsErr: Label 'A purchase credit memo with external document number %1 already exists for vendor %2.', Comment = '%1 = Vendor Cr. Memo No., %2 = Vendor No.';
         DraftLineDoesNotContainTypeAndNumberErr: Label 'One of the draft lines do not contain the type and number. Please, specify these fields manually.';
 
     procedure ApplyDraftToBC(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"): RecordId
     var
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         PurchaseHeader: Record "Purchase Header";
         EDocPurchaseDocumentHelper: Codeunit "E-Doc. Purch. Doc. Helper";
-        DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EmptyRecordId: RecordId;
         IEDocumentFinishPurchaseCrMemo: Interface IEDocumentCreatePurchaseCreditMemo;
     begin
-        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
-
         IEDocumentFinishPurchaseCrMemo := EDocImportParameters."Processing Customizations";
         if EDocImportParameters."Existing Doc. RecordId" <> EmptyRecordId then begin
             EDocImpSessionTelemetry.SetBool('LinkedToExisting', true);
@@ -45,18 +40,7 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         end else
             PurchaseHeader := IEDocumentFinishPurchaseCrMemo.CreatePurchaseCreditMemo(EDocument);
 
-        PurchaseHeader.SetRecFilter();
-        PurchaseHeader.FindFirst();
-        PurchaseHeader."Doc. Amount Incl. VAT" := EDocumentPurchaseHeader.Total;
-        PurchaseHeader."Doc. Amount VAT" := EDocumentPurchaseHeader."Total VAT";
-        PurchaseHeader.TestField("No.");
-        PurchaseHeader."E-Document Link" := EDocument.SystemId;
-        PurchaseHeader.Modify();
-
-        DocumentAttachmentMgt.CopyAttachments(EDocument, PurchaseHeader);
-        DocumentAttachmentMgt.DeleteAttachedDocuments(EDocument);
-
-        EDocImpSessionTelemetry.SetBool('Totals Validation', EDocPurchaseDocumentHelper.TryValidateDocumentTotals(PurchaseHeader));
+        EDocPurchaseDocumentHelper.FinalizeCreatedDocument(EDocument, PurchaseHeader);
 
         exit(PurchaseHeader.RecordId);
     end;
@@ -64,18 +48,14 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
     procedure RevertDraftActions(EDocument: Record "E-Document")
     var
         PurchaseHeader: Record "Purchase Header";
-        DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
+        EDocPurchaseDocumentHelper: Codeunit "E-Doc. Purch. Doc. Helper";
     begin
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         if not PurchaseHeader.FindFirst() then
             exit;
 
-        DocumentAttachmentMgt.CopyAttachments(PurchaseHeader, EDocument);
-        DocumentAttachmentMgt.DeleteAttachedDocuments(PurchaseHeader);
-
         PurchaseHeader.TestField("Document Type", "Purchase Document Type"::"Credit Memo");
-        Clear(PurchaseHeader."E-Document Link");
-        PurchaseHeader.Modify();
+        EDocPurchaseDocumentHelper.RevertCreatedDocument(EDocument);
     end;
 
     procedure CreatePurchaseCreditMemo(EDocument: Record "E-Document"): Record "Purchase Header"
@@ -94,7 +74,7 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         if not EDocPurchaseDocumentHelper.AllDraftLinesHaveTypeAndNumber(EDocumentPurchaseHeader) then begin
-            Telemetry.LogMessage('0000PRG', 'Draft line does not contain type or number', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All);
+            Telemetry.LogMessage('', 'Draft line does not contain type or number', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All);
             Error(DraftLineDoesNotContainTypeAndNumberErr);
         end;
         EDocumentPurchaseHeader.TestField("E-Document Entry No.");
@@ -112,7 +92,7 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         VendorLedgerEntry.ReadIsolation := VendorLedgerEntry.ReadIsolation::ReadUncommitted;
         StopCreatingCreditMemo := PurchaseHeader.FindPostedDocumentWithSameExternalDocNo(VendorLedgerEntry, VendorCrMemoNo);
         if StopCreatingCreditMemo then begin
-            Telemetry.LogMessage('0000PRH', CrMemoAlreadyExistsErr, Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
+            Telemetry.LogMessage('', CrMemoAlreadyExistsErr, Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
             Error(CrMemoAlreadyExistsErr, VendorCrMemoNo, EDocumentPurchaseHeader."[BC] Vendor No.");
         end;
 
@@ -120,7 +100,6 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         PurchaseHeader.Insert(true);
         PurchaseHeader.Modify();
 
-        // Validate currency after insert
         GLSetup.GetRecordOnce();
         if EDocumentPurchaseHeader."Currency Code" <> GLSetup.GetCurrencyCode('') then begin
             PurchaseHeader.Validate("Currency Code", EDocumentPurchaseHeader."Currency Code");

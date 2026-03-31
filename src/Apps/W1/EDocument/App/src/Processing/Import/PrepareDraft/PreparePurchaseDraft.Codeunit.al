@@ -16,7 +16,7 @@ using System.Log;
 /// <summary>
 /// Shared logic for preparing purchase document drafts (invoices and credit memos).
 /// </summary>
-codeunit 6406 "E-Doc. Prepare Draft Helper"
+codeunit 6406 "Prepare Purchase Draft"
 {
     Access = Internal;
 

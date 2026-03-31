@@ -13,7 +13,7 @@ codeunit 6403 "Prepare Purch. Cr. Memo Draft" implements IProcessStructuredData
     Access = Internal;
 
     var
-        PrepareDraftHelper: Codeunit "E-Doc. Prepare Draft Helper";
+        PrepareDraftHelper: Codeunit "Prepare Purchase Draft";
 
     procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"): Enum "E-Document Type"
     begin

@@ -99,7 +99,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         if XmlHelper.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', Value) then
             Header."Applies-to Doc. No." := CopyStr(Value, 1, MaxStrLen(Header."Applies-to Doc. No."));
         if Header."Applies-to Doc. No." = '' then
-            Session.LogMessage('0000PRF', BillingReferenceEmptyTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+            Session.LogMessage('', BillingReferenceEmptyTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
     end;
 
     local procedure PopulateSupplierInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Purchase Header")
