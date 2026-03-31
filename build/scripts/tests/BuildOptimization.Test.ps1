@@ -295,10 +295,11 @@ Describe "BuildOptimization" {
             $affected = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $buildFolder -Graph $wrongGraph
 
             # With wrong BaseFolder: graph is empty, unmapped src/ file returns @($Graph.Keys) = @()
+            # PowerShell unwraps empty arrays to $null through the pipeline, so wrap in @()
             # Then 0 >= 0 is true, so Get-AffectedAppNames treats this as "full build"
             # even though zero apps were actually identified
-            $affected.Count | Should -Be 0 -Because 'empty graph means no apps can be found'
-            $affected.Count -ge $wrongGraph.Count | Should -BeTrue -Because 'this is the condition that triggers the false full-build (0 >= 0)'
+            @($affected).Count | Should -Be 0 -Because 'empty graph means no apps can be found'
+            @($affected).Count -ge @($wrongGraph.Keys).Count | Should -BeTrue -Because 'this is the condition that triggers the false full-build (0 >= 0)'
         }
 
         It "correct BaseFolder (repo root) finds apps for the same changed files" {
