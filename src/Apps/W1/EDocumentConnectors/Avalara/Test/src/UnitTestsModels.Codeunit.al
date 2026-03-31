@@ -202,7 +202,7 @@ codeunit 133630 "Unit Tests - Models"
     [Test]
     procedure TestMandate_Insert_StoresData()
     var
-        Mandate: Record Mandate;
+        TempMandate: Record Mandate temporary;
     begin
         // [SCENARIO] Mandate table stores mandate information
 
@@ -210,17 +210,17 @@ codeunit 133630 "Unit Tests - Models"
         Initialize();
 
         // [WHEN] Inserting mandate data
-        Mandate.Init();
-        Mandate."Country Mandate" := 'GB-PEPPOL-INVOICE';
-        Mandate."Country Code" := 'GB';
-        Mandate.Description := 'UK PEPPOL Invoice';
-        Mandate."Invoice Format" := 'application/vnd.oasis.ubl+xml';
-        Mandate.Insert();
+        TempMandate.Init();
+        TempMandate."Country Mandate" := 'GB-PEPPOL-INVOICE';
+        TempMandate."Country Code" := 'GB';
+        TempMandate.Description := 'UK PEPPOL Invoice';
+        TempMandate."Invoice Format" := 'application/vnd.oasis.ubl+xml';
+        TempMandate.Insert();
 
         // [THEN] Data should be stored
-        Mandate.Get('GB-PEPPOL-INVOICE');
-        Assert.AreEqual('GB', Mandate."Country Code", 'Country code should match');
-        Assert.AreEqual('UK PEPPOL Invoice', Mandate.Description, 'Description should match');
+        TempMandate.Get('GB-PEPPOL-INVOICE');
+        Assert.AreEqual('GB', TempMandate."Country Code", 'Country code should match');
+        Assert.AreEqual('UK PEPPOL Invoice', TempMandate.Description, 'Description should match');
 
         // No cleanup needed for temporary table
     end;
@@ -228,7 +228,7 @@ codeunit 133630 "Unit Tests - Models"
     [Test]
     procedure TestMandate_MultipleFormats_Supported()
     var
-        Mandate: Record Mandate;
+        TempMandate: Record Mandate temporary;
     begin
         // [SCENARIO] Mandate supports multiple document formats
 
@@ -236,18 +236,18 @@ codeunit 133630 "Unit Tests - Models"
         Initialize();
 
         // [WHEN] Setting various format fields
-        Mandate.Init();
-        Mandate."Country Mandate" := 'DE-XRECHNUNG';
-        Mandate."Invoice Format" := 'application/xml';
-        Mandate."Credit Note Format" := 'application/xml';
-        Mandate."ubl-order" := 'application/vnd.oasis.ubl+xml';
-        Mandate.Insert();
+        TempMandate.Init();
+        TempMandate."Country Mandate" := 'DE-XRECHNUNG';
+        TempMandate."Invoice Format" := 'application/xml';
+        TempMandate."Credit Note Format" := 'application/xml';
+        TempMandate."ubl-order" := 'application/vnd.oasis.ubl+xml';
+        TempMandate.Insert();
 
         // [THEN] All formats should be stored
-        Mandate.Get('DE-XRECHNUNG');
-        Assert.AreEqual('application/xml', Mandate."Invoice Format", 'Invoice format should match');
-        Assert.AreEqual('application/xml', Mandate."Credit Note Format", 'Credit note format should match');
-        Assert.AreNotEqual('', Mandate."ubl-order", 'Order format should be set');
+        TempMandate.Get('DE-XRECHNUNG');
+        Assert.AreEqual('application/xml', TempMandate."Invoice Format", 'Invoice format should match');
+        Assert.AreEqual('application/xml', TempMandate."Credit Note Format", 'Credit note format should match');
+        Assert.AreNotEqual('', TempMandate."ubl-order", 'Order format should be set');
 
         // No cleanup needed for temporary table
     end;
@@ -255,34 +255,34 @@ codeunit 133630 "Unit Tests - Models"
     [Test]
     procedure TestMandate_FilterByCountry_Works()
     var
-        Mandate1, Mandate2, Mandate3 : Record Mandate;
-        FilteredMandates: Record Mandate;
+        TempFilteredMandates: Record Mandate temporary;
+        TempMandate1, TempMandate2, TempMandate3 : Record Mandate temporary;
     begin
         // [SCENARIO] Mandates can be filtered by country code
 
         // [GIVEN] Mandates for different countries
         Initialize();
 
-        Mandate1.Init();
-        Mandate1."Country Mandate" := 'GB-PEPPOL';
-        Mandate1."Country Code" := 'GB';
-        Mandate1.Insert();
+        TempMandate1.Init();
+        TempMandate1."Country Mandate" := 'GB-PEPPOL';
+        TempMandate1."Country Code" := 'GB';
+        TempMandate1.Insert();
 
-        Mandate2.Init();
-        Mandate2."Country Mandate" := 'DE-XRECHNUNG';
-        Mandate2."Country Code" := 'DE';
-        Mandate2.Insert();
+        TempMandate2.Init();
+        TempMandate2."Country Mandate" := 'DE-XRECHNUNG';
+        TempMandate2."Country Code" := 'DE';
+        TempMandate2.Insert();
 
-        Mandate3.Init();
-        Mandate3."Country Mandate" := 'GB-MTD';
-        Mandate3."Country Code" := 'GB';
-        Mandate3.Insert();
+        TempMandate3.Init();
+        TempMandate3."Country Mandate" := 'GB-MTD';
+        TempMandate3."Country Code" := 'GB';
+        TempMandate3.Insert();
 
         // [WHEN] Filtering for GB mandates
-        FilteredMandates.SetRange("Country Code", 'GB');
+        TempFilteredMandates.SetRange("Country Code", 'GB');
 
         // [THEN] Should find only GB mandates
-        Assert.AreEqual(2, FilteredMandates.Count(), 'Should find 2 GB mandates');
+        Assert.AreEqual(2, TempFilteredMandates.Count(), 'Should find 2 GB mandates');
 
         // No cleanup needed for temporary table
     end;
@@ -290,7 +290,7 @@ codeunit 133630 "Unit Tests - Models"
     [Test]
     procedure TestMandate_LongDescription_Truncated()
     var
-        Mandate: Record Mandate;
+        TempMandate: Record Mandate temporary;
         LongDescription: Text;
     begin
         // [SCENARIO] Long mandate descriptions are truncated to field length
@@ -300,14 +300,14 @@ codeunit 133630 "Unit Tests - Models"
         LongDescription := PadStr('', 3000, 'X');  // Longer than field length
 
         // [WHEN] Inserting with long description
-        Mandate.Init();
-        Mandate."Country Mandate" := 'TEST-LONG';
-        Mandate.Description := CopyStr(LongDescription, 1, MaxStrLen(Mandate.Description));
-        Mandate.Insert();
+        TempMandate.Init();
+        TempMandate."Country Mandate" := 'TEST-LONG';
+        TempMandate.Description := CopyStr(LongDescription, 1, MaxStrLen(TempMandate.Description));
+        TempMandate.Insert();
 
         // [THEN] Should be truncated
-        Mandate.Get('TEST-LONG');
-        Assert.AreEqual(MaxStrLen(Mandate.Description), StrLen(Mandate.Description),
+        TempMandate.Get('TEST-LONG');
+        Assert.AreEqual(MaxStrLen(TempMandate.Description), StrLen(TempMandate.Description),
             'Description should be truncated to max length');
 
         // No cleanup needed for temporary table

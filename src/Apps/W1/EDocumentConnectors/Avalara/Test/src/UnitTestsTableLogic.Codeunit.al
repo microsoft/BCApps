@@ -264,7 +264,7 @@ codeunit 133633 "Unit Tests - Table Logic"
     [Test]
     procedure TestAvalaraCompany_Insert_StoresCompanyData()
     var
-        AvalaraCompany: Record "Avalara Company";
+        TempAvalaraCompany: Record "Avalara Company" temporary;
     begin
         // [SCENARIO] Avalara Company table stores company information
 
@@ -273,16 +273,16 @@ codeunit 133633 "Unit Tests - Table Logic"
         CleanupAvalaraCompany();
 
         // [WHEN] Inserting company
-        AvalaraCompany.Init();
-        AvalaraCompany.Id := 1;
-        AvalaraCompany."Company Name" := 'Test Company Ltd';
-        AvalaraCompany."Company Id" := 'AVALARA-COMP-001';
-        AvalaraCompany.Insert(true);
+        TempAvalaraCompany.Init();
+        TempAvalaraCompany.Id := 1;
+        TempAvalaraCompany."Company Name" := 'Test Company Ltd';
+        TempAvalaraCompany."Company Id" := 'AVALARA-COMP-001';
+        TempAvalaraCompany.Insert(true);
 
         // [THEN] Company data should be stored
-        AvalaraCompany.Get(1);
-        Assert.AreEqual('Test Company Ltd', AvalaraCompany."Company Name", 'Company name should match');
-        Assert.AreEqual('AVALARA-COMP-001', AvalaraCompany."Company Id", 'Company ID should match');
+        TempAvalaraCompany.Get(1);
+        Assert.AreEqual('Test Company Ltd', TempAvalaraCompany."Company Name", 'Company name should match');
+        Assert.AreEqual('AVALARA-COMP-001', TempAvalaraCompany."Company Id", 'Company ID should match');
 
         // Cleanup
         CleanupAvalaraCompany();
@@ -293,7 +293,7 @@ codeunit 133633 "Unit Tests - Table Logic"
     [Test]
     procedure TestAvalaraDocumentBuffer_Temporary_WorksCorrectly()
     var
-        AvalaraDocumentBuffer: Record "Avalara Document Buffer";
+        TempAvalaraDocumentBuffer: Record "Avalara Document Buffer" temporary;
     begin
         // [SCENARIO] Avalara Document Buffer as temporary table works correctly
 
@@ -301,14 +301,14 @@ codeunit 133633 "Unit Tests - Table Logic"
         Initialize();
 
         // [WHEN] Inserting into temporary buffer
-        AvalaraDocumentBuffer.Init();
-        AvalaraDocumentBuffer.Id := 'DOC-123';
-        AvalaraDocumentBuffer."Process DateTime" := CurrentDateTime();
-        AvalaraDocumentBuffer.Status := 'Complete';
-        AvalaraDocumentBuffer.Insert();
+        TempAvalaraDocumentBuffer.Init();
+        TempAvalaraDocumentBuffer.Id := 'DOC-123';
+        TempAvalaraDocumentBuffer."Process DateTime" := CurrentDateTime();
+        TempAvalaraDocumentBuffer.Status := 'Complete';
+        TempAvalaraDocumentBuffer.Insert();
 
         // [THEN] Should be in temporary table only
-        Assert.IsFalse(AvalaraDocumentBuffer.IsEmpty(), 'Should find in temporary buffer');
+        Assert.IsFalse(TempAvalaraDocumentBuffer.IsEmpty(), 'Should find in temporary buffer');
 
         // No cleanup needed for temporary tables
     end;
@@ -316,7 +316,7 @@ codeunit 133633 "Unit Tests - Table Logic"
     [Test]
     procedure TestAvalaraDocumentBuffer_ParseData_PopulatesFields()
     var
-        AvalaraDocumentBuffer: Record "Avalara Document Buffer";
+        TempAvalaraDocumentBuffer: Record "Avalara Document Buffer" temporary;
     begin
         // [SCENARIO] Avalara Document Buffer can parse and store document data
 
@@ -324,17 +324,17 @@ codeunit 133633 "Unit Tests - Table Logic"
         Initialize();
 
         // [WHEN] Populating buffer fields
-        AvalaraDocumentBuffer.Init();
-        AvalaraDocumentBuffer.Id := 'DOC-456';
-        AvalaraDocumentBuffer."Process DateTime" := CurrentDateTime();
-        AvalaraDocumentBuffer.Status := 'Complete';
-        AvalaraDocumentBuffer."Document Type" := 'partner-einvoicing';
-        AvalaraDocumentBuffer.Insert();
+        TempAvalaraDocumentBuffer.Init();
+        TempAvalaraDocumentBuffer.Id := 'DOC-456';
+        TempAvalaraDocumentBuffer."Process DateTime" := CurrentDateTime();
+        TempAvalaraDocumentBuffer.Status := 'Complete';
+        TempAvalaraDocumentBuffer."Document Type" := 'partner-einvoicing';
+        TempAvalaraDocumentBuffer.Insert();
 
         // [THEN] All fields should be populated
-        Assert.IsFalse(AvalaraDocumentBuffer.IsEmpty(), 'Should find in buffer');
-        Assert.AreEqual('Complete', AvalaraDocumentBuffer.Status, 'Status should match');
-        Assert.AreEqual('partner-einvoicing', AvalaraDocumentBuffer."Document Type", 'Document Type should match');
+        Assert.IsFalse(TempAvalaraDocumentBuffer.IsEmpty(), 'Should find in buffer');
+        Assert.AreEqual('Complete', TempAvalaraDocumentBuffer.Status, 'Status should match');
+        Assert.AreEqual('partner-einvoicing', TempAvalaraDocumentBuffer."Document Type", 'Document Type should match');
 
         // No cleanup needed for temporary tables
     end;
