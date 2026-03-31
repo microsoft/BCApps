@@ -15,7 +15,7 @@
         <cbc:ID>att-001</cbc:ID>
         <cbc:DocumentDescription>Invoice PDF copy</cbc:DocumentDescription>
         <cac:Attachment>
-            <cbc:EmbeddedDocumentBinaryObject mimeCode="application/pdf" filename="invoice-copy.pdf">SGVsbG8gV29ybGQ=</cbc:EmbeddedDocumentBinaryObject>
+            <cbc:EmbeddedDocumentBinaryObject mimeCode="application/pdf" filename="invoice-copy.pdf">JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2Jq</cbc:EmbeddedDocumentBinaryObject>
         </cac:Attachment>
     </cac:AdditionalDocumentReference>
     <!-- Embedded image attachment without file extension in filename: extension should be derived from mimeCode -->
@@ -23,7 +23,7 @@
         <cbc:ID>att-002</cbc:ID>
         <cbc:DocumentDescription>Photo evidence</cbc:DocumentDescription>
         <cac:Attachment>
-            <cbc:EmbeddedDocumentBinaryObject mimeCode="image/png" filename="photo-evidence">AQID</cbc:EmbeddedDocumentBinaryObject>
+            <cbc:EmbeddedDocumentBinaryObject mimeCode="image/png" filename="photo-evidence">iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==</cbc:EmbeddedDocumentBinaryObject>
         </cac:Attachment>
     </cac:AdditionalDocumentReference>
     <!-- External URI reference: should be SKIPPED (no embedded content) -->

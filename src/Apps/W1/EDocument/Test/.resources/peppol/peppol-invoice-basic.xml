@@ -13,7 +13,7 @@
     <cbc:BuyerReference>0150abc</cbc:BuyerReference>
     <cac:AccountingSupplierParty>
         <cac:Party>
-            <cbc:EndpointID schemeID="0088">9482348239847239874</cbc:EndpointID>
+            <cbc:EndpointID schemeID="0088">9482348239847</cbc:EndpointID>
             <cac:PartyIdentification>
                 <cbc:ID>99887766</cbc:ID>
             </cac:PartyIdentification>

@@ -122,6 +122,11 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
     begin
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name', Value) then
             Header."Vendor Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Company Name"));
+        // Per PEPPOL BIS 3.0: PartyLegalEntity/RegistrationName is the seller's legal name (mandatory).
+        // Use it as fallback when PartyName/Name is absent (PartyName is optional in PEPPOL BIS 3.0).
+        if Header."Vendor Company Name" = '' then
+            if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName', Value) then
+                Header."Vendor Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Company Name"));
         // Per PEPPOL BIS 3.0: PayeeParty is used when the Payee is different from the Seller.
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:PayeeParty/cac:PartyName/cbc:Name', Value) then
             Header."Vendor Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Company Name"));
@@ -152,6 +157,11 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
     begin
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PartyName/cbc:Name', Value) then
             Header."Customer Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Customer Company Name"));
+        // Per PEPPOL BIS 3.0: PartyLegalEntity/RegistrationName is the buyer's legal name (mandatory).
+        // Use it as fallback when PartyName/Name is absent (PartyName is optional in PEPPOL BIS 3.0).
+        if Header."Customer Company Name" = '' then
+            if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName', Value) then
+                Header."Customer Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Customer Company Name"));
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Value) then
             Header."Customer VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Customer VAT Id"));
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', Value) then

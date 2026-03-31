@@ -216,7 +216,6 @@ codeunit 139891 "E-Document Structured Tests"
     procedure TestPEPPOLCreditNote_CorrectionNoDueDate()
     var
         EDocument: Record "E-Document";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
         // [SCENARIO] CreditNote without PaymentMeans/PaymentDueDate results in blank Due Date.
         // Covers: completeness item "CreditNote DueDate uses wrong XPath" (negative case - no DueDate at all)
@@ -239,7 +238,7 @@ codeunit 139891 "E-Document Structured Tests"
         DocumentAttachment: Record "Document Attachment";
     begin
         // [SCENARIO] Embedded base64 attachments are extracted; external URI and bare references are skipped.
-        // Covers: completeness item "Document attachments not extracted"
+        // Test XML: 1 valid PDF, 1 valid PNG, 1 external URI (no embedded content), 1 bare reference (no attachment node).
         Initialize(Enum::"Service Integration"::"Mock");
         SetupPEPPOLEDocumentService();
         CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-attachment.xml');

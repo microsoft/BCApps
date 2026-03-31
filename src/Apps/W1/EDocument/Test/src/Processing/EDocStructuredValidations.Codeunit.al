@@ -179,7 +179,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual(500, EDocumentPurchaseHeader."Total VAT", 'The total VAT does not match the mock data.');
 
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
-        EDocumentPurchaseLine.FindSet();
+        EDocumentPurchaseLine.FindFirst();
         Assert.AreEqual(1, EDocumentPurchaseLine."Quantity", 'The quantity in the credit note line does not match the mock data.');
         Assert.AreEqual('PCS', EDocumentPurchaseLine."Unit of Measure", 'The unit of measure in the credit note line does not match the mock data.');
         Assert.AreEqual(2000, EDocumentPurchaseLine."Sub Total", 'The line extension amount does not match the mock data.');
@@ -189,7 +189,6 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual(25, EDocumentPurchaseLine."VAT Rate", 'The VAT rate in the credit note line does not match the mock data.');
         Assert.AreEqual(2000, EDocumentPurchaseLine."Unit Price", 'The unit price in the credit note line does not match the mock data.');
     end;
-    #endregion
 
     internal procedure AssertPEPPOLBaseExampleExtracted(EDocumentEntryNo: Integer)
     var
@@ -206,7 +205,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual('SupplierTradingName Ltd.', EDocumentPurchaseHeader."Vendor Company Name", 'The vendor name does not match.');
         Assert.AreEqual('Main street 1', EDocumentPurchaseHeader."Vendor Address", 'The vendor address does not match.');
         Assert.AreEqual('GB1232434', EDocumentPurchaseHeader."Vendor VAT Id", 'The vendor VAT id does not match.');
-        Assert.AreEqual('9482348239847239874', EDocumentPurchaseHeader."Vendor GLN", 'The vendor GLN should be populated for schemeID=0088.');
+        Assert.AreEqual('9482348239847', EDocumentPurchaseHeader."Vendor GLN", 'The vendor GLN should be populated for schemeID=0088.');
         Assert.AreEqual('BuyerTradingName AS', EDocumentPurchaseHeader."Customer Company Name", 'The customer name does not match.');
         Assert.AreEqual('SE4598375937', EDocumentPurchaseHeader."Customer VAT Id", 'The customer VAT id does not match.');
         Assert.AreEqual('Hovedgatan 32', EDocumentPurchaseHeader."Customer Address", 'The customer address does not match.');
@@ -363,7 +362,7 @@ codeunit 139894 "EDoc Structured Validations"
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
         Assert.AreEqual(1, EDocumentPurchaseLine.Count(), 'Expected 1 invoice line.');
 
-        EDocumentPurchaseLine.FindSet();
+        EDocumentPurchaseLine.FindFirst();
         Assert.AreEqual(10, EDocumentPurchaseLine.Quantity, 'Line quantity does not match.');
         Assert.AreEqual('EA', EDocumentPurchaseLine."Unit of Measure", 'Line unit of measure does not match.');
         Assert.AreEqual(1200, EDocumentPurchaseLine."Sub Total", 'Line sub total does not match.');
