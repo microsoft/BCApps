@@ -9,7 +9,6 @@
 	<cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
 	<cbc:ID>CN-5001</cbc:ID>
 	<cbc:IssueDate>2026-02-15</cbc:IssueDate>
-	<cbc:DueDate>2026-03-15</cbc:DueDate>
 	<cbc:CreditNoteTypeCode>381</cbc:CreditNoteTypeCode>
 	<cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
 	<cbc:BuyerReference>1</cbc:BuyerReference>
@@ -84,6 +83,10 @@
 			</cac:Contact>
 		</cac:Party>
 	</cac:AccountingCustomerParty>
+	<cac:PaymentMeans>
+		<cbc:PaymentMeansCode>30</cbc:PaymentMeansCode>
+		<cbc:PaymentDueDate>2026-03-15</cbc:PaymentDueDate>
+	</cac:PaymentMeans>
 	<cac:TaxTotal>
 		<cbc:TaxAmount currencyID="XYZ">500</cbc:TaxAmount>
 		<cac:TaxSubtotal>
