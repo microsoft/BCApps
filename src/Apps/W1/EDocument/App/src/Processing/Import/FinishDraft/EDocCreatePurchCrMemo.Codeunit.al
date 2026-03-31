@@ -101,10 +101,13 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         PurchaseHeader.Modify();
 
         GLSetup.GetRecordOnce();
-        if EDocumentPurchaseHeader."Currency Code" <> GLSetup.GetCurrencyCode('') then begin
+        if EDocumentPurchaseHeader."Currency Code" <> GLSetup.GetCurrencyCode('') then
             PurchaseHeader.Validate("Currency Code", EDocumentPurchaseHeader."Currency Code");
-            PurchaseHeader.Modify();
-        end;
+
+        if EDocumentPurchaseHeader."Applies-to Doc. No." <> '' then
+            PurchaseHeader."Applies-to Doc. No." := CopyStr(EDocumentPurchaseHeader."Applies-to Doc. No.", 1, MaxStrLen(PurchaseHeader."Applies-to Doc. No."));
+
+        PurchaseHeader.Modify();
 
         EDocRecordLink.InsertEDocumentHeaderLink(EDocumentPurchaseHeader, PurchaseHeader);
 
