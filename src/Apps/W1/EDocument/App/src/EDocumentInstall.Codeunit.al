@@ -15,6 +15,7 @@ codeunit 6161 "E-Document Install"
     Access = Internal;
     Subtype = Install;
 
+    // Doc
     trigger OnInstallAppPerCompany()
     begin
         InsertDataExch();
