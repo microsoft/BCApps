@@ -37,7 +37,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         EnvRecord.GetOrCreateEnvironmentLimits();
         EnvironmentEnabled := EnvRecord."Enforcement Enabled";
 
-        CompanyRecord.GetOrCreateCompanyLimits(CopyStr(CompanyName(), 1, 30));
+        CompanyRecord.GetOrCreateCompanyLimits();
         CompanyEnabled := CompanyRecord."Enforcement Enabled";
 
         RecallAllNotifications();
@@ -83,7 +83,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         CompanyLimitRecord: Record "AIT Eval Monthly Copilot Cred.";
         AgentTestConsumptionLog: Codeunit "Agent Test Consumption Log";
     begin
-        CompanyLimitRecord.GetOrCreateCompanyLimits(CopyStr(CompanyName(), 1, 30));
+        CompanyLimitRecord.GetOrCreateCompanyLimits();
         CompanyCreditLimit := CompanyLimitRecord."Monthly Credit Limit";
 
         if not CompanyLimitRecord."Enforcement Enabled" then

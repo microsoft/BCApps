@@ -100,8 +100,14 @@ table 149040 "AIT Eval Monthly Copilot Cred."
     /// <summary>
     /// Gets or creates the record for a specific company.
     /// </summary>
-    procedure GetOrCreateCompanyLimits(CompanyName: Text[30])
+    procedure GetOrCreateCompanyLimits()
+    var
+        CompanyName: Text[30];
     begin
+#pragma warning disable AA0139
+        CompanyName := CompanyName();
+#pragma warning restore AA0139
+
         if not Get(CompanyName) then
             InsertCompanyDefaultRecord(CompanyName);
     end;

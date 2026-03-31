@@ -293,7 +293,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         EnvironmentMonthlyCreditLimit := EnvironmentLimitRecord."Monthly Credit Limit";
         EnvironmentEnforcementEnabled := EnvironmentLimitRecord."Enforcement Enabled";
 
-        CompanyLimitRecord.GetOrCreateCompanyLimits(CopyStr(CompanyName(), 1, 30));
+        CompanyLimitRecord.GetOrCreateCompanyLimits();
         CompanyMonthlyCreditLimit := CompanyLimitRecord."Monthly Credit Limit";
         CompanyEnforcementEnabled := CompanyLimitRecord."Enforcement Enabled";
     end;
@@ -308,7 +308,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
     local procedure SaveCompanyCreditLimit()
     begin
-        CompanyLimitRecord.GetOrCreateCompanyLimits(CopyStr(CompanyName(), 1, 30));
+        CompanyLimitRecord.GetOrCreateCompanyLimits();
         CompanyLimitRecord."Monthly Credit Limit" := CompanyMonthlyCreditLimit;
         CompanyLimitRecord."Enforcement Enabled" := CompanyEnforcementEnabled;
         CompanyLimitRecord.Modify();
