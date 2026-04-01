@@ -1,0 +1,2 @@
+# cost: 14
+{"query": "{ catalogs (first:25, type: MARKET, query: \"status:ACTIVE\"){ pageInfo{ hasNextPage } edges { cursor node { id title priceList { currency }}}}}"}

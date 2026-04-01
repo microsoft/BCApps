@@ -74,7 +74,7 @@ page 20404 "Qlty. Inspection Template List"
                 ToolTip = 'Specifies to create a new Quality Inspection using this template.';
                 AboutTitle = 'More ways to create inspections';
                 AboutText = 'Use this action to create a manual inspection from the selected template. You can also create inspections directly from other pages, such as output journals, production order routing lines, consumption journals, purchase orders, sales returns, and item tracking lines.';
-                Image = CreateForm;
+                Image = BulletList;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -116,7 +116,7 @@ page 20404 "Qlty. Inspection Template List"
                 Scope = Repeater;
                 Caption = 'Inspection Generation Rules';
                 ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                Image = FilterLines;
+                Image = CopyFromTask;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -129,7 +129,7 @@ page 20404 "Qlty. Inspection Template List"
                 Scope = Repeater;
                 Caption = 'Existing Inspections';
                 ToolTip = 'Review existing inspections created using this template.';
-                Image = TaskQualityMeasure;
+                Image = CheckList;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;

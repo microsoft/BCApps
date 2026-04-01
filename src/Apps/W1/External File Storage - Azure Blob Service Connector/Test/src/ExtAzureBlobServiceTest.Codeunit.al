@@ -20,7 +20,7 @@ codeunit 144566 "Ext. Azure Blob Service Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestMultipleAccountsCanBeRegistered()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExtFileConnector: Codeunit "Ext. Blob Sto. Connector Impl.";
         FileAccounts: TestPage "File Accounts";
         AccountIds: array[3] of Guid;
@@ -34,14 +34,14 @@ codeunit 144566 "Ext. Azure Blob Service Test"
         for Index := 1 to 3 do begin
             SetBasicAccount();
 
-            Assert.IsTrue(ExtFileConnector.RegisterAccount(FileAccount), 'Failed to register account.');
-            AccountIds[Index] := FileAccount."Account Id";
+            Assert.IsTrue(ExtFileConnector.RegisterAccount(TempFileAccount), 'Failed to register account.');
+            AccountIds[Index] := TempFileAccount."Account Id";
             AccountName[Index] := FileAccountMock.Name();
 
             // [Then] Accounts are retrieved from the GetAccounts method
-            FileAccount.DeleteAll();
-            ExtFileConnector.GetAccounts(FileAccount);
-            Assert.RecordCount(FileAccount, Index);
+            TempFileAccount.DeleteAll();
+            ExtFileConnector.GetAccounts(TempFileAccount);
+            Assert.RecordCount(TempFileAccount, Index);
         end;
 
         FileAccounts.OpenView();
@@ -58,7 +58,7 @@ codeunit 144566 "Ext. Azure Blob Service Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestEnviromentCleanupDisablesAccounts()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         ExtSharePointAccount: Record "Ext. Blob Storage Account";
         ExtFileConnector: Codeunit "Ext. Blob Sto. Connector Impl.";
         EnvironmentTriggers: Codeunit "Environment Triggers";
@@ -72,13 +72,13 @@ codeunit 144566 "Ext. Azure Blob Service Test"
         for Index := 1 to 3 do begin
             SetBasicAccount();
 
-            Assert.IsTrue(ExtFileConnector.RegisterAccount(FileAccount), 'Failed to register account.');
-            AccountIds[Index] := FileAccount."Account Id";
+            Assert.IsTrue(ExtFileConnector.RegisterAccount(TempFileAccount), 'Failed to register account.');
+            AccountIds[Index] := TempFileAccount."Account Id";
 
             // [Then] Accounts are retrieved from the GetAccounts method
-            FileAccount.DeleteAll();
-            ExtFileConnector.GetAccounts(FileAccount);
-            Assert.RecordCount(FileAccount, Index);
+            TempFileAccount.DeleteAll();
+            ExtFileConnector.GetAccounts(TempFileAccount);
+            Assert.RecordCount(TempFileAccount, Index);
         end;
 
         ExtSharePointAccount.SetRange(Disabled, true);
@@ -95,7 +95,7 @@ codeunit 144566 "Ext. Azure Blob Service Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestShowAccountInformation()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account";
         FileConnector: Codeunit "Ext. Blob Sto. Connector Impl.";
     begin
         // [Scenario] Account Information is displayed in the Account page.
@@ -103,10 +103,10 @@ codeunit 144566 "Ext. Azure Blob Service Test"
         // [Given] An file account
         Initialize();
         SetBasicAccount();
-        FileConnector.RegisterAccount(FileAccount);
+        FileConnector.RegisterAccount(TempFileAccount);
 
         // [When] The ShowAccountInformation method is invoked
-        FileConnector.ShowAccountInformation(FileAccount."Account Id");
+        FileConnector.ShowAccountInformation(TempFileAccount."Account Id");
 
         // [Then] The account page opens and displays the information
         // Verify in AccountModalPageHandler

@@ -34,7 +34,7 @@ codeunit 6104 "Import E-Document Process"
 
         ImportProcessVersion := GlobalEDocument.GetEDocumentService().GetImportProcessVersion();
         if ImportProcessVersion = "E-Document Import Process"::"Version 1.0" then begin
-            ProcessEDocumentV1(GlobalEDocument, GlobalEDocImportParameters, GlobalStep, GlobalUndoStep);
+            ProcessEDocumentV1(GlobalEDocument, TempGlobalEDocImportParameters, GlobalStep, GlobalUndoStep);
             exit;
         end;
 
@@ -51,9 +51,9 @@ codeunit 6104 "Import E-Document Process"
                 GlobalStep::"Read into Draft":
                     ReadIntoDraft(GlobalEDocument);
                 GlobalStep::"Prepare draft":
-                    PrepareDraft(GlobalEDocument, GlobalEDocImportParameters);
+                    PrepareDraft(GlobalEDocument, TempGlobalEDocImportParameters);
                 GlobalStep::"Finish draft":
-                    FinishDraft(GlobalEDocument, GlobalEDocImportParameters);
+                    FinishDraft(GlobalEDocument, TempGlobalEDocImportParameters);
             end;
         GlobalEDocument.Get(GlobalEDocument."Entry No");
 
@@ -236,7 +236,7 @@ codeunit 6104 "Import E-Document Process"
         this.GlobalEDocument := EDocument;
         GlobalStep := NewStep;
         GlobalUndoStep := NewUndoStep;
-        this.GlobalEDocImportParameters := EDocImportParameters;
+        this.TempGlobalEDocImportParameters := EDocImportParameters;
     end;
 
     procedure IsEDocumentInStateGE(EDocument: Record "E-Document"; QueriedState: Enum "Import E-Doc. Proc. Status"): Boolean
@@ -360,7 +360,7 @@ codeunit 6104 "Import E-Document Process"
 
     var
         GlobalEDocument: Record "E-Document";
-        GlobalEDocImportParameters: Record "E-Doc. Import Parameters";
+        TempGlobalEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocumentProcessing: Codeunit "E-Document Processing";
         GlobalStep: Enum "Import E-Document Steps";
         GlobalUndoStep: Boolean;

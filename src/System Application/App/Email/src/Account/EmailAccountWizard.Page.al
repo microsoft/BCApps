@@ -240,14 +240,14 @@ page 8886 "Email Account Wizard"
                 group(Account)
                 {
                     Caption = 'Account';
-                    field(Namefield; RegisteredAccount.Name)
+                    field(Namefield; TempRegisteredAccount.Name)
                     {
                         ApplicationArea = All;
                         Editable = false;
                         Caption = 'Name';
                         ToolTip = 'Specifies the name of the account registered.';
                     }
-                    field(EmailAddressfield; RegisteredAccount."Email Address")
+                    field(EmailAddressfield; TempRegisteredAccount."Email Address")
                     {
                         ApplicationArea = All;
                         Editable = false;
@@ -360,9 +360,9 @@ page 8886 "Email Account Wizard"
                     EmailRateLimitImpl: Codeunit "Email Rate Limit Impl.";
                 begin
                     if SetAsDefault then
-                        EmailAccountImpl.MakeDefault(RegisteredAccount);
+                        EmailAccountImpl.MakeDefault(TempRegisteredAccount);
 
-                    EmailRateLimitImpl.RegisterRateLimit(RegisteredRateLimit, RegisteredAccount, RateLimit);
+                    EmailRateLimitImpl.RegisterRateLimit(RegisteredRateLimit, TempRegisteredAccount, RateLimit);
 
                     CurrPage.Close();
                 end;
@@ -379,7 +379,7 @@ page 8886 "Email Account Wizard"
 
                 trigger OnAction()
                 begin
-                    Codeunit.Run(Codeunit::"Email Test Mail", RegisteredAccount);
+                    Codeunit.Run(Codeunit::"Email Test Mail", TempRegisteredAccount);
                 end;
             }
 
@@ -419,7 +419,7 @@ page 8886 "Email Account Wizard"
 
     trigger OnInit()
     var
-        DefaultAccount: Record "Email Account";
+        TempDefaultAccount: Record "Email Account";
         EmailAccountImpl: Codeunit "Email Account Impl.";
         EmailScenario: Codeunit "Email Scenario";
     begin
@@ -433,7 +433,7 @@ page 8886 "Email Account Wizard"
 
         EmailRateLimitDisplay := NoLimitTxt;
 
-        if not EmailScenario.GetDefaultEmailAccount(DefaultAccount) then
+        if not EmailScenario.GetDefaultEmailAccount(TempDefaultAccount) then
             SetAsDefault := true;
 
         ConnectorsAvailable := Rec.FindFirst(); // Set the focus on the first record
@@ -471,7 +471,7 @@ page 8886 "Email Account Wizard"
             Error(EmailConnectorHasBeenUninstalledMsg);
 
         Connector := Rec.Connector;
-        Connector.ShowAccountInformation(RegisteredAccount."Account Id");
+        Connector.ShowAccountInformation(TempRegisteredAccount."Account Id");
 
         CurrPage.Close();
     end;
@@ -536,8 +536,8 @@ page 8886 "Email Account Wizard"
         EmailConnector := Rec.Connector;
 
         ClearLastError();
-        AccountWasRegistered := EmailConnector.RegisterAccount(RegisteredAccount);
-        RegisteredAccount.Connector := Rec.Connector;
+        AccountWasRegistered := EmailConnector.RegisterAccount(TempRegisteredAccount);
+        TempRegisteredAccount.Connector := Rec.Connector;
     end;
 
     local procedure ShowDoneStep()
@@ -576,7 +576,7 @@ page 8886 "Email Account Wizard"
     end;
 
     var
-        RegisteredAccount: Record "Email Account";
+        TempRegisteredAccount: Record "Email Account";
         RegisteredRateLimit: Record "Email Rate Limit";
         MediaResourcesStandard: Record "Media Resources";
         MediaResourcesDone: Record "Media Resources";

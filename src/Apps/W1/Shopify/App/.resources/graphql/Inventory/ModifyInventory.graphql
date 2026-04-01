@@ -1,0 +1,2 @@
+# cost: 10
+{"query":"mutation inventorySetQuantities($input: InventorySetQuantitiesInput!) { inventorySetQuantities(input: $input) @idempotent(key: \"{{IdempotencyKey}}\") { inventoryAdjustmentGroup { id } userErrors { field message code }}}","variables":{"input":{"name":"on_hand","reason":"correction","quantities":[]}}}

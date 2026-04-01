@@ -41,7 +41,7 @@ queryGroup Diemensions
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["ENVIRONMENT","COMPANY","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","GetDimCode","GetDimCodeCaption","GetDimNameCaption","Subscription","Dimension Sets","Date Table Setup","Working Days","Vendors","Customers","API_ENDPOINT","Default Contract Term","API_ENDPOINT_SUBSCR_BILLING","MaxForecastDate","MinReportingDate","fncPeriodsBetween","fctImproveColumnNames","SourceContractAnalysisEntries","ContractLineBase","Customer Contract Line","Vendor Contract Line","Vendor Contract Deferrals","Customer Contract Deferrals","Customer Contract","Vendor Contract","UBB handling","Is Released","Item","Salesperson","Meta Information","BCConnectionSubscriptionBilling","ConvertUTC","Item Category"]
+annotation PBI_QueryOrder = ["ENVIRONMENT","COMPANY","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","GetDimCode","GetDimCodeCaption","GetDimNameCaption","Subscription","Dimension Sets","Date Table Setup","Working Days","Vendors","Customers","API_ENDPOINT","Default Contract Term","API_ENDPOINT_SUBSCR_BILLING","MaxForecastDate","MinReportingDate","fncPeriodsBetween","fctImproveColumnNames","SourceContractAnalysisEntries","ContractLineBase","Customer Contract Line","Vendor Contract Line","Vendor Contract Deferrals","Customer Contract Deferrals","Customer Contract","Vendor Contract","UBB handling","Is Released","Item","Salesperson","Meta Information","BCConnectionSubscriptionBilling","ConvertUTC","Item Category","Company Encoding"]
 
 annotation __BNorm = 1
 
@@ -83,6 +83,7 @@ ref table ENVIRONMENT
 ref table COMPANY
 ref table 'Item Category'
 ref table 'Translated Localized Labels'
+ref table 'Company Encoding'
 
 ref cultureInfo en-US
 ref cultureInfo es-ES

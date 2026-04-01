@@ -11,6 +11,7 @@ report 8052 "Cust. Contr. Def. Analysis"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     AdditionalSearchTerms = 'Customer Deferrals, Deferral Analysis, Revenue Deferrals, Contract Analysis, Deferral Report, Deferred Revenue';
+    ToolTip = 'Analyze Customer Subscription Contract deferrals.';
 
     dataset
     {

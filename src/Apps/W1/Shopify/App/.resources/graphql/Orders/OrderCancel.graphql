@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { orderCancel(orderId: \"gid://shopify/Order/{{OrderId}}\", notifyCustomer: {{NotifyCustomer}}, refund: {{Refund}}, restock: {{Restock}}, reason: {{CancelReason}}) { orderCancelUserErrors {field, message}}}"}
