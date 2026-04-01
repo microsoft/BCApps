@@ -198,10 +198,10 @@ page 6372 "Connection Setup Card"
         }
         area(Promoted)
         {
-            actionref(SelectCompanyId_Promoted; SelectCompanyId) { }
-            actionref(SelectMandate_Promoted; SelectMandate) { }
-            actionref(CheckCredentials_Promoted; CheckCredentials) { }
-            actionref(Activations_Promoted; Activations) { }
+            actionref(SelectCompanyIdRef; SelectCompanyId) { }
+            actionref(SelectMandateRef; SelectMandate) { }
+            actionref(CheckCredentialsRef; CheckCredentials) { }
+            actionref(ActivationsRef; Activations) { }
         }
     }
 
