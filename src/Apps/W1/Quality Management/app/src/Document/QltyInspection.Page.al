@@ -483,8 +483,10 @@ page 20406 "Qlty. Inspection"
                 begin
                     Rec.CreateReinspection(CreatedReinspectionHeader);
                     CurrPage.Update(false);
-                    if not IsNullGuid(CreatedReinspectionHeader.SystemId) then
+                    if not IsNullGuid(CreatedReinspectionHeader.SystemId) then begin
+                        Commit();
                         Page.Run(Page::"Qlty. Inspection", CreatedReinspectionHeader);
+                    end;
                 end;
             }
             action(ChangeStatusFinish)
