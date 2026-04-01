@@ -20,11 +20,7 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Dispositions;
-using Microsoft.QualityManagement.Dispositions.InventoryAdjustment;
-using Microsoft.QualityManagement.Dispositions.ItemTracking;
-using Microsoft.QualityManagement.Dispositions.Move;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Setup;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Warehouse.Activity;
@@ -712,7 +708,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         NegativeAdjustItemJournalTemplate: Record "Item Journal Template";
         NegativeAdjustItemJournalBatch: Record "Item Journal Batch";
         NegativeAdjustmentItemJournalLine: Record "Item Journal Line";
-        QltyDispNegAdjustInv: Codeunit "Qlty. Disp. Neg. Adjust Inv.";
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
         NoSeries: Codeunit "No. Series";
         OriginalLotNo: Code[50];
@@ -812,7 +807,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Negative adjustment disposition is performed
-        LibraryAssert.AreEqual(true, QltyDispNegAdjustInv.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.PerformNegAdjustInvDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
             'expected the negative adjustment to work.');
 
         // [THEN] One journal line is created in the negative adjustment batch
@@ -862,9 +857,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         CheckCreatedJnlWhseItemTrackingLine: Record "Whse. Item Tracking Line";
         WarehouseEntry: Record "Warehouse Entry";
         BinContent: Record "Bin Content";
-        QltyDispNegAdjustInv: Codeunit "Qlty. Disp. Neg. Adjust Inv.";
         NoSeries: Codeunit "No. Series";
-        QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
         OriginalLotNo: Code[50];
     begin
         // [SCENARIO] Validate negative inventory adjustment disposition for lot-tracked items in a full warehouse management location
@@ -923,8 +916,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [GIVEN] Initial warehouse journal line is created and posted
-        QltyItemJournalManagement.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
-        LibraryAssert.AreEqual(true, QltyItemJournalManagement.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine),
+        QltyInspectionUtility.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine),
             'ensure the initial inventory journal posted.');
 
         WarehouseEntry.SetRange("Location Code", AdvWhseLocation.Code);
@@ -956,7 +949,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Negative adjustment disposition is performed for the warehouse
-        LibraryAssert.AreEqual(true, QltyDispNegAdjustInv.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.PerformNegAdjustInvDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
             'expected the negative adjustment to work.');
 
         // [THEN] One warehouse journal line is created in the adjustment batch
@@ -1798,7 +1791,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalBatch: Record "Item Journal Batch";
         InitialInventoryItemJournalLine: Record "Item Journal Line";
         ChangeLotNumberItemJournalLine: Record "Item Journal Line";
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
         NoSeries: Codeunit "No. Series";
         OriginalLotNo: Code[50];
@@ -1907,7 +1899,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Disposition is performed to change the lot number
-        LibraryAssert.AreEqual(true, QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.PerformChangeTrackingDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
             'expected the adjustment to work.');
 
         // [THEN] One journal line is created in the bin move batch
@@ -1966,8 +1958,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
-        QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
         NoSeries: Codeunit "No. Series";
         OriginalLotNo: Code[50];
         NewLotNo: Code[50];
@@ -2029,8 +2019,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [GIVEN] Initial warehouse journal line is created and posted
-        QltyItemJournalManagement.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
-        QltyItemJournalManagement.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine);
+        QltyInspectionUtility.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
+        QltyInspectionUtility.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine);
 
         // [GIVEN] Warehouse entry is verified for the posted inventory
         WarehouseEntry.SetRange("Location Code", Location.Code);
@@ -2057,7 +2047,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Disposition is performed to change the lot number
-        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
+        QltyInspectionUtility.PerformChangeTrackingDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         InitialInventoryWarehouseJournalBatch.Delete();
         InitialInventoryWhseItemWarehouseJournalTemplate.Delete();
@@ -2115,7 +2105,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalBatch: Record "Item Journal Batch";
         InitialInventoryItemJournalLine: Record "Item Journal Line";
         ChangeSerialNumberItemJournalLine: Record "Item Journal Line";
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
         NoSeries: Codeunit "No. Series";
         OriginalSerialNo: Code[50];
@@ -2224,7 +2213,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Disposition is performed to change the serial number
-        LibraryAssert.AreEqual(true, QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.PerformChangeTrackingDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
             'expected the adjustment to work.');
 
         // [THEN] One journal line is created in the bin move batch
@@ -2283,8 +2272,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
-        QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
         NoSeries: Codeunit "No. Series";
         OriginalSerialNo: Code[50];
         NewSerialNo: Code[50];
@@ -2367,10 +2354,10 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [GIVEN] Warehouse journal line is created for initial inventory
-        QltyItemJournalManagement.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
+        QltyInspectionUtility.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
 
         // [GIVEN] Warehouse journal is posted to establish initial inventory
-        QltyItemJournalManagement.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine);
+        QltyInspectionUtility.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine);
 
         // [GIVEN] Warehouse entry is verified and retrieved for the serial-tracked item
         WarehouseEntry.SetRange("Location Code", Location.Code);
@@ -2411,7 +2398,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Disposition is performed to change the serial number
-        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
+        QltyInspectionUtility.PerformChangeTrackingDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         InitialInventoryWarehouseJournalBatch.Delete();
         InitialInventoryWhseItemWarehouseJournalTemplate.Delete();
@@ -2466,7 +2453,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalBatch: Record "Item Journal Batch";
         InitialInventoryItemJournalLine: Record "Item Journal Line";
         ChangePackageNumberItemJournalLine: Record "Item Journal Line";
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
         NoSeries: Codeunit "No. Series";
         OriginalPackageNo: Code[50];
@@ -2581,7 +2567,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Disposition is performed to change the package number
-        LibraryAssert.AreEqual(true, QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer), 'expected the adjustment to work.');
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.PerformChangeTrackingDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer), 'expected the adjustment to work.');
 
         // [THEN] One journal line is created in the bin move batch
         ChangePackageNumberItemJournalLine.Reset();
@@ -2637,8 +2623,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
-        QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
         NoSeries: Codeunit "No. Series";
         OriginalPackageNo: Code[50];
         NewPackageNo: Code[50];
@@ -2703,8 +2687,8 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Qty. To Handle (Base)" := 100;
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
-        QltyItemJournalManagement.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
-        QltyItemJournalManagement.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine);
+        QltyInspectionUtility.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
+        QltyInspectionUtility.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine);
 
         // [GIVEN] Warehouse entry is verified for the posted inventory
         WarehouseEntry.SetRange("Location Code", Location.Code);
@@ -2731,7 +2715,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Disposition is performed to change the package number
-        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
+        QltyInspectionUtility.PerformChangeTrackingDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         InitialInventoryWarehouseJournalBatch.Delete();
         InitialInventoryWhseItemWarehouseJournalTemplate.Delete();
@@ -2786,7 +2770,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ReclassItemJournalBatch: Record "Item Journal Batch";
         InitialInventoryItemJournalLine: Record "Item Journal Line";
         ChangeLotNumberItemJournalLine: Record "Item Journal Line";
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
         NoSeries: Codeunit "No. Series";
         OriginalLotNo: Code[50];
@@ -2954,7 +2937,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Disposition is performed to change the lot number and expiration date
-        LibraryAssert.AreEqual(true, QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.PerformChangeTrackingDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
             'expected the adjustment to work.');
 
         // [THEN] One journal line is created in the bin move batch
@@ -3014,8 +2997,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
-        QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
         NoSeries: Codeunit "No. Series";
         OriginalLotNo: Code[50];
         NewLotNo: Code[50];
@@ -3080,11 +3061,11 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [GIVEN] Initial warehouse journal line is created and posted with expiration date
-        QltyItemJournalManagement.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
+        QltyInspectionUtility.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, WhseItemWarehouseJournalLine, CheckCreatedJnlWhseItemTrackingLine);
         CheckCreatedJnlWhseItemTrackingLine."Expiration Date" := WorkDate();
         CheckCreatedJnlWhseItemTrackingLine.Modify();
 
-        QltyItemJournalManagement.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine);
+        QltyInspectionUtility.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, WhseItemWarehouseJournalLine);
 
         // [GIVEN] Warehouse entry is verified for posted inventory with original lot number
         WarehouseEntry.SetRange("Location Code", Location.Code);
@@ -3111,7 +3092,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Disposition is performed to change the lot number and expiration date
-        QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
+        QltyInspectionUtility.PerformChangeTrackingDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         InitialInventoryWarehouseJournalBatch.Delete();
         InitialInventoryWhseItemWarehouseJournalTemplate.Delete();
@@ -3172,8 +3153,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
-        QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
         NoSeries: Codeunit "No. Series";
         OriginalLotNo: Code[50];
     begin
@@ -3247,12 +3226,12 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Qty. To Handle (Base)" := 100;
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
-        QltyItemJournalManagement.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, InitialInventoryWhseItemWarehouseJournalLine, InitialInventoryWhseItemTrackingLine);
+        QltyInspectionUtility.CreateWarehouseJournalLine(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWarehouseJournalBatch, InitialInventoryWhseItemWarehouseJournalLine, InitialInventoryWhseItemTrackingLine);
         InitialInventoryWhseItemTrackingLine."Expiration Date" := WorkDate();
         InitialInventoryWhseItemTrackingLine.Modify();
 
         // [GIVEN] Initial warehouse journal is posted and warehouse entry is verified
-        QltyItemJournalManagement.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWhseItemWarehouseJournalLine);
+        QltyInspectionUtility.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, InitialInventoryWhseItemWarehouseJournalLine);
         WarehouseEntry.SetRange("Location Code", Location.Code);
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.SetRange("Bin Code", TempQltyDispositionBuffer."New Bin Code");
@@ -3275,7 +3254,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Disposition is performed to create a warehouse journal line with prepare only behavior
-        QltyDispMoveWhseReclass.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
+        QltyInspectionUtility.PerformMoveWhseReclassDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] One reclass warehouse journal line is created with auto-assigned document number
         CreatedReclassWhseItemWarehouseJournalLine.Reset();
@@ -3291,7 +3270,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [WHEN] Entry behavior is changed to Post and disposition is performed again
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::Post;
-        LibraryAssert.IsTrue(QltyDispMoveWhseReclass.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveWhseReclassDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
             'second line with a post should have succeeded even if the first line was incorrect.');
 
         // [THEN] A second warehouse journal line is created and posted successfully
@@ -3302,7 +3281,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         CreatedReclassWhseItemWarehouseJournalLine.FindFirst();
 
         // [THEN] The first line with incorrect warehouse document number fails to post
-        LibraryAssert.IsFalse(QltyItemJournalManagement.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, CreatedReclassWhseItemWarehouseJournalLine), 'the first line should not have posted successfully');
+        LibraryAssert.IsFalse(QltyInspectionUtility.PostWarehouseJournal(TempQltyInspectionHeader, TempQltyDispositionBuffer, CreatedReclassWhseItemWarehouseJournalLine), 'the first line should not have posted successfully');
     end;
 
     [Test]
@@ -3327,7 +3306,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
         eQltyPurOrderGenerator2: Codeunit "Qlty. Pur. Order Generator";
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
         NoSeries: Codeunit "No. Series";
         NewLotNo: Code[50];
     begin
@@ -3421,7 +3399,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Entry Behavior" := TempQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] Disposition is performed to change lot number and expiration date
-        QltyDispChangeTracking.PerformDisposition(QltyInspectionHeader, TempQltyDispositionBuffer);
+        QltyInspectionUtility.PerformChangeTrackingDisposition(QltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] Two warehouse journal lines are created (one for each bin) with correct quantities
         ReclassWarehouseJournalLine.Reset();
@@ -3480,7 +3458,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         NegativeAdjustItemJournalBatch: Record "Item Journal Batch";
         ReclassItemJournalBatch: Record "Item Journal Batch";
         InitialInventoryItemJournalLine: Record "Item Journal Line";
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
         NoSeries: Codeunit "No. Series";
         OriginalPackageNo: Code[50];
@@ -3599,7 +3576,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Package disposition is performed with post behavior to change package number from original to new
-        LibraryAssert.AreEqual(true, QltyDispChangeTracking.PerformDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
+        LibraryAssert.AreEqual(true, QltyInspectionUtility.PerformChangeTrackingDisposition(TempQltyInspectionHeader, TempQltyDispositionBuffer),
             'expected the adjustment to work.');
 
         // [THEN] One item ledger entry with transfer type is created with new package number and quantity of 6
@@ -3629,7 +3606,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         ItemLedgerEntry: Record "Item Ledger Entry";
         TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         QltyManagementSetup: Record "Qlty. Management Setup";
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
         NoSeries: Codeunit "No. Series";
         NewLotNo: Code[50];
     begin
@@ -3680,7 +3656,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempQltyDispositionBuffer."Quantity Behavior" := TempQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity";
 
         // [WHEN] Disposition is performed with post behavior to change and post the lot number
-        QltyDispChangeTracking.PerformDisposition(QltyInspectionHeader, TempQltyDispositionBuffer);
+        QltyInspectionUtility.PerformChangeTrackingDisposition(QltyInspectionHeader, TempQltyDispositionBuffer);
 
         // [THEN] One item ledger entry is created with transfer entry type and new lot number
         Clear(ItemLedgerEntry);
@@ -3713,7 +3689,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseJournalLine: Record "Warehouse Journal Line";
         ReservationEntry: Record "Reservation Entry";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
         NoSeries: Codeunit "No. Series";
     begin
         // [SCENARIO] Validate that no warehouse journal lines are created when no inventory is found at the filtered location
@@ -3754,7 +3729,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."New Lot No." := NoSeries.GetNextNo(Item."Lot Nos.");
 
         // [WHEN] Lot disposition is performed with filter location that has no inventory
-        QltyDispChangeTracking.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
+        QltyInspectionUtility.PerformChangeTrackingDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
         // [THEN] No warehouse journal lines are created because no inventory was found at the filtered location
         WarehouseJournalLine.SetRange("Journal Template Name", WarehouseJournalTemplate.Name);
         WarehouseJournalLine.SetRange("Journal Batch Name", WarehouseJournalBatch.Name);
@@ -3777,7 +3752,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReservationEntry: Record "Reservation Entry";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
     begin
         // [SCENARIO] Validate that an error is raised when attempting lot disposition without specifying new tracking information
 
@@ -3805,7 +3779,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionGenRule.Delete();
 
         // [WHEN] Disposition is attempted without new tracking information
-        asserterror QltyDispChangeTracking.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
+        asserterror QltyInspectionUtility.PerformChangeTrackingDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
         // [THEN] An error is raised indicating no tracking changes were provided
         LibraryAssert.ExpectedError(NoTrackingChangesErr);
     end;
@@ -3823,7 +3797,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReservationEntry: Record "Reservation Entry";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
         NoSeries: Codeunit "No. Series";
     begin
         // [SCENARIO] Validate that an error is raised when reclassification batch is not configured for directed location
@@ -3858,7 +3831,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionGenRule.Delete();
 
         // [WHEN] Lot disposition is attempted without configured reclassification batch
-        asserterror QltyDispChangeTracking.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
+        asserterror QltyInspectionUtility.PerformChangeTrackingDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
         // [THEN] An error is raised indicating missing reclassification batch configuration
         LibraryAssert.ExpectedError(MissingReclassBatchErr);
     end;
@@ -3877,7 +3850,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         ReservationEntry: Record "Reservation Entry";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispChangeTracking: Codeunit "Qlty. Disp. Change Tracking";
         NoSeries: Codeunit "No. Series";
     begin
         // [SCENARIO] Validate that an error is raised when bin move batch is not configured for non-directed location with bins
@@ -3919,7 +3891,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionGenRule.Delete();
 
         // [WHEN] Lot disposition is attempted without configured bin move batch
-        asserterror QltyDispChangeTracking.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
+        asserterror QltyInspectionUtility.PerformChangeTrackingDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
         // [THEN] An error is raised indicating missing reclassification batch configuration
         LibraryAssert.ExpectedError(MissingReclassBatchErr);
     end;
@@ -4460,7 +4432,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
     begin
         // [SCENARIO] Create warehouse reclassification journal entries to move untracked items to a different bin within a directed location using specific quantity
 
@@ -4503,7 +4474,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveWhseReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
 
         // [THEN] A warehouse reclassification journal line is created with correct details
         ReclassWarehouseJournalLine.SetRange("Journal Template Name", ReclassWhseItemWarehouseJournalTemplate.Name);
@@ -4539,7 +4510,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
     begin
         // [SCENARIO] Create warehouse reclassification journal entries to move untracked items to a different bin within a directed location using sample quantity
 
@@ -4591,7 +4561,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveWhseReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
 
         // [THEN] A warehouse reclassification journal line is created with quantity equal to sample size
         ReclassWarehouseJournalLine.SetRange("Journal Template Name", ReclassWhseItemWarehouseJournalTemplate.Name);
@@ -4628,7 +4598,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
     begin
         // [SCENARIO] Create warehouse reclassification journal entries to move untracked items to a different bin within a directed location using failed sample quantity
 
@@ -4680,7 +4649,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveWhseReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
 
         // [THEN] A warehouse reclassification journal line is created with quantity equal to failed quantity
         ReclassWarehouseJournalLine.SetRange("Journal Template Name", ReclassWhseItemWarehouseJournalTemplate.Name);
@@ -4717,7 +4686,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
     begin
         // [SCENARIO] Create warehouse reclassification journal entries to move untracked items to a different bin within a directed location using passed sample quantity
 
@@ -4769,7 +4737,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveWhseReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
 
         // [THEN] A warehouse reclassification journal line is created with quantity equal to passed quantity
         ReclassWarehouseJournalLine.SetRange("Journal Template Name", ReclassWhseItemWarehouseJournalTemplate.Name);
@@ -4806,7 +4774,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         BinContent: Record "Bin Content";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
     begin
         // [SCENARIO] Move inventory with warehouse reclassification for untracked items in directed location with specific quantity and post the journal
 
@@ -4854,7 +4821,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::Post;
 
         // [WHEN] Perform disposition with post entry behavior
-        LibraryAssert.IsTrue(QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification completed.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveWhseReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification completed.');
 
         // [THEN] Inventory is physically moved to the target bin with correct quantity
 
@@ -4890,7 +4857,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
         BinToUse1: Code[20];
         BinToUse2: Code[20];
     begin
@@ -4971,7 +4937,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::Post;
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification completed.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveWhseReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification completed.');
 
         // [THEN] Two warehouse entries are created in the destination bin from both source bins
         Clear(WarehouseEntry);
@@ -5008,7 +4974,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
     begin
         // [SCENARIO] Attempt to post warehouse reclassification with quantity exceeding available inventory should create journal entries but not post, without throwing errors
 
@@ -5057,7 +5022,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" := 150;
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsFalse(QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should not claim posting completed.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.PerformMoveWhseReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should not claim posting completed.');
 
         // [THEN] Journal entries are created but posting fails gracefully without errors
         ReclassWarehouseJournalLine.SetRange("Journal Template Name", ReclassWhseItemWarehouseJournalTemplate.Name);
@@ -5092,7 +5057,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveItemReclass: Codeunit "Qlty. Disp. Move Item Reclass.";
     begin
         // [SCENARIO] Create item reclassification journal entries to move untracked items to a different bin within a non-directed location using specific quantity
 
@@ -5138,7 +5102,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveItemReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
 
         // [THEN] An item reclassification journal line is created with correct details
         ReclassItemJournalLine.SetRange("Journal Template Name", ReclassItemJournalTemplate.Name);
@@ -5172,7 +5136,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveItemReclass: Codeunit "Qlty. Disp. Move Item Reclass.";
     begin
         // [SCENARIO] Create item reclassification journal entries to move untracked items to a different bin within a non-directed location using sample quantity
 
@@ -5223,7 +5186,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveItemReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
 
         // [THEN] An item reclassification journal line is created with quantity equal to sample size
         ReclassItemJournalLine.SetRange("Journal Template Name", ReclassItemJournalTemplate.Name);
@@ -5257,7 +5220,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveItemReclass: Codeunit "Qlty. Disp. Move Item Reclass.";
     begin
         // [SCENARIO] Create item reclassification journal entries to move untracked items to a different bin within a non-directed location using failed sample quantity
 
@@ -5309,7 +5271,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveItemReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
 
         // [THEN] An item reclassification journal line is created with quantity equal to failed quantity
         ReclassItemJournalLine.SetRange("Journal Template Name", ReclassItemJournalTemplate.Name);
@@ -5343,7 +5305,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveItemReclass: Codeunit "Qlty. Disp. Move Item Reclass.";
     begin
         // [SCENARIO] Create item reclassification journal entries to move untracked items to a different bin within a non-directed location using passed sample quantity
 
@@ -5395,7 +5356,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveItemReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
 
         // [THEN] An item reclassification journal line is created with quantity equal to passed quantity
         ReclassItemJournalLine.SetRange("Journal Template Name", ReclassItemJournalTemplate.Name);
@@ -5429,7 +5390,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         BinContent: Record "Bin Content";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveItemReclass: Codeunit "Qlty. Disp. Move Item Reclass.";
     begin
         // [SCENARIO] Move inventory with item reclassification for untracked items in non-directed location with specific quantity and post the journal
 
@@ -5477,7 +5437,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::Post;
 
         // [WHEN] Perform disposition with post entry behavior
-        LibraryAssert.IsTrue(QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification completed.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveItemReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification completed.');
 
         // [THEN] Inventory is physically moved to the target bin with both bins containing 50 units each
 
@@ -5514,7 +5474,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveItemReclass: Codeunit "Qlty. Disp. Move Item Reclass.";
         InitialChangeBin: Code[20];
     begin
         // [SCENARIO] Post item reclassification to move lot-tracked items distributed across multiple bins into a single destination bin in a non-directed location
@@ -5589,7 +5548,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::Post;
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification completed.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveItemReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification completed.');
 
         // [THEN] Two warehouse entries are created in the destination bin from both source bins
         Clear(WarehouseEntry);
@@ -5625,7 +5584,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveItemReclass: Codeunit "Qlty. Disp. Move Item Reclass.";
     begin
         // [SCENARIO] Attempt to post item reclassification with quantity exceeding available inventory should create journal entries but not post, without throwing errors
 
@@ -5674,7 +5632,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" := 150;
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsFalse(QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should not claim posting completed.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.PerformMoveItemReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should not claim posting completed.');
 
         // [THEN] Journal entries are created but posting fails gracefully without errors
         ReclassItemJournalLine.SetRange("Journal Template Name", ReclassItemJournalTemplate.Name);
@@ -5697,7 +5655,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveItemReclass: Codeunit "Qlty. Disp. Move Item Reclass.";
     begin
         // [SCENARIO] Attempting to perform item reclassification disposition without configured batch name should throw an error
 
@@ -5708,7 +5665,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Modify();
 
         // [WHEN] Disposition action is performed
-        asserterror QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
+        asserterror QltyInspectionUtility.PerformMoveItemReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
 
         // [THEN] An error is thrown indicating missing batch configuration
         LibraryAssert.ExpectedError(MissingBinMoveBatchErr);
@@ -5720,7 +5677,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
     begin
         // [SCENARIO] Attempting to perform warehouse reclassification disposition without configured batch name should throw an error
 
@@ -5731,7 +5687,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyManagementSetup.Modify();
 
         // [WHEN] Disposition action is performed
-        asserterror QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
+        asserterror QltyInspectionUtility.PerformMoveWhseReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
 
         // [THEN] An error is thrown indicating missing batch configuration
         LibraryAssert.ExpectedError(MissingBinReclassBatchErr);
@@ -5755,7 +5711,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWhseReclass: Codeunit "Qlty. Disp. Move Whse.Reclass.";
     begin
         // [SCENARIO] When performing warehouse reclassification disposition with a location filter that doesn't match the inspection's location, no journal entries should be created and the operation should exit gracefully
 
@@ -5804,7 +5759,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsFalse(QltyDispMoveWhseReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should not claim reclassification created.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.PerformMoveWhseReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should not claim reclassification created.');
 
         // [THEN] No warehouse journal lines are created
         ReclassWarehouseJournalLine.SetRange("Journal Template Name", ReclassWhseItemWarehouseJournalTemplate.Name);
@@ -5835,7 +5790,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveItemReclass: Codeunit "Qlty. Disp. Move Item Reclass.";
     begin
         // [SCENARIO] When performing item reclassification disposition with a location filter that doesn't match the inspection's location, no journal entries should be created and the operation should exit gracefully
 
@@ -5885,7 +5839,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsFalse(QltyDispMoveItemReclass.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should not claim reclassification created.');
+        LibraryAssert.IsFalse(QltyInspectionUtility.PerformMoveItemReclassDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should not claim reclassification created.');
 
         // [THEN] No item journal lines are created
         ReclassItemJournalLine.SetRange("Journal Template Name", ReclassItemJournalTemplate.Name);
@@ -5916,7 +5870,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWorksheet: Codeunit "Qlty. Disp. Move Worksheet";
         WhseWorksheetTemplateToUse: Text;
     begin
         // [SCENARIO] Create movement worksheet entries for an untracked item with a specific quantity without posting
@@ -5976,7 +5929,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveWorksheet.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveWorksheetDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim reclassification created.');
 
         // [THEN] A movement worksheet line is created with correct from/to locations and quantity
         WhseWorksheetLine.SetRange("Worksheet Template Name", WhseWorksheetTemplate.Name);
@@ -6020,7 +5973,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         Bin: Record Bin;
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWorksheet: Codeunit "Qlty. Disp. Move Worksheet";
         BinToUse1: Code[20];
         BinToUse2: Code[20];
         WhseWorksheetTemplateToUse: Text;
@@ -6120,7 +6072,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::Post;
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispMoveWorksheet.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim movement completed.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformMoveWorksheetDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim movement completed.');
 
         // [THEN] Four warehouse movement lines are created (take from two source bins, place in one destination bin)
         WhseMovementWarehouseActivityLine.SetRange("Activity Type", WhseMovementWarehouseActivityLine."Activity Type"::Movement);
@@ -6160,7 +6112,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         WarehouseEntry: Record "Warehouse Entry";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispMoveWorksheet: Codeunit "Qlty. Disp. Move Worksheet";
         WhseWorksheetTemplateToUse: Text;
     begin
         // [SCENARIO] Attempting to perform movement worksheet disposition without specifying destination location or bin should throw an error
@@ -6214,7 +6165,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionGenRule.Delete();
 
         // [WHEN] Disposition action is performed
-        asserterror QltyDispMoveWorksheet.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
+        asserterror QltyInspectionUtility.PerformMoveWorksheetDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer);
 
         // [THEN] An error is thrown indicating insufficient details for inventory movement
         LibraryAssert.ExpectedError(StrSubstNo(RequestedInventoryMoveButUnableToFindSufficientDetailsErr, QltyInspectionHeader."No."));
@@ -6236,7 +6187,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         InternalMovementLine: Record "Internal Movement Line";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispInternalMove: Codeunit "Qlty. Disp. Internal Move";
     begin
         // [SCENARIO] Create internal movement entries for an untracked item at a non-directed location with a specific quantity without posting
 
@@ -6285,7 +6235,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::"Prepare only";
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispInternalMove.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim internal movement created.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformInternalMoveDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim internal movement created.');
 
         // [THEN] An internal movement line is created with correct from/to bins and quantity
         InternalMovementLine.SetRange("Location Code", Location.Code);
@@ -6321,7 +6271,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         InventoryMovementWarehouseActivityLine: Record "Warehouse Activity Line";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyDispInternalMove: Codeunit "Qlty. Disp. Internal Move";
         InitialChangeBin: Code[20];
     begin
         // [SCENARIO] Create and post internal movement for lot-tracked item with quantity split across multiple bins using item tracked quantity behavior
@@ -6402,7 +6351,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         TempInstructionQltyDispositionBuffer."Entry Behavior" := TempInstructionQltyDispositionBuffer."Entry Behavior"::Post;
 
         // [WHEN] The disposition action is performed
-        LibraryAssert.IsTrue(QltyDispInternalMove.PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim inventory movement completed.');
+        LibraryAssert.IsTrue(QltyInspectionUtility.PerformInternalMoveDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer), 'Should claim inventory movement completed.');
 
         // [THEN] Four inventory movement lines are created (take from two source bins, place in one destination bin)
         InventoryMovementWarehouseActivityLine.SetRange("Activity Type", InventoryMovementWarehouseActivityLine."Activity Type"::"Invt. Movement");
@@ -7086,8 +7035,6 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
         TempQuantityQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
-        QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         RecordRef: RecordRef;
     begin
         // [SCENARIO] Automatic location detection from purchase line using naming conventions when populating quantity buffer for inventory availability
@@ -7109,8 +7056,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
 
         // [GIVEN] A quality order is created from the purchase line and cleared for testing
         RecordRef.GetTable(PurchaseLine);
-        if QltyInspectionCreate.CreateInspection(RecordRef, false) then
-            QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
 
         // [GIVEN] A disposition buffer is configured for automatic choice with specific quantity of 5 units
         TempInstructionQltyDispositionBuffer.Init();
@@ -7126,7 +7072,7 @@ codeunit 139960 "Qlty. Tests - Dispositions"
         QltyInspectionHeader.Modify();
 
         // [WHEN] The quantity buffer is populated using inventory availability logic
-        QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer);
+        QltyInspectionUtility.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer);
 
         QltyInspectionGenRule.Delete();
         QltyInspectionTemplateHdr.Delete();

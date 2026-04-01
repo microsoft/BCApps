@@ -70,7 +70,7 @@ table 20401 "Qlty. Test"
 
             trigger OnValidate()
             var
-                TempFilteringOnlyQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+                TempFilteringOnlyQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
                 QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
                 LookupFilter: Text;
             begin
@@ -78,11 +78,11 @@ table 20401 "Qlty. Test"
                     Rec.Validate("Lookup Field No.", 0);
                     Rec."Lookup Table Filter" := '';
                     Rec."Allowable Values" := '';
-                    if Rec."Lookup Table No." = Database::"Qlty. Lookup Code" then begin
-                        TempFilteringOnlyQltyLookupCode.SetRange("Group Code", Rec."Code");
-                        LookupFilter := QltyFilterHelpers.CleanUpWhereClause(TempFilteringOnlyQltyLookupCode.GetView());
+                    if Rec."Lookup Table No." = Database::"Qlty. Test Lookup Value" then begin
+                        TempFilteringOnlyQltyTestLookupValue.SetRange("Lookup Group Code", Rec."Code");
+                        LookupFilter := QltyFilterHelpers.CleanUpWhereClause(TempFilteringOnlyQltyTestLookupValue.GetView());
                         Rec.Validate("Lookup Table Filter", CopyStr(LookupFilter, 1, MaxStrLen(Rec."Lookup Table Filter")));
-                        Rec.Validate("Lookup Field No.", TempFilteringOnlyQltyLookupCode.FieldNo(Code));
+                        Rec.Validate("Lookup Field No.", TempFilteringOnlyQltyTestLookupValue.FieldNo("Value"));
                     end;
                 end;
 
@@ -284,11 +284,11 @@ table 20401 "Qlty. Test"
 
     local procedure AssistEditChooseFromTableLookup()
     var
-        TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
     begin
-        Rec.CollectAllowableValues(TempBufferQltyLookupCode, Rec."Default Value");
-        if Page.RunModal(Page::"Qlty. Lookup Field Choose", TempBufferQltyLookupCode) = Action::LookupOK then
-            Rec.Validate("Default Value", CopyStr(TempBufferQltyLookupCode."Custom 1", 1, MaxStrLen(Rec."Default Value")));
+        Rec.CollectAllowableValues(TempBufferQltyTestLookupValue, Rec."Default Value");
+        if Page.RunModal(Page::"Qlty. Lookup Field Choose", TempBufferQltyTestLookupValue) = Action::LookupOK then
+            Rec.Validate("Default Value", CopyStr(TempBufferQltyTestLookupValue."Custom 1", 1, MaxStrLen(Rec."Default Value")));
     end;
 
     internal procedure AssistEditFreeText()
@@ -480,17 +480,17 @@ table 20401 "Qlty. Test"
     /// Custom 3 = uppercase value.
     /// </summary>
     /// <param name="ContextQltyInspectionHeader">Supply if you want to give an inspection, this is useful for table lookups which can have additional values.</param>
-    /// <param name="TempBufferQltyLookupCode"></param>
+    /// <param name="TempBufferQltyTestLookupValue"></param>
     /// <param name="OptionalSetToValue">Leave empty to ignore. Supply a value to have the record auto-filtered to the supplied record that matches</param>
-    procedure CollectAllowableValues(var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; OptionalSetToValue: Text)
+    procedure CollectAllowableValues(var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; OptionalSetToValue: Text)
     var
         TempDummyContextQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempDummyContextQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
-        CollectAllowableValues(TempDummyContextQltyInspectionHeader, TempDummyContextQltyInspectionLine, TempBufferQltyLookupCode, OptionalSetToValue);
+        CollectAllowableValues(TempDummyContextQltyInspectionHeader, TempDummyContextQltyInspectionLine, TempBufferQltyTestLookupValue, OptionalSetToValue);
     end;
 
-    procedure CollectAllowableValues(var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary; OptionalSetToValue: Text)
+    procedure CollectAllowableValues(var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; OptionalSetToValue: Text)
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         OfChoices: List of [Text];
@@ -499,34 +499,34 @@ table 20401 "Qlty. Test"
         case Rec."Test Value Type" of
             Rec."Test Value Type"::"Value Type Table Lookup":
                 begin
-                    QltyMiscHelpers.GetRecordsForTableField(Rec, OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine, TempBufferQltyLookupCode);
-                    if TempBufferQltyLookupCode.FindSet() then begin
+                    QltyMiscHelpers.GetRecordsForTableField(Rec, OptionalContextQltyInspectionHeader, OptionalContextQltyInspectionLine, TempBufferQltyTestLookupValue);
+                    if TempBufferQltyTestLookupValue.FindSet() then begin
                         if OptionalSetToValue <> '' then begin
-                            TempBufferQltyLookupCode.SetRange(Code, CopyStr(OptionalSetToValue, 1, MaxStrLen(TempBufferQltyLookupCode.Code)));
-                            if not TempBufferQltyLookupCode.FindSet() then begin
-                                TempBufferQltyLookupCode.SetRange(Description, CopyStr(OptionalSetToValue, 1, MaxStrLen(TempBufferQltyLookupCode.Description)));
-                                if not TempBufferQltyLookupCode.FindSet() then;
+                            TempBufferQltyTestLookupValue.SetRange("Value", CopyStr(OptionalSetToValue, 1, MaxStrLen(TempBufferQltyTestLookupValue."Value")));
+                            if not TempBufferQltyTestLookupValue.FindSet() then begin
+                                TempBufferQltyTestLookupValue.SetRange(Description, CopyStr(OptionalSetToValue, 1, MaxStrLen(TempBufferQltyTestLookupValue.Description)));
+                                if not TempBufferQltyTestLookupValue.FindSet() then;
                             end;
                         end;
-                        TempBufferQltyLookupCode.SetRange(Code);
-                        TempBufferQltyLookupCode.SetRange(Description);
+                        TempBufferQltyTestLookupValue.SetRange("Value");
+                        TempBufferQltyTestLookupValue.SetRange(Description);
                     end;
                 end;
             Rec."Test Value Type"::"Value Type Option":
                 begin
-                    TempBufferQltyLookupCode.Reset();
+                    TempBufferQltyTestLookupValue.Reset();
                     OfChoices := Rec."Allowable Values".Split(',');
                     foreach Choice in OfChoices do begin
                         Choice := Choice.Trim();
-                        if not TempBufferQltyLookupCode.Get(Rec.Code, CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Code))) then begin
-                            TempBufferQltyLookupCode.Init();
-                            TempBufferQltyLookupCode."Group Code" := Rec.Code;
-                            TempBufferQltyLookupCode.Code := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Code));
-                            TempBufferQltyLookupCode.Description := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode.Description));
-                            TempBufferQltyLookupCode."Custom 1" := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyLookupCode."Custom 1"));
-                            TempBufferQltyLookupCode."Custom 2" := TempBufferQltyLookupCode."Custom 1".ToLower();
-                            TempBufferQltyLookupCode."Custom 3" := TempBufferQltyLookupCode."Custom 1".ToUpper();
-                            TempBufferQltyLookupCode.Insert();
+                        if not TempBufferQltyTestLookupValue.Get(Rec.Code, CopyStr(Choice, 1, MaxStrLen(TempBufferQltyTestLookupValue."Value"))) then begin
+                            TempBufferQltyTestLookupValue.Init();
+                            TempBufferQltyTestLookupValue."Lookup Group Code" := Rec.Code;
+                            TempBufferQltyTestLookupValue."Value" := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyTestLookupValue."Value"));
+                            TempBufferQltyTestLookupValue.Description := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyTestLookupValue.Description));
+                            TempBufferQltyTestLookupValue."Custom 1" := CopyStr(Choice, 1, MaxStrLen(TempBufferQltyTestLookupValue."Custom 1"));
+                            TempBufferQltyTestLookupValue."Custom 2" := TempBufferQltyTestLookupValue."Custom 1".ToLower();
+                            TempBufferQltyTestLookupValue."Custom 3" := TempBufferQltyTestLookupValue."Custom 1".ToUpper();
+                            TempBufferQltyTestLookupValue.Insert();
                         end;
                     end;
                 end;
@@ -555,7 +555,7 @@ table 20401 "Qlty. Test"
             Rec."Lookup Table Filter" := '';
 
             if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Table Lookup" then
-                Rec.Validate("Lookup Table No.", Database::"Qlty. Lookup Code");
+                Rec.Validate("Lookup Table No.", Database::"Qlty. Test Lookup Value");
         end;
 
         QltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(Rec.Code, Rec."Test Value Type");
@@ -579,7 +579,7 @@ table 20401 "Qlty. Test"
 
     procedure AssistEditAllowableValues()
     var
-        QltyLookupCode: Record "Qlty. Lookup Code";
+        QltyTestLookupValue: Record "Qlty. Test Lookup Value";
         QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
         Expression: Text;
         IsHandled: Boolean;
@@ -589,9 +589,9 @@ table 20401 "Qlty. Test"
             exit;
 
         if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Table Lookup" then begin
-            if (Rec.Code <> '') and (Rec."Lookup Table No." = Database::"Qlty. Lookup Code") then begin
-                QltyLookupCode.SetRange("Group Code", Rec.Code);
-                Page.RunModal(Page::"Qlty. Lookup Code List", QltyLookupCode);
+            if (Rec.Code <> '') and (Rec."Lookup Table No." = Database::"Qlty. Test Lookup Value") then begin
+                QltyTestLookupValue.SetRange("Lookup Group Code", Rec.Code);
+                Page.RunModal(Page::"Qlty. Test Lookup Values", QltyTestLookupValue);
             end;
             Rec.UpdateAllowedValuesFromTableLookup();
         end else begin

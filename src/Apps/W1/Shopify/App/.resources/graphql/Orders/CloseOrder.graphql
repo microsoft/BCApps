@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { orderClose(input: { id: \"gid://shopify/Order/{{OrderId}}\" }) { order { legacyResourceId closed closedAt }, userErrors {field, message}}}"}

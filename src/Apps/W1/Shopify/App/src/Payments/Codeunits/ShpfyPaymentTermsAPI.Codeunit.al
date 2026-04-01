@@ -28,7 +28,7 @@ codeunit 30360 "Shpfy Payment Terms API"
         JTemplate: JsonToken;
         JResponse: JsonToken;
     begin
-        GraphQLType := GraphQLType::GetPaymentTerms;
+        GraphQLType := GraphQLType::Payments_GetPaymentTerms;
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType);
 
         JsonHelper.GetJsonArray(JResponse, JTemplates, 'data.paymentTermsTemplates');

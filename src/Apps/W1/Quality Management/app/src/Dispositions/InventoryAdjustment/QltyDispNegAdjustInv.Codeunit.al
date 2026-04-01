@@ -62,7 +62,7 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <returns></returns>
-    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;

@@ -5,6 +5,7 @@
 namespace Microsoft.PowerBIReports;
 
 using Microsoft.Finance.PowerBIReports;
+using Microsoft.Inventory.Analysis;
 using System.DateTime;
 using System.Environment;
 
@@ -609,6 +610,14 @@ page 36951 "PowerBI Reports Setup"
                     CurrPage.Update(false);
                 end;
             }
+            action(ABCAnalysisSetup)
+            {
+                ApplicationArea = All;
+                Caption = 'ABC Analysis Setup';
+                ToolTip = 'Set up your ABC analysis thresholds in the Power BI Inventory reports.';
+                Image = Percentage;
+                RunObject = page "ABC Analysis Setup";
+            }
         }
 
         area(Promoted)
@@ -628,6 +637,9 @@ page 36951 "PowerBI Reports Setup"
                 {
                 }
                 actionref(ClearSetupDev_Promoted; ClearSetupDev)
+                {
+                }
+                actionref(ABCAnalysisSetup_Promoted; ABCAnalysisSetup)
                 {
                 }
             }

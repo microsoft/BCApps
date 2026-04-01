@@ -237,13 +237,13 @@ codeunit 6126 "E-Doc. GL Account Matching" implements "AOAI Function", IEDocAISy
 
     procedure Execute(Arguments: JsonObject): Variant
     var
-        EDocMatchLineBuffer: Record "EDoc Line Match Buffer";
+        TempEDocMatchLineBuffer: Record "EDoc Line Match Buffer";
     begin
-        EDocMatchLineBuffer."Line No." := Arguments.GetInteger('lineId');
-        EDocMatchLineBuffer."GL Account No." := CopyStr(Arguments.GetText('accountId'), 1, MaxStrLen(EDocMatchLineBuffer."GL Account No."));
-        EDocMatchLineBuffer."GL Account Reason" := CopyStr(Arguments.GetText('reasoning'), 1, MaxStrLen(EDocMatchLineBuffer."GL Account Reason"));
-        EDocMatchLineBuffer."GL Account Candidate Count" := Arguments.GetInteger('totalNumberOfPotentialAccounts');
-        exit(EDocMatchLineBuffer);
+        TempEDocMatchLineBuffer."Line No." := Arguments.GetInteger('lineId');
+        TempEDocMatchLineBuffer."GL Account No." := CopyStr(Arguments.GetText('accountId'), 1, MaxStrLen(TempEDocMatchLineBuffer."GL Account No."));
+        TempEDocMatchLineBuffer."GL Account Reason" := CopyStr(Arguments.GetText('reasoning'), 1, MaxStrLen(TempEDocMatchLineBuffer."GL Account Reason"));
+        TempEDocMatchLineBuffer."GL Account Candidate Count" := Arguments.GetInteger('totalNumberOfPotentialAccounts');
+        exit(TempEDocMatchLineBuffer);
     end;
 
     procedure GetName(): Text

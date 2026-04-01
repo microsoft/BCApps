@@ -14,7 +14,7 @@ page 4300 "Agent Task List"
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "Agent Task";
-    Caption = 'Agent Tasks';
+    Caption = 'Agent Tasks', Comment = 'Agent Tasks in this page should be translated as Tasks that AI agents were assigned.';
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
@@ -207,9 +207,9 @@ page 4300 "Agent Task List"
 
     trigger OnOpenPage()
     var
-        AgentImpl: Codeunit "Agent Impl.";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
-        ConsumedCreditsVisible := AgentImpl.CanShowMonetizationData();
+        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
     end;
 
     trigger OnAfterGetRecord()

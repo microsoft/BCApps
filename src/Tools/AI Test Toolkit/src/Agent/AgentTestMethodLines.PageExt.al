@@ -1,0 +1,79 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.TestTools.AITestToolkit;
+
+using System.Agents;
+
+pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
+{
+    layout
+    {
+        addafter("Tokens Consumed")
+        {
+            field("Copilot Credits"; CopilotCredits)
+            {
+                ApplicationArea = All;
+                AutoFormatType = 0;
+                Caption = 'Copilot Credits Consumed';
+                ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this eval line.';
+                Editable = false;
+                Visible = ConsumedCreditsVisible;
+            }
+            field("Agent Task Count"; AgentTaskCount)
+            {
+                ApplicationArea = All;
+                Caption = 'Agent Tasks Executed';
+                ToolTip = 'Specifies the number of Agent Tasks related to this eval line.';
+                Editable = false;
+
+                trigger OnDrillDown()
+                var
+                    AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+                begin
+                    AgentTestContextImpl.OpenAgentTaskList(AgentTaskIDs);
+                end;
+            }
+        }
+    }
+
+    trigger OnOpenPage()
+    var
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+    begin
+        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateAgentTaskMetrics();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateAgentTaskMetrics();
+    end;
+
+    local procedure UpdateAgentTaskMetrics()
+    var
+        VersionFilter: Text;
+        CurrentFilterGroup: Integer;
+    begin
+        CurrentFilterGroup := Rec.FilterGroup();
+        Rec.FilterGroup(4);
+        VersionFilter := Rec.GetFilter(Rec."Version Filter");
+        Rec.FilterGroup(CurrentFilterGroup);
+        CopilotCredits := ConsumedCreditsVisible ? AgentTestContextImpl.GetCopilotCredits(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.") : -1;
+        AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDs(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.");
+        AgentTaskCount := AgentTestContextImpl.GetAgentTaskCount(AgentTaskIDs);
+    end;
+
+    var
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        CopilotCredits: Decimal;
+        AgentTaskIDs: Text;
+        AgentTaskCount: Integer;
+        ConsumedCreditsVisible: Boolean;
+}

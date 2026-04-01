@@ -16,10 +16,11 @@ using Microsoft.QualityManagement.Utilities;
 
 report 20405 "Qlty. General Purpose Inspect."
 {
-    ApplicationArea = QualityManagement;
-    UsageCategory = ReportsAndAnalysis;
     Caption = 'Quality Management - General Purpose Inspection Report';
     ToolTip = 'A printable general purpose inspection report.';
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+    UsageCategory = ReportsAndAnalysis;
+    ApplicationArea = QualityManagement;
     DefaultRenderingLayout = QltyGeneralPurposeInspectionDefault;
     Extensible = true;
 
@@ -91,7 +92,7 @@ report 20405 "Qlty. General Purpose Inspect."
 
                 column(Field_Code; "Test Code") { }
                 column(Field_Description; Description) { }
-                column(Numeric_Value; "Numeric Value") { }
+                column(Numeric_Value; "Derived Numeric Value") { }
                 column(Field_Type; "Test Value Type") { }
                 column(Field_IsLabel; FieldIsLabel) { }
                 column(Field_HasEnteredValue; HasEnteredValue) { }
@@ -322,21 +323,7 @@ report 20405 "Qlty. General Purpose Inspect."
             Type = RDLC;
             Caption = 'Default Layout';
             Summary = 'The default general purpose quality inspection report.';
-            LayoutFile = './src/Reports/QltyGeneralPurposeInspectionDefault.rdl';
-        }
-        layout(QltyGeneralPurposeInspectionAlternate)
-        {
-            Type = RDLC;
-            Caption = 'Alternate Layout';
-            Summary = 'An alternate general purpose quality inspection report.';
             LayoutFile = './src/Reports/QltyGeneralPurposeInspectionAlternate.rdl';
-        }
-        layout(QualityManagement_GeneralPurposeInspection_Default)
-        {
-            Type = Word;
-            Caption = 'Word Layout';
-            Summary = 'Word layout for general purpose quality inspection report.';
-            LayoutFile = './src/Reports/QltyGeneralPurposeInspection.docx';
         }
     }
 

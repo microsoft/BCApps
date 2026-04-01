@@ -15,6 +15,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
 using System.DataAdministration;
 using System.Globalization;
@@ -39,12 +40,14 @@ table 30102 "Shpfy Shop"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code to identify this Shopify Shop.';
             DataClassification = SystemMetadata;
             NotBlank = true;
         }
         field(2; "Shopify URL"; Text[250])
         {
             Caption = 'Shopify Admin URL';
+            ToolTip = 'Specifies the URL of the Shopify Admin you are connecting to. Use the format: "https://{store ID}.myshopify.com". You can build the URL by combining the store ID from the admin URL, e.g., "admin.shopify.com/store/{store ID}" and ".myshopify.com". Simply copy the URL from the Shopify Admin, and the connector will convert it to the required format. Ensure you copy the URL from the Shopify Admin, not the online store, as the online store may display a redirect URL.';
             Access = Internal;
             DataClassification = SystemMetadata;
             ExtendedDatatype = URL;
@@ -63,6 +66,7 @@ table 30102 "Shpfy Shop"
         field(3; Enabled; Boolean)
         {
             Caption = 'Enabled';
+            ToolTip = 'Specifies whether this Shopify shop connection is active. When enabled, the connector requests an access token, imports shop settings, and syncs countries. Ensure the Shopify Admin URL is configured first.';
 
             trigger OnValidate()
             var
@@ -96,6 +100,7 @@ table 30102 "Shpfy Shop"
         field(6; "Customer Price Group"; Code[10])
         {
             Caption = 'Customer Price Group';
+            ToolTip = 'Specifies which Customer Price Group is used to calculate the prices in Shopify.';
             DataClassification = SystemMetadata;
             TableRelation = "Customer Price Group";
             ValidateTableRelation = true;
@@ -103,6 +108,7 @@ table 30102 "Shpfy Shop"
         field(7; "Customer Discount Group"; Code[20])
         {
             Caption = 'Customer Discount Group';
+            ToolTip = 'Specifies which Customer Discount Group is used to calculate the prices in Shopify.';
             DataClassification = SystemMetadata;
             TableRelation = "Customer Discount Group";
             ValidateTableRelation = true;
@@ -110,6 +116,7 @@ table 30102 "Shpfy Shop"
         field(8; "Shipping Charges Account"; Code[20])
         {
             Caption = 'Shipping Charges Account';
+            ToolTip = 'Specifies the G/L Account for posting the shipping cost.';
             DataClassification = SystemMetadata;
             TableRelation = "G/L Account"."No.";
             ValidateTableRelation = true;
@@ -125,6 +132,7 @@ table 30102 "Shpfy Shop"
         field(9; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language of the Shopify Shop.';
             DataClassification = SystemMetadata;
             TableRelation = Language;
             ValidateTableRelation = true;
@@ -132,6 +140,7 @@ table 30102 "Shpfy Shop"
         field(10; "Sync Item"; Option)
         {
             Caption = 'Sync Item';
+            ToolTip = 'Specifies in which direction items are synchronized.';
             DataClassification = SystemMetadata;
             OptionCaption = ' ,To Shopify,From Shopify';
             OptionMembers = " ","To Shopify","From Shopify";
@@ -151,6 +160,7 @@ table 30102 "Shpfy Shop"
         field(12; "Sync Item Images"; Option)
         {
             Caption = 'Sync Item Images';
+            ToolTip = 'Specifies whether you want to synchronize item images and in which direction.';
             DataClassification = SystemMetadata;
             OptionCaption = 'Disabled,To Shopify,From Shopify';
             OptionMembers = " ","To Shopify","From Shopify";
@@ -158,21 +168,25 @@ table 30102 "Shpfy Shop"
         field(13; "Sync Item Extended Text"; boolean)
         {
             Caption = 'Sync Item Extended Text';
+            ToolTip = 'Specifies whether you want to synchronize extended texts to Shopify.';
             DataClassification = SystemMetadata;
         }
         field(14; "Sync Item Attributes"; boolean)
         {
             Caption = 'Sync Item Attributes';
+            ToolTip = 'Specifies whether you want to synchronize item attributes to Shopify.';
             DataClassification = SystemMetadata;
         }
         field(15; "Sync Item Marketing Text"; Boolean)
         {
             Caption = 'Sync Item Marketing Text';
+            ToolTip = 'Specifies whether you want to synchronize marketing texts to Shopify.';
             DataClassification = SystemMetadata;
         }
         field(21; "Auto Create Orders"; Boolean)
         {
-            Caption = 'Auto Create Orders';
+            Caption = 'Auto Create Sales Documents';
+            ToolTip = 'Specifies whether sales documents, such as orders and invoices, will be created automatically after import.';
             DataClassification = SystemMetadata;
             trigger OnValidate()
             var
@@ -191,11 +205,13 @@ table 30102 "Shpfy Shop"
         field(22; "Auto Create Unknown Items"; Boolean)
         {
             Caption = 'Auto Create Unknown Items';
+            ToolTip = 'Specifies if unknown items are automatically created in Business Central when synchronizing from Shopify.';
             DataClassification = SystemMetadata;
         }
         field(23; "Auto Create Unknown Customers"; Boolean)
         {
             Caption = 'Auto Create Unknown Customers';
+            ToolTip = 'Specifies if unknown customers are automatically created in Business Central when synchronizing from Shopify.';
             DataClassification = SystemMetadata;
         }
 #if not CLEANSCHEMA25
@@ -220,11 +236,13 @@ table 30102 "Shpfy Shop"
         field(27; "Shopify Order No. on Doc. Line"; Boolean)
         {
             Caption = 'Shopify Order No. on Doc. Line';
+            ToolTip = 'Specifies whether the Shopify Order No. is shown in the document line.';
             DataClassification = CustomerContent;
         }
         field(28; "Customer Import From Shopify"; enum "Shpfy Customer Import Range")
         {
             Caption = 'Customer Import from Shopify';
+            ToolTip = 'Specifies how Shopify customers are synced to Business Central. If you choose none and there exists no mapping for that customer, the default customer will be used if exists.';
             DataClassification = CustomerContent;
             InitValue = WithOrderImport;
         }
@@ -242,6 +260,7 @@ table 30102 "Shpfy Shop"
         field(30; "Shopify Can Update Customer"; Boolean)
         {
             Caption = 'Shopify Can Update Customers';
+            ToolTip = 'Specifies whether Shopify can update customers when synchronizing from Shopify.';
             DataClassification = CustomerContent;
             InitValue = false;
 
@@ -254,6 +273,7 @@ table 30102 "Shpfy Shop"
         field(31; "Can Update Shopify Customer"; Boolean)
         {
             Caption = 'Can Update Shopify Customers';
+            ToolTip = 'Specifies whether Business Central can update customers when synchronizing to Shopify.';
             DataClassification = CustomerContent;
             InitValue = false;
 
@@ -266,18 +286,21 @@ table 30102 "Shpfy Shop"
         field(32; "Name Source"; enum "Shpfy Name Source")
         {
             Caption = 'Name Source';
+            ToolTip = 'Specifies how to synchronize the name of the customer. If the value is empty then the value of Name 2 is taken, and Name 2 will be empty.';
             DataClassification = CustomerContent;
             InitValue = CompanyName;
         }
         field(33; "Name 2 Source"; enum "Shpfy Name Source")
         {
             Caption = 'Name 2 Source';
+            ToolTip = 'Specifies how to synchronize Name 2 of the customer.';
             DataClassification = CustomerContent;
             InitValue = FirstAndLastName;
         }
         field(34; "Contact Source"; enum "Shpfy Name Source")
         {
             Caption = 'Contact Source';
+            ToolTip = 'Specifies how to synchronize the contact of the customer.';
             DataClassification = CustomerContent;
             InitValue = FirstAndLastName;
             ValuesAllowed = FirstAndLastName, LastAndFirstName, None;
@@ -285,18 +308,21 @@ table 30102 "Shpfy Shop"
         field(35; "County Source"; enum "Shpfy County Source")
         {
             Caption = 'County Source';
+            ToolTip = 'Specifies how to synchronize the county of the customer/company.';
             DataClassification = CustomerContent;
             InitValue = Code;
         }
         field(36; "Default Customer No."; Code[20])
         {
             Caption = 'Default Customer No.';
+            ToolTip = 'Specifies the default customer when not creating a customer for each webshop user.';
             DataClassification = CustomerContent;
             TableRelation = Customer;
         }
         field(37; "UoM as Variant"; Boolean)
         {
             Caption = 'UoM as Variant';
+            ToolTip = 'Specifies if you want to have the different unit of measures as an variant in Shopify.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -311,6 +337,7 @@ table 30102 "Shpfy Shop"
         field(38; "Option Name for UoM"; Text[50])
         {
             Caption = 'Variant Option Name for UoM';
+            ToolTip = 'Specifies the variant option name for the unit of measure.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -322,6 +349,7 @@ table 30102 "Shpfy Shop"
         field(39; "Shopify Can Update Items"; Boolean)
         {
             Caption = 'Shopify Can Update Items';
+            ToolTip = 'Specifies whether Shopify can update items when synchronizing from Shopify.';
             DataClassification = CustomerContent;
             InitValue = false;
 
@@ -334,6 +362,7 @@ table 30102 "Shpfy Shop"
         field(40; "Can Update Shopify Products"; Boolean)
         {
             Caption = 'Can Update Shopify Products';
+            ToolTip = 'Specifies whether Business Central can update products when synchronizing to Shopify.';
             DataClassification = CustomerContent;
             InitValue = false;
 
@@ -346,29 +375,34 @@ table 30102 "Shpfy Shop"
         field(41; "Variant Prefix"; Code[5])
         {
             Caption = 'Variant Prefix';
+            ToolTip = 'Specifies the prefix for variants. The variants you have defined in Shopify are created in Business Central based on an increasing number.';
             DataClassification = CustomerContent;
             InitValue = 'V_';
         }
         field(42; "Inventory Tracked"; Boolean)
         {
             Caption = 'Inventory Tracked';
+            ToolTip = 'Specifies if you want to manage your inventory in Shopify based on Business Central.';
             DataClassification = CustomerContent;
         }
         field(43; "Default Inventory Policy"; Enum "Shpfy Inventory Policy")
         {
             Caption = 'Default Inventory Policy';
+            ToolTip = 'Specifies if you want to prevent negative inventory. With "continue" the inventory can go negative, with "Deny" you want to prevent negative inventory.';
             DataClassification = CustomerContent;
             InitValue = CONTINUE;
         }
         field(44; "Allow Background Syncs"; Boolean)
         {
             Caption = 'Run Syncs in Background';
+            ToolTip = 'Specifies whether synchronization runs in the background. When enabled, you can continue working while large data sets synchronize. Disable for demos or troubleshooting to see real-time progress and receive detailed error messages.';
             DataClassification = CustomerContent;
             InitValue = true;
         }
         field(47; "Tip Account"; Code[20])
         {
             Caption = 'Tip Account';
+            ToolTip = 'Specifies the G/L Account for post the received tip amount.';
             DataClassification = SystemMetadata;
             TableRelation = "G/L Account"."No.";
             ValidateTableRelation = true;
@@ -384,6 +418,7 @@ table 30102 "Shpfy Shop"
         field(48; "Sold Gift Card Account"; Code[20])
         {
             Caption = 'Sold Gift Card Account';
+            ToolTip = 'Specifies the G/L Account for to post the sold gift card amounts.';
             DataClassification = SystemMetadata;
             TableRelation = "G/L Account"."No.";
             ValidateTableRelation = true;
@@ -399,21 +434,25 @@ table 30102 "Shpfy Shop"
         field(49; "Customer Mapping Type"; enum "Shpfy Customer Mapping")
         {
             Caption = 'Customer Mapping Type';
+            ToolTip = 'Specifies how to map customers.';
             DataClassification = CustomerContent;
         }
         field(50; "Status for Created Products"; Enum "Shpfy Cr. Prod. Status Value")
         {
             Caption = 'Status for Created Products';
+            ToolTip = 'Specifies the status of a product in Shopify when an item is create in Shopify via the sync.';
             DataClassification = CustomerContent;
         }
         field(51; "Action for Removed Products"; Enum "Shpfy Remove Product Action")
         {
             Caption = 'Action for Removed Products and Blocked Items';
+            ToolTip = 'Specifies the status of a product in Shopify via the sync when an item is blocked or removed from the Shopify Product in Business Central.';
             DataClassification = CustomerContent;
         }
         field(52; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency used by your Shopify store. Leave blank if it matches the local currency (LCY). When set, exchange rates must be configured. This field works together with the "Currency Handling" field in the Order section, which determines how order currencies are processed.';
             DataClassification = CustomerContent;
             TableRelation = Currency.Code;
 
@@ -431,57 +470,67 @@ table 30102 "Shpfy Shop"
         field(53; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies which Gen. Bus. Posting Group is used to calculate the prices in Shopify.';
             DataClassification = CustomerContent;
             TableRelation = "Gen. Business Posting Group";
         }
         field(54; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies which VAT. Bus. Posting Group is used to calculate the prices in Shopify.';
             DataClassification = CustomerContent;
             TableRelation = "VAT Business Posting Group";
         }
         field(55; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies which Tax Area Code is used to calculate the prices in Shopify.';
             DataClassification = CustomerContent;
             TableRelation = "Tax Area";
         }
         field(56; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies if Tax Liable is used to calculate the prices in Shopify.';
             DataClassification = CustomerContent;
         }
         field(57; "VAT Country/Region Code"; Code[10])
         {
             Caption = 'VAT Country/Region Code';
+            ToolTip = 'Specifies which VAT Country/Region Code is used to calculate the prices in Shopify.';
             DataClassification = CustomerContent;
             TableRelation = "Country/Region";
         }
         field(58; "Customer Posting Group"; Code[20])
         {
             Caption = 'Customer Posting Group';
+            ToolTip = 'Specifies which Customer Posting Group is used to calculate the prices in Shopify.';
             DataClassification = CustomerContent;
             TableRelation = "Customer Posting Group";
         }
         field(59; "Prices Including VAT"; Boolean)
         {
             Caption = 'Prices Including VAT';
+            ToolTip = 'Specifies if the prices calculate for Shopify are Including VAT.';
             DataClassification = CustomerContent;
         }
         field(60; "Auto Release Sales Orders"; Boolean)
         {
-            Caption = 'Auto Release Sales Orders';
+            Caption = 'Auto Release Sales Documents';
+            ToolTip = 'Specifies if a sales document, such as order or invoice, should be released after creation.';
             DataClassification = CustomerContent;
             InitValue = true;
         }
         field(61; "Allow Line Disc."; Boolean)
         {
             Caption = 'Allow Line Disc.';
+            ToolTip = 'Specifies if line discount is allowed while calculating prices for Shopify.';
             DataClassification = CustomerContent;
         }
         field(62; "Customer Templ. Code"; Code[20])
         {
-            Caption = 'Customer Template Code';
+            Caption = 'Customer/Company Template Code';
+            ToolTip = 'Specifies which customer template to use when creating unknown customers.';
             DataClassification = SystemMetadata;
             TableRelation = "Customer Templ.".Code;
             ValidateTableRelation = true;
@@ -489,13 +538,15 @@ table 30102 "Shpfy Shop"
         field(63; "Item Templ. Code"; Code[20])
         {
             Caption = 'Item Template Code';
+            ToolTip = 'Specifies which item template to use when creating unknown items.';
             DataClassification = SystemMetadata;
             TableRelation = "Item Templ.".Code;
             ValidateTableRelation = true;
         }
         field(70; "Return and Refund Process"; Enum "Shpfy ReturnRefund ProcessType")
         {
-            Caption = 'Return and Refund Process';
+            Caption = 'Process Type';
+            ToolTip = 'Specifies how returns and refunds from Shopify are handles in Business Central. The import process is always done within the import of a Shopify order.';
             DataClassification = CustomerContent;
             InitValue = "Import Only";
 
@@ -517,12 +568,14 @@ table 30102 "Shpfy Shop"
         field(73; "Return Location"; Code[10])
         {
             Caption = 'Default Return Location';
+            ToolTip = 'Specifies location code for returned goods.';
             DataClassification = CustomerContent;
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(75; "Refund Acc. non-restock Items"; Code[20])
         {
             Caption = 'Refund Account non-restock Items';
+            ToolTip = 'Specifies a G/L Account No. for goods where you don''t want to have an inventory correction.';
             DataClassification = CustomerContent;
             TableRelation = "G/L Account"."No.";
 
@@ -537,6 +590,7 @@ table 30102 "Shpfy Shop"
         field(76; "Refund Account"; Code[20])
         {
             Caption = 'Refund Account';
+            ToolTip = 'Specifies a G/L Account No. for the difference in the total refunded amount and the total amount of the items.';
             DataClassification = CustomerContent;
             TableRelation = "G/L Account"."No.";
 
@@ -553,30 +607,35 @@ table 30102 "Shpfy Shop"
 #pragma warning restore AS0004
         {
             Caption = 'SKU Mapping';
+            ToolTip = 'Specifies if and based on what you want to create variants in Business Central.';
             DataClassification = SystemMetadata;
 
         }
         field(105; "SKU Field Separator"; Code[10])
         {
             Caption = 'SKU Field Separator';
+            ToolTip = 'Specifies a field separator for the SKU if you use "Item. No + Variant Code" to create a variant.';
             DataClassification = SystemMetadata;
             InitValue = '|';
         }
         field(106; "Tax Area Priority"; Enum "Shpfy Tax By")
         {
             Caption = 'Tax Area Priority';
+            ToolTip = 'Specifies the tax area source and the sequence to be followed.';
             DataClassification = CustomerContent;
             Description = 'Choose in which order the system try to find the county for the tax area.';
         }
         field(107; "Allow Outgoing Requests"; Boolean)
         {
-            Caption = 'Allow Outgoing Requests';
+            Caption = 'Allow Data Sync to Shopify';
+            ToolTip = 'Specifies whether syncing data to Shopify is enabled.';
             DataClassification = SystemMetadata;
             InitValue = true;
         }
         field(108; "Order Created Webhooks"; Boolean)
         {
-            Caption = 'Order Created Webhooks';
+            Caption = 'Auto Sync Orders';
+            ToolTip = 'Specifies whether to automatically synchronize orders when they''re created in Shopify. Shopify will notify Business Central that orders are ready. Business Central will schedule the Sync Orders from Shopify job on the Job Queue Entries page. The user account of the person who turns on this toggle will be used to run the job. That user must have permission to create background tasks in the job queue.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -591,7 +650,8 @@ table 30102 "Shpfy Shop"
         }
         field(109; "Order Created Webhook User"; Code[50])
         {
-            Caption = 'Order Created Webhook User';
+            Caption = 'Sync Order Job Queue User';
+            ToolTip = 'Specifies the user who will run the Sync Orders from Shopify job on the Job Queue Entries page. This is the user who turned on the Auto Import Orders from Shopify toggle.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = User."User Name";
@@ -626,6 +686,7 @@ table 30102 "Shpfy Shop"
         field(113; "Logging Mode"; Enum "Shpfy Logging Mode")
         {
             Caption = 'Logging Mode';
+            ToolTip = 'Specifies whether the log is activated.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -650,6 +711,7 @@ table 30102 "Shpfy Shop"
         field(116; "Sync Prices"; Boolean)
         {
             Caption = 'Sync Prices with Products';
+            ToolTip = 'Specifies if prices are synchronized to Shopify with product sync.';
             DataClassification = SystemMetadata;
             InitValue = true;
         }
@@ -661,6 +723,7 @@ table 30102 "Shpfy Shop"
         field(118; "Can Update Shopify Companies"; Boolean)
         {
             Caption = 'Can Update Shopify Companies';
+            ToolTip = 'Specifies whether Business Central can update companies when synchronizing to Shopify.';
             DataClassification = CustomerContent;
             InitValue = false;
 
@@ -673,23 +736,27 @@ table 30102 "Shpfy Shop"
         field(119; "Default Contact Permission"; Enum "Shpfy Default Cont. Permission")
         {
             Caption = 'Default Contact Permission';
+            ToolTip = 'Specifies the default customer permission for new companies.';
             DataClassification = CustomerContent;
             InitValue = "Ordering Only";
         }
         field(120; "Auto Create Catalog"; Boolean)
         {
             Caption = 'Auto Create Catalog';
+            ToolTip = 'Specifies whether a catalog is automatically created for new companies.';
             DataClassification = CustomerContent;
         }
         field(121; "Company Import From Shopify"; Enum "Shpfy Company Import Range")
         {
             Caption = 'Company Import from Shopify';
+            ToolTip = 'Specifies how Shopify companies are synced to Business Central.';
             DataClassification = CustomerContent;
             InitValue = WithOrderImport;
         }
         field(122; "Shopify Can Update Companies"; Boolean)
         {
             Caption = 'Shopify Can Update Companies';
+            ToolTip = 'Specifies whether Shopify can update companies when synchronizing from Shopify.';
             DataClassification = CustomerContent;
             InitValue = false;
 
@@ -702,23 +769,27 @@ table 30102 "Shpfy Shop"
         field(123; "Auto Create Unknown Companies"; Boolean)
         {
             Caption = 'Auto Create Unknown Companies';
+            ToolTip = 'Specifies if unknown companies are automatically created in Business Central when synchronizing from Shopify.';
             DataClassification = CustomerContent;
         }
         field(124; "Send Shipping Confirmation"; Boolean)
         {
             Caption = 'Send Shipping Confirmation';
+            ToolTip = 'Specifies whether the customer is notified when the shipment is synchronized to Shopify.';
             DataClassification = CustomerContent;
             InitValue = true;
         }
         field(125; "Default Company No."; Code[20])
         {
             Caption = 'Default Company No.';
+            ToolTip = 'Specifies the default customer when not creating a company for each B2B company.';
             DataClassification = CustomerContent;
             TableRelation = Customer;
         }
         field(126; "Company Mapping Type"; Enum "Shpfy Company Mapping")
         {
             Caption = 'Company Mapping Type';
+            ToolTip = 'Specifies how to map companies.';
             DataClassification = CustomerContent;
         }
 #if not CLEANSCHEMA27
@@ -735,46 +806,67 @@ table 30102 "Shpfy Shop"
         field(128; "Return Location Priority"; Enum "Shpfy Return Location Priority")
         {
             Caption = 'Return Location Priority';
+            ToolTip = 'Specifies the priority of the return location.';
             DataClassification = CustomerContent;
         }
         field(129; "Weight Unit"; Enum "Shpfy Weight Unit")
         {
             Caption = 'Weight Unit';
+            ToolTip = 'Specifies the weight unit of the Shopify Shop.';
             DataClassification = CustomerContent;
         }
         field(130; "Product Metafields To Shopify"; Boolean)
         {
             Caption = 'Sync Product/Variant Metafields to Shopify';
+            ToolTip = 'Specifies whether product/variant metafields are synchronized to Shopify.';
             DataClassification = SystemMetadata;
             InitValue = true;
         }
         field(131; "Customer Metafields To Shopify"; Boolean)
         {
             Caption = 'Sync Customer Metafields';
+            ToolTip = 'Specifies whether customer metafields are synchronized to Shopify.';
             DataClassification = SystemMetadata;
             InitValue = true;
         }
         field(132; "Company Metafields To Shopify"; Boolean)
         {
             Caption = 'Sync Company Metafields';
+            ToolTip = 'Specifies whether company metafields are synchronized to Shopify.';
             DataClassification = SystemMetadata;
             InitValue = true;
         }
         field(133; "Order Attributes To Shopify"; Boolean)
         {
             Caption = 'Sync Business Central Doc. No. as Attribute';
+            ToolTip = 'Specifies if Business Central document no. is synchronized to Shopify as order attribute.';
             DataClassification = SystemMetadata;
             InitValue = true;
         }
         field(134; "Shpfy Comp. Tax Id Mapping"; Enum "Shpfy Comp. Tax Id Mapping")
         {
             Caption = 'Company Tax Id Mapping';
+            ToolTip = 'Specifies how to map Shopify Tax Id with Business Central.';
             DataClassification = CustomerContent;
         }
         field(135; "Currency Handling"; Enum "Shpfy Currency Handling")
         {
             Caption = 'Currency Handling';
+            ToolTip = 'Specifies which currency is used in Shopify orders processing. Using presentment currency may cause differences between amounts in LCY after posting documents.';
             InitValue = "Shop Currency";
+        }
+        field(136; "Use Shopify Order No."; Boolean)
+        {
+            Caption = 'Use Shopify Order No.';
+            ToolTip = 'Specifies whether the Shopify order number is used as the document number on the created Sales Order or Sales Invoice. You can overwrite the selection for the specific Shopify Order.';
+        }
+        field(137; "Process Returns As"; Enum "Sales Document Type")
+        {
+            Caption = 'Process Returns as';
+            ToolTip = 'Specifies what type of document to create when processing returns. Credit Memo creates a sales credit memo. Return Order creates a sales return order.';
+            DataClassification = CustomerContent;
+            ValuesAllowed = "Credit Memo", "Return Order";
+            InitValue = "Credit Memo";
         }
         field(200; "Shop Id"; Integer)
         {
@@ -784,6 +876,7 @@ table 30102 "Shpfy Shop"
         field(201; "Items Mapped to Products"; Boolean)
         {
             Caption = 'Items Must be Mapped to Products';
+            ToolTip = 'Specifies if only the items that are mapped to Shopify products/Shopify variants are synchronized from Posted Sales Invoices to Shopify.';
             ObsoleteReason = 'This setting is not used';
 #if not CLEAN26
             ObsoleteState = Pending;
@@ -797,15 +890,18 @@ table 30102 "Shpfy Shop"
         field(202; "Posted Invoice Sync"; Boolean)
         {
             Caption = 'Posted Invoice Sync';
+            ToolTip = 'Specifies whether the posted sales invoices can be synchronized to Shopify.';
         }
         field(203; "Cash Roundings Account"; Code[20])
         {
             Caption = 'Cash Roundings Account';
+            ToolTip = 'Specifies the general ledger account to use when you post cash rounding differences from Shopify POS transactions.';
             TableRelation = "G/L Account"."No.";
         }
         field(204; "Archive Processed Orders"; Boolean)
         {
             Caption = 'Archive Processed Shopify Orders';
+            ToolTip = 'Specifies whether Shopify orders are automatically archived when they are paid, fulfilled, and have associated sales documents with all lines shipped.';
             InitValue = true;
         }
         field(205; "Create Invoices From Orders"; Boolean)

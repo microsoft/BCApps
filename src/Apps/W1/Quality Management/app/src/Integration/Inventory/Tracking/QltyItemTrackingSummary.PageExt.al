@@ -65,7 +65,7 @@ pageextension 20409 "Qlty. Item Tracking Summary" extends "Item Tracking Summary
             {
                 ApplicationArea = QualityManagement;
                 Image = Line;
-                Caption = 'Source Document Item Tracking only';
+                Caption = 'Source Document Item Tracking';
                 ToolTip = 'Shows item tracking that relates to the matching source document number.';
                 Visible = ShowQltyManagementActions;
 

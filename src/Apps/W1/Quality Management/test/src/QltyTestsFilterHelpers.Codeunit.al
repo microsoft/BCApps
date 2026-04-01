@@ -16,9 +16,7 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.QualityManagement.Setup;
-using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Customer;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Warehouse.Structure;
@@ -34,7 +32,6 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
     var
         LibraryAssert: Codeunit "Library Assert";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
-        QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         Code20: Code[20];
         ZoneTok: Label 'PICK';
         FilterTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1=item no.';
@@ -117,7 +114,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         ObjectIdFilter := ObjectIdFilterTok;
 
         // [WHEN] RunModalLookupTable is called with the filter
-        QltyFilterHelpers.RunModalLookupTable(ObjectId, ObjectIdFilter);
+        QltyInspectionUtility.RunModalLookupTable(ObjectId, ObjectIdFilter);
 
         // [THEN] The first object ID from the filter is returned
         ObjectIDText := ObjectIdFilter.Split('|');
@@ -135,7 +132,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [SCENARIO] Validate modal table lookup without a filter returning the first table
 
         // [WHEN] RunModalLookupTable is called with no filter
-        QltyFilterHelpers.RunModalLookupTable(ObjectId, '');
+        QltyInspectionUtility.RunModalLookupTable(ObjectId, '');
 
         // [THEN] The first table object is returned
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
@@ -153,7 +150,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [SCENARIO] Validate modal table lookup from text without a filter
 
         // [WHEN] RunModalLookupTableFromText is called with no filter
-        QltyFilterHelpers.RunModalLookupTableFromText(TableReference);
+        QltyInspectionUtility.RunModalLookupTableFromText(TableReference);
 
         // [THEN] The first table's name is returned
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
@@ -176,7 +173,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         TableReference := Format(ChosenTableAllObjWithCaption."Object ID");
 
         // [WHEN] RunModalLookupTableFromText is called with the table filter
-        QltyFilterHelpers.RunModalLookupTableFromText(TableReference);
+        QltyInspectionUtility.RunModalLookupTableFromText(TableReference);
 
         // [THEN] The correct table name is returned
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
@@ -199,7 +196,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         TableReference := Format(ChosenTableAllObjWithCaption."Object ID");
 
         // [WHEN] RunModalLookupTableFromText is called with the table ID filter
-        QltyFilterHelpers.RunModalLookupTableFromText(TableReference);
+        QltyInspectionUtility.RunModalLookupTableFromText(TableReference);
 
         // [THEN] The first table's name matching the filter is returned
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
@@ -222,7 +219,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         TableAllObjWithCaption.Get(TableAllObjWithCaption."Object Type"::Table, Database::"Qlty. Management Setup");
         TableReference := Format(TableAllObjWithCaption."Object ID");
         // [WHEN] RunModalLookupFieldFromText is called with the table reference
-        QltyFilterHelpers.RunModalLookupFieldFromText(TableReference, FieldReference);
+        QltyInspectionUtility.RunModalLookupFieldFromText(TableReference, FieldReference);
 
         // [THEN] The first field name from the table is returned
         ToLoadField.SetRange(TableNo, TableAllObjWithCaption."Object ID");
@@ -249,7 +246,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         FieldReference := Format(ToLoadField."No.");
 
         // [WHEN] RunModalLookupFieldFromText is called with both table and field reference
-        QltyFilterHelpers.RunModalLookupFieldFromText(TableReference, FieldReference);
+        QltyInspectionUtility.RunModalLookupFieldFromText(TableReference, FieldReference);
 
         // [THEN] The first field from the filtered table is returned
         ToLoadField.Reset();
@@ -577,7 +574,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         RecordRef.Open(Database::Customer);
 
         // [WHEN] SetFiltersByExpressionSyntax is called with the expression
-        QltyFilterHelpers.SetFiltersByExpressionSyntax(RecordRef, Filter);
+        QltyInspectionUtility.SetFiltersByExpressionSyntax(RecordRef, Filter);
         Filter := RecordRef.GetFilters;
 
         // [THEN] Expression is converted to filter format
@@ -592,7 +589,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [SCENARIO] Validate that no field is returned when no table is provided
 
         // [WHEN] RunModalLookupAnyField is called with no table (0)
-        FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(0, 0, '');
+        FieldNumber := QltyInspectionUtility.RunModalLookupAnyField(0, 0, '');
 
         // [THEN] No field is returned
         LibraryAssert.AreEqual(0, FieldNumber, 'There should be no field returned.');
@@ -616,7 +613,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         ToLoadField.FindFirst();
 
         // [WHEN] RunModalLookupAnyField is called with table number and field type
-        FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(ToLoadField.TableNo, ToLoadField.Type, '');
+        FieldNumber := QltyInspectionUtility.RunModalLookupAnyField(ToLoadField.TableNo, ToLoadField.Type, '');
 
         // [THEN] The correct field number is returned
         LibraryAssert.AreEqual(ToLoadField."No.", FieldNumber, 'The field no. should match.');
@@ -640,7 +637,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         ToLoadField.FindFirst();
 
         // [WHEN] RunModalLookupAnyField is called with table number and field name
-        FieldNumber := QltyFilterHelpers.RunModalLookupAnyField(ToLoadField.TableNo, -1, ToLoadField.FieldName);
+        FieldNumber := QltyInspectionUtility.RunModalLookupAnyField(ToLoadField.TableNo, -1, ToLoadField.FieldName);
 
         // [THEN] The correct field number is returned
         LibraryAssert.AreEqual(ToLoadField."No.", FieldNumber, 'The field no. should match.');
@@ -666,7 +663,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         ZoneToUse := ZoneTok;
 
         // [WHEN] AssistEditZone is called with location and zone filter
-        FoundZone := QltyFilterHelpers.AssistEditZone(Location.Code, ZoneToUse);
+        FoundZone := QltyInspectionUtility.AssistEditZone(Location.Code, ZoneToUse);
 
         // [THEN] A zone is found and the zone code matches
         LibraryAssert.IsTrue(FoundZone, 'Should claim found zone.');
@@ -695,7 +692,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         LocationToUse := '';
         // [WHEN] AssistEditZone is called with no location code and zone filter
-        FoundZone := QltyFilterHelpers.AssistEditZone(LocationToUse, ZoneToUse);
+        FoundZone := QltyInspectionUtility.AssistEditZone(LocationToUse, ZoneToUse);
 
         // [THEN] A zone is found and the zone code matches
         LibraryAssert.IsTrue(FoundZone, 'Should claim found zone.');
@@ -722,7 +719,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         ZoneToUse := '';
 
         // [WHEN] AssistEditZone is called with location code only
-        FoundZone := QltyFilterHelpers.AssistEditZone(Location.Code, ZoneToUse);
+        FoundZone := QltyInspectionUtility.AssistEditZone(Location.Code, ZoneToUse);
 
         // [THEN] A zone is found and the zone code matches
         LibraryAssert.IsTrue(FoundZone, 'Should claim found zone.');
@@ -746,7 +743,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         ZoneToUse := ZoneTok;
 
         // [WHEN] AssistEditZone is called with location and zone filter
-        FoundZone := QltyFilterHelpers.AssistEditZone(Location.Code, ZoneToUse);
+        FoundZone := QltyInspectionUtility.AssistEditZone(Location.Code, ZoneToUse);
 
         // [THEN] A zone is found and the zone code matches the filtered record
         LibraryAssert.IsTrue(FoundZone, 'Should claim found zone.');
@@ -772,7 +769,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         LocationToUse := '';
         // [WHEN] AssistEditZone is called with no location code and zone filter
-        FoundZone := QltyFilterHelpers.AssistEditZone(LocationToUse, ZoneToUse);
+        FoundZone := QltyInspectionUtility.AssistEditZone(LocationToUse, ZoneToUse);
 
         // [THEN] A zone is found and the zone code matches the filtered record
         LibraryAssert.IsTrue(FoundZone, 'Should claim found zone.');
@@ -799,7 +796,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         ZoneToUse := '';
 
         // [WHEN] AssistEditZone is called with location code only
-        FoundZone := QltyFilterHelpers.AssistEditZone(Location.Code, ZoneToUse);
+        FoundZone := QltyInspectionUtility.AssistEditZone(Location.Code, ZoneToUse);
 
         // [THEN] A zone is found and the zone code matches
         LibraryAssert.IsTrue(FoundZone, 'Should claim found zone.');
@@ -831,7 +828,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         BinToUse := Bin.Code;
 
         // [WHEN] AssistEditBin is called with location, zone, and bin filters
-        FoundBin := QltyFilterHelpers.AssistEditBin(Location.Code, Zone.Code, BinToUse);
+        FoundBin := QltyInspectionUtility.AssistEditBin(Location.Code, Zone.Code, BinToUse);
 
         // [THEN] A bin is found and the bin code matches the first bin
         Bin.Reset();
@@ -859,7 +856,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
 
         // [WHEN] AssistEditBin is called with location code only
-        FoundBin := QltyFilterHelpers.AssistEditBin(Location.Code, '', BinToUse);
+        FoundBin := QltyInspectionUtility.AssistEditBin(Location.Code, '', BinToUse);
 
         // [THEN] A bin is found and the bin code matches the first bin
         Bin.SetRange("Location Code", Location.Code);
@@ -887,7 +884,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         Zone.FindFirst();
 
         // [WHEN] AssistEditBin is called with zone code only
-        FoundBin := QltyFilterHelpers.AssistEditBin('', ZoneTok, BinToUse);
+        FoundBin := QltyInspectionUtility.AssistEditBin('', ZoneTok, BinToUse);
 
         // [THEN] A bin is found and the bin code matches the first bin
         Bin.SetRange("Zone Code", Zone.Code);
@@ -914,7 +911,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         BinToUse := Bin.Code;
         // [WHEN] AssistEditBin is called with bin code only
-        FoundBin := QltyFilterHelpers.AssistEditBin('', '', BinToUse);
+        FoundBin := QltyInspectionUtility.AssistEditBin('', '', BinToUse);
 
         // [THEN] A bin is found and the bin code matches the first bin
         Bin.FindFirst();
@@ -947,7 +944,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         BinToUse := Bin.Code;
 
         // [WHEN] AssistEditBin is called with location, zone, and bin filters
-        FoundBin := QltyFilterHelpers.AssistEditBin(Location.Code, Zone.Code, BinToUse);
+        FoundBin := QltyInspectionUtility.AssistEditBin(Location.Code, Zone.Code, BinToUse);
 
         // [THEN] A bin is found and the bin code matches the filtered record
         LibraryAssert.IsTrue(FoundBin, 'Should claim found bin.');
@@ -971,7 +968,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
 
         // [WHEN] AssistEditBin is called with location code only
-        FoundBin := QltyFilterHelpers.AssistEditBin(Location.Code, '', BinToUse);
+        FoundBin := QltyInspectionUtility.AssistEditBin(Location.Code, '', BinToUse);
 
         // [THEN] A bin is found and the bin code matches the first bin
         Bin.SetRange("Location Code", Location.Code);
@@ -999,7 +996,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         Zone.FindFirst();
 
         // [WHEN] AssistEditBin is called with zone code only
-        FoundBin := QltyFilterHelpers.AssistEditBin('', ZoneTok, BinToUse);
+        FoundBin := QltyInspectionUtility.AssistEditBin('', ZoneTok, BinToUse);
 
         // [THEN] A bin is found and the bin code matches the first bin
         Bin.SetRange("Zone Code", Zone.Code);
@@ -1026,7 +1023,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         BinToUse := Bin.Code;
         // [WHEN] AssistEditBin is called with bin code only
-        FoundBin := QltyFilterHelpers.AssistEditBin('', '', BinToUse);
+        FoundBin := QltyInspectionUtility.AssistEditBin('', '', BinToUse);
 
         // [THEN] A bin is found and the bin code matches the filtered bin
         LibraryAssert.IsTrue(FoundBin, 'Should claim found bin.');
@@ -1049,7 +1046,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryInventory.CreateItem(Item);
 
         // [WHEN] AssistEditItemNo is called with no filter
-        FoundItem := QltyFilterHelpers.AssistEditItemNo(ItemToUse);
+        FoundItem := QltyInspectionUtility.AssistEditItemNo(ItemToUse);
 
         // [THEN] An item is found and the item number matches
         LibraryAssert.IsTrue(FoundItem, 'Should claim found item.');
@@ -1075,7 +1072,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         ItemToUse := SecondItem."No.";
         // [WHEN] AssistEditItemNo is called with item filter
-        FoundItem := QltyFilterHelpers.AssistEditItemNo(ItemToUse);
+        FoundItem := QltyInspectionUtility.AssistEditItemNo(ItemToUse);
 
         // [THEN] An item is found and the item number matches the first item
         LibraryAssert.IsTrue(FoundItem, 'Should claim found item.');
@@ -1098,7 +1095,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryInventory.CreateItem(Item);
 
         // [WHEN] AssistEditItemNo is called with no filter
-        FoundItem := QltyFilterHelpers.AssistEditItemNo(ItemToUse);
+        FoundItem := QltyInspectionUtility.AssistEditItemNo(ItemToUse);
 
         // [THEN] An item is found and the item number matches
         LibraryAssert.IsTrue(FoundItem, 'Should claim found item.');
@@ -1124,7 +1121,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         ItemToUse := SecondItem."No.";
         // [WHEN] AssistEditItemNo is called with item filter
-        FoundItem := QltyFilterHelpers.AssistEditItemNo(ItemToUse);
+        FoundItem := QltyInspectionUtility.AssistEditItemNo(ItemToUse);
 
         // [THEN] An item is found and the item number matches the second item
         LibraryAssert.IsTrue(FoundItem, 'Should claim found item.');
@@ -1147,7 +1144,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryInventory.CreateItemCategory(ItemCategory);
 
         // [WHEN] AssistEditItemCategory is called with no filter
-        FoundItemCategory := QltyFilterHelpers.AssistEditItemCategory(ItemToUseCategoryToUse);
+        FoundItemCategory := QltyInspectionUtility.AssistEditItemCategory(ItemToUseCategoryToUse);
 
         // [THEN] An item category is found and the category code matches
         ItemCategory.SetRange("Parent Category", '');
@@ -1175,7 +1172,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         ItemToUseCategoryToUse := SecondItemCategory.Code;
         // [WHEN] AssistEditItemCategory is called with category filter
-        FoundItemCategory := QltyFilterHelpers.AssistEditItemCategory(ItemToUseCategoryToUse);
+        FoundItemCategory := QltyInspectionUtility.AssistEditItemCategory(ItemToUseCategoryToUse);
 
         // [THEN] An item category is found and the category code matches the first category
         ItemCategory.SetRange("Parent Category", '');
@@ -1200,7 +1197,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryInventory.CreateItemCategory(ItemCategory);
 
         // [WHEN] AssistEditItemCategory is called with no filter
-        FoundItemCategory := QltyFilterHelpers.AssistEditItemCategory(ItemToUseCategoryToUse);
+        FoundItemCategory := QltyInspectionUtility.AssistEditItemCategory(ItemToUseCategoryToUse);
 
         // [THEN] An item category is found and the category code matches
         ItemCategory.SetRange("Parent Category", '');
@@ -1228,7 +1225,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         ItemToUseCategoryToUse := SecondItemCategory.Code;
         // [WHEN] AssistEditItemCategory is called with category filter
-        FoundItemCategory := QltyFilterHelpers.AssistEditItemCategory(ItemToUseCategoryToUse);
+        FoundItemCategory := QltyInspectionUtility.AssistEditItemCategory(ItemToUseCategoryToUse);
 
         // [THEN] An item category is found and the category code matches the second category
         LibraryAssert.IsTrue(FoundItemCategory, 'Should claim found item.');
@@ -1251,7 +1248,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryInventory.CreateInventoryPostingGroup(InvInventoryPostingGroup);
 
         // [WHEN] AssistEditInventoryPostingGroup is called with no filter
-        FoundInvPostingGroup := QltyFilterHelpers.AssistEditInventoryPostingGroup(InvPostingGroup);
+        FoundInvPostingGroup := QltyInspectionUtility.AssistEditInventoryPostingGroup(InvPostingGroup);
 
         // [THEN] An inventory posting group is found and the code matches
         LibraryAssert.IsTrue(FoundInvPostingGroup, 'Should claim found inventory posting group.');
@@ -1277,7 +1274,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         InvPostingGroup := InvSecondInventoryPostingGroup.Code;
         // [WHEN] AssistEditInventoryPostingGroup is called with group filter
-        FoundInvPostingGroup := QltyFilterHelpers.AssistEditInventoryPostingGroup(InvPostingGroup);
+        FoundInvPostingGroup := QltyInspectionUtility.AssistEditInventoryPostingGroup(InvPostingGroup);
 
         // [THEN] An inventory posting group is found and the code matches the first group
         LibraryAssert.IsTrue(FoundInvPostingGroup, 'Should claim found inventory posting group.');
@@ -1300,7 +1297,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryInventory.CreateInventoryPostingGroup(InvInventoryPostingGroup);
 
         // [WHEN] AssistEditInventoryPostingGroup is called with no filter
-        FoundInvPostingGroup := QltyFilterHelpers.AssistEditInventoryPostingGroup(InvPostingGroup);
+        FoundInvPostingGroup := QltyInspectionUtility.AssistEditInventoryPostingGroup(InvPostingGroup);
 
         // [THEN] An inventory posting group is found and the code matches
         LibraryAssert.IsTrue(FoundInvPostingGroup, 'Should claim found inventory posting group.');
@@ -1326,7 +1323,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         InvPostingGroup := InvSecondInventoryPostingGroup.Code;
         // [WHEN] AssistEditInventoryPostingGroup is called with group filter
-        FoundInvPostingGroup := QltyFilterHelpers.AssistEditInventoryPostingGroup(InvPostingGroup);
+        FoundInvPostingGroup := QltyInspectionUtility.AssistEditInventoryPostingGroup(InvPostingGroup);
 
         // [THEN] An inventory posting group is found and the code matches the second group
         LibraryAssert.IsTrue(FoundInvPostingGroup, 'Should claim found inventory posting group.');
@@ -1349,7 +1346,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryPurchase.CreateVendor(Vendor);
 
         // [WHEN] AssistEditVendor is called with no filter
-        FoundVendor := QltyFilterHelpers.AssistEditVendor(VendorToUse);
+        FoundVendor := QltyInspectionUtility.AssistEditVendor(VendorToUse);
 
         // [THEN] A vendor is found and the vendor number matches
         LibraryAssert.IsTrue(FoundVendor, 'Should claim found vendor.');
@@ -1375,7 +1372,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         VendorToUse := SecondVendor."No.";
         // [WHEN] AssistEditVendor is called with vendor filter
-        FoundVendor := QltyFilterHelpers.AssistEditVendor(VendorToUse);
+        FoundVendor := QltyInspectionUtility.AssistEditVendor(VendorToUse);
 
         // [THEN] A vendor is found and the vendor number matches the first vendor
         LibraryAssert.IsTrue(FoundVendor, 'Should claim found vendor.');
@@ -1398,7 +1395,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryPurchase.CreateVendor(Vendor);
 
         // [WHEN] AssistEditVendor is called with no filter
-        FoundVendor := QltyFilterHelpers.AssistEditVendor(VendorToUse);
+        FoundVendor := QltyInspectionUtility.AssistEditVendor(VendorToUse);
 
         // [THEN] A vendor is found and the vendor number matches
         LibraryAssert.IsTrue(FoundVendor, 'Should claim found vendor.');
@@ -1424,7 +1421,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         VendorToUse := SecondVendor."No.";
         // [WHEN] AssistEditVendor is called with vendor filter
-        FoundVendor := QltyFilterHelpers.AssistEditVendor(VendorToUse);
+        FoundVendor := QltyInspectionUtility.AssistEditVendor(VendorToUse);
 
         // [THEN] A vendor is found and the vendor number matches the second vendor
         LibraryAssert.IsTrue(FoundVendor, 'Should claim found vendor.');
@@ -1447,7 +1444,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibrarySales.CreateCustomer(Customer);
 
         // [WHEN] AssistEditCustomer is called with no filter
-        FoundCustomer := QltyFilterHelpers.AssistEditCustomer(CustomerToUse);
+        FoundCustomer := QltyInspectionUtility.AssistEditCustomer(CustomerToUse);
 
         // [THEN] A customer is found and the customer number matches
         LibraryAssert.IsTrue(FoundCustomer, 'Should claim found customer.');
@@ -1473,7 +1470,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         CustomerToUse := Customer."No.";
         // [WHEN] AssistEditCustomer is called with customer filter
-        FoundCustomer := QltyFilterHelpers.AssistEditCustomer(CustomerToUse);
+        FoundCustomer := QltyInspectionUtility.AssistEditCustomer(CustomerToUse);
 
         // [THEN] A customer is found and the customer number matches the first customer
         LibraryAssert.IsTrue(FoundCustomer, 'Should claim found customer.');
@@ -1496,7 +1493,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibrarySales.CreateCustomer(Customer);
 
         // [WHEN] AssistEditCustomer is called with no filter
-        FoundCustomer := QltyFilterHelpers.AssistEditCustomer(CustomerToUse);
+        FoundCustomer := QltyInspectionUtility.AssistEditCustomer(CustomerToUse);
 
         // [THEN] A customer is found and the customer number matches
         LibraryAssert.IsTrue(FoundCustomer, 'Should claim found customer.');
@@ -1522,7 +1519,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         CustomerToUse := SecondCustomer."No.";
         // [WHEN] AssistEditCustomer is called with customer filter
-        FoundCustomer := QltyFilterHelpers.AssistEditCustomer(CustomerToUse);
+        FoundCustomer := QltyInspectionUtility.AssistEditCustomer(CustomerToUse);
 
         // [THEN] A customer is found and the customer number matches the second customer
         LibraryAssert.IsTrue(FoundCustomer, 'Should claim found customer.');
@@ -1549,7 +1546,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         end;
 
         // [WHEN] AssistEditMachine is called with no filter
-        FoundMachine := QltyFilterHelpers.AssistEditMachine(Machine);
+        FoundMachine := QltyInspectionUtility.AssistEditMachine(Machine);
 
         // [THEN] A machine is found and the machine number matches
         LibraryAssert.IsTrue(FoundMachine, 'Should claim found machine.');
@@ -1577,7 +1574,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         Machine := MachineCenter."No.";
         // [WHEN] AssistEditMachine is called with machine filter
-        FoundMachine := QltyFilterHelpers.AssistEditMachine(Machine);
+        FoundMachine := QltyInspectionUtility.AssistEditMachine(Machine);
 
         // [THEN] A machine is found and the machine number matches
         LibraryAssert.IsTrue(FoundMachine, 'Should claim found machine.');
@@ -1600,7 +1597,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
 
         // [WHEN] AssistEditRouting is called with no filter
-        FoundRouting := QltyFilterHelpers.AssistEditRouting(Routing);
+        FoundRouting := QltyInspectionUtility.AssistEditRouting(Routing);
 
         // [THEN] A routing is found and the routing number matches
         LibraryAssert.IsTrue(FoundRouting, 'Should claim found routing.');
@@ -1624,7 +1621,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         Routing := RoutingHeader."No.";
         // [WHEN] AssistEditRouting is called with routing filter
-        FoundRouting := QltyFilterHelpers.AssistEditRouting(Routing);
+        FoundRouting := QltyInspectionUtility.AssistEditRouting(Routing);
 
         // [THEN] A routing is found and the routing number matches
         LibraryAssert.IsTrue(FoundRouting, 'Should claim found routing.');
@@ -1661,7 +1658,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         end;
         OperationNo2 := RoutingLine."Operation No.";
         // [WHEN] AssistEditRoutingOperation is called with routing and operation number filters
-        FoundRoutingOperation := QltyFilterHelpers.AssistEditRoutingOperation(RoutingHeader."No.", OperationNo2);
+        FoundRoutingOperation := QltyInspectionUtility.AssistEditRoutingOperation(RoutingHeader."No.", OperationNo2);
 
         // [THEN] A routing operation is found and the operation number matches
         LibraryAssert.IsTrue(FoundRoutingOperation, 'Should claim found routing operation.');
@@ -1697,7 +1694,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, Version, OperationNo, Enum::"Capacity Type Routing"::" ", No);
         end;
         // [WHEN] AssistEditRoutingOperation is called with routing filter
-        FoundRoutingOperation := QltyFilterHelpers.AssistEditRoutingOperation(RoutingHeader."No.", OperationNo2);
+        FoundRoutingOperation := QltyInspectionUtility.AssistEditRoutingOperation(RoutingHeader."No.", OperationNo2);
 
         // [THEN] A routing operation is found and the operation number matches
         LibraryAssert.IsTrue(FoundRoutingOperation, 'Should claim found routing operation.');
@@ -1734,7 +1731,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         end;
         OperationNo2 := OperationNo;
         // [WHEN] AssistEditRoutingOperation is called with operation filter
-        FoundRoutingOperation := QltyFilterHelpers.AssistEditRoutingOperation('', OperationNo2);
+        FoundRoutingOperation := QltyInspectionUtility.AssistEditRoutingOperation('', OperationNo2);
 
         // [THEN] A routing operation is found and the operation number matches
         LibraryAssert.IsTrue(FoundRoutingOperation, 'Should claim found routing operation.');
@@ -1770,7 +1767,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, Version, OperationNo, Enum::"Capacity Type Routing"::" ", No);
         end;
         // [WHEN] AssistEditRoutingOperation is called with no filter
-        FoundRoutingOperation := QltyFilterHelpers.AssistEditRoutingOperation('', OperationNo2);
+        FoundRoutingOperation := QltyInspectionUtility.AssistEditRoutingOperation('', OperationNo2);
 
         // [THEN] A routing operation is found and the operation number matches the first routing line
         RoutingLine.Reset();
@@ -1795,7 +1792,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryManufacturing.CreateWorkCenter(WorkCenter);
 
         // [WHEN] AssistEditWorkCenter is called with no filter
-        FoundWorkCenter := QltyFilterHelpers.AssistEditWorkCenter(WorkCenterToUse);
+        FoundWorkCenter := QltyInspectionUtility.AssistEditWorkCenter(WorkCenterToUse);
 
         // [THEN] A work center is found and the work center number matches
         LibraryAssert.IsTrue(FoundWorkCenter, 'Should claim found work center.');
@@ -1819,7 +1816,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         WorkCenterToUse := WorkCenter."No.";
         // [WHEN] AssistEditWorkCenter is called with work center filter
-        FoundWorkCenter := QltyFilterHelpers.AssistEditWorkCenter(WorkCenterToUse);
+        FoundWorkCenter := QltyInspectionUtility.AssistEditWorkCenter(WorkCenterToUse);
 
         // [THEN] A work center is found and the work center number matches
         LibraryAssert.IsTrue(FoundWorkCenter, 'Should claim found work center.');
@@ -1842,7 +1839,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryPurchase.CreatePurchasingCode(Purchasing);
 
         // [WHEN] AssistEditPurchasingCode is called with no filter
-        FoundPurchasing := QltyFilterHelpers.AssistEditPurchasingCode(PurchasingToUse);
+        FoundPurchasing := QltyInspectionUtility.AssistEditPurchasingCode(PurchasingToUse);
 
         // [THEN] A purchasing code is found and the code matches
         LibraryAssert.IsTrue(FoundPurchasing, 'Should claim found purchasing code.');
@@ -1866,7 +1863,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         PurchasingToUse := Purchasing.Code;
         // [WHEN] AssistEditPurchasingCode is called with purchasing code filter
-        FoundPurchasing := QltyFilterHelpers.AssistEditPurchasingCode(PurchasingToUse);
+        FoundPurchasing := QltyInspectionUtility.AssistEditPurchasingCode(PurchasingToUse);
 
         // [THEN] A purchasing code is found and the code matches
         LibraryAssert.IsTrue(FoundPurchasing, 'Should claim found purchasing code.');
@@ -1893,7 +1890,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         end;
 
         // [WHEN] AssistEditReturnReasonCode is called with no filter
-        FoundReturnReason := QltyFilterHelpers.AssistEditReturnReasonCode(ReturnReasonToUse);
+        FoundReturnReason := QltyInspectionUtility.AssistEditReturnReasonCode(ReturnReasonToUse);
 
         // [THEN] A return reason code is found and the code matches
         LibraryAssert.IsTrue(FoundReturnReason, 'Should claim found return reason code.');
@@ -1921,7 +1918,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         ReturnReasonToUse := ReturnReason.Code;
         // [WHEN] AssistEditReturnReasonCode is called with return reason code filter
-        FoundReturnReason := QltyFilterHelpers.AssistEditReturnReasonCode(ReturnReasonToUse);
+        FoundReturnReason := QltyInspectionUtility.AssistEditReturnReasonCode(ReturnReasonToUse);
 
         // [THEN] A return reason code is found and the code matches
         LibraryAssert.IsTrue(FoundReturnReason, 'Should claim found return reason code.');
@@ -1943,7 +1940,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
 
         // [WHEN] AssistEditQltyInspectionTemplate is called with no filter
-        FoundTemplate := QltyFilterHelpers.AssistEditQltyInspectionTemplate(Template);
+        FoundTemplate := QltyInspectionUtility.AssistEditQltyInspectionTemplate(Template);
 
         // [THEN] A template code is found and matches the template
         LibraryAssert.IsTrue(FoundTemplate, 'Should claim found template code.');
@@ -1966,7 +1963,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         Template := QltyInspectionTemplateHdr.Code;
         // [WHEN] AssistEditQltyInspectionTemplate is called with template filter
-        FoundTemplate := QltyFilterHelpers.AssistEditQltyInspectionTemplate(Template);
+        FoundTemplate := QltyInspectionUtility.AssistEditQltyInspectionTemplate(Template);
 
         // [THEN] A template code is found and matches the template
         LibraryAssert.IsTrue(FoundTemplate, 'Should claim found template code.');
@@ -1989,7 +1986,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
             LibraryWarehouse.CreateLocation(Location);
 
         // [WHEN] AssistEditLocation is called with no filter
-        FoundLocation := QltyFilterHelpers.AssistEditLocation(LocationToUse);
+        FoundLocation := QltyInspectionUtility.AssistEditLocation(LocationToUse);
 
         // [THEN] A location is found and the location code matches
         LibraryAssert.IsTrue(FoundLocation, 'Should claim found location.');
@@ -2013,7 +2010,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         LocationToUse := Location.Code;
         // [WHEN] AssistEditLocation is called with location filter
-        FoundLocation := QltyFilterHelpers.AssistEditLocation(LocationToUse);
+        FoundLocation := QltyInspectionUtility.AssistEditLocation(LocationToUse);
 
         // [THEN] A location is found and the location code matches
         LibraryAssert.IsTrue(FoundLocation, 'Should claim found location.');
@@ -2028,7 +2025,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [SCENARIO] Validate where clause cleanup reducing length to 2048 characters or less
 
         // [WHEN] CleanUpWhereClause2048 is called with input where clause
-        Output := QltyFilterHelpers.CleanUpWhereClause2048(InputWhereClause400Tok);
+        Output := QltyInspectionUtility.CleanUpWhereClause2048(InputWhereClause400Tok);
 
         // [THEN] The output length is 2048 characters or less
         LibraryAssert.IsTrue(StrLen(Output) <= 2048, 'Should reduce length to 2048 characters or less');
@@ -2042,7 +2039,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [SCENARIO] Validate where clause cleanup splitting filter at WHERE keyword
 
         // [WHEN] CleanUpWhereClause is called with input containing WHERE keyword
-        Output := QltyFilterHelpers.CleanUpWhereClause(InputWhereClauseTok);
+        Output := QltyInspectionUtility.CleanUpWhereClause(InputWhereClauseTok);
 
         // [THEN] The output returns the filter portion after WHERE
         LibraryAssert.AreEqual(CorrectOutputTok, Output, 'Should return filter at WHERE')
@@ -2056,7 +2053,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [SCENARIO] Validate where clause cleanup returns blank when no WHERE keyword present
 
         // [WHEN] CleanUpWhereClause is called with input without WHERE keyword
-        Output := QltyFilterHelpers.CleanUpWhereClause(InputWhereClause2Tok);
+        Output := QltyInspectionUtility.CleanUpWhereClause(InputWhereClause2Tok);
 
         // [THEN] The output is blank
         LibraryAssert.AreEqual('', Output, 'Should not return a filter without WHERE.');
@@ -2074,7 +2071,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         Filter := AttributeTok;
 
         // [WHEN] DeserializeFilterIntoItemAttributesBuffer is called with the filter
-        QltyFilterHelpers.DeserializeFilterIntoItemAttributesBuffer(Filter, TempFilterItemAttributesBuffer);
+        QltyInspectionUtility.DeserializeFilterIntoItemAttributesBuffer(Filter, TempFilterItemAttributesBuffer);
 
         // [THEN] Two attributes are deserialized and their attribute names and values match
         LibraryAssert.AreEqual(2, TempFilterItemAttributesBuffer.Count(), 'There should be two attributes deserialized.');
@@ -2106,7 +2103,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         TempFilterItemAttributesBuffer.Insert();
 
         // [WHEN] SerializeItemAttributesBufferIntoText is called
-        Filter := QltyFilterHelpers.SerializeItemAttributesBufferIntoText(TempFilterItemAttributesBuffer);
+        Filter := QltyInspectionUtility.SerializeItemAttributesBufferIntoText(TempFilterItemAttributesBuffer);
 
         // [THEN] The serialization is comma separated and matches the provided attributes
         LibraryAssert.AreEqual(AttributeTok, Filter, 'Serialization should be comma separated and match provided attributes.');
@@ -2339,13 +2336,13 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
     end;
 
     /// <summary>
-    /// Handles the Qlty. Routing Line Lookup TestPage, returning the first record
+    /// Handles the Routing Line List TestPage, returning the first record
     /// </summary>
-    /// <param name="QltyRoutingLineLookup"></param>
+    /// <param name="RoutingLineList"></param>
     [ModalPageHandler]
-    procedure LookupQltyRoutingLineHandler(var QltyRoutingLineLookup: TestPage "Qlty. Routing Line Lookup")
+    procedure LookupQltyRoutingLineHandler(var RoutingLineList: TestPage "Routing Line List")
     begin
-        QltyRoutingLineLookup.OK().Invoke();
+        RoutingLineList.OK().Invoke();
     end;
 
     /// <summary>

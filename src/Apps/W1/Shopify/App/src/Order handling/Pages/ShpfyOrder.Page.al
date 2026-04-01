@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.CRM.Contact;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -61,6 +62,14 @@ page 30113 "Shpfy Order"
                     ApplicationArea = All;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the number of the customer who will buy the products.';
+                }
+                field(SellToContactNo; Rec."Sell-to Contact No.")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Sell-to Contact No.';
+                    TableRelation = Contact;
+                    Visible = false;
+                    ToolTip = 'Specifies the number of the contact person at the sell-to customer.';
                 }
                 field(ShippingMethod; Rec."Shipping Method Code")
                 {
@@ -223,6 +232,12 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     Importance = Additional;
                     ToolTip = 'Specifies whether the order has had any edits applied.';
+                }
+                field(UseShopifyOrderNo; Rec."Use Shopify Order No.")
+                {
+                    ApplicationArea = All;
+                    Importance = Additional;
+                    Editable = not Rec.Processed;
                 }
                 field(Processed; Rec.Processed)
                 {
@@ -461,6 +476,14 @@ page 30113 "Shpfy Order"
                         Editable = false;
                         ToolTip = 'Specifies the name of the customer''s country/region';
                     }
+                    field(ShipToContactNo; Rec."Ship-to Contact No.")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Ship-to Contact No.';
+                        TableRelation = Contact;
+                        Visible = false;
+                        ToolTip = 'Specifies the number of the contact person at the ship-to address.';
+                    }
                 }
                 group(BillTo)
                 {
@@ -523,6 +546,14 @@ page 30113 "Shpfy Order"
                         Caption = 'Country Name';
                         Editable = false;
                         ToolTip = 'Specifies the name of the customer''s country/region.';
+                    }
+                    field(BillToContactNo; Rec."Bill-to Contact No.")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Bill-to Contact No.';
+                        TableRelation = Contact;
+                        Visible = false;
+                        ToolTip = 'Specifies the number of the contact person at the bill-to customer.';
                     }
                 }
             }
@@ -1026,10 +1057,14 @@ page 30113 "Shpfy Order"
                     OrderLine.SetRange("Shopify Order Id", Rec."Shopify Order Id");
                     if OrderLine.FindSet() then
                         repeat
-                            FilterTxt += Format(OrderLine."Line Id") + '|';
+                            if FilterTxt <> '' then
+                                FilterTxt += '|';
+                            FilterTxt += Format(OrderLine."Line Id");
                         until OrderLine.Next() = 0;
-                    FilterTxt := FilterTxt.TrimEnd('|');
-                    TaxLine.SetFilter("Parent Id", FilterTxt);
+                    if FilterTxt = '' then
+                        TaxLine.SetRange("Parent Id", 0)
+                    else
+                        TaxLine.SetFilter("Parent Id", FilterTxt);
                     Page.Run(Page::"Shpfy Order Tax Lines", TaxLine);
                 end;
             }

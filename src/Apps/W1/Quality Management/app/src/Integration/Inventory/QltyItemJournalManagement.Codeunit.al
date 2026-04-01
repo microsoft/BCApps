@@ -33,7 +33,7 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="WarehouseJournalBatch"></param>
     /// <param name="WarehouseJournalLine"></param>
     /// <param name="WhseItemTrackingLine"></param>
-    procedure CreateWarehouseJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalBatch: Record "Warehouse Journal Batch"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
+    internal procedure CreateWarehouseJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalBatch: Record "Warehouse Journal Batch"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
@@ -162,7 +162,7 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="WarehouseJournalLine"></param>
     /// <returns></returns>
-    procedure PostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line") AllLinesPosted: Boolean
+    internal procedure PostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line") AllLinesPosted: Boolean
     var
         ToPostWarehouseJournalLine: Record "Warehouse Journal Line";
         WhseJnlRegisterBatch: Codeunit "Whse. Jnl.-Register Batch";
@@ -213,7 +213,7 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="ItemJournalBatch"></param>
     /// <param name="ItemJournalLine"></param>
     /// <param name="ReservationEntry"></param>
-    procedure CreateItemJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
+    internal procedure CreateItemJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         LastJnlItemJournalLine: Record "Item Journal Line";
@@ -328,7 +328,7 @@ codeunit 20454 "Qlty. Item Journal Management"
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <param name="ItemJournalLine"></param>
     /// <returns></returns>
-    procedure PostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line") AllLinesPosted: Boolean
+    internal procedure PostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line") AllLinesPosted: Boolean
     var
         ToPostItemJournalLine: Record "Item Journal Line";
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";

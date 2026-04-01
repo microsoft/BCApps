@@ -68,10 +68,9 @@ table 'Item Ledger Entries'
 	measure 'Base Link' =
 			
 			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
-			//VAR TenantID = VALUES('TENANT ID'[TENANT ID])
 			VAR TenantID = VALUES('Date Table Setup'[tenantID])
 			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
-			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			VAR Company = "?company=" & VALUES('Company Encoding'[Encoded Company Name])
 			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
 		displayFolder: _Back Links
 		lineageTag: 5ce10cd7-9520-4a7c-a650-b492a4dd903b
@@ -531,7 +530,7 @@ table 'Item Ledger Entries'
 				in
 				    #"Renamed Columns1"
 
-	annotation PBI_ResultType = Table
+	annotation PBI_ResultType = Exception
 
 	annotation PBI_NavigationStepName = Navigation
 
