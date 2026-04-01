@@ -230,13 +230,28 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
     local procedure SendEnforcementDisabledNotification()
     var
         EnforcementDisabledNotification: Notification;
-        EnforcementDisabledMsg: Label 'Copilot credit limits for AI evaluation are disabled. No environment or company limits are enforced. Enable enforcement on the Credit Limits page to set a spending cap.';
+        EnforcementDisabledMsg: Label 'Copilot credit limits for AI evaluation are disabled. Enable enforcement on the Credit Limits page to set a spending cap when running AI evaluations.';
+        DontShowAgainLbl: Label 'Don''t show again';
     begin
+        if (IsolatedStorage.Contains(GetEnforcementDisabledNotificationStorageKey())) then
+            exit;
+
         EnforcementDisabledNotification.Id := GetEnforcementDisabledNotificationId();
         EnforcementDisabledNotification.Message := EnforcementDisabledMsg;
         EnforcementDisabledNotification.Scope := NotificationScope::LocalScope;
         EnforcementDisabledNotification.AddAction(ViewCopilotCreditLimitsLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'OpenConfigurationPage');
+        EnforcementDisabledNotification.AddAction(DontShowAgainLbl, Codeunit::"AIT Eval Monthly Copilot Cred.", 'DoNotShowAgainEnforcementDisabledNotification');
         EnforcementDisabledNotification.Send();
+    end;
+
+    procedure DoNotShowAgainEnforcementDisabledNotification(Notification: Notification)
+    begin
+        IsolatedStorage.Set(GetEnforcementDisabledNotificationStorageKey(), 'true');
+    end;
+
+    local procedure GetEnforcementDisabledNotificationStorageKey(): Text
+    begin
+        exit(Format(UserSecurityId()) + '-' + GetEnforcementDisabledNotificationId());
     end;
 
     local procedure GetEnforcementDisabledNotificationId(): Guid

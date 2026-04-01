@@ -182,6 +182,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                 group(CompanyUsageSummary)
                 {
                     Caption = 'Company Usage';
+
                     field(CompanyCreditsConsumed; CompanyCopilotCreditsConsumed)
                     {
                         AutoFormatType = 0;
