@@ -5,10 +5,6 @@
 
 namespace System.MCP;
 
-#if not CLEAN28
-using System.Environment.Configuration;
-#endif
-
 page 8350 "MCP Config List"
 {
     PageType = List;
@@ -205,19 +201,7 @@ page 8350 "MCP Config List"
     }
 
     trigger OnOpenPage()
-#if not CLEAN28
-    var
-        FeatureNotEnabledErrorInfo: ErrorInfo;
-#endif
     begin
-#if not CLEAN28
-        if not MCPConfigImplementation.IsFeatureEnabled() then begin
-            FeatureNotEnabledErrorInfo.Message := FeatureNotEnabledErr;
-            FeatureNotEnabledErrorInfo.AddNavigationAction(GoToFeatureManagementLbl);
-            FeatureNotEnabledErrorInfo.PageNo := Page::"Feature Management";
-            Error(FeatureNotEnabledErrorInfo);
-        end;
-#endif
         HadActiveConfigsOnOpen := not MCPConfigImplementation.HasNoActiveConfigurations();
     end;
 
@@ -233,9 +217,5 @@ page 8350 "MCP Config List"
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         HadActiveConfigsOnOpen: Boolean;
-#if not CLEAN28
-        FeatureNotEnabledErr: Label 'MCP server feature is not enabled. Please contact your system administrator to enable the feature.';
-        GoToFeatureManagementLbl: Label 'Go to Feature Management';
-#endif
 
 }

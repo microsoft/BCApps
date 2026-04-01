@@ -75,6 +75,7 @@ table 30102 "Shpfy Shop"
                 AuditLog: Codeunit "Audit Log";
             begin
                 if Rec."Enabled" then begin
+                    Rec.TestField("Code");
                     Rec.TestField("Shopify URL");
                     Rec."Enabled" := CustomerConsentMgt.ConfirmUserConsent();
                     if Rec.Enabled then
