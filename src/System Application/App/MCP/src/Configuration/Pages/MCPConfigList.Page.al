@@ -155,22 +155,7 @@ page 8350 "MCP Config List"
         }
     }
 
-    trigger OnOpenPage()
-    begin
-        HadActiveConfigsOnOpen := not MCPConfigImplementation.HasNoActiveConfigurations();
-    end;
-
-    trigger OnQueryClosePage(CloseAction: Action): Boolean
-    begin
-        if not HadActiveConfigsOnOpen then
-            exit;
-
-        if MCPConfigImplementation.HasNoActiveConfigurations() then
-            MCPConfigImplementation.TriggerNoActiveConfigsFeedback();
-    end;
-
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
-        HadActiveConfigsOnOpen: Boolean;
 
 }
