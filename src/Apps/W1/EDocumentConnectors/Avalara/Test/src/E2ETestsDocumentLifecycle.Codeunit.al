@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
-
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using System.Threading;
 using System.Utilities;
@@ -157,10 +157,17 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
 
     local procedure Initialize()
     var
+        CompanyInformation: Record "Company Information";
         ConnectionSetup: Record "Connection Setup";
         AvalaraAuth: Codeunit Authenticator;
         KeyGuid: Guid;
     begin
+        CompanyInformation.Get();
+        if CompanyInformation.Name = '' then begin
+            CompanyInformation.Name := 'Test Company';
+            CompanyInformation.Modify();
+        end;
+
         if IsInitialized then
             exit;
 
