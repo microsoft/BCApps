@@ -214,12 +214,9 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
         EDocument: Record "E-Document";
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         EDocPurchLineField: Record "E-Document Line - Field";
-        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         NewPurchLineRecordRef: RecordRef;
         NewPurchLineFieldRef: FieldRef;
         FieldValue: Variant;
-        LastErrorText: Text;
-        FieldValidationSkippedLbl: Label 'Could not apply additional field %1 (ID %2) with value ''%3'': %4', Comment = '%1 = Field Name, %2 = Field Number, %3 = Value, %4 = Error Text';
     begin
         if not EDocPurchLineFieldSetup.FindSet() then
             exit;
@@ -231,21 +228,25 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
             EDocPurchLineField.Get(EDocumentPurchaseLine, EDocPurchLineFieldSetup);
             NewPurchLineFieldRef := NewPurchLineRecordRef.Field(EDocPurchLineFieldSetup."Field No.");
             FieldValue := EDocPurchLineField.GetValue();
-            if not TryValidateFieldValue(NewPurchLineFieldRef, FieldValue) then begin
-                LastErrorText := GetLastErrorText();
-                EDocumentErrorHelper.LogWarningMessage(
-                    EDocument, EDocumentPurchaseLine,
-                    EDocPurchLineFieldSetup."Field No.",
-                    StrSubstNo(FieldValidationSkippedLbl, NewPurchLineFieldRef.Name(), NewPurchLineFieldRef.Number(), FieldValue, LastErrorText));
-            end;
+            ValidateFieldValueOrLogWarning(NewPurchLineFieldRef, FieldValue, EDocument, EDocumentPurchaseLine, EDocPurchLineFieldSetup."Field No.");
         until EDocPurchLineFieldSetup.Next() = 0;
         NewPurchLineRecordRef.SetTable(PurchaseLine);
     end;
 
-    [TryFunction]
-    local procedure TryValidateFieldValue(var PurchLineFieldRef: FieldRef; FieldValue: Variant)
+    [ErrorBehavior(ErrorBehavior::Collect)]
+    local procedure ValidateFieldValueOrLogWarning(var PurchLineFieldRef: FieldRef; FieldValue: Variant; EDocument: Record "E-Document"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; FieldNo: Integer)
+    var
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        CollectedError: ErrorInfo;
+        FieldValidationSkippedLbl: Label 'Could not apply additional field %1 (ID %2) with value ''%3'': %4', Comment = '%1 = Field Name, %2 = Field Number, %3 = Value, %4 = Error Text';
     begin
         PurchLineFieldRef.Validate(FieldValue);
+        if System.HasCollectedErrors() then
+            foreach CollectedError in System.GetCollectedErrors(true) do
+                EDocumentErrorHelper.LogWarningMessage(
+                    EDocument, EDocumentPurchaseLine,
+                    FieldNo,
+                    StrSubstNo(FieldValidationSkippedLbl, PurchLineFieldRef.Name(), PurchLineFieldRef.Number(), FieldValue, CollectedError.Message));
     end;
 
     procedure OpenPageWithHistoricMatch(EDocumentPurchaseLine: Record "E-Document Purchase Line"): Boolean
