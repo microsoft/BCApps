@@ -22,7 +22,6 @@ codeunit 139782 "E-Doc PDF Mock" implements IStructureReceivedEDocument, IStruct
             EDocumentPurchaseHeader."Vendor VAT Id" := '1111111111234';
             EDocumentPurchaseHeader.Insert();
         end;
-#pragma warning disable AL0432
         exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
 #pragma warning restore AL0432
     end;
