@@ -43,6 +43,9 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
+  "resourceFolders": [
+    "Resources"
+  ],
   "application": "29.0.0.0",
   "target": "Cloud",
   "features": [
