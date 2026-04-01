@@ -23,7 +23,6 @@ codeunit 139782 "E-Doc PDF Mock" implements IStructureReceivedEDocument, IStruct
             EDocumentPurchaseHeader.Insert();
         end;
         exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
-#pragma warning restore AL0432
     end;
 
     procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
