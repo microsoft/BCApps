@@ -7,9 +7,7 @@ namespace System.MCP;
 
 using System.Azure.Identity;
 using System.Environment;
-#if not CLEAN28
-using System.Environment.Configuration;
-#endif
+using System.Feedback;
 using System.Reflection;
 using System.Utilities;
 
@@ -1102,4 +1100,5 @@ codeunit 8351 "MCP Config Implementation"
         Session.LogMessage('0000QEB', MCPConfigurationDeletedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
         Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditDeletedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
     end;
+    #endregion
 }
