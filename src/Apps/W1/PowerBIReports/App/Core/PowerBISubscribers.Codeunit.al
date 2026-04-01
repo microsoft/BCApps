@@ -4,26 +4,55 @@ using System.Integration.PowerBI;
 codeunit 36959 "Power BI Subscribers"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"PBI Deployment Events", OnReportDeployed, '', false, false)]
-    local procedure OnReportDeployed(var Report: Interface "Power BI Uploadable Report"; DeployableReportType: Enum "Power BI Deployable Report"; UploadedReportId: Guid)
+    local procedure OnReportDeployed(var Report: Interface "Power BI Uploadable Report"; DeployableReportType: Enum "Power BI Deployable Report")
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
+        UploadTracker: Interface "Power BI Upload Tracker";
+        ReportId: Guid;
+        ReportName: Text[200];
     begin
+        Report.GetUploadTracker(UploadTracker);
+        UploadTracker.Load(Report.GetReportKey());
+        ReportId := UploadTracker.GetUploadedReportId();
+        ReportName := CopyStr(UploadTracker.GetUploadedReportName(), 1, MaxStrLen(ReportName));
+
         PowerBIReportsSetup.GetOrCreate();
         case DeployableReportType of
             DeployableReportType::"Finance App":
-                PowerBIReportsSetup."Finance Report Id" := UploadedReportId;
+                begin
+                    PowerBIReportsSetup."Finance Report Id" := ReportId;
+                    PowerBIReportsSetup."Finance Report Name" := ReportName;
+                end;
             DeployableReportType::"Sales App":
-                PowerBIReportsSetup."Sales Report Id" := UploadedReportId;
+                begin
+                    PowerBIReportsSetup."Sales Report Id" := ReportId;
+                    PowerBIReportsSetup."Sales Report Name" := ReportName;
+                end;
             DeployableReportType::"Purchases App":
-                PowerBIReportsSetup."Purchases Report Id" := UploadedReportId;
+                begin
+                    PowerBIReportsSetup."Purchases Report Id" := ReportId;
+                    PowerBIReportsSetup."Purchases Report Name" := ReportName;
+                end;
             DeployableReportType::"Inventory App":
-                PowerBIReportsSetup."Inventory Report Id" := UploadedReportId;
+                begin
+                    PowerBIReportsSetup."Inventory Report Id" := ReportId;
+                    PowerBIReportsSetup."Inventory Report Name" := ReportName;
+                end;
             DeployableReportType::"Inventory Valuation App":
-                PowerBIReportsSetup."Inventory Val. Report Id" := UploadedReportId;
+                begin
+                    PowerBIReportsSetup."Inventory Val. Report Id" := ReportId;
+                    PowerBIReportsSetup."Inventory Val. Report Name" := ReportName;
+                end;
             DeployableReportType::"Manufacturing App":
-                PowerBIReportsSetup."Manufacturing Report Id" := UploadedReportId;
+                begin
+                    PowerBIReportsSetup."Manufacturing Report Id" := ReportId;
+                    PowerBIReportsSetup."Manufacturing Report Name" := ReportName;
+                end;
             DeployableReportType::"Projects App":
-                PowerBIReportsSetup."Projects Report Id" := UploadedReportId;
+                begin
+                    PowerBIReportsSetup."Projects Report Id" := ReportId;
+                    PowerBIReportsSetup."Projects Report Name" := ReportName;
+                end;
         end;
         PowerBIReportsSetup.Modify();
     end;

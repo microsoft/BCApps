@@ -581,35 +581,6 @@ page 36951 "PowerBI Reports Setup"
                 Image = CodesList;
                 RunObject = page "PBI Close Income Stmt. SC.";
             }
-            action(ClearSetupDev)
-            {
-                ApplicationArea = All;
-                Caption = 'Clear setup (dev)';
-                ToolTip = 'Clears all Power BI report ID values from setup. For development purposes only.';
-                Image = ClearLog;
-
-                trigger OnAction()
-                var
-                    NullGuid: Guid;
-                begin
-                    Rec."Finance Report Id" := NullGuid;
-                    Rec."Finance Report Name" := '';
-                    Rec."Sales Report Id" := NullGuid;
-                    Rec."Sales Report Name" := '';
-                    Rec."Purchases Report Id" := NullGuid;
-                    Rec."Purchases Report Name" := '';
-                    Rec."Inventory Report Id" := NullGuid;
-                    Rec."Inventory Report Name" := '';
-                    Rec."Inventory Val. Report Id" := NullGuid;
-                    Rec."Inventory Val. Report Name" := '';
-                    Rec."Manufacturing Report Id" := NullGuid;
-                    Rec."Manufacturing Report Name" := '';
-                    Rec."Projects Report Id" := NullGuid;
-                    Rec."Projects Report Name" := '';
-                    Rec.Modify(true);
-                    CurrPage.Update(false);
-                end;
-            }
             action(ABCAnalysisSetup)
             {
                 ApplicationArea = All;
@@ -634,9 +605,6 @@ page 36951 "PowerBI Reports Setup"
                 {
                 }
                 actionref(CloseIncomeStatementSourceCodes_Promoted; CloseIncomeStatementSourceCodes)
-                {
-                }
-                actionref(ClearSetupDev_Promoted; ClearSetupDev)
                 {
                 }
                 actionref(ABCAnalysisSetup_Promoted; ABCAnalysisSetup)
