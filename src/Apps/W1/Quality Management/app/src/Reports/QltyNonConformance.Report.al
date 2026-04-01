@@ -16,12 +16,13 @@ using Microsoft.QualityManagement.Utilities;
 
 report 20403 "Qlty. Non-Conformance"
 {
-    ApplicationArea = QualityManagement;
-    UsageCategory = ReportsAndAnalysis;
     Caption = 'Quality Management - Non-Conformance Report';
+    AdditionalSearchTerms = 'NCR,CAR';
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+    UsageCategory = ReportsAndAnalysis;
+    ApplicationArea = QualityManagement;
     DefaultRenderingLayout = QltyNonConformanceDefault;
     Extensible = true;
-    AdditionalSearchTerms = 'NCR,CAR';
 
     dataset
     {
