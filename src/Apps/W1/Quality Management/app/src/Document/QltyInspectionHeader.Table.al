@@ -1008,8 +1008,10 @@ table 20405 "Qlty. Inspection Header"
             Proceed := true;
         if Proceed then begin
             QltyInspectionCreate.CreateReinspection(Rec, NewlyCreatedReQltyInspectionHeader);
-            if GuiAllowed() then
+            if GuiAllowed() then begin
+                Commit();
                 Page.Run(Page::"Qlty. Inspection", NewlyCreatedReQltyInspectionHeader);
+            end;
         end;
     end;
 
