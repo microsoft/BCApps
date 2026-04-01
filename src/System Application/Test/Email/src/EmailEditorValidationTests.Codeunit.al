@@ -66,7 +66,7 @@ codeunit 134696 "Email Editor Validation Tests"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure SendNewMessageThroughEditorFailsNoToRecipient()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         SentEmail: Record "Sent Email";
         Outbox: Record "Email Outbox";
         ConnectorMock: Codeunit "Connector Mock";
@@ -79,7 +79,7 @@ codeunit 134696 "Email Editor Validation Tests"
         Outbox.DeleteAll();
         SentEmail.DeleteAll();
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
 
         PermissionsMock.Set('Email Admin');
         GiveUserViewAllPolicy();
@@ -107,7 +107,7 @@ codeunit 134696 "Email Editor Validation Tests"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure SendNewMessageThroughEditorFailsInvalidRecipients()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         SentEmail: Record "Sent Email";
         Outbox: Record "Email Outbox";
         ConnectorMock: Codeunit "Connector Mock";
@@ -122,7 +122,7 @@ codeunit 134696 "Email Editor Validation Tests"
         Outbox.DeleteAll();
         SentEmail.DeleteAll();
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
         ValidEmailAddress := Any.Email();
         InvalidEmailAddress := 'invalid email address';
 
@@ -196,7 +196,7 @@ codeunit 134696 "Email Editor Validation Tests"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure SendNewMessageThroughEditorNoSubjectTest()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         SentEmail: Record "Sent Email";
         Outbox: Record "Email Outbox";
         ConnectorMock: Codeunit "Connector Mock";
@@ -210,7 +210,7 @@ codeunit 134696 "Email Editor Validation Tests"
         Outbox.DeleteAll();
         SentEmail.DeleteAll();
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
         ValidEmailAddress := Any.Email();
 
         PermissionsMock.Set('Email Admin');
@@ -237,7 +237,7 @@ codeunit 134696 "Email Editor Validation Tests"
     [HandlerFunctions('EmailAccountLookUpHandler,SendWithoutSubjectHandler')]
     procedure SendNewMessageThroughEditorNoSubjectSendTest()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         SentEmail: Record "Sent Email";
         Outbox: Record "Email Outbox";
         ConnectorMock: Codeunit "Connector Mock";
@@ -252,7 +252,7 @@ codeunit 134696 "Email Editor Validation Tests"
         Outbox.DeleteAll();
         SentEmail.DeleteAll();
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
         ValidEmailAddress := Any.Email();
 
         PermissionsMock.Set('Email Admin');
@@ -273,8 +273,8 @@ codeunit 134696 "Email Editor Validation Tests"
         SentEmail.SetRange("Message Id", Message.GetId());
         Assert.IsTrue(SentEmail.FindFirst(), 'A Sent Email record should have been inserted.');
         Assert.AreEqual('', SentEmail.Description, 'The email subject should be empty');
-        Assert.AreEqual(EmailAccount."Account Id", SentEmail."Account Id", 'A different account was expected');
-        Assert.AreEqual(EmailAccount."Email Address", SentEmail."Sent From", 'A different sent from was expected');
+        Assert.AreEqual(TempEmailAccount."Account Id", SentEmail."Account Id", 'A different account was expected');
+        Assert.AreEqual(TempEmailAccount."Email Address", SentEmail."Sent From", 'A different sent from was expected');
         Assert.AreEqual(Enum::"Email Connector"::"Test Email Connector", SentEmail.Connector, 'A different connector was expected');
 
         RemoveViewPolicies();
@@ -366,7 +366,7 @@ codeunit 134696 "Email Editor Validation Tests"
     [HandlerFunctions('WordTemplateToBodyModalHandler')]
     procedure EmailEditorApplyWordTemplate()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         TestEmailAccount: Record "Test Email Account";
         ConnectorMock: Codeunit "Connector Mock";
         WordTemplateCreator: Codeunit "Word Template Creator";
@@ -383,7 +383,7 @@ codeunit 134696 "Email Editor Validation Tests"
 
         // [GIVEN] A connector is installed, an account is added, and a template is created for the table id of the primary source
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
         PermissionsMock.Set('Email Word Template');
         TableId := Database::"Test Email Account";
         WordTemplateCreator.CreateWordTemplateWithMergeValues(TableId);
@@ -412,7 +412,7 @@ codeunit 134696 "Email Editor Validation Tests"
     [HandlerFunctions('WordTemplateToBodyModalHandler')]
     procedure EmailEditorApplyWordTemplateForMultipleRelatedEntities()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         TestEmailAccount: Record "Test Email Account";
         ConnectorMock: Codeunit "Connector Mock";
         WordTemplateCreator: Codeunit "Word Template Creator";
@@ -429,7 +429,7 @@ codeunit 134696 "Email Editor Validation Tests"
 
         // [GIVEN] A connector is installed, an account is added, and a template is created for the related table id
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
         PermissionsMock.Set('Email Word Template');
         PrimaryTableId := Database::"Test Email Connector Setup";
         RelatedTableId := Database::"Test Email Account";
@@ -470,7 +470,7 @@ codeunit 134696 "Email Editor Validation Tests"
     [HandlerFunctions('WordTemplateAttachmentModalHandler')]
     procedure EmailEditorAttachWordTemplate()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         TestEmailAccount: Record "Test Email Account";
         ConnectorMock: Codeunit "Connector Mock";
         WordTemplateCreator: Codeunit "Word Template Creator";
@@ -488,7 +488,7 @@ codeunit 134696 "Email Editor Validation Tests"
 
         // [GIVEN] A connector is installed, an account is added, and a template is created for the table id of the primary source
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
         PermissionsMock.Set('Email Word Template');
         TableId := Database::"Test Email Account";
         WordTemplateCreator.CreateWordTemplateWithMergeValues(TableId);
@@ -521,7 +521,7 @@ codeunit 134696 "Email Editor Validation Tests"
     [HandlerFunctions('WordTemplateAttachmentModalHandler')]
     procedure EmailEditorAttachWordTemplateForMultipleRelatedEntities()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         TestEmailAccount: Record "Test Email Account";
         ConnectorMock: Codeunit "Connector Mock";
         WordTemplateCreator: Codeunit "Word Template Creator";
@@ -539,7 +539,7 @@ codeunit 134696 "Email Editor Validation Tests"
 
         // [GIVEN] A connector is installed, an account is added, and a template is created for the related table id
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
         PermissionsMock.Set('Email Word Template');
         PrimaryTableId := Database::"Test Email Connector Setup";
         RelatedTableId := Database::"Test Email Account";
@@ -584,7 +584,7 @@ codeunit 134696 "Email Editor Validation Tests"
     [HandlerFunctions('ValidateDraftDefaultOptionEmailEditorHandler')]
     procedure EmailEditorCloseDefaultDraft()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailOutbox: Record "Email Outbox";
         Email: Codeunit Email;
         ConnectorMock: Codeunit "Connector Mock";
@@ -596,7 +596,7 @@ codeunit 134696 "Email Editor Validation Tests"
         // [GIVEN] All outbox records are deleted, connector is installed and an account is added.
         EmailOutbox.DeleteAll();
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
 
         // [GIVEN] Default exit parameter is draft (1)
         EmailEditorValues.SetDefaultExitOption(1);
@@ -605,7 +605,7 @@ codeunit 134696 "Email Editor Validation Tests"
         EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
         EmailMessageImpl.Get(EmailMessage.GetId());
         EmailEditorTest.Trap();
-        Email.OpenInEditor(EmailMessage, EmailAccount);
+        Email.OpenInEditor(EmailMessage, TempEmailAccount);
 
         // [WHEN] Editor is closed, the email is discarded
         EmailEditorTest.Close();
@@ -618,7 +618,7 @@ codeunit 134696 "Email Editor Validation Tests"
     [HandlerFunctions('ValidateDiscardDefaultOptionEmailEditorHandler')]
     procedure EmailEditorCloseDefaultDiscard()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailOutbox: Record "Email Outbox";
         Email: Codeunit Email;
         ConnectorMock: Codeunit "Connector Mock";
@@ -630,7 +630,7 @@ codeunit 134696 "Email Editor Validation Tests"
         // [GIVEN] All outbox records are deleted, connector is installed and an account is added.
         EmailOutbox.DeleteAll();
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
 
         // [GIVEN] Default exit parameter is discard (2)
         EmailEditorValues.SetDefaultExitOption(2);
@@ -639,7 +639,7 @@ codeunit 134696 "Email Editor Validation Tests"
         EmailMessage.Create(Any.Email(), Any.UnicodeText(50), Any.UnicodeText(250), true);
         EmailMessageImpl.Get(EmailMessage.GetId());
         EmailEditorTest.Trap();
-        Email.OpenInEditor(EmailMessage, EmailAccount);
+        Email.OpenInEditor(EmailMessage, TempEmailAccount);
 
         // [WHEN] Editor is closed, the email is discarded
         EmailEditorTest.Close();

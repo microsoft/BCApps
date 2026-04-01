@@ -118,7 +118,7 @@ page 8014 "Service Commitments List"
                 }
                 field("Extension Term"; Rec."Extension Term")
                 {
-                    ToolTip = 'Specifies a date formula for automatic renewal after initial term and the rhythm of the update of "Notice possible to" and "Term Until". If the field is empty and the initial term or notice period is filled, the end of Subscription Line is automatically set to the end of the initial term or notice period.';
+                    ToolTip = 'Specifies a date formula for automatic renewal after initial term and the rhythm of the update of "Notice possible to" and "Term Until".';
                     Visible = false;
                 }
                 field("Billing Rhythm"; Rec."Billing Rhythm")
@@ -148,12 +148,12 @@ page 8014 "Service Commitments List"
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+                    ApplicationArea = Dimensions;
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+                    ApplicationArea = Dimensions;
                     Visible = false;
                 }
                 field("Price (LCY)"; Rec."Price (LCY)")

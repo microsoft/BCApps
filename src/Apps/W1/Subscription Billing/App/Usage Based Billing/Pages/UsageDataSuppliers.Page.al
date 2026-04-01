@@ -8,6 +8,9 @@ page 8044 "Usage Data Suppliers"
     UsageCategory = Lists;
     PageType = List;
     LinksAllowed = false;
+    AdditionalSearchTerms = 'Usage Data Supplier, Supplier Setup, Connector Settings, Vendor Link, Usage Provider, Data Supplier';
+    AboutTitle = 'About Usage Data Suppliers';
+    AboutText = 'Define the business partners that supply usage data for processing here. Create or edit suppliers, link to a vendor, and set connector-specific defaults. Open the settings for further connector specific defaults.';
     layout
     {
         area(content)

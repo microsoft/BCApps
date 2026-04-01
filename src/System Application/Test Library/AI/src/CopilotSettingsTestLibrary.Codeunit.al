@@ -15,6 +15,7 @@ codeunit 132934 "Copilot Settings Test Library"
 
     procedure FindFirst(): Boolean
     begin
+        CopilotSettings.SetAutoCalcFields("App Publisher");
         exit(CopilotSettings.FindFirst());
     end;
 
@@ -45,7 +46,7 @@ codeunit 132934 "Copilot Settings Test Library"
 
     procedure GetPublisher(): Text
     begin
-        exit(CopilotSettings."Publisher");
+        exit(CopilotSettings."App Publisher");
     end;
 
     procedure GetBillingType(): Enum "Copilot Billing Type"

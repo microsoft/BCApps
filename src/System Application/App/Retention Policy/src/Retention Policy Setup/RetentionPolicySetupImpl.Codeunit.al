@@ -5,8 +5,8 @@
 
 namespace System.DataAdministration;
 
-using System.Environment.Configuration;
 using System.Reflection;
+using System.Telemetry;
 
 codeunit 3903 "Retention Policy Setup Impl."
 {
@@ -21,10 +21,6 @@ codeunit 3903 "Retention Policy Setup Impl."
                   tabledata "Retention Policy Setup Line" = ri;
 
     var
-        ManualSetupTitleTxt: Label 'Retention policies';
-        ManualSetupShortTitleTxt: Label 'Retention policies';
-        ManualSetupDescriptionTxt: Label 'Set up retention policies for log tables to automatically delete expired records.';
-        ManualSetupKeyWordsTxt: Label 'Retention, Delete, Cleanup, Log';
         RetentionPeriodUsedErr: Label 'You cannot delete the retention period %1 because one or more retention policies are using it.', Comment = '%1 = a retention period code';
         RetentionPeriodLockedErr: Label 'You cannot modify the retention period %1 because one or more mandatory retention policies are using it.', Comment = '%1 = a retention period code';
         TableNotAllowedErrorLbl: Label 'Table %1 %2 is not in the list of allowed tables.', Comment = '%1 = table number, %2 = table name';
@@ -36,6 +32,13 @@ codeunit 3903 "Retention Policy Setup Impl."
         DeleteAllowedList: List of [Integer];
         ReadPermissionNotificationLbl: Label 'The number of expired records cannot be calculated because you do not have read permission on table %1, %2.', Comment = '%1 = table number, %2 = table caption';
         TableDoesNotExistLbl: Label 'Table %1 does not exist.', Comment = '%1 = table number';
+        TruncateNotAllowedForTableErr: Label 'Truncate is not allowed for table %1.', Comment = '%1 = Table caption';
+        TruncateConfirmQst: Label 'This will truncate ALL records in table %1. Continue?', Comment = '%1 = Table caption';
+        TruncateFinalConfirmQst: Label 'This action cannot be undone. Are you absolutely sure?', Comment = 'Final confirmation before truncating all records in a table. No placeholders.';
+        TruncateSuccessMsg: Label 'All records in table %1 have been truncated successfully.', Comment = '%1 = Table caption';
+        TruncateTableInfoLbl: Label 'Table %1, %2 was truncated.', Comment = '%1 = Table Id, %2 = Table caption';
+        TruncateFirstConfirmDeclinedLbl: Label 'The first truncate confirmation was declined for table %1, %2.', Comment = '%1 = Table Id, %2 = Table caption';
+        TruncateSecondConfirmDeclinedLbl: Label 'The final truncate confirmation was declined for table %1, %2.', Comment = '%1 = Table Id, %2 = Table caption';
 
     procedure SetTableFilterView(var RetentionPolicySetupLine: Record "Retention Policy Setup Line"): Text
     var
@@ -234,16 +237,6 @@ codeunit 3903 "Retention Policy Setup Impl."
         RetentionPolicyLogCategory: Enum "Retention Policy Log Category";
     begin
         exit(RetentionPolicyLogCategory::"Retention Policy - Setup")
-    end;
-
-    procedure AddRetentionPolicyOnRegisterManualSetup(GuidedExperience: Codeunit "Guided Experience")
-    var
-        ManualSetupCategory: Enum "Manual Setup Category";
-        CurrModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCurrentModuleInfo(CurrModuleInfo);
-        GuidedExperience.InsertManualSetup(ManualSetupTitleTxt, ManualSetupShortTitleTxt, ManualSetupDescriptionTxt, 5, ObjectType::Page,
-            Page::"Retention Policy Setup List", ManualSetupCategory::Uncategorized, ManualSetupKeyWordsTxt);
     end;
 
     procedure VerifyRetentionPolicySetupOnbeforeDeleteRetentionPeriod(var RetentionPeriod: Record "Retention Period")
@@ -480,5 +473,37 @@ codeunit 3903 "Retention Policy Setup Impl."
             end;
             RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(RetentionPolicySetupLineLockedErr, RetentionPolicySetupLine."Table ID", RetentionPolicySetupLine."Table Caption"));
         end;
+    end;
+
+    procedure TruncateTableRecords(RetentionPolicySetup: Record "Retention Policy Setup")
+    var
+        RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
+        RetentionPolicyLog: Codeunit "Retention Policy Log";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        RecRef: RecordRef;
+    begin
+        if not RetenPolAllowedTblImpl.IsTruncateAllowed(RetentionPolicySetup."Table Id") then
+            Error(TruncateNotAllowedForTableErr, RetentionPolicySetup."Table Caption");
+
+        if not Confirm(TruncateConfirmQst, false, RetentionPolicySetup."Table Caption") then begin
+            RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(TruncateFirstConfirmDeclinedLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
+            FeatureTelemetry.LogUsage('0000F6L', 'Retention policies', 'Truncate first confirm declined');
+            exit;
+        end;
+
+        if not Confirm(TruncateFinalConfirmQst, false) then begin
+            RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(TruncateSecondConfirmDeclinedLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
+            FeatureTelemetry.LogUsage('0000F6M', 'Retention policies', 'Truncate final confirm declined');
+            exit;
+        end;
+
+        RecRef.Open(RetentionPolicySetup."Table Id");
+        RecRef.Truncate(true);
+        RecRef.Close();
+
+        RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(TruncateTableInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
+        Session.LogAuditMessage(StrSubstNo(TruncateTableInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+        FeatureTelemetry.LogUsage('0000F6N', 'Retention policies', 'Table truncated');
+        Message(TruncateSuccessMsg, RetentionPolicySetup."Table Caption");
     end;
 }

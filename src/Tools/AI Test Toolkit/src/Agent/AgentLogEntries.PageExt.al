@@ -1,0 +1,65 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.TestTools.AITestToolkit;
+
+using System.Agents;
+
+pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
+{
+    layout
+    {
+        addafter("Tokens Consumed")
+        {
+            field("Copilot Credits"; CopilotCredits)
+            {
+                ApplicationArea = All;
+                AutoFormatType = 0;
+                Caption = 'Copilot Credits Consumed';
+                ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this log entry.';
+                Editable = false;
+                Visible = ConsumedCreditsVisible;
+            }
+            field("Agent Task IDs"; AgentTaskIDs)
+            {
+                ApplicationArea = All;
+                Caption = 'Agent Tasks Executed';
+                ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to this log entry.';
+                Editable = false;
+
+                trigger OnDrillDown()
+                var
+                    AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+                begin
+                    AgentTestContextImpl.OpenAgentTaskList(AgentTaskIDs);
+                end;
+            }
+        }
+    }
+
+    trigger OnOpenPage()
+    var
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+    begin
+        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateAgentTaskMetrics();
+    end;
+
+    local procedure UpdateAgentTaskMetrics()
+    begin
+        CopilotCredits := ConsumedCreditsVisible ? AgentTestContextImpl.GetCopilotCreditsForLogEntry(Rec."Entry No.") : -1;
+        AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDsForLogEntry(Rec."Entry No.");
+    end;
+
+    var
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        CopilotCredits: Decimal;
+        AgentTaskIDs: Text;
+        ConsumedCreditsVisible: Boolean;
+}

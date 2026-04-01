@@ -17,7 +17,6 @@ using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
-using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Worksheet;
 using System.Apps;
@@ -39,35 +38,27 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Quality Inspection Nos.';
             TableRelation = "No. Series";
-            ToolTip = 'Specifies the default number series for quality inspection documents used when there isn''t a number series defined on the quality inspection template.';
-        }
-        field(3; "When to show inspections"; Enum "Qlty. When to Show Inspections")
-        {
-            Caption = 'When to show inspections';
-            ToolTip = 'Specifies whether inspections are shown immediately or sent to a queue for quality inspectors. For demonstrations and training, it can be useful to show automatically created inspections immediately. In production scenarios, automatically created inspections are usually not shown, instead they are queued or dispatch for quality inspections.';
+            ToolTip = 'Specifies the default number series for quality inspection documents.';
         }
         field(4; "Inspection Creation Option"; Enum "Qlty. Inspect. Creation Option")
         {
             Caption = 'Inspection Creation Option';
             ToolTip = 'Specifies whether and how a new quality inspection is created if existing inspections are found.';
+            InitValue = "Use existing open inspection if available";
         }
         field(5; "Inspection Search Criteria"; Enum "Qlty. Inspect. Search Criteria")
         {
             Caption = 'Inspection Search Criteria';
-            Description = 'When looking for existing inspections, this defines what it looks for.';
             ToolTip = 'Specifies the criteria the system uses to search for existing inspections.';
-
         }
         field(6; "Certificate Contact No."; Code[20])
         {
             Caption = 'Certificate of Analysis Contact';
-            Description = 'When supplied, these contact details will appear on the CoA report.';
             TableRelation = Contact."No.";
             ToolTip = 'Specifies the contact details that will appear on the Certificate of Analysis report when supplied.';
         }
         field(10; "Production Order Trigger"; Enum "Qlty. Production Order Trigger")
         {
-            Description = 'Optionally choose a production order related trigger to try and create an inspection.';
             Caption = 'Production Order Trigger';
             ToolTip = 'Specifies a default production order related trigger value for Inspection Generation Rules to try and create an inspection.';
 
@@ -86,26 +77,23 @@ table 20400 "Qlty. Management Setup"
         }
         field(11; "Production Update Control"; Enum "Qlty. Update Source Behavior")
         {
-            Description = 'Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
             InitValue = "Do not update";
             Caption = 'Production Update Control';
-            ToolTip = 'Specifies whether to update when the source changes. Set to "Update when Source Changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do Not Update" to prevent updating the original source that created the inspection.';
+            ToolTip = 'Specifies whether to update when the source changes. Set to "Update when source changes" to alter source information as the source record changes (for example, such as when a Production Order changes status to Finished). Set to "Do not update" to prevent updating the original source that created the inspection.';
         }
         field(24; "Item Tracking Before Finishing"; Enum "Qlty. Item Tracking Behavior")
         {
-            Description = 'Whether to require item tracking before finishing an inspection.';
             Caption = 'Item Tracking Before Finishing';
-            ToolTip = 'Specifies when lot or serial numbers are required for inspections, including whether missing values are allowed, only posted tracking is accepted, reserved (unposted) tracking is permitted, or any non-empty lot/serial value is valid.';
+            ToolTip = 'Specifies when item tracking is required for inspections, including whether missing values are allowed, only posted tracking is accepted, reserved (unposted) tracking is permitted, or any non-empty lot/serial/package value is valid.';
         }
         field(26; "Scheduler Template Code"; Code[20])
         {
-            Description = 'When using a specific template, which specific template.';
+            ToolTip = 'Specifies which specific template to use when using a specific template.';
             TableRelation = "Qlty. Inspection Template Hdr.".Code;
             Caption = 'Scheduler Template Code';
         }
         field(27; "Additional Picture Handling"; Enum "Qlty. Add. Picture Handling")
         {
-            Description = 'When a picture has been taken, this value defines what to do with that picture.';
             Caption = 'Additional Picture Handling';
             ToolTip = 'Specifies what to do with a picture after it has been taken.';
 
@@ -116,13 +104,11 @@ table 20400 "Qlty. Management Setup"
         }
         field(28; "Inspection Selection Criteria"; Enum "Qlty. Insp. Selection Criteria")
         {
-            Description = 'When evaluating if a document specific transactions are blocked, this determines which inspection(s) are considered.';
             Caption = 'Quality Inspection Selection Criteria';
-            ToolTip = 'Specifies the tests the system uses to decide if a document-specific transaction should be blocked.';
+            ToolTip = 'Specifies the checks the system uses to decide if a document-specific transaction should be blocked.';
         }
         field(29; "Warehouse Trigger"; Enum "Qlty. Warehouse Trigger")
         {
-            Description = 'Optionally choose a warehouse related trigger to try and create an inspection.';
             Caption = 'Warehouse Trigger';
             ToolTip = 'Specifies a default warehousing related trigger value for Inspection Generation Rules to try and create an inspection.';
 
@@ -140,32 +126,6 @@ table 20400 "Qlty. Management Setup"
                     if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
                         if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Warehouse Trigger", Rec."Warehouse Trigger")) then
                             QltyInspectionGenRule.ModifyAll("Warehouse Movement Trigger", Rec."Warehouse Trigger", false);
-                end;
-            end;
-        }
-        field(70; "Visibility"; Enum "Qlty. Management Visibility")
-        {
-            Description = 'Assists with toggling the application area that shows or hides the Quality Management.';
-            DataClassification = SystemMetadata;
-            Caption = 'Visibility';
-
-            trigger OnValidate()
-            var
-                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-            begin
-                if Rec.Visibility <> Rec.Visibility::Hide then
-                    exit;
-
-                QltyInspectionGenRule.SetFilter("Activation Trigger", '<>%1', QltyInspectionGenRule."Activation Trigger"::Disabled);
-                if QltyInspectionGenRule.IsEmpty() then
-                    exit;
-
-                if not GuiAllowed() then
-                    exit;
-
-                if Confirm(ShouldDisableInspectionGenerationRulesQst) then begin
-                    QltyInspectionGenRule.ModifyAll("Activation Trigger", QltyInspectionGenRule."Activation Trigger"::Disabled);
-                    Message(InspectionGenerationRulesHaveBeenDisabledMsg);
                 end;
             end;
         }
@@ -200,7 +160,6 @@ table 20400 "Qlty. Management Setup"
         field(74; "Whse. Reclass. Batch Name"; Code[10])
         {
             Caption = 'Whse. Reclass. Batch Name';
-            Description = 'The batch to use for bin movements for directed pick and put-away locations';
             ToolTip = 'Specifies the warehouse reclassification journal batch to use for bin movements and reclassifications for directed pick and put-away locations.';
 
             trigger OnLookup()
@@ -337,15 +296,12 @@ table 20400 "Qlty. Management Setup"
         field(97; "Warehouse Receipt Trigger"; Enum "Qlty. Whse. Receipt Trigger")
         {
             Caption = 'Create Inspection On Warehouse Receipt Trigger';
-            Description = 'Provides automation to create an inspection when a warehouse receipt is created.';
             ToolTip = 'Specifies a default warehouse receipt trigger value for Inspection Generation Rules to create an inspection.';
 
             trigger OnValidate()
             var
                 QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
-                SanityCheckReceiveSettings();
-
                 if (Rec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger") and (xRec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger"::NoTrigger) then begin
                     QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Receipt");
                     QltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", xRec."Warehouse Receipt Trigger");
@@ -358,7 +314,6 @@ table 20400 "Qlty. Management Setup"
         field(98; "Purchase Order Trigger"; Enum "Qlty. Purchase Order Trigger")
         {
             Caption = 'Create Inspection On Purchase Order Trigger';
-            Description = 'Provides automation to create an inspection when a purchase order is received.';
             ToolTip = 'Specifies a default purchase order trigger value for Inspection Generation Rules to create an inspection.';
             trigger OnValidate()
             var
@@ -376,7 +331,6 @@ table 20400 "Qlty. Management Setup"
         field(99; "Sales Return Trigger"; Enum "Qlty. Sales Return Trigger")
         {
             Caption = 'Create Inspection On Sales Return Trigger';
-            Description = 'Provides automation to create an inspection when a sales return is received.';
             ToolTip = 'Specifies a default sales return trigger value for Inspection Generation Rules to create an inspection.';
 
             trigger OnValidate()
@@ -395,7 +349,6 @@ table 20400 "Qlty. Management Setup"
         field(100; "Transfer Order Trigger"; Enum "Qlty. Transfer Order Trigger")
         {
             Caption = 'Create Inspection On Transfer Order Trigger';
-            Description = 'Provides automation to create an inspection when a transfer order is received.';
             ToolTip = 'Specifies a default transfer order trigger value for Inspection Generation Rules to create an inspection.';
 
             trigger OnValidate()
@@ -414,7 +367,6 @@ table 20400 "Qlty. Management Setup"
         field(101; "Assembly Trigger"; Enum "Qlty. Assembly Trigger")
         {
             Caption = 'Create Inspection On Assembly Trigger';
-            Description = 'Provides automation to create an inspection when an assembly order creates output.';
             ToolTip = 'Specifies when to create an inspection for assembly orders using inspection generation rules';
 
             trigger OnValidate()
@@ -430,6 +382,20 @@ table 20400 "Qlty. Management Setup"
                 end;
             end;
         }
+        field(102; "Checklist Items Registered"; Boolean)
+        {
+            Caption = 'Checklist Items Registered';
+            ToolTip = 'Specifies whether the guided experience checklist items have been registered. This is used internally to track setup completion.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(103; "Guided Experience Registered"; Boolean)
+        {
+            Caption = 'Guided Experience Items Registered';
+            ToolTip = 'Specifies whether the guided experience items (tours, features, links) have been registered. This is used internally to track setup completion.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
 
     keys
@@ -442,21 +408,10 @@ table 20400 "Qlty. Management Setup"
 
     var
         RecordHasBeenRead: Boolean;
-        ShouldDisableInspectionGenerationRulesQst: Label 'Changing the visibility to be off should be accompanied by disabling the inspection generation rules. Do you want to disable your current enabled generation rules?';
-        InspectionGenerationRulesHaveBeenDisabledMsg: Label 'All inspection generation rules have been disabled.';
         ConfirmExistingRulesQst: Label 'You have %1 existing generation rules that used the "%2" setting. Do you want to change those to be "%3"?', Comment = '%1=the count, %2=the old setting, %3=the new setting.';
         BatchNotFoundErr: Label 'The batch name "%1" was not found. Confirm that the batch name is correct.', Comment = '%1=the batch name';
         WorksheetNameNotFoundErr: Label 'The worksheet name "%1" was not found. Confirm that the worksheet name is correct.', Comment = '%1=the worksheet name';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.';
-
-    internal procedure SanityCheckReceiveSettings()
-    var
-        Handled: Boolean;
-    begin
-        OnBeforeValidateQualityManagementSettings(xRec, Rec, Handled);
-        if Handled then
-            exit;
-    end;
 
     internal procedure SanityCheckPictureAndCameraSettings()
     var
@@ -578,22 +533,11 @@ table 20400 "Qlty. Management Setup"
     /// <summary>
     /// Retrieves the Setup record from the database, caching the result to avoid repeated reads within the same session.
     /// </summary>
-    procedure GetRecordOnce()
+    internal procedure GetRecordOnce()
     begin
         if RecordHasBeenRead then
             exit;
         Get();
         RecordHasBeenRead := true;
-    end;
-
-    /// <summary>
-    /// Occurs when changing settings on the quality inspector setup page.
-    /// </summary>
-    /// <param name="XOldQltyManagementSetup"></param>
-    /// <param name="NewQltyManagementSetup"></param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateQualityManagementSettings(var XOldQltyManagementSetup: Record "Qlty. Management Setup"; var NewQltyManagementSetup: Record "Qlty. Management Setup"; var Handled: Boolean)
-    begin
     end;
 }

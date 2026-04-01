@@ -4,12 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Document;
 
-using Microsoft.QualityManagement.Utilities;
 using System.Device;
 
 page 20431 "Qlty. Most Recent Picture"
 {
-    Caption = 'Quality Most Recent Picture';
+    Caption = 'Most Recent Picture';
     DeleteAllowed = false;
     InsertAllowed = false;
     LinksAllowed = false;
@@ -35,35 +34,28 @@ page 20431 "Qlty. Most Recent Picture"
             action(TakePicture)
             {
                 Caption = 'Take';
+                Visible = IsCameraAvailable;
                 Image = Camera;
-                ToolTip = 'Activate the camera on the device.';
-                Visible = IsCameraAvailable and (not HideActions);
+                ToolTip = 'Take a picture using the camera on the device.';
 
                 trigger OnAction()
                 begin
-                    Rec.TakeNewPicture();
+                    Rec.TakeNewMostRecentPicture();
                 end;
             }
             action(ImportPicture)
             {
                 Caption = 'Import';
                 Image = Import;
-                ToolTip = 'Import a picture file.';
-                Visible = not HideActions;
+                ToolTip = 'Import a picture from existing file.';
 
                 trigger OnAction()
-                var
-                    QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-                    InStream: InStream;
                 begin
                     if Rec."Most Recent Picture".HasValue() then
                         if not Confirm(OverrideImageQst) then
                             exit;
-                    Clear(Rec."Most Recent Picture");
-                    if QltyMiscHelpers.PromptAndImportIntoInStream(FileFilterTok, InStream) then begin
-                        Rec."Most Recent Picture".ImportStream(InStream, ImageTok);
-                        Rec.Modify();
-                    end;
+
+                    Rec.ImportMostRecentPicture();
                 end;
             }
             action(DeletePicture)
@@ -71,52 +63,40 @@ page 20431 "Qlty. Most Recent Picture"
                 Caption = 'Delete';
                 Enabled = DeleteExportEnabled;
                 Image = Delete;
-                ToolTip = 'Delete the record.';
-                Visible = not HideActions;
+                ToolTip = 'Delete the most recent picture.';
 
                 trigger OnAction()
                 begin
-                    DeleteMostRecentPicture();
+                    if GuiAllowed() then
+                        if not Confirm(DeleteImageQst) then
+                            exit;
+
+                    Rec.DeleteMostRecentPicture();
                 end;
             }
         }
     }
 
     var
-        Camera: Codeunit Camera;
         IsCameraAvailable: Boolean;
         DeleteExportEnabled: Boolean;
-        HideActions: Boolean;
         DeleteImageQst: Label 'Are you sure you want to delete the picture?';
         OverrideImageQst: Label 'The existing picture will be replaced. Do you want to continue?';
-        FileFilterTok: Label 'Pictures |*.jpg;*.png;*.jpeg;*.bmp', Locked = true;
-        ImageTok: Label 'Image', Locked = true;
+
+    trigger OnOpenPage()
+    var
+        Camera: Codeunit Camera;
+    begin
+        IsCameraAvailable := Camera.IsAvailable();
+    end;
 
     trigger OnAfterGetCurrRecord()
     begin
         SetEditableOnPictureActions();
     end;
 
-    trigger OnOpenPage()
-    begin
-        IsCameraAvailable := Camera.IsAvailable();
-    end;
-
     local procedure SetEditableOnPictureActions()
     begin
         DeleteExportEnabled := Rec."Most Recent Picture".HasValue();
-    end;
-
-    /// <summary>
-    /// Deletes the most recent picture.
-    /// </summary>
-    procedure DeleteMostRecentPicture()
-    begin
-        if GuiAllowed() then
-            if not Confirm(DeleteImageQst) then
-                exit;
-
-        Clear(Rec."Most Recent Picture");
-        Rec.Modify(true);
     end;
 }

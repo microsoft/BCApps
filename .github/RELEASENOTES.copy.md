@@ -2,16 +2,123 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### Added support for workspace compilation
+
+With v28 of Business Central, the ALTool now also provides the ability to compile workspaces of apps. This has the added advantage that the ALTool can compute the dependency graph for the apps in the workspace and compile apps in parallel (if possible). For AL-Go projects with large amounts of apps that can save a lot of time. If you want to try this out you can enable it via the following setting
+
+```json
+  "workspaceCompilation": {
+    "enabled": true
+  }
+```
+
+By default apps are compiled sequentially but this can be changed via the parallelism property. This allows you to configure the maximum amount of parallel compilation processes. Set to 0 or -1 to use all available processors.
+
+```json
+  "workspaceCompilation": {
+    "enabled": true,
+    "parallelism": 4
+  }
+```
+
+### Test Projects — split builds and tests for faster feedback
+
+AL-Go now supports **test projects**: a new project type that separates test execution from compilation. A test project does not build any apps itself — instead it depends on one or more regular projects, installs the apps they produce, and runs tests against them.
+
+This lets you re-run tests without waiting for a full recompilation, and makes it easy to organize large repositories where builds and test suites have different scopes or cadences.
+
+**Getting started**
+
+Add a `projectsToTest` setting to the project-level `.AL-Go/settings.json` of an empty project (no `appFolders` or `testFolders`):
+
+```json
+{
+  "projectsToTest": ["build/projects/MyProject"]
+}
+```
+
+AL-Go will automatically:
+
+- Resolve the dependency so the test project always builds after its target project(s).
+- Install the Test Runner, Test Framework, and Test Libraries into the container.
+- Run all tests from the installed test apps.
+
+**Key rules**
+
+- A test project must **not** contain buildable code (no `appFolders`, `testFolders`, or `bcptTestFolders`). AL-Go will fail with a clear error if it detects both `projectsToTest` and buildable folders.
+- A test project cannot depend on another test project.
+- You can target multiple projects: `"projectsToTest": ["build/projects/ProjectA", "build/projects/ProjectB"]`.
+- Use full project paths as they appear in the repository.
+
+### Improving error detection and build reliability when downloading project dependencies
+
+The `DownloadProjectDependencies` action now downloads app files from URLs specified in the `installApps` and `installTestApps` settings upfront, rather than validating URLs at build time. This change provides:
+
+- Earlier detection of inaccessible or misconfigured URLs
+- Clearer error messages when secrets are missing or URLs are invalid
+- Warnings for potential issues like duplicate filenames
+
+### Improve overall performance by postponing projects with no dependants
+
+The time it takes to build projects can vary significantly depending on factors such as whether you are using Linux or Windows, Containers or CompilerFolders, and whether apps are being published or tests are being run.
+
+By default, projects are built according to their dependency order. As soon as all dependencies for a project are satisfied, the project is added to the next layer of jobs.
+
+The new setting `postponeProjectInBuildOrder` allows you to delay long running jobs (f.ex. test runs) with no dependants until the final layer of the build order. This can improve overall build performance by preventing subsequent layers from waiting on projects that take longer to complete but are not required for further dependencies.
+
 ### Issues
 
+- Attempt to start docker service in case it is not running
+- NextMajor (v28) fails when downloading dependencies from NuGet-feed
+- Issue 2084 Multiple artifacts failure if you re-run failed jobs after flaky tests
+- Issue 2085 Projects that doesn't contain both Apps and TestApps are wrongly seen as not built.
+- Issue 2086 Postpone jobs, which doesn't have any dependents to the end of the build order.
+- Rework input handling of workflow 'Update AL-Go System Files' for trigger 'workflow_call'
+
+### New Settings
+
+- `postponeProjectInBuildOrder` is a new project setting, which will (if set to true) cause the project to be postponed until the last build job when possible. If set on test projects, then all tests can be deferred until all builds have succeeded.
+
+## v8.3
+
+### Issues
+
+- Issue 2107 Publish a specific build mode to an environment
+- Issue 1915 CICD fails on releases/26.x branch - '26.x' cannot be recognized as a semantic version string
+
+### The default pull request trigger is changing
+
+AL-Go for GitHub is transitioning from the pull_request_target trigger to the more secure pull_request trigger. This is a step we are taking to make AL-Go for GitHub more secure by default. If you are used to working from branches within the repository you may not notice any difference. If you get pull requests from forks, those pull requests will no longer be able to access secrets. If that is blocking for your repository, you will need to update your settings to use the pull_request_target trigger.
+
+**How do I revert back to pull_request_target?**
+
+Add the following setting to one of your settings files and run the Update AL-Go System Files workflow:
+
+```json
+  "pullRequestTrigger": "pull_request_target"
+```
+
+## v8.2
+
+### Issues
+
+- Issue 2095 DeliverToAppSource.ProductId needs to be specified (Library app)
 - Issue 2082 Sign action no longer fails when repository is empty or no artifacts are generated
 - Issue 2078 Workflows run since January 14th '26 have space before CI/CD removed
 - Issue 2070 Support public GitHub Packages feeds without requiring a Personal Access Token (PAT)
 - Issue 2004 PublishToAppSource workflow publishes multi-app repos in alphabetical order instead of dependency order
 - Issue 2045 DateTime parsing fails on non-US locale runners in WorkflowPostProcess.ps1
 - Issue 2055 When using versioningStrategy 3+16, you get an error when building
+- Issue 2094 PR into release branch gets wrong previous release
 - AL-Go repositories with large amounts of projects may run into issues with too large environment variables
 - Discussion 1855 Add trigger 'workflow_call' to workflow 'Update AL-Go System Files' for reusability
+- Issue 2050 Publish To Environment creates mistyped environment
+
+### Publish To Environment no longer creates unknown environments by default
+
+Previously, when running the "Publish To Environment" workflow with an environment name that doesn't exist in GitHub or AL-Go settings, the workflow would automatically create a new GitHub environment. This could lead to problems when environment names were mistyped, as the bogus environment would then cause subsequent CI/CD workflows to fail.
+
+Now, the workflow will fail with a clear error message if the specified environment doesn't exist. If you intentionally want to deploy to a new environment that hasn't been configured yet, you can check the **Create environment if it does not exist** checkbox when running the workflow.
 
 ### Set default values for workflow inputs
 
@@ -19,6 +126,13 @@ The `workflowDefaultInputs` setting now also applies to `workflow_call` inputs w
 This ensures consistent default values across both manual workflow runs and reusable workflow calls.
 
 Read more at [workflowDefaultInputs](https://aka.ms/algosettings#workflowDefaultInputs).
+
+### Merge queue support
+
+AL-Go now supports GitHub's merge queue feature out of the box! The `merge_group` trigger has been added to the Pull Request Build workflow, enabling seamless integration with merge queues. When you have the merge queue feature enabled in your repo, multiple PRs will automatically be validated together. Read more about merge queues [here](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue).
+
+> [!WARNING]
+> If you rely on a custom workflow for merge queue validation, you may need to adjust your setup to avoid duplicate builds.
 
 ### AL-Go Telemetry updates
 

@@ -8,16 +8,13 @@ namespace System.Agents;
 using System.Agents.TaskPane;
 using System.Environment.Consumption;
 
-#pragma warning disable AS0032 
-#pragma warning disable AS0050
-
 page 4300 "Agent Task List"
 {
     PageType = List;
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "Agent Task";
-    Caption = 'Agent Tasks';
+    Caption = 'Agent Tasks', Comment = 'Agent Tasks in this page should be translated as Tasks that AI agents were assigned.';
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
@@ -210,9 +207,9 @@ page 4300 "Agent Task List"
 
     trigger OnOpenPage()
     var
-        AgentImpl: Codeunit "Agent Impl.";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
-        ConsumedCreditsVisible := AgentImpl.CanShowMonetizationData();
+        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
     end;
 
     trigger OnAfterGetRecord()
@@ -263,5 +260,3 @@ page 4300 "Agent Task List"
         ConsumedCredits: Decimal;
         ConsumedCreditsVisible: Boolean;
 }
-#pragma warning restore AS0050
-#pragma warning restore AS0032

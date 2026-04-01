@@ -5,6 +5,7 @@
 
 namespace System.Agents;
 
+using System.Agents.Troubleshooting;
 using System.Environment.Consumption;
 using System.Security.AccessControl;
 
@@ -298,9 +299,9 @@ page 4333 "Agent Consumption Overview"
 
     trigger OnOpenPage()
     var
-        AgentImpl: Codeunit "Agent Impl.";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
-        if not AgentImpl.CanShowMonetizationData() then
+        if not AgentSystemPermissions.CurrentUserCanSeeConsumptionData() then
             Error(YourNotAuthorizedToViewMonetizationDataErr);
 
         SetDateRangeFilters();

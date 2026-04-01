@@ -26,7 +26,7 @@ codeunit 6140 "E-Doc. Import"
     procedure ReceiveAndProcessAutomatically(EDocumentService: Record "E-Document Service"): Boolean
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocument: Record "E-Document";
         EDocIntegrationMgt: Codeunit "E-Doc. Integration Management";
         ReceiveContext: Codeunit ReceiveContext;
@@ -40,7 +40,7 @@ codeunit 6140 "E-Doc. Import"
 #endif
         EDocIntegrationMgt.ReceiveDocuments(EDocumentService, ReceiveContext);
 
-        EDocImportParameters := EDocumentService.GetDefaultImportParameters();
+        TempEDocImportParameters := EDocumentService.GetDefaultImportParameters();
 
         AllEDocumentsProcessed := true;
         EDocumentServiceStatus.SetRange("E-Document Service Code", EDocumentService.Code);
@@ -49,7 +49,7 @@ codeunit 6140 "E-Doc. Import"
         if EDocumentServiceStatus.FindSet() then
             repeat
                 EDocument.Get(EDocumentServiceStatus."E-Document Entry No");
-                AllEDocumentsProcessed := AllEDocumentsProcessed and ProcessIncomingEDocument(EDocument, EDocumentService, EDocImportParameters);
+                AllEDocumentsProcessed := AllEDocumentsProcessed and ProcessIncomingEDocument(EDocument, EDocumentService, TempEDocImportParameters);
             until EDocumentServiceStatus.Next() = 0;
         exit(AllEDocumentsProcessed);
     end;
@@ -106,8 +106,10 @@ codeunit 6140 "E-Doc. Import"
             if ImportEDocumentProcess.IndexToStatus(StatusIndex, Status) then
                 if ImportEDocumentProcess.GetPreviousStep(Status, StepToUndo) then begin
                     ImportEDocumentProcess.ConfigureImportRun(EDocument, StepToUndo, EDocImportParameters, true);
-                    if not RunConfiguredImportStep(ImportEDocumentProcess, EDocument) then
+                    if not RunConfiguredImportStep(ImportEDocumentProcess, EDocument) then begin
+                        EDocImpSessionTelemetry.Emit(EDocument);
                         exit(false);
+                    end;
                 end;
 
         EDocument.CalcFields("Import Processing Status");
@@ -118,8 +120,10 @@ codeunit 6140 "E-Doc. Import"
             if ImportEDocumentProcess.IndexToStatus(StatusIndex, Status) then
                 if ImportEDocumentProcess.GetNextStep(Status, StepToDo) then begin
                     ImportEDocumentProcess.ConfigureImportRun(EDocument, StepToDo, EDocImportParameters, false);
-                    if not RunConfiguredImportStep(ImportEDocumentProcess, EDocument) then
+                    if not RunConfiguredImportStep(ImportEDocumentProcess, EDocument) then begin
+                        EDocImpSessionTelemetry.Emit(EDocument);
                         exit(false);
+                    end;
                 end;
 
         if CurrentStatus <> DesiredStatus then
@@ -278,7 +282,7 @@ codeunit 6140 "E-Doc. Import"
                 EDocErrorHelper.LogWarningMessage(EDocument, EDocument2, EDocument2.FieldNo("Incoming E-Document No."), DocAlreadyExistsMsg);
 
             if EDocService."Validate Receiving Company" then
-                EDocImportHelper.ValidateReceivingCompanyInfo(EDocument);
+                EDocImportHelper.ValidateReceivingCompanyInfo(EDocument, EDocService);
         end else
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, GetLastErrorText());
 
@@ -541,10 +545,13 @@ codeunit 6140 "E-Doc. Import"
         end;
 
         if Vendor.Get(EDocument."Bill-to/Pay-to No.") then
-            if ValidateEDocumentIsForPurchaseOrder(EDocument, Vendor) then
-                ReceiveEDocumentToPurchaseOrder(EDocument, EDocService, SourceDocumentHeader, SourceDocumentLine, EDocServiceStatus, Vendor, Window)
+            if Vendor."Self-Billing Agreement" then
+                EDocImportHelper.LogErrorIfVendorIsSelfBilling(EDocument, Vendor)
             else
-                ReceiveEDocumentToPurchaseDoc(EDocument, EDocService, SourceDocumentHeader, SourceDocumentLine, EDocServiceStatus, Window, CreateJnlLine)
+                if ValidateEDocumentIsForPurchaseOrder(EDocument, Vendor) then
+                    ReceiveEDocumentToPurchaseOrder(EDocument, EDocService, SourceDocumentHeader, SourceDocumentLine, EDocServiceStatus, Vendor, Window)
+                else
+                    ReceiveEDocumentToPurchaseDoc(EDocument, EDocService, SourceDocumentHeader, SourceDocumentLine, EDocServiceStatus, Window, CreateJnlLine)
         else
             EDocErrorHelper.LogErrorMessage(EDocument, Vendor, Vendor.FieldNo("No."), FailedToFindVendorErr);
 

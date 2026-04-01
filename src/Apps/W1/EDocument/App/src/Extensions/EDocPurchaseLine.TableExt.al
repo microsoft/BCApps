@@ -1,7 +1,6 @@
 #pragma warning disable AA0247
 tableextension 6168 "E-Doc. Purchase Line" extends "Purchase Line"
 {
-
     fields
     {
         modify("Amount Including VAT")

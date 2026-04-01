@@ -48,7 +48,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure ProcessStructureReceivedData()
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocDataStorage: Record "E-Doc. Data Storage";
         EDocLogRecord: Record "E-Document Log";
         EDocImport: Codeunit "E-Doc. Import";
@@ -70,11 +70,11 @@ codeunit 139883 "E-Doc Process Test"
         EDocument.Modify();
 
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::Unprocessed);
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
 
         EDocument.CalcFields("Import Processing Status");
         Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Unprocessed, EDocument."Import Processing Status", 'The status should be updated to the one after the step executed.');
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
         EDocument.CalcFields("Import Processing Status");
         Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Readable, EDocument."Import Processing Status", 'The status should be updated to the one after the step executed.');
         EDocument.Get(EDocument."Entry No");
@@ -90,7 +90,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure ProcessingDoesSequenceOfSteps()
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocLogRecord: Record "E-Document Log";
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentProcessing: Codeunit "E-Document Processing";
@@ -111,18 +111,18 @@ codeunit 139883 "E-Doc Process Test"
         EDocument.Modify();
 
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::Unprocessed);
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         EDocument.CalcFields("Import Processing Status");
-        Assert.AreEqual(ImportEDocumentProcess.GetStatusForStep(EDocImportParameters."Step to Run", false), EDocument."Import Processing Status", 'The status should be updated to the one after the step executed.');
+        Assert.AreEqual(ImportEDocumentProcess.GetStatusForStep(TempEDocImportParameters."Step to Run", false), EDocument."Import Processing Status", 'The status should be updated to the one after the step executed.');
     end;
 
     [Test]
     procedure ProcessingUndoesSteps()
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocLogRecord: Record "E-Document Log";
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentProcessing: Codeunit "E-Document Processing";
@@ -143,17 +143,17 @@ codeunit 139883 "E-Doc Process Test"
         EDocument.Modify();
 
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::Unprocessed);
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         EDocument.CalcFields("Import Processing Status");
-        Assert.AreEqual(ImportEDocumentProcess.GetStatusForStep(EDocImportParameters."Step to Run", false), EDocument."Import Processing Status", 'The status should be updated to the one after the step executed.');
+        Assert.AreEqual(ImportEDocumentProcess.GetStatusForStep(TempEDocImportParameters."Step to Run", false), EDocument."Import Processing Status", 'The status should be updated to the one after the step executed.');
 
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         EDocument.CalcFields("Import Processing Status");
-        Assert.AreEqual(ImportEDocumentProcess.GetStatusForStep(EDocImportParameters."Step to Run", false), EDocument."Import Processing Status", 'The status should be updated to the one after the step executed.');
+        Assert.AreEqual(ImportEDocumentProcess.GetStatusForStep(TempEDocImportParameters."Step to Run", false), EDocument."Import Processing Status", 'The status should be updated to the one after the step executed.');
     end;
 
     [Test]
@@ -161,7 +161,7 @@ codeunit 139883 "E-Doc Process Test"
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocLogRecord: Record "E-Document Log";
         PurchaseHeader: Record "Purchase Header";
         EDocumentLog: Codeunit "E-Document Log";
@@ -187,8 +187,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocument.Modify();
 
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         EDocumentPurchaseHeader.SetRecFilter();
         EDocumentPurchaseHeader.FindFirst();
@@ -204,7 +204,7 @@ codeunit 139883 "E-Doc Process Test"
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         Vendor2: Record Vendor;
         CompanyInformation: Record "Company Information";
         EDocumentProcessing: Codeunit "E-Document Processing";
@@ -223,8 +223,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader.Insert();
 
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         EDocumentPurchaseHeader.SetRecFilter();
         EDocumentPurchaseHeader.FindFirst();
@@ -240,7 +240,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         Vendor2: Record Vendor;
         CompanyInformation: Record "Company Information";
         GLAccount: Record "G/L Account";
@@ -272,8 +272,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseLine.Insert();
 
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         EDocumentPurchaseLine.SetRecFilter();
         EDocumentPurchaseLine.FindFirst();
@@ -296,7 +296,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure FinishDraftCanBeUndone()
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         EDocLogRecord: Record "E-Document Log";
         EDocImport: Codeunit "E-Doc. Import";
@@ -319,17 +319,71 @@ codeunit 139883 "E-Doc Process Test"
 
 
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Purchase Invoice";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        TempEDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Purchase Invoice";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         PurchaseHeader.FindFirst();
 
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         Assert.RecordIsEmpty(PurchaseHeader);
+    end;
+
+    [Test]
+    procedure FinishDraftFromReadyForDraftStateSucceeds()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        EDocLogRecord: Record "E-Document Log";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentLog: Codeunit "E-Document Log";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+    begin
+        // [SCENARIO] When finalize action is invoked from Ready for draft state, the system should automatically run Prepare draft first and then Finish draft
+        Initialize(Enum::"Service Integration"::"Mock");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocument."Document Type" := "E-Document Type"::"Purchase Invoice";
+        EDocument.Modify();
+        EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
+        EDocumentService.Modify();
+
+        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader."Vendor VAT Id" := Vendor."VAT Registration No.";
+        EDocumentPurchaseHeader.Insert();
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine."Product Code" := '1234';
+        EDocumentPurchaseLine.Description := 'Test description';
+        EDocumentPurchaseLine.Insert();
+
+        EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::XML, 'Data');
+        EDocumentLog.SetFields(EDocument, EDocumentService);
+        EDocLogRecord := EDocumentLog.InsertLog(Enum::"E-Document Service Status"::Imported, Enum::"Import E-Doc. Proc. Status"::Readable);
+
+        EDocument."Structured Data Entry No." := EDocLogRecord."E-Doc. Data Storage Entry No.";
+        EDocument.Modify();
+
+        // [GIVEN] E-Document is in Ready for draft state
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::"Ready for draft", EDocument."Import Processing Status", 'The status should be Ready for draft before processing.');
+
+        // [WHEN] Finish draft step is executed (simulating finalize action)
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        TempEDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Purchase Invoice";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+
+        // [THEN] The document is processed (the system ran Prepare draft automatically and then Finish draft)
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'The status should be Processed after finalize action from Ready for draft state.');
+
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        Assert.IsFalse(PurchaseHeader.IsEmpty(), 'The purchase header should be created.');
     end;
 
     #region HistoricalMatchingTest
@@ -338,7 +392,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure ProcessingInboundDocumentCreatesLinks()
     var
         EDocument: Record "E-Document";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         EDocRecordLink: Record "E-Doc. Record Link";
@@ -351,9 +405,9 @@ codeunit 139883 "E-Doc Process Test"
         EDocRecordLink.DeleteAll();
 
         // [GIVEN] An inbound e-document is received and fully processed
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
         WorkDate(DMY2Date(1, 1, 2027)); // Peppol document date is in 2026
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The e-document should be processed');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The e-document should be processed');
 
         EDocument.Get(EDocument."Entry No");
         PurchaseHeader.Get(EDocument."Document Record ID");
@@ -377,7 +431,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure PostingInboundDocumentCreatesHistoricalRecords()
     var
         EDocument: Record "E-Document";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         PurchaseInvoiceHeader: Record "Purch. Inv. Header";
         EDocVendorAssignmentHistory: Record "E-Doc. Vendor Assign. History";
@@ -391,9 +445,9 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentService.Modify();
 
         // [GIVEN] An inbound e-document is received and fully processed
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
         WorkDate(DMY2Date(1, 1, 2027)); // Peppol document date is in 2026
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The e-document should be processed');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The e-document should be processed');
 
         EDocument.Get(EDocument."Entry No");
         PurchaseHeader.Get(EDocument."Document Record ID");
@@ -427,7 +481,7 @@ codeunit 139883 "E-Doc Process Test"
         PurchaseLine: Record "Purchase Line";
         PurchaseInvoiceLine: Record "Purch. Inv. Line";
         EDocument: Record "E-Document";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         EDocPurchLineField: Record "E-Document Line - Field";
         EDocPurchaseLine: Record "E-Document Purchase Line";
@@ -444,9 +498,9 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup."Field No." := PurchaseInvoiceLine.FieldNo("IC Partner Code");
         EDocPurchLineFieldSetup.Insert();
         // [GIVEN] An inbound e-document is received and a draft created
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
         WorkDate(DMY2Date(1, 1, 2027)); // Peppol document date is in 2026
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The draft for the e-document should be created');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [WHEN] Storing custom values for the additional fields of the first line
         EDocPurchLineField."E-Document Entry No." := EDocument."Entry No";
@@ -460,8 +514,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineField.Insert();
 
         // [WHEN] Creating a purchase invoice from the draft
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        Assert.IsTrue(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams), 'The e-document should be processed');
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams), 'The e-document should be processed');
 
         // [THEN] The additional fields should be set on the purchase invoice line
         EDocument.Get(EDocument."Entry No");
@@ -479,7 +533,7 @@ codeunit 139883 "E-Doc Process Test"
         PurchaseLine: Record "Purchase Line";
         PurchaseInvoiceLine: Record "Purch. Inv. Line";
         EDocument: Record "E-Document";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         EDocPurchLineField: Record "E-Document Line - Field";
         EDocPurchaseLine: Record "E-Document Purchase Line";
@@ -496,9 +550,9 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup."Field No." := PurchaseInvoiceLine.FieldNo("IC Partner Code");
         EDocPurchLineFieldSetup.Insert();
         // [GIVEN] An inbound e-document is received and a draft created
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
         WorkDate(DMY2Date(1, 1, 2027)); // Peppol document date is in 2026
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The draft for the e-document should be created');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] Custom values for the additional fields of the first line are configured
         EDocPurchLineField."E-Document Entry No." := EDocument."Entry No";
@@ -514,8 +568,8 @@ codeunit 139883 "E-Doc Process Test"
         // [WHEN] Removing the general setup for the additional fields
         EDocPurchLineFieldSetup.DeleteAll();
         // [WHEN] Creating a purchase invoice from the draft
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        Assert.IsTrue(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams), 'The e-document should be processed');
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams), 'The e-document should be processed');
 
         // [THEN] The additional fields should not be set on the purchase invoice line
         EDocument.Get(EDocument."Entry No");
@@ -532,7 +586,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         Vendor2: Record Vendor;
         CompanyInformation: Record "Company Information";
         Item: Record Item;
@@ -561,10 +615,10 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseLine.Insert();
 
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
 
         // [WHEN] Filling in the draft
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         EDocumentPurchaseLine.SetRecFilter();
         EDocumentPurchaseLine.FindFirst();
@@ -591,7 +645,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         Vendor2: Record Vendor;
         CompanyInformation: Record "Company Information";
         Item: Record Item;
@@ -626,10 +680,10 @@ codeunit 139883 "E-Doc Process Test"
         ItemReference.Modify();
 
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
 
         // [WHEN] Filling in the draft
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         EDocumentPurchaseLine.SetRecFilter();
         EDocumentPurchaseLine.FindFirst();
@@ -654,7 +708,6 @@ codeunit 139883 "E-Doc Process Test"
         TransformationRule: Record "Transformation Rule";
         EDocument: Record "E-Document";
         EDocDataStorage: Record "E-Doc. Data Storage";
-        EDocumentsSetup: Record "E-Documents Setup";
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         PurchInvHeader: Record "Purch. Inv. Header";
@@ -695,7 +748,6 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
-        EDocumentsSetup.InsertNewExperienceSetup();
 
         TransformationRule.DeleteAll();
         TransformationRule.CreateDefaultTransformations();

@@ -9,7 +9,7 @@ using Microsoft.QualityManagement.Document;
 
 codeunit 20440 "Qlty. Report Mgmt."
 {
-    procedure PrintGeneralPurposeInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure PrintGeneralPurposeInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         ReportSelections: Record "Report Selections";
     begin
@@ -20,7 +20,7 @@ codeunit 20440 "Qlty. Report Mgmt."
             ReportSelections.PrintReport(ReportSelections.Usage::"Quality Management - General Purpose Inspection", QltyInspectionHeader);
     end;
 
-    procedure PrintNonConformance(var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure PrintNonConformance(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         ReportSelections: Record "Report Selections";
     begin
@@ -31,7 +31,7 @@ codeunit 20440 "Qlty. Report Mgmt."
             ReportSelections.PrintReport(ReportSelections.Usage::"Quality Management - Non-Conformance", QltyInspectionHeader);
     end;
 
-    procedure PrintCertificateOfAnalysis(var QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure PrintCertificateOfAnalysis(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         ReportSelections: Record "Report Selections";
     begin

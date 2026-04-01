@@ -11,7 +11,6 @@ page 8109 "Sub. Billing Report Power BI"
     AboutTitle = 'About Subscription Billing Report';
     AboutText = 'The Subscription Billing Report offers a consolidated view of all subscription report pages, conveniently embedded into a single page for easy access.';
 
-
     layout
     {
         area(Content)

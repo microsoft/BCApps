@@ -15,7 +15,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 
-codeunit 20438 "Qlty. - Warehouse Integration"
+codeunit 20438 "Qlty. Warehouse Integration"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Jnl.-Register Line", 'OnAfterInsertWhseEntry', '', true, true)]
     local procedure HandleOnAfterInsertWhseEntry(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line")
@@ -41,12 +41,12 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         DoNotSendSourceVariant: Variant;
-        Handled: Boolean;
+        IsHandled: Boolean;
         HasInspection: Boolean;
         DummyVariant: Variant;
     begin
-        OnBeforeWarehouseAttemptCreateInspectionWithWhseJournalLine(WarehouseEntry, WarehouseJournalLine, Handled);
-        if Handled then
+        OnBeforeWarehouseAttemptCreateInspectionWithWhseJournalLine(WarehouseEntry, WarehouseJournalLine, IsHandled);
+        if IsHandled then
             exit;
 
         Clear(TempTrackingSpecification);
@@ -82,10 +82,10 @@ codeunit 20438 "Qlty. - Warehouse Integration"
         PurchaseLine: Record "Purchase Line";
         SalesLine: Record "Sales Line";
         TransferLine: Record "Transfer Line";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeGetOptionalSourceVariantForWarehouseJournalLine(WarehouseJournalLine, OptionalSourceRecordVariant, Result, Handled);
-        if Handled then
+        OnBeforeGetOptionalSourceVariantForWarehouseJournalLine(WarehouseJournalLine, OptionalSourceRecordVariant, Result, IsHandled);
+        if IsHandled then
             exit;
 
         case WarehouseJournalLine."Source Type" of
@@ -144,7 +144,6 @@ codeunit 20438 "Qlty. - Warehouse Integration"
                 TempTrackingSpecification."Entry No." := ReservationCounter;
                 TempTrackingSpecification.SetSourceFromReservEntry(ReservationEntry);
                 TempTrackingSpecification.CopyTrackingFromReservEntry(ReservationEntry);
-                TempTrackingSpecification."Package No." := ReservationEntry."Package No.";
                 TempTrackingSpecification.Insert();
             until ReservationEntry.Next() = 0;
     end;
@@ -154,9 +153,9 @@ codeunit 20438 "Qlty. - Warehouse Integration"
     /// </summary>
     /// <param name="WarehouseEntry"></param>
     /// <param name="WarehouseJournalLine"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeWarehouseAttemptCreateInspectionWithWhseJournalLine(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var Handled: Boolean)
+    local procedure OnBeforeWarehouseAttemptCreateInspectionWithWhseJournalLine(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
@@ -167,9 +166,9 @@ codeunit 20438 "Qlty. - Warehouse Integration"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="WarehouseEntry"></param>
     /// <param name="WarehouseJournalLine"></param>
-    /// <param name="poptionalSourceVariant"></param>
+    /// <param name="OptionalSourceVariant"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterWarehouseAttemptCreateInspectionWithWhseJournalLine(var HasInspection: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; poptionalSourceVariant: Variant)
+    local procedure OnAfterWarehouseAttemptCreateInspectionWithWhseJournalLine(var HasInspection: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; OptionalSourceVariant: Variant)
     begin
     end;
 
@@ -179,9 +178,9 @@ codeunit 20438 "Qlty. - Warehouse Integration"
     /// <param name="WarehouseJournalLine"></param>
     /// <param name="OptionalSourceRecordVariant"></param>
     /// <param name="Result"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetOptionalSourceVariantForWarehouseJournalLine(var WarehouseJournalLine: Record "Warehouse Journal Line"; var OptionalSourceRecordVariant: Variant; var Result: Boolean; var Handled: Boolean)
+    local procedure OnBeforeGetOptionalSourceVariantForWarehouseJournalLine(var WarehouseJournalLine: Record "Warehouse Journal Line"; var OptionalSourceRecordVariant: Variant; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

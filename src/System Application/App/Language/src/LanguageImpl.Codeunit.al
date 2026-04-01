@@ -51,6 +51,7 @@ codeunit 54 "Language Impl."
 
     procedure GetLanguageIdOrDefault(LanguageCode: Code[10]): Integer;
     var
+        Language: Codeunit Language;
         LanguageId: Integer;
     begin
         if LanguageIdOverride <> 0 then begin
@@ -61,6 +62,7 @@ codeunit 54 "Language Impl."
             exit(LanguageId);
         end;
 
+        Language.OnGetLanguageIdOrDefault(LanguageCode);
         LanguageId := GetLanguageId(LanguageCode);
         if LanguageId = 0 then
             LanguageId := GlobalLanguage();

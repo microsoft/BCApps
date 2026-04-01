@@ -9,6 +9,9 @@ page 8081 "Vendor Contract Deferrals"
     Editable = false;
     SourceTable = "Vend. Sub. Contract Deferral";
     UsageCategory = History;
+    AdditionalSearchTerms = 'Vendor Deferrals, Contract Deferrals, Deferred Costs, Deferral Release, Cost Deferral, Contract Costs';
+    AboutTitle = 'About Vendor Subscription Contract Deferrals';
+    AboutText = 'Details to deferred costs per contract are shown here. This page also provides insights into which deferrals have been released and which have not.';
 
     layout
     {
@@ -91,6 +94,12 @@ page 8081 "Vendor Contract Deferrals"
                 field(Discount; Rec.Discount)
                 {
                     ToolTip = 'Specifies whether the Subscription Line is used as a basis for periodic invoicing or discounts.';
+                }
+                field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
+                {
+                }
+                field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
+                {
                 }
                 field("G/L Entry No."; Rec."G/L Entry No.")
                 {

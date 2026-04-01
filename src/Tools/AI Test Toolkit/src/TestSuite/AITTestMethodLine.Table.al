@@ -111,7 +111,7 @@ table 149032 "AIT Test Method Line"
             ToolTip = 'Specifies the number of evals executed for the eval line.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
         }
 #pragma warning disable AA0232
         field(16; "Total Duration (ms)"; Integer)
@@ -134,7 +134,7 @@ table 149032 "AIT Test Method Line"
             ToolTip = 'Specifies the number of evals executed for the base version of the eval line.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
         }
         field(27; "Total Duration - Base (ms)"; Integer)
         {
@@ -159,6 +159,14 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter")));
+        }
+        field(24; "No. of Tests Skipped"; Integer)
+        {
+            Caption = 'No. of Evals Skipped';
+            ToolTip = 'Specifies the number of evals skipped for the eval line.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(2)));
         }
         field(30; "No. of Tests Passed - Base"; Integer)
         {
@@ -209,21 +217,27 @@ table 149032 "AIT Test Method Line"
         field(120; "Tokens Consumed"; Integer)
         {
             Caption = 'Total Tokens Consumed';
-            ToolTip = 'Specifies the number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
+            ToolTip = 'Specifies the number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module. Tokens consumed by agent sessions are not included in this number.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
+#if not CLEAN26
+#pragma warning disable AS0072
         field(121; "Tokens Consumed - Base"; Integer)
         {
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This field is deprecated as it is not used in any page or calculation. It will be removed in future versions.';
+            ObsoleteTag = '26.0';
             Caption = 'Tokens Consumed - Base';
-            ToolTip = 'Specifies the number of tokens consumed by the eval in the base version. This is applicable only when using Microsoft AI Module.';
+            ToolTip = 'Specifies the number of tokens consumed by the eval in the base version. This is applicable only when using Microsoft AI Module. Tokens consumed by agent sessions are not included in this number.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
+#pragma warning restore AS0072
+#endif
     }
-
     keys
     {
         key(Key1; "Test Suite Code", "Line No.")

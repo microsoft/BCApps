@@ -38,6 +38,8 @@ permissionset 36955 "Power BI Embedded - Objects"
         page "Sales Actual vs. Budget Amt." = X,
 #pragma warning restore AL0432
 #endif
+        page "Customer Retention Overview" = X,
+        page "Customer Retention History" = X,
         page "Purchases Overview" = X,
         page "Purchases Decomposition" = X,
         page "Daily Purchases" = X,
@@ -62,6 +64,7 @@ permissionset 36955 "Power BI Embedded - Objects"
         page "Inventory by Serial No." = X,
         page "PowerBI Bin Contents" = X,
         page "Bin Contents by Item Tracking" = X,
+        page "PowerBI ABC Analysis" = X,
         page "Projects Overview" = X,
         page "Project Tasks" = X,
         page "Project Profitability" = X,

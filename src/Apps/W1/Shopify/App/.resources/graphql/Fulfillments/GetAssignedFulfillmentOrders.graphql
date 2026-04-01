@@ -1,0 +1,2 @@
+# cost: 8
+{"query":"{ assignedFulfillmentOrders(assignmentStatus: FULFILLMENT_REQUESTED, first: 25) { pageInfo { hasNextPage } edges { cursor node { id status requestStatus }}}}"}

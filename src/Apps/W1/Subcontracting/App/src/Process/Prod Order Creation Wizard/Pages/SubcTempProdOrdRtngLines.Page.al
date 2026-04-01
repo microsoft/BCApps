@@ -20,7 +20,7 @@ page 99001509 "Subc. TempProdOrdRtngLines"
     {
         area(Content)
         {
-            repeater(Control1)
+            repeater(ProdOrderRoutingLines)
             {
                 ShowCaption = false;
                 field("Operation No."; Rec."Operation No.")

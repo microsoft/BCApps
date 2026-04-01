@@ -5,7 +5,6 @@
 namespace Microsoft.QualityManagement.Integration.Inventory.Tracking;
 
 using Microsoft.Inventory.Tracking;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Document;
 
 pageextension 20428 "Qlty. Item Tracing" extends "Item Tracing"
@@ -17,48 +16,18 @@ pageextension 20428 "Qlty. Item Tracing" extends "Item Tracing"
             action(Qlty_QualityInspections)
             {
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Inspections';
-                Image = TaskQualityMeasure;
+                Image = CheckList;
                 ToolTip = 'View quality inspections filtered by the selected item, variant, location, and tracking details.';
-                Visible = QltyReadTestResults;
-
-                trigger OnAction()                    
-                begin
-                    ShowQualityInspections();
-                end;
+                RunObject = Page "Qlty. Inspection List";
+                RunPageLink = "Source Item No." = field("Item No."),
+                              "Source Variant Code" = field("Variant Code"),
+                              "Source Lot No." = field("Lot No."),
+                              "Source Serial No." = field("Serial No."),
+                              "Source Package No." = field("Package No.");
+                RunPageView = sorting("Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.");
             }
         }
     }
-
-    var
-        QltyReadTestResults: Boolean;
-
-    trigger OnOpenPage()
-    var
-        CheckLicensePermissionQltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-    begin
-        if not CheckLicensePermissionQltyInspectionHeader.ReadPermission() then
-            exit;
-
-        QltyReadTestResults := QltyPermissionMgmt.CanReadInspectionResults();
-    end;
-
-    local procedure ShowQualityInspections()
-    var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-    begin
-        QltyInspectionHeader.SetFilter("Source Item No.", ItemNoFilter);
-        if VariantFilter <> '' then
-            QltyInspectionHeader.SetFilter("Source Variant Code", VariantFilter);                    
-        if SerialNoFilter <> '' then
-            QltyInspectionHeader.SetFilter("Source Serial No.", SerialNoFilter);
-        if LotNoFilter <> '' then
-            QltyInspectionHeader.SetFilter("Source Lot No.", LotNoFilter);
-        if PackageNoFilter <> '' then
-            QltyInspectionHeader.SetFilter("Source Package No.", PackageNoFilter);
-        if Rec."Location Code" <> '' then
-            QltyInspectionHeader.SetRange("Location Code", Rec."Location Code");
-        Page.Run(Page::"Qlty. Inspection List", QltyInspectionHeader);
-    end;
 }
