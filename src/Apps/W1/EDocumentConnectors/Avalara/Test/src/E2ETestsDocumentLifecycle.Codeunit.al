@@ -16,6 +16,7 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
+    TestType = IntegrationTest;
 
     var
         Customer: Record Customer;

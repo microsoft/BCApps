@@ -785,8 +785,6 @@ MessageToken,
         AvalaraCountryMandateLongerErr: Label 'Avalara country mandate is longer than what is supported by framework.';
         AvalaraGetDocsPathTxt: Label '/einvoicing/documents?flow=in&count=true&filter=status eq Complete', Locked = true;
         AvalaraIdLongerErr: Label 'Avalara returned id longer than supported by framework.';
-
-        //   AvalaraGetDocsPathTxt: Label '/einvoicing/documents?flow=in&count=true&filter=status eq Complete&startDate=%1&endDate=%2', Locked = true;
         AvalaraPickMandateMsg: Label 'Select which Avalara service you want to update mandate for.';
         AvalaraProcessingDocFailedErr: Label 'An error has been identified in the submitted document.';
         AvalaraTok: Label 'E-Document - Avalara', Locked = true;

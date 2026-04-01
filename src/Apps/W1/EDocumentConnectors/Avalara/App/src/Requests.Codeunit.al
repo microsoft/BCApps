@@ -17,12 +17,13 @@ codeunit 6376 Requests
 
     var
         AvalaraAuth: Codeunit "Authenticator";
-        BlockedStatus: Boolean;
         HttpRequestMessage: HttpRequestMessage;
+        ApiVersionELRTok: Label '1.4', Locked = true;
+        ApiVersionORLTok: Label '1.0', Locked = true;
+        ApiVersionSCSTok: Label '1.0', Locked = true;
+        AvalaraClientTok: Label 'a0nUz00000YrkE1IAJ', Locked = true;
         AccessToken: SecretText;
-        ApiVersion,
         AuthUrl,
-        AvalaraClient,
         BaseUrl,
         DataBoundary : Text;
 
@@ -39,19 +40,14 @@ codeunit 6376 Requests
         HttpHeaders : HttpHeaders;
         MultiPartContent: TextBuilder;
     begin
-        if BlockedStatus then begin
-            if GuiAllowed then
-                Message('Blocked status is true send is disabled');
-            exit;
-        end;
         Clear(this.HttpRequestMessage);
         this.HttpRequestMessage.SetRequestUri(this.BaseUrl + '/einvoicing/documents');
         this.HttpRequestMessage.Method := 'POST';
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         MultiPartContent.AppendLine('--' + this.DataBoundary);
         MultiPartContent.AppendLine('Content-Disposition: form-data; name="metadata"');
@@ -88,8 +84,8 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
     end;
@@ -109,8 +105,8 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
     end;
@@ -132,8 +128,8 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionORLTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
     end;
@@ -153,8 +149,8 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionSCSTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
     end;
@@ -175,8 +171,8 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
     end;
@@ -197,9 +193,9 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
         HttpHeaders.Add('Accept', 'application/vnd.oasis.ubl+xml');
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
     end;
@@ -221,11 +217,11 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
         if AcceptOverride = '' then
             AcceptOverride := 'application/pdf';
         HttpHeaders.Add('Accept', AcceptOverride);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
         exit(this);
     end;
 
@@ -244,8 +240,8 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
     end;
@@ -262,8 +258,8 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
         exit(this);
     end;
 
@@ -273,12 +269,6 @@ codeunit 6376 Requests
         ReqStr: Text;
     begin
         Clear(this.HttpRequestMessage);
-        //this.HttpRequestMessage.SetRequestUri(this.BaseUrl + '/einvoicing/data-input-fields');
-        //new for avalara version 1.4
-        //https://api.sbx.avalara.com/einvoicing/mandates/BE-B2G-PEPPOL/data-input-fields?documentType=ubl-invoice&documentVersion=2.1
-
-        //ReqStr := '/einvoicing/data-input-fields?$filter=requiredFor/countryMandate eq ' + MandateStr;
-        //NEED to get document versions from getMandate
 
         ReqStr := '/einvoicing/mandates/' + MandateStr + '/data-input-fields?documentType=' + documentType + '&documentVersion=' + documentVersion;
 
@@ -286,8 +276,8 @@ codeunit 6376 Requests
         this.HttpRequestMessage.Method := 'GET';
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', '1.4');
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
     end;
@@ -329,11 +319,6 @@ codeunit 6376 Requests
         this.AuthUrl := GetAuthUrl();
         this.DataBoundary := CreateGuid();
         this.DataBoundary := DelChr(this.DataBoundary, '<>=', '{}&[]*()!@#$%^+=;:"''<>,.?/|\\~`');
-
-        this.ApiVersion := '1.0';
-        // this.AvalaraClient := 'a0nUz00000MVekTIAT';
-        this.AvalaraClient := 'a0nUz00000YrkE1IAJ';
-        //a0nUz00000YrkE1IAJ
     end;
 
     /// <summary>

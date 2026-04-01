@@ -26,7 +26,7 @@ table 6371 Mandate
         }
         field(2; "Country Code"; Code[20])
         {
-            Caption = 'Country Mandate';
+            Caption = 'Country Code';
         }
         field(3; Description; Text[2048])
         {

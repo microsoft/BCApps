@@ -2,7 +2,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 table 6800 "Media Types"
 {
     Caption = 'Media Types';
-    DataClassification = OrganizationIdentifiableInformation;
+    DataClassification = SystemMetadata;
 
     fields
     {

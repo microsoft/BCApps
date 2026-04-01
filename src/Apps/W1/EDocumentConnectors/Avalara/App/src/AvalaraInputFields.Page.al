@@ -4,6 +4,7 @@ page 6374 "Avalara Input Fields"
 {
     ApplicationArea = All;
     Caption = 'Avalara Input Fields';
+    Editable = false;
     PageType = List;
     ShowFilter = true;
     SourceTable = "Avalara Input Field";

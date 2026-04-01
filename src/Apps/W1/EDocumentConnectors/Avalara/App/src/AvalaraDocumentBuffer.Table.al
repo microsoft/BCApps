@@ -3,7 +3,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 table 6378 "Avalara Document Buffer"
 {
     Caption = 'Avalara Document Buffer';
-    DataClassification = ToBeClassified;
+    DataClassification = SystemMetadata;
     TableType = Temporary;
 
     fields

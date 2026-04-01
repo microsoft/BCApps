@@ -43,12 +43,22 @@ codeunit 6378 Activation
     end;
 
     local procedure ClearExistingData(var ActivationHeader: Record "Activation Header"; var ActivationMandate: Record "Activation Mandate")
+    var
+        HeaderCount: Integer;
+        MandateCount: Integer;
+        ConfirmClearDataQst: Label 'This will delete %1 activation(s) and %2 mandate(s). Do you want to continue?', Comment = '%1 = Activation Header count, %2 = Activation Mandate count';
     begin
-        if not ActivationHeader.IsEmpty() then
-            ActivationHeader.DeleteAll(true);
+        HeaderCount := ActivationHeader.Count();
+        MandateCount := ActivationMandate.Count();
 
-        if not ActivationMandate.IsEmpty() then
-            ActivationMandate.DeleteAll(true);
+        if (HeaderCount = 0) and (MandateCount = 0) then
+            exit;
+
+        if not Confirm(ConfirmClearDataQst, false, HeaderCount, MandateCount) then
+            Error('');
+
+        ActivationHeader.DeleteAll(false);
+        ActivationMandate.DeleteAll(false);
     end;
 
     local procedure ParseAndInsertActivations(JsonText: Text)

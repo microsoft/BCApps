@@ -13,16 +13,16 @@ pageextension 6377 "Avalara Posted Sales Cr.Memo" extends "Posted Sales Credit M
                 ApplicationArea = All;
                 Editable = false;
                 ToolTip = 'Specifies the value of the Avalara Doc. ID field.';
-                Visible = AvalaraDocIdVisable;
+                Visible = AvalaraDocIdVisible;
             }
         }
     }
 
     trigger OnAfterGetCurrRecord()
     begin
-        AvalaraDocIdVisable := Rec."Avalara Doc. ID" <> '';
+        AvalaraDocIdVisible := Rec."Avalara Doc. ID" <> '';
     end;
 
     var
-        AvalaraDocIdVisable: Boolean;
+        AvalaraDocIdVisible: Boolean;
 }

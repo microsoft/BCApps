@@ -32,7 +32,7 @@ page 6373 "Company List"
                 field("Company Id"; Rec."Company Id")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the value of the Company Id field.', Comment = '%';
+                    ToolTip = 'Specifies the value of the Company Id field.';
                 }
             }
         }

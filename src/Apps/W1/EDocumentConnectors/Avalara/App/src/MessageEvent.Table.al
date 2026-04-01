@@ -2,7 +2,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 table 6380 "Message Event"
 {
     Caption = 'Message Event';
-    DataClassification = OrganizationIdentifiableInformation;
+    DataClassification = SystemMetadata;
     fields
     {
         field(1; Id; Text[50])

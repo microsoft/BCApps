@@ -40,7 +40,7 @@ page 6370 "Mandate List"
                 field("Invoice Format"; Rec."Invoice Format")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the value of the Invoice Format field.', Comment = '%';
+                    ToolTip = 'Specifies the value of the Invoice Format field.';
                 }
             }
         }

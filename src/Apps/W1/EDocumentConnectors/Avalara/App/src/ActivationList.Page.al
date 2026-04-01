@@ -4,6 +4,8 @@ page 6378 "Activation List"
 {
     ApplicationArea = All;
     Caption = 'Activations';
+    CardPageId = "Activation Card";
+    Editable = false;
     PageType = List;
     SourceTable = "Activation Header";
     UsageCategory = Lists;
@@ -91,10 +93,11 @@ page 6378 "Activation List"
                 trigger OnAction()
                 var
                     ActivationMandate: Record "Activation Mandate";
+                    MandateNotFoundErr: Label 'No Mandate found!', Locked = true;
                 begin
                     ActivationMandate.SetRange("Activation ID", Rec.ID);
                     if ActivationMandate.IsEmpty then
-                        Error('No Mandate found!');
+                        Error(MandateNotFoundErr);
 
                     Page.RunModal(Page::"Activation Card", Rec);
                 end;

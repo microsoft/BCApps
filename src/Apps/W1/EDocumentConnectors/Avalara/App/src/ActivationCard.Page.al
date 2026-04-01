@@ -4,9 +4,10 @@ page 6377 "Activation Card"
 {
     ApplicationArea = All;
     Caption = 'Activation Details';
+    Editable = false;
     PageType = Card;
     SourceTable = "Activation Header";
-    UsageCategory = Documents;
+    UsageCategory = None;
 
     layout
     {

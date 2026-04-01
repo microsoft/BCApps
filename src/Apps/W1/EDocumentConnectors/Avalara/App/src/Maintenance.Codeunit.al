@@ -2,6 +2,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
 using System.Utilities;
+
 codeunit 6373 Maintenance
 {
     var

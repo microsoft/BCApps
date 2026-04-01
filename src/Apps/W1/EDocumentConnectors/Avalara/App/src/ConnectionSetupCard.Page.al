@@ -173,19 +173,35 @@ page 6372 "Connection Setup Card"
 
                 trigger OnAction()
                 var
+                    ResponseJson: JsonObject;
+                    ValueToken: JsonToken;
+                    InvalidCredentialsErr: Label 'Unexpected response format. Please verify your credentials and try again.', Locked = true;
+                    ValidCredentialsLbl: Label 'Credentials are valid for the selected sending mode environment.', Locked = true;
                     Result: Text;
                 begin
                     Result := AvalaraProcessing.GetRegistrationList();
-                    if StrLen(Result) > 3 then
-                        Message('Credentials are valid for the selected sending mode environment.');
+                    if (ResponseJson.ReadFrom(Result) and ResponseJson.Get('value', ValueToken)) then
+                        Message(ValidCredentialsLbl)
+                    else
+                        Error(InvalidCredentialsErr);
                 end;
+            }
+
+            action(Activations)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Activations';
+                Image = GetActionMessages;
+                RunObject = page "Activation List";
+                ToolTip = 'Check the activations setup for this connection.';
             }
         }
         area(Promoted)
         {
-            actionref(SelectCompanyIdRef; SelectCompanyId) { }
-            actionref(SelectMandateRef; SelectMandate) { }
-            actionref(CheckCredentialsRef; CheckCredentials) { }
+            actionref(SelectCompanyId_Promoted; SelectCompanyId) { }
+            actionref(SelectMandate_Promoted; SelectMandate) { }
+            actionref(CheckCredentials_Promoted; CheckCredentials) { }
+            actionref(Activations_Promoted; Activations) { }
         }
     }
 
