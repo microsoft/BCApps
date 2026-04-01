@@ -217,6 +217,7 @@ report 8052 "Cust. Contr. Def. Analysis"
         CustomerContractDeferral.SetRange("Subscription Contract No.", SourceContractNo);
         CustomerContractDeferral.SetFilter("Document Type", Format(DocumentTypeFilter));
         CustomerContractDeferral.SetFilter("Document No.", DocumentNoFilter);
+        OnAfterSetContractDeferralFilter(CustomerContractDeferral, SourceContractNo);
     end;
 
     local procedure SetPeriodFilter()
@@ -309,5 +310,10 @@ report 8052 "Cust. Contr. Def. Analysis"
         ResetPostingDateFilters(CustomerContractDeferral);
         if CustomerContractDeferral.FindLast() then
             DateLastRelease := CustomerContractDeferral."Posting Date";
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetContractDeferralFilter(var CustomerContractDeferral: Record "Cust. Sub. Contract Deferral"; SourceContractNo: Code[20])
+    begin
     end;
 }
