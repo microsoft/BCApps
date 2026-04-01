@@ -121,8 +121,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        OriginalDefVATProdPostGrp: Code[20];
     begin
         // [SCENARIO 618715] Creating a Subcontracting Purchase Order from Prod. Order Routing Line
         // should succeed even when "Def. VAT Prod. Posting Group" is empty on the Gen. Product Posting Group
@@ -138,12 +141,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [GIVEN] Create subcontracting Work Center (sets Def. VAT Prod. Posting Group during creation)
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
 
-        // [GIVEN] Clear "Def. VAT Prod. Posting Group" on the Work Center's Gen. Product Posting Group
-        // to simulate US/Sales Tax localization where this field is intentionally empty
-        GenProductPostingGroup.Get(WorkCenter[2]."Gen. Prod. Posting Group");
-        GenProductPostingGroup."Def. VAT Prod. Posting Group" := '';
-        GenProductPostingGroup.Modify();
-
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
 
@@ -151,6 +148,26 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Clear "Def. VAT Prod. Posting Group" on the Work Center's Gen. Product Posting Group
+        // to simulate US/Sales Tax localization where this field is intentionally empty.
+        // Done after all other setup to avoid committing the change during item/production order creation.
+        GenProductPostingGroup.Get(WorkCenter[2]."Gen. Prod. Posting Group");
+        OriginalDefVATProdPostGrp := GenProductPostingGroup."Def. VAT Prod. Posting Group";
+        GenProductPostingGroup."Def. VAT Prod. Posting Group" := '';
+        GenProductPostingGroup.Modify();
+
+        // [GIVEN] Create a VAT Posting Setup for the empty VAT Prod. Posting Group
+        // so the downstream purchase line validation can find a matching setup
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        if not VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", '') then begin
+            VATPostingSetup.Init();
+            VATPostingSetup."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+            VATPostingSetup."VAT Prod. Posting Group" := '';
+            VATPostingSetup."VAT Calculation Type" := VATPostingSetup."VAT Calculation Type"::"Normal VAT";
+            VATPostingSetup."VAT %" := 0;
+            VATPostingSetup.Insert();
+        end;
 
         // [WHEN] Create Subcontracting Purchase Order from Prod. Order Routing Line
         ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
@@ -163,6 +180,11 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
         Assert.AreEqual(false, PurchaseLine.IsEmpty(), 'Purchase Line should be created even when Def. VAT Prod. Posting Group is empty.');
+
+        // [TEARDOWN] Restore original Def. VAT Prod. Posting Group to prevent contaminating other tests
+        GenProductPostingGroup.Get(WorkCenter[2]."Gen. Prod. Posting Group");
+        GenProductPostingGroup."Def. VAT Prod. Posting Group" := OriginalDefVATProdPostGrp;
+        GenProductPostingGroup.Modify();
     end;
 
     [Test]
