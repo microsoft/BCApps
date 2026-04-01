@@ -66,6 +66,7 @@ codeunit 139687 "Recurring Billing Docs Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
+        NextToDateBeforeFromDateErr: Label 'CalculateNextToDate returned %1 which is before FromDate %2. This would cause billing to get stuck.', Locked = true;
         NoContractLinesFoundErr: Label 'No contract lines were found that can be billed with the specified parameters.', Locked = true;
         StrMenuHandlerStep: Integer;
 
@@ -2371,6 +2372,62 @@ codeunit 139687 "Recurring Billing Docs Test"
         Assert.ExpectedError(StrSubstNo(ItemUOMDoesNotExistErr, MockServiceObject."No.", MockServiceObject."Unit of Measure", Item."No."));
     end;
 
+    [Test]
+    procedure CalculateNextToDateAlignEndOfMonthDoesNotReturnDateBeforeFromDate()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        PeriodFormula: DateFormula;
+        FromDate: Date;
+        NextToDate: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 623011] CalculateNextToDate with "Align to End of Month" does not return date before FromDate
+        Initialize();
+
+        // [GIVEN] Subscription Line "SL" with Period Calculation = "Align to End of Month" and start date Jan 29
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
+        SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(29, 1, 2025));
+        SubscriptionLine.Modify();
+
+        // [WHEN] CalculateNextToDate is called with period formula <1D> from Feb 27
+        Evaluate(PeriodFormula, '<1D>');
+        FromDate := DMY2Date(27, 2, 2025);
+        NextToDate := SubscriptionLine.CalculateNextToDate(PeriodFormula, FromDate);
+
+        // [THEN] NextToDate is not before FromDate
+        Assert.IsTrue(NextToDate >= FromDate,
+            StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
+    end;
+
+    [Test]
+    procedure CalculateNextToDateMonthFormulaLeapYearDoesNotReturnDateBeforeFromDate()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        PeriodFormula: DateFormula;
+        FromDate: Date;
+        NextToDate: Date;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 623011] CalculateNextToDate with monthly formula and leap year Feb 29 to Mar transition does not return date before FromDate
+        Initialize();
+
+        // [GIVEN] Subscription Line "SL" with Period Calculation = "Align to End of Month" and start date Jan 30 (leap year 2024)
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
+        SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(30, 1, 2024));
+        SubscriptionLine.Modify();
+
+        // [WHEN] CalculateNextToDate is called with period formula <1M> from Feb 29 (leap year)
+        Evaluate(PeriodFormula, '<1M>');
+        FromDate := DMY2Date(29, 2, 2024);
+        NextToDate := SubscriptionLine.CalculateNextToDate(PeriodFormula, FromDate);
+
+        // [THEN] NextToDate is not before FromDate
+        Assert.IsTrue(NextToDate >= FromDate,
+            StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -2842,6 +2899,17 @@ codeunit 139687 "Recurring Billing Docs Test"
             FieldType::Boolean:
                 FRef.Value(not FRef.Value);
         end;
+    end;
+
+    local procedure MockSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
+    var
+        ServiceCommitmentPackage: Record "Subscription Package";
+    begin
+        ContractTestLibrary.CreateServiceCommitmentPackage(ServiceCommitmentPackage);
+        SubscriptionLine.Init();
+        SubscriptionLine."Invoicing via" := SubscriptionLine."Invoicing via"::Contract;
+        SubscriptionLine."Subscription Package Code" := ServiceCommitmentPackage.Code;
+        SubscriptionLine.Insert(true);
     end;
 
     #endregion Procedures
