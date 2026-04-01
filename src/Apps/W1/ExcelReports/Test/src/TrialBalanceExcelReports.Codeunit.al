@@ -47,6 +47,33 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
+    [HandlerFunctions('EXRTrialBalanceHideNoActivityHandler')]
+    procedure TrialBalanceHidesZeroActivityAccounts()
+    var
+        GLAccount: Record "G/L Account";
+        Variant: Variant;
+        RequestPageXml: Text;
+        ActiveAccountNo: Code[20];
+    begin
+        // [SCENARIO] With Hide Accounts with No Activity enabled, only accounts with activity are exported
+        // [GIVEN] 5 G/L Accounts, only 1 with activity
+        Initialize();
+        CreateSampleGLAccounts(5, GLAccount);
+        ActiveAccountNo := GLAccount."No.";
+        CreateGLEntryWithAmount(ActiveAccountNo, '', '', '', WorkDate(), 100);
+        Commit();
+        // [WHEN] Running the report with Hide Accounts with No Activity enabled
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Trial Balance Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Balance Excel", Variant, RequestPageXml);
+        // [THEN] Only the active account should be exported
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="GLAccounts"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'Only the account with activity should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('AccountNumber', Variant);
+        Assert.AreEqual(ActiveAccountNo, Format(Variant), 'The exported account should be the one with activity');
+    end;
+
+    [Test]
     [HandlerFunctions('EXRTrialBalanceBudgetExcelHandler')]
     procedure TrialBalanceBudgetExportsAsManyItemsAsGLAccounts()
     var
@@ -783,6 +810,14 @@ codeunit 139544 "Trial Balance Excel Reports"
     procedure EXRTrialBalanceExcelHandler(var EXRTrialBalanceExcel: TestRequestPage "EXR Trial Balance Excel")
     begin
         EXRTrialBalanceExcel.GLAccounts.SetFilter("Date Filter", Format(DMY2Date(1, 1, Date2DMY(WorkDate(), 3))) + '..' + Format(DMY2Date(31, 12, Date2DMY(WorkDate(), 3))));
+        EXRTrialBalanceExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRTrialBalanceHideNoActivityHandler(var EXRTrialBalanceExcel: TestRequestPage "EXR Trial Balance Excel")
+    begin
+        EXRTrialBalanceExcel.GLAccounts.SetFilter("Date Filter", Format(DMY2Date(1, 1, Date2DMY(WorkDate(), 3))) + '..' + Format(DMY2Date(31, 12, Date2DMY(WorkDate(), 3))));
+        EXRTrialBalanceExcel.HideAccountsWithNoActivityField.SetValue(true);
         EXRTrialBalanceExcel.OK().Invoke();
     end;
 
