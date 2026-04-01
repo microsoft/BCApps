@@ -1091,6 +1091,94 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         SyncShipmToShopify.OK().Invoke();
     end;
 
+    [Test]
+    [HandlerFunctions('AddItemConfirmHandler,SkippedRecordNotificationHandler')]
+    procedure UnitTestAddBlockedItemToShopifyFromItemCard()
+    var
+        Item: Record Item;
+        SkippedRecord: Record "Shpfy Skipped Record";
+        ItemCard: TestPage "Item Card";
+    begin
+        // [SCENARIO] Skipped record is created when adding a blocked item to Shopify from the Item Card.
+        Initialize();
+
+        // [GIVEN] An item that is blocked.
+        CreateBlockedItem(Item);
+        Commit();
+
+        // [WHEN] Open Item Card and invoke "Add to Shopify" action.
+        ItemCard.OpenEdit();
+        ItemCard.GoToRecord(Item);
+        ItemCard."Add to Shopify".Invoke();
+
+        // [THEN] Related record is created in shopify skipped record table.
+        SkippedRecord.SetRange("Record ID", Item.RecordId);
+        LibraryAssert.IsTrue(SkippedRecord.FindFirst(), 'Skipped record is not created');
+        LibraryAssert.AreEqual('Item is blocked or sales blocked.', SkippedRecord."Skipped Reason", 'Skipped reason is not as expected');
+    end;
+
+    [Test]
+    [HandlerFunctions('AddItemConfirmHandler,SkippedRecordNotificationHandler')]
+    procedure UnitTestAddItemWithEmptyDescriptionToShopifyFromItemCard()
+    var
+        Item: Record Item;
+        SkippedRecord: Record "Shpfy Skipped Record";
+        ItemCard: TestPage "Item Card";
+    begin
+        // [SCENARIO] Skipped record is created when adding an item with empty description to Shopify from the Item Card.
+        Initialize();
+
+        // [GIVEN] An item with empty description.
+        CreateItem(Item);
+        Commit();
+
+        // [WHEN] Open Item Card and invoke "Add to Shopify" action.
+        ItemCard.OpenEdit();
+        ItemCard.GoToRecord(Item);
+        ItemCard."Add to Shopify".Invoke();
+
+        // [THEN] Related record is created in shopify skipped record table.
+        SkippedRecord.SetRange("Record ID", Item.RecordId);
+        LibraryAssert.IsTrue(SkippedRecord.FindFirst(), 'Skipped record is not created');
+        LibraryAssert.AreEqual('Item description is empty.', SkippedRecord."Skipped Reason", 'Skipped reason is not as expected');
+    end;
+
+    [Test]
+    [HandlerFunctions('AddItemConfirmHandler,SkippedRecordNotificationHandler')]
+    procedure UnitTestAddItemWithTooManyVariantsToShopifyFromItemCard()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        SkippedRecord: Record "Shpfy Skipped Record";
+        ItemCard: TestPage "Item Card";
+        i: Integer;
+    begin
+        // [SCENARIO] Skipped record is created when adding an item with more than 2048 variants to Shopify from the Item Card.
+        Initialize();
+
+        // [GIVEN] An item with more than 2048 variants.
+        CreateItem(Item);
+        Item.Description := 'Test Item';
+        Item.Modify(false);
+        for i := 1 to 2049 do begin
+            ItemVariant.Init();
+            ItemVariant."Item No." := Item."No.";
+            ItemVariant.Code := CopyStr(Format(i).PadLeft(10, '0'), 1, MaxStrLen(ItemVariant.Code));
+            ItemVariant.Insert(false);
+        end;
+        Commit();
+
+        // [WHEN] Open Item Card and invoke "Add to Shopify" action.
+        ItemCard.OpenEdit();
+        ItemCard.GoToRecord(Item);
+        ItemCard."Add to Shopify".Invoke();
+
+        // [THEN] Related record is created in shopify skipped record table.
+        SkippedRecord.SetRange("Record ID", Item.RecordId);
+        LibraryAssert.IsTrue(SkippedRecord.FindFirst(), 'Skipped record is not created');
+        LibraryAssert.AreEqual('Item has more than 2048 variants. Shopify allows a maximum of 2048 variants per product.', SkippedRecord."Skipped Reason", 'Skipped reason is not as expected');
+    end;
+
     [RequestPageHandler]
     procedure AddItemToShopifyHandler(var AddItemToShopify: TestRequestPage "Shpfy Add Item to Shopify")
     begin
@@ -1122,5 +1210,17 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
                 Response.Content.WriteFrom(NavApp.GetResourceAsText('Logs/FulfillmentFailedResult.txt', TextEncoding::UTF8));
         end;
         exit(false);
+    end;
+
+    [ModalPageHandler]
+    procedure AddItemConfirmHandler(var AddItemConfirm: TestPage "Shpfy Add Item Confirm")
+    begin
+        AddItemConfirm.OK().Invoke();
+    end;
+
+    [SendNotificationHandler]
+    procedure SkippedRecordNotificationHandler(var Notification: Notification): Boolean
+    begin
+        exit(true);
     end;
 }
