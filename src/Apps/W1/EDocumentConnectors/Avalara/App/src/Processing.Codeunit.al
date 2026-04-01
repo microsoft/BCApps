@@ -480,7 +480,7 @@ ValueObject : JsonToken;
         RestClient.Initialize();
         RestClient.SetBaseAddress(Request.GetBaseUrl());
         RestClient.SetAuthorizationHeader(SecretStrSubstNo(BearerLbl, AvalaraAuth.GetAccessToken()));
-        RestClient.SetDefaultRequestHeader('avalara-version', '1.4');
+        RestClient.SetDefaultRequestHeader('avalara-version', ApiVersionELRTok);
         RestClient.SetDefaultRequestHeader('X-Avalara-Client', AvalaraClientTok);
 
         RequestPath := StrSubstNo(GetFieldsPathLbl, Mandate, DocumentType, DocumentVersion);
@@ -776,6 +776,7 @@ MessageToken,
         TempAvalaraCompanies: Record "Avalara Company" temporary;
         TempMandates: Record Mandate temporary;
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        ApiVersionELRTok: Label '1.4', Locked = true;
         AvalaraClientTok: Label 'a0nUz00000YrkE1IAJ', Locked = true;
 
         // Error messages
