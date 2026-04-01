@@ -154,8 +154,4 @@ page 8350 "MCP Config List"
             Filters = where(Active = const(true));
         }
     }
-
-    var
-        MCPConfigImplementation: Codeunit "MCP Config Implementation";
-
 }
