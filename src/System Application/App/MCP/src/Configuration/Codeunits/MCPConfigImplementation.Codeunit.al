@@ -1038,16 +1038,6 @@ codeunit 8351 "MCP Config Implementation"
     end;
     #endregion
 
-#if not CLEAN28
-    internal procedure IsFeatureEnabled(): Boolean
-    var
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
-        EnableMcpAccessTok: Label 'EnableMcpAccess', Locked = true;
-    begin
-        exit(FeatureManagementFacade.IsEnabled(EnableMcpAccessTok));
-    end;
-#endif
-
     local procedure GetDimensions(MCPConfiguration: Record "MCP Configuration") Dimensions: Dictionary of [Text, Text]
     begin
         Dimensions.Add('Category', GetTelemetryCategory());
@@ -1100,5 +1090,4 @@ codeunit 8351 "MCP Config Implementation"
         Session.LogMessage('0000QEB', MCPConfigurationDeletedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, GetDimensions(MCPConfiguration));
         Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditDeletedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
     end;
-    #endregion
 }
