@@ -24,10 +24,13 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
     InherentPermissions = X;
 
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
+    var
+        BestDefCode: Code[20];
+        BestDocType: Enum "E-Document Type";
     begin
-        FindBestDataExchDef(EDocument, TempBlob);
-        RunPipelineAndBridge(EDocument, TempBlob);
-        exit(MapDocumentTypeToProcessDraft(EDocument."Document Type"));
+        FindBestDataExchDef(TempBlob, BestDefCode, BestDocType);
+        RunPipelineAndBridge(EDocument, TempBlob, BestDefCode);
+        exit(MapDocumentTypeToProcessDraft(BestDocType));
     end;
 
     procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
@@ -38,73 +41,50 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
     #region Auto-Detection
 
     /// <summary>
-    /// Finds the best matching Data Exchange Definition for the document.
-    /// Iterates configured definitions and picks the one that produces the most
-    /// intermediate records. Does NOT use Commit()/TryFunction since ReadIntoDraft
-    /// runs inside a try-function context from the pipeline.
-    /// Instead, directly runs the Reading/Writing and Data Handling codeunits
-    /// and counts results. Errors from non-matching definitions are suppressed.
+    /// Finds the Data Exchange Definition that matches the document.
+    /// Matches the document's XML root namespace against each definition's configured
+    /// namespace (from DataExchLineDef). This avoids the v1 trial-and-error approach
+    /// which requires Commit() + Codeunit.Run() — incompatible with v2's try-function context.
     /// </summary>
-    local procedure FindBestDataExchDef(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
+    local procedure FindBestDataExchDef(var TempBlob: Codeunit "Temp Blob"; var BestDefCode: Code[20]; var BestDocType: Enum "E-Document Type")
     var
-        DataExch: Record "Data Exch.";
         EDocumentDataExchDef: Record "E-Doc. Service Data Exch. Def.";
-        DataExchDef: Record "Data Exch. Def";
-        IntermediateDataImport: Record "Intermediate Data Import";
-        BestDataExchValue: Integer;
-        RecordCount: Integer;
+        DataExchLineDef: Record "Data Exch. Line Def";
+        DocumentNamespace: Text;
     begin
-        BestDataExchValue := 0;
+        DocumentNamespace := GetDocumentRootNamespace(TempBlob);
+
         EDocumentDataExchDef.SetFilter("Impt. Data Exchange Def. Code", '<>%1', '');
         if EDocumentDataExchDef.FindSet() then
             repeat
                 if DataExchDefUsesIntermediate(EDocumentDataExchDef."Impt. Data Exchange Def. Code") then begin
-                    DataExchDef.Get(EDocumentDataExchDef."Impt. Data Exchange Def. Code");
-                    CreateDataExch(DataExch, DataExchDef, TempBlob);
-
-                    RecordCount := TryCreateIntermediateCount(DataExch, DataExchDef);
-                    if RecordCount > BestDataExchValue then begin
-                        EDocument."Data Exch. Def. Code" := EDocumentDataExchDef."Impt. Data Exchange Def. Code";
-                        EDocument."Document Type" := EDocumentDataExchDef."Document Type";
-                        BestDataExchValue := RecordCount;
-                    end;
-
-                    // Cleanup trial intermediate data
-                    IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
-                    IntermediateDataImport.DeleteAll(true);
-                    DataExch.Delete(true);
+                    // Match document namespace against definition's expected namespace
+                    DataExchLineDef.SetRange("Data Exch. Def Code", EDocumentDataExchDef."Impt. Data Exchange Def. Code");
+                    DataExchLineDef.SetRange("Parent Code", '');
+                    if DataExchLineDef.FindFirst() then
+                        if (DataExchLineDef.Namespace = '') or (DataExchLineDef.Namespace = DocumentNamespace) then begin
+                            BestDefCode := EDocumentDataExchDef."Impt. Data Exchange Def. Code";
+                            BestDocType := EDocumentDataExchDef."Document Type";
+                            exit;
+                        end;
                 end;
             until EDocumentDataExchDef.Next() = 0;
 
-        if EDocument."Document Type" = EDocument."Document Type"::None then
+        if BestDefCode = '' then
             Error(ProcessFailedErr);
-
-        EDocument.Modify();
     end;
 
-    /// <summary>
-    /// Runs the Reading/Writing and Data Handling codeunits for a candidate definition.
-    /// Returns the count of intermediate records produced, or 0 if it fails.
-    /// Uses ClearLastError() instead of Commit()+Codeunit.Run() pattern since
-    /// we're inside a try-function context where Commit() is forbidden.
-    /// </summary>
-    local procedure TryCreateIntermediateCount(DataExch: Record "Data Exch."; DataExchDef: Record "Data Exch. Def"): Integer
+    local procedure GetDocumentRootNamespace(var TempBlob: Codeunit "Temp Blob"): Text
     var
-        IntermediateDataImport: Record "Intermediate Data Import";
+        XmlDoc: XmlDocument;
+        RootElement: XmlElement;
+        Stream: InStream;
     begin
-        if DataExchDef."Reading/Writing Codeunit" = 0 then
-            exit(0);
-
-        // Run the Reading/Writing codeunit directly. If it fails, it errors out.
-        // For single-definition setups (the common case), this is fine.
-        // For multi-definition setups, the correct definition will succeed.
-        Codeunit.Run(DataExchDef."Reading/Writing Codeunit", DataExch);
-
-        if DataExchDef."Data Handling Codeunit" <> 0 then
-            Codeunit.Run(DataExchDef."Data Handling Codeunit", DataExch);
-
-        IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
-        exit(IntermediateDataImport.Count());
+        TempBlob.CreateInStream(Stream);
+        if not XmlDocument.ReadFrom(Stream, XmlDoc) then
+            exit('');
+        XmlDoc.GetRoot(RootElement);
+        exit(RootElement.NamespaceUri());
     end;
 
     local procedure DataExchDefUsesIntermediate(DataExchDefCode: Code[20]): Boolean
@@ -135,15 +115,13 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
     /// then bridge-maps intermediate data to v2 staging tables.
     /// Does NOT call DataExchDef.ProcessDataExchange which would invoke the pre-mapping codeunit.
     /// </summary>
-    local procedure RunPipelineAndBridge(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
+    local procedure RunPipelineAndBridge(EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20])
     var
         DataExch: Record "Data Exch.";
         DataExchDef: Record "Data Exch. Def";
         Stream: InStream;
     begin
-        DataExchDef.Get(EDocument."Data Exch. Def. Code");
-        if not DataExchDefUsesIntermediate(DataExchDef.Code) then
-            Error(ProcessFailedErr);
+        DataExchDef.Get(DataExchDefCode);
 
         TempBlob.CreateInStream(Stream);
         DataExch.Init();
@@ -154,20 +132,17 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
         if not DataExch.ImportToDataExch(DataExchDef) then
             Error(ProcessFailedErr);
 
-        // Do NOT call DataExchDef.ProcessDataExchange(DataExch) -- it runs the pre-mapping codeunit
-        // which conflicts with v2 Prepare Draft.
+        // Run Data Handling Codeunit to map Data Exch. Field → Intermediate Data Import.
+        // Do NOT call DataExchDef.ProcessDataExchange() which also runs Pre-Mapping (6156)
+        // that does vendor/GL resolution — in v2, Prepare Draft handles that.
+        if DataExchDef."Data Handling Codeunit" <> 0 then
+            Codeunit.Run(DataExchDef."Data Handling Codeunit", DataExch);
 
-        BridgeMapToStagingTables(EDocument, DataExch, TempBlob);
+        BridgeMapToStagingTables(EDocument, DataExch, TempBlob, DataExchDefCode);
         DeleteIntermediateData(DataExch);
-
-        EDocument.Direction := EDocument.Direction::Incoming;
     end;
 
-    /// <summary>
-    /// Maps intermediate data records to v2 staging tables, processes attachments,
-    /// and supplements with XPath extraction.
-    /// </summary>
-    local procedure BridgeMapToStagingTables(var EDocument: Record "E-Document"; DataExch: Record "Data Exch."; var TempBlob: Codeunit "Temp Blob")
+    local procedure BridgeMapToStagingTables(EDocument: Record "E-Document"; DataExch: Record "Data Exch."; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20])
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
@@ -176,7 +151,7 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
         MapIntermediateHeaderFields(DataExch, EDocumentPurchaseHeader);
         MapIntermediateLineFields(EDocument, DataExch, EDocumentPurchaseHeader);
         ProcessAttachments(EDocument, DataExch);
-        SupplementWithXPath(EDocument, EDocumentPurchaseHeader, TempBlob);
+        SupplementWithXPath(EDocument, EDocumentPurchaseHeader, TempBlob, DataExchDefCode);
 
         EDocumentPurchaseHeader.Modify();
     end;
@@ -440,7 +415,7 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
     /// Extracts fields still blank on staging header via XPath from the raw XML.
     /// Uses DataExchLineDef.GetPath() to look up the XPath for each field.
     /// </summary>
-    local procedure SupplementWithXPath(EDocument: Record "E-Document"; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var TempBlob: Codeunit "Temp Blob")
+    local procedure SupplementWithXPath(EDocument: Record "E-Document"; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20])
     var
         CompanyInformation: Record "Company Information";
         PurchaseHeader: Record "Purchase Header";
@@ -452,33 +427,33 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
             exit;
 
         if EDocumentPurchaseHeader."Customer VAT Id" = '' then
-            ExtractXPathField(xmlDoc, EDocument, Database::"Company Information", CompanyInformation.FieldNo("VAT Registration No."), EDocumentPurchaseHeader."Customer VAT Id");
+            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo("VAT Registration No."), EDocumentPurchaseHeader."Customer VAT Id");
 
         if EDocumentPurchaseHeader."Customer GLN" = '' then
-            ExtractXPathField(xmlDoc, EDocument, Database::"Company Information", CompanyInformation.FieldNo(GLN), EDocumentPurchaseHeader."Customer GLN");
+            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(GLN), EDocumentPurchaseHeader."Customer GLN");
 
         if EDocumentPurchaseHeader."Customer Company Name" = '' then
-            ExtractXPathField(xmlDoc, EDocument, Database::"Company Information", CompanyInformation.FieldNo(Name), EDocumentPurchaseHeader."Customer Company Name");
+            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(Name), EDocumentPurchaseHeader."Customer Company Name");
 
         if EDocumentPurchaseHeader."Customer Address" = '' then
-            ExtractXPathField(xmlDoc, EDocument, Database::"Company Information", CompanyInformation.FieldNo(Address), EDocumentPurchaseHeader."Customer Address");
+            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(Address), EDocumentPurchaseHeader."Customer Address");
 
         if EDocumentPurchaseHeader."Sales Invoice No." = '' then begin
             if EDocument."Document Type" = EDocument."Document Type"::"Purchase Invoice" then
-                ExtractXPathField(xmlDoc, EDocument, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.")
+                ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.")
             else
                 if EDocument."Document Type" = EDocument."Document Type"::"Purchase Credit Memo" then
-                    ExtractXPathField(xmlDoc, EDocument, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Cr. Memo No."), EDocumentPurchaseHeader."Sales Invoice No.");
+                    ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Cr. Memo No."), EDocumentPurchaseHeader."Sales Invoice No.");
         end;
 
         if EDocumentPurchaseHeader."Purchase Order No." = '' then
-            ExtractXPathField(xmlDoc, EDocument, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Order No."), EDocumentPurchaseHeader."Purchase Order No.");
+            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Order No."), EDocumentPurchaseHeader."Purchase Order No.");
 
         if EDocumentPurchaseHeader."Vendor Company Name" = '' then
-            ExtractXPathField(xmlDoc, EDocument, Database::"Purchase Header", PurchaseHeader.FieldNo("Buy-from Vendor Name"), EDocumentPurchaseHeader."Vendor Company Name");
+            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Buy-from Vendor Name"), EDocumentPurchaseHeader."Vendor Company Name");
     end;
 
-    local procedure ExtractXPathField(var xmlDoc: XmlDocument; EDocument: Record "E-Document"; TableId: Integer; FieldNo: Integer; var TargetField: Text)
+    local procedure ExtractXPathField(var xmlDoc: XmlDocument; DataExchDefCode: Code[20]; TableId: Integer; FieldNo: Integer; var TargetField: Text)
     var
         DataExchLineDef: Record "Data Exch. Line Def";
         ImportXMLFileToDataExch: Codeunit "Import XML File to Data Exch.";
@@ -490,7 +465,7 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
         XPath: Text;
         XmlValue: Text;
     begin
-        DataExchLineDef.SetRange("Data Exch. Def Code", EDocument."Data Exch. Def. Code");
+        DataExchLineDef.SetRange("Data Exch. Def Code", DataExchDefCode);
         DataExchLineDef.SetRange("Parent Code", '');
         if not DataExchLineDef.FindFirst() then
             exit;

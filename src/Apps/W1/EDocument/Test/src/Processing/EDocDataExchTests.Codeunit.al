@@ -55,7 +55,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
             Assert.AreEqual(DMY2Date(1, 12, 2017), EDocumentPurchaseHeader."Due Date", 'Due Date should be mapped from DueDate.');
             Assert.AreEqual(1656.25, EDocumentPurchaseHeader.Total, 'Total should be mapped from TaxInclusiveAmount.');
             Assert.AreEqual(1656.25, EDocumentPurchaseHeader."Amount Due", 'Amount Due should be mapped from TaxInclusiveAmount.');
-            Assert.AreEqual(1300, EDocumentPurchaseHeader."Sub Total", 'Sub Total should be mapped from LineExtensionAmount (Amount field).');
+            Assert.AreEqual(1325, EDocumentPurchaseHeader."Sub Total", 'Sub Total should be mapped from TaxExclusiveAmount (Amount field 60).');
         end
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
@@ -163,7 +163,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
             // Total VAT is not directly mapped by the intermediate data -- it remains 0 unless computed elsewhere.
             // Verify the amounts that ARE mapped are consistent
             Assert.AreEqual(1656.25, EDocumentPurchaseHeader.Total, 'Total should match TaxInclusiveAmount.');
-            Assert.AreEqual(1300, EDocumentPurchaseHeader."Sub Total", 'Sub Total should match Amount (LineExtensionAmount).');
+            Assert.AreEqual(1325, EDocumentPurchaseHeader."Sub Total", 'Sub Total should match Amount (TaxExclusiveAmount, PH field 60).');
         end
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
