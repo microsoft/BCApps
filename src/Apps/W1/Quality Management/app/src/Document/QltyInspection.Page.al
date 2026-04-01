@@ -478,9 +478,13 @@ page 20406 "Qlty. Inspection"
                 ToolTip = 'Create a new re-inspection based on this inspection. If the inspection is still open, it will be finished first. Finishing may be blocked if the current result does not allow it.';
 
                 trigger OnAction()
+                var
+                    CreatedReinspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection();
+                    Rec.CreateReinspection(CreatedReinspectionHeader);
                     CurrPage.Update(false);
+                    if not IsNullGuid(CreatedReinspectionHeader.SystemId) then
+                        Page.Run(Page::"Qlty. Inspection", CreatedReinspectionHeader);
                 end;
             }
             action(ChangeStatusFinish)
