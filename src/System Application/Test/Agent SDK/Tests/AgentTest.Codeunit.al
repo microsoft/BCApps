@@ -314,7 +314,7 @@ codeunit 133961 "Agent Test"
     var
         AgentRecord: Record Agent;
         AllProfile: Record "All Profile";
-        UserSettingsRec: Record "User Settings";
+        TempUserSettingsRec: Record "User Settings";
         Any: Codeunit Any;
         AgentId: Guid;
     begin
@@ -334,9 +334,9 @@ codeunit 133961 "Agent Test"
             Agent.SetProfile(AgentId, AllProfile);
 
             // [THEN] The profile should be set correctly
-            Agent.GetUserSettings(AgentId, UserSettingsRec);
-            Assert.AreEqual(Text.UpperCase(AllProfile."Profile ID"), UserSettingsRec."Profile ID", 'Profile ID should be set');
-            Assert.AreEqual(AllProfile."App ID", UserSettingsRec."App ID", 'Profile App ID should be set');
+            Agent.GetUserSettings(AgentId, TempUserSettingsRec);
+            Assert.AreEqual(Text.UpperCase(AllProfile."Profile ID"), TempUserSettingsRec."Profile ID", 'Profile ID should be set');
+            Assert.AreEqual(AllProfile."App ID", TempUserSettingsRec."App ID", 'Profile App ID should be set');
         end;
     end;
 
@@ -344,7 +344,7 @@ codeunit 133961 "Agent Test"
     procedure SetProfileWithParameters()
     var
         AgentRecord: Record Agent;
-        UserSettingsRec: Record "User Settings";
+        TempUserSettingsRec: Record "User Settings";
         Any: Codeunit Any;
         AgentId: Guid;
         ProfileID: Code[30];
@@ -368,9 +368,9 @@ codeunit 133961 "Agent Test"
         Agent.SetProfile(AgentId, ProfileID, ProfileAppID);
 
         // [THEN] The profile should be set correctly
-        Agent.GetUserSettings(AgentId, UserSettingsRec);
-        Assert.AreEqual(ProfileID, UserSettingsRec."Profile ID", 'Profile ID should be set');
-        Assert.AreEqual(ProfileAppID, UserSettingsRec."App ID", 'Profile App ID should be set');
+        Agent.GetUserSettings(AgentId, TempUserSettingsRec);
+        Assert.AreEqual(ProfileID, TempUserSettingsRec."Profile ID", 'Profile ID should be set');
+        Assert.AreEqual(ProfileAppID, TempUserSettingsRec."App ID", 'Profile App ID should be set');
     end;
 
     #endregion
@@ -381,7 +381,7 @@ codeunit 133961 "Agent Test"
     procedure UpdateLocalizationSettings()
     var
         AgentRecord: Record Agent;
-        NewUserSettings: Record "User Settings";
+        TempNewUserSettings: Record "User Settings";
         Any: Codeunit Any;
         AgentId: Guid;
     begin
@@ -396,23 +396,23 @@ codeunit 133961 "Agent Test"
             CopyStr(Any.AlphanumericText(80), 1, 80),
             CopyStr(Any.AlphanumericText(2048), 1, 2048));
 
-        NewUserSettings."User Security ID" := AgentId;
-        NewUserSettings."Locale ID" := Any.IntegerInRange(1000, 9999);
-        NewUserSettings."Language ID" := Any.IntegerInRange(1000, 9999);
-        NewUserSettings."Time Zone" := CopyStr(Any.AlphanumericText(30), 1, 30);
+        TempNewUserSettings."User Security ID" := AgentId;
+        TempNewUserSettings."Locale ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Language ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Time Zone" := CopyStr(Any.AlphanumericText(30), 1, 30);
 
         // [WHEN] Updating localization settings
-        Agent.UpdateLocalizationSettings(AgentId, NewUserSettings);
+        Agent.UpdateLocalizationSettings(AgentId, TempNewUserSettings);
 
         // [THEN] The settings should be updated
-        Assert.AreNotEqual(0, NewUserSettings."Locale ID", 'Locale ID should be updated');
+        Assert.AreNotEqual(0, TempNewUserSettings."Locale ID", 'Locale ID should be updated');
     end;
 
     [Test]
     procedure GetUserSettings()
     var
         AgentRecord: Record Agent;
-        UserSettingsRec: Record "User Settings";
+        TempUserSettingsRec: Record "User Settings";
         Any: Codeunit Any;
         AgentId: Guid;
     begin
@@ -428,11 +428,11 @@ codeunit 133961 "Agent Test"
             CopyStr(Any.AlphanumericText(2048), 1, 2048));
 
         // [WHEN] Getting the user settings
-        Agent.GetUserSettings(AgentId, UserSettingsRec);
+        Agent.GetUserSettings(AgentId, TempUserSettingsRec);
 
         // [THEN] User settings should be retrieved
-        Assert.AreEqual(AgentId, UserSettingsRec."User Security ID", 'User Security ID should match');
-        Assert.AreNotEqual(0, UserSettingsRec."Locale ID", 'Locale ID should be set');
+        Assert.AreEqual(AgentId, TempUserSettingsRec."User Security ID", 'User Security ID should match');
+        Assert.AreNotEqual(0, TempUserSettingsRec."Locale ID", 'Locale ID should be set');
     end;
 
     #endregion
@@ -731,7 +731,7 @@ codeunit 133961 "Agent Test"
     procedure CreateAndConfigureCompleteAgent()
     var
         TempAgentAccessControl: Record "Agent Access Control" temporary;
-        NewUserSettings: Record "User Settings";
+        TempNewUserSettings: Record "User Settings";
         Any: Codeunit Any;
         UserName: Code[50];
         DisplayName: Text[80];
@@ -759,11 +759,11 @@ codeunit 133961 "Agent Test"
         Instructions := Format(Any.AlphanumericText(2048));
         Agent.SetInstructions(AgentId, Instructions);
 
-        NewUserSettings."User Security ID" := AgentId;
-        NewUserSettings."Locale ID" := Any.IntegerInRange(1000, 9999);
-        NewUserSettings."Language ID" := Any.IntegerInRange(1000, 9999);
-        NewUserSettings."Time Zone" := CopyStr(Any.AlphanumericText(MaxStrLen(NewUserSettings."Time Zone")), 1, MaxStrLen(NewUserSettings."Time Zone"));
-        Agent.UpdateLocalizationSettings(AgentId, NewUserSettings);
+        TempNewUserSettings."User Security ID" := AgentId;
+        TempNewUserSettings."Locale ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Language ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Time Zone" := CopyStr(Any.AlphanumericText(MaxStrLen(TempNewUserSettings."Time Zone")), 1, MaxStrLen(TempNewUserSettings."Time Zone"));
+        Agent.UpdateLocalizationSettings(AgentId, TempNewUserSettings);
 
         Agent.Activate(AgentId);
 
@@ -772,9 +772,9 @@ codeunit 133961 "Agent Test"
         Assert.AreEqual(UserName, Agent.GetUserName(AgentId), 'User name should match');
         Assert.IsTrue(Agent.IsActive(AgentId), 'Agent should be active');
 
-        Clear(NewUserSettings);
-        Agent.GetUserSettings(AgentId, NewUserSettings);
-        Assert.AreNotEqual(0, NewUserSettings."Locale ID", 'Locale should be set');
+        Clear(TempNewUserSettings);
+        Agent.GetUserSettings(AgentId, TempNewUserSettings);
+        Assert.AreNotEqual(0, TempNewUserSettings."Locale ID", 'Locale should be set');
     end;
 
     [Test]
