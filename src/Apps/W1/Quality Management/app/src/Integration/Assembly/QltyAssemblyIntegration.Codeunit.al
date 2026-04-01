@@ -46,7 +46,7 @@ codeunit 20412 "Qlty. Assembly Integration"
             exit;
 
         QltyBatchNotifHelper.BeginBatch();
-        QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+        QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
         if not TempSpecTrackingSpecification.IsEmpty() then
             repeat
                 Clear(QltyInspectionHeader);

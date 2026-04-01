@@ -45,8 +45,9 @@ codeunit 20456 "Qlty. Batch Notif. Helper"
             BatchCreatedInspectionIds.Add(InspectionNo);
     end;
 
-    internal procedure IsBatching(): Boolean
+    internal procedure ConfigureForBatch(var QltyInspectionCreate: Codeunit "Qlty. Inspection - Create")
     begin
-        exit(IsBatchActive);
+        if IsBatchActive then
+            QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
     end;
 }

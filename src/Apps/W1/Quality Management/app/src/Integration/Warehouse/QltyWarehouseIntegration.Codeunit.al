@@ -62,7 +62,7 @@ codeunit 20438 "Qlty. Warehouse Integration"
             CollectSourceItemTracking(DoNotSendSourceVariant, TempTrackingSpecification);
 
         QltyBatchNotifHelper.BeginBatch();
-        QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+        QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.FindSet() then
             repeat

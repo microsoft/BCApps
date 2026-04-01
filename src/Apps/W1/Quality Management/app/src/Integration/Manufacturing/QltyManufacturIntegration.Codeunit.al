@@ -363,7 +363,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             exit;
 
         QltyBatchNotifHelper.BeginBatch();
-        QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+        QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         if ProdOrderLine.FindSet() then begin

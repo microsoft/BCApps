@@ -163,7 +163,7 @@ codeunit 20411 "Qlty. Receiving Integration"
                 exit;
 
             QltyBatchNotifHelper.BeginBatch();
-            QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+            QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
             TempTrackingSpecification.Reset();
             if TempTrackingSpecification.FindSet() then
                 repeat
@@ -294,8 +294,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         if IsHandled then
             exit;
 
-        if QltyBatchNotifHelper.IsBatching() then
-            QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+        QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
 
         QltyWarehouseIntegration.CollectSourceItemTracking(OptionalSourceLineVariant, TempTrackingSpecification);
 
@@ -338,8 +337,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         if IsHandled then
             exit;
 
-        if QltyBatchNotifHelper.IsBatching() then
-            QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+        QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
 
         if QltyWarehouseIntegration.GetOptionalSourceVariantForWarehouseJournalLine(WarehouseJournalLine, OptionalSourceRecordVariant) then
             QltyWarehouseIntegration.CollectSourceItemTracking(OptionalSourceRecordVariant, TempTrackingSpecification);
@@ -380,8 +378,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         if IsHandled then
             exit;
 
-        if QltyBatchNotifHelper.IsBatching() then
-            QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+        QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
 
         TempQltyInspectionGenRule.CopyFilters(ApplicableReceivingQltyInspectionGenRule);
         HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PurchaseLine, PurchaseHeader, TempTrackingSpecification, DummyVariant, false, TempQltyInspectionGenRule);
@@ -409,8 +406,7 @@ codeunit 20411 "Qlty. Receiving Integration"
         if IsHandled then
             exit;
 
-        if QltyBatchNotifHelper.IsBatching() then
-            QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(true);
+        QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
 
         CurrentVariant := TransTransferLine;
         QltyWarehouseIntegration.CollectSourceItemTracking(CurrentVariant, TempTrackingSpecification);
