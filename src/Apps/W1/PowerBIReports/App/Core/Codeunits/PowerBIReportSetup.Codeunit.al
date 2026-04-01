@@ -29,15 +29,57 @@ codeunit 36962 "Power BI Report Setup"
     procedure GetReportIdAndEnsureSetup(ReportName: Text; FieldId: Integer) ReportId: Guid
     var
         AssistedSetup: Page "PowerBI Assisted Setup";
-        FinanceAppNotSetupErr: Label 'Your %1 Report has not been setup in PowerBI Reports Setup. You need to set up this report in order to view it.', Comment = '%1 = report name';
+        DeploySelectionPage: Page "PBI Report Deploy. Selection";
+        ReportNotSetupErr: Label 'Your %1 Report has not been setup in PowerBI Reports Setup. You need to set up this report in order to view it.', Comment = '%1 = report name';
+        ReportDeployingQst: Label 'Your %1 report is being deployed to Power BI. Would you like to open the Power BI Report Deployments page to track the status?', Comment = '%1 = report name';
     begin
         ReportId := GetReportId(FieldId);
         if IsNullGuid(ReportId) then begin
-            if AssistedSetup.RunModal() = Action::OK then;
+            if IsReportBeingDeployed(FieldId) then begin
+                if Confirm(ReportDeployingQst, true, ReportName) then
+                    Page.Run(Page::"Power BI Report Deployments");
+                Error('');
+            end;
+
+            if AssistedSetup.RunModal() = Action::OK then
+                if AssistedSetup.IsDeployOOBReportsSelected() then
+                    DeploySelectionPage.RunModal();
             ReportId := GetReportId(FieldId);
             if IsNullGuid(ReportId) then
-                Error(FinanceAppNotSetupErr, ReportName);
+                if IsReportBeingDeployed(FieldId) then begin
+                    if Confirm(ReportDeployingQst, true, ReportName) then
+                        Page.Run(Page::"Power BI Report Deployments");
+                    Error('');
+                end else
+                    Error(ReportNotSetupErr, ReportName);
         end;
+    end;
+
+    local procedure IsReportBeingDeployed(FieldId: Integer): Boolean
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+        PowerBIReportsSetup: Record "PowerBI Reports Setup";
+        DeployableReportType: Enum "Power BI Deployable Report";
+    begin
+        case FieldId of
+            PowerBIReportsSetup.FieldNo("Finance Report Id"):
+                DeployableReportType := Enum::"Power BI Deployable Report"::"Finance App";
+            PowerBIReportsSetup.FieldNo("Sales Report Id"):
+                DeployableReportType := Enum::"Power BI Deployable Report"::"Sales App";
+            PowerBIReportsSetup.FieldNo("Purchases Report Id"):
+                DeployableReportType := Enum::"Power BI Deployable Report"::"Purchases App";
+            PowerBIReportsSetup.FieldNo("Inventory Report Id"):
+                DeployableReportType := Enum::"Power BI Deployable Report"::"Inventory App";
+            PowerBIReportsSetup.FieldNo("Inventory Val. Report Id"):
+                DeployableReportType := Enum::"Power BI Deployable Report"::"Inventory Valuation App";
+            PowerBIReportsSetup.FieldNo("Manufacturing Report Id"):
+                DeployableReportType := Enum::"Power BI Deployable Report"::"Manufacturing App";
+            PowerBIReportsSetup.FieldNo("Projects Report Id"):
+                DeployableReportType := Enum::"Power BI Deployable Report"::"Projects App";
+            else
+                exit(false);
+        end;
+        exit(PowerBIDeployment.Get(DeployableReportType));
     end;
 
     local procedure GetReportId(FieldId: Integer): Guid
