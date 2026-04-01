@@ -74,7 +74,7 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         if not EDocPurchaseDocumentHelper.AllDraftLinesHaveTypeAndNumber(EDocumentPurchaseHeader) then begin
-            Telemetry.LogMessage('', 'Draft line does not contain type or number', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All);
+            Telemetry.LogMessage('0000SNH', 'Draft line does not contain type or number', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All);
             Error(DraftLineDoesNotContainTypeAndNumberErr);
         end;
         EDocumentPurchaseHeader.TestField("E-Document Entry No.");
@@ -92,7 +92,7 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         VendorLedgerEntry.ReadIsolation := VendorLedgerEntry.ReadIsolation::ReadUncommitted;
         StopCreatingCreditMemo := PurchaseHeader.FindPostedDocumentWithSameExternalDocNo(VendorLedgerEntry, VendorCrMemoNo);
         if StopCreatingCreditMemo then begin
-            Telemetry.LogMessage('', CrMemoAlreadyExistsErr, Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
+            Telemetry.LogMessage('0000SNI', CrMemoAlreadyExistsErr, Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
             Error(CrMemoAlreadyExistsErr, VendorCrMemoNo, EDocumentPurchaseHeader."[BC] Vendor No.");
         end;
 
