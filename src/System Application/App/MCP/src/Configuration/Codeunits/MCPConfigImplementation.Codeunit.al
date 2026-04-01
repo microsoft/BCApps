@@ -7,7 +7,6 @@ namespace System.MCP;
 
 using System.Azure.Identity;
 using System.Environment;
-using System.Feedback;
 using System.Reflection;
 using System.Utilities;
 
