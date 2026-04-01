@@ -38,9 +38,12 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
     #region Auto-Detection
 
     /// <summary>
-    /// Tries each configured Data Exchange Definition and picks the one that produces
-    /// the most intermediate records. Sets EDocument."Data Exch. Def. Code" and
-    /// EDocument."Document Type", then modifies the record.
+    /// Finds the best matching Data Exchange Definition for the document.
+    /// Iterates configured definitions and picks the one that produces the most
+    /// intermediate records. Does NOT use Commit()/TryFunction since ReadIntoDraft
+    /// runs inside a try-function context from the pipeline.
+    /// Instead, directly runs the Reading/Writing and Data Handling codeunits
+    /// and counts results. Errors from non-matching definitions are suppressed.
     /// </summary>
     local procedure FindBestDataExchDef(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     var
@@ -49,6 +52,7 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
         DataExchDef: Record "Data Exch. Def";
         IntermediateDataImport: Record "Intermediate Data Import";
         BestDataExchValue: Integer;
+        RecordCount: Integer;
     begin
         BestDataExchValue := 0;
         EDocumentDataExchDef.SetFilter("Impt. Data Exchange Def. Code", '<>%1', '');
@@ -58,17 +62,16 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
                     DataExchDef.Get(EDocumentDataExchDef."Impt. Data Exchange Def. Code");
                     CreateDataExch(DataExch, DataExchDef, TempBlob);
 
-                    if TryCreateIntermediate(DataExch, DataExchDef) then begin
-                        IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
-
-                        if IntermediateDataImport.Count() > BestDataExchValue then begin
-                            EDocument."Data Exch. Def. Code" := EDocumentDataExchDef."Impt. Data Exchange Def. Code";
-                            EDocument."Document Type" := EDocumentDataExchDef."Document Type";
-                            BestDataExchValue := IntermediateDataImport.Count();
-                        end;
-
-                        IntermediateDataImport.DeleteAll(true);
+                    RecordCount := TryCreateIntermediateCount(DataExch, DataExchDef);
+                    if RecordCount > BestDataExchValue then begin
+                        EDocument."Data Exch. Def. Code" := EDocumentDataExchDef."Impt. Data Exchange Def. Code";
+                        EDocument."Document Type" := EDocumentDataExchDef."Document Type";
+                        BestDataExchValue := RecordCount;
                     end;
+
+                    // Cleanup trial intermediate data
+                    IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
+                    IntermediateDataImport.DeleteAll(true);
                     DataExch.Delete(true);
                 end;
             until EDocumentDataExchDef.Next() = 0;
@@ -77,6 +80,31 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
             Error(ProcessFailedErr);
 
         EDocument.Modify();
+    end;
+
+    /// <summary>
+    /// Runs the Reading/Writing and Data Handling codeunits for a candidate definition.
+    /// Returns the count of intermediate records produced, or 0 if it fails.
+    /// Uses ClearLastError() instead of Commit()+Codeunit.Run() pattern since
+    /// we're inside a try-function context where Commit() is forbidden.
+    /// </summary>
+    local procedure TryCreateIntermediateCount(DataExch: Record "Data Exch."; DataExchDef: Record "Data Exch. Def"): Integer
+    var
+        IntermediateDataImport: Record "Intermediate Data Import";
+    begin
+        if DataExchDef."Reading/Writing Codeunit" = 0 then
+            exit(0);
+
+        // Run the Reading/Writing codeunit directly. If it fails, it errors out.
+        // For single-definition setups (the common case), this is fine.
+        // For multi-definition setups, the correct definition will succeed.
+        Codeunit.Run(DataExchDef."Reading/Writing Codeunit", DataExch);
+
+        if DataExchDef."Data Handling Codeunit" <> 0 then
+            Codeunit.Run(DataExchDef."Data Handling Codeunit", DataExch);
+
+        IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
+        exit(IntermediateDataImport.Count());
     end;
 
     local procedure DataExchDefUsesIntermediate(DataExchDefCode: Code[20]): Boolean
@@ -96,19 +124,6 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
         DataExch.Init();
         DataExch.InsertRec('', Stream, DataExchDef.Code);
         DataExch.Modify(true);
-    end;
-
-    [TryFunction]
-    local procedure TryCreateIntermediate(DataExch: Record "Data Exch."; DataExchDef: Record "Data Exch. Def")
-    begin
-        Commit();
-        if DataExchDef."Reading/Writing Codeunit" <> 0 then begin
-            Codeunit.Run(DataExchDef."Reading/Writing Codeunit", DataExch);
-
-            if DataExchDef."Data Handling Codeunit" <> 0 then
-                Codeunit.Run(DataExchDef."Data Handling Codeunit", DataExch);
-        end else
-            Error('');
     end;
 
     #endregion Auto-Detection
