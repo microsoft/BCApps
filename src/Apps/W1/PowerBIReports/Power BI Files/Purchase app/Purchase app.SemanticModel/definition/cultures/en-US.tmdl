@@ -14707,16 +14707,6 @@ cultureInfo en-US
 			            },
 			            "Weight": 0.599
 			          }
-			        },
-			        {
-			          "Variance %": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
 			        }
 			      ]
 			    },
@@ -22107,19 +22097,7 @@ cultureInfo en-US
 			          "ConceptualProperty": "No. of Distinct Items"
 			        }
 			      },
-			      "State": "Generated",
-			      "Terms": [
-			        {
-			          "Unique Items": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
-			        }
-			      ]
+			      "State": "Generated"
 			    },
 			    "purchase_value_entries.posted_purchase_invoice_quantity": {
 			      "Definition": {
