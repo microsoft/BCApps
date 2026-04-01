@@ -71,7 +71,6 @@ codeunit 139981 "Subc. Location Handler Test"
         Location: Record Location;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        SubManagementSetup: Record "Subc. Management Setup";
         SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
@@ -100,7 +99,6 @@ codeunit 139981 "Subc. Location Handler Test"
     var
         Location: Record Location;
         PurchaseLine: Record "Purchase Line";
-        SubManagementSetup: Record "Subc. Management Setup";
         SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
@@ -126,7 +124,6 @@ codeunit 139981 "Subc. Location Handler Test"
     var
         Location: Record Location;
         PurchaseLine: Record "Purchase Line";
-        SubManagementSetup: Record "Subc. Management Setup";
         SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
@@ -285,7 +282,6 @@ codeunit 139981 "Subc. Location Handler Test"
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrder: Record "Production Order";
         PurchLine: Record "Purchase Line";
-        SubManagementSetup: Record "Subc. Management Setup";
         CreateProdOrdOpt: Codeunit "Subc. Create Prod. Ord. Opt.";
         ItemNo: Code[20];
     begin

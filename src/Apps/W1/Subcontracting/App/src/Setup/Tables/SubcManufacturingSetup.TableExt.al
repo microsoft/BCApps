@@ -5,13 +5,11 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Company;
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
-using Microsoft.Manufacturing.WorkCenter;
 
-tableextension 99001501 "Manufacturing Setup Subc." extends "Manufacturing Setup"
+tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
 {
     fields
     {

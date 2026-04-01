@@ -705,7 +705,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
-        SubManagementSetup: Record "Subc. Management Setup";
         ManufacturingSetup: Record "Manufacturing Setup";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
@@ -1595,7 +1594,6 @@ Comment = '|%1 = Transfer Order No.';
         PurchRcptLine: Record "Purch. Rcpt. Line";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        SubManagementSetup: Record "Subc. Management Setup";
         ValueEntry: Record "Value Entry";
     begin
         // [SCENARIO] When a Purchase Order is created and the item charge is assigned to a subcontracting line, the value entry should be created with the capacity relation, not with item ledger entry relation.
@@ -2021,14 +2019,10 @@ Comment = '|%1 = Transfer Order No.';
     local procedure UpdateSubMgmtSetupTransferInfoLine(Update: Boolean)
     var
         ManufacturingSetup: Record "Manufacturing Setup";
-        EsMgmtSetup: Record "Subc. Management Setup";
     begin
-        EsMgmtSetup.Get();
         ManufacturingSetup.Get();
         ManufacturingSetup."Create Prod. Order Info Line" := Update;
         ManufacturingSetup.Modify();
-        EsMgmtSetup.Get();
-        EsMgmtSetup.Modify();
     end;
 
     local procedure UpdateSubMgmtSetupDirectTransfer(Update: Boolean)

@@ -4,10 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 

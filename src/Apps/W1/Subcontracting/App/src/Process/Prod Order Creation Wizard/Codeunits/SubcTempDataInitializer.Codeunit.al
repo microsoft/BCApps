@@ -122,7 +122,6 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     procedure InitializeNewTemporaryBOMInformation()
     var
         Item: Record Item;
-        ManufacturingSetup: Record "Manufacturing Setup";
         BOMNo: Code[20];
     begin
         ClearBOMTables();
@@ -176,7 +175,6 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     procedure InitializeNewTemporaryRoutingInformation()
     var
         Item: Record Item;
-        ManufacturingSetup: Record "Manufacturing Setup";
         RoutingNo: Code[20];
         WorkCenterNo: Code[20];
     begin

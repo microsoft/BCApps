@@ -293,9 +293,7 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
     procedure CreateTempProdOrderComponentFromBOM(var TempProdOrderComponent: Record "Prod. Order Component" temporary; BOMNo: Code[20]; PurchLine: Record "Purchase Line")
     var
         SubManagementSetup: Record "Subc. Management Setup";
-        ManufacturingSetup: Record "Manufacturing Setup";
         ProductionBOMLine: Record "Production BOM Line";
-        SubManagementSetup: Record "Subc. Management Setup";
         LineNo: Integer;
     begin
         // Create temporary Production Order Components based on BOM lines
