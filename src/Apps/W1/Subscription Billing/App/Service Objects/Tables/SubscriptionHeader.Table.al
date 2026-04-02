@@ -2081,7 +2081,7 @@ table 8057 "Subscription Header"
         SetRange("Source No.", ItemNo);
     end;
 
-    procedure InsertFromItemNoAndCustomerContract(var ServiceObject: Record "Subscription Header"; ItemNo: Code[20]; VariantCode: Code[10]; SourceQuantity: Decimal; ProvisionStartDate: Date; CustomerContract: Record "Customer Subscription Contract")
+    procedure InsertFromItemNoAndCustomerContract(var ServiceObject: Record "Subscription Header"; ItemNo: Code[20]; SourceQuantity: Decimal; ProvisionStartDate: Date; CustomerContract: Record "Customer Subscription Contract")
     var
         Item: Record Item;
         ContractsItemManagement: Codeunit "Sub. Contracts Item Management";
