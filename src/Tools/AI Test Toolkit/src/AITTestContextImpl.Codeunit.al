@@ -419,7 +419,7 @@ codeunit 149043 "AIT Test Context Impl."
     /// Sets the per-suite setup data from a parsed JSON token.
     /// </summary>
     /// <param name="SuiteSetupJsonToken">The JSON token containing the parsed suite setup data.</param>
-    internal procedure SetSuiteSetupData(SuiteSetupJsonToken: JsonToken)
+    internal procedure SetEvalSuiteSetupData(SuiteSetupJsonToken: JsonToken)
     begin
         GlobalSuiteSetupJson.Initialize(SuiteSetupJsonToken);
         HasSuiteSetupData := true;
@@ -429,11 +429,19 @@ codeunit 149043 "AIT Test Context Impl."
     /// Gets the per-suite setup data as a Test Input Json.
     /// </summary>
     /// <returns>Test Input Json containing the suite setup data.</returns>
-    procedure GetSuiteSetupData(): Codeunit "Test Input Json"
+    procedure GetEvalSuiteSetupDataInput(): Codeunit "Test Input Json"
     begin
         if not HasSuiteSetupData then
             Error(SuiteSetupDataNotLoadedErr);
         exit(GlobalSuiteSetupJson);
+    end;
+
+    /// <summary>
+    /// Marks the per-suite setup as completed on the test suite record.
+    /// </summary>
+    procedure SetEvalSuiteSetupCompleted()
+    begin
+        AITTestSuiteMgt.SetEvalSuiteSetupCompleted();
     end;
 
     /// <summary>

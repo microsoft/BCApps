@@ -311,11 +311,10 @@ table 149030 "AIT Test Suite"
         Rec.Modify(true);
     end;
 
-    internal procedure SetSuiteSetupDone()
+    internal procedure SetEvalSuiteSetupDone()
     begin
         Rec."Suite Setup Done" := true;
         Rec.Modify(true);
-        Commit();
     end;
 
     var
