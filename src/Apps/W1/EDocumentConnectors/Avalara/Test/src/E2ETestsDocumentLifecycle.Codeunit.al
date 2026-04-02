@@ -6,8 +6,12 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Setup;
 using System.Threading;
 using System.Utilities;
 
@@ -159,6 +163,7 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
     var
         CompanyInformation: Record "Company Information";
         ConnectionSetup: Record "Connection Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         AvalaraAuth: Codeunit Authenticator;
         KeyGuid: Guid;
     begin
@@ -167,6 +172,21 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
             CompanyInformation.Name := 'Test Company';
             CompanyInformation.Modify();
         end;
+
+        // Disable VAT Reporting Date to avoid VAT Period requirement
+        GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."VAT Reporting Date Usage" <> Enum::"VAT Reporting Date Usage"::Disabled then begin
+            GeneralLedgerSetup."VAT Reporting Date Usage" := Enum::"VAT Reporting Date Usage"::Disabled;
+            GeneralLedgerSetup.Modify();
+        end;
+
+        // Ensure Sales & Receivables Setup has Invoice Nos.
+        EnsureSalesSetup();
+
+        // Verify Customer still exists (may have been rolled back between tests)
+        if IsInitialized then
+            if not Customer.Get(Customer."No.") then
+                IsInitialized := false;
 
         if IsInitialized then
             exit;
@@ -254,6 +274,48 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
         Response.HttpStatusCode := 200;
+    end;
+
+    local procedure EnsureSalesSetup()
+    var
+        SalesSetup: Record "Sales & Receivables Setup";
+    begin
+        if not SalesSetup.Get() then
+            SalesSetup.Insert(true);
+        if SalesSetup."Invoice Nos." = '' then begin
+            SalesSetup."Invoice Nos." := CreateTestNoSeries('SINV', 'SI00001', 'SI99999');
+            SalesSetup.Modify(true);
+        end;
+        if SalesSetup."Posted Invoice Nos." = '' then begin
+            SalesSetup."Posted Invoice Nos." := CreateTestNoSeries('PSINV', 'PSI0001', 'PSI9999');
+            SalesSetup.Modify(true);
+        end;
+    end;
+
+    local procedure CreateTestNoSeries(SeriesCode: Code[20]; StartNo: Code[20]; EndNo: Code[20]): Code[20]
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        if NoSeries.Get(SeriesCode) then
+            exit(SeriesCode);
+
+        NoSeries.Init();
+        NoSeries.Code := SeriesCode;
+        NoSeries.Description := SeriesCode;
+        NoSeries."Default Nos." := true;
+        NoSeries."Manual Nos." := true;
+        NoSeries.Insert();
+
+        NoSeriesLine.Init();
+        NoSeriesLine."Series Code" := SeriesCode;
+        NoSeriesLine."Line No." := 10000;
+        NoSeriesLine."Starting No." := StartNo;
+        NoSeriesLine."Ending No." := EndNo;
+        NoSeriesLine."Increment-by No." := 1;
+        NoSeriesLine.Insert();
+
+        exit(SeriesCode);
     end;
 
     var

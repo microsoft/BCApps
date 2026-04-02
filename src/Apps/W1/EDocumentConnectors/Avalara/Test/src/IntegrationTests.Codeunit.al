@@ -11,9 +11,11 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Setup;
 using System.Threading;
 using System.Utilities;
 
@@ -545,6 +547,8 @@ codeunit 133626 "Integration Tests"
         GeneralLedgerSetup."VAT Reporting Date Usage" := Enum::"VAT Reporting Date Usage"::Disabled;
         GeneralLedgerSetup.Modify();
 
+        EnsureSalesSetup();
+
         // Clean up token between runs
         if ConnectionSetup.Get() then
             if IsolatedStorage.Delete(ConnectionSetup."Token - Key", DataScope::Company) then;
@@ -594,6 +598,48 @@ codeunit 133626 "Integration Tests"
         ConnectionSetup."Company Id" := Id;
         ConnectionSetup."Company Name" := Name;
         ConnectionSetup.Modify(true);
+    end;
+
+    local procedure EnsureSalesSetup()
+    var
+        SalesSetup: Record "Sales & Receivables Setup";
+    begin
+        if not SalesSetup.Get() then
+            SalesSetup.Insert(true);
+        if SalesSetup."Invoice Nos." = '' then begin
+            SalesSetup."Invoice Nos." := CreateTestNoSeries('SINV', 'SI00001', 'SI99999');
+            SalesSetup.Modify(true);
+        end;
+        if SalesSetup."Posted Invoice Nos." = '' then begin
+            SalesSetup."Posted Invoice Nos." := CreateTestNoSeries('PSINV', 'PSI0001', 'PSI9999');
+            SalesSetup.Modify(true);
+        end;
+    end;
+
+    local procedure CreateTestNoSeries(SeriesCode: Code[20]; StartNo: Code[20]; EndNo: Code[20]): Code[20]
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        if NoSeries.Get(SeriesCode) then
+            exit(SeriesCode);
+
+        NoSeries.Init();
+        NoSeries.Code := SeriesCode;
+        NoSeries.Description := SeriesCode;
+        NoSeries."Default Nos." := true;
+        NoSeries."Manual Nos." := true;
+        NoSeries.Insert();
+
+        NoSeriesLine.Init();
+        NoSeriesLine."Series Code" := SeriesCode;
+        NoSeriesLine."Line No." := 10000;
+        NoSeriesLine."Starting No." := StartNo;
+        NoSeriesLine."Ending No." := EndNo;
+        NoSeriesLine."Increment-by No." := 1;
+        NoSeriesLine.Insert();
+
+        exit(SeriesCode);
     end;
 
     local procedure MockServiceGuid(): Text
