@@ -718,7 +718,7 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] The draft has an invalid currency code
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
-        EDocumentPurchaseHeader."Currency Code" := 'INVALIDCURR';
+        EDocumentPurchaseHeader."Currency Code" := 'INVCURR';
         EDocumentPurchaseHeader.Modify();
 
         // [WHEN] Finalizing the draft
@@ -765,7 +765,7 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] A valid location exists
         Location.Code := 'VALIDLOC';
-        Location.Insert();
+        if Location.Insert() then;
 
         // [GIVEN] An inbound e-document is received and a draft created
         EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
@@ -825,8 +825,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup.Insert();
 
         // [GIVEN] A valid location exists
-        Location.Code := 'VALIDLOC';
-        Location.Insert();
+        Location.Code := 'MULTILOC';
+        if Location.Insert() then;
 
         // [GIVEN] An inbound e-document is received and a draft created
         EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
@@ -840,7 +840,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineField."E-Document Entry No." := EDocument."Entry No";
         EDocPurchLineField."Line No." := EDocPurchaseLine."Line No.";
         EDocPurchLineField."Field No." := PurchaseInvoiceLine.FieldNo("Location Code");
-        EDocPurchLineField."Code Value" := 'VALIDLOC';
+        EDocPurchLineField."Code Value" := 'MULTILOC';
         EDocPurchLineField.Insert();
 
         Clear(EDocPurchLineField);
