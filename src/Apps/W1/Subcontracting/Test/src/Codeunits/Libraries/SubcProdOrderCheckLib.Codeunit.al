@@ -46,11 +46,13 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
     procedure CreateTempProdOrderComponentFromSetup(var TempProdOrderComponent: Record "Prod. Order Component" temporary; PurchLine: Record "Purchase Line")
     var
         TempProdOrderComponent2: Record "Prod. Order Component" temporary;
+        ManufacturingSetup: Record "Manufacturing Setup";
         SubManagementSetup: Record "Subc. Management Setup";
         LineNo: Integer;
     begin
         // Fill temporary Production Order Component from setup configuration
         SubManagementSetup.Get();
+        ManufacturingSetup.Get();
 
         TempProdOrderComponent2.Copy(TempProdOrderComponent, true);
         if TempProdOrderComponent2.FindLast() then
@@ -62,7 +64,7 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
         TempProdOrderComponent."Line No." := LineNo;
         TempProdOrderComponent."Item No." := SubManagementSetup."Preset Component Item No.";
         TempProdOrderComponent."Location Code" := GetVendorSubcontractingLocation(PurchLine."Buy-from Vendor No.");
-        TempProdOrderComponent."Routing Link Code" := SubManagementSetup."Rtng. Link Code Purch. Prov.";
+        TempProdOrderComponent."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
         TempProdOrderComponent."Flushing Method" := SubManagementSetup."Def. provision flushing method";
 
         TempProdOrderComponent.Insert();
@@ -80,15 +82,17 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
     procedure CreateTempProdOrderRoutingFromSetup(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; OperationNo: Code[10])
     var
         SubManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         WorkCenter: Record "Work Center";
     begin
         SubManagementSetup.Get();
+        ManufacturingSetup.Get();
 
         TempProdOrderRoutingLine.Init();
         TempProdOrderRoutingLine."Operation No." := OperationNo;
         TempProdOrderRoutingLine.Type := TempProdOrderRoutingLine.Type::"Work Center";
         TempProdOrderRoutingLine."No." := SubManagementSetup."Common Work Center No.";
-        TempProdOrderRoutingLine."Routing Link Code" := SubManagementSetup."Rtng. Link Code Purch. Prov.";
+        TempProdOrderRoutingLine."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
 
         if SubManagementSetup."Common Work Center No." <> '' then
             if WorkCenter.Get(SubManagementSetup."Common Work Center No.") then begin
@@ -288,8 +292,8 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
 
     procedure CreateTempProdOrderComponentFromBOM(var TempProdOrderComponent: Record "Prod. Order Component" temporary; BOMNo: Code[20]; PurchLine: Record "Purchase Line")
     var
-        ProductionBOMLine: Record "Production BOM Line";
         SubManagementSetup: Record "Subc. Management Setup";
+        ProductionBOMLine: Record "Production BOM Line";
         LineNo: Integer;
     begin
         // Create temporary Production Order Components based on BOM lines
