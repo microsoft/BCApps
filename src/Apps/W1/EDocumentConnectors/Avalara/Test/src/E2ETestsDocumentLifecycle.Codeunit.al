@@ -61,7 +61,7 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
     end;
 
     [Test]
-    [HandlerFunctions('HttpSubmitHandler')]
+    [HandlerFunctions('HttpSubmitHandler,EDocServicesPageHandler')]
     procedure TestManualResend_AfterError_Success()
     var
         EDocument: Record "E-Document";
@@ -212,6 +212,13 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
     local procedure SetDocumentStatus(NewDocumentStatus: Option Completed,Pending,Error)
     begin
         this.DocumentStatus := NewDocumentStatus;
+    end;
+
+    [ModalPageHandler]
+    procedure EDocServicesPageHandler(var EDocServicesPage: TestPage "E-Document Services")
+    begin
+        EDocServicesPage.Filter.SetFilter(Code, EDocumentService.Code);
+        EDocServicesPage.OK().Invoke();
     end;
 
     [HttpClientHandler]
