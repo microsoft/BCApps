@@ -205,13 +205,12 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
 
     /// <summary>
     /// Applies the values configured as additional fields in the posted line, if the line had a historic match the values are retrieved from the Purchase Invoice Line.
-    /// Validation failures are skipped and logged as warnings on the e-document.
     /// </summary>
     /// <param name="EDocumentPurchaseLine"></param>
     /// <param name="PurchaseLine"></param>
     procedure ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var PurchaseLine: Record "Purchase Line")
     var
-        EDocument: Record "E-Document";
+        EDocImportContext: Codeunit "E-Doc. Import Context";
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         EDocPurchLineField: Record "E-Document Line - Field";
         NewPurchLineRecordRef: RecordRef;
@@ -220,7 +219,6 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
     begin
         if not EDocPurchLineFieldSetup.FindSet() then
             exit;
-        EDocument.Get(EDocumentPurchaseLine."E-Document Entry No.");
         NewPurchLineRecordRef.GetTable(PurchaseLine);
         repeat
             if EDocPurchLineFieldSetup.IsOmitted() then
@@ -228,25 +226,11 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
             EDocPurchLineField.Get(EDocumentPurchaseLine, EDocPurchLineFieldSetup);
             NewPurchLineFieldRef := NewPurchLineRecordRef.Field(EDocPurchLineFieldSetup."Field No.");
             FieldValue := EDocPurchLineField.GetValue();
-            ValidateFieldValueOrLogWarning(NewPurchLineFieldRef, FieldValue, EDocument, EDocumentPurchaseLine, EDocPurchLineFieldSetup."Field No.");
+            EDocImportContext.SetAdditionalFieldContext(NewPurchLineFieldRef.Name(), EDocPurchLineFieldSetup."Field No.", Format(FieldValue));
+            NewPurchLineFieldRef.Validate(FieldValue);
+            EDocImportContext.ClearAdditionalFieldContext();
         until EDocPurchLineFieldSetup.Next() = 0;
         NewPurchLineRecordRef.SetTable(PurchaseLine);
-    end;
-
-    [ErrorBehavior(ErrorBehavior::Collect)]
-    local procedure ValidateFieldValueOrLogWarning(var PurchLineFieldRef: FieldRef; FieldValue: Variant; EDocument: Record "E-Document"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; FieldNo: Integer)
-    var
-        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
-        CollectedError: ErrorInfo;
-        FieldValidationSkippedLbl: Label 'Could not apply additional field %1 (ID %2) with value ''%3'': %4', Comment = '%1 = Field Name, %2 = Field Number, %3 = Value, %4 = Error Text';
-    begin
-        PurchLineFieldRef.Validate(FieldValue);
-        if System.HasCollectedErrors() then
-            foreach CollectedError in System.GetCollectedErrors(true) do
-                EDocumentErrorHelper.LogWarningMessage(
-                    EDocument, EDocumentPurchaseLine,
-                    FieldNo,
-                    StrSubstNo(FieldValidationSkippedLbl, PurchLineFieldRef.Name(), PurchLineFieldRef.Number(), FieldValue, CollectedError.Message));
     end;
 
     procedure OpenPageWithHistoricMatch(EDocumentPurchaseLine: Record "E-Document Purchase Line"): Boolean
