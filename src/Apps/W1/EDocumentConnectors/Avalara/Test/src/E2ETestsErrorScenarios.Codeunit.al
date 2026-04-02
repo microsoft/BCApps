@@ -6,6 +6,9 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Setup;
@@ -179,9 +182,36 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     end;
 
     local procedure Initialize()
+    var
+        CompanyInformation: Record "Company Information";
+        GeneralLedgerSetup: Record "General Ledger Setup";
     begin
+        CompanyInformation.Get();
+        if CompanyInformation.Name = '' then begin
+            CompanyInformation.Name := 'Test Company';
+            CompanyInformation.Modify();
+        end;
+
+        // Ensure LCY Code is set
+        GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."LCY Code" = '' then begin
+            GeneralLedgerSetup."LCY Code" := 'GBP';
+            GeneralLedgerSetup.Modify();
+        end;
+
+        // Disable VAT Reporting Date to avoid VAT Period requirement
+        if GeneralLedgerSetup."VAT Reporting Date Usage" <> Enum::"VAT Reporting Date Usage"::Disabled then begin
+            GeneralLedgerSetup."VAT Reporting Date Usage" := Enum::"VAT Reporting Date Usage"::Disabled;
+            GeneralLedgerSetup.Modify();
+        end;
+
         // Ensure Sales & Receivables Setup has Invoice Nos.
         EnsureSalesSetup();
+
+        // Verify Customer still exists (may have been rolled back between tests)
+        if IsInitialized then
+            if not Customer.Get(Customer."No.") then
+                IsInitialized := false;
 
         if IsInitialized then
             exit;

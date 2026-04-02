@@ -543,6 +543,10 @@ codeunit 133626 "Integration Tests"
         LibraryPermission.SetOutsideO365Scope();
 
         GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."LCY Code" = '' then begin
+            GeneralLedgerSetup."LCY Code" := 'GBP';
+            GeneralLedgerSetup.Modify();
+        end;
         PrevVATReportingDateValue := GeneralLedgerSetup."VAT Reporting Date Usage";
         GeneralLedgerSetup."VAT Reporting Date Usage" := Enum::"VAT Reporting Date Usage"::Disabled;
         GeneralLedgerSetup.Modify();
@@ -564,9 +568,18 @@ codeunit 133626 "Integration Tests"
         ConnectionSetup.Modify(true);
 
         CompanyInformation.Get();
+        if CompanyInformation.Name = '' then begin
+            CompanyInformation.Name := 'Test Company';
+            CompanyInformation.Modify();
+        end;
         OriginalVATNumber := CompanyInformation."VAT Registration No.";
         CompanyInformation."VAT Registration No." := 'GB777777771';
         CompanyInformation.Modify();
+
+        // Verify Customer, Vendor, and EDocumentService still exist (may have been rolled back between tests)
+        if IsInitialized then
+            if not Customer.Get(Customer."No.") or not Vendor.Get(Vendor."No.") or not EDocumentService.Get(EDocumentService.Code) then
+                IsInitialized := false;
 
         if IsInitialized then
             exit;

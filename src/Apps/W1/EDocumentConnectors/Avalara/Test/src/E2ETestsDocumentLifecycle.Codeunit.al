@@ -173,8 +173,14 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
             CompanyInformation.Modify();
         end;
 
-        // Disable VAT Reporting Date to avoid VAT Period requirement
+        // Ensure LCY Code is set
         GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."LCY Code" = '' then begin
+            GeneralLedgerSetup."LCY Code" := 'GBP';
+            GeneralLedgerSetup.Modify();
+        end;
+
+        // Disable VAT Reporting Date to avoid VAT Period requirement
         if GeneralLedgerSetup."VAT Reporting Date Usage" <> Enum::"VAT Reporting Date Usage"::Disabled then begin
             GeneralLedgerSetup."VAT Reporting Date Usage" := Enum::"VAT Reporting Date Usage"::Disabled;
             GeneralLedgerSetup.Modify();
