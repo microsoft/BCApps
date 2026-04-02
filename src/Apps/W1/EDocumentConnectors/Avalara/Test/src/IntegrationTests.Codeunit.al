@@ -32,8 +32,8 @@ codeunit 133626 "Integration Tests"
     var
         EDocument: Record "E-Document";
         JobQueueEntry: Record "Job Queue Entry";
-        EDocumentPage: TestPage "E-Document";
         EDocLogList: List of [Enum "E-Document Service Status"];
+        EDocumentPage: TestPage "E-Document";
     begin
         // Steps:
         // Pending response -> Sent 
@@ -113,8 +113,8 @@ codeunit 133626 "Integration Tests"
     var
         EDocument: Record "E-Document";
         JobQueueEntry: Record "Job Queue Entry";
-        EDocumentPage: TestPage "E-Document";
         EDocLogList: List of [Enum "E-Document Service Status"];
+        EDocumentPage: TestPage "E-Document";
     begin
         // Steps:
         // Pending response -> Pending response -> Sent 
@@ -229,8 +229,8 @@ codeunit 133626 "Integration Tests"
     var
         EDocument: Record "E-Document";
         JobQueueEntry: Record "Job Queue Entry";
-        EDocumentPage: TestPage "E-Document";
         EDocLogList: List of [Enum "E-Document Service Status"];
+        EDocumentPage: TestPage "E-Document";
     begin
         // Steps:
         // Pending response -> Error -> Pending response -> Sent 
@@ -392,8 +392,8 @@ codeunit 133626 "Integration Tests"
     procedure SubmitDocumentAvalaraServiceDown()
     var
         EDocument: Record "E-Document";
-        EDocumentPage: TestPage "E-Document";
         EDocLogList: List of [Enum "E-Document Service Status"];
+        EDocumentPage: TestPage "E-Document";
     begin
         Initialize();
 
@@ -577,6 +577,8 @@ codeunit 133626 "Integration Tests"
         EDocumentService."Import Start Time" := Time();
         EDocumentService.Modify();
 
+        CreateActivationMandate();
+
         Vendor."VAT Registration No." := 'GB777777771';
         Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
         Vendor.Modify();
@@ -713,18 +715,39 @@ codeunit 133626 "Integration Tests"
         end;
     end;
 
+    local procedure CreateActivationMandate()
+    var
+        ActivationMandate: Record "Activation Mandate";
+    begin
+        ActivationMandate.SetRange("Country Mandate", 'GB-Test-Mandate');
+        ActivationMandate.SetRange("Mandate Type", '');
+        ActivationMandate.SetRange("Company Id", '');
+        if not ActivationMandate.IsEmpty() then
+            exit;
+
+        ActivationMandate.Init();
+        ActivationMandate."Activation ID" := CreateGuid();
+        ActivationMandate."Country Mandate" := 'GB-Test-Mandate';
+        ActivationMandate."Country Code" := 'GB';
+        ActivationMandate."Mandate Type" := '';
+        ActivationMandate."Company Id" := '';
+        ActivationMandate.Activated := true;
+        ActivationMandate.Blocked := false;
+        ActivationMandate.Insert();
+    end;
+
     var
         Customer: Record Customer;
-        Vendor: Record Vendor;
         EDocumentService: Record "E-Document Service";
-        LibraryEDocument: Codeunit "Library - E-Document";
-        LibraryPermission: Codeunit "Library - Lower Permissions";
-        LibraryJobQueue: Codeunit "Library - Job Queue";
-        LibraryERM: Codeunit "Library - ERM";
+        Vendor: Record Vendor;
         Assert: Codeunit Assert;
+        LibraryEDocument: Codeunit "Library - E-Document";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryJobQueue: Codeunit "Library - Job Queue";
+        LibraryPermission: Codeunit "Library - Lower Permissions";
         IsInitialized: Boolean;
         PrevVATReportingDateValue: Enum "VAT Reporting Date Usage";
-        OriginalVATNumber: Text[20];
         IncorrectValueErr: Label 'Wrong value';
         DocumentStatus: Option Completed,Pending,Error;
+        OriginalVATNumber: Text[20];
 }

@@ -32,6 +32,7 @@ codeunit 133628 "Unit Tests - Authentication"
         Token := Authenticator.GetAccessToken();
 
         // [THEN] Token should be returned and stored
+        ConnectionSetup.Get();
         Assert.IsFalse(IsNullGuid(ConnectionSetup."Token - Key"), 'Token key should be stored');
         Assert.AreNotEqual(0DT, ConnectionSetup."Token Expiry", 'Token expiry should be set');
     end;

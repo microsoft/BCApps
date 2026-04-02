@@ -86,25 +86,23 @@ codeunit 133631 "Unit Tests - Page Logic"
     procedure TestCompanyList_CanFilter()
     var
         TempAvalaraCompany: Record "Avalara Company" temporary;
-        TempCompany1, TempCompany2 : Record "Avalara Company" temporary;
     begin
         // [SCENARIO] Company List page can filter companies
 
         // [GIVEN] Multiple Avalara companies
         Initialize();
-        CleanupCompanies();
 
-        TempCompany1.Init();
-        TempCompany1.Id := 1;
-        TempCompany1."Company Name" := 'Test Company 1';
-        TempCompany1."Company Id" := 'COMP-001';
-        TempCompany1.Insert();
+        TempAvalaraCompany.Init();
+        TempAvalaraCompany.Id := 1;
+        TempAvalaraCompany."Company Name" := 'Test Company 1';
+        TempAvalaraCompany."Company Id" := 'COMP-001';
+        TempAvalaraCompany.Insert();
 
-        TempCompany2.Init();
-        TempCompany2.Id := 2;
-        TempCompany2."Company Name" := 'Test Company 2';
-        TempCompany2."Company Id" := 'COMP-002';
-        TempCompany2.Insert();
+        TempAvalaraCompany.Init();
+        TempAvalaraCompany.Id := 2;
+        TempAvalaraCompany."Company Name" := 'Test Company 2';
+        TempAvalaraCompany."Company Id" := 'COMP-002';
+        TempAvalaraCompany.Insert();
 
         // [WHEN] Filtering by name
         TempAvalaraCompany.SetFilter("Company Name", '*Company 1*');
@@ -113,8 +111,7 @@ codeunit 133631 "Unit Tests - Page Logic"
         Assert.IsTrue(TempAvalaraCompany.FindFirst(), 'Should find filtered company');
         Assert.AreEqual('Test Company 1', TempAvalaraCompany."Company Name", 'Should be Company 1');
 
-        // Cleanup
-        CleanupCompanies();
+        // No cleanup needed for temporary table
     end;
 
     [Test]
@@ -143,24 +140,23 @@ codeunit 133631 "Unit Tests - Page Logic"
     procedure TestAvalaraDocuments_FilterByStatus()
     var
         TempAvalaraDocumentBuffer: Record "Avalara Document Buffer" temporary;
-        TempDoc1, TempDoc2 : Record "Avalara Document Buffer" temporary;
     begin
         // [SCENARIO] Avalara Documents page can filter by status
 
         // [GIVEN] Documents with different statuses
         Initialize();
 
-        TempDoc1.Init();
-        TempDoc1.Id := 'DOC-COMPLETE-001';
-        TempDoc1."Process DateTime" := CurrentDateTime();
-        TempDoc1.Status := 'Complete';
-        TempDoc1.Insert();
+        TempAvalaraDocumentBuffer.Init();
+        TempAvalaraDocumentBuffer.Id := 'DOC-COMPLETE-001';
+        TempAvalaraDocumentBuffer."Process DateTime" := CurrentDateTime();
+        TempAvalaraDocumentBuffer.Status := 'Complete';
+        TempAvalaraDocumentBuffer.Insert();
 
-        TempDoc2.Init();
-        TempDoc2.Id := 'DOC-PENDING-002';
-        TempDoc2."Process DateTime" := CurrentDateTime();
-        TempDoc2.Status := 'Pending';
-        TempDoc2.Insert();
+        TempAvalaraDocumentBuffer.Init();
+        TempAvalaraDocumentBuffer.Id := 'DOC-PENDING-002';
+        TempAvalaraDocumentBuffer."Process DateTime" := CurrentDateTime();
+        TempAvalaraDocumentBuffer.Status := 'Pending';
+        TempAvalaraDocumentBuffer.Insert();
 
         // [WHEN] Filtering for Complete status
         TempAvalaraDocumentBuffer.SetRange(Status, 'Complete');
@@ -307,14 +303,6 @@ codeunit 133631 "Unit Tests - Page Logic"
         ActivationMandate."Country Code" := 'GB';
         ActivationMandate."Company Id" := ActivationHeader."Company Id";
         ActivationMandate.Insert(true);
-    end;
-
-    local procedure CleanupCompanies()
-    var
-        TempAvalaraCompany: Record "Avalara Company" temporary;
-    begin
-        if not TempAvalaraCompany.IsEmpty() then
-            TempAvalaraCompany.DeleteAll(true);
     end;
 
     local procedure CleanupMediaTypes()

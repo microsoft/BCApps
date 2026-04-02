@@ -188,8 +188,25 @@ codeunit 133625 "E2E Tests - Error Scenarios"
         EDocumentService.Modify();
 
         CreateMockConnectionSetup();
+        CreateActivationMandate();
 
         IsInitialized := true;
+    end;
+
+    local procedure CreateActivationMandate()
+    var
+        ActivationMandate: Record "Activation Mandate";
+    begin
+        ActivationMandate.Init();
+        ActivationMandate."Activation ID" := CreateGuid();
+        ActivationMandate."Country Mandate" := 'GB-TEST';
+        ActivationMandate."Country Code" := 'GB';
+        ActivationMandate."Mandate Type" := '';
+        ActivationMandate."Company Id" := 'test-company-id';
+        ActivationMandate.Activated := true;
+        ActivationMandate.Blocked := false;
+        if not ActivationMandate.Insert() then
+            ActivationMandate.Modify();
     end;
 
     local procedure CreateMockConnectionSetup()

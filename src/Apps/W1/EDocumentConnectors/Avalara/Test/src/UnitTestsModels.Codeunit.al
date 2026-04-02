@@ -255,34 +255,33 @@ codeunit 133630 "Unit Tests - Models"
     [Test]
     procedure TestMandate_FilterByCountry_Works()
     var
-        TempFilteredMandates: Record Mandate temporary;
-        TempMandate1, TempMandate2, TempMandate3 : Record Mandate temporary;
+        TempMandate: Record Mandate temporary;
     begin
         // [SCENARIO] Mandates can be filtered by country code
 
         // [GIVEN] Mandates for different countries
         Initialize();
 
-        TempMandate1.Init();
-        TempMandate1."Country Mandate" := 'GB-PEPPOL';
-        TempMandate1."Country Code" := 'GB';
-        TempMandate1.Insert();
+        TempMandate.Init();
+        TempMandate."Country Mandate" := 'GB-PEPPOL';
+        TempMandate."Country Code" := 'GB';
+        TempMandate.Insert();
 
-        TempMandate2.Init();
-        TempMandate2."Country Mandate" := 'DE-XRECHNUNG';
-        TempMandate2."Country Code" := 'DE';
-        TempMandate2.Insert();
+        TempMandate.Init();
+        TempMandate."Country Mandate" := 'DE-XRECHNUNG';
+        TempMandate."Country Code" := 'DE';
+        TempMandate.Insert();
 
-        TempMandate3.Init();
-        TempMandate3."Country Mandate" := 'GB-MTD';
-        TempMandate3."Country Code" := 'GB';
-        TempMandate3.Insert();
+        TempMandate.Init();
+        TempMandate."Country Mandate" := 'GB-MTD';
+        TempMandate."Country Code" := 'GB';
+        TempMandate.Insert();
 
         // [WHEN] Filtering for GB mandates
-        TempFilteredMandates.SetRange("Country Code", 'GB');
+        TempMandate.SetRange("Country Code", 'GB');
 
         // [THEN] Should find only GB mandates
-        Assert.AreEqual(2, TempFilteredMandates.Count(), 'Should find 2 GB mandates');
+        Assert.AreEqual(2, TempMandate.Count(), 'Should find 2 GB mandates');
 
         // No cleanup needed for temporary table
     end;
