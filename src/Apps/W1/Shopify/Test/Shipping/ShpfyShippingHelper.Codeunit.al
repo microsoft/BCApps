@@ -91,6 +91,75 @@ codeunit 139559 "Shpfy Shipping Helper"
         exit(FulfillmentOrderHeader);
     end;
 
+    internal procedure CreateOrderLine(ShopifyOrderId: BigInteger; LocationId: BigInteger; DeliveryMethodType: Enum "Shpfy Delivery Method Type"; LineId: BigInteger; VariantId: BigInteger; ProductId: BigInteger; Qty: Integer)
+    var
+        OrderLine: Record "Shpfy Order Line";
+    begin
+        Clear(OrderLine);
+        OrderLine."Shopify Order Id" := ShopifyOrderId;
+        OrderLine."Shopify Product Id" := ProductId;
+        OrderLine."Shopify Variant Id" := VariantId;
+        OrderLine."Line Id" := LineId;
+        OrderLine.Quantity := Qty;
+        OrderLine."Location Id" := LocationId;
+        OrderLine."Delivery Method Type" := DeliveryMethodType;
+        OrderLine.Insert();
+    end;
+
+    internal procedure CreateSalesShipmentLine(DocumentNo: Code[20]; ShpfyOrderLineId: BigInteger; Qty: Decimal; LineNo: Integer)
+    var
+        SalesShipmentLine: Record "Sales Shipment Line";
+        Any: Codeunit Any;
+    begin
+        Any.SetDefaultSeed();
+        Clear(SalesShipmentLine);
+        SalesShipmentLine."Document No." := DocumentNo;
+        SalesShipmentLine."Line No." := LineNo;
+        SalesShipmentLine.Type := SalesShipmentLine.Type::Item;
+        SalesShipmentLine."No." := CopyStr(Any.AlphanumericText(MaxStrLen(SalesShipmentLine."No.")), 1, MaxStrLen(SalesShipmentLine."No."));
+        SalesShipmentLine."Shpfy Order Line Id" := ShpfyOrderLineId;
+        SalesShipmentLine.Quantity := Qty;
+        SalesShipmentLine.Insert();
+    end;
+
+    internal procedure CreateShopifyFulfillmentOrderForLocation(ShopifyOrderId: BigInteger; LocationId: BigInteger; DeliveryMethodType: Enum "Shpfy Delivery Method Type"): Record "Shpfy FulFillment Order Header"
+    var
+        OrderLine: Record "Shpfy Order Line";
+        FulfillmentOrderHeader: Record "Shpfy FulFillment Order Header";
+        FulfillmentOrderLine: Record "Shpfy FulFillment Order Line";
+        Any: Codeunit Any;
+        OrderLineCount: Integer;
+    begin
+        Any.SetDefaultSeed();
+        Clear(FulfillmentOrderHeader);
+        FulfillmentOrderHeader."Shopify Fulfillment Order Id" := Any.IntegerInRange(10000, 99999);
+        FulfillmentOrderHeader."Shopify Order Id" := ShopifyOrderId;
+        FulfillmentOrderHeader."Shopify Location Id" := LocationId;
+        FulfillmentOrderHeader."Delivery Method Type" := DeliveryMethodType;
+        FulfillmentOrderHeader.Insert();
+
+        OrderLine.Reset();
+        OrderLine.SetRange("Shopify Order Id", ShopifyOrderId);
+        OrderLine.SetRange("Location Id", LocationId);
+        if OrderLine.FindSet() then
+            repeat
+                OrderLineCount += 1;
+                Clear(FulfillmentOrderLine);
+                FulfillmentOrderLine."Shopify Fulfillment Order Id" := FulfillmentOrderHeader."Shopify Fulfillment Order Id";
+                FulfillmentOrderLine."Shopify Fulfillm. Ord. Line Id" := FulfillmentOrderHeader."Shopify Fulfillment Order Id" * 100 + OrderLineCount;
+                FulfillmentOrderLine."Shopify Order Id" := ShopifyOrderId;
+                FulfillmentOrderLine."Shopify Product Id" := OrderLine."Shopify Product Id";
+                FulfillmentOrderLine."Shopify Variant Id" := OrderLine."Shopify Variant Id";
+                FulfillmentOrderLine."Remaining Quantity" := OrderLine.Quantity;
+                FulfillmentOrderLine."Shopify Location Id" := LocationId;
+                FulfillmentOrderLine."Delivery Method Type" := DeliveryMethodType;
+                FulfillmentOrderLine."Line Item Id" := OrderLine."Line Id";
+                FulfillmentOrderLine.Insert();
+            until OrderLine.Next() = 0;
+
+        exit(FulfillmentOrderHeader);
+    end;
+
     internal procedure CreateRandomSalesShipment(var SalesShipmentHeader: Record "Sales Shipment Header"; ShopifyOrderId: BigInteger)
     var
         SalesShipmentLine: Record "Sales Shipment Line";

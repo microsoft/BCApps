@@ -14,8 +14,9 @@ report 20404 "Qlty. Move Inventory"
     Caption = 'Quality Management - Move Inventory';
     AdditionalSearchTerms = 'Quarantine';
     ProcessingOnly = true;
-    ApplicationArea = QualityManagement;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = Tasks;
+    ApplicationArea = QualityManagement;
     AllowScheduling = false;
 
     dataset
