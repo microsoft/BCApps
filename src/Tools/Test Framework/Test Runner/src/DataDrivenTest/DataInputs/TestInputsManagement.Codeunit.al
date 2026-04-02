@@ -403,35 +403,8 @@ codeunit 130458 "Test Inputs Management"
         TestInput.Code := IncStr(TestInput.Code);
     end;
 
-    /// <summary>
-    /// Gets the suite setup resource path extracted from the last imported YAML file's test_suite_setup field.
-    /// </summary>
-    /// <returns>The resource path as text, or empty string if not specified.</returns>
-    procedure GetSuiteSetupResourcePath(): Text
-    begin
-        exit(SuiteSetupResourcePath);
-    end;
-
-    /// <summary>
-    /// Sets the per-suite setup as completed.
-    /// </summary>
-    procedure SetSuiteSetupCompleted(SuiteSetupCompleted: Boolean)
-    begin
-        PerSuiteSetupCompleted := SuiteSetupCompleted;
-    end;
-
-    /// <summary>
-    /// Checks if the per-suite setup has been completed.
-    /// </summary>
-    /// <returns>True if the per-suite setup has been completed.</returns>
-    procedure IsPerSuiteSetupCompleted(): Boolean
-    begin
-        exit(PerSuiteSetupCompleted);
-    end;
-
     var
         SuiteSetupResourcePath: Text;
-        PerSuiteSetupCompleted: Boolean;
         DataNameTok: Label 'name', Locked = true;
         DescriptionTok: Label 'description', Locked = true;
         LanguageTok: Label 'language', Locked = true;

@@ -233,12 +233,12 @@ codeunit 149037 "AIT AL Test Suite Mgt"
     procedure ImportSuiteSetupData(SuiteSetupYamlContent: Text)
     var
         AITTestContextImpl: Codeunit "AIT Test Context Impl.";
-        JsonObj: JsonObject;
+        SuiteSetupDataJsonObj: JsonObject;
     begin
-        if not JsonObj.ReadFromYaml(SuiteSetupYamlContent) then
+        if not SuiteSetupDataJsonObj.ReadFromYaml(SuiteSetupYamlContent) then
             Error(InvalidSuiteSetupYamlErr);
 
-        AITTestContextImpl.SetSuiteSetupData(JsonObj.AsToken());
+        AITTestContextImpl.ImportSuiteSetupData(SuiteSetupDataJsonObj.AsToken());
     end;
 
     /// <summary>

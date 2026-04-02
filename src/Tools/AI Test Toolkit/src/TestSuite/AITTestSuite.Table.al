@@ -270,8 +270,9 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Suite Setup Done';
             ToolTip = 'Specifies whether the per-suite setup has been executed for this eval suite.';
-            DataClassification = SystemMetadata;
             Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("AL Test Suite"."Suite Setup Done" where(Name = field(Code)));
         }
     }
     keys
@@ -306,15 +307,19 @@ table 149030 "AIT Test Suite"
     end;
 
     internal procedure ResetSuiteSetup()
+    var
+        ALTestSuite: Record "AL Test Suite";
     begin
-        Rec."Suite Setup Done" := false;
-        Rec.Modify(true);
+        ALTestSuite.Get(Rec.Code);
+        ALTestSuite.ResetSuiteSetup();
     end;
 
     internal procedure SetEvalSuiteSetupDone()
+    var
+        ALTestSuite: Record "AL Test Suite";
     begin
-        Rec."Suite Setup Done" := true;
-        Rec.Modify(true);
+        ALTestSuite.Get(Rec.Code);
+        ALTestSuite.SetSuiteSetupDone();
     end;
 
     var
