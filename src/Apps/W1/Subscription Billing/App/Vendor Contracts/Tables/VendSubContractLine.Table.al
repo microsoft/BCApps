@@ -269,7 +269,7 @@ table 8065 "Vend. Sub. Contract Line"
 
     internal procedure LoadServiceCommitmentForContractLine(var ServiceCommitment: Record "Subscription Line")
     var
-        LocalServiceCommitment: Record "Subscription Line"; //in case the parameter is passed as temporary table
+        LocalServiceCommitment: Record "Subscription Line";
     begin
         ServiceCommitment.Init();
         if "Subscription Contract No." = '' then
@@ -277,12 +277,15 @@ table 8065 "Vend. Sub. Contract Line"
         case "Contract Line Type" of
             Enum::"Contract Line Type"::Item,
             Enum::"Contract Line Type"::"G/L Account":
-                begin
-                    GetServiceCommitment(LocalServiceCommitment);
-                    LocalServiceCommitment.CalcFields(Quantity);
-                    ServiceCommitment.TransferFields(LocalServiceCommitment);
-                end;
-        end
+                if ServiceCommitment.IsTemporary then begin
+                    if GetServiceCommitment(LocalServiceCommitment) then begin
+                        LocalServiceCommitment.CalcFields(Quantity);
+                        ServiceCommitment.TransferFields(LocalServiceCommitment);
+                    end;
+                end else
+                    if GetServiceCommitment(ServiceCommitment) then
+                        ServiceCommitment.CalcFields(Quantity);
+        end;
     end;
 
     internal procedure GetServiceCommitment(var ServiceCommitment: Record "Subscription Line"): Boolean
@@ -516,6 +519,7 @@ table 8065 "Vend. Sub. Contract Line"
         Rec."Subscription Description" := ServiceObject.Description;
         Rec."Subscription Line Entry No." := ServiceCommitment."Entry No.";
         Rec."Subscription Line Description" := ServiceCommitment.Description;
+        OnAfterInitFromSubscriptionLine(Rec, ServiceCommitment, ServiceObject);
     end;
 
     internal procedure IsCommentLine(): Boolean
@@ -532,5 +536,10 @@ table 8065 "Vend. Sub. Contract Line"
         VendSubContractDeferral.SetRange(Released, false);
         if not VendSubContractDeferral.IsEmpty() then
             Error(UnreleasedVendSubContractDeferralExistsErr);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitFromSubscriptionLine(var VendSubContractLine: Record "Vend. Sub. Contract Line"; SubscriptionLine: Record "Subscription Line"; SubscriptionHeader: Record "Subscription Header")
+    begin
     end;
 }

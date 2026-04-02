@@ -174,14 +174,14 @@ codeunit 30286 "Shpfy Company API"
     begin
         Parameters.Add('CompanyId', Format(CompanyId));
         Parameters.Add('CustomerId', Format(CustomerId));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::CompanyAssignCustomerAsContact, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Companies_CompanyAssignCustomerAsContact, Parameters);
         CompanyContactId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'data.companyAssignCustomerAsContact.companyContact.id'));
         if CompanyContactId > 0 then begin
             if IsMainContact then begin
                 Clear(Parameters);
                 Parameters.Add('CompanyId', Format(CompanyId));
                 Parameters.Add('CompanyContactId', Format(CompanyContactId));
-                JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::CompanyAssignMainContact, Parameters);
+                JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Companies_CompanyAssignMainContact, Parameters);
             end;
             AssignCompanyContactRoles(CompanyContactId, LocationId, CompanyContactRoles);
         end;
@@ -200,7 +200,7 @@ codeunit 30286 "Shpfy Company API"
             Parameters.Add('LocationId', Format(LocationId));
             Parameters.Add('ContactId', Format(CompanyContactId));
             Parameters.Add('ContactRoleId', Format(CompanyContactRoles.Get(Enum::"Shpfy Default Cont. Permission".Names().Get(Enum::"Shpfy Default Cont. Permission".Ordinals().IndexOf(Shop."Default Contact Permission".AsInteger())))));
-            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::CompanyAssignContactRole, Parameters);
+            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Companies_CompanyAssignContactRole, Parameters);
         end;
     end;
 
@@ -272,7 +272,7 @@ codeunit 30286 "Shpfy Company API"
 
         Parameters.Add('LocationId', Format(CompanyLocation.Id));
         Parameters.Add('TaxId', Format(CompanyLocation."Tax Registration Id"));
-        CommunicationMgt.ExecuteGraphQL(GraphQLType::CreateCompanyLocationTaxId, Parameters);
+        CommunicationMgt.ExecuteGraphQL(GraphQLType::Companies_CreateCompanyLocationTaxId, Parameters);
     end;
 
     internal procedure UpdateCompanyLocationPaymentTerms(var CompanyLocation: Record "Shpfy Company Location")
@@ -287,7 +287,7 @@ codeunit 30286 "Shpfy Company API"
 
         Parameters.Add('LocationId', Format(CompanyLocation.Id));
         Parameters.Add('PaymentTermsId', Format(CompanyLocation."Shpfy Payment Terms Id"));
-        CommunicationMgt.ExecuteGraphQL(GraphQLType::UpdateCompanyLocationPaymentTerms, Parameters);
+        CommunicationMgt.ExecuteGraphQL(GraphQLType::Companies_UpdateCompanyLocationPaymentTerms, Parameters);
     end;
 
     internal procedure RetrieveShopifyCompanyIds(var CompanyIds: Dictionary of [BigInteger, DateTime])
@@ -303,7 +303,7 @@ codeunit 30286 "Shpfy Company API"
         Parameters: Dictionary of [Text, Text];
         LastSync: DateTime;
     begin
-        GraphQLType := GraphQLType::GetCompanyIds;
+        GraphQLType := GraphQLType::Companies_GetCompanyIds;
         LastSync := Shop.GetLastSyncTime("Shpfy Synchronization Type"::Companies);
         Parameters.Add('LastSync', Format(LastSync, 0, 9));
         repeat
@@ -321,7 +321,7 @@ codeunit 30286 "Shpfy Company API"
                     Parameters.Set('After', Cursor)
                 else
                     Parameters.Add('After', Cursor);
-                GraphQLType := GraphQLType::GetNextCompanyIds;
+                GraphQLType := GraphQLType::Companies_GetNextCompanyIds;
             end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.companies.pageInfo.hasNextPage');
     end;
@@ -338,7 +338,7 @@ codeunit 30286 "Shpfy Company API"
             exit(false);
 
         Parameters.Add('CompanyId', Format(ShopifyCompany.Id));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetCompany, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Companies_GetCompany, Parameters);
 
         if not JsonHelper.GetJsonObject(JResponse, JCustomer, 'data.company.mainContact') then
             exit(false)
@@ -401,7 +401,7 @@ codeunit 30286 "Shpfy Company API"
         Cursor: Text;
         IsDefaultCompanyLocation: Boolean;
     begin
-        GraphQLType := "Shpfy GraphQL Type"::GetCompanyLocations;
+        GraphQLType := "Shpfy GraphQL Type"::Companies_GetCompanyLocations;
         Parameters.Add('CompanyId', Format(ShopifyCompany.Id));
         IsDefaultCompanyLocation := true;
         repeat
@@ -412,7 +412,7 @@ codeunit 30286 "Shpfy Company API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := "Shpfy GraphQL Type"::GetNextCompanyLocations;
+                    GraphQLType := "Shpfy GraphQL Type"::Companies_GetNextCompanyLocations;
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.companyLocations.pageInfo.hasNextPage');
@@ -426,7 +426,7 @@ codeunit 30286 "Shpfy Company API"
         JResponse: JsonToken;
         JLocation: JsonObject;
     begin
-        GraphQLType := "Shpfy GraphQL Type"::GetCompanyLocation;
+        GraphQLType := "Shpfy GraphQL Type"::Companies_GetCompanyLocation;
         Parameters.Add('LocationId', Format(LocationId));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
 

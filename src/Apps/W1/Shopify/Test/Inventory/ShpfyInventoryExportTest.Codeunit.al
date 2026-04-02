@@ -375,9 +375,9 @@ codeunit 139594 "Shpfy Inventory Export Test"
         ShopInventory.SetRange("Variant Id", ShopInventory."Variant Id");
         InventoryAPI.ExportStock(ShopInventory, false);
 
-        // [THEN] The GraphQL request contains an empty quantities array
+        // [THEN] No GraphQL request is made since there are no quantities to update
         LastGraphQLRequest := InventorySubscriber.GetLastGraphQLRequest();
-        LibraryAssert.IsFalse(LastGraphQLRequest.Contains('"inventoryItemId"'), 'Expected empty quantities in GraphQL request when ForceExport is false and stock is equal');
+        LibraryAssert.AreEqual('', LastGraphQLRequest, 'Expected no GraphQL request when ForceExport is false and stock is equal');
 
         UnbindSubscription(InventorySubscriber);
     end;

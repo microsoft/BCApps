@@ -845,7 +845,7 @@ codeunit 132438 "Permission Relation Tests"
     [ModalPageHandler]
     procedure LookupPermissionSetAModalHandler(var PermissionSetLookupList: TestPage "Permission Set Lookup List")
     var
-        PermissionSetBuffer: Record "PermissionSet Buffer";
+        TempPermissionSetBuffer: Record "PermissionSet Buffer";
         MetadataPermissionSet: Record "Metadata Permission Set";
         AppId: Guid;
     begin
@@ -853,11 +853,11 @@ codeunit 132438 "Permission Relation Tests"
         if MetadataPermissionSet.FindFirst() then
             AppId := MetadataPermissionSet."App ID";
 
-        PermissionSetBuffer.Scope := PermissionSetBuffer.Scope::System;
-        PermissionSetBuffer."App ID" := AppId;
-        PermissionSetBuffer."Role ID" := RoleIdLbl;
+        TempPermissionSetBuffer.Scope := TempPermissionSetBuffer.Scope::System;
+        TempPermissionSetBuffer."App ID" := AppId;
+        TempPermissionSetBuffer."Role ID" := RoleIdLbl;
 
-        PermissionSetLookupList.GoToRecord(PermissionSetBuffer);
+        PermissionSetLookupList.GoToRecord(TempPermissionSetBuffer);
         PermissionSetLookupList.OK().Invoke();
     end;
 

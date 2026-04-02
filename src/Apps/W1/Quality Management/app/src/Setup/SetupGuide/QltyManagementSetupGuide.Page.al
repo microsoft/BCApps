@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Setup.SetupGuide;
 
-using Microsoft.QualityManagement.RoleCenters;
+using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.QualityManagement.Utilities;
 using System.Environment;
@@ -16,6 +16,7 @@ page 20438 "Qlty. Management Setup Guide"
 {
     Caption = 'Quality Management Setup Guide';
     PageType = NavigatePage;
+    AccessByPermission = tabledata "Qlty. Management Setup" = R;
     UsageCategory = Administration;
     ApplicationArea = QualityManagement;
 
@@ -54,25 +55,25 @@ page 20438 "Qlty. Management Setup Guide"
                 group(LetsGoText)
                 {
                     Caption = 'Let''s go!';
-                    InstructionalText = 'Select the link below to open the Quality Manager Role Center in a new browser tab and follow the guided tours.';
+                    InstructionalText = 'Select the link below to open the Quality Manager Role Center and follow the guided tours.';
                 }
-                field(LetsGoLink; LetsGoLinkLbl)
+#pragma warning disable AS0031
+#pragma warning disable AS0032
+                field(SettingsLink; SettingsLinkLbl)
                 {
-                    Caption = 'Open the Quality Manager Role Center';
+                    Caption = 'Open My Settings';
                     ShowCaption = false;
-                    ToolTip = 'Open Quality Management Role Center and checklist in a new browser tab.';
+                    ToolTip = 'Open My Settings';
                     Editable = false;
-                    ApplicationArea = QualityManagement;
 
                     trigger OnDrillDown()
-                    var
-                        TargetURL: Text;
                     begin
-                        TargetURL := GetUrl(ClientType::Web, CompanyName, ObjectType::Page, Page::"Qlty. Manager Role Center") + URLProfileLbl;
-                        Hyperlink(TargetURL);
+                        Page.Run(Page::"User Settings");
                     end;
 
                 }
+#pragma warning restore AS0032
+#pragma warning restore AS0031
             }
         }
     }
@@ -81,19 +82,23 @@ page 20438 "Qlty. Management Setup Guide"
     {
         area(Processing)
         {
-            action(Finish)
+#pragma warning disable AS0031
+#pragma warning disable AS0032
+            action(Done)
             {
                 ApplicationArea = QualityManagement;
-                Caption = 'Finish';
-                ToolTip = 'Finish';
+                Caption = 'Done';
+                ToolTip = 'Done';
                 InFooterBar = true;
-                Image = Approve;
+                Image = Close;
 
                 trigger OnAction();
                 begin
-                    FinishAction();
+                    DoneAction();
                 end;
             }
+#pragma warning restore AS0032
+#pragma warning restore AS0031
         }
     }
 
@@ -104,8 +109,7 @@ page 20438 "Qlty. Management Setup Guide"
         TopBannerVisible: Boolean;
         MainPageVisible: Boolean;
         QualityManagementTok: Label 'Quality Management', Locked = true;
-        LetsGoLinkLbl: Label 'Open the Quality Manager Role Center';
-        URLProfileLbl: Label '&profile=QLTY.%20MANAGER', Locked = true;
+        SettingsLinkLbl: Label 'Open My Settings';
 
     trigger OnInit();
     begin
@@ -118,7 +122,7 @@ page 20438 "Qlty. Management Setup Guide"
         FeatureTelemetry.LogUptake('0000QIC', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
     end;
 
-    local procedure FinishAction();
+    local procedure DoneAction();
     var
         GuidedExperience: Codeunit "Guided Experience";
         QltyApplicationAreaMgmt: Codeunit "Qlty. Application Area Mgmt.";
