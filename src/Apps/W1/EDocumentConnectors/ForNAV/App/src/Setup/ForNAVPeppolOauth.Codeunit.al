@@ -19,7 +19,6 @@ codeunit 6422 "ForNAV Peppol Oauth"
         SetupKeyLbl: Label 'setupKey', Locked = true;
         BaseUrlLbl: Label 'https://fornavpeppol.azure-api.net/', Locked = true;
         RequestConfigLbl: Label 'RequestConfig', Locked = true;
-        RequestConfigFileLbl: Label 'RequestConfigFile', Locked = true;
         RotateSecretLbl: Label 'RotateSecret', Locked = true;
         ClientIdKeyLbl: Label 'ClientIdKey', Locked = true;
         TenantIdKeyLbl: Label 'TenantIdKey', Locked = true;
@@ -104,9 +103,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
         exit(GetSecretStorage(ClientSecretKeyLbl));
     end;
 
-#if not DEV
     [NonDebuggable]
-#endif
     internal procedure ValidateScope(Scope: Text)
     var
         ScopePart: Text;
@@ -143,21 +140,11 @@ codeunit 6422 "ForNAV Peppol Oauth"
         Scopes.Add(GetSecretStorage(ScopeEndpointLbl));
     end;
 
-    // internal procedure ValidateEndpoint(NewEndpoint: Text)
-    // var
-    //     Setup: Record "ForNAV Peppol Setup";
-    // begin
-    //     if not Setup.FindFirst() then
-    //         exit;
-
-    //     Setup.Validate("Endpoint", NewEndpoint);
-    // end;
-
     internal procedure GetEndpoint() Result: Text
     var
         Setup: Record "ForNAV Peppol Setup";
         RegEx: Codeunit Regex;
-        InvalidEndpointErr: Label 'Endpoint contains invalid characters. Only lowercase letters and numbers are allowed.', Locked = true;
+        InvalidEndpointErr: Label 'Endpoint contains invalid characters. Only lowercase letters and numbers are allowed.';
     begin
         case true of
             not Setup.FindFirst(),
@@ -173,11 +160,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
 
     internal procedure GetDefaultEndpoint(): Text[20]
     var
-#if DEV
-        DefaultEndpointLbl: Label 'dev', Locked = true;
-#else
         DefaultEndpointLbl: Label 'v2', Locked = true;
-#endif
     begin
         exit(DefaultEndpointLbl);
     end;
@@ -364,9 +347,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
         end;
     end;
 
-    // #if not DEV
     [NonDebuggable]
-    // #endif
     internal procedure SendSetupRequest(IsSaas: Boolean; NewEndpoint: Text): Boolean
     var
         HttpClient: HttpClient;
@@ -377,7 +358,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
         if IsSaas then
             HttpRequestMessage.SetRequestUri(GetPeppolSetupURL(NewEndpoint) + RequestConfigLbl)
         else
-            HttpRequestMessage.SetRequestUri(GetPeppolSetupURL(NewEndpoint) + RequestConfigFileLbl);
+            exit;
 
         HttpRequestMessage.GetHeaders(HttpHeaders);
         AddSetupHeaders(HttpHeaders);
@@ -386,59 +367,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
         exit(HttpResponseMessage.HttpStatusCode = 204);
     end;
 
-#if not DEV
     [NonDebuggable]
-#endif
-    internal procedure GetSetupFile(PassCode: SecretText; IdentificationValue: Text): Boolean
-    var
-        PeppolCrypto: Codeunit "ForNAV Peppol Crypto";
-        HttpClient: HttpClient;
-        HttpHeaders: HttpHeaders;
-        HttpRequestMessage: HttpRequestMessage;
-        HttpResponseMessage: HttpResponseMessage;
-        HashText: Text;
-        Response: Text;
-        ResponseObject: JsonObject;
-        Token: JsonToken;
-    begin
-        HttpRequestMessage.SetRequestUri(GetPeppolSetupURL('') + RequestConfigFileLbl);
-
-        HttpRequestMessage.GetHeaders(HttpHeaders);
-        AddSetupHeaders(HttpHeaders);
-        HttpHeaders.Add('passcode', PassCode);
-        HttpRequestMessage.Method('GET');
-        HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
-        if HttpResponseMessage.HttpStatusCode <> 200 then
-            exit(false);
-
-        HttpResponseMessage.Content.ReadAs(Response);
-        if not ResponseObject.ReadFrom(Response) then
-            Error(HttpResponseMessage.ReasonPhrase);
-
-        ResponseObject.Get('hash', Token);
-        HashText := Token.AsValue().AsText();
-        PeppolCrypto.TestHash(HashText, StrSubstNo('%1-%2', CompanyName, IdentificationValue), GetInstallationId());
-
-        ResponseObject.Get('clientId', Token);
-        ValidateClientId(Token.AsValue().AsText());
-        ResponseObject.Get('clientSecret', Token);
-        ValidateSecret(Token.AsValue().AsText());
-        ResponseObject.Get('scope', Token);
-        ValidateScope(Token.AsValue().AsText());
-        // ResponseObject.Get('endpoint', Token);
-        // ValidateEndpoint(Token.AsValue().AsText());
-        ResponseObject.Get('scope', Token);
-        ValidateScope(Token.AsValue().AsText());
-        ResponseObject.Get('tenantId', Token);
-        ValidateForNAVTenantID(Token.AsValue().AsText());
-        ResponseObject.Get('expires', Token);
-        ValidateSecretValidTo(Token.AsValue().AsDateTime());
-        exit(true);
-    end;
-
-#if not DEV
-    [NonDebuggable]
-#endif
     internal procedure GetNewSecurityKey(): Boolean
     var
         OAuthToken: Codeunit "ForNAV Peppol Oauth Token";
@@ -452,7 +381,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
         ResponseObject: JsonObject;
         Token: JsonToken;
         CannotRotateKeyErr: Label 'Cannot rotate key. Contact your ForNAV partner.\%1', Comment = '%1 = reason';
-        DialogLbl: Label 'Request new client secret from the FORNAV Peppol Network. Please wait...', Locked = true;
+        DialogLbl: Label 'Request new client secret from the FORNAV Peppol Network. Please wait...';
         Dlg: Dialog;
     begin
         Dlg.Open(DialogLbl);

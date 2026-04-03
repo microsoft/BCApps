@@ -94,14 +94,6 @@ page 6414 "ForNAV Peppol Setup Wizard"
                     ApplicationArea = All;
                     Editable = false;
                 }
-                field(SerialNumber; Database.SerialNumber())
-                {
-                    ApplicationArea = All;
-                    Editable = false;
-                    Visible = ManualSetupEnabled;
-                    Caption = 'Serial Number';
-                    ToolTip = 'Specifies the Business Central license serial number.';
-                }
                 field(ContactPerson; ContactPerson)
                 {
                     ApplicationArea = All;
@@ -133,37 +125,12 @@ page 6414 "ForNAV Peppol Setup Wizard"
                 group(AutoOauthSetup)
                 {
                     ShowCaption = false;
-                    Visible = not ManualSetupEnabled;
                     InstructionalText = 'We will now add the Oauth keys so you can connect to the ForNAV Peppol network. This may take a while.';
                 }
                 group(ManualOauthSetup)
                 {
                     ShowCaption = false;
-                    Visible = ManualSetupEnabled;
                     InstructionalText = 'We will now send your information to ForNAV. When you have been approved you will receive an Oauth setup file so you can connect to the ForNAV Peppol network.';
-                }
-            }
-            group(Step4)
-            {
-                Visible = Step4Visible;
-                InstructionalText = 'Step 3 - Upload setupfile.';
-                Caption = 'Done';
-                group(Go3)
-                {
-                    ShowCaption = false;
-                    Visible = Rec.Authorized;
-                    InstructionalText = 'Please upload the setup file you have received.';
-                }
-                field(SetupPasscode; SetupPasscode)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Setup Passcode';
-                    ToolTip = 'Specifies the Oauth setup passcode. You will get this from your ForNAV partner after your application has been approved.';
-
-                    trigger OnValidate()
-                    begin
-                        ValidateSetupPasscode();
-                    end;
                 }
             }
             group(FinalStep)
@@ -265,7 +232,6 @@ page 6414 "ForNAV Peppol Setup Wizard"
         Rec.Endpoint := PeppolOauth.GetDefaultEndpoint();
         Rec.Modify();
         Step := Step::Step1;
-        SetManualSetup();
         EnableControls();
     end;
 
@@ -274,20 +240,17 @@ page 6414 "ForNAV Peppol Setup Wizard"
         MediaRepositoryDone: Record "Media Repository";
         MediaResourcesStandard: Record "Media Resources";
         MediaResourcesDone: Record "Media Resources";
-        Step: Option Step1,Step2,Step3,Step4,Finish;
-        SetupPasscode: text;
+        Step: Option Step1,Step2,Step3,Finish;
         ContactPerson: Text[50];
         EMail: Text[80];
         TopBannerVisible: Boolean;
         Step1Visible: Boolean;
         Step2Visible: Boolean;
         Step3Visible: Boolean;
-        Step4Visible: Boolean;
         FinalStepVisible: Boolean;
         BackActionEnabled: Boolean;
         NextActionEnabled: Boolean;
         FinishActionEnabled: Boolean;
-        ManualSetupEnabled: Boolean;
 
     local procedure LoadTopBanners()
     begin
@@ -306,36 +269,14 @@ page 6414 "ForNAV Peppol Setup Wizard"
 
         case Step of
             Step::Step1:
-                if ManualSetupEnabled and (Rec."Oauth Setup Request Sent" <> 0D) then
-                    ShowStep4()
-                else
-                    ShowStep1();
+                ShowStep1();
             Step::Step2:
-                if ManualSetupEnabled then
-                    ShowStep3()
-                else
-                    ShowStep2();
+                ShowStep2();
             Step::Step3:
                 ShowStep3();
-            Step::Step4:
-                if ManualSetupEnabled then
-                    ShowStep4()
-                else
-                    ShowFinishStep();
             Step::Finish:
                 ShowFinishStep();
         end;
-    end;
-
-    local procedure SetManualSetup()
-    var
-#if not DEV
-        EnvironmentInformation: Codeunit "Environment Information";
-#endif
-    begin
-#if not DEV
-        ManualSetupEnabled := not EnvironmentInformation.IsSaaSInfrastructure();
-#endif
     end;
 
     local procedure ProcessStepAction()
@@ -366,8 +307,6 @@ page 6414 "ForNAV Peppol Setup Wizard"
                     Rec := Setup;
                     CurrPage.Update();
                 end;
-            Step::Step4:
-                Rec.ProcessStoredOauthRequest(SetupPasscode);
             Step::Finish:
                 ;
         end;
@@ -395,13 +334,6 @@ page 6414 "ForNAV Peppol Setup Wizard"
         NextActionEnabled := true;
     end;
 
-    local procedure ShowStep4()
-    begin
-        Step := Step::Step4;
-        Step4Visible := true;
-        NextActionEnabled := false;
-    end;
-
     local procedure ShowFinishStep()
     begin
         Step := Step::Finish;
@@ -419,7 +351,6 @@ page 6414 "ForNAV Peppol Setup Wizard"
         Step1Visible := false;
         Step2Visible := false;
         Step3Visible := false;
-        Step4Visible := false;
         FinalStepVisible := false;
     end;
 
@@ -436,18 +367,6 @@ page 6414 "ForNAV Peppol Setup Wizard"
     local procedure FinishAction()
     begin
         CurrPage.Close();
-    end;
-
-    local procedure ValidateSetupPasscode()
-    var
-        PasscodeErr: Label 'Invalid setup passcode';
-    begin
-        case false of
-            StrLen(SetupPasscode) = 30:
-                Error(PasscodeErr);
-        end;
-
-        NextActionEnabled := true;
     end;
 
     local procedure GetClientID(): Text
