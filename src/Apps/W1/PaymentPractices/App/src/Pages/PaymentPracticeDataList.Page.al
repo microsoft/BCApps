@@ -65,6 +65,18 @@ page 686 "Payment Practice Data List"
                     Style = Unfavorable;
                     StyleExpr = Rec."Actual Payment Days" > Rec."Agreed Payment Days";
                 }
+                field("Dispute Status"; Rec."Dispute Status")
+                {
+                    Visible = false;
+                }
+                field("Overdue Due to Dispute"; Rec."Overdue Due to Dispute")
+                {
+                    Visible = false;
+                }
+                field("SCF Payment Date"; Rec."SCF Payment Date")
+                {
+                    Visible = false;
+                }
             }
         }
     }

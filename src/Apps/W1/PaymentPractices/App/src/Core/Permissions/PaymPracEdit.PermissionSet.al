@@ -11,9 +11,16 @@ permissionset 687 "Paym. Prac. Edit"
     IncludedPermissionSets = "Paym. Prac. Read";
 
     Permissions =
+#if NOT CLEAN29
+#pragma warning disable AL0432
         tabledata "Payment Period" = IMD,
+#pragma warning restore AL0432
+#endif
+        tabledata "Payment Period Header" = IMD,
+        tabledata "Payment Period Line" = IMD,
         tabledata "Payment Practice Data" = IMD,
         tabledata "Payment Practice Line" = IMD,
-        tabledata "Payment Practice Header" = IMD;
+        tabledata "Payment Practice Header" = IMD,
+        tabledata "Paym. Prac. Dispute Ret. Data" = IMD;
 
 }
