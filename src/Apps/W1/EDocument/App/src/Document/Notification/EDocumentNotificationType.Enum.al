@@ -16,4 +16,8 @@ enum 6126 "E-Document Notification Type"
     {
         Caption = 'Vendor Matched By Name Not Address';
     }
+    value(2; "VAT Rate Mismatch")
+    {
+        Caption = 'VAT Rate Mismatch';
+    }
 }
