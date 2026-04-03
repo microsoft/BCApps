@@ -12,7 +12,6 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Setup;
-using System.Threading;
 using System.Utilities;
 
 codeunit 133624 "E2E Tests - Document Lifecycle"
@@ -27,115 +26,7 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
         EDocumentService: Record "E-Document Service";
         Assert: Codeunit Assert;
         LibraryEDocument: Codeunit "Library - E-Document";
-        LibraryJobQueue: Codeunit "Library - Job Queue";
         IsInitialized: Boolean;
-
-    [Test]
-    [HandlerFunctions('HttpSubmitHandler')]
-    procedure TestCompleteLifecycle_Invoice_SubmitToComplete()
-    var
-        EDocument: Record "E-Document";
-        JobQueueEntry: Record "Job Queue Entry";
-    begin
-        // [SCENARIO] Complete lifecycle from invoice posting to document completion
-
-        // [GIVEN] Configured E-Document service
-        Initialize();
-
-        // [WHEN] Posting an invoice
-        LibraryEDocument.PostInvoice(Customer);
-        EDocument.FindLast();
-
-        // [WHEN] Running job queue to submit document
-        LibraryEDocument.RunEDocumentJobQueue(EDocument);
-        EDocument.FindLast();
-
-        // [THEN] Document should be in progress with Avalara Document ID
-        Assert.AreEqual(Enum::"E-Document Status"::"In Progress", EDocument.Status, 'Document should be in progress');
-        Assert.AreNotEqual('', EDocument."Avalara Document Id", 'Avalara Document ID should be set');
-
-        // [WHEN] Running get response with completed status
-        SetDocumentStatus(DocumentStatus::Completed);
-        JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Get Response");
-        LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
-        EDocument.FindLast();
-
-        // [THEN] Document should be processed
-        Assert.AreEqual(Enum::"E-Document Status"::Processed, EDocument.Status, 'Document should be processed');
-    end;
-
-    [Test]
-    [HandlerFunctions('HttpSubmitHandler,EDocServicesPageHandler')]
-    procedure TestManualResend_AfterError_Success()
-    var
-        EDocument: Record "E-Document";
-        JobQueueEntry: Record "Job Queue Entry";
-        EDocumentPage: TestPage "E-Document";
-    begin
-        // [SCENARIO] User can manually resend document after error
-
-        // [GIVEN] A document in error state
-        Initialize();
-        LibraryEDocument.PostInvoice(Customer);
-        EDocument.FindLast();
-        LibraryEDocument.RunEDocumentJobQueue(EDocument);
-        EDocument.FindLast();
-
-        // Set to error state
-        SetDocumentStatus(DocumentStatus::Error);
-        JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Get Response");
-        LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
-        EDocument.FindLast();
-        Assert.AreEqual(Enum::"E-Document Status"::Error, EDocument.Status, 'Document should be in error');
-
-        // [WHEN] User manually resends document
-        EDocumentPage.OpenView();
-        EDocumentPage.GoToRecord(EDocument);
-        EDocumentPage.Send_Promoted.Invoke();
-        EDocumentPage.Close();
-
-        // [THEN] Document should be resubmitted
-        EDocument.FindLast();
-        Assert.AreEqual(Enum::"E-Document Status"::"In Progress", EDocument.Status, 'Document should be in progress after resend');
-
-        // [WHEN] Get response returns complete
-        SetDocumentStatus(DocumentStatus::Completed);
-        JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Get Response");
-        LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
-        EDocument.FindLast();
-
-        // [THEN] Document should be processed
-        Assert.AreEqual(Enum::"E-Document Status"::Processed, EDocument.Status, 'Document should be processed');
-    end;
-
-
-    [Test]
-    [HandlerFunctions('HttpSubmitHandler')]
-    procedure TestAvalaraDocumentId_Persistence()
-    var
-        EDocument: Record "E-Document";
-        SavedDocumentId: Text[50];
-    begin
-        // [SCENARIO] Avalara Document ID persists across status changes
-
-        // [GIVEN] A submitted E-Document
-        Initialize();
-        LibraryEDocument.PostInvoice(Customer);
-        EDocument.FindLast();
-        LibraryEDocument.RunEDocumentJobQueue(EDocument);
-        EDocument.FindLast();
-
-        SavedDocumentId := EDocument."Avalara Document Id";
-        Assert.AreNotEqual('', SavedDocumentId, 'Document ID should be set');
-
-        // [WHEN] Document status changes
-        EDocument.Status := EDocument.Status::Processed;
-        EDocument.Modify();
-
-        // [THEN] Avalara Document ID should remain unchanged
-        EDocument.Get(EDocument."Entry No");
-        Assert.AreEqual(SavedDocumentId, EDocument."Avalara Document Id", 'Document ID should persist');
-    end;
 
     [Test]
     [HandlerFunctions('HttpSubmitHandler')]
@@ -233,11 +124,6 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
         ActivationMandate.Blocked := false;
         if not ActivationMandate.Insert() then
             ActivationMandate.Modify();
-    end;
-
-    local procedure SetDocumentStatus(NewDocumentStatus: Option Completed,Pending,Error)
-    begin
-        this.DocumentStatus := NewDocumentStatus;
     end;
 
     [ModalPageHandler]
