@@ -300,6 +300,7 @@ table 8059 "Subscription Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -312,6 +313,7 @@ table 8059 "Subscription Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -1051,6 +1053,10 @@ table 8059 "Subscription Line"
                         Validate("Unit Cost (LCY)", "Unit Cost (LCY)");
                     FieldNo("Create Contract Deferrals"):
                         Validate("Create Contract Deferrals", "Create Contract Deferrals");
+                    FieldNo("Shortcut Dimension 1 Code"):
+                        Validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+                    FieldNo("Shortcut Dimension 2 Code"):
+                        Validate("Shortcut Dimension 2 Code", "Shortcut Dimension 2 Code");
                 end;
                 Modify(true);
             end;
@@ -1066,7 +1072,7 @@ table 8059 "Subscription Line"
 
         OldDimSetID := "Dimension Set ID";
         "Dimension Set ID" := DimMgt.EditDimensionSet(
-            "Dimension Set ID", "Subscription Header No." + '' + Format("Entry No."),
+            "Dimension Set ID", "Subscription Header No." + ' ' + FieldCaption("Entry No.") + ' ' + Format("Entry No."),
             "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
 
         if OldDimSetID <> "Dimension Set ID" then begin
@@ -1083,8 +1089,10 @@ table 8059 "Subscription Line"
         OnBeforeValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
         OldDimSetID := "Dimension Set ID";
         DimMgt.ValidateShortcutDimValues(FieldNumber, ShortcutDimCode, "Dimension Set ID");
-        if OldDimSetID <> "Dimension Set ID" then
+        if OldDimSetID <> "Dimension Set ID" then begin
             Modify();
+            UpdateRelatedVendorServiceCommDimensions(OldDimSetID, "Dimension Set ID");
+        end;
 
         OnAfterValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
     end;
