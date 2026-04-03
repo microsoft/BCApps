@@ -709,7 +709,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure ManuallyAddedDimensionsOnDraftAreCarriedToPurchaseInvoice()
     var
         EDocument: Record "E-Document";
-        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        EDocImportParams: Record "E-Doc. Import Parameters";
         EDocPurchaseLine: Record "E-Document Purchase Line";
         EDocPurchaseLineReread: Record "E-Document Purchase Line";
         DimensionValue: Record "Dimension Value";
@@ -723,9 +723,9 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentService.Modify();
 
         // [GIVEN] An inbound e-document is received and a draft is created
-        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
         WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft should be created');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The draft should be created');
 
         // [GIVEN] A dimension value to add via the Dimensions lookup
         LibraryDimension.CreateDimWithDimValue(DimensionValue);
