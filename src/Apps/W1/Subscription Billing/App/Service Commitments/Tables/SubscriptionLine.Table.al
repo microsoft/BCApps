@@ -880,7 +880,7 @@ table 8059 "Subscription Line"
         OnAfterCalculateServiceAmount(Rec, CalledByFieldNo);
     end;
 
-    local procedure SetUpdateRequiredOnBillingLines()
+    internal procedure SetUpdateRequiredOnBillingLines()
     var
         BillingLine: Record "Billing Line";
     begin
@@ -1339,7 +1339,9 @@ table 8059 "Subscription Line"
             repeat
 #pragma warning disable AA0214
                 ServiceCommitment.ResetAmountsAndCurrencyFromLCY();
-                ServiceCommitment.Modify(true);
+                ServiceCommitment.SetUpdateRequiredOnBillingLines();
+                ServiceCommitment.ArchiveServiceCommitment();
+                ServiceCommitment.Modify(false);
 #pragma warning restore AA0214
             until ServiceCommitment.Next() = 0;
     end;
@@ -1363,7 +1365,9 @@ table 8059 "Subscription Line"
                     CurrencyCode := ServiceCommitment."Currency Code";
                 ServiceCommitment.SetCurrencyData(CurrencyFactor, CurrencyFactorDate, CurrencyCode);
                 ServiceCommitment.RecalculateAmountsFromCurrencyData();
-                ServiceCommitment.Modify(true);
+                ServiceCommitment.SetUpdateRequiredOnBillingLines();
+                ServiceCommitment.ArchiveServiceCommitment();
+                ServiceCommitment.Modify(false);
             until ServiceCommitment.Next() = 0;
     end;
 

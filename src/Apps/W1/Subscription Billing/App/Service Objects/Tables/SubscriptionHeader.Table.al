@@ -2038,9 +2038,10 @@ table 8057 "Subscription Header"
                     if FieldCaption(Quantity) <> ChangedFieldName then
                         ServiceCommitment.CalculateCalculationBaseAmount();
                     ServiceCommitment.Validate("Calculation Base Amount");
-                    if SkipArchiving then
-                        ServiceCommitment.SetSkipArchiving(true);
-                    ServiceCommitment.Modify(true);
+                    ServiceCommitment.SetUpdateRequiredOnBillingLines();
+                    if not SkipArchiving then
+                        ServiceCommitment.ArchiveServiceCommitment();
+                    ServiceCommitment.Modify(false);
                 until ServiceCommitment.Next() = 0;
         end else
             if (not Confirmed) and (FieldCaption("Variant Code") = ChangedFieldName) then
