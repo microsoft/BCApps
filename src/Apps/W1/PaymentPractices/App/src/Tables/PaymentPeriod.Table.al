@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEANSCHEMA32
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,6 +11,14 @@ table 685 "Payment Period"
 {
     Caption = 'Payment Period';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Replaced by Payment Period Header + Payment Period Line tables.';
+#if CLEAN29
+    ObsoleteState = Removed;
+    ObsoleteTag = '32.0';
+#else
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+#endif
 
     fields
     {
@@ -156,4 +165,5 @@ table 685 "Payment Period"
     begin
     end;
 }
+#endif
 

@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN29
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -13,6 +14,9 @@ page 685 "Payment Periods"
     SourceTable = "Payment Period";
     SourceTableView = sorting("Days From");
     UsageCategory = Tasks;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by Payment Period List page (691).';
+    ObsoleteTag = '29.0';
 
     layout
     {
@@ -45,3 +49,4 @@ page 685 "Payment Periods"
     }
 }
 
+#endif

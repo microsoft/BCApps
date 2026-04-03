@@ -16,8 +16,8 @@
   "platform": "29.0.0.0",
   "idRanges": [
     {
-      "from": 685,
-      "to": 694
+      "from": 680,
+      "to": 698
     }
   ],
   "resourceExposurePolicy": {
@@ -29,5 +29,12 @@
   "target": "Cloud",
   "features": [
     "TranslationFile"
+  ],
+  "internalsVisibleTo": [
+    {
+      "id": "cc329ed7-8840-45f6-860b-3eb99c408998",
+      "name": "Payment Practices Test Library",
+      "publisher": "Microsoft"
+    }
   ]
 }
