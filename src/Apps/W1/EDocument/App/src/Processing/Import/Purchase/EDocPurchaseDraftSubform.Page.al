@@ -71,6 +71,11 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Lookup = true;
                     ShowMandatory = true;
                 }
+                field("VAT Prod. Posting Group"; Rec."[BC] VAT Prod. Posting Group")
+                {
+                    ApplicationArea = All;
+                    Lookup = true;
+                }
                 field("Item Reference No."; Rec."[BC] Item Reference No.")
                 {
                     ApplicationArea = All;
