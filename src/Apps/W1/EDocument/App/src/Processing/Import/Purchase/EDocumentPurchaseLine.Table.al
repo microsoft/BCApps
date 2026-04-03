@@ -11,6 +11,7 @@ using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -207,6 +208,12 @@ table 6101 "E-Document Purchase Line"
             begin
                 DimMgt.UpdateGlobalDimFromDimSetID("[BC] Dimension Set ID", "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
             end;
+        }
+        field(110; "[BC] VAT Prod. Posting Group"; Code[20])
+        {
+            Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT product posting group resolved from the extracted VAT rate.';
+            TableRelation = "VAT Product Posting Group";
         }
         #endregion Validated fields
 
