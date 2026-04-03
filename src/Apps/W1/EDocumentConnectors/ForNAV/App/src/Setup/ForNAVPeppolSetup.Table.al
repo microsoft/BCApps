@@ -321,10 +321,9 @@ table 6414 "ForNAV Peppol Setup"
         PeppolOauth: Codeunit "ForNAV Peppol Oauth";
         EnvironmentInformation: Codeunit "Environment Information";
         IsSaaS: Boolean;
-        DialogLbl: Label ' Sending authentication request to the FORNAV Peppol Network. Please wait...', Comment = '%1= Source control provider', Locked = true;
+        DialogLbl: Label ' Sending authentication request to the FORNAV Peppol Network. Please wait...';
         Dlg: Dialog;
     begin
-        // TODO On Prem authentication for Docker
         Setup.ClearAccessToken();
         if (PeppolOauth.GetClientID() <> '') and (PeppolOauth.GetSecretValidTo() > CurrentDateTime) and (PeppolOauth.GetEndpoint() = NewEndpoint) then
             if PeppolOauth.TryTestOAuth() then begin
@@ -335,10 +334,6 @@ table 6414 "ForNAV Peppol Setup"
             end;
 
         IsSaaS := EnvironmentInformation.IsSaaS();
-#if DEV
-        if not IsSaaS then
-            exit;
-#endif
 
         Dlg.Open(DialogLbl);
         ResetForSetup();
@@ -360,21 +355,10 @@ table 6414 "ForNAV Peppol Setup"
             ValidateConnection();
     end;
 
-    internal procedure ProcessStoredOauthRequest(PassCode: SecretText)
-    var
-        PeppolOauth: Codeunit "ForNAV Peppol Oauth";
-    begin
-        if not PeppolOauth.TryTestOAuth() then
-            if not PeppolOauth.GetSetupFile(PassCode, "Identification Value") then
-                Error(CannotGetSetupErr);
-
-        ValidateConnection();
-    end;
-
     local procedure ValidateConnection()
     var
         PeppolOauth: Codeunit "ForNAV Peppol Oauth";
-        SetupSuccessfulLbl: Label 'Connection to ForNAV Peppol Network successful.', Locked = true;
+        SetupSuccessfulLbl: Label 'Connection to ForNAV Peppol Network successful.';
     begin
         "Setup Message" := '';
         if PeppolOauth.TryTestOAuth() then begin

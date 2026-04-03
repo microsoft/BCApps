@@ -40,7 +40,7 @@ codeunit 6424 "ForNAV Peppol Setup"
         Handled: Boolean;
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
-        DialogLbl: Label ' Sending request to the FORNAV Peppol Network. Please wait...', Comment = '%1= Source control provider', Locked = true;
+        DialogLbl: Label ' Sending request to the FORNAV Peppol Network. Please wait...';
         Dlg: Dialog;
     begin
         if GuiAllowed then
@@ -111,9 +111,7 @@ codeunit 6424 "ForNAV Peppol Setup"
         InitCalled := false;
     end;
 
-#if not DEV
     [NonDebuggable]
-# endif
     local procedure AddForNavHeaders(Http: Codeunit "Http Message State")
     var
         PeppolSetup: Record "ForNAV Peppol Setup";

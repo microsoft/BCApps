@@ -260,18 +260,14 @@ page 6413 "ForNAV Peppol Setup"
                 ToolTip = 'Gets a new client secret and deletes the old one. May take a long time to run.';
                 trigger OnAction()
                 var
-#if not DEV
                     SureQst: Label 'Are you sure you want to rotate the client secret? This process may run a long time and will delete the old secret.';
                     CannotRotateErr: Label 'Cannot rotate secret if it is less than one week old.';
-#endif
                 begin
-#if not DEV
                     if PeppolOauth.GetSecretValidFrom() > CreateDateTime(CalcDate('<-1w>', Today), Time) then
                         Error(CannotRotateErr);
 
                     if not Confirm(SureQst) then
                         exit;
-#endif
                     if PeppolOauth.TryTestOAuth() then
                         PeppolOauth.GetNewSecurityKey()
                     else
@@ -526,9 +522,6 @@ page 6413 "ForNAV Peppol Setup"
         IsAuthorized := Rec.TestAuthorized();
         EnableUnauthorize := IsAuthorized or (Rec."Oauth Setup Request Sent" <> 0D);
         PeppolSetupEditable := Rec.Status <> Rec.Status::Published;
-#if DEV
-        ShowConnectionSetup := true;
-#endif
         ClientId := PeppolOauth.GetClientID();
         ForNAVTenantId := PeppolOauth.GetForNAVTenantID();
         ClientSecret := GetSecret();
