@@ -51,7 +51,7 @@ codeunit 133629 "Unit Tests - Maintenance"
         Initialize();
         EDocument.SetFilter("Avalara Document Id", '<>%1', '');
         if EDocument.FindSet() then
-            EDocument.DeleteAll();
+            EDocument.DeleteAll(false);
 
         // [WHEN] Maintenance codeunit is run
         // [THEN] Should exit without error
@@ -285,7 +285,7 @@ codeunit 133629 "Unit Tests - Maintenance"
     begin
         if EDocument."Entry No" <> 0 then
             if EDocument.Get(EDocument."Entry No") then
-                EDocument.Delete(true);
+                EDocument.Delete(false);
 
         if EDocumentService.Code <> '' then
             if EDocumentService.Get(EDocumentService.Code) then

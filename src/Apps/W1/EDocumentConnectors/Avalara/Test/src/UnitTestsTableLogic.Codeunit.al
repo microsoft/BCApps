@@ -19,17 +19,17 @@ codeunit 133633 "Unit Tests - Table Logic"
     procedure TestConnectionSetup_OnInsert_SetsDefaults()
     var
         ConnectionSetup: Record "Connection Setup";
+        AvalaraAuth: Codeunit Authenticator;
     begin
-        // [SCENARIO] Connection Setup sets default values on insert
+        // [SCENARIO] Connection Setup sets default values when created via Authenticator
 
         // [GIVEN] A new connection setup record
         Initialize();
         if ConnectionSetup.Get() then
             ConnectionSetup.Delete();
 
-        // [WHEN] Inserting a new connection setup
-        ConnectionSetup.Init();
-        ConnectionSetup.Insert(true);
+        // [WHEN] Creating connection setup via Authenticator
+        AvalaraAuth.CreateConnectionSetupRecord();
 
         // [THEN] Default values should be set
         ConnectionSetup.Get();

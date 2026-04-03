@@ -254,6 +254,11 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
     [HttpClientHandler]
     internal procedure HttpSuccessHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.Content.WriteFrom('{"success": true}');
         Response.HttpStatusCode := 200;
     end;
@@ -261,6 +266,11 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
     [HttpClientHandler]
     internal procedure Http500Handler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.Content.WriteFrom('{"error": "Internal Server Error"}');
         Response.HttpStatusCode := 500;
     end;
@@ -268,6 +278,11 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
     [HttpClientHandler]
     internal procedure Http201Handler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.Content.WriteFrom('{"created": true}');
         Response.HttpStatusCode := 201;
     end;
@@ -275,6 +290,11 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
     [HttpClientHandler]
     internal procedure HttpCompaniesHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.Content.WriteFrom(NavApp.GetResourceAsText('Companies.txt', TextEncoding::UTF8));
         Response.HttpStatusCode := 200;
     end;
@@ -284,6 +304,11 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
     var
         ResponseText: Text;
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         ResponseText := '[{"countryMandate":"GB-TEST","description":"Test Mandate"}]';
         Response.Content.WriteFrom(ResponseText);
         Response.HttpStatusCode := 200;
@@ -327,7 +352,17 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
     [HttpClientHandler]
     internal procedure HttpAuthHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
-        Response.Content.WriteFrom(NavApp.GetResourceAsText('ConnectToken.txt', TextEncoding::UTF8));
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
+        Response.Content.WriteFrom(NavApp.GetResourceAsText('GetDocuments.txt', TextEncoding::UTF8));
         Response.HttpStatusCode := 200;
+    end;
+
+    local procedure GetMockAuthTokenJson(): Text
+    begin
+        exit('{"access_token":"mock-access-token-12345","token_type":"Bearer","expires_in":3600}');
     end;
 }

@@ -39,17 +39,17 @@ codeunit 133631 "Unit Tests - Page Logic"
     procedure TestConnectionSetup_DefaultValues_OnInsert()
     var
         ConnectionSetup: Record "Connection Setup";
+        AvalaraAuth: Codeunit Authenticator;
     begin
-        // [SCENARIO] Connection Setup has default values on insert
+        // [SCENARIO] Connection Setup has default values when created via Authenticator
 
         // [GIVEN] System ready for new setup
         Initialize();
         if ConnectionSetup.Get() then
             ConnectionSetup.Delete();
 
-        // [WHEN] Creating new connection setup
-        ConnectionSetup.Init();
-        ConnectionSetup.Insert(true);
+        // [WHEN] Creating new connection setup via Authenticator
+        AvalaraAuth.CreateConnectionSetupRecord();
 
         // [THEN] Should have default environment URL
         ConnectionSetup.Get();
@@ -196,6 +196,7 @@ codeunit 133631 "Unit Tests - Page Logic"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmDeleteHandler')]
     procedure TestActivationList_CanSort()
     var
         ActivationHeader: Record "Activation Header";
@@ -252,6 +253,12 @@ codeunit 133631 "Unit Tests - Page Logic"
 
         // Cleanup
         CleanupConnectionSetup();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmDeleteHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 
     local procedure Initialize()

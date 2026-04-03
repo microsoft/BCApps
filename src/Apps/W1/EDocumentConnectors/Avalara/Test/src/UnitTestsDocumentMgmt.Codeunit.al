@@ -138,6 +138,7 @@ codeunit 133635 "Unit Tests - Document Mgmt"
     end;
 
     [Test]
+    [HandlerFunctions('DocumentIdRequiredMessageHandler')]
     procedure TestDownloadDocumentWithAllMediaTypes_EmptyDocumentId_Fails()
     var
         EDocument: Record "E-Document";
@@ -253,10 +254,9 @@ codeunit 133635 "Unit Tests - Document Mgmt"
     local procedure CreateMockEDocument(var EDocument: Record "E-Document")
     begin
         EDocument.Init();
-        EDocument."Entry No" := 1;
-        EDocument.Status := EDocument.Status::Processed;
+        EDocument."Entry No" := 0;
         EDocument.Direction := EDocument.Direction::Outgoing;
-        if EDocument.Insert() then;
+        EDocument.Insert(true);
     end;
 
     local procedure CreateMockEDocumentService(var EDocService: Record "E-Document Service")
@@ -302,9 +302,20 @@ codeunit 133635 "Unit Tests - Document Mgmt"
         exit(JsonBuilder.ToText());
     end;
 
+    [MessageHandler]
+    procedure DocumentIdRequiredMessageHandler(Message: Text[1024])
+    begin
+        // Expected message when Document ID is empty
+    end;
+
     [HttpClientHandler]
     internal procedure HttpDocumentListHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.Content.WriteFrom(GetMockDocumentsJson(2));
         Response.HttpStatusCode := 200;
     end;
@@ -312,6 +323,11 @@ codeunit 133635 "Unit Tests - Document Mgmt"
     [HttpClientHandler]
     internal procedure HttpDownloadSuccessHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.Content.WriteFrom('<?xml version="1.0"?><Invoice></Invoice>');
         Response.HttpStatusCode := 200;
     end;
@@ -321,6 +337,11 @@ codeunit 133635 "Unit Tests - Document Mgmt"
     var
         StatusJson: Text;
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         StatusJson := '{"id":"test-doc-id-123","status":"Complete","events":[]}';
         Response.Content.WriteFrom(StatusJson);
         Response.HttpStatusCode := 200;
@@ -329,7 +350,17 @@ codeunit 133635 "Unit Tests - Document Mgmt"
     [HttpClientHandler]
     internal procedure HttpReceiveDocumentsHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.Content.WriteFrom(GetMockDocumentsJson(1));
         Response.HttpStatusCode := 200;
+    end;
+
+    local procedure GetMockAuthTokenJson(): Text
+    begin
+        exit('{"access_token":"mock-access-token-12345","token_type":"Bearer","expires_in":3600}');
     end;
 }

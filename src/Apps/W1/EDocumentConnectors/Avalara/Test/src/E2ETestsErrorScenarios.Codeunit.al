@@ -265,9 +265,8 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     local procedure CreateMockEDocument(var EDocument: Record "E-Document")
     begin
         EDocument.Init();
-        EDocument."Entry No" := 1;
-        EDocument.Status := EDocument.Status::Processed;
-        if EDocument.Insert() then;
+        EDocument."Entry No" := 0;
+        EDocument.Insert(true);
     end;
 
     local procedure CreateMockEDocumentService(var EDocService: Record "E-Document Service")
