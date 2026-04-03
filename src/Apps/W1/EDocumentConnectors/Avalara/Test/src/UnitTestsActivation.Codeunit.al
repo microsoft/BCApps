@@ -14,7 +14,6 @@ codeunit 133627 "Unit Tests - Activation"
         IsInitialized: Boolean;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestPopulateFromJson_ValidJson_PopulatesHeaders()
     var
         ActivationHeader: Record "Activation Header";
@@ -38,7 +37,6 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestPopulateFromJson_ValidJson_PopulatesMandates()
     var
         ActivationMandate: Record "Activation Mandate";
@@ -168,7 +166,6 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestActivationHeader_ParsesAllFields()
     var
         ActivationHeader: Record "Activation Header";
@@ -194,7 +191,6 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestActivationMandate_LinkedToHeader()
     var
         ActivationHeader: Record "Activation Header";
@@ -221,7 +217,6 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestActivationStatus_Completed_SetsCorrectly()
     var
         ActivationMandate: Record "Activation Mandate";
@@ -246,7 +241,6 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestActivation_WithMultipleMandates_CreatesAll()
     var
         ActivationMandate: Record "Activation Mandate";
@@ -272,7 +266,6 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestActivation_CompanyIdMatching()
     var
         ActivationHeader: Record "Activation Header";

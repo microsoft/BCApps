@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+using Microsoft.eServices.EDocument;
+
 codeunit 148192 "Unit Tests - Avalara Functions"
 {
     Subtype = Test;
@@ -17,19 +19,22 @@ codeunit 148192 "Unit Tests - Avalara Functions"
     procedure TestIsAvalaraActive_WithValidSetup()
     var
         ConnectionSetup: Record "Connection Setup";
+        EDocumentService: Record "E-Document Service";
         AvalaraFunctions: Codeunit "Avalara Functions";
     begin
-        // [SCENARIO] IsAvalaraActive returns true when connection setup exists with valid credentials
+        // [SCENARIO] IsAvalaraActive returns true when an E-Document Service with Avalara integration exists
 
-        // [GIVEN] A connection setup record with client credentials
+        // [GIVEN] A connection setup record with client credentials and an Avalara E-Document Service
         Initialize();
         CreateMockConnectionSetup(ConnectionSetup);
+        CreateMockEDocumentService(EDocumentService);
 
         // [WHEN] IsAvalaraActive is called
         // [THEN] It should return true
         Assert.IsTrue(AvalaraFunctions.IsAvalaraActive(), 'IsAvalaraActive should return true with valid setup');
 
         // Cleanup
+        EDocumentService.Delete();
         ConnectionSetup.Delete();
     end;
 
@@ -37,11 +42,14 @@ codeunit 148192 "Unit Tests - Avalara Functions"
     procedure TestIsAvalaraActive_WithoutSetup()
     var
         ConnectionSetup: Record "Connection Setup";
+        EDocumentService: Record "E-Document Service";
         AvalaraFunctions: Codeunit "Avalara Functions";
     begin
-        // [SCENARIO] IsAvalaraActive returns false when no connection setup exists
+        // [SCENARIO] IsAvalaraActive returns false when no Avalara E-Document Service exists
 
-        // [GIVEN] No connection setup record
+        // [GIVEN] No Avalara E-Document Service
+        EDocumentService.SetRange("Service Integration V2", EDocumentService."Service Integration V2"::Avalara);
+        EDocumentService.DeleteAll();
         if ConnectionSetup.Get() then
             ConnectionSetup.Delete();
 
@@ -139,6 +147,16 @@ codeunit 148192 "Unit Tests - Avalara Functions"
         ConnectionSetup."Client Secret - Key" := KeyGuid;
         ConnectionSetup."Company Id" := 'test-company-id';
         ConnectionSetup.Modify(true);
+    end;
+
+    local procedure CreateMockEDocumentService(var EDocService: Record "E-Document Service")
+    begin
+        EDocService.Init();
+        EDocService.Code := 'AVALARA-TEST';
+        EDocService."Service Integration V2" := EDocService."Service Integration V2"::Avalara;
+        EDocService."Avalara Mandate" := 'GB-TEST';
+        if not EDocService.Insert() then
+            EDocService.Modify();
     end;
 
     local procedure GetMockFieldsJson(): Text

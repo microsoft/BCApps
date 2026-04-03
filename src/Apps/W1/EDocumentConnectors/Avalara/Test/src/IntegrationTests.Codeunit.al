@@ -584,6 +584,7 @@ codeunit 133626 "Integration Tests"
         if IsInitialized then
             exit;
 
+        EnsureVATBusinessPostingGroup();
         LibraryEDocument.SetupStandardVAT();
         LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
         EDocumentService."Avalara Mandate" := 'GB-Test-Mandate';
@@ -795,6 +796,37 @@ codeunit 133626 "Integration Tests"
         ActivationMandate.Activated := true;
         ActivationMandate.Blocked := false;
         ActivationMandate.Insert();
+    end;
+
+    local procedure EnsureVATBusinessPostingGroup()
+    var
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        if not VATBusinessPostingGroup.IsEmpty() then
+            exit;
+
+        VATBusinessPostingGroup.Init();
+        VATBusinessPostingGroup.Code := 'DOMESTIC';
+        VATBusinessPostingGroup.Description := 'Domestic';
+        VATBusinessPostingGroup.Insert(false);
+
+        if VATProductPostingGroup.IsEmpty() then begin
+            VATProductPostingGroup.Init();
+            VATProductPostingGroup.Code := 'STANDARD';
+            VATProductPostingGroup.Description := 'Standard';
+            VATProductPostingGroup.Insert(false);
+        end else
+            VATProductPostingGroup.FindFirst();
+
+        if not VATPostingSetup.Get('DOMESTIC', VATProductPostingGroup.Code) then begin
+            VATPostingSetup.Init();
+            VATPostingSetup."VAT Bus. Posting Group" := 'DOMESTIC';
+            VATPostingSetup."VAT Prod. Posting Group" := VATProductPostingGroup.Code;
+            VATPostingSetup."VAT %" := 0;
+            VATPostingSetup.Insert(false);
+        end;
     end;
 
     var
