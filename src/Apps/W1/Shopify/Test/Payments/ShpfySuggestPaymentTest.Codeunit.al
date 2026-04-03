@@ -33,7 +33,7 @@ codeunit 139648 "Shpfy Suggest Payment Test"
         Item: Record Item;
         Customer: Record Customer;
         OrderTransaction: Record "Shpfy Order Transaction";
-        SuggestPayment: Record "Shpfy Suggest Payment";
+        TempSuggestPayment: Record "Shpfy Suggest Payment";
         SuggestPayments: Report "Shpfy Suggest Payments";
         OrderId: BigInteger;
         Amount: Decimal;
@@ -56,9 +56,9 @@ codeunit 139648 "Shpfy Suggest Payment Test"
         SuggestPayments.GetOrderTransactions(OrderTransaction);
 
         // [THEN] Temporary suggest payment records are created
-        SuggestPayments.GetTempSuggestPayment(SuggestPayment);
-        SuggestPayment.FindFirst();
-        LibraryAssert.AreEqual(SuggestPayment.Amount, Amount, 'Amounts should match');
+        SuggestPayments.GetTempSuggestPayment(TempSuggestPayment);
+        TempSuggestPayment.FindFirst();
+        LibraryAssert.AreEqual(TempSuggestPayment.Amount, Amount, 'Amounts should match');
     end;
 
     [Test]
@@ -67,7 +67,7 @@ codeunit 139648 "Shpfy Suggest Payment Test"
         Item: Record Item;
         Customer: Record Customer;
         OrderTransaction: Record "Shpfy Order Transaction";
-        SuggestPayment: Record "Shpfy Suggest Payment";
+        TempSuggestPayment: Record "Shpfy Suggest Payment";
         SuggestPayments: Report "Shpfy Suggest Payments";
         OrderId: BigInteger;
         Amount: Decimal;
@@ -96,14 +96,14 @@ codeunit 139648 "Shpfy Suggest Payment Test"
         until OrderTransaction.Next() = 0;
 
         // [THEN] Temporary suggest payment records are created
-        SuggestPayments.GetTempSuggestPayment(SuggestPayment);
-        SuggestPayment.FindSet();
+        SuggestPayments.GetTempSuggestPayment(TempSuggestPayment);
+        TempSuggestPayment.FindSet();
         repeat
-            if SuggestPayment.Gateway = 'manual' then
-                LibraryAssert.AreEqual(SuggestPayment.Amount, Amount * 0.75, 'Amounts should match');
-            if SuggestPayment.Gateway = 'gift_card' then
-                LibraryAssert.AreEqual(SuggestPayment.Amount, Amount * 0.25, 'Amounts should match');
-        until SuggestPayment.Next() = 0;
+            if TempSuggestPayment.Gateway = 'manual' then
+                LibraryAssert.AreEqual(TempSuggestPayment.Amount, Amount * 0.75, 'Amounts should match');
+            if TempSuggestPayment.Gateway = 'gift_card' then
+                LibraryAssert.AreEqual(TempSuggestPayment.Amount, Amount * 0.25, 'Amounts should match');
+        until TempSuggestPayment.Next() = 0;
     end;
 
     [Test]
@@ -112,7 +112,7 @@ codeunit 139648 "Shpfy Suggest Payment Test"
         Item: Record Item;
         Customer: Record Customer;
         OrderTransaction: Record "Shpfy Order Transaction";
-        SuggestPayment: Record "Shpfy Suggest Payment";
+        TempSuggestPayment: Record "Shpfy Suggest Payment";
         DocLinkToDoc: Record "Shpfy Doc. Link To Doc.";
         SuggestPayments: Report "Shpfy Suggest Payments";
         OrderId1: BigInteger;
@@ -155,11 +155,11 @@ codeunit 139648 "Shpfy Suggest Payment Test"
         until OrderTransaction.Next() = 0;
 
         // [THEN] Temporary suggest payment records are created
-        SuggestPayments.GetTempSuggestPayment(SuggestPayment);
-        SuggestPayment.FindSet();
+        SuggestPayments.GetTempSuggestPayment(TempSuggestPayment);
+        TempSuggestPayment.FindSet();
         repeat
-            LibraryAssert.AreEqual(SuggestPayment.Amount, Amount, 'Amounts should match');
-        until SuggestPayment.Next() = 0;
+            LibraryAssert.AreEqual(TempSuggestPayment.Amount, Amount, 'Amounts should match');
+        until TempSuggestPayment.Next() = 0;
     end;
 
     [HandlerFunctions('SuggestShopifyPaymentsRequestPageHandler')]
@@ -257,7 +257,7 @@ codeunit 139648 "Shpfy Suggest Payment Test"
         Item: Record Item;
         Customer: Record Customer;
         OrderTransaction: Record "Shpfy Order Transaction";
-        SuggestPayment: Record "Shpfy Suggest Payment";
+        TempSuggestPayment: Record "Shpfy Suggest Payment";
         SuggestPayments: Report "Shpfy Suggest Payments";
         OrderId: BigInteger;
         RefundId: BigInteger;
@@ -283,9 +283,9 @@ codeunit 139648 "Shpfy Suggest Payment Test"
         SuggestPayments.GetOrderTransactions(OrderTransaction);
 
         // [THEN] Temporary suggest payment records are created
-        SuggestPayments.GetTempSuggestPayment(SuggestPayment);
-        SuggestPayment.FindFirst();
-        LibraryAssert.AreEqual(SuggestPayment.Amount, -Amount, 'Amounts should match');
+        SuggestPayments.GetTempSuggestPayment(TempSuggestPayment);
+        TempSuggestPayment.FindFirst();
+        LibraryAssert.AreEqual(TempSuggestPayment.Amount, -Amount, 'Amounts should match');
     end;
 
     [Test]
