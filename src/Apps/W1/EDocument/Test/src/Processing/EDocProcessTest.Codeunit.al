@@ -14,6 +14,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
@@ -291,6 +292,126 @@ codeunit 139883 "E-Doc Process Test"
         GLAccount.Delete();
         TextToAccountMapping.SetRecFilter();
         TextToAccountMapping.Delete();
+    end;
+
+    [Test]
+    procedure PreparingPurchaseDraftResolvesVATProductPostingGroupFromLineVATRate()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        Vendor2: Record Vendor;
+        CompanyInformation: Record "Company Information";
+        VATPostingSetup2: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocImport: Codeunit "E-Doc. Import";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        // [SCENARIO] When a draft line has a VAT Rate and a matching VAT Posting Setup exists, Prepare Draft resolves the VAT Prod. Posting Group
+        Initialize(Enum::"Service Integration"::"Mock");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+
+        // [GIVEN] A vendor with a known VAT Bus. Posting Group
+        CompanyInformation.GetRecordOnce();
+        Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
+        Vendor2."No." := 'EDOC001';
+        Vendor2."VAT Registration No." := 'XXXXXXX001';
+        Vendor2."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+        Vendor2.Insert();
+
+        // [GIVEN] A VAT Posting Setup with VAT % = 10 for the vendor's bus posting group
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        VATPostingSetup2."VAT Bus. Posting Group" := Vendor2."VAT Bus. Posting Group";
+        VATPostingSetup2."VAT Prod. Posting Group" := VATProductPostingGroup.Code;
+        VATPostingSetup2."VAT Calculation Type" := VATPostingSetup2."VAT Calculation Type"::"Normal VAT";
+        VATPostingSetup2."VAT %" := 10;
+        VATPostingSetup2."Sales VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup2."Purchase VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup2.Insert();
+
+        // [GIVEN] E-Document purchase header and line with VAT Rate = 10
+        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader."Vendor VAT Id" := Vendor2."VAT Registration No.";
+        EDocumentPurchaseHeader.Insert();
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine.Description := 'Test VAT resolution';
+        EDocumentPurchaseLine."VAT Rate" := 10;
+        EDocumentPurchaseLine.Insert();
+
+        // [WHEN] Prepare Draft is run
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+
+        // [THEN] The VAT Prod. Posting Group is resolved from the matching setup
+        EDocumentPurchaseLine.SetRecFilter();
+        EDocumentPurchaseLine.FindFirst();
+        Assert.AreEqual(VATProductPostingGroup.Code, EDocumentPurchaseLine."[BC] VAT Prod. Posting Group", 'The VAT Prod. Posting Group should be resolved from the matching VAT Posting Setup.');
+
+        // Cleanup
+        Vendor2.SetRecFilter();
+        Vendor2.Delete();
+        VATPostingSetup2.SetRecFilter();
+        VATPostingSetup2.Delete();
+        VATProductPostingGroup.SetRecFilter();
+        VATProductPostingGroup.Delete();
+    end;
+
+    [Test]
+    procedure PreparingPurchaseDraftCreatesNotificationWhenNoMatchingVATSetup()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocumentNotification: Record "E-Document Notification";
+        Vendor2: Record Vendor;
+        CompanyInformation: Record "Company Information";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocImport: Codeunit "E-Doc. Import";
+    begin
+        // [SCENARIO] When a draft line has a VAT Rate but no matching VAT Posting Setup exists, Prepare Draft leaves the field blank and creates a notification
+        Initialize(Enum::"Service Integration"::"Mock");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+
+        // [GIVEN] A vendor with a known VAT Bus. Posting Group
+        CompanyInformation.GetRecordOnce();
+        Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
+        Vendor2."No." := 'EDOC001';
+        Vendor2."VAT Registration No." := 'XXXXXXX001';
+        Vendor2."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+        Vendor2.Insert();
+
+        // [GIVEN] E-Document purchase header and line with VAT Rate = 99 (no matching setup)
+        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader."Vendor VAT Id" := Vendor2."VAT Registration No.";
+        EDocumentPurchaseHeader.Insert();
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine.Description := 'Test VAT mismatch notification';
+        EDocumentPurchaseLine."VAT Rate" := 99;
+        EDocumentPurchaseLine.Insert();
+
+        // [WHEN] Prepare Draft is run
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+
+        // [THEN] The VAT Prod. Posting Group is blank
+        EDocumentPurchaseLine.SetRecFilter();
+        EDocumentPurchaseLine.FindFirst();
+        Assert.AreEqual('', EDocumentPurchaseLine."[BC] VAT Prod. Posting Group", 'The VAT Prod. Posting Group should be blank when no matching VAT Posting Setup exists.');
+
+        // [THEN] A VAT Rate Mismatch notification record exists
+        EDocumentNotification.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentNotification.SetRange(Type, "E-Document Notification Type"::"VAT Rate Mismatch");
+        Assert.IsFalse(EDocumentNotification.IsEmpty(), 'A VAT Rate Mismatch notification should be created when resolution fails.');
+
+        // Cleanup
+        Vendor2.SetRecFilter();
+        Vendor2.Delete();
+        EDocumentNotification.DeleteAll();
     end;
 
     [Test]
