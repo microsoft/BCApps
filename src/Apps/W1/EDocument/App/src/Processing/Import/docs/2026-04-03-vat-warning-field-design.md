@@ -41,7 +41,10 @@ Add an OnValidate trigger that re-evaluates the mismatch by comparing the chosen
 ```al
 field(110; "[BC] VAT Prod. Posting Group"; Code[20])
 {
-    ...
+    Caption = 'VAT Prod. Posting Group';
+    ToolTip = 'Specifies the VAT product posting group resolved from the extracted VAT rate.';
+    TableRelation = "VAT Product Posting Group";
+
     trigger OnValidate()
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
@@ -61,8 +64,25 @@ field(110; "[BC] VAT Prod. Posting Group"; Code[20])
         else
             "[BC] VAT Rate Mismatch" := true;
     end;
+
+    trigger OnLookup()
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        Vendor: Record Vendor;
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        if not EDocumentPurchaseHeader.Get("E-Document Entry No.") then
+            exit;
+        if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+            exit;
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", Vendor."VAT Bus. Posting Group");
+        if Page.RunModal(Page::"VAT Posting Setup", VATPostingSetup) = Action::LookupOK then
+            Validate("[BC] VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+    end;
 }
 ```
+
+The `TableRelation` provides basic validation and standard lookup. The `OnLookup` trigger overrides the default lookup to open the VAT Posting Setup page filtered by the vendor's VAT Bus. Posting Group, so the user only sees relevant posting groups. When the user selects a row, it calls `Validate` which runs the `OnValidate` trigger above, re-evaluating the mismatch.
 
 This means:
 - If the user clears the posting group, the mismatch flag is set.
