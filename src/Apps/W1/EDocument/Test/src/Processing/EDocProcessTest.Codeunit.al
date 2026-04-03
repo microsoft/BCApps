@@ -587,7 +587,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         PurchaseInvoiceLine: Record "Purch. Inv. Line";
         EDocument: Record "E-Document";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         EDocPurchLineField: Record "E-Document Line - Field";
         EDocPurchaseLine: Record "E-Document Purchase Line";
@@ -604,9 +604,9 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup.Insert();
 
         // [GIVEN] An inbound e-document is received and a draft created
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
         WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The draft for the e-document should be created');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] A value that does not exist as a Location Code
         EDocPurchLineField."E-Document Entry No." := EDocument."Entry No";
@@ -618,8 +618,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineField.Insert();
 
         // [WHEN] Finalizing the draft
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams);
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
 
         // [THEN] The e-document should have an error
         EDocument.Get(EDocument."Entry No");
@@ -644,7 +644,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         PurchaseInvoiceLine: Record "Purch. Inv. Line";
         EDocument: Record "E-Document";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         EDocPurchLineField: Record "E-Document Line - Field";
         EDocPurchaseLine: Record "E-Document Purchase Line";
@@ -662,9 +662,9 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup.Insert();
 
         // [GIVEN] An inbound e-document is received and a draft created
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
         WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The draft for the e-document should be created');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] A value that exceeds the target field length (Code[10])
         FieldValue := 'LONGLOCCODE1'; // 12 characters, exceeds Code[10]
@@ -677,8 +677,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineField.Insert();
 
         // [WHEN] Finalizing the draft
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams);
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
 
         // [THEN] The e-document should have an error
         EDocument.Get(EDocument."Entry No");
@@ -700,7 +700,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure StandardFieldValidationFailureEnrichesErrorMessage()
     var
         EDocument: Record "E-Document";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         PurchaseHeader: Record "Purchase Header";
         ErrorMessage: Record "Error Message";
@@ -712,9 +712,9 @@ codeunit 139883 "E-Doc Process Test"
         Initialize(Enum::"Service Integration"::"Mock");
 
         // [GIVEN] An inbound e-document is received and a draft created
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
         WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The draft for the e-document should be created');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] The draft has an invalid currency code
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
@@ -722,8 +722,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader.Modify();
 
         // [WHEN] Finalizing the draft
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams);
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
 
         // [THEN] The e-document should have an error
         EDocument.Get(EDocument."Entry No");
@@ -746,7 +746,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         PurchaseInvoiceLine: Record "Purch. Inv. Line";
         EDocument: Record "E-Document";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         EDocPurchLineField: Record "E-Document Line - Field";
         EDocPurchaseLine: Record "E-Document Purchase Line";
@@ -768,9 +768,9 @@ codeunit 139883 "E-Doc Process Test"
         if Location.Insert() then;
 
         // [GIVEN] An inbound e-document is received and a draft created
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
         WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The draft for the e-document should be created');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] The additional field has a valid value
         EDocPurchLineField."E-Document Entry No." := EDocument."Entry No";
@@ -782,8 +782,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineField.Insert();
 
         // [WHEN] Finalizing the draft
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        Assert.IsTrue(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams), 'The finalization should succeed');
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams), 'The finalization should succeed');
 
         // [THEN] The e-document should have no errors
         EDocument.Get(EDocument."Entry No");
@@ -804,7 +804,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         PurchaseInvoiceLine: Record "Purch. Inv. Line";
         EDocument: Record "E-Document";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
         PurchaseHeader: Record "Purchase Header";
         EDocPurchLineField: Record "E-Document Line - Field";
         EDocPurchaseLine: Record "E-Document Purchase Line";
@@ -829,9 +829,9 @@ codeunit 139883 "E-Doc Process Test"
         if Location.Insert() then;
 
         // [GIVEN] An inbound e-document is received and a draft created
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
         WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The draft for the e-document should be created');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] First field (Location Code) has a valid value, second field (Bin Code) has an invalid value
         EDocPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -851,8 +851,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineField.Insert();
 
         // [WHEN] Finalizing the draft
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams);
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
 
         // [THEN] The e-document should have an error
         EDocument.Get(EDocument."Entry No");
@@ -874,7 +874,7 @@ codeunit 139883 "E-Doc Process Test"
     procedure NoAdditionalFieldsStandardFieldFailureStillEnriched()
     var
         EDocument: Record "E-Document";
-        EDocImportParams: Record "E-Doc. Import Parameters";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         PurchaseHeader: Record "Purchase Header";
         ErrorMessage: Record "Error Message";
@@ -886,9 +886,9 @@ codeunit 139883 "E-Doc Process Test"
         Initialize(Enum::"Service Integration"::"Mock");
 
         // [GIVEN] An inbound e-document is received and a draft created (no additional fields configured)
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
         WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The draft for the e-document should be created');
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] The draft has an invalid currency code
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
@@ -896,8 +896,8 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader.Modify();
 
         // [WHEN] Finalizing the draft
-        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams);
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
 
         // [THEN] The e-document should have an error
         EDocument.Get(EDocument."Entry No");
