@@ -36,21 +36,46 @@ field(111; "[BC] VAT Rate Mismatch"; Boolean)
 
 **File:** `EDocumentPurchaseLine.Table.al` — field 110 (`[BC] VAT Prod. Posting Group`)
 
-Add an OnValidate trigger that clears the mismatch flag when the user sets a posting group:
+Add an OnValidate trigger that re-evaluates the mismatch by comparing the chosen posting group's VAT % against the extracted VAT rate on the line:
 
 ```al
 field(110; "[BC] VAT Prod. Posting Group"; Code[20])
 {
     ...
     trigger OnValidate()
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        Vendor: Record Vendor;
+        VATPostingSetup: Record "VAT Posting Setup";
+        RoundingTolerance: Decimal;
     begin
-        if "[BC] VAT Prod. Posting Group" <> '' then
+        if "VAT Rate" = 0 then begin
             "[BC] VAT Rate Mismatch" := false;
+            exit;
+        end;
+        if "[BC] VAT Prod. Posting Group" = '' then begin
+            "[BC] VAT Rate Mismatch" := true;
+            exit;
+        end;
+        if not EDocumentPurchaseHeader.Get("E-Document Entry No.") then
+            exit;
+        if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+            exit;
+        RoundingTolerance := 0.01;
+        if VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", "[BC] VAT Prod. Posting Group") then
+            "[BC] VAT Rate Mismatch" :=
+                (VATPostingSetup."VAT %" < "VAT Rate" - RoundingTolerance) or
+                (VATPostingSetup."VAT %" > "VAT Rate" + RoundingTolerance)
+        else
+            "[BC] VAT Rate Mismatch" := true;
     end;
 }
 ```
 
-This ensures that when the user manually picks a VAT Prod. Posting Group on the draft subform, the warning disappears on the next page refresh.
+This means:
+- If the line has no extracted VAT rate, there is no mismatch (nothing to compare against).
+- If the user clears the posting group while a VAT rate exists, the mismatch flag is set.
+- If the user picks a posting group, the trigger looks up the VAT Posting Setup for the vendor's VAT Bus. Posting Group + the chosen VAT Prod. Posting Group, compares `VAT %` to the line's `"VAT Rate"` with rounding tolerance, and sets the mismatch flag accordingly. Only a matching rate clears the warning.
 
 ### 3. Set the Flag in Prepare Draft
 
