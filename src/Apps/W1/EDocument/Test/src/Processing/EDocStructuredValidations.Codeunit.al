@@ -56,7 +56,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual('A123', EDocumentPurchaseLine."Product Code", 'The product code in the purchase line does not allign with the mock data.');
         Assert.AreEqual('hours', EDocumentPurchaseLine."Unit of Measure", 'The unit of measure in the purchase line does not allign with the mock data.');
         Assert.AreEqual(DMY2Date(4, 3, 2021), EDocumentPurchaseLine.Date, 'The date in the purchase line does not allign with the mock data.');
-        Assert.AreEqual(6, EDocumentPurchaseLine."VAT Rate", 'The amount in the purchase line does not allign with the mock data.');
+        Assert.AreEqual(10, EDocumentPurchaseLine."VAT Rate", 'The VAT rate in the purchase line does not match the expected percentage.');
 
         EDocumentPurchaseLine.Next();
         Assert.AreEqual(30, EDocumentPurchaseLine."Sub Total", 'The amount in the purchase line does not allign with the mock data.');
@@ -67,7 +67,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual('B456', EDocumentPurchaseLine."Product Code", 'The product code in the purchase line does not allign with the mock data.');
         Assert.AreEqual('', EDocumentPurchaseLine."Unit of Measure", 'The unit of measure in the purchase line does not allign with the mock data.');
         Assert.AreEqual(DMY2Date(5, 3, 2021), EDocumentPurchaseLine.Date, 'The date in the purchase line does not allign with the mock data.');
-        Assert.AreEqual(3, EDocumentPurchaseLine."VAT Rate", 'The amount in the purchase line does not allign with the mock data.');
+        Assert.AreEqual(10, EDocumentPurchaseLine."VAT Rate", 'The VAT rate in the purchase line does not match the expected percentage.');
 
         EDocumentPurchaseLine.Next();
         Assert.AreEqual(10, EDocumentPurchaseLine."Sub Total", 'The amount does not allign with the mock data.');
@@ -77,7 +77,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual('C789', EDocumentPurchaseLine."Product Code", 'The product code does not allign with the mock data.');
         Assert.AreEqual('pages', EDocumentPurchaseLine."Unit of Measure", 'The unit of measure does not allign with the mock data.');
         Assert.AreEqual(DMY2Date(6, 3, 2021), EDocumentPurchaseLine.Date, 'The date does not allign with the mock data.');
-        Assert.AreEqual(1, EDocumentPurchaseLine."VAT Rate", 'The amount does not allign with the mock data.');
+        Assert.AreEqual(10, EDocumentPurchaseLine."VAT Rate", 'The VAT rate in the purchase line does not match the expected percentage.');
     end;
 
     internal procedure AssertMinimalCAPIDocumentParsed(EDocumentEntryNo: Integer)

@@ -182,9 +182,60 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
         EDocumentJsonHelper.SetStringValueInField('productCode', MaxStrLen(TempEDocPurchaseLine."Product Code"), FieldsJsonObject, TempEDocPurchaseLine."Product Code");
         EDocumentJsonHelper.SetStringValueInField('unit', MaxStrLen(TempEDocPurchaseLine."Unit of Measure"), FieldsJsonObject, TempEDocPurchaseLine."Unit of Measure");
         EDocumentJsonHelper.SetDateValueInField('date', FieldsJsonObject, TempEDocPurchaseLine.Date);
-        EDocumentJsonHelper.SetCurrencyValueInField('tax', FieldsJsonObject, TempEDocPurchaseLine."VAT Rate", TempEDocPurchaseLine."Currency Code");
+        ResolveVATRateFromADI(FieldsJsonObject, TempEDocPurchaseLine);
         if TempEDocPurchaseLine."Unit Price" <> 0 then
             TempEDocPurchaseLine."Total Discount" := (TempEDocPurchaseLine."Unit Price" * TempEDocPurchaseLine.Quantity) - TempEDocPurchaseLine."Sub Total";
+    end;
+
+    local procedure ResolveVATRateFromADI(FieldsJsonObject: JsonObject; var TempEDocPurchaseLine: Record "E-Document Purchase Line" temporary)
+    var
+        TaxRateText: Text;
+        TaxAmount: Decimal;
+        TaxValueText: Text;
+        ParsedRate: Decimal;
+        UnusedCurrencyCode: Code[10];
+    begin
+        // 1. Prefer TaxRate (string) — unambiguous percentage field from ADI
+        EDocumentJsonHelper.SetStringValueInField('taxRate', MaxStrLen(TaxRateText), FieldsJsonObject, TaxRateText);
+        if TaxRateText <> '' then begin
+            ParsedRate := ParsePercentageFromText(TaxRateText);
+            if ParsedRate >= 0 then begin
+                TempEDocPurchaseLine."VAT Rate" := ParsedRate;
+                exit;
+            end;
+        end;
+
+        // 2. Fallback to Tax field — but it's ambiguous (can be amount, %, or Y/N)
+        EDocumentJsonHelper.SetCurrencyValueInField('tax', FieldsJsonObject, TaxAmount, UnusedCurrencyCode);
+        if TaxAmount = 0 then
+            exit;
+
+        // Check value_text to disambiguate
+        EDocumentJsonHelper.SetStringValueInField('tax', MaxStrLen(TaxValueText), FieldsJsonObject, TaxValueText);
+        if TaxValueText.Contains('%') then
+            // Tax field contains a percentage (e.g., "20%")
+            TempEDocPurchaseLine."VAT Rate" := TaxAmount
+        else
+            // Tax field contains a monetary amount (e.g., "$6.00") — compute percentage
+            if TempEDocPurchaseLine."Sub Total" > 0 then
+                TempEDocPurchaseLine."VAT Rate" := Round((TaxAmount / TempEDocPurchaseLine."Sub Total") * 100, 0.01);
+    end;
+
+    local procedure ParsePercentageFromText(TaxRateText: Text): Decimal
+    var
+        CleanedText: Text;
+        ParsedValue: Decimal;
+    begin
+        // Strip common non-numeric prefixes/suffixes: "VAT 20%", "20%", "20.0%", "20"
+        CleanedText := TaxRateText.Replace('%', '').Trim();
+        // Remove common prefixes like "VAT ", "Tax ", etc.
+        if CleanedText.StartsWith('VAT ') then
+            CleanedText := CopyStr(CleanedText, 5).Trim();
+        if CleanedText.StartsWith('Tax ') then
+            CleanedText := CopyStr(CleanedText, 5).Trim();
+        if Evaluate(ParsedValue, CleanedText) then
+            exit(ParsedValue);
+        exit(-1); // Signal parse failure
     end;
 #pragma warning restore AA0139
 }
