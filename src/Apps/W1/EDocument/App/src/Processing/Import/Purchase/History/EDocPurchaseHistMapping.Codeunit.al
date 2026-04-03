@@ -210,9 +210,9 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
     /// <param name="PurchaseLine"></param>
     procedure ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var PurchaseLine: Record "Purchase Line")
     var
-        EDocImportContext: Codeunit "E-Doc. Import Context";
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         EDocPurchLineField: Record "E-Document Line - Field";
+        EDocImportContext: Codeunit "E-Doc. Import Context";
         NewPurchLineRecordRef: RecordRef;
         NewPurchLineFieldRef: FieldRef;
         FieldValue: Variant;
