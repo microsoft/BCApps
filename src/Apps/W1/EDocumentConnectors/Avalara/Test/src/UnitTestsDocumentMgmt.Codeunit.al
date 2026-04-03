@@ -318,6 +318,7 @@ codeunit 133635 "Unit Tests - Document Mgmt"
         end;
         Response.Content.WriteFrom(GetMockDocumentsJson(2));
         Response.HttpStatusCode := 200;
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -330,6 +331,7 @@ codeunit 133635 "Unit Tests - Document Mgmt"
         end;
         Response.Content.WriteFrom('<?xml version="1.0"?><Invoice></Invoice>');
         Response.HttpStatusCode := 200;
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -345,6 +347,7 @@ codeunit 133635 "Unit Tests - Document Mgmt"
         StatusJson := '{"id":"test-doc-id-123","status":"Complete","events":[]}';
         Response.Content.WriteFrom(StatusJson);
         Response.HttpStatusCode := 200;
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -357,6 +360,7 @@ codeunit 133635 "Unit Tests - Document Mgmt"
         end;
         Response.Content.WriteFrom(GetMockDocumentsJson(1));
         Response.HttpStatusCode := 200;
+        exit(true);
     end;
 
     local procedure GetMockAuthTokenJson(): Text

@@ -195,11 +195,17 @@ codeunit 133628 "Unit Tests - Authentication"
             ConnectionSetup.Get();
         end;
 
-        // Clear any existing credentials
+        // Clear any existing credentials from IsolatedStorage and reset key GUIDs
         if not IsNullGuid(ConnectionSetup."Client Id - Key") then
-            IsolatedStorage.Delete(ConnectionSetup."Client Id - Key", DataScope::Company);
+            if IsolatedStorage.Contains(ConnectionSetup."Client Id - Key", DataScope::Company) then
+                IsolatedStorage.Delete(ConnectionSetup."Client Id - Key", DataScope::Company);
         if not IsNullGuid(ConnectionSetup."Client Secret - Key") then
-            IsolatedStorage.Delete(ConnectionSetup."Client Secret - Key", DataScope::Company);
+            if IsolatedStorage.Contains(ConnectionSetup."Client Secret - Key", DataScope::Company) then
+                IsolatedStorage.Delete(ConnectionSetup."Client Secret - Key", DataScope::Company);
+
+        Clear(ConnectionSetup."Client Id - Key");
+        Clear(ConnectionSetup."Client Secret - Key");
+        ConnectionSetup.Modify();
 
         // [WHEN] Checking if credentials are set
         // [THEN] Should return false
@@ -229,7 +235,19 @@ codeunit 133628 "Unit Tests - Authentication"
     end;
 
     local procedure Initialize()
+    var
+        ConnectionSetup: Record "Connection Setup";
     begin
+        // Clear cached token to ensure each test starts fresh
+        if ConnectionSetup.Get() then
+            if not IsNullGuid(ConnectionSetup."Token - Key") then begin
+                if IsolatedStorage.Contains(ConnectionSetup."Token - Key", DataScope::Company) then
+                    IsolatedStorage.Delete(ConnectionSetup."Token - Key", DataScope::Company);
+                ConnectionSetup."Token - Key" := CreateGuid();
+                ConnectionSetup."Token Expiry" := 0DT;
+                ConnectionSetup.Modify();
+            end;
+
         if IsInitialized then
             exit;
 
@@ -261,6 +279,7 @@ codeunit 133628 "Unit Tests - Authentication"
         ResponseText := '{"access_token":"mock-access-token-12345","token_type":"Bearer","expires_in":3600}';
         Response.Content.WriteFrom(ResponseText);
         Response.HttpStatusCode := 200;
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -271,5 +290,6 @@ codeunit 133628 "Unit Tests - Authentication"
         ResponseText := '{"error":"invalid_client","error_description":"Invalid client credentials"}';
         Response.Content.WriteFrom(ResponseText);
         Response.HttpStatusCode := 401;
+        exit(true);
     end;
 }

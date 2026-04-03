@@ -274,6 +274,7 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
             Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents'):
                 LoadResourceIntoHttpResponse(SubmitDocumentFileTok, Response);
         end;
+        exit(true);
     end;
 
     local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)

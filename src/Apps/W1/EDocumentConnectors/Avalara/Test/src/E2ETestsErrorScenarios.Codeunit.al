@@ -292,6 +292,7 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     begin
         Response.HttpStatusCode := 408; // Request Timeout
         Response.Content.WriteFrom('{"error":"Request timeout"}');
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -299,6 +300,7 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     begin
         Response.HttpStatusCode := 400;
         Response.Content.WriteFrom('{"error":"validation_failed","details":["Invalid VAT number","Missing required field: Customer Name"]}');
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -306,6 +308,7 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     begin
         Response.HttpStatusCode := 401;
         Response.Content.WriteFrom('{"error":"unauthorized","error_description":"Invalid credentials"}');
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -313,6 +316,7 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     begin
         Response.HttpStatusCode := 429;
         Response.Content.WriteFrom('{"error":"rate_limit_exceeded","retry_after":60}');
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -320,6 +324,7 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     begin
         Response.HttpStatusCode := 200;
         Response.Content.WriteFrom('{this is not valid json]');
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -327,6 +332,7 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     begin
         Response.HttpStatusCode := 200;
         Response.Content.WriteFrom('');
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -334,6 +340,7 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     begin
         Response.HttpStatusCode := 404;
         Response.Content.WriteFrom('{"error":"not_found","message":"Document not found"}');
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -341,6 +348,7 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     begin
         Response.HttpStatusCode := 400;
         Response.Content.WriteFrom('{"error":"invalid_mandate","message":"Mandate INVALID-MANDATE not found"}');
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -350,6 +358,7 @@ codeunit 133625 "E2E Tests - Error Scenarios"
         // This simulates temporary server issues
         Response.HttpStatusCode := 500;
         Response.Content.WriteFrom('{"error":"internal_server_error"}');
+        exit(true);
     end;
 
     [HttpClientHandler]
@@ -363,6 +372,7 @@ codeunit 133625 "E2E Tests - Error Scenarios"
         else
             if Request.Path.Contains('/einvoicing/documents') then
                 LoadResourceIntoHttpResponse(SubmitDocumentFileTok, Response);
+        exit(true);
     end;
 
     local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)

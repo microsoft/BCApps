@@ -721,6 +721,7 @@ codeunit 133626 "Integration Tests"
                     Response.HttpStatusCode := 200;
                 end;
         end;
+        exit(true);
     end;
 
     local procedure TearDown()
@@ -744,6 +745,7 @@ codeunit 133626 "Integration Tests"
     begin
         LoadResourceIntoHttpResponse(Http500FileTok, Response);
         Response.HttpStatusCode := 500;
+        exit(true);
     end;
 
     local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)

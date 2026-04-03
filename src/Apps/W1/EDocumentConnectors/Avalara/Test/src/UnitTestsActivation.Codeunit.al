@@ -14,6 +14,7 @@ codeunit 133627 "Unit Tests - Activation"
         IsInitialized: Boolean;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestPopulateFromJson_ValidJson_PopulatesHeaders()
     var
         ActivationHeader: Record "Activation Header";
@@ -37,6 +38,7 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestPopulateFromJson_ValidJson_PopulatesMandates()
     var
         ActivationMandate: Record "Activation Mandate";
@@ -138,6 +140,7 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestClearExistingData_RemovesAllRecords()
     var
         ActivationHeader: Record "Activation Header";
@@ -165,6 +168,7 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestActivationHeader_ParsesAllFields()
     var
         ActivationHeader: Record "Activation Header";
@@ -190,6 +194,7 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestActivationMandate_LinkedToHeader()
     var
         ActivationHeader: Record "Activation Header";
@@ -216,6 +221,7 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestActivationStatus_Completed_SetsCorrectly()
     var
         ActivationMandate: Record "Activation Mandate";
@@ -240,6 +246,7 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestActivation_WithMultipleMandates_CreatesAll()
     var
         ActivationMandate: Record "Activation Mandate";
@@ -265,6 +272,7 @@ codeunit 133627 "Unit Tests - Activation"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure TestActivation_CompanyIdMatching()
     var
         ActivationHeader: Record "Activation Header";
@@ -304,11 +312,11 @@ codeunit 133627 "Unit Tests - Activation"
         ActivationHeader: Record "Activation Header";
         ActivationMandate: Record "Activation Mandate";
     begin
-        if not ActivationHeader.IsEmpty() then
-            ActivationHeader.DeleteAll(true);
-
         if not ActivationMandate.IsEmpty() then
-            ActivationMandate.DeleteAll(true);
+            ActivationMandate.DeleteAll(false);
+
+        if not ActivationHeader.IsEmpty() then
+            ActivationHeader.DeleteAll(false);
     end;
 
     local procedure GetValidActivationJson(): Text
@@ -334,13 +342,20 @@ codeunit 133627 "Unit Tests - Activation"
     local procedure CreateConnectionSetupWithCompanyId(CompanyId: Text)
     var
         ConnectionSetup: Record "Connection Setup";
+        AvalaraAuth: Codeunit Authenticator;
     begin
         if not ConnectionSetup.Get() then begin
-            ConnectionSetup.Init();
-            ConnectionSetup.Insert();
+            AvalaraAuth.CreateConnectionSetupRecord();
+            ConnectionSetup.Get();
         end;
 
         ConnectionSetup."Company Id" := CopyStr(CompanyId, 1, MaxStrLen(ConnectionSetup."Company Id"));
         ConnectionSetup.Modify();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmYesHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 }
