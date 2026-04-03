@@ -37,6 +37,8 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         PurchaseLine."Variant Code" := EDocumentPurchaseLine."[BC] Variant Code";
         PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";
         PurchaseLine.Validate("No.", EDocumentPurchaseLine."[BC] Purchase Type No.");
+        if EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" <> '' then
+            PurchaseLine.Validate("VAT Prod. Posting Group", EDocumentPurchaseLine."[BC] VAT Prod. Posting Group");
         if (PurchaseLine.Type = PurchaseLine.Type::"G/L Account") and HasTotalDiscount then
             PurchaseLine.Validate("Allow Invoice Disc.", true);
         PurchaseLine.Description := EDocumentPurchaseLine.Description;
