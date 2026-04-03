@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Foundation.UOM;
 using Microsoft.Purchases.Document;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Purchases.Vendor;
 using System.Log;
 
@@ -72,6 +73,9 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
                     IPurchaseLineProvider.GetPurchaseLine(EDocumentPurchaseLine);
                     EDocumentPurchaseLine.Modify();
                 until EDocumentPurchaseLine.Next() = 0;
+
+            // Resolve VAT Product Posting Groups from extracted VAT rates
+            ResolveVATProductPostingGroups(EDocument."Entry No", EDocumentPurchaseHeader);
 
             // Apply all Copilot-powered matching techniques to the lines
             CopilotLineMatching(EDocument."Entry No");
@@ -179,5 +183,67 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     begin
         IVendorProvider := Customizations;
         Vendor := IVendorProvider.GetVendor(EDocument);
+    end;
+
+    local procedure ResolveVATProductPostingGroups(EDocumentEntryNo: Integer; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Vendor: Record Vendor;
+        EDocumentNotification: Codeunit "E-Document Notification";
+        VATBusPostingGroup: Code[20];
+        VATRate: Decimal;
+        LineCount: Integer;
+        HasUnresolvedVATLines: Boolean;
+    begin
+        if EDocumentPurchaseHeader."[BC] Vendor No." = '' then
+            exit;
+        if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+            exit;
+        VATBusPostingGroup := Vendor."VAT Bus. Posting Group";
+        if VATBusPostingGroup = '' then
+            exit;
+
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        LineCount := EDocumentPurchaseLine.Count();
+        if LineCount = 0 then
+            exit;
+
+        if EDocumentPurchaseLine.FindSet() then
+            repeat
+                VATRate := EDocumentPurchaseLine."VAT Rate";
+
+                // Single-line fallback: compute from header Total VAT
+                if (VATRate = 0) and (LineCount = 1) and
+                   (EDocumentPurchaseHeader."Total VAT" > 0) and (EDocumentPurchaseHeader."Sub Total" > 0)
+                then
+                    VATRate := Round((EDocumentPurchaseHeader."Total VAT" / EDocumentPurchaseHeader."Sub Total") * 100, 0.01);
+
+                if VATRate > 0 then begin
+                    EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" :=
+                        FindVATProductPostingGroup(VATBusPostingGroup, VATRate);
+                    if EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" = '' then
+                        HasUnresolvedVATLines := true;
+                    EDocumentPurchaseLine.Modify();
+                end;
+            until EDocumentPurchaseLine.Next() = 0;
+
+        if HasUnresolvedVATLines then
+            EDocumentNotification.AddVATRateMismatchNotification(EDocumentEntryNo);
+    end;
+
+    local procedure FindVATProductPostingGroup(VATBusPostingGroup: Code[20]; VATRate: Decimal): Code[20]
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        RoundingTolerance: Decimal;
+    begin
+        RoundingTolerance := 0.01;
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
+        VATPostingSetup.SetFilter("VAT %", '>=%1&<=%2', VATRate - RoundingTolerance, VATRate + RoundingTolerance);
+        if VATPostingSetup.Count() = 1 then begin
+            VATPostingSetup.FindFirst();
+            exit(VATPostingSetup."VAT Prod. Posting Group");
+        end;
+        // Zero or multiple matches — return blank to signal resolution failure
+        exit('');
     end;
 }
