@@ -7,21 +7,25 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 using Microsoft.EServices.EDocumentConnector.Avalara.Models;
 using System.Reflection;
 
-
 /// <summary>
 /// Construct meta data object for Avalara request
 /// </summary>
 codeunit 6376 Requests
 {
-
     Access = Internal;
     Permissions = tabledata "Connection Setup" = r;
 
     var
         AvalaraAuth: Codeunit "Authenticator";
         HttpRequestMessage: HttpRequestMessage;
-        BaseUrl, AuthUrl, DataBoundary, ApiVersion, AvalaraClient : Text;
+        ApiVersionELRTok: Label '1.4', Locked = true;
+        ApiVersionORLTok: Label '1.0', Locked = true;
+        ApiVersionSCSTok: Label '1.0', Locked = true;
+        AvalaraClientTok: Label 'a0nUz00000YrkE1IAJ', Locked = true;
         AccessToken: SecretText;
+        AuthUrl,
+        BaseUrl,
+        DataBoundary : Text;
 
     /// <summary>
     /// Create request for /einvoicing/documents API
@@ -32,7 +36,8 @@ codeunit 6376 Requests
     /// <returns>A request object that can be used for the endpoint.</returns>
     procedure CreateSubmitDocumentRequest(var Metadata: Codeunit Metadata; Data: Text): Codeunit Requests
     var
-        HttpHeaders, HttpContentHeaders : HttpHeaders;
+        HttpContentHeaders,
+        HttpHeaders : HttpHeaders;
         MultiPartContent: TextBuilder;
     begin
         Clear(this.HttpRequestMessage);
@@ -41,8 +46,8 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         MultiPartContent.AppendLine('--' + this.DataBoundary);
         MultiPartContent.AppendLine('Content-Disposition: form-data; name="metadata"');
@@ -79,8 +84,52 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
+
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Create request for /einvoicing/documents/ API
+    /// https://developer.avalara.com/api-reference/e-invoicing/einvoice/methods/Documents
+    /// </summary>
+    /// <returns>A request object that can be used for the endpoint.</returns>
+    procedure CreateGetDocumentListRequest(): Codeunit Requests
+    var
+        HttpHeaders: HttpHeaders;
+    begin
+        Clear(this.HttpRequestMessage);
+        this.HttpRequestMessage.SetRequestUri(this.BaseUrl + '/einvoicing/documents');
+        this.HttpRequestMessage.Method := 'GET';
+
+        this.HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
+
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Create request for /orl/registrations
+    /// </summary>
+    /// <returns>A request object that can be used for the endpoint.</returns>
+    procedure CreateGetRegistrationsRequest(var AvalaraCompany: Record "Avalara Company" temporary): Codeunit Requests
+    var
+        HttpHeaders: HttpHeaders;
+        CompanyID: Text;
+    begin
+        CompanyID := AvalaraCompany."Company Id";
+
+        Clear(this.HttpRequestMessage);
+        this.HttpRequestMessage.SetRequestUri(this.BaseUrl + '/orl/registrations/' + CompanyID);
+        this.HttpRequestMessage.Method := 'GET';
+
+        this.HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
+        HttpHeaders.Add('avalara-version', this.ApiVersionORLTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
     end;
@@ -100,15 +149,15 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionSCSTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
     end;
 
     /// <summary>
     /// Create request for /einvoicing/documents
-    /// Takes a path as query parameters are computed for each request. 
+    /// Takes a path as query parameters are computed for each request.
     /// https://developer.avalara.com/api-reference/e-invoicing/einvoice/methods/Documents/GetDocumentList/
     /// </summary>
     /// <returns>A request object that can be used for the endpoint.</returns>
@@ -122,8 +171,8 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
     end;
@@ -144,10 +193,35 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
         HttpHeaders.Add('Accept', 'application/vnd.oasis.ubl+xml');
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Create request for /einvoicing/documents/$id/$download with over-ride of Accept Header for other media types
+    /// https://developer.avalara.com/api-reference/e-invoicing/einvoice/methods/Documents/DownloadDocument/
+    /// </summary>
+    /// <param name="Id">Document Id</param>
+    /// <returns>A request object that can be used for the endpoint.</returns>
+
+    procedure CreateDownloadRequest(Id: Text; AcceptOverride: Text): Codeunit Requests
+    var
+        HttpHeaders: HttpHeaders;
+    begin
+        Clear(this.HttpRequestMessage);
+        this.HttpRequestMessage.SetRequestUri(this.BaseUrl + '/einvoicing/documents/' + Id + '/$download');
+        this.HttpRequestMessage.Method := 'GET';
+
+        this.HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        if AcceptOverride = '' then
+            AcceptOverride := 'application/pdf';
+        HttpHeaders.Add('Accept', AcceptOverride);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
         exit(this);
     end;
 
@@ -166,11 +240,46 @@ codeunit 6376 Requests
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
-        HttpHeaders.Add('avalara-version', this.ApiVersion);
-        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClient);
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
 
         exit(this);
+    end;
 
+    procedure CreateGetMandates(Mandate: Text): Codeunit Requests
+    var
+        HttpHeaders: HttpHeaders;
+        ReqStr: Text;
+    begin
+        Clear(this.HttpRequestMessage);
+        ReqStr := '/einvoicing/mandates?$filter=countryMandate eq ' + Mandate;
+        this.HttpRequestMessage.SetRequestUri(this.BaseUrl + ReqStr);
+        this.HttpRequestMessage.Method := 'GET';
+
+        this.HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
+        exit(this);
+    end;
+
+    procedure CreateGetFields(MandateStr: Text; documentType: Text; documentVersion: Text): Codeunit Requests
+    var
+        HttpHeaders: HttpHeaders;
+        ReqStr: Text;
+    begin
+        Clear(this.HttpRequestMessage);
+
+        ReqStr := '/einvoicing/mandates/' + MandateStr + '/data-input-fields?documentType=' + documentType + '&documentVersion=' + documentVersion;
+
+        this.HttpRequestMessage.SetRequestUri(this.BaseUrl + ReqStr);
+        this.HttpRequestMessage.Method := 'GET';
+        this.HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Authorization', AddBearer(this.AccessToken));
+        HttpHeaders.Add('avalara-version', this.ApiVersionELRTok);
+        HttpHeaders.Add('X-Avalara-Client', this.AvalaraClientTok);
+
+        exit(this);
     end;
 
     /// <summary>
@@ -210,9 +319,6 @@ codeunit 6376 Requests
         this.AuthUrl := GetAuthUrl();
         this.DataBoundary := CreateGuid();
         this.DataBoundary := DelChr(this.DataBoundary, '<>=', '{}&[]*()!@#$%^+=;:"''<>,.?/|\\~`');
-
-        this.ApiVersion := '1.0';
-        this.AvalaraClient := 'a0nUz00000MVekTIAT';
     end;
 
     /// <summary>
@@ -235,15 +341,16 @@ codeunit 6376 Requests
     procedure GetBaseUrl(): Text
     var
         ConnectionSetup: Record "Connection Setup";
-        Authenticator: Codeunit "Authenticator";
     begin
         ConnectionSetup.Get();
 
         case ConnectionSetup."Avalara Send Mode" of
             "Avalara Send Mode"::Production:
-                exit(Authenticator.GetAPIURL());
+
+                exit(ConnectionSetup."API URL");
             "Avalara Send Mode"::Test:
-                exit(Authenticator.GetSandboxAPIURL());
+
+                exit(ConnectionSetup."Sandbox API URL");
             else
                 Error('Unsupported %1 in %2', ConnectionSetup.FieldCaption("Avalara Send Mode"), ConnectionSetup.TableCaption);
         end;
@@ -252,18 +359,17 @@ codeunit 6376 Requests
     local procedure GetAuthUrl(): Text
     var
         ConnectionSetup: Record "Connection Setup";
-        Authenticator: Codeunit "Authenticator";
     begin
         ConnectionSetup.Get();
 
         case ConnectionSetup."Avalara Send Mode" of
             "Avalara Send Mode"::Production:
-                exit(Authenticator.GetAuthURL());
+                exit(ConnectionSetup."Authentication URL");
             "Avalara Send Mode"::Test:
-                exit(Authenticator.GetSandboxAuthURL());
+                exit(ConnectionSetup."Sandbox Authentication URL");
+
             else
                 Error('Unsupported %1 in %2', ConnectionSetup.FieldCaption("Avalara Send Mode"), ConnectionSetup.TableCaption);
         end;
     end;
-
 }

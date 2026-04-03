@@ -12,6 +12,7 @@ tableextension 6370 "E-Doc. Service" extends "E-Document Service"
     {
         field(6360; "Avalara Mandate"; Code[50])
         {
+            Caption = 'Avalara Mandate';
             DataClassification = SystemMetadata;
             Editable = false;
         }

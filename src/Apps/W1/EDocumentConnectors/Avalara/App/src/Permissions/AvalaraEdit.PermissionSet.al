@@ -8,8 +8,15 @@ permissionset 6373 "Avalara Edit"
 {
     Access = Public;
     Assignable = true;
+    Caption = 'Avalara E-Doc. - Edit', MaxLength = 30;
     IncludedPermissionSets = "Avalara Read";
-    Caption = 'Avalara E-Document Connector - Edit';
 
-    Permissions = tabledata "Connection Setup" = imd;
+    Permissions =
+                tabledata "Activation Header" = imd,
+                tabledata "Activation Mandate" = imd,
+                tabledata "Avalara Input Field" = imd,
+                tabledata "Connection Setup" = imd,
+                tabledata "Media Types" = imd,
+                tabledata "Message Event" = imd,
+                tabledata "Message Response Header" = imd;
 }
