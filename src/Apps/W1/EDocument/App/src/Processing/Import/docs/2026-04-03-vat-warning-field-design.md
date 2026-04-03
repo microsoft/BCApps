@@ -47,12 +47,7 @@ field(110; "[BC] VAT Prod. Posting Group"; Code[20])
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         Vendor: Record Vendor;
         VATPostingSetup: Record "VAT Posting Setup";
-        RoundingTolerance: Decimal;
     begin
-        if "VAT Rate" = 0 then begin
-            "[BC] VAT Rate Mismatch" := false;
-            exit;
-        end;
         if "[BC] VAT Prod. Posting Group" = '' then begin
             "[BC] VAT Rate Mismatch" := true;
             exit;
@@ -61,11 +56,8 @@ field(110; "[BC] VAT Prod. Posting Group"; Code[20])
             exit;
         if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
             exit;
-        RoundingTolerance := 0.01;
         if VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", "[BC] VAT Prod. Posting Group") then
-            "[BC] VAT Rate Mismatch" :=
-                (VATPostingSetup."VAT %" < "VAT Rate" - RoundingTolerance) or
-                (VATPostingSetup."VAT %" > "VAT Rate" + RoundingTolerance)
+            "[BC] VAT Rate Mismatch" := VATPostingSetup."VAT %" <> "VAT Rate"
         else
             "[BC] VAT Rate Mismatch" := true;
     end;
@@ -73,9 +65,8 @@ field(110; "[BC] VAT Prod. Posting Group"; Code[20])
 ```
 
 This means:
-- If the line has no extracted VAT rate, there is no mismatch (nothing to compare against).
-- If the user clears the posting group while a VAT rate exists, the mismatch flag is set.
-- If the user picks a posting group, the trigger looks up the VAT Posting Setup for the vendor's VAT Bus. Posting Group + the chosen VAT Prod. Posting Group, compares `VAT %` to the line's `"VAT Rate"` with rounding tolerance, and sets the mismatch flag accordingly. Only a matching rate clears the warning.
+- If the user clears the posting group, the mismatch flag is set.
+- If the user picks a posting group, the trigger looks up the VAT Posting Setup for the vendor's VAT Bus. Posting Group + the chosen VAT Prod. Posting Group, compares `VAT %` to the line's `"VAT Rate"` with exact equality, and sets the mismatch flag accordingly. This works for zero-rated lines too — a line with `"VAT Rate" = 0` only clears the warning if the chosen posting group's setup also has `VAT % = 0`.
 
 ### 3. Set the Flag in Prepare Draft
 
