@@ -29,8 +29,6 @@ codeunit 6422 "ForNAV Peppol Oauth"
         SecretValidToKeyLbl: Label 'SecretValidToKey', Locked = true;
         InvalidCLientIdErr: Label 'Invalid client id. Contact your ForNAV partner.';
 
-
-
     local procedure SetSecretStorage("Key": Text; keyValue: SecretText)
     var
         Setup: Codeunit "ForNAV Peppol Setup";
