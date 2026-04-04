@@ -272,7 +272,6 @@ codeunit 20404 "Qlty. Inspection - Create"
         RelatedItem: Record Item;
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
-        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         RecordRefToBufferTriggeringRecord: RecordRef;
         OriginalRecordId: RecordId;
         NullRecordId: RecordId;
@@ -358,12 +357,8 @@ codeunit 20404 "Qlty. Inspection - Create"
             if IsNewlyCreatedInspection then
                 QltyStartWorkflow.StartWorkflowInspectionCreated(QltyInspectionHeader);
 
-            if GuiAllowed() and not PreventShowingGeneratedInspectionEvenIfConfigured
-                and (QltyInspectionHeader."No." <> '') then
-                if IsManualCreation then
-                    Page.Run(Page::"Qlty. Inspection", QltyInspectionHeader)
-                else
-                    QltyNotificationMgmt.NotifyInspectionCreated(QltyInspectionHeader);
+            if IsManualCreation then
+                DisplayInspectionIfConfigured(IsManualCreation, QltyInspectionHeader);
         end else begin
             LogCreateInspectionProblem(TargetRecordRef, UnableToCreateInspectionForErr, Format(OriginalRecordId));
             if IsManualCreation and (not AvoidThrowingErrorWhenPossible) then
@@ -839,7 +834,7 @@ codeunit 20404 "Qlty. Inspection - Create"
 
     internal procedure CreateMultipleInspectionsForMultipleRecords(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary)
     var
-        CreatedQltyInspectionIds: List of [Code[20]];
+        CreatedQltyInspectionIds: List of [RecordId];
     begin
         CreateMultipleInspectionsWithoutDisplaying(SetOfRecordsRecordRef, IsManualCreation, TempFiltersQltyInspectionGenRule, CreatedQltyInspectionIds);
 
@@ -847,23 +842,35 @@ codeunit 20404 "Qlty. Inspection - Create"
             DisplayInspectionsIfConfigured(IsManualCreation, CreatedQltyInspectionIds);
     end;
 
-    internal procedure DisplayInspectionsIfConfigured(IsManualCreation: Boolean; var CreatedQltyInspectionIds: List of [Code[20]])
+    internal procedure DisplayInspectionIfConfigured(IsManualCreation: Boolean; CreatedQltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        CreatedQltyInspectionIds: List of [RecordId];
+    begin
+        CreatedQltyInspectionIds.Add(CreatedQltyInspectionHeader.RecordId);
+        DisplayInspectionsIfConfigured(IsManualCreation, CreatedQltyInspectionIds);
+    end;
+
+    internal procedure DisplayInspectionsIfConfigured(IsManualCreation: Boolean; var CreatedQltyInspectionIds: List of [RecordId])
     var
         CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-        InspectionNo: Code[20];
+        InspectionRecordId: RecordId;
         PipeSeparatedFilter: Text;
     begin
+        if PreventShowingGeneratedInspectionEvenIfConfigured then
+            exit;
         QltyManagementSetup.Get();
 
         if GuiAllowed() then begin
-            foreach InspectionNo in CreatedQltyInspectionIds do
-                if InspectionNo <> '' then begin
-                    if StrLen(PipeSeparatedFilter) > 1 then
-                        PipeSeparatedFilter += '|';
-                    PipeSeparatedFilter += InspectionNo;
-                end;
+            foreach InspectionRecordId in CreatedQltyInspectionIds do
+                if CreatedQltyInspectionHeader.Get(InspectionRecordId) then
+                    if CreatedQltyInspectionHeader."No." <> '' then begin
+                        if StrLen(PipeSeparatedFilter) > 1 then
+                            PipeSeparatedFilter += '|';
+                        PipeSeparatedFilter += CreatedQltyInspectionHeader."No.";
+                    end;
 
+            Clear(CreatedQltyInspectionHeader);
             CreatedQltyInspectionHeader.SetFilter("No.", PipeSeparatedFilter);
             if CreatedQltyInspectionIds.Count() = 1 then begin
                 CreatedQltyInspectionHeader.SetCurrentKey("No.", "Re-inspection No.");
@@ -889,7 +896,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <param name="IsManualCreation"></param>
     /// <param name="ptrecOptionalFiltersGenerationRule"></param>
     /// <param name="CreatedQltyInspectionIds"></param>
-    internal procedure CreateMultipleInspectionsWithoutDisplaying(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var CreatedQltyInspectionIds: List of [Code[20]])
+    internal procedure CreateMultipleInspectionsWithoutDisplaying(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var CreatedQltyInspectionIds: List of [RecordId])
     var
         TempCopyOfSingleRecordRecordRef: RecordRef;
         ParentRecordRef: RecordRef;
@@ -929,7 +936,7 @@ codeunit 20404 "Qlty. Inspection - Create"
         end;
     end;
 
-    local procedure CreateInspectionForSelfOrDirectParent(var TempSelfRecordRef: RecordRef; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var FoundParentRecordRef: RecordRef; var CreatedQltyInspectionIds: List of [Code[20]]; PreventInspectionFromDisplayingEvenIfConfigured: Boolean; IsManualCreation: Boolean) InspectionCreatedCount: Integer
+    local procedure CreateInspectionForSelfOrDirectParent(var TempSelfRecordRef: RecordRef; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var FoundParentRecordRef: RecordRef; var CreatedQltyInspectionIds: List of [RecordId]; PreventInspectionFromDisplayingEvenIfConfigured: Boolean; IsManualCreation: Boolean) InspectionCreatedCount: Integer
     var
         LastCreatedQltyInspectionHeader2: Record "Qlty. Inspection Header";
         Item: Record Item;
@@ -1007,8 +1014,8 @@ codeunit 20404 "Qlty. Inspection - Create"
                 if LocalQltyInspectionCreate.CreateInspectionWithMultiVariants(ParentRecordRef, TempSelfRecordRef, VariantEmptyOrTrackingSpecification, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule) then
                     if LocalQltyInspectionCreate.GetCreatedInspection(LastCreatedQltyInspectionHeader2) then begin
                         InspectionCreatedCount += 1;
-                        if not CreatedQltyInspectionIds.Contains(LastCreatedQltyInspectionHeader2."No.") then
-                            CreatedQltyInspectionIds.Add(LastCreatedQltyInspectionHeader2."No.");
+                        if not CreatedQltyInspectionIds.Contains(LastCreatedQltyInspectionHeader2.RecordId) then
+                            CreatedQltyInspectionIds.Add(LastCreatedQltyInspectionHeader2.RecordId);
                     end;
             until RelatedReservFilterReservationEntry.Next() = 0;
         end else begin
@@ -1021,8 +1028,8 @@ codeunit 20404 "Qlty. Inspection - Create"
             if LocalQltyInspectionCreate.CreateInspectionWithMultiVariants(TempSelfRecordRef, ParentRecordRef, Dummy4Variant, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule) then
                 if LocalQltyInspectionCreate.GetCreatedInspection(LastCreatedQltyInspectionHeader2) then begin
                     InspectionCreatedCount += 1;
-                    if not CreatedQltyInspectionIds.Contains(LastCreatedQltyInspectionHeader2."No.") then
-                        CreatedQltyInspectionIds.Add(LastCreatedQltyInspectionHeader2."No.");
+                    if not CreatedQltyInspectionIds.Contains(LastCreatedQltyInspectionHeader2.RecordId) then
+                        CreatedQltyInspectionIds.Add(LastCreatedQltyInspectionHeader2.RecordId);
                 end;
         end;
     end;

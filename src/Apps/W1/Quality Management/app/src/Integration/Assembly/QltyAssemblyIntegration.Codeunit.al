@@ -19,6 +19,11 @@ using Microsoft.Warehouse.Journal;
 /// </summary>
 codeunit 20412 "Qlty. Assembly Integration"
 {
+    SingleInstance = true;
+
+    var
+        ListOfCreatedInspectionIds: List of [RecordId];
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Assembly-Post", 'OnAfterPost', '', true, true)]
     local procedure HandleOnAfterPost(var AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostedAssemblyHeader: Record "Posted Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var ResJnlPostLine: Codeunit "Res. Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line")
     var
@@ -45,11 +50,15 @@ codeunit 20412 "Qlty. Assembly Integration"
 
         if not TempSpecTrackingSpecification.IsEmpty() then
             repeat
+                Clear(QltyInspectionHeader);
                 HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, TempSpecTrackingSpecification, AssemblyHeader, UnusedVariant1, false, QltyInspectionGenRule);
                 if HasInspection then begin
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                    QltyInspectionHeader."Source Quantity (Base)" := TempSpecTrackingSpecification."Quantity (Base)";
-                    QltyInspectionHeader.Modify(false);
+                    if QltyInspectionHeader."No." <> '' then begin
+                        QltyInspectionHeader."Source Quantity (Base)" := TempSpecTrackingSpecification."Quantity (Base)";
+                        QltyInspectionHeader.Modify(false);
+                        ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
+                    end;
                 end;
                 OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
             until TempSpecTrackingSpecification.Next(-1) = 0
@@ -59,10 +68,23 @@ codeunit 20412 "Qlty. Assembly Integration"
             if IsHandled then
                 exit;
             HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, AssemblyHeader, UnusedVariant1, UnusedVariant2, false, TempQltyInspectionGenRule);
-            if HasInspection then
+            if HasInspection then begin
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                if QltyInspectionHeader."No." <> '' then
+                    ListOfCreatedInspectionIds.Add(QltyInspectionHeader.RecordId);
+            end;
             OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
         end;
+        if ListOfCreatedInspectionIds.Count() > 0 then begin
+            QltyInspectionCreate.DisplayInspectionsIfConfigured(false, ListOfCreatedInspectionIds);
+            Clear(ListOfCreatedInspectionIds);
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Assembly-Post", 'OnBeforePost', '', true, true)]
+    local procedure HandleOnBeforePost(var AssemblyHeader: Record "Assembly Header")
+    begin
+        Clear(ListOfCreatedInspectionIds);
     end;
 
     /// <summary>

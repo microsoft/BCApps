@@ -69,7 +69,7 @@ report 20412 "Qlty. Schedule Inspection"
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         ShowWarningIfCreateInspection: Boolean;
-        CreatedQltyInspectionIds: List of [Code[20]];
+        CreatedQltyInspectionIds: List of [RecordId];
         ZeroInspectionsCreatedMsg: Label 'No inspections were created.';
         SomeInspectionsWereCreatedQst: Label '%1 inspections were created. Do you want to see them?', Comment = '%1=the count of inspections that were created.';
 
