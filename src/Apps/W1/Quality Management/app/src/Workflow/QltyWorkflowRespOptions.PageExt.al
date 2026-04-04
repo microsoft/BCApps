@@ -426,6 +426,29 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             end;
                         end;
 
+                        trigger OnLookup(var Text: Text): Boolean
+                        var
+                            Bin: Record Bin;
+                            QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
+                            BinList: Page "Bin List";
+                        begin
+                            if QltyLocationCode <> '' then
+                                Bin.SetRange("Location Code", QltyLocationCode);
+                            BinList.SetTableView(Bin);
+                            BinList.LookupMode(true);
+                            if BinList.RunModal() in [Action::LookupOK] then begin
+                                BinList.GetRecord(Bin);
+                                QltyBinCode := Bin.Code;
+                                QltyWorkflowResponse.SetStepConfigurationValue(
+                                    Rec,
+                                    QltyWorkflowResponse.GetWellKnownKeyBin(),
+                                    QltyBinCode);
+                                Text := QltyBinCode;
+                                exit(true);
+                            end;
+                            exit(false);
+                        end;
+
                         trigger OnValidate()
                         var
                             Bin: Record Bin;
