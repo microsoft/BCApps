@@ -50,6 +50,15 @@ codeunit 9058 "Plan Upgrade Tag"
     end;
 
     /// <summary>
+    /// Returns the rename delegated admin plans upgrade tag.
+    /// </summary>
+    /// <returns>The rename delegated admin plans upgrade tag.</returns>
+    internal procedure GetRenameDelegatedAdminPlansUpgradeTag(): Code[250]
+    begin
+        exit('MS-582117-RenameDelegatedAdminPlans-20260128');
+    end;
+
+    /// <summary>
     /// Returns the rename team member plan upgrade tag.
     /// </summary>
     /// <returns>The rename team member plan upgrade tag.</returns>

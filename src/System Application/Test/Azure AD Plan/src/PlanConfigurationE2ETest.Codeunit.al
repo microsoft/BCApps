@@ -40,8 +40,8 @@ codeunit 132925 "Plan Configuration E2E Test"
         // Initialize
 
         PlanConfigurationLibrary.ClearPlanConfigurations();
-        PlanConfigurationLibrary.AddConfiguration(PlanIds.GetDelegatedAdminPlanId(), false);
-        PlanConfiguration.AddDefaultPermissionSetToPlan(PlanIds.GetDelegatedAdminPlanId(), 'SUPER', NullGuid, 0);
+        PlanConfigurationLibrary.AddConfiguration(PlanIds.GetGlobalAdminPlanId(), false);
+        PlanConfiguration.AddDefaultPermissionSetToPlan(PlanIds.GetGlobalAdminPlanId(), 'SUPER', NullGuid, 0);
 
         UserPermissionsLibrary.CreateSuperUser(CopyStr(Any.AlphabeticText(50), 1, 50));
         UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), 'SUPER');
@@ -50,7 +50,7 @@ codeunit 132925 "Plan Configuration E2E Test"
 
         LibraryAssert.IsTrue(PlanConfigurationList.First(), 'There should be a configuration on the page');
         LibraryAssert.IsFalse(PlanConfigurationList.Customized.AsBoolean(), 'Customized on the list page should be false');
-        LibraryAssert.AreEqual('Delegated Admin agent - Partner', PlanConfigurationList."Plan Name".Value, 'Plan name on list page is wrong');
+        LibraryAssert.AreEqual('Delegated Global Administrator', PlanConfigurationList."Plan Name".Value, 'Plan name on list page is wrong');
 
         PlanConfigurationCard.Trap();
         PlanConfigurationList."Plan Name".Drilldown();
@@ -92,7 +92,7 @@ codeunit 132925 "Plan Configuration E2E Test"
 
         LibraryAssert.IsTrue(PlanConfigurationList.First(), 'There should be a configuration on the page');
         LibraryAssert.IsTrue(PlanConfigurationList.Customized.AsBoolean(), 'Customized on the list page should be false');
-        LibraryAssert.AreEqual('Delegated Admin agent - Partner', PlanConfigurationList."Plan Name".Value, 'Plan name on list page is wrong after customized');
+        LibraryAssert.AreEqual('Delegated Global Administrator', PlanConfigurationList."Plan Name".Value, 'Plan name on list page is wrong after customized');
 
         PlanConfigurationCard.Trap();
         PlanConfigurationList."Plan Name".Drilldown();
