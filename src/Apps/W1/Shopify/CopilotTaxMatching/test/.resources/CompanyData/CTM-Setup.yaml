@@ -1,0 +1,21 @@
+test_setup:
+  shopSettings:
+    shopCode: CTMTEST
+    shopifyUrl: https://ctm-test-shop.myshopify.com
+    copilotTaxMatchingEnabled: true
+    autoCreateTaxJurisdictions: false
+    autoCreateTaxAreas: true
+    taxAreaNamingPattern: SHPFY-
+  taxJurisdictionsToCreate:
+    - Code: NYSTAX
+      Description: New York State Tax
+      Country/Region Code: US
+    - Code: NYCTAX
+      Description: New York City Tax
+      Country/Region Code: US
+    - Code: MTATAX
+      Description: MTA Surcharge
+      Country/Region Code: US
+  taxGroupsToCreate:
+    - Code: TAXABLE
+      Description: Taxable Items

@@ -545,6 +545,99 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    procedure UnitTestCreateSalesDocumentTaxLiable()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        TaxArea: Record "Tax Area";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] Tax Liable from Shpfy Tax Area flows to the sales document
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Tax Area Priority" := Shop."Tax Area Priority"::"Ship-to -> Sell-to -> Bill-to";
+        Shop."County Source" := Shop."County Source"::"Code";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Shopify Tax Area with Tax Liable = true
+        CreateTaxArea(TaxArea, ShopifyTaxArea, Shop);
+
+        // [GIVEN] Order imported and mapped
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        OrderHeader."Ship-to City" := ShopifyTaxArea.County;
+        OrderHeader."Ship-to Country/Region Code" := ShopifyTaxArea."Country/Region Code";
+        OrderHeader."Ship-to County" := ShopifyTaxArea."County Code";
+        OrderHeader.Modify();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document has Tax Area Code and Tax Liable
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Tax Area Code", TaxArea.Code, 'Tax Area Code is set');
+        LibraryAssert.IsTrue(SalesHeader."Tax Liable", 'Tax Liable must be true when Tax Area has Tax Liable');
+    end;
+
+    [Test]
+    procedure UnitTestCreateSalesDocumentTaxExempt()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        TaxArea: Record "Tax Area";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] Tax Exempt order gets Tax Area Code but Tax Liable stays false
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Tax Area Priority" := Shop."Tax Area Priority"::"Ship-to -> Sell-to -> Bill-to";
+        Shop."County Source" := Shop."County Source"::"Code";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Shopify Tax Area with Tax Liable = true
+        CreateTaxArea(TaxArea, ShopifyTaxArea, Shop);
+
+        // [GIVEN] Order imported with Tax Exempt = true
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        OrderHeader."Ship-to City" := ShopifyTaxArea.County;
+        OrderHeader."Ship-to Country/Region Code" := ShopifyTaxArea."Country/Region Code";
+        OrderHeader."Ship-to County" := ShopifyTaxArea."County Code";
+        OrderHeader."Tax Exempt" := true;
+        OrderHeader.Modify();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document has Tax Area Code but Tax Liable = false
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Tax Area Code", TaxArea.Code, 'Tax Area Code is set even for tax exempt orders');
+        LibraryAssert.IsFalse(SalesHeader."Tax Liable", 'Tax Liable must be false when order is Tax Exempt');
+    end;
+
+    [Test]
     procedure UnitTestCreateSalesDocumentReserve()
     var
         Shop: Record "Shpfy Shop";
@@ -1506,6 +1599,7 @@ codeunit 139608 "Shpfy Orders API Test"
         ShopifyTaxArea."County Code" := CountyCode;
         ShopifyTaxArea.County := County;
         ShopifyTaxArea."Tax Area Code" := CountyCode;
+        ShopifyTaxArea."Tax Liable" := true;
         if ShopifyTaxArea.Insert() then;
         TaxArea.Code := CountyCode;
         if TaxArea.Insert() then;

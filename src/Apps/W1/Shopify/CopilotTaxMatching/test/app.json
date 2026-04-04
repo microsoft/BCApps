@@ -1,0 +1,75 @@
+{
+    "id": "b1c2d3e4-f5a6-48b9-8c0d-2e3f4a5b6c7d",
+    "name": "Shopify Copilot Tax Matching Tests",
+    "publisher": "Microsoft",
+    "brief": "Tests for Shopify Copilot Tax Matching",
+    "description": "Data-driven tests for Shopify Copilot Tax Matching feature using AI Test Toolkit",
+    "version": "29.0.0.0",
+    "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help": "https://go.microsoft.com/fwlink/?linkid=2179727",
+    "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2179727",
+    "logo": "ExtensionLogo.png",
+    "screenshots": [],
+    "application": "29.0.0.0",
+    "platform": "29.0.0.0",
+    "target": "OnPrem",
+    "dependencies": [
+        {
+            "id": "ec255f57-31d0-4ca2-b751-f2fa7c745abb",
+            "name": "Shopify Connector",
+            "publisher": "Microsoft",
+            "version": "29.0.0.0"
+        },
+        {
+            "id": "a1b2c3d4-e5f6-47a8-9b0c-1d2e3f4a5b6c",
+            "name": "Shopify Copilot Tax Matching",
+            "publisher": "Microsoft",
+            "version": "29.0.0.0"
+        },
+        {
+            "id": "2156302a-872f-4568-be0b-60968696f0d5",
+            "name": "AI Test Toolkit",
+            "publisher": "Microsoft",
+            "version": "29.0.0.0"
+        },
+        {
+            "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+            "name": "Tests-TestLibraries",
+            "publisher": "Microsoft",
+            "version": "29.0.0.0"
+        },
+        {
+            "id": "9856ae4f-d1a7-46ef-89bb-6ef056398228",
+            "name": "System Application Test Library",
+            "publisher": "Microsoft",
+            "version": "29.0.0.0"
+        },
+        {
+            "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+            "name": "Library Assert",
+            "publisher": "Microsoft",
+            "version": "29.0.0.0"
+        },
+        {
+            "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
+            "name": "Any",
+            "publisher": "Microsoft",
+            "version": "29.0.0.0"
+        }
+    ],
+    "idRanges": [
+        {
+            "from": 30490,
+            "to": 30499
+        }
+    ],
+    "features": [
+        "NoImplicitWith",
+        "TranslationFile"
+    ],
+    "resourceFolders": [
+        ".resources"
+    ]
+}
