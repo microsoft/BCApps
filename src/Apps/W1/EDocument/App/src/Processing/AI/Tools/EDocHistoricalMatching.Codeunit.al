@@ -135,9 +135,13 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         CouldNotFindHeaderErr: Label 'Could not find E-Document Purchase Header for E-Document Entry No. %1', Comment = '%1 = E-Document Entry No.', Locked = true;
         NoUnmatchedLinesErr: Label 'No unmatched E-Document Purchase Lines found for E-Document Entry No. %1', Comment = '%1 = E-Document Entry No.', Locked = true;
         HistoricalTempTableIsEmptyErr: Label 'No historical purchase invoice lines found for E-Document Entry No. %1', Comment = '%1 = E-Document Entry No.', Locked = true;
+        NoPurchaseLinesTxt: Label 'No E-Document Purchase Lines found, skipping historical matching', Locked = true;
+        NoPotentialMatchesTxt: Label 'No potential historical matches found after data collection', Locked = true;
     begin
-        if not EDocumentPurchaseLine.FindFirst() then
+        if not EDocumentPurchaseLine.FindFirst() then begin
+            Session.LogMessage('', NoPurchaseLinesTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
             exit(false);
+        end;
 
         EDocSystemId := EDocumentPurchaseLine.SystemId;
 
@@ -170,6 +174,9 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         // Collect potential matches
         Clear(TempHistoricalMatchBuffer);
         CollectPotentialMatches(EDocumentPurchaseLine, TempPurchInvLine, VendorNo);
+
+        if TempHistoricalMatchBuffer.IsEmpty() then
+            Session.LogMessage('', NoPotentialMatchesTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetFeatureName());
 
         exit(not TempHistoricalMatchBuffer.IsEmpty());
     end;

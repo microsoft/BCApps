@@ -37,13 +37,20 @@ codeunit 6195 "E-Doc. AI Tool Processor"
     procedure Setup(EDocAISystem: Interface IEDocAISystem): Boolean
     var
         CopilotCapability: Codeunit "Copilot Capability";
+        CapabilityNotRegisteredTxt: Label 'Copilot capability is not registered for E-Document Matching Assistance', Locked = true;
+        CapabilityNotActiveTxt: Label 'Copilot capability is not active for E-Document Matching Assistance', Locked = true;
     begin
         Clear(TelemetryDimensions);
+        AISystem := EDocAISystem;
 
-        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document Matching Assistance") then
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document Matching Assistance") then begin
+            Session.LogMessage('', CapabilityNotRegisteredTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', AISystem.GetFeatureName());
             exit(false);
-        if not CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"E-Document Matching Assistance") then
+        end;
+        if not CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"E-Document Matching Assistance") then begin
+            Session.LogMessage('', CapabilityNotActiveTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', AISystem.GetFeatureName());
             exit(false);
+        end;
 
         // Setup Azure OpenAI
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", GetDefaultModel());
@@ -54,7 +61,6 @@ codeunit 6195 "E-Doc. AI Tool Processor"
         AOAIChatCompletionParams.SetTemperature(GetDefaultTemperature());
 
         // Setup AI system and messages
-        AISystem := EDocAISystem;
         SetupChatMessages();
 
         // Setup telemetry
