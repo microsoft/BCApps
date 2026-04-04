@@ -57,26 +57,23 @@ codeunit 8023 "Create Usage Data Billing"
         OnAfterCollectServiceCommitments(TempServiceCommitment, ServiceObjectNo, SubscriptionEndDate);
     end;
 
-    internal procedure CreateUsageDataBillingFromTempServiceCommitments(
-        var TempServiceCommitment: Record "Subscription Line"; SupplierNo: Code[20]; UsageDataImportEntryNo: Integer; ServiceObjectNo: Code[20]; ProductID: Text[80]; ProductName: Text[100];
-        BillingPeriodStartDate: Date; BillingPeriodEndDate: Date; UnitCost: Decimal; NewQuantity: Decimal; CostAmount: Decimal; UnitPrice: Decimal; NewAmount: Decimal; CurrencyCode: Code[10])
+    internal procedure CreateUsageDataBillingFromTempServiceCommitments(var TempServiceCommitment: Record "Subscription Line"; SupplierNo: Code[20]; UsageDataGenericImportGlobal: Record "Usage Data Generic Import")
     begin
         repeat
-            CreateUsageDataBillingFromTempServiceCommitment(TempServiceCommitment, SupplierNo, UsageDataImportEntryNo, ServiceObjectNo, ProductID, ProductName, BillingPeriodStartDate, BillingPeriodEndDate, UnitCost, NewQuantity, CostAmount, UnitPrice, NewAmount, CurrencyCode);
+            CreateUsageDataBillingFromTempServiceCommitment(TempServiceCommitment, SupplierNo, UsageDataGenericImportGlobal);
         until TempServiceCommitment.Next() = 0;
         OnAfterCreateUsageDataBillingFromTempSubscriptionLines(TempServiceCommitment);
     end;
 
-    local procedure CreateUsageDataBillingFromTempServiceCommitment(
-        var TempServiceCommitment: Record "Subscription Line"; SupplierNo: Code[20]; UsageDataImportEntryNo: Integer; SubscriptionNo: Code[20]; ProductID: Text[80]; ProductName: Text[100];
-        BillingPeriodStartDate: Date; BillingPeriodEndDate: Date; UnitCost: Decimal; NewQuantity: Decimal; CostAmount: Decimal; UnitPrice: Decimal; NewAmount: Decimal; CurrencyCode: Code[10])
+    local procedure CreateUsageDataBillingFromTempServiceCommitment(var TempServiceCommitment: Record "Subscription Line"; SupplierNo: Code[20]; UsageDataGenericImportGlobal: Record "Usage Data Generic Import")
     var
         UsageDataBilling: Record "Usage Data Billing";
         UsageDataSupplier: Record "Usage Data Supplier";
     begin
         UsageDataSupplier.Get(SupplierNo);
 
-        UsageDataBilling.InitFrom(UsageDataImportEntryNo, SubscriptionNo, ProductID, ProductName, BillingPeriodStartDate, BillingPeriodEndDate, UnitCost, NewQuantity, CostAmount, UnitPrice, NewAmount, CurrencyCode);
+        UsageDataBilling.InitFrom(UsageDataGenericImportGlobal."Usage Data Import Entry No.", UsageDataGenericImportGlobal."Subscription Header No.", UsageDataGenericImportGlobal."Billing Period Start Date", UsageDataGenericImportGlobal."Billing Period End Date",
+        UsageDataGenericImportGlobal.Cost, UsageDataGenericImportGlobal.Quantity, UsageDataGenericImportGlobal."Cost Amount", UsageDataGenericImportGlobal.Price, UsageDataGenericImportGlobal.Amount, UsageDataGenericImportGlobal.GetCurrencyCode());
         UsageDataBilling."Supplier No." := SupplierNo;
         UsageDataBilling."Subscription Header No." := TempServiceCommitment."Subscription Header No.";
         UsageDataBilling.Partner := TempServiceCommitment.Partner;
@@ -93,11 +90,15 @@ codeunit 8023 "Create Usage Data Billing"
         end;
         UsageDataBilling.UpdateRebilling();
         UsageDataBilling."Entry No." := 0;
+
+        onBeforInsertUsageDataBilling(UsageDataBilling, UsageDataGenericImportGlobal);
+
         UsageDataBilling.Insert(true);
         UsageDataBilling.InsertMetadata();
 
         OnAfterCreateUsageDataBillingFromTempSubscriptionLine(TempServiceCommitment, UsageDataBilling);
     end;
+
 
     local procedure FillTempServiceCommitment(var TempServiceCommitment: Record "Subscription Line" temporary; ServiceObjectNo: Code[20]; SubscriptionEndDate: Date)
     var
@@ -150,6 +151,12 @@ codeunit 8023 "Create Usage Data Billing"
     local procedure OnAfterCollectServiceCommitments(var TempSubscriptionLine: Record "Subscription Line" temporary; SubscriptionHeaderNo: Code[20]; SubscriptionLineEndDate: Date)
     begin
     end;
+
+    [IntegrationEvent(false, false)]
+    local procedure onBeforInsertUsageDataBilling(var UsageDataBilling: Record "Usage Data Billing"; UsageDataGenericImportGlobal: Record "Usage Data Generic Import")
+    begin
+    end;
+
 
     var
         UsageDataImport: Record "Usage Data Import";
