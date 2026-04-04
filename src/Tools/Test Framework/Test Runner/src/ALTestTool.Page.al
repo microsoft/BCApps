@@ -105,6 +105,14 @@ page 130451 "AL Test Tool"
                         TestSuiteMgt.UpdateCodeCoverageTrackAllSesssions(GlobalALTestSuite);
                     end;
                 }
+                field(SuiteSetupDone; GlobalALTestSuite."Suite Setup Done")
+                {
+                    ApplicationArea = All;
+                    Importance = Additional;
+                    Caption = 'Suite Setup Done';
+                    ToolTip = 'Specifies whether the per-suite setup has been executed.';
+                    Editable = false;
+                }
             }
 
             repeater(Control1)
@@ -410,6 +418,20 @@ page 130451 "AL Test Tool"
                     begin
                         TestSuiteMgt.LookupTestRunner(GlobalALTestSuite);
                         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(GlobalALTestSuite);
+                    end;
+                }
+                action(ResetSuiteSetup)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Reset Suite Setup';
+                    ToolTip = 'Resets the per-suite setup flag so that the setup can be run again.';
+                    Image = ResetStatus;
+                    Enabled = GlobalALTestSuite."Suite Setup Done";
+
+                    trigger OnAction()
+                    begin
+                        GlobalALTestSuite.ResetSuiteSetup();
+                        CurrPage.Update(false);
                     end;
                 }
             }
