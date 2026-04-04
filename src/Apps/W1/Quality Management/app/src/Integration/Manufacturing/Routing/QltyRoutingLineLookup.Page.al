@@ -24,7 +24,6 @@ page 20463 "Qlty. Routing Line Lookup"
         {
             repeater(General)
             {
-#pragma warning disable AA0218
                 field("Operation No."; Rec."Operation No.")
                 {
                 }
@@ -123,6 +122,5 @@ page 20463 "Qlty. Routing Line Lookup"
             }
         }
     }
-#pragma warning restore AA0218
 }
 #endif
