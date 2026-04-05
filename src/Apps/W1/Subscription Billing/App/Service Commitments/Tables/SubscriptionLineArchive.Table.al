@@ -310,7 +310,7 @@ table 8073 "Subscription Line Archive"
         field(8002; "Pricing Unit Cost Surcharge %"; Decimal)
         {
             Caption = 'Pricing Unit Cost Surcharge %';
-            ToolTip = 'Specifies the surcharge in percent for the debit-side price calculation, if a EK surcharge is to be used.';
+            ToolTip = 'Specifies the surcharge in percent for the debit-side price calculation, if a unit cost surcharge is to be used.';
             AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
             Editable = false;

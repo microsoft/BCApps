@@ -16,7 +16,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         ReferenceNotFoundErr: Label 'For %1 ''%2'' no linked %3 was found.', Comment = '%1 = Field name, %2 = Entry description, %3 = Table name';
         NotValidServiceCommitmentErr: Label 'Subscription Line %2 found for Subscription %1 is not valid. Please check the Subscription Line and adjust the validity of the Subscription Line if necessary.', Comment = '%1 = Object number, %2 = Entry number';
         UsageDataGenericImportProcessingErr: Label 'Errors were found while processing the Usage Data Generic Import.';
-        RetryFailedUsageDataImportTxt: Label 'There are Usage Data Generic Import records with errors for Import %1. Do you want to retry processing the failed records?', Comment = '%1=Usage Data Import Entry No.';
+        RetryFailedUsageDataImportTxt: Label 'There are Usage Data Generic Import records with errors for Import %1. Do you want to retry processing the failed records?', Comment = '%1 = Usage Data Import Entry No.';
         NoContractErr: Label 'The %1 %2 in %3 "%4" has not been assigned to a Contract yet.', Comment = '%1 = Subscription Line, %2 = Subscription Line Entry No., %3 = Subscription, %4 = Subscription No.';
         NoServiceCommitmentWithUsageBasedFlagInServiceObjectErr: Label '%1 "%2" has no valid %3 with property "%4": Yes', Comment = '%1 = Subscription, %2 = Subscription No., %3 = Subscription Line, %4 = Usage Based Billing';
 
