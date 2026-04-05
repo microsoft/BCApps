@@ -2054,6 +2054,7 @@ codeunit 148155 "Contracts Test"
     end;
 
     [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure ChangeSellToCustomerOnContractWithClosedSubscriptionLines()
     var
         Customer: Record Customer;
