@@ -706,7 +706,7 @@ codeunit 139915 "Sales Service Commitment Test"
         SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Vendor);
 
         ServiceCommPackageLine.SetRange("Subscription Package Code", ServiceCommitmentPackage.Code);
-        ServiceCommPackageLine.FindSet();
+        ServiceCommPackageLine.FindSet(true);
         repeat
             ServiceCommPackageLine."Usage Based Billing" := true;
             ServiceCommPackageLine."Usage Based Pricing" := Enum::"Usage Based Pricing"::"Usage Quantity";
