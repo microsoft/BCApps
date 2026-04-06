@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Customer;
@@ -16,6 +17,7 @@ using System.Utilities;
 
 codeunit 133624 "E2E Tests - Document Lifecycle"
 {
+    EventSubscriberInstance = Manual;
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
@@ -88,6 +90,7 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
         if IsInitialized then
             exit;
 
+        BindSubscription(this);
         EnsureVATBusinessPostingGroup();
         LibraryEDocument.SetupStandardVAT();
         LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
@@ -241,6 +244,29 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
             VATPostingSetup."VAT %" := 0;
             VATPostingSetup.Insert(false);
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Customer, OnBeforeInsertEvent, '', false, false)]
+    local procedure OnBeforeCustomerInsert(var Rec: Record Customer; RunTrigger: Boolean)
+    var
+        VATBusPostingGroup: Record "VAT Business Posting Group";
+    begin
+        if Rec."VAT Bus. Posting Group" <> '' then
+            if not VATBusPostingGroup.Get(Rec."VAT Bus. Posting Group") then begin
+                VATBusPostingGroup.Init();
+                VATBusPostingGroup.Code := Rec."VAT Bus. Posting Group";
+                VATBusPostingGroup.Description := Rec."VAT Bus. Posting Group";
+                VATBusPostingGroup.Insert(false);
+            end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Country/Region", OnBeforeInsertEvent, '', false, false)]
+    local procedure OnBeforeCountryRegionInsert(var Rec: Record "Country/Region"; RunTrigger: Boolean)
+    begin
+        if Rec."ISO Code" = '' then
+            Rec."ISO Code" := CopyStr(Rec.Code, 1, 2);
+        if Rec."ISO Numeric Code" = '' then
+            Rec."ISO Numeric Code" := '000';
     end;
 
     var

@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument;
 codeunit 148192 "Unit Tests - Avalara Functions"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
     TestPermissions = Disabled;
 
     var
@@ -59,6 +60,7 @@ codeunit 148192 "Unit Tests - Avalara Functions"
     end;
 
     [Test]
+    [HandlerFunctions('HttpMandatesHandler')]
     procedure TestGetAvailableMediaTypesForMandate_GB()
     var
         AvalaraFunctions: Codeunit "Avalara Functions";
@@ -66,8 +68,9 @@ codeunit 148192 "Unit Tests - Avalara Functions"
     begin
         // [SCENARIO] GetAvailableMediaTypesForMandate returns correct media types for GB mandate
 
-        // [GIVEN] A GB mandate
+        // [GIVEN] A GB mandate and valid connection setup
         Initialize();
+        CreateMockConnectionSetup();
 
         // [WHEN] Getting available media types for GB-Test-Mandate
         MediaTypes := AvalaraFunctions.GetAvailableMediaTypesForMandate('GB-Test-Mandate');
@@ -78,6 +81,7 @@ codeunit 148192 "Unit Tests - Avalara Functions"
     end;
 
     [Test]
+    [HandlerFunctions('HttpMandatesHandler')]
     procedure TestGetAvailableMediaTypesForMandate_InvalidMandate()
     var
         AvalaraFunctions: Codeunit "Avalara Functions";
@@ -85,8 +89,9 @@ codeunit 148192 "Unit Tests - Avalara Functions"
     begin
         // [SCENARIO] GetAvailableMediaTypesForMandate returns empty list for invalid mandate
 
-        // [GIVEN] An invalid mandate
+        // [GIVEN] An invalid mandate and valid connection setup
         Initialize();
+        CreateMockConnectionSetup();
 
         // [WHEN] Getting available media types for invalid mandate
         MediaTypes := AvalaraFunctions.GetAvailableMediaTypesForMandate('INVALID-MANDATE');
@@ -131,6 +136,13 @@ codeunit 148192 "Unit Tests - Avalara Functions"
         IsInitialized := true;
     end;
 
+    local procedure CreateMockConnectionSetup()
+    var
+        ConnectionSetup: Record "Connection Setup";
+    begin
+        CreateMockConnectionSetup(ConnectionSetup);
+    end;
+
     local procedure CreateMockConnectionSetup(var ConnectionSetup: Record "Connection Setup")
     var
         AvalaraAuth: Codeunit Authenticator;
@@ -162,5 +174,28 @@ codeunit 148192 "Unit Tests - Avalara Functions"
     local procedure GetMockFieldsJson(): Text
     begin
         exit('[{"fieldId":1,"documentType":"ubl-invoice","documentVersion":"2.1","path":"//cbc:ID","pathType":"xpath","fieldName":"Invoice Number","exampleOrFixedValue":"INV-001","documentationLink":"http://example.com","dataType":"string","description":"Invoice identifier","optionality":"mandatory","acceptedValues":""}]');
+    end;
+
+    [HttpClientHandler]
+    internal procedure HttpMandatesHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom('{"access_token":"mock-access-token-12345","token_type":"Bearer","expires_in":3600}');
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
+        if Request.Path.Contains('/einvoicing/mandates') then begin
+            Response.Content.WriteFrom(GetMockMandatesJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
+        Response.Content.WriteFrom('{"error":"unexpected request"}');
+        Response.HttpStatusCode := 404;
+        exit(true);
+    end;
+
+    local procedure GetMockMandatesJson(): Text
+    begin
+        exit('{"value":[{"countryMandate":"GB-Test-Mandate","description":"GB Test Mandate","getInvoiceAvailableMediaType":["application/vnd.oasis.ubl+xml","application/pdf"]}]}');
     end;
 }
