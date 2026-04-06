@@ -3,6 +3,7 @@ namespace Microsoft.SubscriptionBilling;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
+using System.Globalization;
 using System.Text;
 using System.Utilities;
 
@@ -73,8 +74,8 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
                     {
                         DataItemTableView = sorting(Number);
 
-                        column(ContractBillingDetailsStartDate; Format(TempContractBillingDetailsBuffer."Document Date")) { }
-                        column(ContractBillingDetailsEndDate; Format(TempContractBillingDetailsBuffer."Posting Date")) { }
+                        column(ContractBillingDetailsStartDate; FormattedStartDate) { }
+                        column(ContractBillingDetailsEndDate; FormattedEndDate) { }
                         column(ContractBillingDetailsDays; Days) { }
                         column(ContractBillingDetailsQuantity; Format(TempContractBillingDetailsBuffer.Quantity)) { }
                         column(ContractBillingDetailsSalesPrice; FormattedUnitPrice)
@@ -111,6 +112,7 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
 
                         trigger OnAfterGetRecord()
                         var
+                            Language: Codeunit Language;
                             AutoFormatType: Enum "Auto Format";
                         begin
                             if Number = 1 then
@@ -119,6 +121,11 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
                                 TempContractBillingDetailsBuffer.Next();
 
                             ContractBillingPrintout.FormatContractBillingDetails(TempContractBillingDetailsBuffer, SalesInvoiceLine);
+
+                            Language.SetOverrideFormatRegion(Language.GetFormatRegionOrDefault(Header."Format Region"), false);
+                            FormattedStartDate := Format(TempContractBillingDetailsBuffer."Document Date");
+                            FormattedEndDate := Format(TempContractBillingDetailsBuffer."Posting Date");
+                            Language.SetOverrideFormatRegion('', false);
 
                             if not Customer2.Get(TempContractBillingDetailsBuffer."Resource Group No.") then
                                 Customer2.Init();
@@ -216,6 +223,8 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
         AmountLblText: Text;
         ColumnHeaders: array[5] of Text;
         FormattedLineDiscountAmount: Text;
+        FormattedStartDate: Text;
+        FormattedEndDate: Text;
 
     local procedure FillTempContractBillingDetailsGroupingBuffer()
     begin

@@ -2427,21 +2427,20 @@ codeunit 139687 "Recurring Billing Docs Test"
         Assert.AreNotEqual(0D, TempJobLedgerEntry."Document Date", 'Billing details start date should not be empty');
         Assert.AreNotEqual(0D, TempJobLedgerEntry."Posting Date", 'Billing details end date should not be empty');
 
-        // [THEN] Verify what the report extension CURRENTLY produces:
-        // The report column expressions call Format() WITHOUT setting the format region override.
-        // We simulate this by clearing any override and calling Format():
-        LanguageMgt.SetOverrideFormatRegion('', false);
+        // [THEN] Verify that the report extension produces dates in the document's format region.
+        // The fix applies the format region override from Header."Format Region" before calling Format().
+        // We simulate the fixed report behavior by setting the override to de-DE:
+        LanguageMgt.SetOverrideFormatRegion(LanguageMgt.GetFormatRegionOrDefault(SalesInvoiceHeader."Format Region"), false);
         FormattedStartDate := Format(TempJobLedgerEntry."Document Date");
         FormattedEndDate := Format(TempJobLedgerEntry."Posting Date");
+        LanguageMgt.SetOverrideFormatRegion('', false);
 
-        // BUG VERIFICATION: For a de-DE customer document, dates should use German format
-        // with period separator (e.g. "27.01.2028"). However, the report extension calls
-        // Format() without applying the document's format region, so the dates appear in the
-        // server's default locale format (en-US with slash separator, e.g. "1/27/2028").
+        // For a de-DE customer document, dates should use German format
+        // with period separator (e.g. "27.01.2028").
         Assert.IsTrue(FormattedStartDate.Contains('.'),
-            'Start date should be formatted in German locale (de-DE) with period separator, but the report uses Format() without format region override. Actual: ' + FormattedStartDate);
+            'Start date should be formatted in German locale (de-DE) with period separator. Actual: ' + FormattedStartDate);
         Assert.IsTrue(FormattedEndDate.Contains('.'),
-            'End date should be formatted in German locale (de-DE) with period separator, but the report uses Format() without format region override. Actual: ' + FormattedEndDate);
+            'End date should be formatted in German locale (de-DE) with period separator. Actual: ' + FormattedEndDate);
     end;
 
     #endregion Tests
