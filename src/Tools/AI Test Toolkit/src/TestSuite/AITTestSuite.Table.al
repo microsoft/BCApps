@@ -274,6 +274,12 @@ table 149030 "AIT Test Suite"
             FieldClass = FlowField;
             CalcFormula = lookup("AL Test Suite"."Suite Setup Done" where(Name = field(Code)));
         }
+        field(90; "Suite Setup Dataset"; Code[100])
+        {
+            Caption = 'Suite Setup Dataset';
+            ToolTip = 'Specifies the test input group containing per-suite setup data.';
+            TableRelation = "Test Input Group".Code;
+        }
     }
     keys
     {

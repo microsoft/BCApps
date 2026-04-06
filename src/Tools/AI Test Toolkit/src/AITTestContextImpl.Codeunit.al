@@ -43,6 +43,7 @@ codeunit 149043 "AIT Test Context Impl."
         ConversationTok: Label 'conversation', Locked = true;
         HasSuiteSetupData: Boolean;
         SuiteSetupDataNotLoadedErr: Label 'Per-suite setup data has not been loaded.';
+        SuiteSetupInputCodeTok: Label 'SUITE-SETUP', Locked = true;
 
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
@@ -353,6 +354,34 @@ codeunit 149043 "AIT Test Context Impl."
             NumberOfTurns := TurnsInputJson.GetElementCount()
         else
             NumberOfTurns := 1;
+
+        if not HasSuiteSetupData then
+            LoadSuiteSetupFromDataset();
+    end;
+
+    /// <summary>
+    /// Loads suite setup data from the dataset referenced by the test suite's Suite Setup Dataset field.
+    /// Resolves language variants using the suite's Run Language ID.
+    /// </summary>
+    local procedure LoadSuiteSetupFromDataset()
+    var
+        AITTestSuite: Record "AIT Test Suite";
+        TestInputCU: Codeunit "Test Input";
+        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+        SuiteSetupInputJson: Codeunit "Test Input Json";
+        ResolvedDatasetCode: Code[100];
+    begin
+        GetAITTestSuite(AITTestSuite);
+        if AITTestSuite."Suite Setup Dataset" = '' then
+            exit;
+
+        ResolvedDatasetCode := AITTestSuiteLanguage.GetLanguageDataset(AITTestSuite."Suite Setup Dataset", AITTestSuite."Run Language ID");
+        SuiteSetupInputJson := TestInputCU.GetTestInputByCode(ResolvedDatasetCode, SuiteSetupInputCodeTok);
+
+        if SuiteSetupInputJson.ToText() = '' then
+            exit;
+
+        ImportSuiteSetupData(SuiteSetupInputJson.AsJsonToken());
     end;
 
     /// <summary>

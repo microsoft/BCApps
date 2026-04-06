@@ -232,9 +232,6 @@ codeunit 130458 "Test Inputs Management"
             if MetadataJsonToken.IsValue() then
                 GroupName := MetadataJsonToken.AsValue().AsText();
 
-        if MetadataJsonObject.Get(TestSuiteSetupTok, MetadataJsonToken) then
-            if MetadataJsonToken.IsValue() then
-                SuiteSetupResourcePath := MetadataJsonToken.AsValue().AsText();
     end;
 
     local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text; ImportedByAppId: Guid; LanguageID: Integer; GroupName: Text)
@@ -298,6 +295,12 @@ codeunit 130458 "Test Inputs Management"
         if not DataInputJsonObject.ReadFromYaml(TestData) then
             Error(CouldNotParseYamlInputErr);
 
+        // Suite setup: store entire content as a single row
+        if DataInputJsonObject.Get(TestSuiteSetupTok, DataInputJsonToken) then begin
+            InsertSuiteSetupDataInput(DataInputJsonToken, TestInputGroup);
+            exit;
+        end;
+
         if not DataInputJsonObject.Get(TestsTok, DataInputJsonToken) then begin
             InsertDataInputLine(DataInputJsonObject, TestInputGroup);
             exit;
@@ -310,6 +313,26 @@ codeunit 130458 "Test Inputs Management"
         end;
 
         InsertDataInputLine(DataInputJsonToken.AsObject(), TestInputGroup);
+    end;
+
+    local procedure InsertSuiteSetupDataInput(SuiteSetupJsonToken: JsonToken; var TestInputGroup: Record "Test Input Group")
+    var
+        TestInput: Record "Test Input";
+        SuiteSetupText: Text;
+    begin
+        TestInput.SetRange("Test Input Group Code", TestInputGroup.Code);
+        if not TestInput.IsEmpty() then
+            Error(SuiteSetupOnlyOneRowErr);
+
+        TestInput.Reset();
+        TestInput."Test Input Group Code" := TestInputGroup.Code;
+        TestInput."Language ID" := TestInputGroup."Language ID";
+        TestInput.Code := SuiteSetupInputCodeTok;
+        TestInput.Description := SuiteSetupInputCodeTok;
+        TestInput.Insert(true);
+
+        SuiteSetupJsonToken.WriteTo(SuiteSetupText);
+        TestInput.SetInput(TestInput, SuiteSetupText);
     end;
 
     local procedure InsertDataInputsFromJsonArray(var TestInputGroup: Record "Test Input Group"; var DataOnlyTestInputsArray: JsonArray)
@@ -404,7 +427,6 @@ codeunit 130458 "Test Inputs Management"
     end;
 
     var
-        SuiteSetupResourcePath: Text;
         DataNameTok: Label 'name', Locked = true;
         DescriptionTok: Label 'description', Locked = true;
         LanguageTok: Label 'language', Locked = true;
@@ -412,11 +434,13 @@ codeunit 130458 "Test Inputs Management"
         TestsTok: Label 'tests', Locked = true;
         TestSuiteSetupTok: Label 'suite_setup', Locked = true;
         TestInputTok: Label 'testInput', Locked = true;
+        SuiteSetupInputCodeTok: Label 'SUITE-SETUP', Locked = true;
         ChooseFileLbl: Label 'Choose a file to import';
         TestInputNameTok: Label 'INPUT-', Locked = true;
         CouldNotParseYamlInputErr: Label 'The data does not represent valid YAML.';
         CouldNotParseInputErr: Label 'Could not parse input dataset.';
         CouldNotParseJsonlInputErr: Label 'Could not parse JSONL input line: %1', Comment = '%1 = JSON Line Content';
+        SuiteSetupOnlyOneRowErr: Label 'Suite setup datasets can only contain a single entry per language.';
         LineTypeMustBeCodeunitErr: Label 'Line type must be Codeunit.';
         JsonFileExtensionTxt: Label '.json', Locked = true;
         JsonlFileExtensionTxt: Label '.jsonl', Locked = true;
