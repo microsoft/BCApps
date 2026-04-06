@@ -78,10 +78,6 @@ xmlport 149031 "AIT Test Suite Import/Export"
                 {
                     Occurrence = Optional;
                 }
-                fieldattribute(SuiteSetupDataset; AITSuite."Suite Setup Dataset")
-                {
-                    Occurrence = Optional;
-                }
                 textattribute(ValidationAttr)
                 {
                     XmlName = 'Validation';

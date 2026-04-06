@@ -360,28 +360,52 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Loads suite setup data from the dataset referenced by the test suite's Suite Setup Dataset field.
+    /// Loads suite setup data from the dataset referenced by the current test's Test Input Group.
     /// Resolves language variants using the suite's Run Language ID.
     /// </summary>
     local procedure LoadSuiteSetupFromDataset()
     var
+        SuiteSetupGroup: Record "Test Input Group";
         AITTestSuite: Record "AIT Test Suite";
         TestInputCU: Codeunit "Test Input";
         AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
         SuiteSetupInputJson: Codeunit "Test Input Json";
         ResolvedDatasetCode: Code[100];
     begin
-        GetAITTestSuite(AITTestSuite);
-        if AITTestSuite."Suite Setup Dataset" = '' then
+        if not GetSuiteSetupGroup(SuiteSetupGroup) then
             exit;
 
-        ResolvedDatasetCode := AITTestSuiteLanguage.GetLanguageDataset(AITTestSuite."Suite Setup Dataset", AITTestSuite."Run Language ID");
+        GetAITTestSuite(AITTestSuite);
+        ResolvedDatasetCode := AITTestSuiteLanguage.GetLanguageDataset(SuiteSetupGroup.Code, AITTestSuite."Run Language ID");
         SuiteSetupInputJson := TestInputCU.GetTestInputByCode(ResolvedDatasetCode, SuiteSetupInputCodeTok);
 
         if SuiteSetupInputJson.ToText() = '' then
             exit;
 
         ImportSuiteSetupData(SuiteSetupInputJson.AsJsonToken());
+    end;
+
+    /// <summary>
+    /// Finds the suite setup Test Input Group for the current test's dataset.
+    /// Navigates: AITTestMethodLine."Input Dataset" → TestInputGroup."Suite Setup Group Name" → target group.
+    /// </summary>
+    local procedure GetSuiteSetupGroup(var SuiteSetupGroup: Record "Test Input Group"): Boolean
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+        DatasetGroup: Record "Test Input Group";
+    begin
+        GetAITTestMethodLine(AITTestMethodLine);
+        if AITTestMethodLine."Input Dataset" = '' then
+            exit(false);
+
+        if not DatasetGroup.Get(AITTestMethodLine."Input Dataset") then
+            exit(false);
+
+        if DatasetGroup."Suite Setup Group Name" = '' then
+            exit(false);
+
+        SuiteSetupGroup.SetRange("Group Name", DatasetGroup."Suite Setup Group Name");
+        exit(SuiteSetupGroup.FindFirst());
     end;
 
     /// <summary>
@@ -499,24 +523,28 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Marks the per-suite setup as completed on the test suite record.
+    /// Marks the per-suite setup as completed on the suite setup test input group.
     /// </summary>
     procedure SetEvalSuiteSetupCompleted()
+    var
+        SuiteSetupGroup: Record "Test Input Group";
     begin
-        AITTestSuiteMgt.SetEvalSuiteSetupCompleted();
+        if GetSuiteSetupGroup(SuiteSetupGroup) then
+            SuiteSetupGroup.SetSuiteSetupDone();
     end;
 
     /// <summary>
-    /// Checks if the per-suite setup has been marked as done on the test suite record.
+    /// Checks if the per-suite setup has been marked as done on the suite setup test input group.
     /// </summary>
     /// <returns>True if suite setup has been executed.</returns>
     procedure IsSuiteSetupDone(): Boolean
     var
-        AITTestSuite: Record "AIT Test Suite";
+        SuiteSetupGroup: Record "Test Input Group";
     begin
-        GetAITTestSuite(AITTestSuite);
-        AITTestSuite.CalcFields("Suite Setup Done");
-        exit(AITTestSuite."Suite Setup Done");
+        if not GetSuiteSetupGroup(SuiteSetupGroup) then
+            exit(false);
+
+        exit(SuiteSetupGroup."Suite Setup Done");
     end;
 
     /// <summary>

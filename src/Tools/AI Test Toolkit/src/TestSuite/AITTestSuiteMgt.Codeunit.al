@@ -592,14 +592,6 @@ codeunit 149034 "AIT Test Suite Mgt."
         LineNo := AITTestMethodLine."Line No.";
     end;
 
-    internal procedure SetEvalSuiteSetupCompleted()
-    var
-        AITTestSuite: Record "AIT Test Suite";
-    begin
-        AITTestSuite.Get(GlobalAITTestSuite.Code);
-        AITTestSuite.SetEvalSuiteSetupDone();
-    end;
-
     internal procedure GetFeatureName(): Text
     begin
         exit(FeatureNameLbl);

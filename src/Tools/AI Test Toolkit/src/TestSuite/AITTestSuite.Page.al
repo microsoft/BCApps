@@ -203,11 +203,6 @@ page 149031 "AIT Test Suite"
                     field(Tag; Rec.Tag)
                     {
                     }
-                    field("Suite Setup Done"; Rec."Suite Setup Done")
-                    {
-                        ToolTip = 'Specifies whether the per-suite setup has been executed.';
-                        Importance = Additional;
-                    }
                 }
             }
             part(AITTestMethodLines; "AIT Test Method Lines")
@@ -357,7 +352,6 @@ page 149031 "AIT Test Suite"
                 Caption = 'Reset Suite Setup';
                 ToolTip = 'Resets the per-suite setup flag so that the setup can be run again.';
                 Image = ResetStatus;
-                Enabled = Rec."Suite Setup Done";
 
                 trigger OnAction()
                 begin

@@ -86,13 +86,6 @@ table 130451 "AL Test Suite"
             DataClassification = SystemMetadata;
             OptionMembers = "Disabled","Per Codeunit","Per Test";
         }
-        field(14; "Suite Setup Done"; Boolean)
-        {
-            Caption = 'Suite Setup Done';
-            ToolTip = 'Specifies whether the per-suite setup has been executed.';
-            DataClassification = SystemMetadata;
-            Editable = false;
-        }
     }
 
     keys
@@ -123,16 +116,5 @@ table 130451 "AL Test Suite"
             "Test Runner Id" := TestRunnerMgt.GetDefaultTestRunner();
     end;
 
-    procedure ResetSuiteSetup()
-    begin
-        Rec."Suite Setup Done" := false;
-        Rec.Modify(true);
-    end;
-
-    procedure SetSuiteSetupDone()
-    begin
-        Rec."Suite Setup Done" := true;
-        Rec.Modify(true);
-    end;
 }
 

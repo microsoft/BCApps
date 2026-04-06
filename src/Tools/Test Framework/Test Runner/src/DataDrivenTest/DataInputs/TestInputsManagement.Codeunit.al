@@ -137,13 +137,19 @@ codeunit 130458 "Test Inputs Management"
         TestInputGroup: Record "Test Input Group";
         TestInput: Record "Test Input";
         InputText: Text;
+        SuiteSetupGroupName: Text;
         FileType: Text;
         TelemetryCD: Dictionary of [Text, Text];
     begin
-        ReadMetadataFromFile(FileName, TestInputInStream, LanguageID, GroupName, InputText);
+        ReadMetadataFromFile(FileName, TestInputInStream, LanguageID, GroupName, SuiteSetupGroupName, InputText);
 
         if not TestInputGroup.Find() then
             CreateTestInputGroup(TestInputGroup, FileName, ImportedByAppId, LanguageID, GroupName);
+
+        if SuiteSetupGroupName <> '' then begin
+            TestInputGroup."Suite Setup Group Name" := CopyStr(SuiteSetupGroupName, 1, MaxStrLen(TestInputGroup."Suite Setup Group Name"));
+            TestInputGroup.Modify(true);
+        end;
 
         if FileName.EndsWith(JsonFileExtensionTxt) then begin
             FileType := JsonFileExtensionTxt;
@@ -207,7 +213,7 @@ codeunit 130458 "Test Inputs Management"
             TestInputGroupCode := CopyStr(FileName, 1, MaxStrLen(TestInputGroupCode));
     end;
 
-    local procedure ReadMetadataFromFile(FileName: Text; var TestInputInStream: InStream; var LanguageID: Integer; var GroupName: Text; var InputText: Text)
+    local procedure ReadMetadataFromFile(FileName: Text; var TestInputInStream: InStream; var LanguageID: Integer; var GroupName: Text; var SuiteSetupGroupName: Text; var InputText: Text)
     var
         WindowsLanguage: Record "Windows Language";
         MetadataJsonObject: JsonObject;
@@ -232,6 +238,9 @@ codeunit 130458 "Test Inputs Management"
             if MetadataJsonToken.IsValue() then
                 GroupName := MetadataJsonToken.AsValue().AsText();
 
+        if MetadataJsonObject.Get(TestSuiteSetupTok, MetadataJsonToken) then
+            if MetadataJsonToken.IsValue() then
+                SuiteSetupGroupName := MetadataJsonToken.AsValue().AsText();
     end;
 
     local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text; ImportedByAppId: Guid; LanguageID: Integer; GroupName: Text)
@@ -295,11 +304,12 @@ codeunit 130458 "Test Inputs Management"
         if not DataInputJsonObject.ReadFromYaml(TestData) then
             Error(CouldNotParseYamlInputErr);
 
-        // Suite setup: store entire content as a single row
-        if DataInputJsonObject.Get(TestSuiteSetupTok, DataInputJsonToken) then begin
-            InsertSuiteSetupDataInput(DataInputJsonToken, TestInputGroup);
-            exit;
-        end;
+        // Suite setup: store entire content as a single row (only when value is an object, not a scalar reference)
+        if DataInputJsonObject.Get(TestSuiteSetupTok, DataInputJsonToken) then
+            if not DataInputJsonToken.IsValue() then begin
+                InsertSuiteSetupDataInput(DataInputJsonToken, TestInputGroup);
+                exit;
+            end;
 
         if not DataInputJsonObject.Get(TestsTok, DataInputJsonToken) then begin
             InsertDataInputLine(DataInputJsonObject, TestInputGroup);

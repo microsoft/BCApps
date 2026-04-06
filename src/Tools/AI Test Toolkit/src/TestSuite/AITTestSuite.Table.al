@@ -266,20 +266,6 @@ table 149030 "AIT Test Suite"
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(2)));
         }
-        field(83; "Suite Setup Done"; Boolean)
-        {
-            Caption = 'Suite Setup Done';
-            ToolTip = 'Specifies whether the per-suite setup has been executed for this eval suite.';
-            Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = lookup("AL Test Suite"."Suite Setup Done" where(Name = field(Code)));
-        }
-        field(90; "Suite Setup Dataset"; Code[100])
-        {
-            Caption = 'Suite Setup Dataset';
-            ToolTip = 'Specifies the test input group containing per-suite setup data.';
-            TableRelation = "Test Input Group".Code;
-        }
     }
     keys
     {
@@ -314,18 +300,18 @@ table 149030 "AIT Test Suite"
 
     internal procedure ResetSuiteSetup()
     var
-        ALTestSuite: Record "AL Test Suite";
+        TestInputGroup: Record "Test Input Group";
+        SuiteSetupGroup: Record "Test Input Group";
     begin
-        ALTestSuite.Get(Rec.Code);
-        ALTestSuite.ResetSuiteSetup();
-    end;
+        if not TestInputGroup.Get(Rec."Input Dataset") then
+            exit;
 
-    internal procedure SetEvalSuiteSetupDone()
-    var
-        ALTestSuite: Record "AL Test Suite";
-    begin
-        ALTestSuite.Get(Rec.Code);
-        ALTestSuite.SetSuiteSetupDone();
+        if TestInputGroup."Suite Setup Group Name" = '' then
+            exit;
+
+        SuiteSetupGroup.SetRange("Group Name", TestInputGroup."Suite Setup Group Name");
+        if SuiteSetupGroup.FindFirst() then
+            SuiteSetupGroup.ResetSuiteSetup();
     end;
 
     var
