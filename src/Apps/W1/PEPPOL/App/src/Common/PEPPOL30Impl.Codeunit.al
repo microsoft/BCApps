@@ -641,6 +641,7 @@ codeunit 37201 "PEPPOL30 Impl."
         end;
 
         PaymentTermsNote := PmtTerms.Description;
+        OnAfterGetPaymentTermsInfo(SalesHeader, PaymentTermsNote);
     end;
 
     procedure GetAllowanceChargeInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text)
@@ -1009,6 +1010,7 @@ codeunit 37201 "PEPPOL30 Impl."
             InvoiceDocRefID := SalesInvoiceHeader."No.";
             InvoiceDocRefIssueDate := Format(SalesInvoiceHeader."Posting Date", 0, 9);
         end;
+        OnAfterGetCrMemoBillingReferenceInfo(SalesCrMemoHeader, InvoiceDocRefID, InvoiceDocRefIssueDate);
     end;
 
     local procedure GetCountryISOCode(CountryRegionCode: Code[10]): Code[2]
@@ -1378,5 +1380,15 @@ codeunit 37201 "PEPPOL30 Impl."
         TaxCategorySchemeID := '';
         Percent := Format(VATAmtLine."VAT %", 0, 9);
         AllowanceChargeTaxSchemeID := VATTxt;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetPaymentTermsInfo(SalesHeader: Record "Sales Header"; var PaymentTermsNote: Text)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetCrMemoBillingReferenceInfo(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var InvoiceDocRefID: Text; var InvoiceDocRefIssueDate: Text)
+    begin
     end;
 }
