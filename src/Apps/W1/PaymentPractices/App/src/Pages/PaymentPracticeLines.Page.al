@@ -6,7 +6,7 @@ namespace Microsoft.Finance.Analysis;
 
 page 688 "Payment Practice Lines"
 {
-    ApplicationArea = All;
+    ApplicationArea = Basic, Suite;
     Caption = 'Lines';
     InsertAllowed = false;
     PageType = ListPart;
@@ -93,19 +93,31 @@ page 688 "Payment Practice Lines"
                     Editable = false;
                     ToolTip = 'Specifies whether the line has been modified manually.';
                 }
+                field("Invoice Count"; Rec."Invoice Count")
+                {
+                    Editable = false;
+                    Visible = IsSmallBusiness;
+                }
+                field("Invoice Value"; Rec."Invoice Value")
+                {
+                    Editable = false;
+                    Visible = IsSmallBusiness;
+                }
             }
         }
     }
 
-    procedure UpdateVisibility(newAggregationType: enum "Paym. Prac. Aggregation Type"; newHeaderType: enum "Paym. Prac. Header Type")
+    procedure UpdateVisibility(newAggregationType: enum "Paym. Prac. Aggregation Type"; newHeaderType: enum "Paym. Prac. Header Type"; newReportingScheme: enum "Paym. Prac. Reporting Scheme")
     begin
         AggregationType := newAggregationType;
         HeaderType := newHeaderType;
+        IsSmallBusiness := newReportingScheme = newReportingScheme::"Small Business";
     end;
 
     var
         AggregationType: enum "Paym. Prac. Aggregation Type";
         HeaderType: enum "Paym. Prac. Header Type";
+        IsSmallBusiness: Boolean;
 
     local procedure ShowLineDataLines()
     var

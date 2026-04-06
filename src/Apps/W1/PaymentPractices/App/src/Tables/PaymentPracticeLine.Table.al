@@ -86,6 +86,16 @@ table 688 "Payment Practice Line"
         {
 
         }
+        field(14; "Invoice Count"; Integer)
+        {
+            ToolTip = 'Specifies the number of invoices in this period.';
+        }
+        field(15; "Invoice Value"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            ToolTip = 'Specifies the total value of invoices in this period.';
+        }
     }
 
     keys

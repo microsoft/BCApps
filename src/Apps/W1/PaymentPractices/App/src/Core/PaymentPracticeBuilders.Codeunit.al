@@ -17,8 +17,10 @@ codeunit 688 "Payment Practice Builders"
     var
         Vendor: Record Vendor;
         VendorLedgerEntry: Record "Vendor Ledger Entry";
+        SchemeHandler: Interface PaymentPracticeSchemeHandler;
         LastVendNo: Code[20];
     begin
+        SchemeHandler := PaymentPracticeHeader."Reporting Scheme";
         LastVendNo := '';
         VendorLedgerEntry.SetCurrentKey("Vendor No.");
         VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
@@ -39,7 +41,8 @@ codeunit 688 "Payment Practice Builders"
                     PaymentPracticeData."Header No." := PaymentPracticeHeader."No.";
                     PaymentPracticeData.CopyFromInvoiceVendLedgEntry(VendorLedgerEntry);
                     PaymentPracticeData."Company Size Code" := Vendor."Company Size Code";
-                    PaymentPracticeData.Insert();
+                    if SchemeHandler.UpdatePaymentPracData(PaymentPracticeData) then
+                        PaymentPracticeData.Insert();
                 end;
             until VendorLedgerEntry.Next() = 0;
     end;
@@ -48,8 +51,10 @@ codeunit 688 "Payment Practice Builders"
     var
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
+        SchemeHandler: Interface PaymentPracticeSchemeHandler;
         LastCustNo: Code[20];
     begin
+        SchemeHandler := PaymentPracticeHeader."Reporting Scheme";
         LastCustNo := '';
         CustLedgerEntry.SetCurrentKey("Customer No.");
         CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
@@ -69,7 +74,8 @@ codeunit 688 "Payment Practice Builders"
                     PaymentPracticeData.Init();
                     PaymentPracticeData."Header No." := PaymentPracticeHeader."No.";
                     PaymentPracticeData.CopyFromInvoiceCustLedgEntry(CustLedgerEntry);
-                    PaymentPracticeData.Insert();
+                    if SchemeHandler.UpdatePaymentPracData(PaymentPracticeData) then
+                        PaymentPracticeData.Insert();
                 end;
             until CustLedgerEntry.Next() = 0;
     end;

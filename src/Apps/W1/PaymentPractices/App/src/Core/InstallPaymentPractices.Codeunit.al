@@ -35,7 +35,21 @@ codeunit 687 "Install Payment Practices"
         PaymentPeriod: Record "Payment Period";
     begin
         ApplyEvaluationClassificationsForPrivacy();
+        CreateDefaultPaymentPeriodTemplate();
+#pragma warning disable AL0432
         PaymentPeriod.SetupDefaults();
+#pragma warning restore AL0432
+    end;
+
+    local procedure CreateDefaultPaymentPeriodTemplate()
+    var
+        PaymentPeriodHeader: Record "Payment Period Header";
+        PaymentPeriodMgt: Codeunit "Payment Period Mgt.";
+    begin
+        if not PaymentPeriodHeader.IsEmpty() then
+            exit;
+
+        PaymentPeriodMgt.InsertDefaultTemplate();
     end;
 
     local procedure ApplyEvaluationClassificationsForPrivacy()
@@ -51,5 +65,7 @@ codeunit 687 "Install Payment Practices"
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Payment Practice Data");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Payment Practice Header");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Payment Practice Line");
+        DataClassificationMgt.SetTableFieldsToNormal(Database::"Payment Period Header");
+        DataClassificationMgt.SetTableFieldsToNormal(Database::"Payment Period Line");
     end;
 }
