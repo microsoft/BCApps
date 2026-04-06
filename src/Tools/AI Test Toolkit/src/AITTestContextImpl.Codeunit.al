@@ -18,6 +18,7 @@ codeunit 149043 "AIT Test Context Impl."
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         GlobalTestOutputJson: Codeunit "Test Output Json";
+        GlobalSuiteSetupJson: Codeunit "Test Input Json";
         GlobalAccuracy: Decimal;
         CurrentTurn: Integer;
         NumberOfTurns: Integer;
@@ -29,6 +30,7 @@ codeunit 149043 "AIT Test Context Impl."
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
         ExpectedDataTok: Label 'expected_data', Locked = true;
+        ContinueOnFailureTok: Label 'continue_on_failure', Locked = true;
         TestMetricsTok: Label 'test_metrics', Locked = true;
         TestSetupTok: Label 'test_setup', Locked = true;
         QuestionTok: Label 'question', Locked = true;
@@ -39,10 +41,8 @@ codeunit 149043 "AIT Test Context Impl."
         RoleTok: Label 'role', Locked = true;
         ContentTok: Label 'content', Locked = true;
         ConversationTok: Label 'conversation', Locked = true;
-        TestSuiteSetupTok: Label 'test_suite_setup', Locked = true;
-        GlobalSuiteSetupJson: Codeunit "Test Input Json";
         HasSuiteSetupData: Boolean;
-        SuiteSetupDataNotLoadedErr: Label 'Per-suite setup data has not been loaded. Import a YAML file with the test_suite_setup token first.';
+        SuiteSetupDataNotLoadedErr: Label 'Per-suite setup data has not been loaded.';
 
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
@@ -99,6 +99,23 @@ codeunit 149043 "AIT Test Context Impl."
     procedure GetExpectedData(): Codeunit "Test Input Json"
     begin
         exit(GetTestInput(ExpectedDataTok));
+    end;
+
+    /// <summary>
+    /// Gets the continue on failure flag for the current turn.
+    /// If the flag is not set in the test input, it defaults to false.
+    /// </summary>
+    /// <returns>True if the eval should continue on failure, false otherwise.</returns>
+    procedure GetCanContinueOnFailure(): Boolean
+    var
+        ContinueOnFailureInput: Codeunit "Test Input Json";
+        ElementFound: Boolean;
+    begin
+        ContinueOnFailureInput := GetTestInput(ContinueOnFailureTok, ElementFound);
+        if not ElementFound then
+            exit(false);
+
+        exit(ContinueOnFailureInput.ValueAsBoolean());
     end;
 
     /// <summary>
@@ -351,6 +368,22 @@ codeunit 149043 "AIT Test Context Impl."
             TestInputJson := TestInput.GetTestInput(TurnsTok).ElementAt(CurrentTurn - 1).Element(ElementName)
         else
             TestInputJson := TestInput.GetTestInput(ElementName);
+    end;
+
+    /// <summary>
+    /// Gets the test input for the provided element, returning whether the element was found.
+    /// </summary>
+    /// <param name="ElementName">Element name to get from test input.</param>
+    /// <param name="ElementFound">Set to true if the element exists.</param>
+    /// <returns>Test Input Json for the element</returns>
+    local procedure GetTestInput(ElementName: Text; var ElementFound: Boolean) TestInputJson: Codeunit "Test Input Json"
+    var
+        TestInput: Codeunit "Test Input";
+    begin
+        if IsMultiTurn then
+            TestInputJson := TestInput.GetTestInput(TurnsTok).ElementAt(CurrentTurn - 1).ElementExists(ElementName, ElementFound)
+        else
+            TestInputJson := TestInput.GetTestInput().ElementExists(ElementName, ElementFound);
     end;
 
     /// <summary>

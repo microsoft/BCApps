@@ -85,6 +85,16 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
+    /// Gets the continue on failure flag for the current turn.
+    /// If the flag is not set in the test input, it defaults to false.
+    /// </summary>
+    /// <returns>True if the eval should continue on failure, false otherwise.</returns>
+    procedure GetCanContinueOnFailure(): Boolean
+    begin
+        exit(AITTestContextImpl.GetCanContinueOnFailure());
+    end;
+
+    /// <summary>
     /// Sets the answer for a question and answer evaluation.
     /// This will also copy the context, question and ground truth to the output dataset.
     /// </summary>
@@ -206,7 +216,7 @@ codeunit 149044 "AIT Test Context"
 
     /// <summary>
     /// Gets the per-suite setup data as a Test Input Json.
-    /// The consuming test app must have imported a YAML file with the test_suite_setup token.
+    /// The consuming test app must have imported a YAML file with the suite_setup token.
     /// </summary>
     /// <returns>Test Input Json containing the suite setup data.</returns>
     procedure GetEvalSuiteSetupDataInput(): Codeunit "Test Input Json"

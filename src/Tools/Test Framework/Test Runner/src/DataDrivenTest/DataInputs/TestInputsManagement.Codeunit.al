@@ -410,7 +410,7 @@ codeunit 130458 "Test Inputs Management"
         LanguageTok: Label 'language', Locked = true;
         NameTok: Label 'name', Locked = true;
         TestsTok: Label 'tests', Locked = true;
-        TestSuiteSetupTok: Label 'test_suite_setup', Locked = true;
+        TestSuiteSetupTok: Label 'suite_setup', Locked = true;
         TestInputTok: Label 'testInput', Locked = true;
         ChooseFileLbl: Label 'Choose a file to import';
         TestInputNameTok: Label 'INPUT-', Locked = true;
