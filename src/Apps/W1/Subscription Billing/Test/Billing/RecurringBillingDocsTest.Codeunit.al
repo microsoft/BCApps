@@ -8,6 +8,7 @@ using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
+using Microsoft.Projects.Project.Ledger;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
@@ -2369,6 +2370,78 @@ codeunit 139687 "Recurring Billing Docs Test"
         // [THEN] Throw error if Item Unit of Measure for Invoicing Item No. does not exist
         asserterror CreateBillingDocumentsCodeunit.ErrorIfItemUnitOfMeasureCodeDoesNotExist(BillingLine, Item."No.", MockServiceObject);
         Assert.ExpectedError(StrSubstNo(ItemUOMDoesNotExistErr, MockServiceObject."No.", MockServiceObject."Unit of Measure", Item."No."));
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CheckReportExtDateFormattingUsesDocumentFormatRegion()
+    var
+        Customer: Record Customer;
+        TempJobLedgerEntry: Record "Job Ledger Entry" temporary;
+        ContractBillingPrintout: Codeunit "Sub. Contract Billing Printout";
+        LanguageMgt: Codeunit Language;
+        PostedDocumentNo: Code[20];
+        ColumnHeaders: array[5] of Text;
+        FormattedStartDate: Text;
+        FormattedEndDate: Text;
+        GermanFormatRegionTok: Label 'de-DE', Locked = true;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Report extension contract billing details date columns should use the document's format region (de-DE), not the server default
+        Initialize();
+
+        // [GIVEN] Customer contract with subscription lines
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+
+        // [GIVEN] Customer "C" has German format region (de-DE)
+        Customer.Get(CustomerContract."Bill-to Customer No.");
+        Customer."Format Region" := GermanFormatRegionTok;
+        Customer.Modify(false);
+
+        // [GIVEN] Contract has Detail Overview = Complete so billing details are populated
+        CustomerContract."Detail Overview" := Enum::"Contract Detail Overview"::Complete;
+        CustomerContract.Modify(false);
+
+        // [GIVEN] A billing proposal and billing documents
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+        CreateBillingDocuments(false);
+
+        // [GIVEN] Sales invoice is posted with Format Region = de-DE
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange(Partner, BillingTemplate.Partner);
+        BillingLine.FindFirst();
+        SalesHeader.Get(Enum::"Sales Document Type"::Invoice, BillingLine."Document No.");
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+
+        // [THEN] The posted invoice should have the customer's format region
+        Assert.AreEqual(GermanFormatRegionTok, SalesInvoiceHeader."Format Region",
+            'Posted sales invoice should have the customer format region (de-DE)');
+
+        // [WHEN] Report extension fills contract billing details buffer (simulates report execution)
+        ContractBillingPrintout.FillContractBillingDetailsBufferFromSalesInvoice(SalesInvoiceHeader, TempJobLedgerEntry, ColumnHeaders);
+
+        // [THEN] The buffer should have entries with dates
+        TempJobLedgerEntry.FindFirst();
+        Assert.AreNotEqual(0D, TempJobLedgerEntry."Document Date", 'Billing details start date should not be empty');
+        Assert.AreNotEqual(0D, TempJobLedgerEntry."Posting Date", 'Billing details end date should not be empty');
+
+        // [THEN] Verify what the report extension CURRENTLY produces:
+        // The report column expressions call Format() WITHOUT setting the format region override.
+        // We simulate this by clearing any override and calling Format():
+        LanguageMgt.SetOverrideFormatRegion('', false);
+        FormattedStartDate := Format(TempJobLedgerEntry."Document Date");
+        FormattedEndDate := Format(TempJobLedgerEntry."Posting Date");
+
+        // BUG VERIFICATION: For a de-DE customer document, dates should use German format
+        // with period separator (e.g. "27.01.2028"). However, the report extension calls
+        // Format() without applying the document's format region, so the dates appear in the
+        // server's default locale format (en-US with slash separator, e.g. "1/27/2028").
+        Assert.IsTrue(FormattedStartDate.Contains('.'),
+            'Start date should be formatted in German locale (de-DE) with period separator, but the report uses Format() without format region override. Actual: ' + FormattedStartDate);
+        Assert.IsTrue(FormattedEndDate.Contains('.'),
+            'End date should be formatted in German locale (de-DE) with period separator, but the report uses Format() without format region override. Actual: ' + FormattedEndDate);
     end;
 
     #endregion Tests
