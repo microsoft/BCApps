@@ -36,26 +36,6 @@ codeunit 6123 "E-Document Notification"
         EDocumentNotification.Insert(true);
     end;
 
-    procedure AddVATRateMismatchNotification(EDocumentEntryNo: Integer)
-    var
-        EDocumentNotification: Record "E-Document Notification";
-        MyNotifications: Record "My Notifications";
-        VATRateMismatchMsg: Label 'VAT Product Posting Groups could not be automatically determined for one or more lines. Please review before creating the invoice.';
-    begin
-        if not GuiAllowed() then
-            exit;
-        if not MyNotifications.IsEnabled(GetVATRateMismatchNotificationId()) then
-            exit;
-        if EDocumentNotification.Get(EDocumentEntryNo, GetVATRateMismatchNotificationId(), UserId()) then
-            exit;
-        EDocumentNotification.Validate("E-Document Entry No.", EDocumentEntryNo);
-        EDocumentNotification.Validate(ID, GetVATRateMismatchNotificationId());
-        EDocumentNotification.Validate("User Id", UserId());
-        EDocumentNotification.Validate(Type, "E-Document Notification Type"::"VAT Rate Mismatch");
-        EDocumentNotification.Validate(Message, VATRateMismatchMsg);
-        EDocumentNotification.Insert(true);
-    end;
-
     /// <summary>
     /// Send notifications for Purchase Document Draft page
     /// <param name="EDocumentEntryNo">Id of e-document</param>
@@ -68,9 +48,7 @@ codeunit 6123 "E-Document Notification"
             exit;
 
         EDocumentNotification.SetRange("E-Document Entry No.", EDocumentEntryNo);
-        EDocumentNotification.SetFilter(Type, '%1|%2',
-            "E-Document Notification Type"::"Vendor Matched By Name Not Address",
-            "E-Document Notification Type"::"VAT Rate Mismatch");
+        EDocumentNotification.SetRange(Type, "E-Document Notification Type"::"Vendor Matched By Name Not Address");
         EDocumentNotification.SetRange("User Id", UserId());
         if not EDocumentNotification.FindSet() then
             exit;
@@ -116,34 +94,6 @@ codeunit 6123 "E-Document Notification"
         EDocumentNotification.DeleteAll(true);
     end;
 
-    procedure DismissVATRateMismatchNotification(Notification: Notification)
-    var
-        EDocumentNotification: Record "E-Document Notification";
-        EDocumentEntryNo: Integer;
-        Id: Guid;
-    begin
-        Evaluate(EDocumentEntryNo, Notification.GetData(EDocumentNotification.FieldName("E-Document Entry No.")));
-        Evaluate(Id, Notification.GetData(EDocumentNotification.FieldName(ID)));
-        if not EDocumentNotification.Get(EDocumentEntryNo, Id, UserId()) then
-            exit;
-        EDocumentNotification.Delete(true);
-    end;
-
-    procedure DisableVATRateMismatchNotification(Notification: Notification)
-    var
-        MyNotifications: Record "My Notifications";
-        EDocumentNotification: Record "E-Document Notification";
-        VATRateMismatchNotificationNameTok: Label 'Notify user of Purchase Document Draft that VAT posting groups could not be auto-resolved.';
-        VATRateMismatchNotificationDescTok: Label 'Show a notification when VAT Product Posting Groups could not be automatically determined from the extracted VAT rate.';
-    begin
-        if MyNotifications.WritePermission() then
-            if not MyNotifications.Disable(GetVATRateMismatchNotificationId()) then
-                MyNotifications.InsertDefault(GetVATRateMismatchNotificationId(), VATRateMismatchNotificationNameTok, VATRateMismatchNotificationDescTok, false);
-        EDocumentNotification.SetRange(Type, "E-Document Notification Type"::"VAT Rate Mismatch");
-        EDocumentNotification.SetRange("User Id", UserId());
-        EDocumentNotification.DeleteAll(true);
-    end;
-
     local procedure SendNotification(EDocumentNotification: Record "E-Document Notification")
     var
         MyNotifications: Record "My Notifications";
@@ -164,20 +114,12 @@ codeunit 6123 "E-Document Notification"
         DismissMsg: Label 'Dismiss';
         DontShowThisAgainMsg: Label 'Don''t show this again.';
     begin
+        if EDocumentNotification.Type <> "E-Document Notification Type"::"Vendor Matched By Name Not Address" then
+            exit;
         Notification.SetData(EDocumentNotification.FieldName("E-Document Entry No."), Format(EDocumentNotification."E-Document Entry No."));
         Notification.SetData(EDocumentNotification.FieldName(ID), EDocumentNotification.ID);
-        case EDocumentNotification.Type of
-            "E-Document Notification Type"::"Vendor Matched By Name Not Address":
-                begin
-                    Notification.AddAction(DismissMsg, Codeunit::"E-Document Notification", 'DismissVendorMatchedByNameNotAddressNotification');
-                    Notification.AddAction(DontShowThisAgainMsg, Codeunit::"E-Document Notification", 'DisableVendorMatchedByNameNotAddressNotification');
-                end;
-            "E-Document Notification Type"::"VAT Rate Mismatch":
-                begin
-                    Notification.AddAction(DismissMsg, Codeunit::"E-Document Notification", 'DismissVATRateMismatchNotification');
-                    Notification.AddAction(DontShowThisAgainMsg, Codeunit::"E-Document Notification", 'DisableVATRateMismatchNotification');
-                end;
-        end;
+        Notification.AddAction(DismissMsg, Codeunit::"E-Document Notification", 'DismissVendorMatchedByNameNotAddressNotification');
+        Notification.AddAction(DontShowThisAgainMsg, Codeunit::"E-Document Notification", 'DisableVendorMatchedByNameNotAddressNotification');
     end;
 
     local procedure GetVendorMatchedByNameNotAddressNotificationId(): Guid
@@ -185,8 +127,4 @@ codeunit 6123 "E-Document Notification"
         exit('bc0d8537-8e8d-4d94-a07a-a5a54c729d2a');
     end;
 
-    local procedure GetVATRateMismatchNotificationId(): Guid
-    begin
-        exit('d4a7e1c3-5f92-4b8a-ae67-1c3d5f924b8a');
-    end;
 }
