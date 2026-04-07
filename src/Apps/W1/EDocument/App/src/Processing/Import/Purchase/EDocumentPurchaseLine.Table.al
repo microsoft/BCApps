@@ -214,6 +214,54 @@ table 6101 "E-Document Purchase Line"
             Caption = 'VAT Prod. Posting Group';
             ToolTip = 'Specifies the VAT product posting group resolved from the extracted VAT rate.';
             TableRelation = "VAT Product Posting Group";
+
+            trigger OnValidate()
+            var
+                EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+                Vendor: Record Vendor;
+                VATPostingSetup: Record "VAT Posting Setup";
+            begin
+                if "[BC] VAT Prod. Posting Group" = '' then begin
+                    "[BC] VAT Rate Mismatch" := true;
+                    exit;
+                end;
+                if not EDocumentPurchaseHeader.Get("E-Document Entry No.") then
+                    exit;
+                if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+                    exit;
+                if VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", "[BC] VAT Prod. Posting Group") then begin
+                    if not (VATPostingSetup."VAT Calculation Type" in
+                        [VATPostingSetup."VAT Calculation Type"::"Normal VAT",
+                         VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT"])
+                    then
+                        exit;
+                    "[BC] VAT Rate Mismatch" := VATPostingSetup."VAT %" <> "VAT Rate";
+                end else
+                    "[BC] VAT Rate Mismatch" := true;
+            end;
+
+            trigger OnLookup()
+            var
+                EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+                Vendor: Record Vendor;
+                VATPostingSetup: Record "VAT Posting Setup";
+            begin
+                if not EDocumentPurchaseHeader.Get("E-Document Entry No.") then
+                    exit;
+                if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+                    exit;
+                VATPostingSetup.SetRange("VAT Bus. Posting Group", Vendor."VAT Bus. Posting Group");
+                VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
+                    VATPostingSetup."VAT Calculation Type"::"Normal VAT",
+                    VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+                if Page.RunModal(Page::"VAT Posting Setup", VATPostingSetup) = Action::LookupOK then
+                    Validate("[BC] VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+            end;
+        }
+        field(111; "[BC] VAT Rate Mismatch"; Boolean)
+        {
+            Caption = 'VAT Rate Mismatch';
+            ToolTip = 'Specifies whether the VAT Product Posting Group could not be resolved from the extracted VAT rate.';
         }
         #endregion Validated fields
 
