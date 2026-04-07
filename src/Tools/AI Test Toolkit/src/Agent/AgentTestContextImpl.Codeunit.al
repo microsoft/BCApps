@@ -47,7 +47,7 @@ codeunit 149049 "Agent Test Context Impl."
 
     local procedure LogAgentTask(AgentTaskId: BigInteger; var AITLogEntry: Record "AIT Log Entry")
     var
-        AgentTestTaskLog: Record "Agent Test Task Log";
+        AgentTestTaskLog: Record "Agent Task Log";
         AgentTestConsumptionLog: Record "Agent Test Consumption Log";
         AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
     begin
@@ -68,7 +68,7 @@ codeunit 149049 "Agent Test Context Impl."
 
     procedure GetAgentTaskIDsForLogEntry(LogEntryNo: Integer): Text
     var
-        AgentTestTaskLog: Record "Agent Test Task Log";
+        AgentTestTaskLog: Record "Agent Task Log";
     begin
         AgentTestTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
         exit(GetCommaSeparatedAgentTaskIDs(AgentTestTaskLog));
@@ -86,7 +86,7 @@ codeunit 149049 "Agent Test Context Impl."
 
     procedure GetAgentTaskIDs(TestSuiteCode: Code[100]; VersionFilter: Text; Tag: Text[20]; TestMethodLineNo: Integer): Text
     var
-        AgentTestTaskLog: Record "Agent Test Task Log";
+        AgentTestTaskLog: Record "Agent Task Log";
     begin
         AgentTestTaskLog.SetRange("Test Suite Code", TestSuiteCode);
         if Tag <> '' then
@@ -101,7 +101,7 @@ codeunit 149049 "Agent Test Context Impl."
 
     procedure GetCopilotCreditsForLogEntry(LogEntryNo: Integer): Decimal
     var
-        AgentTestTaskLog: Record "Agent Test Task Log";
+        AgentTestTaskLog: Record "Agent Task Log";
     begin
         AgentTestTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
         exit(GetCopilotCredits(AgentTestTaskLog));
@@ -118,7 +118,7 @@ codeunit 149049 "Agent Test Context Impl."
 
     procedure GetCopilotCredits(TestSuiteCode: Code[100]; VersionFilter: Text; Tag: Text[20]; TestMethodLineNo: Integer): Decimal
     var
-        AgentTestTaskLog: Record "Agent Test Task Log";
+        AgentTestTaskLog: Record "Agent Task Log";
     begin
         AgentTestTaskLog.SetRange("Test Suite Code", TestSuiteCode);
         if VersionFilter <> '' then
@@ -130,7 +130,7 @@ codeunit 149049 "Agent Test Context Impl."
         exit(GetCopilotCredits(AgentTestTaskLog));
     end;
 
-    local procedure GetCopilotCredits(var AgentTestTaskLog: Record "Agent Test Task Log"): Decimal
+    local procedure GetCopilotCredits(var AgentTestTaskLog: Record "Agent Task Log"): Decimal
     var
         AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
         TaskIDsList: List of [BigInteger];
@@ -185,7 +185,7 @@ codeunit 149049 "Agent Test Context Impl."
         AgentConsumptionOverview.OpenAgentTaskConsumptionOverview(FilterText);
     end;
 
-    local procedure GetCommaSeparatedAgentTaskIDs(var AgentTestTaskLog: Record "Agent Test Task Log"): Text
+    local procedure GetCommaSeparatedAgentTaskIDs(var AgentTestTaskLog: Record "Agent Task Log"): Text
     var
         TaskIDList: List of [BigInteger];
         TaskIDTextList: List of [Text];
