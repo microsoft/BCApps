@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Test library for red team scanning of AI features using Azure AI Evaluation SDK.",
   "description": "Test library for red team scanning of AI features using Azure AI Evaluation SDK.",
-  "version": "$(app_currentVersion)",
+  "version": "29.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?LinkId=847985",
   "help": "https://go.microsoft.com/fwlink/?LinkId=849257",
