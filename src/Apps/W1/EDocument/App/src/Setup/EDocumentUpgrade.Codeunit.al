@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+#if not CLEAN29
 using Microsoft.eServices.EDocument.Processing.Import;
+#endif
 using System.Upgrade;
 
 codeunit 6168 "E-Document Upgrade"
