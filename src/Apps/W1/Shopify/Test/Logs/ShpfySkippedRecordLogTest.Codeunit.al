@@ -17,19 +17,16 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         Shop: Record "Shpfy Shop";
-        ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         LibraryAssert: Codeunit "Library Assert";
         Any: Codeunit Any;
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         SalesShipmentNo: Code[20];
         IsInitialized: Boolean;
-
-    trigger OnRun()
-    begin
-        IsInitialized := false;
-    end;
 
     [Test]
     procedure UnitTestLogEmptyCustomerEmail()
@@ -259,12 +256,10 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
     [Test]
     procedure UnitTestLogProductItemBlockedAndProductIsDraft()
     var
-
         Item: Record Item;
         ShpfyProduct: Record "Shpfy Product";
         SkippedRecord: Record "Shpfy Skipped Record";
         ProductExport: Codeunit "Shpfy Product Export";
-        SkippedRecordLogSub: Codeunit "Shpfy Skipped Record Log Sub.";
     begin
         // [SCENARIO] Log skipped record when product item is blocked and product is draft
         Initialize();
@@ -279,11 +274,9 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         CreateShopifyProductWithStatus(Item, ShpfyProduct, Enum::"Shpfy Product Status"::Draft);
 
         // [WHEN] Invoke Shopify Product Export
-        BindSubscription(SkippedRecordLogSub);
         ProductExport.SetShop(Shop);
         Shop.SetRange("Code", Shop.Code);
         ProductExport.Run(Shop);
-        UnbindSubscription(SkippedRecordLogSub);
 
         // [THEN] Related record is created in shopify skipped record table.
         SkippedRecord.SetRange("Record ID", Item.RecordId);
@@ -486,7 +479,7 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         Initialize();
 
         // [GIVEN] Customer
-        Customer := ShpfyInitializeTest.GetDummyCustomer();
+        Customer := InitializeTest.GetDummyCustomer();
         // [GIVEN] Shopify Customer
         CreateShopifyCustomer(Customer);
         // [GIVEN] Payment Terms Code
@@ -587,7 +580,7 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         Initialize();
 
         // [GIVEN] Customer
-        Customer := ShpfyInitializeTest.GetDummyCustomer();
+        Customer := InitializeTest.GetDummyCustomer();
         // [GIVEN] Shopify Customer
         CreateShopifyCustomer(Customer);
         // [GIVEN] Payment Terms Code
@@ -620,7 +613,7 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         Initialize();
 
         // [GIVEN] Customer
-        Customer := ShpfyInitializeTest.GetDummyCustomer();
+        Customer := InitializeTest.GetDummyCustomer();
         // [GIVEN] Shopify Customer
         CreateShopifyCustomer(Customer);
         // [GIVEN] Payment Terms Code
@@ -653,7 +646,7 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         Initialize();
 
         // [GIVEN] Customer
-        Customer := ShpfyInitializeTest.GetDummyCustomer();
+        Customer := InitializeTest.GetDummyCustomer();
         // [GIVEN] Shopify Customer
         CreateShopifyCustomer(Customer);
         // [GIVEN] Payment Terms Code
@@ -754,13 +747,13 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
     end;
 
     [Test]
+    [HandlerFunctions('MockGraphQLHandler')]
     procedure UnitTestLogSalesShipmentNoFulfilmentCreatedInShopify()
     var
         SalesShipmentHeader: Record "Sales Shipment Header";
         SkippedRecord: Record "Shpfy Skipped Record";
         ExportShipments: Codeunit "Shpfy Export Shipments";
         ShippingHelper: Codeunit "Shpfy Shipping Helper";
-        SkippedRecordLogSub: Codeunit "Shpfy Skipped Record Log Sub.";
         AssignedFulfillmentOrderIds: Dictionary of [BigInteger, Code[20]];
         ShopifyOrderId: BigInteger;
         DeliveryMethodType: Enum "Shpfy Delivery Method Type";
@@ -778,10 +771,12 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         // [GIVEN] Sales shipment related to shopify order
         ShippingHelper.CreateRandomSalesShipment(SalesShipmentHeader, ShopifyOrderId);
 
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('CreateFulfillment');
+
         // [WHEN] Invoke Shopify Sync Shipment to Shopify
-        BindSubscription(SkippedRecordLogSub);
         ExportShipments.CreateShopifyFulfillment(SalesShipmentHeader, AssignedFulfillmentOrderIds);
-        UnbindSubscription(SkippedRecordLogSub);
 
         // [THEN] Related record is created in shopify skipped record table.
         SkippedRecord.SetRange("Record ID", SalesShipmentHeader.RecordId);
@@ -845,17 +840,24 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
     end;
 
     local procedure Initialize()
+    var
+        LibraryRandom: Codeunit "Library - Random";
+        AccessToken: SecretText;
     begin
         if IsInitialized then
             exit;
-        Shop := ShpfyInitializeTest.CreateShop();
+
+        IsInitialized := true;
+
+        Shop := InitializeTest.CreateShop();
         Shop."Can Update Shopify Customer" := true;
         Shop."Can Update Shopify Products" := true;
         Shop.Modify(false);
 
-        Commit();
+        AccessToken := LibraryRandom.RandText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
 
-        IsInitialized := true;
+        Commit();
     end;
 
     local procedure CreateShpfyProduct(var ShopifyProduct: Record "Shpfy Product"; ItemSystemId: Guid; ShopCode: Code[20]; var ShopifyVariant: Record "Shpfy Variant")
@@ -1053,14 +1055,16 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         CustomerExport: Codeunit "Shpfy Customer Export";
         SkippedRecordLogSub: Codeunit "Shpfy Skipped Record Log Sub.";
     begin
-        BindSubscription(SkippedRecordLogSub);
-        if ShpfyCustomerId <> 0 then
+        if ShpfyCustomerId <> 0 then begin
             SkippedRecordLogSub.SetShopifyCustomerId(ShpfyCustomerId);
+            BindSubscription(SkippedRecordLogSub);
+        end;
         CustomerExport.SetShop(Shop);
         CustomerExport.SetCreateCustomers(true);
         Customer.SetRange("No.", Customer."No.");
         CustomerExport.Run(Customer);
-        UnbindSubscription(SkippedRecordLogSub);
+        if ShpfyCustomerId <> 0 then
+            UnbindSubscription(SkippedRecordLogSub);
     end;
 
     local procedure CreateShopWithCustomerTemplate(var ShopWithCustTemplates: Record "Shpfy Shop"; var ShopifyCustomerTemplate: Record "Shpfy Customer Template"; CustomerNo: Code[20])
@@ -1179,6 +1183,33 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
     procedure AddItemToShopifyHandler(var AddItemToShopify: TestRequestPage "Shpfy Add Item to Shopify")
     begin
         AddItemToShopify.OK().Invoke();
+    end;
+
+    [HttpClientHandler]
+    internal procedure MockGraphQLHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        ResponseKey: Text;
+        GraphQLCmdTxt: Label '/graphql.json', Locked = true;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        if not Request.Path.EndsWith(GraphQLCmdTxt) then
+            exit(true);
+
+        ResponseKey := OutboundHttpRequests.DequeueText();
+
+        case ResponseKey of
+            'GetCustomers':
+                Response.Content.WriteFrom(NavApp.GetResourceAsText('Logs/CustomersResult.txt', TextEncoding::UTF8));
+            'GetProductMetafields':
+                Response.Content.WriteFrom(NavApp.GetResourceAsText('Logs/ProductMetafieldsEmptyResult.txt', TextEncoding::UTF8));
+            'GetVariantMetafields':
+                Response.Content.WriteFrom(NavApp.GetResourceAsText('Logs/VariantMetafieldEmptyResult.txt', TextEncoding::UTF8));
+            'CreateFulfillment':
+                Response.Content.WriteFrom(NavApp.GetResourceAsText('Logs/FulfillmentFailedResult.txt', TextEncoding::UTF8));
+        end;
+        exit(false);
     end;
 
     [ModalPageHandler]
