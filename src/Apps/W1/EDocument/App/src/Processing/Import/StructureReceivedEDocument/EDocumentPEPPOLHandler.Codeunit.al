@@ -25,6 +25,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
 
     var
         PeppolUtility: Codeunit "E-Document PEPPOL Utility";
+        BillingReferenceEmptyTelemetryTxt: Label 'CreditNote BillingReference is empty - no originating invoice reference found.', Locked = true;
 
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
@@ -219,6 +220,4 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         Error('A view is not implemented for this handler.');
     end;
 
-    var
-        BillingReferenceEmptyTelemetryTxt: Label 'CreditNote BillingReference is empty - no originating invoice reference found.', Locked = true;
 }
