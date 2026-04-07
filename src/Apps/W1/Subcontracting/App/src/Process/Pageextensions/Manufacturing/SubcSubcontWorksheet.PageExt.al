@@ -6,7 +6,9 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Journal;
 
+#pragma warning disable AL0432
 pageextension 99001509 "Subc. Subcont. Worksheet" extends "Subcontracting Worksheet"
+#pragma warning restore AL0432
 {
     layout
     {

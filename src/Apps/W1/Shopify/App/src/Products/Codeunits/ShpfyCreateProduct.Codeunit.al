@@ -31,7 +31,6 @@ codeunit 30174 "Shpfy Create Product"
         Getlocations: Boolean;
         ProductId: BigInteger;
         ItemVariantIsBlockedLbl: Label 'Item variant is blocked or sales blocked.';
-        TooManyVariantsLbl: Label 'Item has more than 2048 variants. Shopify allows a maximum of 2048 variants per product.';
 
     trigger OnRun()
     var
@@ -79,7 +78,6 @@ codeunit 30174 "Shpfy Create Product"
         ItemVariant: Record "Item Variant";
         SkippedRecord: Codeunit "Shpfy Skipped Record";
         Id: Integer;
-        ExpectedVariantCount: Integer;
         ICreateProductStatus: Interface "Shpfy ICreateProductStatusValue";
     begin
         Clear(TempShopifyProduct);
@@ -88,20 +86,9 @@ codeunit 30174 "Shpfy Create Product"
         ProductExport.FillInProductFields(Item, TempShopifyProduct);
         ICreateProductStatus := Shop."Status for Created Products";
         TempShopifyProduct.Status := ICreateProductStatus.GetStatus(Item);
-        ItemVariant.SetRange("Item No.", Item."No.");
-        ItemVariant.SetRange(Blocked, false);
-        ItemVariant.SetRange("Sales Blocked", false);
-        ExpectedVariantCount := ItemVariant.Count();
-        if Shop."UoM as Variant" then begin
-            ItemUnitofMeasure.SetRange("Item No.", Item."No.");
-            ExpectedVariantCount := ExpectedVariantCount * ItemUnitofMeasure.Count();
-        end;
-        if ExpectedVariantCount > GetMaxVariantCount() then begin
-            SkippedRecord.LogSkippedRecord(Item.RecordId, TooManyVariantsLbl, Shop);
+        if not ProductExport.CheckItemVariantCount(Item) then
             exit;
-        end;
-        ItemVariant.SetRange(Blocked);
-        ItemVariant.SetRange("Sales Blocked");
+        ItemVariant.SetRange("Item No.", Item."No.");
         if ItemVariant.FindSet(false) then
             repeat
                 if ItemVariant.Blocked or ItemVariant."Sales Blocked" then
@@ -234,11 +221,6 @@ codeunit 30174 "Shpfy Create Product"
             Shop."SKU Mapping"::"Vendor Item No.":
                 exit(VendorItemNo);
         end;
-    end;
-
-    local procedure GetMaxVariantCount(): Integer
-    begin
-        exit(2048);
     end;
 
     /// <summary>

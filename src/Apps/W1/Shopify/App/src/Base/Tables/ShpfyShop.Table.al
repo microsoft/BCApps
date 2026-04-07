@@ -66,7 +66,7 @@ table 30102 "Shpfy Shop"
         field(3; Enabled; Boolean)
         {
             Caption = 'Enabled';
-            ToolTip = 'Specifies if the service is enabled.';
+            ToolTip = 'Specifies whether this Shopify shop connection is active. When enabled, the connector requests an access token, imports shop settings, and syncs countries. Ensure the Shopify Admin URL is configured first.';
 
             trigger OnValidate()
             var
@@ -75,6 +75,7 @@ table 30102 "Shpfy Shop"
                 AuditLog: Codeunit "Audit Log";
             begin
                 if Rec."Enabled" then begin
+                    Rec.TestField("Code");
                     Rec.TestField("Shopify URL");
                     Rec."Enabled" := CustomerConsentMgt.ConfirmUserConsent();
                     if Rec.Enabled then
@@ -452,7 +453,7 @@ table 30102 "Shpfy Shop"
         field(52; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
-            ToolTip = 'Specifies the currency of the Shopify Shop. Enter a currency code only if your online shop uses a different currency than the local currency (LCY). The specified currency must have exchange rates configured. If your online shop uses the same currency as Business Central, leave the field empty.';
+            ToolTip = 'Specifies the currency used by your Shopify store. Leave blank if it matches the local currency (LCY). When set, exchange rates must be configured. This field works together with the "Currency Handling" field in the Order section, which determines how order currencies are processed.';
             DataClassification = CustomerContent;
             TableRelation = Currency.Code;
 
