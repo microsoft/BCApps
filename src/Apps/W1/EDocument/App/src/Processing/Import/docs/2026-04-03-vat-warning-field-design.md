@@ -59,9 +59,14 @@ field(110; "[BC] VAT Prod. Posting Group"; Code[20])
             exit;
         if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
             exit;
-        if VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", "[BC] VAT Prod. Posting Group") then
-            "[BC] VAT Rate Mismatch" := VATPostingSetup."VAT %" <> "VAT Rate"
-        else
+        if VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", "[BC] VAT Prod. Posting Group") then begin
+            if not (VATPostingSetup."VAT Calculation Type" in
+                [VATPostingSetup."VAT Calculation Type"::"Normal VAT",
+                 VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT"])
+            then
+                exit; // Full VAT and Sales Tax — rate comparison is not applicable
+            "[BC] VAT Rate Mismatch" := VATPostingSetup."VAT %" <> "VAT Rate";
+        end else
             "[BC] VAT Rate Mismatch" := true;
     end;
 
@@ -76,6 +81,9 @@ field(110; "[BC] VAT Prod. Posting Group"; Code[20])
         if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
             exit;
         VATPostingSetup.SetRange("VAT Bus. Posting Group", Vendor."VAT Bus. Posting Group");
+        VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
+            VATPostingSetup."VAT Calculation Type"::"Normal VAT",
+            VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
         if Page.RunModal(Page::"VAT Posting Setup", VATPostingSetup) = Action::LookupOK then
             Validate("[BC] VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
     end;
@@ -86,7 +94,9 @@ The `TableRelation` provides basic validation and standard lookup. The `OnLookup
 
 This means:
 - If the user clears the posting group, the mismatch flag is set.
-- If the user picks a posting group, the trigger looks up the VAT Posting Setup for the vendor's VAT Bus. Posting Group + the chosen VAT Prod. Posting Group, compares `VAT %` to the line's `"VAT Rate"` with exact equality, and sets the mismatch flag accordingly. This works for zero-rated lines too — a line with `"VAT Rate" = 0` only clears the warning if the chosen posting group's setup also has `VAT % = 0`.
+- If the user picks a posting group with Full VAT or Sales Tax calculation type, the mismatch evaluation is skipped (rate comparison is not applicable for those types).
+- If the user picks a Normal VAT or Reverse Charge VAT posting group, the trigger compares `VAT %` to the line's `"VAT Rate"` with exact equality. This works for zero-rated lines too — a line with `"VAT Rate" = 0` only clears the warning if the setup also has `VAT % = 0`.
+- The lookup is filtered to only show Normal VAT and Reverse Charge VAT setups for the vendor's VAT Bus. Posting Group.
 
 ### 3. Set the Flag in Prepare Draft
 
@@ -97,6 +107,8 @@ Replace the `HasUnresolvedVATLines` boolean and notification call with direct fi
 - When `FindVATProductPostingGroup` returns blank and `VATRate > 0`: set `"[BC] VAT Rate Mismatch" := true`.
 - When `FindVATProductPostingGroup` returns a value: set `"[BC] VAT Rate Mismatch" := false`.
 - Remove the `EDocumentNotification` variable and the `AddVATRateMismatchNotification` call.
+
+**`FindVATProductPostingGroup`** must filter to only `"VAT Calculation Type"` in `["Normal VAT", "Reverse Charge VAT"]`. Full VAT and Sales Tax setups do not use `VAT %` for rate-based matching and must be excluded from the query to avoid false positives (zero-match or wrong-match results).
 
 ### 4. Warning Column on Draft Subform Page
 
