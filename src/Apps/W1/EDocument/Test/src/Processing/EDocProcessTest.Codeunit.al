@@ -407,7 +407,6 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] An inbound e-document is received and fully processed
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        WorkDate(DMY2Date(1, 1, 2027)); // Peppol document date is in 2026
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The e-document should be processed');
 
         EDocument.Get(EDocument."Entry No");
@@ -447,7 +446,6 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] An inbound e-document is received and fully processed
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        WorkDate(DMY2Date(1, 1, 2027)); // Peppol document date is in 2026
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The e-document should be processed');
 
         EDocument.Get(EDocument."Entry No");
@@ -500,7 +498,6 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup.Insert();
         // [GIVEN] An inbound e-document is received and a draft created
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        WorkDate(DMY2Date(1, 1, 2027)); // Peppol document date is in 2026
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [WHEN] Storing custom values for the additional fields of the first line
@@ -552,7 +549,6 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup.Insert();
         // [GIVEN] An inbound e-document is received and a draft created
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        WorkDate(DMY2Date(1, 1, 2027)); // Peppol document date is in 2026
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] Custom values for the additional fields of the first line are configured
@@ -605,7 +601,6 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] An inbound e-document is received and a draft created
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        WorkDate(DMY2Date(1, 1, 2027));
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] A value that does not exist as a Location Code
@@ -663,7 +658,6 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] An inbound e-document is received and a draft created
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        WorkDate(DMY2Date(1, 1, 2027));
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] A value that exceeds the target field length (Code[10])
@@ -713,7 +707,6 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] An inbound e-document is received and a draft created
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        WorkDate(DMY2Date(1, 1, 2027));
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] The draft has an invalid currency code
@@ -769,7 +762,6 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] An inbound e-document is received and a draft created
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        WorkDate(DMY2Date(1, 1, 2027));
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] The additional field has a valid value
@@ -830,7 +822,6 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] An inbound e-document is received and a draft created
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        WorkDate(DMY2Date(1, 1, 2027));
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] First field (Location Code) has a valid value, second field (Bin Code) has an invalid value
@@ -887,7 +878,6 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] An inbound e-document is received and a draft created (no additional fields configured)
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        WorkDate(DMY2Date(1, 1, 2027));
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
 
         // [GIVEN] The draft has an invalid currency code
@@ -1010,7 +1000,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseLine.Insert();
 
         // [GIVEN] The item reference is only valid in the future (not on the e-document's default posting date)
-        ItemReference."Starting Date" := CalcDate('<+1D>', WorkDate());
+        ItemReference."Starting Date" := CalcDate('<+1D>', Today());
         ItemReference.Modify();
 
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
@@ -1069,7 +1059,7 @@ codeunit 139883 "E-Doc Process Test"
         Currency.Init();
         Currency.Validate(Code, 'XYZ');
         if Currency.Insert(true) then
-            LibraryERM.CreateExchangeRate(Currency.Code, WorkDate(), 1.0, 1.0);
+            LibraryERM.CreateExchangeRate(Currency.Code, Today(), 1.0, 1.0);
 
         EDocument.DeleteAll();
         EDocumentServiceStatus.DeleteAll();
