@@ -287,14 +287,20 @@ codeunit 8905 "Email Message Impl."
 
     procedure AddAttachment(AttachmentName: Text[250]; ContentType: Text[250]; AttachmentBase64: Text)
     var
+        NullGuid: Guid;
+    begin
+        AddAttachment(AttachmentName, ContentType, AttachmentBase64, false, NullGuid);
+    end;
+
+    procedure AddAttachment(AttachmentName: Text[250]; ContentType: Text[250]; AttachmentBase64: Text; InLine: Boolean; ContentId: Text[40])
+    var
         EmailMessageAttachment: Record "Email Message Attachment";
         Base64Convert: Codeunit "Base64 Convert";
         TempBlob: Codeunit "Temp Blob";
         AttachmentOutstream: OutStream;
         AttachmentInStream: InStream;
-        NullGuid: Guid;
     begin
-        AddAttachment(AttachmentName, ContentType, false, NullGuid, EmailMessageAttachment);
+        AddAttachment(AttachmentName, ContentType, InLine, ContentId, EmailMessageAttachment);
         TempBlob.CreateOutStream(AttachmentOutstream);
         Base64Convert.FromBase64(AttachmentBase64, AttachmentOutstream);
         TempBlob.CreateInStream(AttachmentInStream);
