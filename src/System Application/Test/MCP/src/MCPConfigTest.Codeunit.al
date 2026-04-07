@@ -633,7 +633,7 @@ codeunit 130130 "MCP Config Test"
     procedure TestFindMissingObjectWarningsForConfiguration()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -645,21 +645,21 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [THEN] Warning is created for the tool with non-existing object
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Object");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        Assert.RecordCount(MCPConfigWarning, 1);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordCount(TempMCPConfigWarning, 1);
     end;
 
     [Test]
     procedure TestApplyMissingObjectRecommendedAction()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -671,22 +671,22 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [WHEN] Apply recommended action is called
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Object");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        MCPConfigWarning.FindFirst();
-        MCPConfig.ApplyRecommendedAction(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        TempMCPConfigWarning.FindFirst();
+        MCPConfig.ApplyRecommendedAction(TempMCPConfigWarning);
 
         // [THEN] Warning is resolved after applying the recommended action
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Object");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        Assert.RecordIsEmpty(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordIsEmpty(TempMCPConfigWarning);
 
         // [THEN] Configuration tool is deleted
         MCPConfigurationTool.SetRange(SystemId, ToolId);
@@ -697,7 +697,7 @@ codeunit 130130 "MCP Config Test"
     procedure TestFindMissingReadToolWarningsForConfiguration()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -711,21 +711,21 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [THEN] Warning is created for the tool with missing read permission
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Read Tool");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        Assert.RecordCount(MCPConfigWarning, 1);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordCount(TempMCPConfigWarning, 1);
     end;
 
     [Test]
     procedure TestApplyMissingReadToolRecommendedAction()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -739,22 +739,22 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [WHEN] Apply recommended action is called
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Read Tool");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        MCPConfigWarning.FindFirst();
-        MCPConfig.ApplyRecommendedAction(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        TempMCPConfigWarning.FindFirst();
+        MCPConfig.ApplyRecommendedAction(TempMCPConfigWarning);
 
         // [THEN] Warning is resolved after applying the recommended action
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Read Tool");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        Assert.RecordIsEmpty(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordIsEmpty(TempMCPConfigWarning);
 
         // [THEN] Configuration tool has Allow Read enabled
         MCPConfigurationTool.GetBySystemId(ToolId);
@@ -765,7 +765,7 @@ codeunit 130130 "MCP Config Test"
     procedure TestNoMissingReadToolWarningWhenReadEnabled()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -779,18 +779,18 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [THEN] No Missing Read Tool warning is created
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
-        Assert.RecordIsEmpty(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Read Tool");
+        Assert.RecordIsEmpty(TempMCPConfigWarning);
     end;
 
     [Test]
     procedure TestNoMissingReadToolWarningWhenModifyDisabled()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -804,11 +804,11 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [THEN] No Missing Read Tool warning is created
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
-        Assert.RecordIsEmpty(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Read Tool");
+        Assert.RecordIsEmpty(TempMCPConfigWarning);
     end;
 
     [Test]

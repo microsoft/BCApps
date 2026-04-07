@@ -1,0 +1,2 @@
+# cost: 3
+{"query":"{ return(id: \"gid://shopify/Return/{{ReturnId}}\") { order { legacyResourceId } id name status totalQuantity decline { reason note }}}"}

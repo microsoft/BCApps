@@ -181,7 +181,7 @@ page 4581 "Ext. SharePoint Account Wizard"
                             SecretToPass := Certificate;
                     end;
 
-                    SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, SharePointAccount);
+                    SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, TempSharePointAccount);
                     CurrPage.Close();
                 end;
             }
@@ -189,7 +189,7 @@ page 4581 "Ext. SharePoint Account Wizard"
     }
 
     var
-        SharePointAccount: Record "File Account";
+        TempSharePointAccount: Record "File Account";
         MediaResources: Record "Media Resources";
         SharePointConnectorImpl: Codeunit "Ext. SharePoint Connector Impl";
         [NonDebuggable]
@@ -219,10 +219,10 @@ page 4581 "Ext. SharePoint Account Wizard"
 
     internal procedure GetAccount(var FileAccount: Record "File Account"): Boolean
     begin
-        if IsNullGuid(SharePointAccount."Account Id") then
+        if IsNullGuid(TempSharePointAccount."Account Id") then
             exit(false);
 
-        FileAccount := SharePointAccount;
+        FileAccount := TempSharePointAccount;
 
         exit(true);
     end;

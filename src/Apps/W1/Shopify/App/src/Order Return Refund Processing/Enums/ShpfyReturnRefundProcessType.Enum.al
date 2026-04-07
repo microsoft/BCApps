@@ -21,7 +21,7 @@ enum 30139 "Shpfy ReturnRefund ProcessType" implements "Shpfy IReturnRefund Proc
     }
     value(3; "Auto Create Credit Memo")
     {
-        Caption = 'Auto Create Credit Memo';
+        Caption = 'Auto Create Sales Document';
         Implementation = "Shpfy IReturnRefund Process" = "Shpfy RetRefProc Cr.Memo";
     }
 }

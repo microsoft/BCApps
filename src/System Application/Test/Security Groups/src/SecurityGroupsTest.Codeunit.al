@@ -162,7 +162,7 @@ codeunit 135016 "Security Groups Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGetGroups()
     var
-        SecurityGroupBuffer: Record "Security Group Buffer";
+        TempSecurityGroupBuffer: Record "Security Group Buffer";
         SecurityGroup: Codeunit "Security Group";
         Sg1CodeTxt: Label 'SG1';
         Sg2CodeTxt: Label 'SG2';
@@ -187,23 +187,23 @@ codeunit 135016 "Security Groups Test"
         SecurityGroup.Create(Sg3CodeTxt, Sg3IdTxt);
 
         // [THEN] GetGroups returns expected results
-        SecurityGroup.GetGroups(SecurityGroupBuffer);
-        Assert.RecordCount(SecurityGroupBuffer, 3);
+        SecurityGroup.GetGroups(TempSecurityGroupBuffer);
+        Assert.RecordCount(TempSecurityGroupBuffer, 3);
 
-        SecurityGroupBuffer.FindSet();
-        Assert.AreEqual(Sg1CodeTxt, SecurityGroupBuffer.Code, ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg1IdTxt, SecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg1NameTxt, SecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
+        TempSecurityGroupBuffer.FindSet();
+        Assert.AreEqual(Sg1CodeTxt, TempSecurityGroupBuffer.Code, ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg1IdTxt, TempSecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg1NameTxt, TempSecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
 
-        SecurityGroupBuffer.Next();
-        Assert.AreEqual(Sg2CodeTxt, SecurityGroupBuffer.Code, ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg2IdTxt, SecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg2NameTxt, SecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
+        TempSecurityGroupBuffer.Next();
+        Assert.AreEqual(Sg2CodeTxt, TempSecurityGroupBuffer.Code, ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg2IdTxt, TempSecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg2NameTxt, TempSecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
 
-        SecurityGroupBuffer.Next();
-        Assert.AreEqual(Sg3CodeTxt, SecurityGroupBuffer.Code, ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg3IdTxt, SecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg3NameTxt, SecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
+        TempSecurityGroupBuffer.Next();
+        Assert.AreEqual(Sg3CodeTxt, TempSecurityGroupBuffer.Code, ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg3IdTxt, TempSecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg3NameTxt, TempSecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
 
         TearDown();
     end;
@@ -213,7 +213,7 @@ codeunit 135016 "Security Groups Test"
     procedure TestGetGroupMembers()
     var
         User: Record User;
-        SecurityGroupMemberBuffer: Record "Security Group Member Buffer";
+        TempSecurityGroupMemberBuffer: Record "Security Group Member Buffer";
         SecurityGroup: Codeunit "Security Group";
         NavUserAccountHelper: DotNet NavUserAccountHelper;
         GraphUser1: DotNet UserInfo;
@@ -248,8 +248,8 @@ codeunit 135016 "Security Groups Test"
 
         // [GIVEN] No users are group members
         // [THEN] GetMembers returns an empty list
-        SecurityGroup.GetMembers(SecurityGroupMemberBuffer);
-        Assert.RecordIsEmpty(SecurityGroupMemberBuffer);
+        SecurityGroup.GetMembers(TempSecurityGroupMemberBuffer);
+        Assert.RecordIsEmpty(TempSecurityGroupMemberBuffer);
 
         // [WHEN] Users are added to groups in M365
 
@@ -281,23 +281,23 @@ codeunit 135016 "Security Groups Test"
         MockGraphQueryTestLibrary.AddGraphUserToGroup(GraphUser3, Sg2NameTxt, Sg2IdTxt);
 
         // [THEN] GetMembers returns expected results
-        SecurityGroup.GetMembers(SecurityGroupMemberBuffer);
-        Assert.RecordCount(SecurityGroupMemberBuffer, 3);
+        SecurityGroup.GetMembers(TempSecurityGroupMemberBuffer);
+        Assert.RecordCount(TempSecurityGroupMemberBuffer, 3);
 
-        SecurityGroupMemberBuffer.FindSet();
-        Assert.AreEqual(Sg1CodeTxt, SecurityGroupMemberBuffer."Security Group Code", ExpectedTheSameValueErr);
-        Assert.AreEqual(User1SecId, SecurityGroupMemberBuffer."User Security ID", ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg1NameTxt, SecurityGroupMemberBuffer."Security Group Name", ExpectedTheSameValueErr);
+        TempSecurityGroupMemberBuffer.FindSet();
+        Assert.AreEqual(Sg1CodeTxt, TempSecurityGroupMemberBuffer."Security Group Code", ExpectedTheSameValueErr);
+        Assert.AreEqual(User1SecId, TempSecurityGroupMemberBuffer."User Security ID", ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg1NameTxt, TempSecurityGroupMemberBuffer."Security Group Name", ExpectedTheSameValueErr);
 
-        SecurityGroupMemberBuffer.Next();
-        Assert.AreEqual(Sg1CodeTxt, SecurityGroupMemberBuffer."Security Group Code", ExpectedTheSameValueErr);
-        Assert.AreEqual(User2SecId, SecurityGroupMemberBuffer."User Security ID", ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg1NameTxt, SecurityGroupMemberBuffer."Security Group Name", ExpectedTheSameValueErr);
+        TempSecurityGroupMemberBuffer.Next();
+        Assert.AreEqual(Sg1CodeTxt, TempSecurityGroupMemberBuffer."Security Group Code", ExpectedTheSameValueErr);
+        Assert.AreEqual(User2SecId, TempSecurityGroupMemberBuffer."User Security ID", ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg1NameTxt, TempSecurityGroupMemberBuffer."Security Group Name", ExpectedTheSameValueErr);
 
-        SecurityGroupMemberBuffer.Next();
-        Assert.AreEqual(Sg2CodeTxt, SecurityGroupMemberBuffer."Security Group Code", ExpectedTheSameValueErr);
-        Assert.AreEqual(User3SecId, SecurityGroupMemberBuffer."User Security ID", ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg2NameTxt, SecurityGroupMemberBuffer."Security Group Name", ExpectedTheSameValueErr);
+        TempSecurityGroupMemberBuffer.Next();
+        Assert.AreEqual(Sg2CodeTxt, TempSecurityGroupMemberBuffer."Security Group Code", ExpectedTheSameValueErr);
+        Assert.AreEqual(User3SecId, TempSecurityGroupMemberBuffer."User Security ID", ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg2NameTxt, TempSecurityGroupMemberBuffer."Security Group Name", ExpectedTheSameValueErr);
 
         TearDown();
     end;
@@ -306,7 +306,7 @@ codeunit 135016 "Security Groups Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestCreateSecurityGroup()
     var
-        SecurityGroupBuffer: Record "Security Group Buffer";
+        TempSecurityGroupBuffer: Record "Security Group Buffer";
         SecurityGroupTemplateUser: Record User;
         SecurityGroupUserProperty: Record "User Property";
         SecurityGroup: Codeunit "Security Group";
@@ -320,13 +320,13 @@ codeunit 135016 "Security Groups Test"
         SecurityGroup.Create(TestSecurityGroupCodeTxt, TestSecurityGroupIdTxt);
 
         // [THEN] Records in the appropriate tables are as expected
-        SecurityGroup.GetGroups(SecurityGroupBuffer);
-        Assert.RecordCount(SecurityGroupBuffer, 1);
+        SecurityGroup.GetGroups(TempSecurityGroupBuffer);
+        Assert.RecordCount(TempSecurityGroupBuffer, 1);
 
-        SecurityGroupTemplateUser.SetRange("User Security ID", SecurityGroupBuffer."Group User SID");
+        SecurityGroupTemplateUser.SetRange("User Security ID", TempSecurityGroupBuffer."Group User SID");
         Assert.RecordIsNotEmpty(SecurityGroupTemplateUser);
 
-        SecurityGroupUserProperty.SetRange("User Security ID", SecurityGroupBuffer."Group User SID");
+        SecurityGroupUserProperty.SetRange("User Security ID", TempSecurityGroupBuffer."Group User SID");
         Assert.RecordIsNotEmpty(SecurityGroupUserProperty);
         SecurityGroupUserProperty.FindFirst();
         Assert.AreEqual(TestSecurityGroupIdTxt, SecurityGroupUserProperty."Authentication Object ID", 'Expected the user property to contain the AAD group ID.');
@@ -338,7 +338,7 @@ codeunit 135016 "Security Groups Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGetGroupUserSecurityId()
     var
-        SecurityGroupBuffer: Record "Security Group Buffer";
+        TempSecurityGroupBuffer: Record "Security Group Buffer";
         SecurityGroup: Codeunit "Security Group";
         SecurityGroupUserTemplateId: Guid;
     begin
@@ -354,8 +354,8 @@ codeunit 135016 "Security Groups Test"
         SecurityGroupUserTemplateId := SecurityGroup.GetGroupUserSecurityId(TestSecurityGroupCodeTxt);
 
         // [THEN] The user security ID of the template user for the security group is as expected
-        SecurityGroup.GetGroups(SecurityGroupBuffer);
-        Assert.AreEqual(SecurityGroupBuffer."Group User SID", SecurityGroupUserTemplateId, 'Unexpected user security ID for the AAD group user.');
+        SecurityGroup.GetGroups(TempSecurityGroupBuffer);
+        Assert.AreEqual(TempSecurityGroupBuffer."Group User SID", SecurityGroupUserTemplateId, 'Unexpected user security ID for the AAD group user.');
 
         TearDown();
     end;
@@ -419,7 +419,7 @@ codeunit 135016 "Security Groups Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestDeleteSecurityGroup()
     var
-        SecurityGroupBuffer: Record "Security Group Buffer";
+        TempSecurityGroupBuffer: Record "Security Group Buffer";
         SecurityGroupUser: Record User;
         SecurityGroupUserProperty: Record "User Property";
         AccessControl: Record "Access Control";
@@ -444,8 +444,8 @@ codeunit 135016 "Security Groups Test"
         SecurityGroup.Delete(TestSecurityGroupCodeTxt);
 
         // [THEN] There are no traces of the security group in the relevant tables
-        SecurityGroup.GetGroups(SecurityGroupBuffer);
-        Assert.RecordIsEmpty(SecurityGroupBuffer);
+        SecurityGroup.GetGroups(TempSecurityGroupBuffer);
+        Assert.RecordIsEmpty(TempSecurityGroupBuffer);
 
         Assert.RecordIsEmpty(SecurityGroupUser);
         Assert.RecordIsEmpty(SecurityGroupUserProperty);
@@ -460,7 +460,7 @@ codeunit 135016 "Security Groups Test"
     procedure TestCopy()
     var
         AccessControl: Record "Access Control";
-        SecurityGroupBuffer: Record "Security Group Buffer";
+        TempSecurityGroupBuffer: Record "Security Group Buffer";
         SecurityGroup: Codeunit "Security Group";
         CopySecurityGroup: Page "Copy Security Group";
         DestinationSgIdTxt: Label 'AAD SG2 ID';
@@ -479,21 +479,21 @@ codeunit 135016 "Security Groups Test"
         SecurityGroup.AddPermissionSet(TestSecurityGroupCodeTxt, TestRoleIdTxt, TestCompanyNameTxt, Scope::Tenant, NullAppId);
 
         // [WHEN] The source security group is copied
-        SecurityGroup.GetGroups(SecurityGroupBuffer);
-        CopySecurityGroup.SetSourceGroupCode(SecurityGroupBuffer.Code);
+        SecurityGroup.GetGroups(TempSecurityGroupBuffer);
+        CopySecurityGroup.SetSourceGroupCode(TempSecurityGroupBuffer.Code);
         CopySecurityGroup.RunModal();
         // Set the required values on the request page: new security group code and name inside CopySecurityGroupHandler
 
         // [THEN] The source group has been copied successfully
-        SecurityGroup.GetGroups(SecurityGroupBuffer);
-        Assert.RecordCount(SecurityGroupBuffer, 2);
+        SecurityGroup.GetGroups(TempSecurityGroupBuffer);
+        Assert.RecordCount(TempSecurityGroupBuffer, 2);
 
-        SecurityGroupBuffer.Get('SG2');
-        Assert.AreEqual(DestinationSgIdTxt, SecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
-        Assert.AreEqual(DestinationSgNameTxt, SecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
-        Assert.AreNotEqual(SecurityGroup.GetGroupUserSecurityId(TestSecurityGroupCodeTxt), SecurityGroupBuffer."Group User SID", 'Expected a new group user security ID for the copied group.');
+        TempSecurityGroupBuffer.Get('SG2');
+        Assert.AreEqual(DestinationSgIdTxt, TempSecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
+        Assert.AreEqual(DestinationSgNameTxt, TempSecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
+        Assert.AreNotEqual(SecurityGroup.GetGroupUserSecurityId(TestSecurityGroupCodeTxt), TempSecurityGroupBuffer."Group User SID", 'Expected a new group user security ID for the copied group.');
 
-        AccessControl.SetRange("User Security ID", SecurityGroupBuffer."Group User SID");
+        AccessControl.SetRange("User Security ID", TempSecurityGroupBuffer."Group User SID");
         Assert.RecordCount(AccessControl, 1);
         AccessControl.FindFirst();
         Assert.AreEqual(TestRoleIdTxt, AccessControl."Role ID", ExpectedTheSameValueErr);
@@ -540,7 +540,7 @@ codeunit 135016 "Security Groups Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestCreateWithOrphanedSecurityGroups()
     var
-        SecurityGroupBuffer: Record "Security Group Buffer";
+        TempSecurityGroupBuffer: Record "Security Group Buffer";
         SecurityGroupUser: Record User;
         SecurityGroup: Codeunit "Security Group";
         NavUserAccountHelper: DotNet NavUserAccountHelper;
@@ -563,8 +563,8 @@ codeunit 135016 "Security Groups Test"
         SecurityGroup.Create(TestSecurityGroupCodeTxt, TestSecurityGroupIdTxt);
 
         // [THEN] There is one properly defined security group in the system
-        SecurityGroup.GetGroups(SecurityGroupBuffer);
-        Assert.RecordCount(SecurityGroupBuffer, 1);
+        SecurityGroup.GetGroups(TempSecurityGroupBuffer);
+        Assert.RecordCount(TempSecurityGroupBuffer, 1);
 
         TearDown();
     end;
@@ -637,7 +637,7 @@ codeunit 135016 "Security Groups Test"
     var
         TenantPermissionSet: Record "Tenant Permission Set";
         AccessControl: Record "Access Control";
-        SecurityGroupBuffer: Record "Security Group Buffer";
+        TempSecurityGroupBuffer: Record "Security Group Buffer";
         SecurityGroup: Codeunit "Security Group";
         TempBlob: Codeunit "Temp Blob";
         OutStr: OutStream;
@@ -681,23 +681,23 @@ codeunit 135016 "Security Groups Test"
 
         // [THEN] The imported security groups are as expected
         // Verify groups have been created
-        SecurityGroup.GetGroups(SecurityGroupBuffer);
-        Assert.RecordCount(SecurityGroupBuffer, 3);
+        SecurityGroup.GetGroups(TempSecurityGroupBuffer);
+        Assert.RecordCount(TempSecurityGroupBuffer, 3);
 
-        SecurityGroupBuffer.FindSet();
-        Assert.AreEqual(Sg1CodeTxt, SecurityGroupBuffer.Code, ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg1IdTxt, SecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg1NameTxt, SecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
+        TempSecurityGroupBuffer.FindSet();
+        Assert.AreEqual(Sg1CodeTxt, TempSecurityGroupBuffer.Code, ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg1IdTxt, TempSecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg1NameTxt, TempSecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
 
-        SecurityGroupBuffer.Next();
-        Assert.AreEqual(Sg2CodeTxt, SecurityGroupBuffer.Code, ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg2IdTxt, SecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg2NameTxt, SecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
+        TempSecurityGroupBuffer.Next();
+        Assert.AreEqual(Sg2CodeTxt, TempSecurityGroupBuffer.Code, ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg2IdTxt, TempSecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg2NameTxt, TempSecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
 
-        SecurityGroupBuffer.Next();
-        Assert.AreEqual(Sg3CodeTxt, SecurityGroupBuffer.Code, ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg3IdTxt, SecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
-        Assert.AreEqual(Sg3NameTxt, SecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
+        TempSecurityGroupBuffer.Next();
+        Assert.AreEqual(Sg3CodeTxt, TempSecurityGroupBuffer.Code, ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg3IdTxt, TempSecurityGroupBuffer."Group ID", ExpectedTheSameValueErr);
+        Assert.AreEqual(Sg3NameTxt, TempSecurityGroupBuffer."Group Name", ExpectedTheSameValueErr);
 
         // Verify permission sets have been added
         AccessControl.SetRange("User Security ID", SecurityGroup.GetGroupUserSecurityId(Sg1CodeTxt));

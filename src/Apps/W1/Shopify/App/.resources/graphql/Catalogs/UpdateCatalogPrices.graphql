@@ -1,0 +1,2 @@
+# cost: 11
+{"query":"mutation priceListFixedPricesAdd($priceListId: ID!, $prices: [PriceListPriceInput!]!) { priceListFixedPricesAdd(priceListId: $priceListId, prices: $prices) { prices { variant { id }} userErrors { field message }}}","variables":{"priceListId": "gid://shopify/PriceList/{{PriceListID}}","prices": []}}
