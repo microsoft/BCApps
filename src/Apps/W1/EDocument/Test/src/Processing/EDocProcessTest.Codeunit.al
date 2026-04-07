@@ -349,6 +349,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseLine.SetRecFilter();
         EDocumentPurchaseLine.FindFirst();
         Assert.AreEqual(VATProductPostingGroup.Code, EDocumentPurchaseLine."[BC] VAT Prod. Posting Group", 'The VAT Prod. Posting Group should be resolved from the matching VAT Posting Setup.');
+        Assert.IsFalse(EDocumentPurchaseLine."[BC] VAT Rate Mismatch", 'VAT Rate Mismatch should be false when resolution succeeds.');
 
         // Cleanup
         Vendor2.SetRecFilter();
@@ -360,19 +361,18 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
-    procedure PreparingPurchaseDraftCreatesNotificationWhenNoMatchingVATSetup()
+    procedure PreparingPurchaseDraftSetsVATRateMismatchWhenNoMatchingVATSetup()
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         TempEDocImportParameters: Record "E-Doc. Import Parameters";
-        EDocumentNotification: Record "E-Document Notification";
         Vendor2: Record Vendor;
         CompanyInformation: Record "Company Information";
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocImport: Codeunit "E-Doc. Import";
     begin
-        // [SCENARIO] When a draft line has a VAT Rate but no matching VAT Posting Setup exists, Prepare Draft leaves the field blank and creates a notification
+        // [SCENARIO] When a draft line has a VAT Rate but no matching VAT Posting Setup exists, Prepare Draft leaves the field blank and sets the mismatch flag
         Initialize(Enum::"Service Integration"::"Mock");
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
@@ -389,7 +389,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader."Vendor VAT Id" := Vendor2."VAT Registration No.";
         EDocumentPurchaseHeader.Insert();
         EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
-        EDocumentPurchaseLine.Description := 'Test VAT mismatch notification';
+        EDocumentPurchaseLine.Description := 'Test VAT mismatch';
         EDocumentPurchaseLine."VAT Rate" := 99;
         EDocumentPurchaseLine.Insert();
 
@@ -398,20 +398,15 @@ codeunit 139883 "E-Doc Process Test"
         TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
         EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
-        // [THEN] The VAT Prod. Posting Group is blank
+        // [THEN] The VAT Prod. Posting Group is blank and mismatch flag is set
         EDocumentPurchaseLine.SetRecFilter();
         EDocumentPurchaseLine.FindFirst();
         Assert.AreEqual('', EDocumentPurchaseLine."[BC] VAT Prod. Posting Group", 'The VAT Prod. Posting Group should be blank when no matching VAT Posting Setup exists.');
-
-        // [THEN] A VAT Rate Mismatch notification record exists
-        EDocumentNotification.SetRange("E-Document Entry No.", EDocument."Entry No");
-        EDocumentNotification.SetRange(Type, "E-Document Notification Type"::"VAT Rate Mismatch");
-        Assert.IsFalse(EDocumentNotification.IsEmpty(), 'A VAT Rate Mismatch notification should be created when resolution fails.');
+        Assert.IsTrue(EDocumentPurchaseLine."[BC] VAT Rate Mismatch", 'VAT Rate Mismatch should be true when resolution fails.');
 
         // Cleanup
         Vendor2.SetRecFilter();
         Vendor2.Delete();
-        EDocumentNotification.DeleteAll();
     end;
 
     [Test]
