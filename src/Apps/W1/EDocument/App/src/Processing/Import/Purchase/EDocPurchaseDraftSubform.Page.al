@@ -81,7 +81,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     ApplicationArea = All;
                     Caption = 'VAT warnings';
                     Editable = false;
-                    Visible = HasVATWarnings;
+                    Visible = Rec."[BC] VAT Rate Mismatch";
                     StyleExpr = VATWarningStyleExpr;
                     ToolTip = 'Specifies whether the VAT Product Posting Group could not be resolved from the extracted VAT rate.';
 

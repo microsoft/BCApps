@@ -189,7 +189,6 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         Vendor: Record Vendor;
-        VATBusPostingGroup: Code[20];
         VATRate: Decimal;
         LineCount: Integer;
     begin
@@ -197,8 +196,7 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
             exit;
         if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
             exit;
-        VATBusPostingGroup := Vendor."VAT Bus. Posting Group";
-        if VATBusPostingGroup = '' then
+        if Vendor."VAT Bus. Posting Group" = '' then
             exit;
 
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
@@ -218,7 +216,7 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
 
                 if VATRate > 0 then begin
                     EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" :=
-                        FindVATProductPostingGroup(VATBusPostingGroup, VATRate);
+                        FindVATProductPostingGroup(Vendor."VAT Bus. Posting Group", VATRate);
                     EDocumentPurchaseLine."[BC] VAT Rate Mismatch" :=
                         EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" = '';
                     EDocumentPurchaseLine.Modify();
@@ -229,14 +227,12 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     local procedure FindVATProductPostingGroup(VATBusPostingGroup: Code[20]; VATRate: Decimal): Code[20]
     var
         VATPostingSetup: Record "VAT Posting Setup";
-        RoundingTolerance: Decimal;
     begin
-        RoundingTolerance := 0.01;
         VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
         VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
             VATPostingSetup."VAT Calculation Type"::"Normal VAT",
             VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
-        VATPostingSetup.SetFilter("VAT %", '>=%1&<=%2', VATRate - RoundingTolerance, VATRate + RoundingTolerance);
+        VATPostingSetup.SetRange("VAT %", VATRate);
         if VATPostingSetup.Count() = 1 then begin
             VATPostingSetup.FindFirst();
             exit(VATPostingSetup."VAT Prod. Posting Group");
