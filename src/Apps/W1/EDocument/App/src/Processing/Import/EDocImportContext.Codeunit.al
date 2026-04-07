@@ -148,4 +148,92 @@ codeunit 6199 "E-Doc. Import Context"
     begin
         CurrentContext := StrSubstNo(ValidatingFieldLbl, Rec.FieldCaption("Shortcut Dimension 2 Code"));
     end;
+
+    // Purchase Header OnAfterValidate subscribers - clear context
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnAfterValidateEvent, "Document Date", false, false)]
+    local procedure OnAfterValidatePurchHdrDocDate(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnAfterValidateEvent, "Due Date", false, false)]
+    local procedure OnAfterValidatePurchHdrDueDate(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnAfterValidateEvent, "Vendor Invoice No.", false, false)]
+    local procedure OnAfterValidatePurchHdrVendInvNo(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnAfterValidateEvent, "Currency Code", false, false)]
+    local procedure OnAfterValidatePurchHdrCurrCode(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    // Purchase Line OnAfterValidate subscribers - clear context
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "No.", false, false)]
+    local procedure OnAfterValidatePurchLineNo(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Allow Invoice Disc.", false, false)]
+    local procedure OnAfterValidatePurchLineAllowInvDisc(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Item Reference No.", false, false)]
+    local procedure OnAfterValidatePurchLineItemRefNo(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, Quantity, false, false)]
+    local procedure OnAfterValidatePurchLineQty(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Direct Unit Cost", false, false)]
+    local procedure OnAfterValidatePurchLineDirectUnitCost(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Line Discount Amount", false, false)]
+    local procedure OnAfterValidatePurchLineLineDiscAmt(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Deferral Code", false, false)]
+    local procedure OnAfterValidatePurchLineDeferralCode(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Dimension Set ID", false, false)]
+    local procedure OnAfterValidatePurchLineDimSetId(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Shortcut Dimension 1 Code", false, false)]
+    local procedure OnAfterValidatePurchLineShortDim1(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterValidateEvent, "Shortcut Dimension 2 Code", false, false)]
+    local procedure OnAfterValidatePurchLineShortDim2(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
+    begin
+        CurrentContext := '';
+    end;
 }
