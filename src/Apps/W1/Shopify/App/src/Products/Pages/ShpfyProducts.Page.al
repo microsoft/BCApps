@@ -7,6 +7,7 @@ namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Inventory.Item;
 using System.Environment.Configuration;
+using System.Feedback;
 
 /// <summary>
 /// Page Shpfy Products (ID 30126).
@@ -450,6 +451,20 @@ page 30126 "Shpfy Products"
                             BackgroundSyncs.InventorySync(CopyStr(Rec.GetFilter("Shop Code"), 1, MaxStrLen(Rec."Shop Code")));
                     end;
                 }
+            }
+            action(ProvideFeedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feedback';
+                ToolTip = 'Provide feedback on Shopify Connector.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    Feedback: Codeunit "Microsoft User Feedback";
+                begin
+                    Feedback.RequestFeedback('Shopify Connector', 'ShopifyConnector', 'Shopify Connector');
+                end;
             }
         }
     }

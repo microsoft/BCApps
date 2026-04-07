@@ -10,6 +10,7 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Setup;
 using System.DateTime;
 using System.Environment;
+using System.Feedback;
 using System.Telemetry;
 
 /// <summary>
@@ -1200,6 +1201,20 @@ page 30101 "Shpfy Shop Card"
                     FullfillmentOrdersAPI: Codeunit "Shpfy Fulfillment Orders API";
                 begin
                     FullfillmentOrdersAPI.RegisterFulfillmentService(Rec);
+                end;
+            }
+            action(ProvideFeedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feedback';
+                ToolTip = 'Provide feedback on Shopify Connector.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    Feedback: Codeunit "Microsoft User Feedback";
+                begin
+                    Feedback.RequestFeedback('Shopify Connector', 'ShopifyConnector', 'Shopify Connector');
                 end;
             }
         }

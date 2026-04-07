@@ -5,6 +5,8 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Feedback;
+
 /// <summary>
 /// Page Shpfy Shops (ID 30102).
 /// </summary>
@@ -44,6 +46,33 @@ page 30102 "Shpfy Shops"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the language of the Shopify Shop.';
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(ProvideFeedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feedback';
+                ToolTip = 'Provide feedback on Shopify Connector.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    Feedback: Codeunit "Microsoft User Feedback";
+                begin
+                    Feedback.RequestFeedback('Shopify Connector', 'ShopifyConnector', 'Shopify Connector');
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            actionref(ProvideFeedback_Promoted; ProvideFeedback)
+            {
             }
         }
     }

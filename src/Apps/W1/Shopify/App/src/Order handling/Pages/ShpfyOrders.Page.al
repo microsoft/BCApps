@@ -7,6 +7,7 @@ namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using System.Feedback;
 
 /// <summary>
 /// Page Shpfy Orders (ID 30115).
@@ -339,6 +340,20 @@ page 30115 "Shpfy Orders"
                 begin
                     ImportOrder.MarkOrderConflictAsResolved(Rec);
                     Rec.Modify();
+                end;
+            }
+            action(ProvideFeedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feedback';
+                ToolTip = 'Provide feedback on Shopify Connector.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    Feedback: Codeunit "Microsoft User Feedback";
+                begin
+                    Feedback.RequestFeedback('Shopify Connector', 'ShopifyConnector', 'Shopify Connector');
                 end;
             }
         }
