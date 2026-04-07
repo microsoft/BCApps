@@ -136,6 +136,7 @@ codeunit 4303 "Agent Task"
         exit(AgentTaskImpl.IsTaskStopped(AgentTask));
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Gets the total Copilot credits consumed by the agent task.
     /// </summary>
@@ -148,6 +149,7 @@ codeunit 4303 "Agent Task"
     begin
         exit(AgentConsumptionOverview.GetCopilotCreditsConsumed(AgentTaskID));
     end;
+#endif
 
     /// <summary>
     /// Gets the details for the specified agent task log entry.
