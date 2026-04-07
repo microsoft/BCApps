@@ -199,20 +199,44 @@ Remove all VAT-related notification code added in earlier commits:
 
 Revert these to their pre-branch state (only handling `"Vendor Matched By Name Not Address"`).
 
-### 6. Update Tests
+### 6. Update and Add Tests
 
 **`EDocProcessTest.Codeunit.al`:**
 
+#### Update existing tests
+
 - **`PreparingPurchaseDraftResolvesVATProductPostingGroupFromLineVATRate`**: Add assertion that `"[BC] VAT Rate Mismatch"` is `false` when resolution succeeds.
 - **`PreparingPurchaseDraftCreatesNotificationWhenNoMatchingVATSetup`**: Rename to `PreparingPurchaseDraftSetsVATRateMismatchWhenNoMatchingVATSetup`. Replace the notification record assertion with: assert `"[BC] VAT Rate Mismatch"` is `true`. Remove notification cleanup.
+
+#### New tests
+
+**Prepare Draft — VAT Calculation Type filtering:**
+
+- **`PreparingDraftIgnoresFullVATSetupWhenResolvingPostingGroup`**: Create a VAT Posting Setup with `"VAT Calculation Type" = "Full VAT"` and `VAT % = 10`. Create a line with `"VAT Rate" = 10`. Run Prepare Draft. Assert `"[BC] VAT Prod. Posting Group"` is blank — Full VAT setups must not be matched. Assert `"[BC] VAT Rate Mismatch"` is `true`.
+
+- **`PreparingDraftIgnoresSalesTaxSetupWhenResolvingPostingGroup`**: Same as above but with `"VAT Calculation Type" = "Sales Tax"`. Assert the setup is not matched.
+
+- **`PreparingDraftResolvesReverseChargeVATPostingGroup`**: Create a VAT Posting Setup with `"VAT Calculation Type" = "Reverse Charge VAT"` and `VAT % = 20`. Create a line with `"VAT Rate" = 20`. Run Prepare Draft. Assert `"[BC] VAT Prod. Posting Group"` is resolved and `"[BC] VAT Rate Mismatch"` is `false`.
+
+**OnValidate — mismatch re-evaluation:**
+
+- **`ValidatingVATProdPostingGroupClearsMismatchWhenRateMatches`**: Create a line with `"VAT Rate" = 20` and `"[BC] VAT Rate Mismatch" = true`. Create a Normal VAT setup with `VAT % = 20`. Validate `"[BC] VAT Prod. Posting Group"` to that setup's group. Assert `"[BC] VAT Rate Mismatch"` is `false`.
+
+- **`ValidatingVATProdPostingGroupKeepsMismatchWhenRateDiffers`**: Create a line with `"VAT Rate" = 20` and `"[BC] VAT Rate Mismatch" = true`. Create a Normal VAT setup with `VAT % = 10`. Validate `"[BC] VAT Prod. Posting Group"` to that setup's group. Assert `"[BC] VAT Rate Mismatch"` is still `true`.
+
+- **`ValidatingVATProdPostingGroupSetsMismatchWhenCleared`**: Create a line with `"VAT Rate" = 20`, `"[BC] VAT Prod. Posting Group" = 'STANDARD'`, and `"[BC] VAT Rate Mismatch" = false`. Validate `"[BC] VAT Prod. Posting Group"` to `''`. Assert `"[BC] VAT Rate Mismatch"` is `true`.
+
+- **`ValidatingVATProdPostingGroupSkipsMismatchForFullVAT`**: Create a line with `"VAT Rate" = 5` and `"[BC] VAT Rate Mismatch" = false`. Create a Full VAT setup with `VAT % = 0`. Validate `"[BC] VAT Prod. Posting Group"` to that setup's group. Assert `"[BC] VAT Rate Mismatch"` is unchanged (`false`) — Full VAT skips the comparison.
+
+- **`ValidatingVATProdPostingGroupMatchesZeroRate`**: Create a line with `"VAT Rate" = 0`. Create a Normal VAT setup with `VAT % = 0`. Validate `"[BC] VAT Prod. Posting Group"` to that setup's group. Assert `"[BC] VAT Rate Mismatch"` is `false`.
 
 ## Key Files
 
 | File | Change |
 |---|---|
-| `EDocumentPurchaseLine.Table.al` | Add field 111 `[BC] VAT Rate Mismatch`; add OnValidate to field 110 |
-| `PreparePurchaseEDocDraft.Codeunit.al` | Set mismatch flag instead of calling notification |
+| `EDocumentPurchaseLine.Table.al` | Add field 111 `[BC] VAT Rate Mismatch`; add OnValidate and OnLookup to field 110 |
+| `PreparePurchaseEDocDraft.Codeunit.al` | Set mismatch flag instead of calling notification; filter by VAT Calculation Type |
 | `EDocPurchaseDraftSubform.Page.al` | Add inline warning column with visibility, style, drill-down |
 | `EDocumentNotification.Codeunit.al` | Remove all VAT notification procedures |
 | `EDocumentNotificationType.Enum.al` | Remove `"VAT Rate Mismatch"` enum value |
-| `EDocProcessTest.Codeunit.al` | Update test assertions from notification to boolean field |
+| `EDocProcessTest.Codeunit.al` | Update existing test assertions; add 7 new tests for calculation type filtering and OnValidate mismatch logic |
