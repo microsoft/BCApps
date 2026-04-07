@@ -76,6 +76,20 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     ApplicationArea = All;
                     Lookup = true;
                 }
+                field(VATWarning; VATWarningCaption)
+                {
+                    ApplicationArea = All;
+                    Caption = 'VAT warnings';
+                    Editable = false;
+                    Visible = HasVATWarnings;
+                    StyleExpr = VATWarningStyleExpr;
+                    ToolTip = 'Specifies whether the VAT Product Posting Group could not be resolved from the extracted VAT rate.';
+
+                    trigger OnDrillDown()
+                    begin
+                        ShowVATWarningDetails();
+                    end;
+                }
                 field("Item Reference No."; Rec."[BC] Item Reference No.")
                 {
                     ApplicationArea = All;
@@ -336,15 +350,16 @@ page 6183 "E-Doc. Purchase Draft Subform"
         TempEDocumentPOMatchWarnings: Record "E-Doc PO Match Warning";
         EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
-        AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr : Text;
+        AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr, VATWarningCaption, VATWarningStyleExpr : Text;
         LineAmount: Decimal;
-        DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings : Boolean;
+        DimVisible1, DimVisible2, HasAdditionalColumns, HasVATWarnings, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings : Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
 
     trigger OnOpenPage()
     begin
         SetDimensionsVisibility();
         UpdatePOMatching();
+        UpdateVATWarnings();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -355,6 +370,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
     trigger OnAfterGetCurrRecord()
     begin
         UpdatePOMatching();
+        UpdateVATWarnings();
     end;
 
     trigger OnAfterGetRecord()
@@ -367,6 +383,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         IsLineMatchedToReceiptLine := EDocPOMatching.IsEDocumentLineMatchedToAnyReceiptLine(EDocumentPurchaseLine);
         OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : '';
         UpdateMatchWarnings();
+        UpdateVATWarningForLine();
     end;
 
     internal procedure SetEDocumentPurchaseHeader(EDocPurchHeader: Record "E-Document Purchase Header")
@@ -568,6 +585,37 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
         if WarningDetails.Length() > 0 then
             Message(WarningDetails.ToText());
+    end;
+
+    local procedure UpdateVATWarnings()
+    var
+        EDocPurchLine: Record "E-Document Purchase Line";
+    begin
+        EDocPurchLine.SetRange("E-Document Entry No.", EDocumentPurchaseHeader."E-Document Entry No.");
+        EDocPurchLine.SetRange("[BC] VAT Rate Mismatch", true);
+        HasVATWarnings := not EDocPurchLine.IsEmpty();
+    end;
+
+    local procedure UpdateVATWarningForLine()
+    var
+        VATGroupNotResolvedLbl: Label 'VAT group not resolved';
+    begin
+        if Rec."[BC] VAT Rate Mismatch" then begin
+            VATWarningCaption := VATGroupNotResolvedLbl;
+            VATWarningStyleExpr := 'Ambiguous';
+        end else begin
+            VATWarningCaption := '';
+            VATWarningStyleExpr := 'None';
+        end;
+    end;
+
+    local procedure ShowVATWarningDetails()
+    var
+        VATWarningDetailLbl: Label 'VAT rate %1% was extracted from the invoice but could not be matched to a single VAT Posting Setup for the vendor. Please select the correct VAT Product Posting Group manually.', Comment = '%1 = VAT rate percentage';
+    begin
+        if not Rec."[BC] VAT Rate Mismatch" then
+            exit;
+        Message(VATWarningDetailLbl, Rec."VAT Rate");
     end;
 
 }
