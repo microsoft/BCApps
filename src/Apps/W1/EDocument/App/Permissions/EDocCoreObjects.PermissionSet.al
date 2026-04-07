@@ -58,6 +58,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Document Create Jnl. Line" = X,
         codeunit "E-Document Create Purch. Doc." = X,
         codeunit "E-Document Helper" = X,
+        codeunit "E-Document VAT Helper" = X,
         codeunit "E-Document Processing" = X,
         codeunit "E-Document Import Helper" = X,
         codeunit "E-Document Log Helper" = X,
