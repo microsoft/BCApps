@@ -37,6 +37,7 @@ table 149049 "Agent Test Consumption Log"
         }
         field(4; "Copilot Credits"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Copilot Credits';
             ToolTip = 'Specifies the Copilot Credits consumed.';
             NotBlank = true;
