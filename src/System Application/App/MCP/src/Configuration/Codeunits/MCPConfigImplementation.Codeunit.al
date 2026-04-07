@@ -7,9 +7,6 @@ namespace System.MCP;
 
 using System.Azure.Identity;
 using System.Environment;
-#if not CLEAN28
-using System.Environment.Configuration;
-#endif
 using System.Reflection;
 using System.Utilities;
 
@@ -1039,16 +1036,6 @@ codeunit 8351 "MCP Config Implementation"
         MCPConfigurationTool.Insert();
     end;
     #endregion
-
-#if not CLEAN28
-    internal procedure IsFeatureEnabled(): Boolean
-    var
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
-        EnableMcpAccessTok: Label 'EnableMcpAccess', Locked = true;
-    begin
-        exit(FeatureManagementFacade.IsEnabled(EnableMcpAccessTok));
-    end;
-#endif
 
     local procedure GetDimensions(MCPConfiguration: Record "MCP Configuration") Dimensions: Dictionary of [Text, Text]
     begin
