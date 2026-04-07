@@ -189,11 +189,9 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         Vendor: Record Vendor;
-        EDocumentNotification: Codeunit "E-Document Notification";
         VATBusPostingGroup: Code[20];
         VATRate: Decimal;
         LineCount: Integer;
-        HasUnresolvedVATLines: Boolean;
     begin
         if EDocumentPurchaseHeader."[BC] Vendor No." = '' then
             exit;
@@ -221,14 +219,11 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
                 if VATRate > 0 then begin
                     EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" :=
                         FindVATProductPostingGroup(VATBusPostingGroup, VATRate);
-                    if EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" = '' then
-                        HasUnresolvedVATLines := true;
+                    EDocumentPurchaseLine."[BC] VAT Rate Mismatch" :=
+                        EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" = '';
                     EDocumentPurchaseLine.Modify();
                 end;
             until EDocumentPurchaseLine.Next() = 0;
-
-        if HasUnresolvedVATLines then
-            EDocumentNotification.AddVATRateMismatchNotification(EDocumentEntryNo);
     end;
 
     local procedure FindVATProductPostingGroup(VATBusPostingGroup: Code[20]; VATRate: Decimal): Code[20]
@@ -238,12 +233,14 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     begin
         RoundingTolerance := 0.01;
         VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
+        VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
+            VATPostingSetup."VAT Calculation Type"::"Normal VAT",
+            VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
         VATPostingSetup.SetFilter("VAT %", '>=%1&<=%2', VATRate - RoundingTolerance, VATRate + RoundingTolerance);
         if VATPostingSetup.Count() = 1 then begin
             VATPostingSetup.FindFirst();
             exit(VATPostingSetup."VAT Prod. Posting Group");
         end;
-        // Zero or multiple matches — return blank to signal resolution failure
         exit('');
     end;
 }
