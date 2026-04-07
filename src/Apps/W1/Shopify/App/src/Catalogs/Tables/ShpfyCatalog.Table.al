@@ -125,6 +125,7 @@ table 30152 "Shpfy Catalog"
             Caption = 'Allow Line Disc.';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies if line discount is allowed while calculating prices for the catalog.';
+            InitValue = true;
         }
         field(16; "Sync Prices"; Boolean)
         {
