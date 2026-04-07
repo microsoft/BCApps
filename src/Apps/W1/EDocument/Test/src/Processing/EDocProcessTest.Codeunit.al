@@ -779,7 +779,7 @@ codeunit 139883 "E-Doc Process Test"
         Assert.AreEqual('CN-5001', PurchaseHeader."Vendor Cr. Memo No.", 'The vendor credit memo number should match the CreditNote ID.');
         Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor should be resolved from the CreditNote.');
         Assert.AreEqual(2500, PurchaseHeader."Doc. Amount Incl. VAT", 'The document amount incl. VAT should match the CreditNote total.');
-        Assert.AreEqual('103033', PurchaseHeader."Applies-to Doc. No.", 'The Applies-to Doc. No. should match the BillingReference from the CreditNote.');
+        Assert.AreEqual('5', PurchaseHeader."Vendor Order No.", 'The Vendor Order No. should match the OrderReference from the CreditNote.');
 
         // [THEN] The purchase credit memo has the correct number of lines
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
@@ -817,6 +817,7 @@ codeunit 139883 "E-Doc Process Test"
         PurchaseHeader.Get(EDocument."Document Record ID");
         Assert.AreEqual("Purchase Document Type"::Invoice, PurchaseHeader."Document Type", 'The purchase header document type should be Invoice.');
         Assert.AreEqual('103033', PurchaseHeader."Vendor Invoice No.", 'The vendor invoice number should match the Invoice ID.');
+        Assert.AreEqual('2', PurchaseHeader."Vendor Order No.", 'The vendor order number should match the OrderReference from the Invoice.');
         Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor should be resolved from the Invoice.');
         Assert.AreEqual(14140, PurchaseHeader."Doc. Amount Incl. VAT", 'The document amount incl. VAT should match the Invoice total.');
 

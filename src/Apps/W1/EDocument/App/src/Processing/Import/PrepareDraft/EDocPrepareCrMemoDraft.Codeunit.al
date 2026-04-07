@@ -8,12 +8,12 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Purchases.Vendor;
 
-codeunit 6403 "Prepare Purch. Cr. Memo Draft" implements IProcessStructuredData
+codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
 {
     Access = Internal;
 
     var
-        PrepareDraftHelper: Codeunit "Prepare Purchase Draft";
+        PrepareDraftHelper: Codeunit "EDoc Prepare Purch. Draft";
 
     procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"): Enum "E-Document Type"
     begin
