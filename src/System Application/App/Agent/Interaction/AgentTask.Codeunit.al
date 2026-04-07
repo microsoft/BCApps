@@ -137,6 +137,19 @@ codeunit 4303 "Agent Task"
     end;
 
     /// <summary>
+    /// Gets the total Copilot credits consumed by the agent task.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task to get consumed credits for.</param>
+    /// <returns>The total Copilot credits consumed by the agent task.</returns>
+    [Obsolete('Use the methods in the "Agent Consumption Overview" codeunit instead.', '29.0')]
+    procedure GetCopilotCreditsConsumed(AgentTaskID: BigInteger): Decimal
+    var
+        AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
+    begin
+        exit(AgentConsumptionOverview.GetCopilotCreditsConsumed(AgentTaskID));
+    end;
+
+    /// <summary>
     /// Gets the details for the specified agent task log entry.
     /// </summary>
     /// <param name="AgentTaskLogEntry">The agent task log entry to get details for.</param>

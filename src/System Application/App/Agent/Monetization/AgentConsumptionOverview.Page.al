@@ -102,6 +102,8 @@ page 4333 "Agent Consumption Overview"
                 {
                     Caption = 'Agent task ID';
                     Enabled = not FilteredToTask;
+                    ExtendedDatatype = Task;
+
                     trigger OnDrillDown()
                     begin
                         DrillDownToAgentTaskConsumption();
