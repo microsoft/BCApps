@@ -609,6 +609,270 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
+    procedure ValidatingVATProdPostingGroupClearsMismatchWhenRateMatches()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Vendor2: Record Vendor;
+        CompanyInformation: Record "Company Information";
+        VATPostingSetup2: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        // [SCENARIO] OnValidate clears mismatch when selected posting group's VAT % matches the line's VAT Rate
+        Initialize(Enum::"Service Integration"::"Mock");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+
+        // [GIVEN] A vendor
+        CompanyInformation.GetRecordOnce();
+        Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
+        Vendor2."No." := 'EDOC001';
+        Vendor2."VAT Registration No." := 'XXXXXXX001';
+        Vendor2."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+        Vendor2.Insert();
+
+        // [GIVEN] A Normal VAT setup with VAT % = 20
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        VATPostingSetup2."VAT Bus. Posting Group" := Vendor2."VAT Bus. Posting Group";
+        VATPostingSetup2."VAT Prod. Posting Group" := VATProductPostingGroup.Code;
+        VATPostingSetup2."VAT Calculation Type" := VATPostingSetup2."VAT Calculation Type"::"Normal VAT";
+        VATPostingSetup2."VAT %" := 20;
+        VATPostingSetup2."Sales VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup2."Purchase VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup2.Insert();
+
+        // [GIVEN] A line with VAT Rate = 20 and mismatch = true
+        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor2."No.";
+        EDocumentPurchaseHeader.Insert();
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine."VAT Rate" := 20;
+        EDocumentPurchaseLine."[BC] VAT Rate Mismatch" := true;
+        EDocumentPurchaseLine.Insert();
+
+        // [WHEN] User validates the posting group to the matching setup
+        EDocumentPurchaseLine.Validate("[BC] VAT Prod. Posting Group", VATProductPostingGroup.Code);
+        EDocumentPurchaseLine.Modify();
+
+        // [THEN] Mismatch is cleared
+        Assert.IsFalse(EDocumentPurchaseLine."[BC] VAT Rate Mismatch", 'Mismatch should be false when VAT % matches VAT Rate.');
+
+        // Cleanup
+        Vendor2.SetRecFilter();
+        Vendor2.Delete();
+        VATPostingSetup2.SetRecFilter();
+        VATPostingSetup2.Delete();
+        VATProductPostingGroup.SetRecFilter();
+        VATProductPostingGroup.Delete();
+    end;
+
+    [Test]
+    procedure ValidatingVATProdPostingGroupKeepsMismatchWhenRateDiffers()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Vendor2: Record Vendor;
+        CompanyInformation: Record "Company Information";
+        VATPostingSetup2: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        // [SCENARIO] OnValidate keeps mismatch when selected posting group's VAT % differs from VAT Rate
+        Initialize(Enum::"Service Integration"::"Mock");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+
+        // [GIVEN] A vendor
+        CompanyInformation.GetRecordOnce();
+        Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
+        Vendor2."No." := 'EDOC001';
+        Vendor2."VAT Registration No." := 'XXXXXXX001';
+        Vendor2."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+        Vendor2.Insert();
+
+        // [GIVEN] A Normal VAT setup with VAT % = 10 (different from line's 20)
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        VATPostingSetup2."VAT Bus. Posting Group" := Vendor2."VAT Bus. Posting Group";
+        VATPostingSetup2."VAT Prod. Posting Group" := VATProductPostingGroup.Code;
+        VATPostingSetup2."VAT Calculation Type" := VATPostingSetup2."VAT Calculation Type"::"Normal VAT";
+        VATPostingSetup2."VAT %" := 10;
+        VATPostingSetup2."Sales VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup2."Purchase VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup2.Insert();
+
+        // [GIVEN] A line with VAT Rate = 20 and mismatch = true
+        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor2."No.";
+        EDocumentPurchaseHeader.Insert();
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine."VAT Rate" := 20;
+        EDocumentPurchaseLine."[BC] VAT Rate Mismatch" := true;
+        EDocumentPurchaseLine.Insert();
+
+        // [WHEN] User validates the posting group to a non-matching setup
+        EDocumentPurchaseLine.Validate("[BC] VAT Prod. Posting Group", VATProductPostingGroup.Code);
+        EDocumentPurchaseLine.Modify();
+
+        // [THEN] Mismatch remains true
+        Assert.IsTrue(EDocumentPurchaseLine."[BC] VAT Rate Mismatch", 'Mismatch should remain true when VAT % does not match VAT Rate.');
+
+        // Cleanup
+        Vendor2.SetRecFilter();
+        Vendor2.Delete();
+        VATPostingSetup2.SetRecFilter();
+        VATPostingSetup2.Delete();
+        VATProductPostingGroup.SetRecFilter();
+        VATProductPostingGroup.Delete();
+    end;
+
+    [Test]
+    procedure ValidatingVATProdPostingGroupSetsMismatchWhenCleared()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+    begin
+        // [SCENARIO] OnValidate sets mismatch when posting group is cleared
+        Initialize(Enum::"Service Integration"::"Mock");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+
+        // [GIVEN] A line with VAT Rate = 20, a posting group, and no mismatch
+        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader.Insert();
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine."VAT Rate" := 20;
+        EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" := 'STANDARD';
+        EDocumentPurchaseLine."[BC] VAT Rate Mismatch" := false;
+        EDocumentPurchaseLine.Insert();
+
+        // [WHEN] User clears the posting group
+        EDocumentPurchaseLine.Validate("[BC] VAT Prod. Posting Group", '');
+        EDocumentPurchaseLine.Modify();
+
+        // [THEN] Mismatch is set
+        Assert.IsTrue(EDocumentPurchaseLine."[BC] VAT Rate Mismatch", 'Mismatch should be true when posting group is cleared.');
+    end;
+
+    [Test]
+    procedure ValidatingVATProdPostingGroupSkipsMismatchForFullVAT()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Vendor2: Record Vendor;
+        CompanyInformation: Record "Company Information";
+        VATPostingSetup2: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        // [SCENARIO] OnValidate skips mismatch evaluation for Full VAT — flag stays unchanged
+        Initialize(Enum::"Service Integration"::"Mock");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+
+        // [GIVEN] A vendor
+        CompanyInformation.GetRecordOnce();
+        Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
+        Vendor2."No." := 'EDOC001';
+        Vendor2."VAT Registration No." := 'XXXXXXX001';
+        Vendor2."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+        Vendor2.Insert();
+
+        // [GIVEN] A Full VAT setup with VAT % = 0
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        VATPostingSetup2."VAT Bus. Posting Group" := Vendor2."VAT Bus. Posting Group";
+        VATPostingSetup2."VAT Prod. Posting Group" := VATProductPostingGroup.Code;
+        VATPostingSetup2."VAT Calculation Type" := VATPostingSetup2."VAT Calculation Type"::"Full VAT";
+        VATPostingSetup2."VAT %" := 0;
+        VATPostingSetup2."Sales VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup2."Purchase VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup2.Insert();
+
+        // [GIVEN] A line with VAT Rate = 5 and mismatch = false
+        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor2."No.";
+        EDocumentPurchaseHeader.Insert();
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine."VAT Rate" := 5;
+        EDocumentPurchaseLine."[BC] VAT Rate Mismatch" := false;
+        EDocumentPurchaseLine.Insert();
+
+        // [WHEN] User validates the posting group to the Full VAT setup
+        EDocumentPurchaseLine.Validate("[BC] VAT Prod. Posting Group", VATProductPostingGroup.Code);
+        EDocumentPurchaseLine.Modify();
+
+        // [THEN] Mismatch flag is unchanged (still false) — Full VAT skips comparison
+        Assert.IsFalse(EDocumentPurchaseLine."[BC] VAT Rate Mismatch", 'Mismatch should remain unchanged for Full VAT calculation type.');
+
+        // Cleanup
+        Vendor2.SetRecFilter();
+        Vendor2.Delete();
+        VATPostingSetup2.SetRecFilter();
+        VATPostingSetup2.Delete();
+        VATProductPostingGroup.SetRecFilter();
+        VATProductPostingGroup.Delete();
+    end;
+
+    [Test]
+    procedure ValidatingVATProdPostingGroupMatchesZeroRate()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Vendor2: Record Vendor;
+        CompanyInformation: Record "Company Information";
+        VATPostingSetup2: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        // [SCENARIO] OnValidate clears mismatch when both VAT Rate and VAT % are 0
+        Initialize(Enum::"Service Integration"::"Mock");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+
+        // [GIVEN] A vendor
+        CompanyInformation.GetRecordOnce();
+        Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
+        Vendor2."No." := 'EDOC001';
+        Vendor2."VAT Registration No." := 'XXXXXXX001';
+        Vendor2."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+        Vendor2.Insert();
+
+        // [GIVEN] A Normal VAT setup with VAT % = 0 (zero-rated)
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        VATPostingSetup2."VAT Bus. Posting Group" := Vendor2."VAT Bus. Posting Group";
+        VATPostingSetup2."VAT Prod. Posting Group" := VATProductPostingGroup.Code;
+        VATPostingSetup2."VAT Calculation Type" := VATPostingSetup2."VAT Calculation Type"::"Normal VAT";
+        VATPostingSetup2."VAT %" := 0;
+        VATPostingSetup2."Sales VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup2."Purchase VAT Account" := LibraryERM.CreateGLAccountNo();
+        VATPostingSetup2.Insert();
+
+        // [GIVEN] A line with VAT Rate = 0
+        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor2."No.";
+        EDocumentPurchaseHeader.Insert();
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine."VAT Rate" := 0;
+        EDocumentPurchaseLine."[BC] VAT Rate Mismatch" := true;
+        EDocumentPurchaseLine.Insert();
+
+        // [WHEN] User validates the posting group to the zero-rated setup
+        EDocumentPurchaseLine.Validate("[BC] VAT Prod. Posting Group", VATProductPostingGroup.Code);
+        EDocumentPurchaseLine.Modify();
+
+        // [THEN] Mismatch is cleared — both rates are 0
+        Assert.IsFalse(EDocumentPurchaseLine."[BC] VAT Rate Mismatch", 'Mismatch should be false when both VAT Rate and VAT % are 0.');
+
+        // Cleanup
+        Vendor2.SetRecFilter();
+        Vendor2.Delete();
+        VATPostingSetup2.SetRecFilter();
+        VATPostingSetup2.Delete();
+        VATProductPostingGroup.SetRecFilter();
+        VATProductPostingGroup.Delete();
+    end;
+
+    [Test]
     procedure FinishDraftCanBeUndone()
     var
         EDocument: Record "E-Document";
