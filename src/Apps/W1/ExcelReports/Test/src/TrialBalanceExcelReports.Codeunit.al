@@ -32,6 +32,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         LibrarySales: Codeunit "Library - Sales";
         Assert: Codeunit Assert;
         DocumentTypeShouldBeInvoiceErr: Label 'Document Type should be Invoice';
+        DocumentNoShouldMatchErr: Label 'Document No should match the ledger entry';
 
     [Test]
     [HandlerFunctions('EXRTrialBalanceExcelHandler')]
@@ -670,16 +671,17 @@ codeunit 139544 "Trial Balance Excel Reports"
 
     [Test]
     [HandlerFunctions('EXRAgedAccPayableExcelHandler')]
-    procedure AgedAccountsPayableExportsInvoiceDocumentType()
+    procedure AgedAccountsPayableExportsDocumentTypeAndNo()
     var
         Vendor: Record Vendor;
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Variant: Variant;
         RequestPageXml: Text;
         ReportDocumentType: Text;
+        ReportDocumentNo: Text;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO 622247] Aged Accounts Payable Excel report exports Document Type field correctly for Invoice entries
+        // [SCENARIO 622247] Aged Accounts Payable Excel report exports Document Type and Document No fields correctly for Invoice entries
         InitializeAgingData();
 
         // [GIVEN] Vendor "V" with an open vendor ledger entry of type Invoice
@@ -688,31 +690,34 @@ codeunit 139544 "Trial Balance Excel Reports"
         Commit();
 
         // [WHEN] Running the Aged Accounts Payable Excel report
-        Vendor.SetRange("No.", Vendor."No.");
         RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Acc Payable Excel", RequestPageXml);
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Acc Payable Excel", Variant, RequestPageXml);
 
-        // [THEN] The exported data contains the Document Type "Invoice"
+        // [THEN] The exported data contains the Document Type "Invoice" and the correct Document No
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
         Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.FindCurrentRowValue('DocumentType', Variant);
         ReportDocumentType := Variant;
         Assert.AreEqual(Format("Gen. Journal Document Type"::Invoice), ReportDocumentType, DocumentTypeShouldBeInvoiceErr);
+        LibraryReportDataset.FindCurrentRowValue('DocumentNo', Variant);
+        ReportDocumentNo := Variant;
+        Assert.AreEqual(VendorLedgerEntry."Document No.", ReportDocumentNo, DocumentNoShouldMatchErr);
     end;
 
     [Test]
     [HandlerFunctions('EXRAgedAccountsRecExcelHandler')]
-    procedure AgedAccountsRecExportsInvoiceDocumentType()
+    procedure AgedAccountsRecExportsDocumentTypeAndNo()
     var
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Variant: Variant;
         RequestPageXml: Text;
         ReportDocumentType: Text;
+        ReportDocumentNo: Text;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO 622247] Aged Accounts Receivable Excel report exports Document Type field correctly for Invoice entries
+        // [SCENARIO 622247] Aged Accounts Receivable Excel report exports Document Type and Document No fields correctly for Invoice entries
         InitializeAgingData();
 
         // [GIVEN] Customer "C" with an open customer ledger entry of type Invoice
@@ -721,17 +726,19 @@ codeunit 139544 "Trial Balance Excel Reports"
         Commit();
 
         // [WHEN] Running the Aged Accounts Receivable Excel report
-        Customer.SetRange("No.", Customer."No.");
         RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel", RequestPageXml);
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", Variant, RequestPageXml);
 
-        // [THEN] The exported data contains the Document Type "Invoice"
+        // [THEN] The exported data contains the Document Type "Invoice" and the correct Document No
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
         Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
         LibraryReportDataset.GetNextRow();
         LibraryReportDataset.FindCurrentRowValue('DocumentType', Variant);
         ReportDocumentType := Variant;
         Assert.AreEqual(Format("Gen. Journal Document Type"::Invoice), ReportDocumentType, DocumentTypeShouldBeInvoiceErr);
+        LibraryReportDataset.FindCurrentRowValue('DocumentNo', Variant);
+        ReportDocumentNo := Variant;
+        Assert.AreEqual(CustLedgerEntry."Document No.", ReportDocumentNo, DocumentNoShouldMatchErr);
     end;
 
     local procedure CreateSampleBusinessUnits(HowMany: Integer)
