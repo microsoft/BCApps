@@ -10,25 +10,21 @@ using Microsoft.eServices.EDocument.Service;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
-using Microsoft.Sales.Setup;
 using System.Threading;
 using System.Utilities;
 
-codeunit 133626 "Integration Tests"
+codeunit 148191 "Integration Tests"
 {
 
-    EventSubscriberInstance = Manual;
     Permissions = tabledata "Connection Setup" = rimd,
                   tabledata "E-Document" = r;
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
-    TestType = UnitTest;
+    TestType = Uncategorized;
 
     [Test]
     [HandlerFunctions('HttpSubmitHandler')]
@@ -545,15 +541,9 @@ codeunit 133626 "Integration Tests"
         LibraryPermission.SetOutsideO365Scope();
 
         GeneralLedgerSetup.Get();
-        if GeneralLedgerSetup."LCY Code" = '' then begin
-            GeneralLedgerSetup."LCY Code" := 'GBP';
-            GeneralLedgerSetup.Modify();
-        end;
         PrevVATReportingDateValue := GeneralLedgerSetup."VAT Reporting Date Usage";
         GeneralLedgerSetup."VAT Reporting Date Usage" := Enum::"VAT Reporting Date Usage"::Disabled;
         GeneralLedgerSetup.Modify();
-
-        EnsureSalesSetup();
 
         // Clean up token between runs
         if ConnectionSetup.Get() then
@@ -563,31 +553,20 @@ codeunit 133626 "Integration Tests"
         AvalaraAuth.CreateConnectionSetupRecord();
 
         ConnectionSetup.Get();
-        AvalaraAuth.SetClientId(KeyGuid, SecretText.SecretStrSubstNo(MockServiceGuid()));
+        AvalaraAuth.SetClientId(KeyGuid, MockServiceGuid());
         ConnectionSetup."Client Id - Key" := KeyGuid;
-        AvalaraAuth.SetClientSecret(KeyGuid, SecretText.SecretStrSubstNo(MockServiceGuid()));
+        AvalaraAuth.SetClientSecret(KeyGuid, MockServiceGuid());
         ConnectionSetup."Client Secret - Key" := KeyGuid;
         ConnectionSetup.Modify(true);
 
         CompanyInformation.Get();
-        if CompanyInformation.Name = '' then begin
-            CompanyInformation.Name := 'Test Company';
-            CompanyInformation.Modify();
-        end;
         OriginalVATNumber := CompanyInformation."VAT Registration No.";
         CompanyInformation."VAT Registration No." := 'GB777777771';
         CompanyInformation.Modify();
 
-        // Verify Customer, Vendor, and EDocumentService still exist (may have been rolled back between tests)
-        if IsInitialized then
-            if not Customer.Get(Customer."No.") or not Vendor.Get(Vendor."No.") or not EDocumentService.Get(EDocumentService.Code) then
-                IsInitialized := false;
-
         if IsInitialized then
             exit;
 
-        BindSubscription(this);
-        EnsureVATBusinessPostingGroup();
         LibraryEDocument.SetupStandardVAT();
         LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
         EDocumentService."Avalara Mandate" := 'GB-Test-Mandate';
@@ -597,9 +576,6 @@ codeunit 133626 "Integration Tests"
         EDocumentService."Import Minutes between runs" := 10;
         EDocumentService."Import Start Time" := Time();
         EDocumentService.Modify();
-
-        EnsureGeneralPostingSetup();
-        CreateActivationMandate();
 
         Vendor."VAT Registration No." := 'GB777777771';
         Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
@@ -616,48 +592,6 @@ codeunit 133626 "Integration Tests"
         ConnectionSetup."Company Id" := Id;
         ConnectionSetup."Company Name" := Name;
         ConnectionSetup.Modify(true);
-    end;
-
-    local procedure EnsureSalesSetup()
-    var
-        SalesSetup: Record "Sales & Receivables Setup";
-    begin
-        if not SalesSetup.Get() then
-            SalesSetup.Insert(true);
-        if SalesSetup."Invoice Nos." = '' then begin
-            SalesSetup."Invoice Nos." := CreateTestNoSeries('SINV', 'SI00001', 'SI99999');
-            SalesSetup.Modify(true);
-        end;
-        if SalesSetup."Posted Invoice Nos." = '' then begin
-            SalesSetup."Posted Invoice Nos." := CreateTestNoSeries('PSINV', 'PSI0001', 'PSI9999');
-            SalesSetup.Modify(true);
-        end;
-    end;
-
-    local procedure CreateTestNoSeries(SeriesCode: Code[20]; StartNo: Code[20]; EndNo: Code[20]): Code[20]
-    var
-        NoSeries: Record "No. Series";
-        NoSeriesLine: Record "No. Series Line";
-    begin
-        if NoSeries.Get(SeriesCode) then
-            exit(SeriesCode);
-
-        NoSeries.Init();
-        NoSeries.Code := SeriesCode;
-        NoSeries.Description := SeriesCode;
-        NoSeries."Default Nos." := true;
-        NoSeries."Manual Nos." := true;
-        NoSeries.Insert();
-
-        NoSeriesLine.Init();
-        NoSeriesLine."Series Code" := SeriesCode;
-        NoSeriesLine."Line No." := 10000;
-        NoSeriesLine."Starting No." := StartNo;
-        NoSeriesLine."Ending No." := EndNo;
-        NoSeriesLine."Increment-by No." := 1;
-        NoSeriesLine.Insert();
-
-        exit(SeriesCode);
     end;
 
     local procedure MockServiceGuid(): Text
@@ -700,28 +634,19 @@ codeunit 133626 "Integration Tests"
         SubmitDocumentFileTok: Label 'SubmitDocument.txt', Locked = true;
     begin
         case true of
-            Request.Path.Contains('/connect/token'):
-                begin
-                    LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response);
-                    Response.HttpStatusCode := 200;
-                end;
+            Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
+                LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response);
 
-            Regex.IsMatch(Request.Path, '/einvoicing/documents/.+/status'):
+            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents/.+/status'):
                 GetStatusResponse(Response);
 
-            Regex.IsMatch(Request.Path, '/einvoicing/documents/.+/\$download'):
-                begin
-                    LoadResourceIntoHttpResponse(DownloadDocumentFileTok, Response);
-                    Response.HttpStatusCode := 200;
-                end;
+            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents/.+/\$download'):
+                LoadResourceIntoHttpResponse(DownloadDocumentFileTok, Response);
 
-            Request.Path.Contains('/einvoicing/documents'):
+            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents'):
                 case Request.RequestType of
                     HttpRequestType::POST:
-                        begin
-                            LoadResourceIntoHttpResponse(SubmitDocumentFileTok, Response);
-                            Response.HttpStatusCode := 200;
-                        end;
+                        LoadResourceIntoHttpResponse(SubmitDocumentFileTok, Response);
                     HttpRequestType::GET:
                         begin
                             LoadResourceIntoHttpResponse(GetDocumentsFileTok, Response);
@@ -729,13 +654,12 @@ codeunit 133626 "Integration Tests"
                         end;
                 end;
 
-            Request.Path.Contains('/scs/companies'):
+            Regex.IsMatch(Request.Path, 'https?://.+/scs/companies'):
                 begin
                     LoadResourceIntoHttpResponse(CompaniesFileTok, Response);
                     Response.HttpStatusCode := 200;
                 end;
         end;
-        exit(true);
     end;
 
     local procedure TearDown()
@@ -759,13 +683,11 @@ codeunit 133626 "Integration Tests"
     begin
         LoadResourceIntoHttpResponse(Http500FileTok, Response);
         Response.HttpStatusCode := 500;
-        exit(true);
     end;
 
     local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
-        Response.HttpStatusCode := 200;
     end;
 
     local procedure SetDocumentStatus(NewDocumentStatus: Option Completed,Pending,Error)
@@ -789,107 +711,6 @@ codeunit 133626 "Integration Tests"
             DocumentStatus::Error:
                 LoadResourceIntoHttpResponse(GetResponseErrorFileTok, Response);
         end;
-    end;
-
-    local procedure CreateActivationMandate()
-    var
-        ActivationMandate: Record "Activation Mandate";
-    begin
-        ActivationMandate.SetRange("Country Mandate", 'GB-Test-Mandate');
-        ActivationMandate.SetRange("Mandate Type", '');
-        ActivationMandate.SetRange("Company Id", '');
-        if not ActivationMandate.IsEmpty() then
-            exit;
-
-        ActivationMandate.Init();
-        ActivationMandate."Activation ID" := CreateGuid();
-        ActivationMandate."Country Mandate" := 'GB-Test-Mandate';
-        ActivationMandate."Country Code" := 'GB';
-        ActivationMandate."Mandate Type" := '';
-        ActivationMandate."Company Id" := '';
-        ActivationMandate.Activated := true;
-        ActivationMandate.Blocked := false;
-        ActivationMandate.Insert();
-    end;
-
-    local procedure EnsureGeneralPostingSetup()
-    var
-        GenProductPostingGroup: Record "Gen. Product Posting Group";
-        GeneralPostingSetup: Record "General Posting Setup";
-    begin
-        // Ensure General Posting Setup exists for the Customer's Gen. Bus. Posting Group
-        // with all Gen. Product Posting Groups to avoid posting errors
-        if Customer."Gen. Bus. Posting Group" = '' then
-            exit;
-
-        if GenProductPostingGroup.FindSet() then
-            repeat
-                if not GeneralPostingSetup.Get(Customer."Gen. Bus. Posting Group", GenProductPostingGroup.Code) then begin
-                    GeneralPostingSetup.Init();
-                    GeneralPostingSetup."Gen. Bus. Posting Group" := Customer."Gen. Bus. Posting Group";
-                    GeneralPostingSetup."Gen. Prod. Posting Group" := GenProductPostingGroup.Code;
-                    GeneralPostingSetup."Sales Account" := LibraryERM.CreateGLAccountNo();
-                    GeneralPostingSetup."Purch. Account" := LibraryERM.CreateGLAccountNo();
-                    GeneralPostingSetup."COGS Account" := LibraryERM.CreateGLAccountNo();
-                    GeneralPostingSetup."Inventory Adjmt. Account" := LibraryERM.CreateGLAccountNo();
-                    GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
-                    GeneralPostingSetup.Insert(true);
-                end;
-            until GenProductPostingGroup.Next() = 0;
-    end;
-
-    local procedure EnsureVATBusinessPostingGroup()
-    var
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
-        VATPostingSetup: Record "VAT Posting Setup";
-        VATProductPostingGroup: Record "VAT Product Posting Group";
-    begin
-        if not VATBusinessPostingGroup.IsEmpty() then
-            exit;
-
-        VATBusinessPostingGroup.Init();
-        VATBusinessPostingGroup.Code := 'DOMESTIC';
-        VATBusinessPostingGroup.Description := 'Domestic';
-        VATBusinessPostingGroup.Insert(false);
-
-        if VATProductPostingGroup.IsEmpty() then begin
-            VATProductPostingGroup.Init();
-            VATProductPostingGroup.Code := 'STANDARD';
-            VATProductPostingGroup.Description := 'Standard';
-            VATProductPostingGroup.Insert(false);
-        end else
-            VATProductPostingGroup.FindFirst();
-
-        if not VATPostingSetup.Get('DOMESTIC', VATProductPostingGroup.Code) then begin
-            VATPostingSetup.Init();
-            VATPostingSetup."VAT Bus. Posting Group" := 'DOMESTIC';
-            VATPostingSetup."VAT Prod. Posting Group" := VATProductPostingGroup.Code;
-            VATPostingSetup."VAT %" := 0;
-            VATPostingSetup.Insert(false);
-        end;
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::Customer, OnBeforeInsertEvent, '', false, false)]
-    local procedure OnBeforeCustomerInsert(var Rec: Record Customer; RunTrigger: Boolean)
-    var
-        VATBusPostingGroup: Record "VAT Business Posting Group";
-    begin
-        if Rec."VAT Bus. Posting Group" <> '' then
-            if not VATBusPostingGroup.Get(Rec."VAT Bus. Posting Group") then begin
-                VATBusPostingGroup.Init();
-                VATBusPostingGroup.Code := Rec."VAT Bus. Posting Group";
-                VATBusPostingGroup.Description := Rec."VAT Bus. Posting Group";
-                VATBusPostingGroup.Insert(false);
-            end;
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Country/Region", OnBeforeInsertEvent, '', false, false)]
-    local procedure OnBeforeCountryRegionInsert(var Rec: Record "Country/Region"; RunTrigger: Boolean)
-    begin
-        if Rec."ISO Code" = '' then
-            Rec."ISO Code" := CopyStr(Rec.Code, 1, 2);
-        if Rec."ISO Numeric Code" = '' then
-            Rec."ISO Numeric Code" := '000';
     end;
 
     var
