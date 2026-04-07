@@ -5,7 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 
-#pragma warning disable AS0125
+#pragma warning disable AS0006, AS0125
 table 149050 "Agent Test Task Log"
 {
     Caption = 'Agent Eval Task Log';
@@ -95,4 +95,4 @@ table 149050 "Agent Test Task Log"
         }
     }
 }
-#pragma warning restore AS0125
+#pragma warning restore AS0006, AS0125
