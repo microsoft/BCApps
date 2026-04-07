@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
-using System.Environment;
 
 table 149050 "Agent Test Task Log"
 {

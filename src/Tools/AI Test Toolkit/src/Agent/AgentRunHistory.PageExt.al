@@ -5,8 +5,6 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.Agents;
-
 pageextension 149032 "Agent Run History" extends "AIT Run History"
 {
     layout

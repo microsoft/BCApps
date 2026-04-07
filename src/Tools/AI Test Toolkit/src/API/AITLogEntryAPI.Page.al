@@ -5,8 +5,6 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.Agents;
-
 page 149038 "AIT Log Entry API"
 {
     PageType = API;

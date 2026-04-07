@@ -5,8 +5,6 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.Agents;
-
 pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
 {
     layout

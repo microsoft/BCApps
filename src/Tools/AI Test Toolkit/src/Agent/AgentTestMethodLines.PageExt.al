@@ -5,8 +5,6 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.Agents;
-
 pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
 {
     layout
