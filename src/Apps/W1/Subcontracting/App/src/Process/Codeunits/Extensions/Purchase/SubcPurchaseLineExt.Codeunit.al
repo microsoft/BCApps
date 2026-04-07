@@ -95,8 +95,8 @@ codeunit 99001534 "Subc. Purchase Line Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnBeforeOpenItemTrackingLines, '', false, false)]
     local procedure OpenProdOrderLineItemTrackingOnBeforeOpenItemTrackingLines(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
-        OpenItemTrackingOfProdOrderLine(PurchaseLine, false);
-        IsHandled := true;
+        if OpenItemTrackingOfProdOrderLine(PurchaseLine, false) then
+            IsHandled := true;
     end;
 
     local procedure CheckItem(PurchaseLine: Record "Purchase Line")
@@ -143,7 +143,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         end;
     end;
 
-    local procedure OpenItemTrackingOfProdOrderLine(var PurchaseLine: Record "Purchase Line"; SkipOverDeliveryCheck: Boolean)
+    local procedure OpenItemTrackingOfProdOrderLine(var PurchaseLine: Record "Purchase Line"; SkipOverDeliveryCheck: Boolean): Boolean
     var
         ProdOrderLine: Record "Prod. Order Line";
         TrackingSpecification: Record "Tracking Specification";
@@ -152,14 +152,14 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         SecondSourceQtyArray: array[3] of Decimal;
     begin
         if PurchaseLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::None then
-            exit;
+            exit(false);
         CheckItem(PurchaseLine);
         if PurchaseLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::NotLastOperation then
             Error(NotLastOperationLineErr);
         if PurchaseLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::LastOperation then
-            exit;
+            exit(false);
         if not PurchaseLine.IsSubcontractingLineWithLastOperation(ProdOrderLine) then
-            exit;
+            exit(false);
 
         SecondSourceQtyArray[1] := Database::"Warehouse Receipt Line";
         SecondSourceQtyArray[2] := PurchaseLine.CalcBaseQtyFromQuantity(PurchaseLine."Qty. to Receive", PurchaseLine.FieldCaption("Qty. Rounding Precision"), PurchaseLine.FieldCaption("Qty. to Receive"), PurchaseLine.FieldCaption("Qty. to Receive (Base)"));
@@ -172,6 +172,7 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         ItemTrackingLines.SetSourceSpec(TrackingSpecification, ProdOrderLine."Due Date");
         ItemTrackingLines.SetSecondSourceQuantity(SecondSourceQtyArray);
         ItemTrackingLines.RunModal();
+        exit(true);
     end;
 
     internal procedure ShowProductionOrder(OverDeliveryErrorInfo: ErrorInfo)

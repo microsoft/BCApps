@@ -184,9 +184,6 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
         Parameters: Dictionary of [Text, Text];
         JResponse: JsonToken;
     begin
-        if CommunicationMgt.GetTestInProgress() then
-            exit;
-
         CommunicationMgt.SetShop(Shop);
 
         if Shop."Allow Outgoing Requests" then
