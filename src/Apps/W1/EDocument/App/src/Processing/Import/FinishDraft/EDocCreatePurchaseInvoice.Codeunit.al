@@ -9,7 +9,6 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using System.Telemetry;
@@ -23,7 +22,6 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
 
     var
         Telemetry: Codeunit "Telemetry";
-        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         InvoiceAlreadyExistsErr: Label 'A purchase invoice with external document number %1 already exists for vendor %2.', Comment = '%1 = Vendor Invoice No., %2 = Vendor No.';
         DraftLineDoesNotConstantTypeAndNumberErr: Label 'One of the draft lines do not contain the type and number. Please, specify these fields manually.';
 
@@ -34,7 +32,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         EDocPurchaseDocumentHelper: Codeunit "E-Doc. Purch. Doc. Helper";
-        DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EmptyRecordId: RecordId;
         IEDocumentFinishPurchaseDraft: Interface IEDocumentCreatePurchaseInvoice;
         YourMatchedLinesAreNotValidErr: Label 'The purchase invoice cannot be created because one or more of its matched lines are not valid matches. Review if your configuration allows for receiving at invoice.';
@@ -63,20 +61,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
             PurchaseHeader := IEDocumentFinishPurchaseDraft.CreatePurchaseInvoice(EDocument);
 
         EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
-        PurchaseHeader.SetRecFilter();
-        PurchaseHeader.FindFirst();
-        PurchaseHeader."Doc. Amount Incl. VAT" := EDocumentPurchaseHeader.Total;
-        PurchaseHeader."Doc. Amount VAT" := EDocumentPurchaseHeader."Total VAT";
-        PurchaseHeader.TestField("No.");
-        PurchaseHeader."E-Document Link" := EDocument.SystemId;
-        PurchaseHeader.Modify();
-
-        // Post document creation
-        DocumentAttachmentMgt.CopyAttachments(EDocument, PurchaseHeader);
-        DocumentAttachmentMgt.DeleteAttachedDocuments(EDocument);
-
-        // Post document validation - Silently emit telemetry
-        EDocImpSessionTelemetry.SetBool('Totals Validation', EDocPurchaseDocumentHelper.TryValidateDocumentTotals(PurchaseHeader));
+        EDocPurchaseDocumentHelper.FinalizeCreatedDocument(EDocument, PurchaseHeader);
 
         exit(PurchaseHeader.RecordId);
     end;
@@ -85,19 +70,15 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
     var
         PurchaseHeader: Record "Purchase Header";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
-        DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
+        EDocPurchaseDocumentHelper: Codeunit "E-Doc. Purch. Doc. Helper";
     begin
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         if not PurchaseHeader.FindFirst() then
             exit;
 
         EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader);
-        DocumentAttachmentMgt.CopyAttachments(PurchaseHeader, EDocument);
-        DocumentAttachmentMgt.DeleteAttachedDocuments(PurchaseHeader);
-
         PurchaseHeader.TestField("Document Type", "Purchase Document Type"::Invoice);
-        Clear(PurchaseHeader."E-Document Link");
-        PurchaseHeader.Modify();
+        EDocPurchaseDocumentHelper.RevertCreatedDocument(EDocument);
     end;
 
     procedure CreatePurchaseInvoice(EDocument: Record "E-Document"): Record "Purchase Header"
@@ -144,6 +125,8 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         end;
 
         EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Vendor Invoice No."), VendorInvoiceNo);
+        if EDocumentPurchaseHeader."Purchase Order No." <> '' then
+            PurchaseHeader."Vendor Order No." := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseHeader."Vendor Order No."));
 
         PurchaseHeader."Invoice Received Date" := PurchaseHeader."Document Date";
         EDocPurchaseDocumentHelper.ApplyDefaultPostingDateFromSetup(PurchaseHeader, EDocumentPurchaseHeader);
@@ -209,40 +192,40 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EDocPurchaseDocumentHelper: Codeunit "E-Doc. Purch. Doc. Helper";
         PurchaseLineCombinedDimensions: array[10] of Integer;
         GlobalDim1, GlobalDim2 : Code[20];
-    begin
-        PurchaseLine."Document Type" := PurchaseHeader."Document Type";
-        PurchaseLine."Document No." := PurchaseHeader."No.";
-        PurchaseLineNo += 10000;
-        PurchaseLine."Line No." := PurchaseLineNo;
-        PurchaseLine."Unit of Measure Code" := CopyStr(EDocumentPurchaseLine."[BC] Unit of Measure", 1, MaxStrLen(PurchaseLine."Unit of Measure Code"));
-        PurchaseLine."Variant Code" := EDocumentPurchaseLine."[BC] Variant Code";
-        PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";
-        PurchaseLine.Validate("No.", EDocumentPurchaseLine."[BC] Purchase Type No.");
-        if EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" <> '' then
-            EDocPurchaseDocumentHelper.ValidateFieldWithContext(
-                PurchaseLine, PurchaseLine.FieldNo("VAT Prod. Posting Group"), EDocumentPurchaseLine."[BC] VAT Prod. Posting Group");
-        if (PurchaseLine.Type = PurchaseLine.Type::"G/L Account") and HasTotalDiscount then
-            PurchaseLine.Validate("Allow Invoice Disc.", true);
-        PurchaseLine.Description := EDocumentPurchaseLine.Description;
+        begin
+            PurchaseLine."Document Type" := PurchaseHeader."Document Type";
+            PurchaseLine."Document No." := PurchaseHeader."No.";
+            PurchaseLineNo += 10000;
+            PurchaseLine."Line No." := PurchaseLineNo;
+            PurchaseLine."Unit of Measure Code" := CopyStr(EDocumentPurchaseLine."[BC] Unit of Measure", 1, MaxStrLen(PurchaseLine."Unit of Measure Code"));
+            PurchaseLine."Variant Code" := EDocumentPurchaseLine."[BC] Variant Code";
+            PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";
+            PurchaseLine.Validate("No.", EDocumentPurchaseLine."[BC] Purchase Type No.");
+            if EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" <> '' then
+                EDocPurchaseDocumentHelper.ValidateFieldWithContext(
+                    PurchaseLine, PurchaseLine.FieldNo("VAT Prod. Posting Group"), EDocumentPurchaseLine."[BC] VAT Prod. Posting Group");
+            if (PurchaseLine.Type = PurchaseLine.Type::"G/L Account") and HasTotalDiscount then
+                PurchaseLine.Validate("Allow Invoice Disc.", true);
+            PurchaseLine.Description := EDocumentPurchaseLine.Description;
 
-        if EDocumentPurchaseLine."[BC] Item Reference No." <> '' then
-            PurchaseLine.Validate("Item Reference No.", EDocumentPurchaseLine."[BC] Item Reference No.");
+            if EDocumentPurchaseLine."[BC] Item Reference No." <> '' then
+                PurchaseLine.Validate("Item Reference No.", EDocumentPurchaseLine."[BC] Item Reference No.");
 
-        PurchaseLine.Validate(Quantity, EDocumentPurchaseLine.Quantity);
-        PurchaseLine.Validate("Direct Unit Cost", EDocumentPurchaseLine."Unit Price");
-        if EDocumentPurchaseLine."Total Discount" > 0 then
-            PurchaseLine.Validate("Line Discount Amount", EDocumentPurchaseLine."Total Discount");
-        PurchaseLine.Validate("Deferral Code", EDocumentPurchaseLine."[BC] Deferral Code");
+            PurchaseLine.Validate(Quantity, EDocumentPurchaseLine.Quantity);
+            PurchaseLine.Validate("Direct Unit Cost", EDocumentPurchaseLine."Unit Price");
+            if EDocumentPurchaseLine."Total Discount" > 0 then
+                PurchaseLine.Validate("Line Discount Amount", EDocumentPurchaseLine."Total Discount");
+            PurchaseLine.Validate("Deferral Code", EDocumentPurchaseLine."[BC] Deferral Code");
 
-        PurchaseLineCombinedDimensions[1] := PurchaseLine."Dimension Set ID";
-        PurchaseLineCombinedDimensions[2] := EDocumentPurchaseLine."[BC] Dimension Set ID";
-        PurchaseLine.Validate("Dimension Set ID", DimensionManagement.GetCombinedDimensionSetID(PurchaseLineCombinedDimensions, GlobalDim1, GlobalDim2));
-        PurchaseLine.Validate("Shortcut Dimension 1 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 1 Code");
-        PurchaseLine.Validate("Shortcut Dimension 2 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 2 Code");
-        EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
-        PurchaseLine.Insert();
-        EDocRecordLink.InsertEDocumentLineLink(EDocumentPurchaseLine, PurchaseLine);
-    end;
+            PurchaseLineCombinedDimensions[1] := PurchaseLine."Dimension Set ID";
+            PurchaseLineCombinedDimensions[2] := EDocumentPurchaseLine."[BC] Dimension Set ID";
+            PurchaseLine.Validate("Dimension Set ID", DimensionManagement.GetCombinedDimensionSetID(PurchaseLineCombinedDimensions, GlobalDim1, GlobalDim2));
+            PurchaseLine.Validate("Shortcut Dimension 1 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 1 Code");
+            PurchaseLine.Validate("Shortcut Dimension 2 Code", EDocumentPurchaseLine."[BC] Shortcut Dimension 2 Code");
+            EDocumentPurchaseHistMapping.ApplyAdditionalFieldsFromHistoryToPurchaseLine(EDocumentPurchaseLine, PurchaseLine);
+            PurchaseLine.Insert();
+            EDocRecordLink.InsertEDocumentLineLink(EDocumentPurchaseLine, PurchaseLine);
+        end;
 
     [TryFunction]
     local procedure TryValidateDocumentTotals(PurchaseHeader: Record "Purchase Header")
