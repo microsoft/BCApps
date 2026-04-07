@@ -10,7 +10,12 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.ExcelReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Receivables;
 
 codeunit 139544 "Trial Balance Excel Reports"
 {
@@ -21,8 +26,13 @@ codeunit 139544 "Trial Balance Excel Reports"
 
     var
         LibraryERM: Codeunit "Library - ERM";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibrarySales: Codeunit "Library - Sales";
         Assert: Codeunit Assert;
+        DocumentTypeShouldBeInvoiceErr: Label 'Document Type should be Invoice';
+        DocumentNoShouldMatchErr: Label 'Document No should match the ledger entry';
 
     [Test]
     [HandlerFunctions('EXRTrialBalanceExcelHandler')]
@@ -659,6 +669,78 @@ codeunit 139544 "Trial Balance Excel Reports"
         Assert.AreEqual(0, TrialBalanceData."Starting Balance", 'Starting Balance should be zero after closing entries')
     end;
 
+    [Test]
+    [HandlerFunctions('EXRAgedAccPayableExcelHandler')]
+    procedure AgedAccountsPayableExportsDocumentTypeAndNo()
+    var
+        Vendor: Record Vendor;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+        ReportDocumentType: Text;
+        ReportDocumentNo: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 622247] Aged Accounts Payable Excel report exports Document Type and Document No fields correctly for Invoice entries
+        InitializeAgingData();
+
+        // [GIVEN] Vendor "V" with an open vendor ledger entry of type Invoice
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
+        Commit();
+
+        // [WHEN] Running the Aged Accounts Payable Excel report
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Acc Payable Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Acc Payable Excel", Variant, RequestPageXml);
+
+        // [THEN] The exported data contains the Document Type "Invoice" and the correct Document No
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('DocumentType', Variant);
+        ReportDocumentType := Variant;
+        Assert.AreEqual(Format("Gen. Journal Document Type"::Invoice), ReportDocumentType, DocumentTypeShouldBeInvoiceErr);
+        LibraryReportDataset.FindCurrentRowValue('DocumentNo', Variant);
+        ReportDocumentNo := Variant;
+        Assert.AreEqual(VendorLedgerEntry."Document No.", ReportDocumentNo, DocumentNoShouldMatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRAgedAccountsRecExcelHandler')]
+    procedure AgedAccountsRecExportsDocumentTypeAndNo()
+    var
+        Customer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+        ReportDocumentType: Text;
+        ReportDocumentNo: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 622247] Aged Accounts Receivable Excel report exports Document Type and Document No fields correctly for Invoice entries
+        InitializeAgingData();
+
+        // [GIVEN] Customer "C" with an open customer ledger entry of type Invoice
+        LibrarySales.CreateCustomer(Customer);
+        CreateCustLedgerEntry(CustLedgerEntry, Customer."No.", "Gen. Journal Document Type"::Invoice);
+        Commit();
+
+        // [WHEN] Running the Aged Accounts Receivable Excel report
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", Variant, RequestPageXml);
+
+        // [THEN] The exported data contains the Document Type "Invoice" and the correct Document No
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('DocumentType', Variant);
+        ReportDocumentType := Variant;
+        Assert.AreEqual(Format("Gen. Journal Document Type"::Invoice), ReportDocumentType, DocumentTypeShouldBeInvoiceErr);
+        LibraryReportDataset.FindCurrentRowValue('DocumentNo', Variant);
+        ReportDocumentNo := Variant;
+        Assert.AreEqual(CustLedgerEntry."Document No.", ReportDocumentNo, DocumentNoShouldMatchErr);
+    end;
+
     local procedure CreateSampleBusinessUnits(HowMany: Integer)
     var
         BusinessUnit: Record "Business Unit";
@@ -782,6 +864,93 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLEntry.Insert();
     end;
 
+    local procedure InitializeAgingData()
+    var
+        Vendor: Record Vendor;
+        Customer: Record Customer;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        DetailedVendorLedgEntry.DeleteAll();
+        DetailedCustLedgEntry.DeleteAll();
+        VendorLedgerEntry.DeleteAll();
+        CustLedgerEntry.DeleteAll();
+        Vendor.DeleteAll();
+        Customer.DeleteAll();
+    end;
+
+    local procedure CreateVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        EntryNo: Integer;
+        Amount: Decimal;
+    begin
+        if VendorLedgerEntry.FindLast() then;
+        EntryNo := VendorLedgerEntry."Entry No." + 1;
+
+        VendorLedgerEntry.Init();
+        VendorLedgerEntry."Entry No." := EntryNo;
+        VendorLedgerEntry."Vendor No." := VendorNo;
+        VendorLedgerEntry."Vendor Name" := VendorNo;
+        VendorLedgerEntry."Document Type" := DocumentType;
+        VendorLedgerEntry."Document No." := 'DOC' + Format(EntryNo);
+        VendorLedgerEntry."Posting Date" := WorkDate();
+        VendorLedgerEntry."Document Date" := WorkDate();
+        VendorLedgerEntry."Due Date" := WorkDate() + 30;
+        VendorLedgerEntry.Open := true;
+        VendorLedgerEntry.Insert();
+
+        // Create detailed vendor ledger entry for remaining amount
+        Amount := -LibraryRandom.RandDec(1000, 2);
+        if DetailedVendorLedgEntry.FindLast() then;
+        DetailedVendorLedgEntry.Init();
+        DetailedVendorLedgEntry."Entry No." := DetailedVendorLedgEntry."Entry No." + 1;
+        DetailedVendorLedgEntry."Vendor Ledger Entry No." := VendorLedgerEntry."Entry No.";
+        DetailedVendorLedgEntry."Vendor No." := VendorNo;
+        DetailedVendorLedgEntry."Posting Date" := WorkDate();
+        DetailedVendorLedgEntry."Entry Type" := DetailedVendorLedgEntry."Entry Type"::"Initial Entry";
+        DetailedVendorLedgEntry.Amount := Amount;
+        DetailedVendorLedgEntry."Amount (LCY)" := Amount;
+        DetailedVendorLedgEntry.Insert();
+    end;
+
+    local procedure CreateCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustomerNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        EntryNo: Integer;
+        Amount: Decimal;
+    begin
+        if CustLedgerEntry.FindLast() then;
+        EntryNo := CustLedgerEntry."Entry No." + 1;
+
+        CustLedgerEntry.Init();
+        CustLedgerEntry."Entry No." := EntryNo;
+        CustLedgerEntry."Customer No." := CustomerNo;
+        CustLedgerEntry."Customer Name" := CustomerNo;
+        CustLedgerEntry."Document Type" := DocumentType;
+        CustLedgerEntry."Document No." := 'DOC' + Format(EntryNo);
+        CustLedgerEntry."Posting Date" := WorkDate();
+        CustLedgerEntry."Document Date" := WorkDate();
+        CustLedgerEntry."Due Date" := WorkDate() + 30;
+        CustLedgerEntry.Open := true;
+        CustLedgerEntry.Insert();
+
+        // Create detailed customer ledger entry for remaining amount
+        Amount := LibraryRandom.RandDec(1000, 2);
+        if DetailedCustLedgEntry.FindLast() then;
+        DetailedCustLedgEntry.Init();
+        DetailedCustLedgEntry."Entry No." := DetailedCustLedgEntry."Entry No." + 1;
+        DetailedCustLedgEntry."Cust. Ledger Entry No." := CustLedgerEntry."Entry No.";
+        DetailedCustLedgEntry."Customer No." := CustomerNo;
+        DetailedCustLedgEntry."Posting Date" := WorkDate();
+        DetailedCustLedgEntry."Entry Type" := DetailedCustLedgEntry."Entry Type"::"Initial Entry";
+        DetailedCustLedgEntry.Amount := Amount;
+        DetailedCustLedgEntry."Amount (LCY)" := Amount;
+        DetailedCustLedgEntry.Insert();
+    end;
+
     [RequestPageHandler]
     procedure EXRTrialBalanceExcelHandler(var EXRTrialBalanceExcel: TestRequestPage "EXR Trial Balance Excel")
     begin
@@ -809,6 +978,20 @@ codeunit 139544 "Trial Balance Excel Reports"
     begin
         EXRConsolidatedTrialBalance.EndingDateField.Value := Format(DMY2Date(31, 12, WorkDate().Year));
         EXRConsolidatedTrialBalance.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccPayableExcelHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
+    begin
+        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccPayableExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccountsRecExcelHandler(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
+    begin
+        EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccountsRecExcel.OK().Invoke();
     end;
 
 #if not CLEAN27
