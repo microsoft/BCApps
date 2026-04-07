@@ -5,8 +5,6 @@
 
 namespace System.Agents;
 
-using System.Environment.Consumption;
-
 page 4316 "Agent List"
 {
     PageType = List;

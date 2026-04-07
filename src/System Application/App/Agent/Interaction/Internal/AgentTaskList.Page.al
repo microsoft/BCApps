@@ -6,7 +6,6 @@
 namespace System.Agents;
 
 using System.Agents.TaskPane;
-using System.Environment.Consumption;
 
 page 4300 "Agent Task List"
 {

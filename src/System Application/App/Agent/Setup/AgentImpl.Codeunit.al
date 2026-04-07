@@ -8,7 +8,6 @@ namespace System.Agents;
 using System.AI;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Environment.Consumption;
 using System.Reflection;
 using System.Security.AccessControl;
 
