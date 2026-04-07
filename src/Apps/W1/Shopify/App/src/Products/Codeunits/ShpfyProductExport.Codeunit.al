@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
@@ -369,7 +370,7 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
             ShopifyVariant."Tariff No." := Item."Tariff No.";
-            ShopifyVariant."Country/Region of Origin Code" := Item."Country/Region of Origin Code";
+            ShopifyVariant."Country/Region of Origin Code" := GetCountryISOCode(Item."Country/Region of Origin Code");
             ShopifyVariant."Option 1 Name" := Shop."Option Name for UoM";
             ShopifyVariant."Option 1 Value" := ItemUnitofMeasure.Code;
             ShopifyVariant."Shop Code" := Shop.Code;
@@ -427,7 +428,7 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := Item."Gross Weight";
             ShopifyVariant."Tariff No." := Item."Tariff No.";
-            ShopifyVariant."Country/Region of Origin Code" := Item."Country/Region of Origin Code";
+            ShopifyVariant."Country/Region of Origin Code" := GetCountryISOCode(Item."Country/Region of Origin Code");
             if ShopifyVariant."Option 1 Name" = '' then
                 ShopifyVariant."Option 1 Name" := 'Variant';
             if ShopifyVariant."Option 1 Name" = 'Variant' then
@@ -484,7 +485,7 @@ codeunit 30178 "Shpfy Product Export"
             ShopifyVariant.Taxable := true;
             ShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
             ShopifyVariant."Tariff No." := Item."Tariff No.";
-            ShopifyVariant."Country/Region of Origin Code" := Item."Country/Region of Origin Code";
+            ShopifyVariant."Country/Region of Origin Code" := GetCountryISOCode(Item."Country/Region of Origin Code");
             ShopifyVariant."Option 1 Name" := 'Variant';
             ShopifyVariant."Option 1 Value" := ItemVariant.Code;
             ShopifyVariant."Option 2 Name" := Shop."Option Name for UoM";
@@ -1312,4 +1313,15 @@ codeunit 30178 "Shpfy Product Export"
         exit(true);
     end;
     #endregion
+
+    internal procedure GetCountryISOCode(CountryRegionCode: Code[10]): Code[10]
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        if CountryRegionCode = '' then
+            exit('');
+        if CountryRegion.Get(CountryRegionCode) then
+            exit(CountryRegion."ISO Code");
+        exit(CountryRegionCode);
+    end;
 }
