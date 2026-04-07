@@ -6,6 +6,7 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.UOM;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
@@ -437,6 +438,66 @@ codeunit 139581 "Shpfy Skipped Record Log Test"
         SkippedRecord.SetRange("Shopify Id", ShopifyVariant.Id);
         LibraryAssert.IsTrue(SkippedRecord.FindFirst(), 'Skipped record is not created');
         LibraryAssert.AreEqual('Variant price is not synchronized because the item variant is blocked or sales blocked.', SkippedRecord."Skipped Reason", 'Skipped reason is not as expected');
+    end;
+
+    [Test]
+    procedure UnitTestSkipItemPriceCalcWithNonExistingUoM()
+    var
+        Item: Record Item;
+        SkippedRecord: Record "Shpfy Skipped Record";
+        ProductPriceCalc: Codeunit "Shpfy Product Price Calc.";
+        UoMCode: Code[10];
+        UnitCost: Decimal;
+        Price: Decimal;
+        ComparePrice: Decimal;
+        SkipReasonLbl: Label 'Item price is not synchronized because the unit of measure %1 is not valid for item %2.', Comment = '%1 - Unit of Measure Code, %2 - Item No.', Locked = true;
+    begin
+        // [SCENARIO] Skip item price calculation when unit of measure does not exist.
+        Initialize();
+
+        // [GIVEN] An item and a unit of measure code that does not exist in the unit of measure table.
+        CreateItem(Item);
+        UoMCode := CopyStr(Any.AlphanumericText(10), 1, MaxStrLen(UoMCode));
+
+        // [WHEN] Invoke CalcPrice with the non-existing unit of measure.
+        ProductPriceCalc.SetShop(Shop);
+        ProductPriceCalc.CalcPrice(Item, '', UoMCode, UnitCost, Price, ComparePrice);
+
+        // [THEN] Related log record is created in shopify skipped record table.
+        SkippedRecord.SetRange("Record ID", Item.RecordId);
+        LibraryAssert.IsTrue(SkippedRecord.FindFirst(), 'Skipped record is not created');
+        LibraryAssert.AreEqual(StrSubstNo(SkipReasonLbl, UoMCode, Item."No."), SkippedRecord."Skipped Reason", 'Skipped reason is not as expected');
+    end;
+
+    [Test]
+    procedure UnitTestSkipItemPriceCalcWithUoMNotAssignedToItem()
+    var
+        Item: Record Item;
+        UnitofMeasure: Record "Unit of Measure";
+        SkippedRecord: Record "Shpfy Skipped Record";
+        ProductPriceCalc: Codeunit "Shpfy Product Price Calc.";
+        UnitCost: Decimal;
+        Price: Decimal;
+        ComparePrice: Decimal;
+        SkipReasonLbl: Label 'Item price is not synchronized because the unit of measure %1 is not valid for item %2.', Comment = '%1 - Unit of Measure Code, %2 - Item No.', Locked = true;
+    begin
+        // [SCENARIO] Skip item price calculation when unit of measure exists but is not assigned to the item.
+        Initialize();
+
+        // [GIVEN] An item and a unit of measure that exists but is not in the item unit of measure table for the item.
+        CreateItem(Item);
+        UnitofMeasure.Init();
+        UnitofMeasure.Code := CopyStr(Any.AlphanumericText(10), 1, MaxStrLen(UnitofMeasure.Code));
+        UnitofMeasure.Insert(false);
+
+        // [WHEN] Invoke CalcPrice with the unit of measure not assigned to the item.
+        ProductPriceCalc.SetShop(Shop);
+        ProductPriceCalc.CalcPrice(Item, '', UnitofMeasure.Code, UnitCost, Price, ComparePrice);
+
+        // [THEN] Related log record is created in shopify skipped record table.
+        SkippedRecord.SetRange("Record ID", Item.RecordId);
+        LibraryAssert.IsTrue(SkippedRecord.FindFirst(), 'Skipped record is not created');
+        LibraryAssert.AreEqual(StrSubstNo(SkipReasonLbl, UnitofMeasure.Code, Item."No."), SkippedRecord."Skipped Reason", 'Skipped reason is not as expected');
     end;
 
     [Test]
