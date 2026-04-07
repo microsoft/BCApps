@@ -38,9 +38,9 @@ codeunit 6374 Authenticator
     var
         ConnectionSetup: Record "Connection Setup";
         Requests: Codeunit Requests;
+        TokenKey: Guid;
         ExpiresIn: Integer;
         ClientId, ClientSecret, TokenTxt : SecretText;
-        TokenKey: Guid;
     begin
         ConnectionSetup.Get();
 
@@ -86,7 +86,8 @@ codeunit 6374 Authenticator
     local procedure ParseResponse(Response: Text; var Token: SecretText; var ExpiresIn: Integer)
     var
         ResponseJson: JsonObject;
-        TokenJson, ExpiryJson : JsonToken;
+        ExpiryJson,
+        TokenJson : JsonToken;
     begin
         ResponseJson.ReadFrom(Response);
         ResponseJson.Get('access_token', TokenJson);
@@ -99,12 +100,15 @@ codeunit 6374 Authenticator
     var
         ConnectionSetup: Record "Connection Setup";
     begin
-        ConnectionSetup.Get();
+        if not ConnectionSetup.Get() then
+            exit(false);
 
         if HasToken(ConnectionSetup."Client Id - Key", DataScope::Company) then
             ClientId := '*';
         if HasToken(ConnectionSetup."Client Secret - Key", DataScope::Company) then
             ClientSecret := '*';
+
+        exit((ClientId <> '') and (ClientSecret <> ''));
     end;
 
     procedure SetIsolatedStorageValue(var ValueKey: Guid; Value: SecretText; TokenDataScope: DataScope)

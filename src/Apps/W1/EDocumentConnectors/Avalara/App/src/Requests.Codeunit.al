@@ -301,7 +301,10 @@ codeunit 6376 Requests
         this.HttpRequestMessage.Content.WriteFrom(SecretStrSubstNo(ContentDataTxt, ClientId, ClientSecret));
         this.HttpRequestMessage.Content.GetHeaders(HttpContentHeaders);
         if HttpContentHeaders.ContainsSecret('Content-Type') then
-            HttpContentHeaders.Remove('Content-Type');
+            HttpContentHeaders.Remove('Content-Type')
+        else
+            if HttpContentHeaders.Contains('Content-Type') then
+                HttpContentHeaders.Remove('Content-Type');
         HttpContentHeaders.Add('Content-Type', 'application/x-www-form-urlencoded');
 
         exit(this);

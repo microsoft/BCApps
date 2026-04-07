@@ -34,7 +34,10 @@ codeunit 6377 "Http Executor"
         FeatureTelemetry.LogUptake('0000NH9', this.AvalaraProcessing.GetAvalaraTok(), Enum::"Feature Uptake Status"::Used);
         FeatureTelemetry.LogUsage('0000NHA', this.AvalaraProcessing.GetAvalaraTok(), 'Avalara request.');
 
-        HttpClient.Send(Request.GetRequest(), this.HttpResponseMessage);
+        if not HttpClient.Send(Request.GetRequest(), this.HttpResponseMessage) then begin
+            Session.LogMessage('0000NHE', HttpSendFailedMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.AvalaraProcessing.GetAvalaraTok());
+            Error(HttpSendFailedMsg);
+        end;
         HttpResponse := this.HttpResponseMessage;
         HandleHttpResponse(this.HttpResponseMessage, Response);
     end;
@@ -110,6 +113,7 @@ codeunit 6377 "Http Executor"
         HttpErrorMsg: Label 'Error Code: %1, Error Message: %2', Comment = '%1 = Error Code, %2 = Error Message';
         HTTPGeneralErrMsg: Label 'Something went wrong, try again later.';
         HTTPInternalServerErrorMsg: Label 'The HTTP request is not successful. An internal server error occurred.'; // 500
+        HttpSendFailedMsg: Label 'The HTTP request could not be sent. Verify the connection setup and try again.';
         HTTPServiceUnavailableMsg: Label 'The HTTP request is not successful. The service is unavailable.'; // 503
         HTTPSuccessAndCreatedMsg: Label 'The HTTP request was successful and a new resource was created.'; //201
         HTTPSuccessMsg: Label 'The HTTP request was successful and the body contains the resource fetched.'; // 200

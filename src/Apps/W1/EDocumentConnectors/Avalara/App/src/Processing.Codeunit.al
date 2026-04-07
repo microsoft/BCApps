@@ -15,7 +15,8 @@ using System.Utilities;
 codeunit 6379 Processing
 {
     Access = Internal;
-    Permissions = tabledata "Connection Setup" = rm,
+    Permissions = tabledata "Activation Mandate" = r,
+                  tabledata "Connection Setup" = rm,
                   tabledata "E-Document" = m,
                   tabledata "E-Document Service Status" = m;
 
