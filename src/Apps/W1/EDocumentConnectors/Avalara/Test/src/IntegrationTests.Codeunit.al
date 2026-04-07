@@ -598,6 +598,7 @@ codeunit 133626 "Integration Tests"
         EDocumentService."Import Start Time" := Time();
         EDocumentService.Modify();
 
+        EnsureGeneralPostingSetup();
         CreateActivationMandate();
 
         Vendor."VAT Registration No." := 'GB777777771';
@@ -699,19 +700,28 @@ codeunit 133626 "Integration Tests"
         SubmitDocumentFileTok: Label 'SubmitDocument.txt', Locked = true;
     begin
         case true of
-            Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
-                LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response);
+            Request.Path.Contains('/connect/token'):
+                begin
+                    LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response);
+                    Response.HttpStatusCode := 200;
+                end;
 
-            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents/.+/status'):
+            Regex.IsMatch(Request.Path, '/einvoicing/documents/.+/status'):
                 GetStatusResponse(Response);
 
-            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents/.+/\$download'):
-                LoadResourceIntoHttpResponse(DownloadDocumentFileTok, Response);
+            Regex.IsMatch(Request.Path, '/einvoicing/documents/.+/\$download'):
+                begin
+                    LoadResourceIntoHttpResponse(DownloadDocumentFileTok, Response);
+                    Response.HttpStatusCode := 200;
+                end;
 
-            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents'):
+            Request.Path.Contains('/einvoicing/documents'):
                 case Request.RequestType of
                     HttpRequestType::POST:
-                        LoadResourceIntoHttpResponse(SubmitDocumentFileTok, Response);
+                        begin
+                            LoadResourceIntoHttpResponse(SubmitDocumentFileTok, Response);
+                            Response.HttpStatusCode := 200;
+                        end;
                     HttpRequestType::GET:
                         begin
                             LoadResourceIntoHttpResponse(GetDocumentsFileTok, Response);
@@ -719,7 +729,7 @@ codeunit 133626 "Integration Tests"
                         end;
                 end;
 
-            Regex.IsMatch(Request.Path, 'https?://.+/scs/companies'):
+            Request.Path.Contains('/scs/companies'):
                 begin
                     LoadResourceIntoHttpResponse(CompaniesFileTok, Response);
                     Response.HttpStatusCode := 200;
@@ -755,6 +765,7 @@ codeunit 133626 "Integration Tests"
     local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
+        Response.HttpStatusCode := 200;
     end;
 
     local procedure SetDocumentStatus(NewDocumentStatus: Option Completed,Pending,Error)
@@ -799,6 +810,32 @@ codeunit 133626 "Integration Tests"
         ActivationMandate.Activated := true;
         ActivationMandate.Blocked := false;
         ActivationMandate.Insert();
+    end;
+
+    local procedure EnsureGeneralPostingSetup()
+    var
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        // Ensure General Posting Setup exists for the Customer's Gen. Bus. Posting Group
+        // with all Gen. Product Posting Groups to avoid posting errors
+        if Customer."Gen. Bus. Posting Group" = '' then
+            exit;
+
+        if GenProductPostingGroup.FindSet() then
+            repeat
+                if not GeneralPostingSetup.Get(Customer."Gen. Bus. Posting Group", GenProductPostingGroup.Code) then begin
+                    GeneralPostingSetup.Init();
+                    GeneralPostingSetup."Gen. Bus. Posting Group" := Customer."Gen. Bus. Posting Group";
+                    GeneralPostingSetup."Gen. Prod. Posting Group" := GenProductPostingGroup.Code;
+                    GeneralPostingSetup."Sales Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup."Purch. Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup."COGS Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup."Inventory Adjmt. Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup.Insert(true);
+                end;
+            until GenProductPostingGroup.Next() = 0;
     end;
 
     local procedure EnsureVATBusinessPostingGroup()

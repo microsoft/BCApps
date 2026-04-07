@@ -148,10 +148,10 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
         SubmitDocumentFileTok: Label 'SubmitDocument.txt', Locked = true;
     begin
         case true of
-            Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
+            Request.Path.Contains('/connect/token'):
                 LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response);
 
-            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents/.+/status'):
+            Regex.IsMatch(Request.Path, '/einvoicing/documents/.+/status'):
                 case DocumentStatus of
                     DocumentStatus::Completed:
                         LoadResourceIntoHttpResponse(GetResponseCompleteFileTok, Response);
@@ -161,7 +161,7 @@ codeunit 133624 "E2E Tests - Document Lifecycle"
                         LoadResourceIntoHttpResponse(GetResponseErrorFileTok, Response);
                 end;
 
-            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents'):
+            Request.Path.Contains('/einvoicing/documents'):
                 LoadResourceIntoHttpResponse(SubmitDocumentFileTok, Response);
         end;
         exit(true);

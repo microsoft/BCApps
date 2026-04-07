@@ -220,7 +220,19 @@ codeunit 148191 "Unit Tests - HTTP & Processing"
     end;
 
     local procedure Initialize()
+    var
+        ConnectionSetup: Record "Connection Setup";
     begin
+        // Clear cached token to ensure each test starts fresh
+        if ConnectionSetup.Get() then
+            if not IsNullGuid(ConnectionSetup."Token - Key") then begin
+                if IsolatedStorage.Contains(ConnectionSetup."Token - Key", DataScope::Company) then
+                    IsolatedStorage.Delete(ConnectionSetup."Token - Key", DataScope::Company);
+                Clear(ConnectionSetup."Token - Key");
+                ConnectionSetup."Token Expiry" := 0DT;
+                ConnectionSetup.Modify();
+            end;
+
         if IsInitialized then
             exit;
 

@@ -186,8 +186,19 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     local procedure Initialize()
     var
         CompanyInformation: Record "Company Information";
+        ConnectionSetup: Record "Connection Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
+        // Clear cached token to ensure each test starts fresh
+        if ConnectionSetup.Get() then
+            if not IsNullGuid(ConnectionSetup."Token - Key") then begin
+                if IsolatedStorage.Contains(ConnectionSetup."Token - Key", DataScope::Company) then
+                    IsolatedStorage.Delete(ConnectionSetup."Token - Key", DataScope::Company);
+                Clear(ConnectionSetup."Token - Key");
+                ConnectionSetup."Token Expiry" := 0DT;
+                ConnectionSetup.Modify();
+            end;
+
         CompanyInformation.Get();
         if CompanyInformation.Name = '' then begin
             CompanyInformation.Name := 'Test Company';
@@ -287,6 +298,11 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     [HttpClientHandler]
     internal procedure HttpNetworkErrorHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         // Simulate network error by not setting response properly
         exit(false);
     end;
@@ -294,6 +310,11 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     [HttpClientHandler]
     internal procedure HttpTimeoutHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.HttpStatusCode := 408; // Request Timeout
         Response.Content.WriteFrom('{"error":"Request timeout"}');
         exit(true);
@@ -302,6 +323,11 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     [HttpClientHandler]
     internal procedure HttpValidationErrorHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.HttpStatusCode := 400;
         Response.Content.WriteFrom('{"error":"validation_failed","details":["Invalid VAT number","Missing required field: Customer Name"]}');
         exit(true);
@@ -310,6 +336,11 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     [HttpClientHandler]
     internal procedure HttpUnauthorizedHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.HttpStatusCode := 401;
         Response.Content.WriteFrom('{"error":"unauthorized","error_description":"Invalid credentials"}');
         exit(true);
@@ -318,6 +349,11 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     [HttpClientHandler]
     internal procedure HttpRateLimitHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.HttpStatusCode := 429;
         Response.Content.WriteFrom('{"error":"rate_limit_exceeded","retry_after":60}');
         exit(true);
@@ -342,6 +378,11 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     [HttpClientHandler]
     internal procedure HttpNotFoundHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.HttpStatusCode := 404;
         Response.Content.WriteFrom('{"error":"not_found","message":"Document not found"}');
         exit(true);
@@ -350,6 +391,11 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     [HttpClientHandler]
     internal procedure HttpInvalidMandateHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         Response.HttpStatusCode := 400;
         Response.Content.WriteFrom('{"error":"invalid_mandate","message":"Mandate INVALID-MANDATE not found"}');
         exit(true);
@@ -358,6 +404,11 @@ codeunit 133625 "E2E Tests - Error Scenarios"
     [HttpClientHandler]
     internal procedure HttpServerErrorRecoveryHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
+        if Request.Path.Contains('/connect/token') then begin
+            Response.Content.WriteFrom(GetMockAuthTokenJson());
+            Response.HttpStatusCode := 200;
+            exit(true);
+        end;
         // First call returns 500, subsequent calls would return success
         // This simulates temporary server issues
         Response.HttpStatusCode := 500;
@@ -371,11 +422,14 @@ codeunit 133625 "E2E Tests - Error Scenarios"
         ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
         SubmitDocumentFileTok: Label 'SubmitDocument.txt', Locked = true;
     begin
-        if Request.Path.Contains('/connect/token') then
-            LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response)
-        else
-            if Request.Path.Contains('/einvoicing/documents') then
+        if Request.Path.Contains('/connect/token') then begin
+            LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response);
+            Response.HttpStatusCode := 200;
+        end else
+            if Request.Path.Contains('/einvoicing/documents') then begin
                 LoadResourceIntoHttpResponse(SubmitDocumentFileTok, Response);
+                Response.HttpStatusCode := 200;
+            end;
         exit(true);
     end;
 
@@ -479,6 +533,11 @@ codeunit 133625 "E2E Tests - Error Scenarios"
             Rec."ISO Code" := CopyStr(Rec.Code, 1, 2);
         if Rec."ISO Numeric Code" = '' then
             Rec."ISO Numeric Code" := '000';
+    end;
+
+    local procedure GetMockAuthTokenJson(): Text
+    begin
+        exit('{"access_token":"mock-access-token-12345","token_type":"Bearer","expires_in":3600}');
     end;
 
 }
