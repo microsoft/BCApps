@@ -80,20 +80,40 @@ table 8013 "Usage Data Import"
             Editable = false;
             CalcFormula = count("Usage Data Blob" where("Usage Data Import Entry No." = field("Entry No.")));
         }
+#if not CLEANSCHEMA32
         field(11; "No. of Imported Lines"; Integer)
         {
             Caption = 'No. of Imported Lines';
             FieldClass = FlowField;
             Editable = false;
             CalcFormula = count("Usage Data Generic Import" where("Usage Data Import Entry No." = field("Entry No.")));
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
+            ObsoleteReason = 'Replaced by GetImportedLineCount in the Usage Data Processing interface.';
         }
+#endif
+#if not CLEANSCHEMA32
         field(12; "No. of Imported Line Errors"; Integer)
         {
             Caption = 'No. of Imported Line Errors';
             FieldClass = FlowField;
             Editable = false;
             CalcFormula = count("Usage Data Generic Import" where("Usage Data Import Entry No." = field("Entry No."), "Processing Status" = const(Error)));
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
+            ObsoleteReason = 'Replaced by GetImportedLineCount in the Usage Data Processing interface.';
         }
+#endif
         field(13; "No. of Usage Data Billing"; Integer)
         {
             Caption = 'No. of Usage Data Billing';
@@ -119,11 +139,14 @@ table 8013 "Usage Data Import"
     trigger OnDelete()
     var
         UsageDataBlob: Record "Usage Data Blob";
-        UsageDataGenericImport: Record "Usage Data Generic Import";
+        UsageDataSupplier: Record "Usage Data Supplier";
+        UsageDataProcessing: Interface "Usage Data Processing";
     begin
         CheckAndDeleteUsageDataBilling();
-        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", "Entry No.");
-        UsageDataGenericImport.DeleteAll(false);
+        if UsageDataSupplier.Get("Supplier No.") then begin
+            UsageDataProcessing := UsageDataSupplier.Type;
+            UsageDataProcessing.DeleteImportedData(Rec);
+        end;
         UsageDataBlob.SetRange("Usage Data Import Entry No.", "Entry No.");
         UsageDataBlob.DeleteAll(false);
     end;
@@ -152,12 +175,15 @@ table 8013 "Usage Data Import"
 
     internal procedure DeleteUsageDataBillingLines()
     var
-        UsageDataGenericImport: Record "Usage Data Generic Import";
+        UsageDataSupplier: Record "Usage Data Supplier";
+        UsageDataProcessing: Interface "Usage Data Processing";
     begin
         OnDeleteUsageDataBillingLines();
 
-        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", "Entry No.");
-        UsageDataGenericImport.DeleteAll(true);
+        if UsageDataSupplier.Get("Supplier No.") then begin
+            UsageDataProcessing := UsageDataSupplier.Type;
+            UsageDataProcessing.DeleteImportedData(Rec);
+        end;
         CheckAndDeleteUsageDataBilling();
 
         Rec."Processing Status" := "Processing Status"::None;

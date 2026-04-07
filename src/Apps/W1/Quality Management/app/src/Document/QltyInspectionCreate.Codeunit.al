@@ -853,8 +853,11 @@ codeunit 20404 "Qlty. Inspection - Create"
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         InspectionNo: Code[20];
         PipeSeparatedFilter: Text;
+        FilterExceedsMaxLength: Boolean;
+        MaxSafeFilterLength: Integer;
     begin
         QltyManagementSetup.Get();
+        MaxSafeFilterLength := 1024;
 
         if GuiAllowed() then begin
             foreach InspectionNo in CreatedQltyInspectionIds do
@@ -862,7 +865,16 @@ codeunit 20404 "Qlty. Inspection - Create"
                     if StrLen(PipeSeparatedFilter) > 1 then
                         PipeSeparatedFilter += '|';
                     PipeSeparatedFilter += InspectionNo;
+                    if StrLen(PipeSeparatedFilter) > MaxSafeFilterLength then begin
+                        FilterExceedsMaxLength := true;
+                        break;
+                    end;
                 end;
+
+            if FilterExceedsMaxLength then begin
+                QltyNotificationMgmt.NotifyMultipleInspectionsCreatedByCount(CreatedQltyInspectionIds.Count());
+                exit;
+            end;
 
             CreatedQltyInspectionHeader.SetFilter("No.", PipeSeparatedFilter);
             if CreatedQltyInspectionIds.Count() = 1 then begin
