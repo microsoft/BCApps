@@ -112,7 +112,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// Creates a notification that multiple inspections have been created.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
-    internal procedure NotifyMultipleInspectionsCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure NotifyMultipleInspectionsCreated(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         MyNotifications: Record "My Notifications";
         NotificationTestCreated: Notification;
@@ -143,7 +143,6 @@ codeunit 20437 "Qlty. Notification Mgmt."
         MyNotifications: Record "My Notifications";
         CountNotification: Notification;
         Message: Text;
-        NotificationOptions: Dictionary of [Text, Text];
     begin
         if not GuiAllowed() then
             exit;
@@ -153,8 +152,9 @@ codeunit 20437 "Qlty. Notification Mgmt."
             exit;
 
         Message := StrSubstNo(MultipleInspectionsCreatedMsg, InspectionCount);
-        NotificationOptions.Add(DontShowAgainLbl, HandleDontShowInspectionCreatedTok);
-        CreateActionNotification(CountNotification, Message, NotificationOptions);
+        CountNotification.Message := Message;
+        CountNotification.Scope := NotificationScope::LocalScope;
+        CountNotification.Send();
     end;
 
     /// <summary>

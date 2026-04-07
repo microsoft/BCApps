@@ -12,6 +12,7 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Resources.Journal;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Utilities;
 using Microsoft.Warehouse.Journal;
 
 /// <summary>
@@ -27,6 +28,7 @@ codeunit 20412 "Qlty. Assembly Integration"
         TempSpecTrackingSpecification: Record "Tracking Specification" temporary;
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        QltyBatchNotifHelper: Codeunit "Qlty. Batch Notif. Helper";
         MgtItemTrackingDocManagement: Codeunit "Item Tracking Doc. Management";
         UnusedVariant1: Variant;
         UnusedVariant2: Variant;
@@ -43,13 +45,19 @@ codeunit 20412 "Qlty. Assembly Integration"
         if IsHandled then
             exit;
 
+        QltyBatchNotifHelper.BeginBatch();
+        QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
         if not TempSpecTrackingSpecification.IsEmpty() then
             repeat
+                Clear(QltyInspectionHeader);
                 HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, TempSpecTrackingSpecification, AssemblyHeader, UnusedVariant1, false, QltyInspectionGenRule);
                 if HasInspection then begin
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
-                    QltyInspectionHeader."Source Quantity (Base)" := TempSpecTrackingSpecification."Quantity (Base)";
-                    QltyInspectionHeader.Modify(false);
+                    if QltyInspectionHeader."No." <> '' then begin
+                        QltyInspectionHeader."Source Quantity (Base)" := TempSpecTrackingSpecification."Quantity (Base)";
+                        QltyInspectionHeader.Modify(false);
+                        QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+                    end;
                 end;
                 OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
             until TempSpecTrackingSpecification.Next(-1) = 0
@@ -59,10 +67,13 @@ codeunit 20412 "Qlty. Assembly Integration"
             if IsHandled then
                 exit;
             HasInspection := QltyInspectionCreate.CreateInspectionWithMultiVariants(PostedAssemblyHeader, AssemblyHeader, UnusedVariant1, UnusedVariant2, false, TempQltyInspectionGenRule);
-            if HasInspection then
+            if HasInspection then begin
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.");
+            end;
             OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
         end;
+        QltyBatchNotifHelper.EndBatch();
     end;
 
     /// <summary>
