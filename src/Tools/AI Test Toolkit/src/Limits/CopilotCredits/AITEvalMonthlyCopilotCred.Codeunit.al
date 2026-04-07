@@ -251,7 +251,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
 
     local procedure GetEnforcementDisabledNotificationStorageKey(): Text
     begin
-        exit(Format(UserSecurityId()) + '-' + GetEnforcementDisabledNotificationId());
+        exit(CompanyName() + '-' + Format(UserSecurityId()) + '-' + GetEnforcementDisabledNotificationId());
     end;
 
     local procedure GetEnforcementDisabledNotificationId(): Guid
