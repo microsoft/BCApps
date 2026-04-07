@@ -97,12 +97,10 @@ page 30101 "Shpfy Shop Card"
                 field(LoggingMode; Rec."Logging Mode")
                 {
                     ApplicationArea = All;
-                    Importance = Additional;
                 }
                 field(AllowBackgroudSyncs; Rec."Allow Background Syncs")
                 {
                     ApplicationArea = All;
-                    Importance = Additional;
                 }
                 field("Allow Outgoing Requests"; Rec."Allow Outgoing Requests")
                 {
