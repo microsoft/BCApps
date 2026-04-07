@@ -705,6 +705,50 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
+    procedure FinishDraftCreditMemoCanBeUndone()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        EDocLogRecord: Record "E-Document Log";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentLog: Codeunit "E-Document Log";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+    begin
+        // [SCENARIO] A credit memo created via FinishDraft can be reverted
+        Initialize(Enum::"Service Integration"::"Mock");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocument."Document Type" := "E-Document Type"::"Purchase Credit Memo";
+        EDocument.Modify();
+        EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
+        EDocumentService.Modify();
+
+        EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::XML, 'Data');
+        EDocumentLog.SetFields(EDocument, EDocumentService);
+        EDocLogRecord := EDocumentLog.InsertLog(Enum::"E-Document Service Status"::Imported, Enum::"Import E-Doc. Proc. Status"::Readable);
+
+        EDocument."Structured Data Entry No." := EDocLogRecord."E-Doc. Data Storage Entry No.";
+        EDocument.Modify();
+
+        // [GIVEN] A credit memo is created via FinishDraft
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Draft Ready");
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        TempEDocImportParameters."Processing Customizations" := "E-Doc. Proc. Customizations"::"Mock Create Purchase Invoice";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        PurchaseHeader.FindFirst();
+        Assert.AreEqual("Purchase Document Type"::"Credit Memo", PurchaseHeader."Document Type", 'The document type should be Credit Memo.');
+
+        // [WHEN] Undo is performed
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+
+        // [THEN] The credit memo is removed
+        Assert.RecordIsEmpty(PurchaseHeader);
+    end;
+
+    [Test]
     [HandlerFunctions('EditDimensionSetEntriesHandler')]
     procedure ManuallyAddedDimensionsOnDraftAreCarriedToPurchaseInvoice()
     var
@@ -758,6 +802,86 @@ codeunit 139883 "E-Doc Process Test"
         EditDimensionSetEntries."Dimension Code".SetValue(DimensionCode);
         EditDimensionSetEntries.DimensionValueCode.SetValue(DimensionValueCode);
         EditDimensionSetEntries.OK().Invoke();
+    end;
+
+    [Test]
+    procedure ProcessingInboundCreditNoteCreatesCorrectDocumentType()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocRecordLink: Record "E-Doc. Record Link";
+    begin
+        // [SCENARIO] A PEPPOL CreditNote processed through the full pipeline creates a Purchase Credit Memo with correct content
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        EDocRecordLink.DeleteAll();
+
+        // [GIVEN] An inbound credit note e-document is received and fully processed
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        WorkDate(DMY2Date(1, 1, 2027));
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-0.xml', TempEDocImportParams), 'The credit note e-document should be processed');
+
+        // [THEN] The E-Document type is Purchase Credit Memo
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("E-Document Type"::"Purchase Credit Memo", EDocument."Document Type", 'The document type should be Purchase Credit Memo.');
+
+        // [THEN] A Purchase Credit Memo header is created with correct fields
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual("Purchase Document Type"::"Credit Memo", PurchaseHeader."Document Type", 'The purchase header document type should be Credit Memo.');
+        Assert.AreEqual(EDocument.SystemId, PurchaseHeader."E-Document Link", 'The E-Document link should be set on the purchase header.');
+        Assert.AreEqual('CN-5001', PurchaseHeader."Vendor Cr. Memo No.", 'The vendor credit memo number should match the CreditNote ID.');
+        Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor should be resolved from the CreditNote.');
+        Assert.AreEqual(2500, PurchaseHeader."Doc. Amount Incl. VAT", 'The document amount incl. VAT should match the CreditNote total.');
+        Assert.AreEqual('5', PurchaseHeader."Vendor Order No.", 'The Vendor Order No. should match the OrderReference from the CreditNote.');
+
+        // [THEN] The purchase credit memo has the correct number of lines
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.RecordCount(PurchaseLine, 1);
+
+        // [THEN] Links are created between e-document and purchase records
+        EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Header");
+        EDocRecordLink.SetRange("Target SystemId", PurchaseHeader.SystemId);
+        Assert.RecordCount(EDocRecordLink, 1);
+    end;
+
+    [Test]
+    procedure ProcessingInboundInvoiceStillCreatesCorrectDocumentType()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO] After the refactoring, a PEPPOL Invoice still creates a Purchase Invoice with correct content (regression check)
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        WorkDate(DMY2Date(1, 1, 2027));
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The invoice e-document should be processed');
+
+        // [THEN] The E-Document type is Purchase Invoice
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("E-Document Type"::"Purchase Invoice", EDocument."Document Type", 'The document type should be Purchase Invoice.');
+
+        // [THEN] A Purchase Invoice header is created with correct fields
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual("Purchase Document Type"::Invoice, PurchaseHeader."Document Type", 'The purchase header document type should be Invoice.');
+        Assert.AreEqual('103033', PurchaseHeader."Vendor Invoice No.", 'The vendor invoice number should match the Invoice ID.');
+        Assert.AreEqual('2', PurchaseHeader."Vendor Order No.", 'The vendor order number should match the OrderReference from the Invoice.');
+        Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor should be resolved from the Invoice.');
+        Assert.AreEqual(14140, PurchaseHeader."Doc. Amount Incl. VAT", 'The document amount incl. VAT should match the Invoice total.');
+
+        // [THEN] The purchase invoice has the correct number of lines (2 from peppol-invoice-0.xml)
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.RecordCount(PurchaseLine, 2);
     end;
 
     local procedure Initialize(Integration: Enum "Service Integration")
