@@ -464,7 +464,7 @@ page 4333 "Agent Consumption Overview"
         AgentSystemPermissions: Codeunit "Agent System Permissions";
         NonAdminNotification: Notification;
     begin
-        if AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
+        if AgentSystemPermissions.CurrentUserHasCanManageAllAgentsInAllCompaniesPermission() then
             exit;
 
         NonAdminNotification.Message := NonAdminDisclaimerMsg;
@@ -499,7 +499,7 @@ page 4333 "Agent Consumption Overview"
         EverythingTok: Label 'Everything';
         AgentTaskNameTxt: Label 'Task #%1 - %2', Comment = '%1 - ID of the agent task, %2 - Title of the agent task';
         TheEndDateIsTodayMsg: Label 'The end date is already set to today. You cannot move the date range filter further.';
-        NonAdminDisclaimerMsg: Label 'You''re seeing consumption for agents you have access to. For complete data, ask an Agent-Admin.';
+        NonAdminDisclaimerMsg: Label 'Consumption data is limited to agents you have access to. To view data for all agents, contact a user with the Agent Admin role in all companies.';
         YouDoNotHaveAccessToTheAgentErr: Label 'You do not have permission to view consumption data for this agent.';
         StartDateTok: Label '<-CM>', Locked = true;
 }

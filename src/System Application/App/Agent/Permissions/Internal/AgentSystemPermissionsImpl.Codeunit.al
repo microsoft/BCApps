@@ -22,6 +22,13 @@ codeunit 4318 "Agent System Permissions Impl."
         exit(DummyUserAIConsumptionData.ReadPermission());
     end;
 
+    procedure CurrentUserHasCanManageAllAgentsInAllCompaniesPermission(): Boolean
+    var
+        AgentUtilities: Codeunit "Agent Utilities";
+    begin
+        exit(AgentUtilities.CurrentUserHasConfigureAllAgentsPermissionInAllCompanies());
+    end;
+
     procedure CurrentUserHasCanManageAllAgentsPermission(): Boolean
     begin
         exit(CurrentUserHasExecuteSystemPermission(9665)); // "Configure All Agents"

@@ -12,7 +12,6 @@ page 149048 "AIT Eval Monthly Copilot Cred."
     Caption = 'AI Eval Monthly Copilot Credit Limits';
     PageType = Worksheet;
     ApplicationArea = All;
-    UsageCategory = Administration;
     SourceTable = "AIT Eval Suite Usage Buffer";
     SourceTableTemporary = true;
     InsertAllowed = false;
@@ -259,6 +258,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         EnvironmentCreditsUsagePercentage, CompanyCreditsUsagePercentage : Text;
         EnvironmentCreditsAvailableStyle, CompanyCreditsAvailableStyle : Text;
         PageCaptionSourceLbl: Label 'AI Eval Monthly Copilot Credit Limits - %1 - %2', Comment = '%1 = Period Start, %2 = Period End';
+        NegativeCreditLimitErr: Label 'Monthly credit limit cannot be negative.';
 
     trigger OnOpenPage()
     begin
@@ -285,7 +285,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
         CurrentUserIsAgentAdminForCurrentCompany := AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission();
-        CurrentUserIsAgentAdminForAllCompanies := CurrentUserIsAgentAdminForCurrentCompany; // TODO(qutreson) add server utility
+        CurrentUserIsAgentAdminForAllCompanies := AgentSystemPermissions.CurrentUserHasCanManageAllAgentsInAllCompaniesPermission()
     end;
 
     local procedure LoadCreditLimitSetup()
@@ -301,6 +301,8 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
     local procedure SaveEnvironmentCreditLimitSetup()
     begin
+        ValidateMonthlyCreditLimit(EnvironmentMonthlyCreditLimit);
+
         EnvironmentLimitRecord.GetOrCreateEnvironmentLimits();
         EnvironmentLimitRecord."Monthly Credit Limit" := EnvironmentMonthlyCreditLimit;
         EnvironmentLimitRecord."Enforcement Enabled" := EnvironmentEnforcementEnabled;
@@ -309,10 +311,18 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
     local procedure SaveCompanyCreditLimit()
     begin
+        ValidateMonthlyCreditLimit(CompanyMonthlyCreditLimit);
+
         CompanyLimitRecord.GetOrCreateCompanyLimits();
         CompanyLimitRecord."Monthly Credit Limit" := CompanyMonthlyCreditLimit;
         CompanyLimitRecord."Enforcement Enabled" := CompanyEnforcementEnabled;
         CompanyLimitRecord.Modify();
+    end;
+
+    local procedure ValidateMonthlyCreditLimit(NewLimit: Decimal)
+    begin
+        if NewLimit < 0 then
+            Error(NegativeCreditLimitErr);
     end;
 
     local procedure LoadBufferData()

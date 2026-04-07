@@ -20,6 +20,15 @@ codeunit 4317 "Agent System Permissions"
     end;
 
     /// <summary>
+    /// Gets whether the current user has permissions to manage all agents in all companies.
+    /// </summary>
+    /// <returns>True if the user has permissions to manage all agents in all companies, false otherwise.</returns>
+    procedure CurrentUserHasCanManageAllAgentsInAllCompaniesPermission(): Boolean
+    begin
+        exit(AgentSystemPermissionsImpl.CurrentUserHasCanManageAllAgentsInAllCompaniesPermission());
+    end;
+
+    /// <summary>
     /// Gets whether the current user has permissions to manage all agents.
     /// </summary>
     /// <returns>True if the user has permissions to manage all agents, false otherwise.</returns>

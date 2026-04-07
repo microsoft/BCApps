@@ -71,7 +71,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         if not EnvironmentLimitRecord."Enforcement Enabled" then
             exit(false);
 
-        if EnvironmentLimitRecord."Monthly Credit Limit" <= 0 then
+        if EnvironmentLimitRecord."Monthly Credit Limit" < 0 then
             exit(false);
 
         CopilotCreditConsumed := AgentTestConsumptionLog.GetCopilotCreditsForEnvironment(EnvironmentLimitRecord.GetPeriodStartDate());
@@ -89,7 +89,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         if not CompanyLimitRecord."Enforcement Enabled" then
             exit(false);
 
-        if CompanyLimitRecord."Monthly Credit Limit" <= 0 then
+        if CompanyLimitRecord."Monthly Credit Limit" < 0 then
             exit(false);
 
         CopilotCreditConsumed := AgentTestConsumptionLog.GetCopilotCreditsForCurrentCompany(CompanyLimitRecord.GetPeriodStartDate());
