@@ -20,7 +20,8 @@ using System.Utilities;
 codeunit 148191 "Integration Tests"
 {
 
-    Permissions = tabledata "Connection Setup" = rimd,
+    Permissions = tabledata "Activation Mandate" = rimd,
+                  tabledata "Connection Setup" = rimd,
                   tabledata "E-Document" = r;
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
@@ -532,6 +533,7 @@ codeunit 148191 "Integration Tests"
 
     local procedure Initialize()
     var
+        ActivationMandate: Record "Activation Mandate";
         CompanyInformation: Record "Company Information";
         ConnectionSetup: Record "Connection Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -570,6 +572,13 @@ codeunit 148191 "Integration Tests"
         LibraryEDocument.SetupStandardVAT();
         LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
         EDocumentService."Avalara Mandate" := 'GB-Test-Mandate';
+
+        ActivationMandate.DeleteAll();
+        ActivationMandate.Init();
+        ActivationMandate."Activation ID" := CreateGuid();
+        ActivationMandate."Country Mandate" := 'GB-Test-Mandate';
+        ActivationMandate.Activated := true;
+        ActivationMandate.Insert(true);
 
         LibraryEDocument.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
         EDocumentService.Validate("Auto Import", true);
