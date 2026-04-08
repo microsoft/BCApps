@@ -16,6 +16,12 @@
       "name": "Library Assert",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
+    },
+        {
+      "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
+      "publisher": "Microsoft",
+      "name": "Any",
+      "version": "29.0.0.0"
     }
   ],
   "screenshots": [],
