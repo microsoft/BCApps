@@ -5,7 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 
-codeunit 149047 "Agent Test Consumption Log"
+codeunit 149047 "Agent Test Consumption"
 {
     Access = Internal;
     InherentEntitlements = X;

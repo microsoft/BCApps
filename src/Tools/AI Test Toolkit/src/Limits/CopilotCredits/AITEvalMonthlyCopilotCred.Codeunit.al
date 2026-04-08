@@ -63,7 +63,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
     procedure IsEnvironmentLimitReached(var CopilotCreditConsumed: Decimal; var MonthlyCreditLimit: Decimal): Boolean
     var
         EnvironmentLimitRecord: Record "AIT Eval Monthly Copilot Cred.";
-        AgentTestConsumptionLog: Codeunit "Agent Test Consumption Log";
+        AgentTestConsumption: Codeunit "Agent Test Consumption";
     begin
         EnvironmentLimitRecord.GetOrCreateEnvironmentLimits();
         MonthlyCreditLimit := EnvironmentLimitRecord."Monthly Credit Limit";
@@ -74,14 +74,14 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         if EnvironmentLimitRecord."Monthly Credit Limit" < 0 then
             exit(false);
 
-        CopilotCreditConsumed := AgentTestConsumptionLog.GetCopilotCreditsForEnvironment(EnvironmentLimitRecord.GetPeriodStartDate());
+        CopilotCreditConsumed := AgentTestConsumption.GetCopilotCreditsForEnvironment(EnvironmentLimitRecord.GetPeriodStartDate());
         exit(CopilotCreditConsumed >= EnvironmentLimitRecord."Monthly Credit Limit");
     end;
 
     procedure IsCompanyLimitReached(var CopilotCreditConsumed: Decimal; var CompanyCreditLimit: Decimal): Boolean
     var
         CompanyLimitRecord: Record "AIT Eval Monthly Copilot Cred.";
-        AgentTestConsumptionLog: Codeunit "Agent Test Consumption Log";
+        AgentTestConsumption: Codeunit "Agent Test Consumption";
     begin
         CompanyLimitRecord.GetOrCreateCompanyLimits();
         CompanyCreditLimit := CompanyLimitRecord."Monthly Credit Limit";
@@ -92,7 +92,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         if CompanyLimitRecord."Monthly Credit Limit" < 0 then
             exit(false);
 
-        CopilotCreditConsumed := AgentTestConsumptionLog.GetCopilotCreditsForCurrentCompany(CompanyLimitRecord.GetPeriodStartDate());
+        CopilotCreditConsumed := AgentTestConsumption.GetCopilotCreditsForCurrentCompany(CompanyLimitRecord.GetPeriodStartDate());
         exit(CopilotCreditConsumed >= CompanyLimitRecord."Monthly Credit Limit");
     end;
 

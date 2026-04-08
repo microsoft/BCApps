@@ -329,7 +329,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
     var
         AITTestSuite: Record "AIT Test Suite";
         TempAIEvalSuiteUsageBuffer: Record "AIT Eval Suite Usage Buffer";
-        AgentTestConsumptionLog: Codeunit "Agent Test Consumption Log";
+        AgentTestConsumption: Codeunit "Agent Test Consumption";
         PeriodStartDate: Date;
         SortOrder: Integer;
         EnvironmentConsumed: Decimal;
@@ -344,8 +344,8 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         AITTestSuite.SetRange("Test Type", AITTestSuite."Test Type"::Agent);
         if AITTestSuite.FindSet() then
             repeat
-                EnvironmentConsumed := AgentTestConsumptionLog.GetSuiteCreditsForEnvironment(AITTestSuite.Code, PeriodStartDate);
-                CompanyConsumed := AgentTestConsumptionLog.GetSuiteCreditsForCurrentCompany(AITTestSuite.Code, PeriodStartDate);
+                EnvironmentConsumed := AgentTestConsumption.GetSuiteCreditsForEnvironment(AITTestSuite.Code, PeriodStartDate);
+                CompanyConsumed := AgentTestConsumption.GetSuiteCreditsForCurrentCompany(AITTestSuite.Code, PeriodStartDate);
 
                 if (EnvironmentConsumed <> 0) or (CompanyConsumed <> 0) then begin
                     SortOrder += 1;

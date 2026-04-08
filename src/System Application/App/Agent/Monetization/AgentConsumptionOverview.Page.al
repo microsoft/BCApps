@@ -419,6 +419,12 @@ page 4333 "Agent Consumption Overview"
         AgentConsumptionOverview.OpenAgentTaskConsumptionOverview(Rec."Task ID");
     end;
 
+    /// <summary>
+    /// Validate the current user has access to the agent and task specified in the record filters.
+    /// The goal is to avoid showing an empty page for the main known scenarios by raising an error.
+    /// For more complex filters, or scenarios without filters, a notification is raised to explain
+    /// that only data they have access to is reported.
+    /// </summary>
     local procedure ValidateAgentAccessControl()
     var
         AgentTask: Record "Agent Task";
@@ -431,25 +437,26 @@ page 4333 "Agent Consumption Overview"
         if AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
             exit;
 
-        // There is a filter on the agent user security, check that the user has access to the agent.
+        // There is a filter on a specific agent user security, check that the user has access to this agent.
         if Rec.GetFilter("Agent User Security Id") <> '' then begin
-            Evaluate(AgentUserSecurityId, Rec.GetFilter("Agent User Security Id"));
-            if not AgentSystemPermissions.CurrentUserCanUseAgent(AgentUserSecurityId) then
-                Error(YouDoNotHaveAccessToTheAgentErr);
-            exit;
-        end;
-
-        // There is a filter on the task ID, check that the user has access to the agent.
-        if Rec.GetFilter("Task Id") <> '' then begin
-            Evaluate(TaskId, Rec.GetFilter("Task Id"));
-            if not AgentTask.Get(TaskId) then
-                Error(YouDoNotHaveAccessToTheAgentErr)
-            else
-                if not AgentSystemPermissions.CurrentUserCanUseAgent(AgentTask."Agent User Security ID") then
+            if Evaluate(AgentUserSecurityId, Rec.GetFilter("Agent User Security Id")) then
+                if not AgentSystemPermissions.CurrentUserCanUseAgent(AgentUserSecurityId) then
                     Error(YouDoNotHaveAccessToTheAgentErr);
             exit;
         end;
 
+        // There is a filter on a specific task ID, check that the user has access to this task.
+        if Rec.GetFilter("Task Id") <> '' then begin
+            if Evaluate(TaskId, Rec.GetFilter("Task Id")) then
+                if not AgentTask.Get(TaskId) then
+                    Error(YouDoNotHaveAccessToTheAgentErr)
+                else
+                    if not AgentSystemPermissions.CurrentUserCanUseAgent(AgentTask."Agent User Security ID") then
+                        Error(YouDoNotHaveAccessToTheAgentErr);
+            exit;
+        end;
+
+        // For cases with no filters or with complex filters, the user will see data for the agents they have access to.
         SendNonAdminDisclaimerNotification();
     end;
 
