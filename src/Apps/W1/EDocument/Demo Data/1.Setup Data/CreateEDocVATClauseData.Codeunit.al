@@ -7,7 +7,6 @@ namespace Microsoft.eServices.EDocument.DemoData;
 using Microsoft.DemoData.Finance;
 using Microsoft.Finance.VAT.Clause;
 
-#pragma warning disable AA0247
 codeunit 5398 "Create E-Doc. VAT Clause Data"
 {
     InherentEntitlements = X;
