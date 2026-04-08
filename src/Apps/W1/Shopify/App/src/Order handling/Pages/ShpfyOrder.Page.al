@@ -10,7 +10,6 @@ using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Setup;
-using System.Feedback;
 
 /// <summary>
 /// Page Shpfy Order (ID 30113).
@@ -858,9 +857,9 @@ page 30113 "Shpfy Order"
 
                 trigger OnAction()
                 var
-                    Feedback: Codeunit "Microsoft User Feedback";
+                    ShopMgt: Codeunit "Shpfy Shop Mgt.";
                 begin
-                    Feedback.RequestFeedback('Shopify Connector', 'ShopifyConnector', 'Shopify Connector');
+                    ShopMgt.RequestFeedback();
                 end;
             }
         }

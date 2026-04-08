@@ -5,8 +5,6 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using System.Feedback;
-
 /// <summary>
 /// Page Shpfy Shops (ID 30102).
 /// </summary>
@@ -63,9 +61,9 @@ page 30102 "Shpfy Shops"
 
                 trigger OnAction()
                 var
-                    Feedback: Codeunit "Microsoft User Feedback";
+                    ShopMgt: Codeunit "Shpfy Shop Mgt.";
                 begin
-                    Feedback.RequestFeedback('Shopify Connector', 'ShopifyConnector', 'Shopify Connector');
+                    ShopMgt.RequestFeedback();
                 end;
             }
         }

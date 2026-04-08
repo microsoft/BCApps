@@ -7,7 +7,6 @@ namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Inventory.Item;
 using System.Environment.Configuration;
-using System.Feedback;
 
 /// <summary>
 /// Page Shpfy Products (ID 30126).
@@ -461,9 +460,9 @@ page 30126 "Shpfy Products"
 
                 trigger OnAction()
                 var
-                    Feedback: Codeunit "Microsoft User Feedback";
+                    ShopMgt: Codeunit "Shpfy Shop Mgt.";
                 begin
-                    Feedback.RequestFeedback('Shopify Connector', 'ShopifyConnector', 'Shopify Connector');
+                    ShopMgt.RequestFeedback();
                 end;
             }
         }

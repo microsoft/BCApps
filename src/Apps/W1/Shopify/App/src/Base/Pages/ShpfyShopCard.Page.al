@@ -10,7 +10,6 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Setup;
 using System.DateTime;
 using System.Environment;
-using System.Feedback;
 using System.Telemetry;
 
 /// <summary>
@@ -1212,9 +1211,9 @@ page 30101 "Shpfy Shop Card"
 
                 trigger OnAction()
                 var
-                    Feedback: Codeunit "Microsoft User Feedback";
+                    ShopMgt: Codeunit "Shpfy Shop Mgt.";
                 begin
-                    Feedback.RequestFeedback('Shopify Connector', 'ShopifyConnector', 'Shopify Connector');
+                    ShopMgt.RequestFeedback();
                 end;
             }
         }
