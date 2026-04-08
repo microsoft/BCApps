@@ -42,6 +42,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         SetShopifyCatalogsType();
         CreateInvoicesFromOrdersUpgrade();
         OrderTransactionShopCodeUpgrade();
+        StaffMembersEnabledUpgrade();
     end;
 
     internal procedure UpgradeTemplatesData()
@@ -496,6 +497,24 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         UpgradeTag.SetUpgradeTag(GetOrderTransactionShopCodeUpgradeTag());
     end;
 
+    local procedure StaffMembersEnabledUpgrade()
+    var
+        Shop: Record "Shpfy Shop";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        ShopDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(GetStaffMembersEnabledUpgradeTag()) then
+            exit;
+
+        ShopDataTransfer.SetTables(Database::"Shpfy Shop", Database::"Shpfy Shop");
+        ShopDataTransfer.AddSourceFilter(Shop.FieldNo("B2B Enabled"), '=%1', true);
+        ShopDataTransfer.AddConstantValue(true, Shop.FieldNo("Staff Members Enabled"));
+        ShopDataTransfer.UpdateAuditFields := false;
+        ShopDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(GetStaffMembersEnabledUpgradeTag());
+    end;
+
     internal procedure GetAllowOutgoingRequestseUpgradeTag(): Code[250]
     begin
         exit('MS-445989-AllowOutgoingRequestseUpgradeTag-20220816');
@@ -571,6 +590,11 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         exit('MS-610671-OrderTransactionShopCodeUpgrade-20251022');
     end;
 
+    local procedure GetStaffMembersEnabledUpgradeTag(): Code[250]
+    begin
+        exit('MS-630316-StaffMembersEnabledUpgrade-20260408');
+    end;
+
     local procedure GetDateBeforeFeature(): DateTime
     begin
         exit(CreateDateTime(DMY2Date(1, 8, 2022), 0T));
@@ -590,5 +614,6 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         PerCompanyUpgradeTags.Add(GetShopifyCatalogsTypeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetCreateInvoicesFromOrdersUpgradeTag());
         PerCompanyUpgradeTags.Add(GetOrderTransactionShopCodeUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetStaffMembersEnabledUpgradeTag());
     end;
 }
