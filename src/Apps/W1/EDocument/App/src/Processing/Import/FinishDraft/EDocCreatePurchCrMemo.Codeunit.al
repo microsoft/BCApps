@@ -97,6 +97,8 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         end;
 
         PurchaseHeader.Validate("Vendor Cr. Memo No.", VendorCrMemoNo);
+        if EDocumentPurchaseHeader."Purchase Order No." <> '' then
+            PurchaseHeader."Vendor Order No." := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseHeader."Vendor Order No."));
         PurchaseHeader.Insert(true);
         PurchaseHeader.Modify();
 

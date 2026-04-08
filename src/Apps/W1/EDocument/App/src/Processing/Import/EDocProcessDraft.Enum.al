@@ -31,6 +31,6 @@ enum 6107 "E-Doc. Process Draft" implements IProcessStructuredData
     value(2; "Purchase Credit Memo")
     {
         Caption = 'Purchase Credit Memo';
-        Implementation = IProcessStructuredData = "Prepare Purch. Cr. Memo Draft";
+        Implementation = IProcessStructuredData = "EDoc Prepare Cr. Memo Draft";
     }
 }

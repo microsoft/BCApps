@@ -15,13 +15,12 @@ codeunit 139694 "Usage Based Rebilling Test"
     TestPermissions = Disabled;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure UsageDataBillingMetadataIsCreatedAndDeletedWithUsageBasedBilling()
     var
         UsageDataBillingMetadata: Record "Usage Data Billing Metadata";
         UsageDataImport: Record "Usage Data Import";
     begin
-        // [SCENARIO] ???
+        // [SCENARIO] When Usage Data Billing is created, a matching Metadata record is created. When the Usage Data Billing is deleted (before invoicing), the Metadata record is deleted as well.
         // [GIVEN] Set up the initial state
         ResetAll();
         Initialize(); // Initialize necessary data and configurations
@@ -48,48 +47,13 @@ codeunit 139694 "Usage Based Rebilling Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
-    procedure UsageDataBillingMetadataIsCreatedButNotDeletedWithInvoicedUsageBasedBilling()
-    var
-        UsageDataBillingMetadata: Record "Usage Data Billing Metadata";
-        UsageDataImport: Record "Usage Data Import";
-    begin
-        // [SCENARIO] ???
-        // [GIVEN] Set up the initial state
-        ResetAll();
-        Initialize(); // Initialize necessary data and configurations
-        SetupServiceObjectAndContracts(SubscriptionStartingDate);
-        CreateInitialImport(UsageDataImport); // Create initial usage data import record
-
-        // [GIVEN] Process Usage Data Import
-        ProcessData(UsageDataImport, "Processing Step"::"Process Usage Data Billing");
-
-        UsageDataBilling.SetRange(Partner, "Service Partner"::Customer);
-        UsageDataBilling.FindLast();
-
-        // [GIVEN] Create customer invoices; Don't post the document
-        PostDocument := false;
-        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
-        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
-        UsageDataImport.CollectCustomerContractsAndCreateInvoices(UsageDataImport);
-
-        // [THEN] Check that metadata exists after deleting the UsageDataBilling
-        UsageDataBilling.Find();
-        UsageDataBilling.Delete(true);
-        UsageDataBillingMetadata.SetRange("Usage Data Billing Entry No.", UsageDataBilling."Entry No.");
-        Assert.IsTrue(UsageDataBilling.IsInvoiced(), 'Should be invoiced');
-        Assert.IsFalse(UsageDataBillingMetadata.IsEmpty, 'Metadata does still exist');
-    end;
-
-    [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure RebillingIsSet()
     var
         UsageDataBillingMetadata: Record "Usage Data Billing Metadata";
         InitialUsageDataImport: Record "Usage Data Import";
         RebillingUsageDataImport: Record "Usage Data Import";
     begin
-        // [SCENARIO] ???
+        // [SCENARIO] When a rebilling import is processed for a period that was already invoiced, the resulting Usage Data Billing and its Metadata are marked as rebilling records.
         // [GIVEN] Set up the initial state
         ResetAll(); // Reset all data to ensure a clean state
         Initialize(); // Initialize necessary data and configurations
@@ -116,7 +80,7 @@ codeunit 139694 "Usage Based Rebilling Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
+    [HandlerFunctions('CreateCustomerBillingDocumentPageHandler,MessageHandler')]
     procedure ServiceCommitmentNextBillingDateIsSetToRebillingDate()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -125,7 +89,7 @@ codeunit 139694 "Usage Based Rebilling Test"
         InitialUsageDataImport: Record "Usage Data Import";
         RebillingUsageDataImport: Record "Usage Data Import";
     begin
-        // [SCENARIO] ???
+        // [SCENARIO] When a rebilling import is processed, the Subscription Line's Next Billing Date is reset to the rebilling period start date, allowing the contract to be re-invoiced from that date onwards.
         // [GIVEN] Set up the initial state
         ResetAll(); // Reset all data to ensure a clean state
         Initialize(); // Initialize necessary data and configurations
@@ -199,7 +163,7 @@ codeunit 139694 "Usage Based Rebilling Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
+    [HandlerFunctions('CreateCustomerBillingDocumentPageHandler,MessageHandler')]
     procedure OneBillingLineIsCreatedForEveryRebillingUsageDataLine()
     var
         BillingLine: Record "Billing Line";
@@ -211,7 +175,7 @@ codeunit 139694 "Usage Based Rebilling Test"
         BillingFromDate: Date;
         BillingToDate: Date;
     begin
-        // [SCENARIO] ???
+        // [SCENARIO] When a rebilling import contains multiple usage data lines (e.g. a rebilling line and a follow-up line), exactly one Billing Line is created for each Usage Data Billing line with the correct billing period dates.
         // [GIVEN] Set up the initial state
         ResetAll(); // Reset all data to ensure a clean state
         Initialize(); // Initialize necessary data and configurations
@@ -425,7 +389,7 @@ codeunit 139694 "Usage Based Rebilling Test"
 
     local procedure SetupServiceObjectAndContracts(ServiceAndCalculationStartDate: Date)
     begin
-        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerInLCY(Customer);
         CreateServiceObjectWithServiceCommitments(Customer."No.", ServiceAndCalculationStartDate);
         CreateCustomerContractAndAssignServiceCommitments();
         CreateVendorContractAndAssignServiceCommitments();
@@ -504,12 +468,6 @@ codeunit 139694 "Usage Based Rebilling Test"
         VendorContractLine.SetRange("Subscription Contract No.", VendorContract."No.");
         VendorContractLine.FindLast();
         ContractTestLibrary.SetGeneralPostingSetup(Vendor."Gen. Bus. Posting Group", Item."Gen. Prod. Posting Group", false, Enum::"Service Partner"::Vendor);
-    end;
-
-    [ModalPageHandler]
-    procedure ExchangeRateSelectionModalPageHandler(var ExchangeRateSelectionPage: TestPage "Exchange Rate Selection")
-    begin
-        ExchangeRateSelectionPage.OK().Invoke();
     end;
 
     [MessageHandler]

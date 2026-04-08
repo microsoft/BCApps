@@ -229,6 +229,11 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Applies-to Doc. No.';
             DataClassification = CustomerContent;
         }
+        field(40; "Vendor Invoice No."; Text[100])
+        {
+            Caption = 'Vendor Invoice No.';
+            DataClassification = CustomerContent;
+        }
         #endregion Purchase fields
 
         #region Business Central Data - Validated fields [101-200]
