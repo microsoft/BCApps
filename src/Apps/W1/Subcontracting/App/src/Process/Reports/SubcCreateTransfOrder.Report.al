@@ -100,7 +100,7 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
             if ManufacturingSetup."Direct Transfer" then begin
                 SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
-                TransferHeader.Validate("Direct Transfer Posting", "Direct Transfer Post. Type"::"Direct Transfer");
+                TransferHeader.Validate("Direct Transfer", true);
             end;
 
             TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;

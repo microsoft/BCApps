@@ -2079,7 +2079,9 @@ Comment = '|%1 = Transfer Order No.';
 
         LibraryInventory.NoSeriesSetup(InventorySetup);
         InventorySetup."Inventory Put-away Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+#pragma warning disable AL0432
         InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
+#pragma warning restore AL0432
         InventorySetup.Modify();
         LibraryInventory.UpdateInventoryPostingSetup(Location);
     end;

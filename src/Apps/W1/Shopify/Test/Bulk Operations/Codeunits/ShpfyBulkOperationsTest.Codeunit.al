@@ -13,6 +13,7 @@ codeunit 139633 "Shpfy Bulk Operations Test"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     trigger OnRun()
     begin
@@ -21,24 +22,37 @@ codeunit 139633 "Shpfy Bulk Operations Test"
     end;
 
     var
+        Shop: Record "Shpfy Shop";
         LibraryAssert: Codeunit "Library Assert";
         Any: Codeunit Any;
-
-        BulkOpSubscriber: Codeunit "Shpfy Bulk Op. Subscriber";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        LibraryRandom: Codeunit "Library - Random";
+        GraphQLResponses: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         BulkOperationId1: BigInteger;
         BulkOperationId2: BigInteger;
+        BulkOperationIdCurrent: BigInteger;
+        BulkOperationRunning: Boolean;
+        BulkUploadFail: Boolean;
+        BulkOperationUrl: Text;
+        VariantId1: BigInteger;
+        VariantId2: BigInteger;
+        UploadUrlLbl: Label 'https://shopify-staged-uploads.storage.googleapis.com', Locked = true;
 
     local procedure Initialize()
-
+    var
+        AccessToken: SecretText;
     begin
         if IsInitialized then
             exit;
         IsInitialized := true;
         Codeunit.Run(Codeunit::"Shpfy Initialize Test");
+        Shop := CommunicationMgt.GetShopRecord();
+        AccessToken := LibraryRandom.RandText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
         BulkOperationId1 := Any.IntegerInRange(100000, 555555);
         BulkOperationId2 := Any.IntegerInRange(555555, 999999);
-        if BindSubscription(BulkOpSubscriber) then;
     end;
 
     local procedure ClearSetup()
@@ -47,19 +61,18 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         ShopifyVariant: Record "Shpfy Variant";
     begin
         BulkOperation.DeleteAll();
-        BulkOpSubscriber.SetBulkOperationRunning(false);
-        BulkOpSubscriber.SetBulkUploadFail(false);
+        BulkOperationRunning := false;
+        BulkUploadFail := false;
         ShopifyVariant.DeleteAll();
+        GraphQLResponses.Clear();
     end;
 
     [Test]
-    [HandlerFunctions('BulkMessageHandler')]
+    [HandlerFunctions('BulkMessageHandler,BulkOperationHttpHandler')]
     procedure TestSendBulkOperation()
     var
-        Shop: Record "Shpfy Shop";
         BulkOperation: Record "Shpfy Bulk Operation";
         BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         BulkOperationType: Enum "Shpfy Bulk Operation Type";
         IBulkOperation: Interface "Shpfy IBulk Operation";
         tb: TextBuilder;
@@ -69,14 +82,14 @@ codeunit 139633 "Shpfy Bulk Operations Test"
 
         // [GIVEN] A Shop record
         Initialize();
-        Shop := CommunicationMgt.GetShopRecord();
 
         // [WHEN] A bulk operation is sent
-        BulkOpSubscriber.SetBulkOperationId(BulkOperationId1);
+        BulkOperationIdCurrent := BulkOperationId1;
         IBulkOperation := BulkOperationType::AddProduct;
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 1', 'Snowboard', 'JadedPixel'));
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 2', 'Snowboard', 'JadedPixel'));
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 3', 'Snowboard', 'JadedPixel'));
+        EnqueueGraphQLResponsesForSendBulkMutation();
         LibraryAssert.IsTrue(BulkOperationMgt.SendBulkMutation(Shop, BulkOperationType::AddProduct, tb.ToText(), RequestData), 'Bulk operation should be sent.');
 
         // [THEN] A bulk operation record is created
@@ -86,13 +99,11 @@ codeunit 139633 "Shpfy Bulk Operations Test"
     end;
 
     [Test]
-    [HandlerFunctions('BulkMessageHandler')]
+    [HandlerFunctions('BulkMessageHandler,BulkOperationHttpHandler')]
     procedure TestSendBulkOperationAfterPreviousCompleted()
     var
-        Shop: Record "Shpfy Shop";
         BulkOperation: Record "Shpfy Bulk Operation";
         BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         BulkOperationType: Enum "Shpfy Bulk Operation Type";
         IBulkOperation: Interface "Shpfy IBulk Operation";
         tb: TextBuilder;
@@ -102,24 +113,25 @@ codeunit 139633 "Shpfy Bulk Operations Test"
 
         // [GIVEN] A Shop record
         Initialize();
-        Shop := CommunicationMgt.GetShopRecord();
 
         // [WHEN] A bulk operation is sent and completed
-        BulkOpSubscriber.SetBulkOperationId(BulkOperationId1);
+        BulkOperationIdCurrent := BulkOperationId1;
         IBulkOperation := BulkOperationType::AddProduct;
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 1', 'Snowboard', 'JadedPixel'));
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 2', 'Snowboard', 'JadedPixel'));
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 3', 'Snowboard', 'JadedPixel'));
+        EnqueueGraphQLResponsesForSendBulkMutation();
         BulkOperationMgt.SendBulkMutation(Shop, BulkOperationType::AddProduct, tb.ToText(), RequestData);
         BulkOperation.Get(BulkOperationId1, Shop.Code, BulkOperation.Type::mutation);
         BulkOperation.Status := BulkOperation.Status::Completed;
         BulkOperation.Modify();
         // [WHEN] A second bulk operation is sent
-        BulkOpSubscriber.SetBulkOperationId(BulkOperationId2);
+        BulkOperationIdCurrent := BulkOperationId2;
         tb.Clear();
         tb.AppendLine('{ "input": { "title": "Sweet new snowboard 4", "productType": "Snowboard", "vendor": "JadedPixel" } }');
         tb.AppendLine('{ "input": { "title": "Sweet new snowboard 5", "productType": "Snowboard", "vendor": "JadedPixel" } }');
         tb.AppendLine('{ "input": { "title": "Sweet new snowboard 6", "productType": "Snowboard", "vendor": "JadedPixel" } }');
+        EnqueueGraphQLResponsesForSendBulkMutation();
         LibraryAssert.IsTrue(BulkOperationMgt.SendBulkMutation(Shop, BulkOperationType::AddProduct, tb.ToText(), RequestData), 'Bulk operation should be sent.');
 
         // [THEN] A bulk operation record is created
@@ -129,13 +141,11 @@ codeunit 139633 "Shpfy Bulk Operations Test"
     end;
 
     [Test]
-    [HandlerFunctions('BulkMessageHandler')]
+    [HandlerFunctions('BulkMessageHandler,BulkOperationHttpHandler')]
     procedure TestSendBulkOperationBeforePreviousCompleted()
     var
-        Shop: Record "Shpfy Shop";
         BulkOperation: Record "Shpfy Bulk Operation";
         BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         BulkOperationType: Enum "Shpfy Bulk Operation Type";
         IBulkOperation: Interface "Shpfy IBulk Operation";
         tb: TextBuilder;
@@ -145,22 +155,23 @@ codeunit 139633 "Shpfy Bulk Operations Test"
 
         // [GIVEN] A Shop record
         Initialize();
-        Shop := CommunicationMgt.GetShopRecord();
 
         // [WHEN] A bulk operation is sent and not completed
-        BulkOpSubscriber.SetBulkOperationId(BulkOperationId1);
+        BulkOperationIdCurrent := BulkOperationId1;
         IBulkOperation := BulkOperationType::AddProduct;
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 1', 'Snowboard', 'JadedPixel'));
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 2', 'Snowboard', 'JadedPixel'));
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 3', 'Snowboard', 'JadedPixel'));
+        EnqueueGraphQLResponsesForSendBulkMutation();
         BulkOperationMgt.SendBulkMutation(Shop, BulkOperationType::AddProduct, tb.ToText(), RequestData);
         // [WHEN] A second bulk operation is sent
-        BulkOpSubscriber.SetBulkOperationRunning(true);
-        BulkOpSubscriber.SetBulkOperationId(BulkOperationId2);
+        BulkOperationRunning := true;
+        BulkOperationIdCurrent := BulkOperationId2;
         tb.Clear();
         tb.AppendLine('{ "input": { "title": "Sweet new snowboard 4", "productType": "Snowboard", "vendor": "JadedPixel" } }');
         tb.AppendLine('{ "input": { "title": "Sweet new snowboard 5", "productType": "Snowboard", "vendor": "JadedPixel" } }');
         tb.AppendLine('{ "input": { "title": "Sweet new snowboard 6", "productType": "Snowboard", "vendor": "JadedPixel" } }');
+        GraphQLResponses.Enqueue('CurrentOperation');
         LibraryAssert.IsFalse(BulkOperationMgt.SendBulkMutation(Shop, BulkOperationType::AddProduct, tb.ToText(), RequestData), 'Bulk operation should be sent.');
 
         // [THEN] A bulk operation record is not created
@@ -169,11 +180,10 @@ codeunit 139633 "Shpfy Bulk Operations Test"
     end;
 
     [Test]
+    [HandlerFunctions('BulkOperationHttpHandler')]
     procedure TestBulkOperationUploadFailSilent()
     var
-        Shop: Record "Shpfy Shop";
         BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         BulkOperationType: Enum "Shpfy Bulk Operation Type";
         IBulkOperation: Interface "Shpfy IBulk Operation";
         tb: TextBuilder;
@@ -183,15 +193,15 @@ codeunit 139633 "Shpfy Bulk Operations Test"
 
         // [GIVEN] A Shop record
         Initialize();
-        Shop := CommunicationMgt.GetShopRecord();
 
         // [WHEN] A bulk operation is sent with upload failure
-        BulkOpSubscriber.SetBulkUploadFail(true);
-        BulkOpSubscriber.SetBulkOperationId(BulkOperationId1);
+        BulkUploadFail := true;
+        BulkOperationIdCurrent := BulkOperationId1;
         IBulkOperation := BulkOperationType::AddProduct;
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 1', 'Snowboard', 'JadedPixel'));
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 2', 'Snowboard', 'JadedPixel'));
         tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 3', 'Snowboard', 'JadedPixel'));
+        GraphQLResponses.Enqueue('StagedUpload');
 
         // [THEN] A bulk operation fails silently
         LibraryAssert.IsFalse(BulkOperationMgt.SendBulkMutation(Shop, BulkOperationType::AddProduct, tb.ToText(), RequestData), 'Bulk operation should be sent.');
@@ -199,24 +209,21 @@ codeunit 139633 "Shpfy Bulk Operations Test"
     end;
 
     [Test]
+    [HandlerFunctions('BulkOperationHttpHandler')]
     procedure TestBulkOperationRevertFailed()
     var
-        Shop: Record "Shpfy Shop";
         ShopifyVariant: Record "Shpfy Variant";
         BulkOperation: Record "Shpfy Bulk Operation";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         BulkOperationType: Enum "Shpfy Bulk Operation Type";
         ProductId: BigInteger;
         VariantId: BigInteger;
         VariantIds: List of [BigInteger];
         Index: Integer;
-        BulkOperationUrl: Text;
     begin
         // [SCENARIO] A bulk operation completes but some operations failed and they are reverted
 
         // [GIVEN] A bulk operation record and four variants
         Initialize();
-        Shop := CommunicationMgt.GetShopRecord();
         for Index := 1 to 4 do begin
             ProductId := Any.IntegerInRange(100000, 555555);
             VariantId := Any.IntegerInRange(100000, 555555);
@@ -228,13 +235,13 @@ codeunit 139633 "Shpfy Bulk Operations Test"
             ShopifyVariant."Unit Cost" := 75;
             ShopifyVariant.Insert();
         end;
-        BulkOperationUrl := Any.AlphabeticText(50);
+        BulkOperationUrl := 'https://storage.googleapis.com/shopify-bulk-result/' + Any.AlphabeticText(20);
         BulkOperation := CreateBulkOperation(BulkOperationId1, BulkOperationType::UpdateProductPrice, Shop.Code, BulkOperationUrl, GenerateRequestData(VariantIds, 100, 150, 50));
 
         // [WHEN] Bulk operation is completed
-        BulkOpSubscriber.SetBulkOperationId(BulkOperationId1);
-        BulkOpSubscriber.SetBulkOperationUrl(BulkOperationUrl);
-        BulkOpSubscriber.SetVariantIds(VariantIds.Get(1), VariantIds.Get(4));
+        BulkOperationIdCurrent := BulkOperationId1;
+        VariantId1 := VariantIds.Get(1);
+        VariantId2 := VariantIds.Get(4);
         BulkOperation.Status := BulkOperation.Status::Completed;
         BulkOperation.Modify(true);
 
@@ -263,22 +270,18 @@ codeunit 139633 "Shpfy Bulk Operations Test"
     [Test]
     procedure TestBulkOperationRevertAll()
     var
-        Shop: Record "Shpfy Shop";
         ShopifyVariant: Record "Shpfy Variant";
         BulkOperation: Record "Shpfy Bulk Operation";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         BulkOperationType: Enum "Shpfy Bulk Operation Type";
         ProductId: BigInteger;
         VariantId: BigInteger;
         VariantIds: List of [BigInteger];
         Index: Integer;
-        BulkOperationUrl: Text;
     begin
         // [SCENARIO] A bulk operation fails and all operations are reverted
 
         // [GIVEN] A bulk operation record and two variants
         Initialize();
-        Shop := CommunicationMgt.GetShopRecord();
         for Index := 1 to 2 do begin
             ProductId := Any.IntegerInRange(100000, 555555);
             VariantId := Any.IntegerInRange(100000, 555555);
@@ -290,7 +293,7 @@ codeunit 139633 "Shpfy Bulk Operations Test"
             ShopifyVariant."Unit Cost" := 75;
             ShopifyVariant.Insert();
         end;
-        BulkOperationUrl := Any.AlphabeticText(50);
+        BulkOperationUrl := 'https://storage.googleapis.com/shopify-bulk-result/' + Any.AlphabeticText(20);
         BulkOperation := CreateBulkOperation(BulkOperationId1, BulkOperationType::UpdateProductPrice, Shop.Code, BulkOperationUrl, GenerateRequestData(VariantIds, 100, 150, 50));
 
         // [WHEN] Bulk operation is failed
@@ -311,7 +314,7 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         ClearSetup();
     end;
 
-    local procedure CreateBulkOperation(BulkOperationId: BigInteger; BulkOperationType: Enum "Shpfy Bulk Operation Type"; ShopCode: Code[20]; BulkOperationUrl: Text; RequestData: JsonArray): Record "Shpfy Bulk Operation"
+    local procedure CreateBulkOperation(BulkOperationId: BigInteger; BulkOperationType: Enum "Shpfy Bulk Operation Type"; ShopCode: Code[20]; BulkOpUrl: Text; RequestData: JsonArray): Record "Shpfy Bulk Operation"
     var
         BulkOperation: Record "Shpfy Bulk Operation";
     begin
@@ -320,7 +323,7 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         BulkOperation."Shop Code" := ShopCode;
         BulkOperation."Bulk Operation Type" := BulkOperationType;
         BulkOperation.Processed := false;
-        BulkOperation.Url := CopyStr(BulkOperationUrl, 1, MaxStrLen(BulkOperation.Url));
+        BulkOperation.Url := CopyStr(BulkOpUrl, 1, MaxStrLen(BulkOperation.Url));
         BulkOperation.Insert();
         BulkOperation.SetRequestData(RequestData);
         exit(BulkOperation);
@@ -342,6 +345,75 @@ codeunit 139633 "Shpfy Bulk Operations Test"
             RequestData.Add(Data);
         end;
         exit(RequestData);
+    end;
+
+    local procedure EnqueueGraphQLResponsesForSendBulkMutation()
+    begin
+        GraphQLResponses.Enqueue('StagedUpload');
+        GraphQLResponses.Enqueue('BulkMutation');
+    end;
+
+    [HttpClientHandler]
+    internal procedure BulkOperationHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        Body: Text;
+        BodyBuilder: TextBuilder;
+        BodyLine: Text;
+        ResInStream: InStream;
+        ResponseType: Text;
+    begin
+        // Handle POST to staged upload URL (file upload)
+        if Request.Path.Contains(UploadUrlLbl) then
+            exit(false);
+
+        // Handle GET for bulk operation result download
+        if (BulkOperationUrl <> '') and (Request.Path = BulkOperationUrl) then begin
+            NavApp.GetResource('Bulk Operations/BulkOperationResult.txt', ResInStream, TextEncoding::UTF8);
+            while not ResInStream.EOS do begin
+                ResInStream.ReadText(BodyLine);
+                BodyBuilder.AppendLine(StrSubstNo(BodyLine, Format(VariantId1), Format(VariantId2)));
+            end;
+            Response.Content.WriteFrom(BodyBuilder.ToText());
+            exit(false);
+        end;
+
+        // Handle GraphQL POST requests to the Shopify API
+        if InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then begin
+            ResponseType := GraphQLResponses.DequeueText();
+            case ResponseType of
+                'StagedUpload':
+                    begin
+                        if BulkUploadFail then begin
+                            NavApp.GetResource('Bulk Operations/StagedUploadFailedResult.txt', ResInStream, TextEncoding::UTF8);
+                            ResInStream.ReadText(Body);
+                        end else begin
+                            NavApp.GetResource('Bulk Operations/StagedUploadResult.txt', ResInStream, TextEncoding::UTF8);
+                            ResInStream.ReadText(Body);
+                            Body := StrSubstNo(Body, UploadUrlLbl);
+                        end;
+                        Response.Content.WriteFrom(Body);
+                    end;
+                'BulkMutation':
+                    begin
+                        NavApp.GetResource('Bulk Operations/BulkMutationResponse.txt', ResInStream, TextEncoding::UTF8);
+                        ResInStream.ReadText(Body);
+                        Response.Content.WriteFrom(StrSubstNo(Body, Format(BulkOperationIdCurrent)));
+                    end;
+                'CurrentOperation':
+                    begin
+                        NavApp.GetResource('Bulk Operations/BulkOperationCompletedResult.txt', ResInStream, TextEncoding::UTF8);
+                        ResInStream.ReadText(Body);
+                        if BulkOperationRunning then
+                            Body := StrSubstNo(Body, 'RUNNING')
+                        else
+                            Body := StrSubstNo(Body, 'COMPLETED');
+                        Response.Content.WriteFrom(Body);
+                    end;
+            end;
+            exit(false);
+        end;
+
+        exit(true);
     end;
 
     [MessageHandler]

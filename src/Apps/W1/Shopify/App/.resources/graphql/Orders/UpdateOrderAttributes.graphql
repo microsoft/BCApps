@@ -1,0 +1,2 @@
+# cost: 100
+{"query": "mutation  {orderUpdate(input: {id: \"gid://shopify/Order/{{OrderId}}\" customAttributes: {{CustomAttributes}}}) {order {name}, userErrors {field, message}}}"}

@@ -109,7 +109,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// Creates a notification that multiple inspections have been created.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
-    internal procedure NotifyMultipleInspectionsCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure NotifyMultipleInspectionsCreated(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         MyNotifications: Record "My Notifications";
         NotificationTestCreated: Notification;
@@ -127,6 +127,30 @@ codeunit 20437 "Qlty. Notification Mgmt."
         NotificationOptions.Add(ViewTheInspectionsPageLbl, HandleOpenMultipleInspectionsTok);
         NotificationTestCreated.SetData(MultipleInspectionsNotificationDataFilterTok, QltyInspectionHeader.GetView());
         CreateActionNotification(NotificationTestCreated, Message, NotificationOptions);
+    end;
+
+    /// <summary>
+    /// Creates a notification that many inspections have been created, without opening a filtered list.
+    /// Used as a fallback when the number of inspections exceeds the safe filter length.
+    /// </summary>
+    /// <param name="InspectionCount">The number of inspections created</param>
+    internal procedure NotifyMultipleInspectionsCreatedByCount(InspectionCount: Integer)
+    var
+        MyNotifications: Record "My Notifications";
+        CountNotification: Notification;
+        Message: Text;
+    begin
+        if not GuiAllowed() then
+            exit;
+
+        InitializeInspectionCreatedNotification();
+        if not MyNotifications.IsEnabled(GetInspectionCreatedNotificationId()) then
+            exit;
+
+        Message := StrSubstNo(MultipleInspectionsCreatedMsg, InspectionCount);
+        CountNotification.Message := Message;
+        CountNotification.Scope := NotificationScope::LocalScope;
+        CountNotification.Send();
     end;
 
     /// <summary>
