@@ -22,21 +22,29 @@ table 149041 "AIT Eval Suite Usage Buffer"
         }
         field(2; "Suite Code"; Code[10])
         {
-            Caption = 'Eval Suite Code';
+            Caption = 'Suite Code';
             ToolTip = 'Specifies the code of the eval suite.';
         }
-        field(3; Consumed; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'Consumed';
-            ToolTip = 'Specifies the total number of consumption units consumed by this eval suite during the specified period.';
-            MinValue = 0;
-            DecimalPlaces = 2 : 5;
-        }
-        field(4; "Suite Description"; Text[250])
+        field(3; "Suite Description"; Text[250])
         {
             Caption = 'Description';
             ToolTip = 'Specifies the description of the eval suite.';
+        }
+        field(4; "Environment Consumed"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Units Consumed (Environment)';
+            ToolTip = 'Specifies the total number of consumption units consumed by this eval suite across all companies in the environment during the specified period.';
+            MinValue = 0;
+            DecimalPlaces = 2 : 5;
+        }
+        field(5; "Company Consumed"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Units Consumed (Company)';
+            ToolTip = 'Specifies the total number of consumption units consumed by this eval suite in the current company during the specified period.';
+            MinValue = 0;
+            DecimalPlaces = 2 : 5;
         }
     }
 
@@ -49,7 +57,7 @@ table 149041 "AIT Eval Suite Usage Buffer"
         key(Code; "Suite Code")
         {
         }
-        key(Consumed; Consumed)
+        key(Consumed; "Environment Consumed")
         {
         }
     }
