@@ -12,7 +12,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -27,10 +26,8 @@ codeunit 139544 "Trial Balance Excel Reports"
 
     var
         LibraryERM: Codeunit "Library - ERM";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
-        LibrarySales: Codeunit "Library - Sales";
         Assert: Codeunit Assert;
         DocumentTypeShouldBeInvoiceErr: Label 'Document Type should be Invoice';
         DocumentNoShouldMatchErr: Label 'Document No should match the ledger entry';
@@ -704,8 +701,6 @@ codeunit 139544 "Trial Balance Excel Reports"
         Vendor: Record Vendor;
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        VATPostingSetup: Record "VAT Posting Setup";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
         Variant: Variant;
         RequestPageXml: Text;
         ReportDocumentType: Text;
@@ -716,14 +711,9 @@ codeunit 139544 "Trial Balance Excel Reports"
         DetailedVendorLedgEntry.DeleteAll();
         VendorLedgerEntry.DeleteAll();
 
-        // Ensure VAT posting setup exists for country localizations that may not have it
-        if not VATBusinessPostingGroup.FindFirst() then
-            LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
-        if VATPostingSetup.IsEmpty() then
-            LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
-
         // [GIVEN] Vendor "V" with an open vendor ledger entry of type Invoice
-        LibraryPurchase.CreateVendor(Vendor);
+        // Create vendor directly to avoid VAT posting setup requirements in some localizations
+        CreateMinimalVendor(Vendor);
         CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
         Commit();
 
@@ -750,8 +740,6 @@ codeunit 139544 "Trial Balance Excel Reports"
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        VATPostingSetup: Record "VAT Posting Setup";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
         Variant: Variant;
         RequestPageXml: Text;
         ReportDocumentType: Text;
@@ -762,14 +750,9 @@ codeunit 139544 "Trial Balance Excel Reports"
         DetailedCustLedgEntry.DeleteAll();
         CustLedgerEntry.DeleteAll();
 
-        // Ensure VAT posting setup exists for country localizations that may not have it
-        if not VATBusinessPostingGroup.FindFirst() then
-            LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
-        if VATPostingSetup.IsEmpty() then
-            LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
-
         // [GIVEN] Customer "C" with an open customer ledger entry of type Invoice
-        LibrarySales.CreateCustomer(Customer);
+        // Create customer directly to avoid VAT posting setup requirements in some localizations
+        CreateMinimalCustomer(Customer);
         CreateCustLedgerEntry(CustLedgerEntry, Customer."No.", "Gen. Journal Document Type"::Invoice);
         Commit();
 
@@ -907,6 +890,22 @@ codeunit 139544 "Trial Balance Excel Reports"
             GLEntry."Credit Amount" := -Amount;
         GLEntry."Posting Date" := PostingDate;
         GLEntry.Insert();
+    end;
+
+    local procedure CreateMinimalVendor(var Vendor: Record Vendor)
+    begin
+        Vendor.Init();
+        Vendor."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Vendor."No."));
+        Vendor.Name := Vendor."No.";
+        Vendor.Insert();
+    end;
+
+    local procedure CreateMinimalCustomer(var Customer: Record Customer)
+    begin
+        Customer.Init();
+        Customer."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Customer."No."));
+        Customer.Name := Customer."No.";
+        Customer.Insert();
     end;
 
     local procedure CreateVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
