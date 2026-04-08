@@ -10,12 +10,11 @@ pageextension 6173 "E-Doc. VAT Clauses" extends "VAT Clauses"
 {
     layout
     {
-        addafter(Code)
+        addlast(group)
         {
             field("VATEX Code"; Rec."VATEX Code")
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies the VATEX exemption reason code (BT-121) from the CEF VATEX code list, e.g. VATEX-EU-AE, VATEX-EU-G, VATEX-EU-IC.';
             }
         }
     }

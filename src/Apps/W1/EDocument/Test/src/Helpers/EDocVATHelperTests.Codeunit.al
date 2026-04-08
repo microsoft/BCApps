@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
+using System.Globalization;
 
 codeunit 139620 "E-Doc. VAT Helper Tests"
 {
@@ -81,6 +82,38 @@ codeunit 139620 "E-Doc. VAT Helper Tests"
         // [THEN] Both values are empty
         Assert.AreEqual('', VATEXCode, 'VATEX Code should be empty');
         Assert.AreEqual('', VATClauseDescription, 'VAT Clause Description should be empty');
+    end;
+
+    [Test]
+    procedure GetVATClauseInfoReturnsTranslatedDescription()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATClause: Record "VAT Clause";
+        VATClauseTranslation: Record "VAT Clause Translation";
+        Language: Record Language;
+        EDocVATHelper: Codeunit "E-Document VAT Helper";
+        VATEXCode: Text;
+        VATClauseDescription: Text;
+        TranslatedDescription: Text[250];
+    begin
+        // [SCENARIO] GetVATClauseInfo returns translated description when a translation exists for the given language
+        // [GIVEN] A VAT Posting Setup with a VAT Clause that has a translation
+        CreateVATPostingSetupWithVATClause(VATPostingSetup, VATClause);
+        Language.SetFilter(Code, '<>%1', '');
+        Language.FindFirst();
+        TranslatedDescription := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(50, 0), 1, MaxStrLen(TranslatedDescription));
+        VATClauseTranslation.Init();
+        VATClauseTranslation."VAT Clause Code" := VATClause.Code;
+        VATClauseTranslation."Language Code" := Language.Code;
+        VATClauseTranslation.Description := TranslatedDescription;
+        VATClauseTranslation.Insert();
+
+        // [WHEN] GetVATClauseInfo is called with the translation language
+        EDocVATHelper.GetVATClauseInfo(VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group", Language.Code, VATEXCode, VATClauseDescription);
+
+        // [THEN] Translated description is returned
+        Assert.AreEqual(VATClause."VATEX Code", VATEXCode, 'VATEX Code mismatch');
+        Assert.AreEqual(TranslatedDescription, VATClauseDescription, 'Should return translated description');
     end;
 
     local procedure CreateVATPostingSetupWithVATClause(var VATPostingSetup: Record "VAT Posting Setup"; var VATClause: Record "VAT Clause")

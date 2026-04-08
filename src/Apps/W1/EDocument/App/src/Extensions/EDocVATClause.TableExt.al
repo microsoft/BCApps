@@ -14,6 +14,7 @@ tableextension 6173 "E-Doc. VAT Clause" extends "VAT Clause"
         {
             Caption = 'VATEX Code';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the VATEX exemption reason code (BT-121) from the CEF VATEX code list, e.g. VATEX-EU-AE, VATEX-EU-G, VATEX-EU-IC.';
         }
     }
 }
