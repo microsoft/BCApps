@@ -324,7 +324,6 @@ codeunit 133624 "Unit Tests"
     // ========================================================================
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure Activation_PopulateFromJson_CreatesHeadersAndMandates()
     var
         ActivationHeader: Record "Activation Header";
