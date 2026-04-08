@@ -15,9 +15,11 @@ using Microsoft.QualityManagement.Setup;
 
 pageextension 20404 "Qlty. Business Manager RC" extends "Business Manager Role Center"
 {
+#pragma warning disable AS0072
     ObsoleteReason = 'Quality Management references not needed in Business Manager Role Center.';
     ObsoleteState = Pending;
     ObsoleteTag = '28.0';
+#pragma warning restore AS0072
 
     actions
     {
