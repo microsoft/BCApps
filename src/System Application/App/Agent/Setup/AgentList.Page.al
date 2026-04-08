@@ -5,8 +5,6 @@
 
 namespace System.Agents;
 
-using System.Environment.Consumption;
-
 page 4316 "Agent List"
 {
     PageType = List;
@@ -101,12 +99,12 @@ page 4316 "Agent List"
 
                 trigger OnAction()
                 var
-                    UserAIConsumptionData: Record "User AI Consumption Data";
+                    AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
                 begin
                     if Rec.IsEmpty() then
                         Error(NoAgentSetupErr);
-                    UserAIConsumptionData.SetRange("User ID", Rec."User Security ID");
-                    Page.Run(Page::"Agent Consumption Overview", UserAIConsumptionData);
+
+                    AgentConsumptionOverview.OpenAgentConsumptionOverview(Rec."User Security ID");
                 end;
             }
         }
