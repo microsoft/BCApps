@@ -32,6 +32,7 @@ codeunit 5373 "E-Document Contoso Module" implements "Contoso Demo Data Module"
     begin
         Codeunit.Run(Codeunit::"Create E-Document Setup");
         Codeunit.Run(Codeunit::"Create E-Doc DemoData Service");
+        Codeunit.Run(Codeunit::"Create E-Doc. VAT Clause Data");
     end;
 
     procedure CreateMasterData()
