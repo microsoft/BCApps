@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
@@ -11,6 +15,10 @@ using System.IO;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Provides utility functions for Avalara E-Document operations including document attachments,
+/// job queue management, mandate field loading, and media type retrieval.
+/// </summary>
 codeunit 6800 "Avalara Functions"
 {
     var

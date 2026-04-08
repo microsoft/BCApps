@@ -1,3 +1,7 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
@@ -6,6 +10,9 @@ using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.Foundation.Attachment;
 using System.Utilities;
 
+/// <summary>
+/// Manages document operations with the Avalara E-Invoicing service, including receiving, downloading, and processing inbound documents.
+/// </summary>
 codeunit 6371 "Avalara Document Management"
 {
     var
@@ -49,7 +56,7 @@ codeunit 6371 "Avalara Document Management"
         SuccessfullyDownloadedMsg: Label 'Successfully downloaded and attached document %1 with media type %2', Comment = '%1 = Document ID, %2 = Media Type';
         TimeZoneMarkersTok: Label 'Z+-', Locked = true;
 
-    procedure ParseIntoTemp(var TempDocumentBuffer: Record "Avalara Document Buffer" temporary; JsonText: Text)
+    internal procedure ParseIntoTemp(var TempDocumentBuffer: Record "Avalara Document Buffer" temporary; JsonText: Text)
     begin
         if JsonText = '' then
             exit;
@@ -314,7 +321,7 @@ codeunit 6371 "Avalara Document Management"
     /// Load document list from Avalara API into temporary buffer.
     /// </summary>
     /// <param name="AvalaraDocBuffer">Temporary buffer to populate with documents.</param>
-    procedure LoadDocumentList(var AvalaraDocBuffer: Record "Avalara Document Buffer" temporary)
+    internal procedure LoadDocumentList(var AvalaraDocBuffer: Record "Avalara Document Buffer" temporary)
     var
         HttpExec: Codeunit "Http Executor";
         Request: Codeunit Requests;

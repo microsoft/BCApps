@@ -1,5 +1,12 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// List page displaying all Avalara activation header records.
+/// </summary>
 page 6378 "Activation List"
 {
     ApplicationArea = All;
@@ -8,7 +15,7 @@ page 6378 "Activation List"
     Editable = false;
     PageType = List;
     SourceTable = "Activation Header";
-    UsageCategory = Lists;
+    UsageCategory = None;
 
     layout
     {
@@ -93,7 +100,7 @@ page 6378 "Activation List"
                 trigger OnAction()
                 var
                     ActivationMandate: Record "Activation Mandate";
-                    MandateNotFoundErr: Label 'No Mandate found!', Locked = true;
+                    MandateNotFoundErr: Label 'No Mandate found!';
                 begin
                     ActivationMandate.SetRange("Activation ID", Rec.ID);
                     if ActivationMandate.IsEmpty then

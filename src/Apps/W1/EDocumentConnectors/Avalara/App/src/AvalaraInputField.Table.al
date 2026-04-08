@@ -1,5 +1,12 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Stores input field definitions for Avalara mandates, defining the expected document structure and field metadata.
+/// </summary>
 table 6374 "Avalara Input Field"
 {
     Caption = 'Input Field';

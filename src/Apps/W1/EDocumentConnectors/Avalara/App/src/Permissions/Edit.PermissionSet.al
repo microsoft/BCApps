@@ -7,6 +7,9 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 
+/// <summary>
+/// Obsolete permission set granting edit access to Avalara tables. Replaced by permission set 6373 "Avalara Edit".
+/// </summary>
 permissionset 6372 Edit
 {
     Access = Public;

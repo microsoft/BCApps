@@ -6,6 +6,9 @@ namespace Microsoft.EServices.EDocumentConnector;
 
 using Microsoft.EServices.EDocument;
 
+/// <summary>
+/// Extends the E-Document table with Avalara-specific fields for document ID and response tracking.
+/// </summary>
 tableextension 6372 "Avalara E-Doc." extends "E-Document"
 {
     fields

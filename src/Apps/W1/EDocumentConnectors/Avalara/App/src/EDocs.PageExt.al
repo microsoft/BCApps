@@ -1,7 +1,14 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
 
+/// <summary>
+/// Extends the E-Documents page with actions to receive and download documents from the Avalara service.
+/// </summary>
 pageextension 6373 "E-Docs." extends "E-Documents"
 {
     actions

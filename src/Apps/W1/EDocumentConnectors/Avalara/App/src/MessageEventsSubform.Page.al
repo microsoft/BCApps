@@ -1,9 +1,12 @@
-/// <summary>
-/// List part displaying message events from Avalara API responses.
-/// Shows chronological event history with timestamps and messages.
-/// </summary>
-
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+/// <summary>
+/// Subform page displaying message events from Avalara document processing in chronological order.
+/// </summary>
 page 6803 "Message Events Subform"
 {
     ApplicationArea = All;

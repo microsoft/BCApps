@@ -5,6 +5,10 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using System.Security.Authentication;
+
+/// <summary>
+/// Handles OAuth 2.0 authentication with the Avalara E-Invoicing API, including token acquisition and credential management.
+/// </summary>
 codeunit 6374 Authenticator
 {
     Access = Internal;

@@ -1,7 +1,15 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Stores activation header records retrieved from the Avalara E-Invoicing service.
+/// </summary>
 table 6376 "Activation Header"
 {
+    Access = Internal;
     Caption = 'Activation Header';
     DataClassification = CustomerContent;
 
@@ -83,7 +91,7 @@ table 6376 "Activation Header"
     trigger OnDelete()
     var
         ConfirmLbl: Label 'There are %1 related records. Do you really want to delete this record?', Comment = '%1 = Record Count';
-        DeletionErr: Label 'Deletion cancelled by user.', Locked = true;
+        DeletionErr: Label 'Deletion cancelled by user.';
     begin
         if Rec.Count > 0 then
             if not Confirm(StrSubstNo(ConfirmLbl, Rec.Count), false) then

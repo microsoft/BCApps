@@ -7,10 +7,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 using System.Telemetry;
 
 /// <summary>
-/// Connection setup card.
-/// allows input of credentials and testing
-/// allows Selection of company
-/// of connection
+/// Card page for configuring the Avalara connection, including credential input, connection testing, and company selection.
 /// </summary>
 
 page 6372 "Connection Setup Card"
@@ -175,8 +172,8 @@ page 6372 "Connection Setup Card"
                 var
                     ResponseJson: JsonObject;
                     ValueToken: JsonToken;
-                    InvalidCredentialsErr: Label 'Unexpected response format. Please verify your credentials and try again.', Locked = true;
-                    ValidCredentialsLbl: Label 'Credentials are valid for the selected sending mode environment.', Locked = true;
+                    InvalidCredentialsErr: Label 'Unexpected response format. Please verify your credentials and try again.';
+                    ValidCredentialsLbl: Label 'Credentials are valid for the selected sending mode environment.';
                     Result: Text;
                 begin
                     Result := AvalaraProcessing.GetRegistrationList();

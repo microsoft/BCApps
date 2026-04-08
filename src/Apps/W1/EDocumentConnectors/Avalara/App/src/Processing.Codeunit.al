@@ -12,6 +12,9 @@ using Microsoft.EServices.EDocumentConnector.Avalara.Models;
 using System.RestClient;
 using System.Utilities;
 
+/// <summary>
+/// Core processing logic for sending, receiving, and checking the status of e-documents via the Avalara E-Invoicing API.
+/// </summary>
 codeunit 6379 Processing
 {
     Access = Internal;
@@ -287,13 +290,11 @@ ValueObject : JsonToken;
         InStream: InStream;
         MediaTypes: List of [Text];
         OutStream: OutStream;
-        CountryCode: Text;
         DocumentId: Text;
         Mandate: Text;
         ResponseContent: Text;
     begin
         Mandate := EDocumentService."Avalara Mandate";
-        CountryCode := Mandate.Split('-').Get(1);
         MediaTypes := AvalaraFunctions.GetAvailableMediaTypesForMandate(Mandate);
 
         DocumentMetadata.CreateInStream(InStream, TextEncoding::UTF8);
@@ -756,7 +757,7 @@ MessageToken,
 
     procedure CreateBatch(EDocService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeaders: RecordRef; var SourceDocumentsLines: RecordRef; var TempBlob: Codeunit "Temp Blob");
     var
-        NotImplementedErr: Label 'Implementation Coming soon', Locked = true;
+        NotImplementedErr: Label 'Implementation Coming soon';
     begin
         Error(NotImplementedErr);
     end;

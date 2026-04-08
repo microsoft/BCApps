@@ -19,7 +19,6 @@ using System.Utilities;
 
 codeunit 148191 "Integration Tests"
 {
-
     Permissions = tabledata "Activation Mandate" = rimd,
                   tabledata "Connection Setup" = rimd,
                   tabledata "E-Document" = r;
@@ -449,9 +448,11 @@ codeunit 148191 "Integration Tests"
 
         // Use date and currency exchange rate in document that is loaded
         WorkDate(DMY2Date(8, 4, 2024));
-        Currency.Init();
-        Currency.Validate(Code, 'XYZ');
-        Currency.Insert(true);
+        if not Currency.Get('XYZ') then begin
+            Currency.Init();
+            Currency.Validate(Code, 'XYZ');
+            Currency.Insert(true);
+        end;
         LibraryERM.CreateExchangeRate('XYZ', WorkDate(), 1, 1);
 
         // Open and close E-Doc page creates auto import job due to setting

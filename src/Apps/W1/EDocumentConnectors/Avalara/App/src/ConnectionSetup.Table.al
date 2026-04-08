@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Stores Avalara connection configuration including API credentials, URLs, company selection, and environment settings.
+/// </summary>
 table 6372 "Connection Setup"
 {
     fields

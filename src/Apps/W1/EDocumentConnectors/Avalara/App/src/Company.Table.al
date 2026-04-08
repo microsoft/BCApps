@@ -9,13 +9,16 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 #pragma warning disable AS0115
 #pragma warning disable AS0072
 #pragma warning disable PTE0025
+/// <summary>
+/// Obsolete temporary table previously used for Avalara company data. Replaced by table 6373 "Avalara Company".
+/// </summary>
 table 6375 "Company"
 {
     DataClassification = CustomerContent;
-    TableType = Temporary;
     ObsoleteReason = 'This temporary table is replaced by 6373 "Avalara Company"';
-    ObsoleteTag = '26.0';
     ObsoleteState = Removed;
+    ObsoleteTag = '26.0';
+    TableType = Temporary;
 
     fields
     {

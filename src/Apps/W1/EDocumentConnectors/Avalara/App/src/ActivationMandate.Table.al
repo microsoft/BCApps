@@ -1,5 +1,12 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Stores mandate records linked to an Avalara activation, including country mandate, mandate type, and activation status.
+/// </summary>
 table 6377 "Activation Mandate"
 {
     Caption = 'Activation Mandate';
@@ -55,7 +62,7 @@ table 6377 "Activation Mandate"
     trigger OnDelete()
     var
         ConfirmLbl: Label 'There are %1 Mandate records. Do you really want to delete ?', Comment = '%1 = Count';
-        DeletionErr: Label 'Deletion cancelled by user.', Locked = true;
+        DeletionErr: Label 'Deletion cancelled by user.';
     begin
         if Rec.Count > 0 then
             if not Confirm(StrSubstNo(ConfirmLbl, Rec.Count), false) then

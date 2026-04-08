@@ -1,7 +1,15 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Temporary buffer table for holding Avalara document data during document listing and processing operations.
+/// </summary>
 table 6378 "Avalara Document Buffer"
 {
+    Access = Internal;
     Caption = 'Avalara Document Buffer';
     DataClassification = SystemMetadata;
     TableType = Temporary;

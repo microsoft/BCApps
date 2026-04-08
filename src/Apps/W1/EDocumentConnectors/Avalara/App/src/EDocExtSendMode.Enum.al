@@ -5,6 +5,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Obsolete enumeration for E-Document send mode. Replaced by enum 6373 "Avalara Send Mode".
+/// </summary>
 enum 6377 "E-Doc. Ext. Send Mode"
 {
     Access = Internal;

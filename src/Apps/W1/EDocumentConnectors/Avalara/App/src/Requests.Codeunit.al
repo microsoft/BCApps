@@ -8,7 +8,7 @@ using Microsoft.EServices.EDocumentConnector.Avalara.Models;
 using System.Reflection;
 
 /// <summary>
-/// Construct meta data object for Avalara request
+/// Constructs HTTP requests for the Avalara E-Invoicing API endpoints including document submission, status retrieval, and mandate queries.
 /// </summary>
 codeunit 6376 Requests
 {

@@ -10,6 +10,9 @@ using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
 using System.Utilities;
 
+/// <summary>
+/// Implements the E-Document integration interfaces (IDocumentSender, IDocumentResponseHandler, IDocumentReceiver) for the Avalara connector.
+/// </summary>
 codeunit 6372 "Integration Impl." implements IDocumentSender, IDocumentResponseHandler, IDocumentReceiver
 {
     Access = Internal;

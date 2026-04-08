@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Lookup list page for selecting an Avalara mandate from the available country mandates.
+/// </summary>
 page 6370 "Mandate List"
 {
     ApplicationArea = All;

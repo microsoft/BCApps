@@ -6,6 +6,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Obsolete permission set granting read access to Avalara tables. Replaced by permission set 6374 "Avalara Read".
+/// </summary>
 permissionset 6371 Read
 {
     Access = Public;

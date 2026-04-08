@@ -1,6 +1,14 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using System.IO;
+
+/// <summary>
+/// Extends the Transformation Rules list page with Avalara lookup configuration columns.
+/// </summary>
 pageextension 6376 "Transformation Rules" extends "Transformation Rules"
 {
     layout

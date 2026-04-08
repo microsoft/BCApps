@@ -1,8 +1,15 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
 using System.Utilities;
 
+/// <summary>
+/// Background processing codeunit that downloads pending Avalara documents for E-Documents via job queue execution.
+/// </summary>
 codeunit 6373 Maintenance
 {
     var

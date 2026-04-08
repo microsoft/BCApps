@@ -6,6 +6,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Lookup list page for selecting an Avalara company from the temporary company records.
+/// </summary>
 page 6373 "Company List"
 {
     ApplicationArea = Basic, Suite;

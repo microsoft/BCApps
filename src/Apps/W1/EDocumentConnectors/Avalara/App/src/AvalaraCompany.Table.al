@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Temporary table holding Avalara company data retrieved from the API for company selection.
+/// </summary>
 table 6373 "Avalara Company"
 {
     Caption = 'Avalara Company';

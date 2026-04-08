@@ -10,6 +10,9 @@ using Microsoft.eServices.EDocument.Integration;
 #endif
 using System.Upgrade;
 
+/// <summary>
+/// Handles data upgrades between Avalara connector app versions, including service integration migration and field transfers.
+/// </summary>
 #pragma warning disable AS0130
 #pragma warning disable PTE0025
 codeunit 6380 Upgrade

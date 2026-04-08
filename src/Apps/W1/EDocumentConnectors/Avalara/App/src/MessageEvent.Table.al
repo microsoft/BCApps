@@ -1,4 +1,12 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+/// <summary>
+/// Stores event records from Avalara document processing, including status messages and response data.
+/// </summary>
 table 6380 "Message Event"
 {
     Caption = 'Message Event';

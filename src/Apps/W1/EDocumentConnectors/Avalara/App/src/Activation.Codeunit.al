@@ -1,9 +1,17 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Parses activation data from Avalara JSON API responses and populates activation header and mandate records.
+/// </summary>
 codeunit 6378 Activation
 {
+    Access = Internal;
+
     var
-        InvalidActivationIdWithValueMsg: Label 'Unable to parse activation ID from JSON. Value: %1', Comment = '%1 = Activation ID text';
         // Error messages
         InvalidJsonErr: Label 'The provided JSON is invalid or malformed.';
         JsonFieldCodeTok: Label 'code', Locked = true;
@@ -113,10 +121,8 @@ codeunit 6378 Activation
         if ActivationIdText = '' then
             exit(false);
 
-        if not Evaluate(ActivationId, ActivationIdText) then begin
-            Session.LogMessage('0000AVL001', StrSubstNo(InvalidActivationIdWithValueMsg, ActivationIdText), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Activation');
+        if not Evaluate(ActivationId, ActivationIdText) then
             exit(false);
-        end;
 
         ActivationHeader.ID := ActivationId;
 

@@ -8,6 +8,9 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.EServices.EDocumentConnector.Avalara.Models;
 
+/// <summary>
+/// Obsolete permission set granting execute access to Avalara objects. Replaced by permission set 6375 "Avalara Objects".
+/// </summary>
 permissionset 6370 Objects
 {
     Access = Public;

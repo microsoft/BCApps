@@ -6,6 +6,9 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.EServices.EDocumentConnector.Avalara.Models;
 
+/// <summary>
+/// Grants execute permissions on all Avalara E-Document connector objects (tables, codeunits, pages).
+/// </summary>
 permissionset 6375 "Avalara Objects"
 {
     Access = Public;
