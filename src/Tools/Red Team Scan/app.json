@@ -13,7 +13,6 @@
   "logo": "ExtensionLogo.png",
   "dependencies": [],
   "screenshots": [],
-  "application": "29.0.0.0",
   "platform": "29.0.0.0",
   "target": "OnPrem",
   "features": [
