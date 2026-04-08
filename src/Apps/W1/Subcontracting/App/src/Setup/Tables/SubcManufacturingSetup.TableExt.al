@@ -22,14 +22,18 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
         {
             Caption = 'Subcontracting Journal Template Name';
             DataClassification = CustomerContent;
+#pragma warning disable AL0432
             TableRelation = "Req. Wksh. Template" where(Type = const("For. Labor"));
+#pragma warning restore AL0432
         }
         field(99001502; "Subcontracting Batch Name"; Code[10])
         {
             Caption = 'Subcontracting Journal Batch Name';
             DataClassification = CustomerContent;
+#pragma warning disable AL0432
             TableRelation = "Requisition Wksh. Name".Name where("Template Type" = const("For. Labor"),
                                                                 "Worksheet Template Name" = field("Subcontracting Template Name"));
+#pragma warning restore AL0432
         }
         field(99001503; "Direct Transfer"; Boolean)
         {
