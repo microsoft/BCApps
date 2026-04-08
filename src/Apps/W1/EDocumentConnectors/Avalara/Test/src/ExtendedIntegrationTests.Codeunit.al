@@ -28,7 +28,6 @@ codeunit 148192 "Extended Integration Tests"
     // ========================================================================
 
     [Test]
-    [HandlerFunctions('HttpSubmitHandler')]
     procedure SubmitDocument_MissingConnectionSetup()
     var
         ConnectionSetup: Record "Connection Setup";
@@ -81,7 +80,6 @@ codeunit 148192 "Extended Integration Tests"
     end;
 
     [Test]
-    [HandlerFunctions('HttpSubmitHandler')]
     procedure SubmitDocument_MandateNotFound()
     var
         ActivationMandate: Record "Activation Mandate";
@@ -125,7 +123,6 @@ codeunit 148192 "Extended Integration Tests"
     end;
 
     [Test]
-    [HandlerFunctions('HttpSubmitHandler')]
     procedure SubmitDocument_MandateNotActivated()
     var
         ActivationMandate: Record "Activation Mandate";
@@ -174,7 +171,6 @@ codeunit 148192 "Extended Integration Tests"
     end;
 
     [Test]
-    [HandlerFunctions('HttpSubmitHandler')]
     procedure SubmitDocument_MandateBlocked()
     var
         ActivationMandate: Record "Activation Mandate";
@@ -664,13 +660,7 @@ codeunit 148192 "Extended Integration Tests"
         CompanyInformation."VAT Registration No." := 'GB777777771';
         CompanyInformation.Modify();
 
-        if IsInitialized then
-            exit;
-
-        LibraryEDocument.SetupStandardVAT();
-        LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
-        EDocumentService."Avalara Mandate" := 'GB-Test-Mandate';
-
+        // Ensure mandate exists with correct state on every test run
         ActivationMandate.DeleteAll();
         ActivationMandate.Init();
         ActivationMandate."Activation ID" := CreateGuid();
@@ -678,6 +668,12 @@ codeunit 148192 "Extended Integration Tests"
         ActivationMandate.Activated := true;
         ActivationMandate.Insert(true);
 
+        if IsInitialized then
+            exit;
+
+        LibraryEDocument.SetupStandardVAT();
+        LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
+        EDocumentService."Avalara Mandate" := 'GB-Test-Mandate';
         EDocumentService.Modify();
 
         IsInitialized := true;

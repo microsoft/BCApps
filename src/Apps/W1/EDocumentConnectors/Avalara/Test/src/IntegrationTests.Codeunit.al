@@ -567,19 +567,20 @@ codeunit 148191 "Integration Tests"
         CompanyInformation."VAT Registration No." := 'GB777777771';
         CompanyInformation.Modify();
 
-        if IsInitialized then
-            exit;
-
-        LibraryEDocument.SetupStandardVAT();
-        LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
-        EDocumentService."Avalara Mandate" := 'GB-Test-Mandate';
-
+        // Ensure mandate exists with correct state on every test run
         ActivationMandate.DeleteAll();
         ActivationMandate.Init();
         ActivationMandate."Activation ID" := CreateGuid();
         ActivationMandate."Country Mandate" := 'GB-Test-Mandate';
         ActivationMandate.Activated := true;
         ActivationMandate.Insert(true);
+
+        if IsInitialized then
+            exit;
+
+        LibraryEDocument.SetupStandardVAT();
+        LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
+        EDocumentService."Avalara Mandate" := 'GB-Test-Mandate';
 
         LibraryEDocument.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
         EDocumentService.Validate("Auto Import", true);

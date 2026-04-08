@@ -335,6 +335,10 @@ codeunit 133624 "Unit Tests"
         // [SCENARIO] Activation.PopulateFromJson should parse activation data and create header + mandate records
         LibraryPermission.SetOutsideO365Scope();
 
+        // [GIVEN] No existing activation data (avoids Confirm prompt in ClearExistingData)
+        ActivationHeader.DeleteAll();
+        ActivationMandate.DeleteAll();
+
         // [GIVEN] Connection setup with a company ID
         EnsureConnectionSetup();
         ConnectionSetup.Get();
