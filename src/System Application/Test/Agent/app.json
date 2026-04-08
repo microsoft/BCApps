@@ -18,6 +18,12 @@
       "version": "29.0.0.0"
     },
     {
+      "id": "e595541f-d183-4e93-910c-3eb99ed23c7b",
+      "name": "Default Role Center",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
       "publisher": "Microsoft",
