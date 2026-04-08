@@ -18,6 +18,7 @@ codeunit 149043 "AIT Test Context Impl."
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         GlobalTestOutputJson: Codeunit "Test Output Json";
+        GlobalSuiteSetupJson: Codeunit "Test Input Json";
         GlobalAccuracy: Decimal;
         CurrentTurn: Integer;
         NumberOfTurns: Integer;
@@ -29,6 +30,7 @@ codeunit 149043 "AIT Test Context Impl."
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
         ExpectedDataTok: Label 'expected_data', Locked = true;
+        ContinueOnFailureTok: Label 'continue_on_failure', Locked = true;
         TestMetricsTok: Label 'test_metrics', Locked = true;
         TestSetupTok: Label 'test_setup', Locked = true;
         QuestionTok: Label 'question', Locked = true;
@@ -39,6 +41,9 @@ codeunit 149043 "AIT Test Context Impl."
         RoleTok: Label 'role', Locked = true;
         ContentTok: Label 'content', Locked = true;
         ConversationTok: Label 'conversation', Locked = true;
+        HasSuiteSetupData: Boolean;
+        SuiteSetupDataNotLoadedErr: Label 'Per-suite setup data has not been loaded.';
+        SuiteSetupInputCodeTok: Label 'SUITE-SETUP', Locked = true;
 
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
@@ -95,6 +100,23 @@ codeunit 149043 "AIT Test Context Impl."
     procedure GetExpectedData(): Codeunit "Test Input Json"
     begin
         exit(GetTestInput(ExpectedDataTok));
+    end;
+
+    /// <summary>
+    /// Gets the continue on failure flag for the current turn.
+    /// If the flag is not set in the test input, it defaults to false.
+    /// </summary>
+    /// <returns>True if the eval should continue on failure, false otherwise.</returns>
+    procedure GetCanContinueOnFailure(): Boolean
+    var
+        ContinueOnFailureInput: Codeunit "Test Input Json";
+        ElementFound: Boolean;
+    begin
+        ContinueOnFailureInput := GetTestInput(ContinueOnFailureTok, ElementFound);
+        if not ElementFound then
+            exit(false);
+
+        exit(ContinueOnFailureInput.ValueAsBoolean());
     end;
 
     /// <summary>
@@ -332,6 +354,58 @@ codeunit 149043 "AIT Test Context Impl."
             NumberOfTurns := TurnsInputJson.GetElementCount()
         else
             NumberOfTurns := 1;
+
+        if not HasSuiteSetupData then
+            LoadSuiteSetupFromDataset();
+    end;
+
+    /// <summary>
+    /// Loads suite setup data from the dataset referenced by the current test's Test Input Group.
+    /// Resolves language variants using the suite's Run Language ID.
+    /// </summary>
+    local procedure LoadSuiteSetupFromDataset()
+    var
+        SuiteSetupGroup: Record "Test Input Group";
+        AITTestSuite: Record "AIT Test Suite";
+        TestInputCU: Codeunit "Test Input";
+        AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
+        SuiteSetupInputJson: Codeunit "Test Input Json";
+        ResolvedDatasetCode: Code[100];
+    begin
+        if not GetSuiteSetupGroup(SuiteSetupGroup) then
+            exit;
+
+        GetAITTestSuite(AITTestSuite);
+        ResolvedDatasetCode := AITTestSuiteLanguage.GetLanguageDataset(SuiteSetupGroup.Code, AITTestSuite."Run Language ID");
+        SuiteSetupInputJson := TestInputCU.GetTestInputByCode(ResolvedDatasetCode, SuiteSetupInputCodeTok);
+
+        if SuiteSetupInputJson.ToText() = '' then
+            exit;
+
+        ImportSuiteSetupData(SuiteSetupInputJson.AsJsonToken());
+    end;
+
+    /// <summary>
+    /// Finds the suite setup Test Input Group for the current test's dataset.
+    /// Navigates: AITTestMethodLine."Input Dataset" → TestInputGroup."Suite Setup Group Name" → target group.
+    /// </summary>
+    local procedure GetSuiteSetupGroup(var SuiteSetupGroup: Record "Test Input Group"): Boolean
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+        DatasetGroup: Record "Test Input Group";
+    begin
+        GetAITTestMethodLine(AITTestMethodLine);
+        if AITTestMethodLine."Input Dataset" = '' then
+            exit(false);
+
+        if not DatasetGroup.Get(AITTestMethodLine."Input Dataset") then
+            exit(false);
+
+        if DatasetGroup."Suite Setup Group Name" = '' then
+            exit(false);
+
+        SuiteSetupGroup.SetRange("Group Name", DatasetGroup."Suite Setup Group Name");
+        exit(SuiteSetupGroup.FindFirst());
     end;
 
     /// <summary>
@@ -347,6 +421,22 @@ codeunit 149043 "AIT Test Context Impl."
             TestInputJson := TestInput.GetTestInput(TurnsTok).ElementAt(CurrentTurn - 1).Element(ElementName)
         else
             TestInputJson := TestInput.GetTestInput(ElementName);
+    end;
+
+    /// <summary>
+    /// Gets the test input for the provided element, returning whether the element was found.
+    /// </summary>
+    /// <param name="ElementName">Element name to get from test input.</param>
+    /// <param name="ElementFound">Set to true if the element exists.</param>
+    /// <returns>Test Input Json for the element</returns>
+    local procedure GetTestInput(ElementName: Text; var ElementFound: Boolean) TestInputJson: Codeunit "Test Input Json"
+    var
+        TestInput: Codeunit "Test Input";
+    begin
+        if IsMultiTurn then
+            TestInputJson := TestInput.GetTestInput(TurnsTok).ElementAt(CurrentTurn - 1).ElementExists(ElementName, ElementFound)
+        else
+            TestInputJson := TestInput.GetTestInput().ElementExists(ElementName, ElementFound);
     end;
 
     /// <summary>
@@ -409,6 +499,52 @@ codeunit 149043 "AIT Test Context Impl."
             exit;
 
         CurrentTestOutputJson.Add(ElementName, TestInput.GetTestInput(ElementName).ValueAsText());
+    end;
+
+    /// <summary>
+    /// Sets the per-suite setup data from a parsed JSON token.
+    /// </summary>
+    /// <param name="SuiteSetupJsonToken">The JSON token containing the parsed suite setup data.</param>
+    internal procedure ImportSuiteSetupData(SuiteSetupJsonToken: JsonToken)
+    begin
+        GlobalSuiteSetupJson.Initialize(SuiteSetupJsonToken);
+        HasSuiteSetupData := true;
+    end;
+
+    /// <summary>
+    /// Gets the per-suite setup data as a Test Input Json.
+    /// </summary>
+    /// <returns>Test Input Json containing the suite setup data.</returns>
+    procedure GetEvalSuiteSetupDataInput(): Codeunit "Test Input Json"
+    begin
+        if not HasSuiteSetupData then
+            Error(SuiteSetupDataNotLoadedErr);
+        exit(GlobalSuiteSetupJson);
+    end;
+
+    /// <summary>
+    /// Marks the per-suite setup as completed on the suite setup test input group.
+    /// </summary>
+    procedure SetEvalSuiteSetupCompleted()
+    var
+        SuiteSetupGroup: Record "Test Input Group";
+    begin
+        if GetSuiteSetupGroup(SuiteSetupGroup) then
+            SuiteSetupGroup.SetSuiteSetupDone();
+    end;
+
+    /// <summary>
+    /// Checks if the per-suite setup has been marked as done on the suite setup test input group.
+    /// </summary>
+    /// <returns>True if suite setup has been executed.</returns>
+    procedure IsSuiteSetupDone(): Boolean
+    var
+        SuiteSetupGroup: Record "Test Input Group";
+    begin
+        if not GetSuiteSetupGroup(SuiteSetupGroup) then
+            exit(false);
+
+        exit(SuiteSetupGroup."Suite Setup Done");
     end;
 
     /// <summary>
