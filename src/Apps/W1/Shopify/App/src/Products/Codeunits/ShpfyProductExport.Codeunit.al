@@ -921,8 +921,61 @@ codeunit 30178 "Shpfy Product Export"
     end;
     #endregion
 
-    #region Shopify Product Options as Item/Variant Attributes 
-    /// <summary> 
+    /// <summary>
+    /// Checks if the item can be exported to Shopify. Validates that the item is not blocked, has a description, and does not exceed the variant limit.
+    /// </summary>
+    /// <param name="Item">The item to check.</param>
+    /// <returns>True if the item can be exported, false otherwise.</returns>
+    internal procedure CheckItemCanBeExported(Item: Record Item): Boolean
+    var
+        ItemIsBlockedOrSalesBlockedLbl: Label 'Item is blocked or sales blocked.';
+        ItemDescriptionIsEmptyLbl: Label 'Item description is empty.';
+    begin
+        if Item.Blocked or Item."Sales Blocked" then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, ItemIsBlockedOrSalesBlockedLbl, Shop);
+            exit(false);
+        end;
+
+        if Item.Description = '' then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, ItemDescriptionIsEmptyLbl, Shop);
+            exit(false);
+        end;
+
+        exit(CheckItemVariantCount(Item));
+    end;
+
+    /// <summary>
+    /// Checks if the item's expected variant count does not exceed the Shopify maximum of 2048 variants per product.
+    /// </summary>
+    /// <param name="Item">The item to check.</param>
+    /// <returns>True if the variant count is within limits, false otherwise.</returns>
+    internal procedure CheckItemVariantCount(Item: Record Item): Boolean
+    var
+        ItemVariant: Record "Item Variant";
+        ItemUnitofMeasure: Record "Item Unit of Measure";
+        ExpectedVariantCount: Integer;
+        MaxVariantCount: Integer;
+        TooManyVariantsLbl: Label 'Item has more than %1 variants. Shopify allows a maximum of %1 variants per product.', Comment = '%1 = Maximum number of variants';
+    begin
+        MaxVariantCount := 2048;
+        ItemVariant.SetRange("Item No.", Item."No.");
+        ItemVariant.SetRange(Blocked, false);
+        ItemVariant.SetRange("Sales Blocked", false);
+        ExpectedVariantCount := ItemVariant.Count();
+        if Shop."UoM as Variant" then begin
+            ItemUnitofMeasure.SetRange("Item No.", Item."No.");
+            ExpectedVariantCount := ExpectedVariantCount * ItemUnitofMeasure.Count();
+        end;
+        if ExpectedVariantCount > MaxVariantCount then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, StrSubstNo(TooManyVariantsLbl, MaxVariantCount), Shop);
+            exit(false);
+        end;
+
+        exit(true);
+    end;
+
+    #region Shopify Product Options as Item/Variant Attributes
+    /// <summary>
     /// Checks if item/item variant attributes marked as "As Option" are compatible to be used as product options in Shopify.
     /// </summary>  
     /// <param name="Item">The item to check.</param>

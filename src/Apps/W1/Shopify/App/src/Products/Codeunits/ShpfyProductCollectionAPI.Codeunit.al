@@ -29,7 +29,7 @@ codeunit 30417 "Shpfy Product Collection API"
         CurrentCollections := RetrieveCollections(ShopCode);
 
         CommunicationMgt.SetShop(ShopCode);
-        GraphQLType := GraphQLType::GetCustomProductCollections;
+        GraphQLType := GraphQLType::Products_GetCustomProductCollections;
 
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -39,7 +39,7 @@ codeunit 30417 "Shpfy Product Collection API"
                     Parameters.Set('After', Cursor)
                 else
                     Parameters.Add('After', Cursor);
-                GraphQLType := GraphQLType::GetNextCustomProductCollections;
+                GraphQLType := GraphQLType::Products_GetNextCustomProductCollections;
             end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.collections.pageInfo.hasNextPage');
 

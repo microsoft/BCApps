@@ -29,7 +29,7 @@ codeunit 30385 "Shpfy Payments API"
         Cursor: Text;
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := GraphQLType::GetPaymentTransactions;
+        GraphQLType := GraphQLType::Payments_GetPaymentTransactions;
         Parameters.Add('SinceId', Format(SinceId + 1));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -44,7 +44,7 @@ codeunit 30385 "Shpfy Payments API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := GraphQLType::GetNextPaymentTransactions;
+                    GraphQLType := GraphQLType::Payments_GetNextPaymentTransactions;
                 end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.shopifyPaymentsAccount.balanceTransactions.pageInfo.hasNextPage');
     end;
@@ -95,7 +95,7 @@ codeunit 30385 "Shpfy Payments API"
         Cursor: Text;
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := GraphQLType::GetPayouts;
+        GraphQLType := GraphQLType::Payments_GetPayouts;
         Parameters.Add('SinceId', Format(SinceId + 1));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -110,7 +110,7 @@ codeunit 30385 "Shpfy Payments API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := GraphQLType::GetNextPayouts;
+                    GraphQLType := GraphQLType::Payments_GetNextPayouts;
                 end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.shopifyPaymentsAccount.payouts.pageInfo.hasNextPage');
     end;
@@ -164,7 +164,7 @@ codeunit 30385 "Shpfy Payments API"
         Id: BigInteger;
         PayoutId: BigInteger;
     begin
-        GraphQLType := GraphQLType::GetPaymTransByIds;
+        GraphQLType := GraphQLType::Payments_GetPaymTransByIds;
         Parameters.Add('IdFilter', IdFilter);
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JPaymentsAccount, 'data.shopifyPaymentsAccount') then
@@ -191,7 +191,7 @@ codeunit 30385 "Shpfy Payments API"
         Parameters: Dictionary of [Text, Text];
         Id: BigInteger;
     begin
-        GraphQLType := GraphQLType::GetPayoutsByIds;
+        GraphQLType := GraphQLType::Payments_GetPayoutsByIds;
         Parameters.Add('IdFilter', IdFilter);
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JPaymentsAccount, 'data.shopifyPaymentsAccount') then
@@ -236,7 +236,7 @@ codeunit 30385 "Shpfy Payments API"
         Cursor: Text;
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := GraphQLType::GetDisputes;
+        GraphQLType := GraphQLType::Payments_GetDisputes;
         Parameters.Add('SinceId', Format(SinceId + 1));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -251,7 +251,7 @@ codeunit 30385 "Shpfy Payments API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := GraphQLType::GetNextDisputes;
+                    GraphQLType := GraphQLType::Payments_GetNextDisputes;
                 end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.shopifyPaymentsAccount.disputes.pageInfo.hasNextPage');
     end;
@@ -266,7 +266,7 @@ codeunit 30385 "Shpfy Payments API"
         JResponse: JsonToken;
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := GraphQLType::GetDisputeById;
+        GraphQLType := GraphQLType::Payments_GetDisputeById;
         Parameters.Add('Id', Format(Id));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JPaymentsAccount, 'data.shopifyPaymentsAccount') then

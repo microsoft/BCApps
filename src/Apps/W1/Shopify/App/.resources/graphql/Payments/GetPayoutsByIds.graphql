@@ -1,0 +1,2 @@
+# cost: 13
+{"query":"{ shopifyPaymentsAccount { payouts(first: 200, query: \"id:{{IdFilter}}\") { nodes { id status } } } }"}

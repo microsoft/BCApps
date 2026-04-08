@@ -28,14 +28,12 @@ codeunit 30191 "Shpfy Shipping Charges"
         JShipmentLines: JsonArray;
         JResponse: JsonToken;
     begin
-        if CommunicationMgt.GetTestInProgress() then
-            exit;
         CommunicationMgt.SetShop(OrderHeader."Shop Code");
         Parameters.Add('OrderId', Format(OrderHeader."Shopify Order Id"));
-        GraphQLType := "Shpfy GraphQL Type"::GetShipmentLines;
+        GraphQLType := "Shpfy GraphQL Type"::Shipping_GetShipmentLines;
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JOrder, 'data.order') then begin
-            GraphQLType := "Shpfy GraphQL Type"::GetNextShipmentLines;
+            GraphQLType := "Shpfy GraphQL Type"::Shipping_GetNextShipmentLines;
             repeat
                 JShipmentLines := JsonHelper.GetJsonArray(JOrder, 'shippingLines.nodes');
                 UpdateShippingCostInfos(OrderHeader, JShipmentLines);

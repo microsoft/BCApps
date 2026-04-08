@@ -7,8 +7,6 @@ using System.IO;
 
 codeunit 139892 "Usage Based B. Test Library"
 {
-    Access = Internal;
-
     var
         Currency: Record Currency;
         CultureInfo: Codeunit DotNet_CultureInfo;

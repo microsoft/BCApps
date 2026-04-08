@@ -48,7 +48,7 @@ codeunit 134695 "Email Scenario Page Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure PageOpenOneEntryTest()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailScenarioPage: TestPage "Email Scenario Setup";
     begin
         // [Scenario] The "Email Scenario Setup" shows one entry when there is only one email account and no scenarios
@@ -56,7 +56,7 @@ codeunit 134695 "Email Scenario Page Test"
 
         // [Given] One email account is registered.
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
 
         // [When] Opening the the page
         EmailScenarioPage.Trap();
@@ -66,7 +66,7 @@ codeunit 134695 "Email Scenario Page Test"
         Assert.IsTrue(EmailScenarioPage.First(), 'There should be an entry on the page');
 
         // Properties are as expected
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, EmailAccount.Name, EmailAccount."Email Address"), EmailScenarioPage.Name.Value, 'Wrong entry name');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, TempEmailAccount.Name, TempEmailAccount."Email Address"), EmailScenarioPage.Name.Value, 'Wrong entry name');
         Assert.IsFalse(GetDefaultFieldValueAsBoolean(EmailScenarioPage.Default.Value), 'The account should not be marked as default');
 
         // Actions visibility is as expected
@@ -81,7 +81,7 @@ codeunit 134695 "Email Scenario Page Test"
     [Scope('OnPrem')]
     procedure PageOpenOneDefaultEntryTest()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailScenarioPage: TestPage "Email Scenario Setup";
     begin
         // [Scenario] The "Email Scenario Setup" shows one entry when there is only one email account and no scenarios
@@ -89,10 +89,10 @@ codeunit 134695 "Email Scenario Page Test"
 
         // [Given] One email account is registered and it's set as default.
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
 
         EmailScenarioMock.DeleteAllMappings();
-        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::Default, EmailAccount."Account Id", EmailAccount.Connector);
+        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::Default, TempEmailAccount."Account Id", TempEmailAccount.Connector);
 
         // [When] Opening the the page
         EmailScenarioPage.Trap();
@@ -102,7 +102,7 @@ codeunit 134695 "Email Scenario Page Test"
         Assert.IsTrue(EmailScenarioPage.First(), 'There should be an entry on the page');
 
         // Properties are as expected
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, EmailAccount.Name, EmailAccount."Email Address"), EmailScenarioPage.Name.Value, 'Wrong entry name');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, TempEmailAccount.Name, TempEmailAccount."Email Address"), EmailScenarioPage.Name.Value, 'Wrong entry name');
         Assert.IsTrue(GetDefaultFieldValueAsBoolean(EmailScenarioPage.Default.Value), 'The account should be marked as default');
 
         // Actions visibility is as expected
@@ -119,7 +119,7 @@ codeunit 134695 "Email Scenario Page Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure PageOpenOneAcountsTwoScenariosTest()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailScenarioPage: TestPage "Email Scenario Setup";
     begin
         // [Scenario] Having one default account with a non-default scenario assigned displays propely on "Email Scenario Setup"
@@ -127,11 +127,11 @@ codeunit 134695 "Email Scenario Page Test"
 
         // [Given] One email account is registered and it's set as default.
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
 
         EmailScenarioMock.DeleteAllMappings();
-        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::Default, EmailAccount."Account Id", EmailAccount.Connector);
-        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::"Test Email Scenario", EmailAccount."Account Id", EmailAccount.Connector);
+        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::Default, TempEmailAccount."Account Id", TempEmailAccount.Connector);
+        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::"Test Email Scenario", TempEmailAccount."Account Id", TempEmailAccount.Connector);
 
         // [When] Opening the the page
         EmailScenarioPage.Trap();
@@ -141,7 +141,7 @@ codeunit 134695 "Email Scenario Page Test"
         Assert.IsTrue(EmailScenarioPage.First(), 'There should be data on the page');
 
         // Properties are as expected
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, EmailAccount.Name, EmailAccount."Email Address"), EmailScenarioPage.Name.Value, 'Wrong entry name');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, TempEmailAccount.Name, TempEmailAccount."Email Address"), EmailScenarioPage.Name.Value, 'Wrong entry name');
         Assert.IsTrue(GetDefaultFieldValueAsBoolean(EmailScenarioPage.Default.Value), 'The account should be marked as default');
 
         // Actions visibility is as expected
@@ -167,7 +167,7 @@ codeunit 134695 "Email Scenario Page Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure PageOpenTwoAcountsTwoScenariosTest()
     var
-        FirstEmailAccount, SecondEmailAccount : Record "Email Account";
+        TempFirstEmailAccount, TempSecondEmailAccount : Record "Email Account";
         EmailScenarioPage: TestPage "Email Scenario Setup";
     begin
         // [Scenario] The "Email Scenario Setup" shows three entries when there are two accounts - one with the default scenario and one with a non-default scenario
@@ -175,24 +175,24 @@ codeunit 134695 "Email Scenario Page Test"
 
         // [Given] Two email accounts are registered. One is set as default.
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FirstEmailAccount);
-        ConnectorMock.AddAccount(SecondEmailAccount);
+        ConnectorMock.AddAccount(TempFirstEmailAccount);
+        ConnectorMock.AddAccount(TempSecondEmailAccount);
 
         EmailScenarioMock.DeleteAllMappings();
-        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::Default, FirstEmailAccount."Account Id", FirstEmailAccount.Connector);
-        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::"Test Email Scenario", SecondEmailAccount."Account Id", SecondEmailAccount.Connector);
+        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::Default, TempFirstEmailAccount."Account Id", TempFirstEmailAccount.Connector);
+        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::"Test Email Scenario", TempSecondEmailAccount."Account Id", TempSecondEmailAccount.Connector);
 
         // [When] Opening the the page
         EmailScenarioPage.Trap();
         EmailScenarioPage.OpenView();
 
         // [Then] There are three entries on the page. One is set as dedault
-        Assert.IsTrue(EmailScenarioPage.GoToKey(-1, FirstEmailAccount."Account Id", FirstEmailAccount.Connector), 'There should be data on the page');
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, FirstEmailAccount.Name, FirstEmailAccount."Email Address"), EmailScenarioPage.Name.Value, 'Wrong first entry name');
+        Assert.IsTrue(EmailScenarioPage.GoToKey(-1, TempFirstEmailAccount."Account Id", TempFirstEmailAccount.Connector), 'There should be data on the page');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, TempFirstEmailAccount.Name, TempFirstEmailAccount."Email Address"), EmailScenarioPage.Name.Value, 'Wrong first entry name');
         Assert.IsTrue(GetDefaultFieldValueAsBoolean(EmailScenarioPage.Default.Value), 'The account should be marked as default');
 
-        Assert.IsTrue(EmailScenarioPage.GoToKey(-1, SecondEmailAccount."Account Id", SecondEmailAccount.Connector), 'There should be another entry on the page');
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, SecondEmailAccount.Name, SecondEmailAccount."Email Address"), EmailScenarioPage.Name.Value, 'Wrong second entry name');
+        Assert.IsTrue(EmailScenarioPage.GoToKey(-1, TempSecondEmailAccount."Account Id", TempSecondEmailAccount.Connector), 'There should be another entry on the page');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, TempSecondEmailAccount.Name, TempSecondEmailAccount."Email Address"), EmailScenarioPage.Name.Value, 'Wrong second entry name');
         Assert.IsFalse(GetDefaultFieldValueAsBoolean(EmailScenarioPage.Default.Value), 'The account should not be marked as default');
 
         EmailScenarioPage.Expand(true);
