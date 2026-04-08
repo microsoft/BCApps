@@ -12,6 +12,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -702,6 +703,9 @@ codeunit 139544 "Trial Balance Excel Reports"
     var
         Vendor: Record Vendor;
         VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
         Variant: Variant;
         RequestPageXml: Text;
         ReportDocumentType: Text;
@@ -709,7 +713,14 @@ codeunit 139544 "Trial Balance Excel Reports"
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 622247] Aged Accounts Payable Excel report exports Document Type and Document No fields correctly for Invoice entries
-        InitializeAgingData();
+        DetailedVendorLedgEntry.DeleteAll();
+        VendorLedgerEntry.DeleteAll();
+
+        // Ensure VAT posting setup exists for country localizations that may not have it
+        if not VATBusinessPostingGroup.FindFirst() then
+            LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        if VATPostingSetup.IsEmpty() then
+            LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
 
         // [GIVEN] Vendor "V" with an open vendor ledger entry of type Invoice
         LibraryPurchase.CreateVendor(Vendor);
@@ -738,6 +749,9 @@ codeunit 139544 "Trial Balance Excel Reports"
     var
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
         Variant: Variant;
         RequestPageXml: Text;
         ReportDocumentType: Text;
@@ -745,7 +759,14 @@ codeunit 139544 "Trial Balance Excel Reports"
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 622247] Aged Accounts Receivable Excel report exports Document Type and Document No fields correctly for Invoice entries
-        InitializeAgingData();
+        DetailedCustLedgEntry.DeleteAll();
+        CustLedgerEntry.DeleteAll();
+
+        // Ensure VAT posting setup exists for country localizations that may not have it
+        if not VATBusinessPostingGroup.FindFirst() then
+            LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        if VATPostingSetup.IsEmpty() then
+            LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
 
         // [GIVEN] Customer "C" with an open customer ledger entry of type Invoice
         LibrarySales.CreateCustomer(Customer);
@@ -886,23 +907,6 @@ codeunit 139544 "Trial Balance Excel Reports"
             GLEntry."Credit Amount" := -Amount;
         GLEntry."Posting Date" := PostingDate;
         GLEntry.Insert();
-    end;
-
-    local procedure InitializeAgingData()
-    var
-        Vendor: Record Vendor;
-        Customer: Record Customer;
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        CustLedgerEntry: Record "Cust. Ledger Entry";
-        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-    begin
-        DetailedVendorLedgEntry.DeleteAll();
-        DetailedCustLedgEntry.DeleteAll();
-        VendorLedgerEntry.DeleteAll();
-        CustLedgerEntry.DeleteAll();
-        Vendor.DeleteAll();
-        Customer.DeleteAll();
     end;
 
     local procedure CreateVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
