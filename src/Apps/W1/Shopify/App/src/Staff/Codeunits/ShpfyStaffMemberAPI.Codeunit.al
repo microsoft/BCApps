@@ -28,7 +28,7 @@ codeunit 30105 "Shpfy Staff Member API"
         Cursor: Text;
     begin
         Shop.Get(ShopCode);
-        if not Shop."Has Advanced Shopify Plan" then
+        if not Shop."Advanced Shopify Plan" then
             exit;
 
         CommunicationMgt.SetShop(Shop.Code);

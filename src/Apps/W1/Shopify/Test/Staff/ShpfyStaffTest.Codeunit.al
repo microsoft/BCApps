@@ -39,7 +39,7 @@ codeunit 139551 "Shpfy Staff Test"
         Initialize();
 
         // [When] Set store as not having staff members enabled and check action is not visible
-        Shop."Has Advanced Shopify Plan" := false;
+        Shop."Advanced Shopify Plan" := false;
         Shop.Modify(false);
         ShpfyShopCard.OpenView();
         ShpfyShopCard.GoToRecord(Shop);
@@ -49,7 +49,7 @@ codeunit 139551 "Shpfy Staff Test"
         ShpfyShopCard.Close();
 
         // [When] Set store as having staff members enabled and check action is visible
-        Shop."Has Advanced Shopify Plan" := true;
+        Shop."Advanced Shopify Plan" := true;
         Shop.Modify(false);
         ShpfyShopCard.OpenView();
         ShpfyShopCard.GoToRecord(Shop);
@@ -247,7 +247,7 @@ codeunit 139551 "Shpfy Staff Test"
 
         // Creating Shopify Shop
         Shop := InitializeTest.CreateShop();
-        Shop."Has Advanced Shopify Plan" := true;
+        Shop."Advanced Shopify Plan" := true;
         Shop.Modify();
 
         //Register Shopify Access Token

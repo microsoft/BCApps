@@ -937,9 +937,9 @@ table 30102 "Shpfy Shop"
 #endif
         }
 #endif
-        field(207; "Has Advanced Shopify Plan"; Boolean)
+        field(207; "Advanced Shopify Plan"; Boolean)
         {
-            Caption = 'Has Advanced Shopify Plan';
+            Caption = 'Advanced Shopify Plan';
             DataClassification = SystemMetadata;
         }
     }
@@ -1146,7 +1146,7 @@ table 30102 "Shpfy Shop"
         JResponse := CommunicationMgt.ExecuteGraphQL('{"query":"query { shop { name plan { publicDisplayName partnerDevelopment shopifyPlus } weightUnit } }"}');
         if JResponse.SelectToken('$.data.shop.plan', JItem) then
             if JItem.IsObject then
-                Rec."Has Advanced Shopify Plan" := JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
+                Rec."Advanced Shopify Plan" := JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
                                                 (JsonHelper.GetValueAsText(JItem, 'publicDisplayName') in ['Plus Trial', 'Development', 'Advanced']);
         Rec."Weight Unit" := ConvertToWeightUnit(JsonHelper.GetValueAsText(JResponse, 'data.shop.weightUnit'));
     end;

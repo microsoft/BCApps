@@ -508,7 +508,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
 
         ShopDataTransfer.SetTables(Database::"Shpfy Shop", Database::"Shpfy Shop");
         ShopDataTransfer.AddSourceFilter(Shop.FieldNo("B2B Enabled"), '=%1', true);
-        ShopDataTransfer.AddConstantValue(true, Shop.FieldNo("Has Advanced Shopify Plan"));
+        ShopDataTransfer.AddConstantValue(true, Shop.FieldNo("Advanced Shopify Plan"));
         ShopDataTransfer.UpdateAuditFields := false;
         ShopDataTransfer.CopyFields();
 
