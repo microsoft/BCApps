@@ -80,6 +80,7 @@ if ($parameters["appName"] -eq "System Application Test" -or $parameters["appNam
 {
     Write-Host "Enabling AgentsFeature for '$($parameters["appName"])' tests"
     Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "AgentsFeatureEnabled" -keyValue "true"
+    Restart-BcContainer -containerName $parameters.ContainerName
 }
 
 return Invoke-TestsWithReruns -parameters $parameters
