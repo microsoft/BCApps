@@ -12,6 +12,12 @@
   "logo": "",
   "dependencies": [
     {
+      "id": "95f7c0f8-d9b8-4538-80f9-6e17f6f7b91a",
+      "name": "Agent",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
       "publisher": "Microsoft",
