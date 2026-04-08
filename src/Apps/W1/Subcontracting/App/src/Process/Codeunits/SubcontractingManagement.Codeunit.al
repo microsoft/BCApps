@@ -575,8 +575,7 @@ codeunit 99001505 "Subcontracting Management"
     begin
         if HasManufacturingSetup then
             exit;
-        if ManufacturingSetup.Get() then
-            HasManufacturingSetup := true;
+        HasManufacturingSetup := ManufacturingSetup.Get();
     end;
 
     local procedure IsSubcontracting(WorkCenterNo: Code[20]): Boolean

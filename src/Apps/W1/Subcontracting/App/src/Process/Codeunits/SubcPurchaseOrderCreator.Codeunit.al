@@ -319,8 +319,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     begin
         if HasManufacturingSetup then
             exit;
-        if ManufacturingSetup.Get() then
-            HasManufacturingSetup := true;
+        HasManufacturingSetup := ManufacturingSetup.Get();
     end;
 
     local procedure GetLineNoBeforeInsertedLineNo(PurchaseLine: Record "Purchase Line") BeforeLineNo: Integer

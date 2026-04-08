@@ -513,16 +513,14 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     begin
         if HasManufacturingSetup then
             exit;
-        if ManufacturingSetup.Get() then
-            HasManufacturingSetup := true;
+        HasManufacturingSetup := ManufacturingSetup.Get();
     end;
 
     local procedure GetSubcontractingManagementSetup()
     begin
         if HasSubcontractingManagementSetup then
             exit;
-        if SubcontractingManagementSetup.Get() then
-            HasSubcontractingManagementSetup := true;
+        HasSubcontractingManagementSetup := SubcontractingManagementSetup.Get();
     end;
 
     local procedure ClearBOMTables()
