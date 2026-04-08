@@ -835,7 +835,7 @@ page 30101 "Shpfy Shop Card"
                 RunObject = Page "Shpfy Staff Mapping";
                 RunPageLink = "Shop Code" = field(Code);
                 ToolTip = 'View a list of Shopify Staff Members for the shop.';
-                Visible = Rec."Staff Members Enabled";
+                Visible = Rec."Has Advanced Shopify Plan";
             }
         }
         area(Processing)

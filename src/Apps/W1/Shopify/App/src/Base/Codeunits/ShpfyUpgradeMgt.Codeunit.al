@@ -42,7 +42,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         SetShopifyCatalogsType();
         CreateInvoicesFromOrdersUpgrade();
         OrderTransactionShopCodeUpgrade();
-        StaffMembersEnabledUpgrade();
+        HasAdvancedShopifyPlanUpgrade();
     end;
 
     internal procedure UpgradeTemplatesData()
@@ -497,22 +497,22 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         UpgradeTag.SetUpgradeTag(GetOrderTransactionShopCodeUpgradeTag());
     end;
 
-    local procedure StaffMembersEnabledUpgrade()
+    local procedure HasAdvancedShopifyPlanUpgrade()
     var
         Shop: Record "Shpfy Shop";
         UpgradeTag: Codeunit "Upgrade Tag";
         ShopDataTransfer: DataTransfer;
     begin
-        if UpgradeTag.HasUpgradeTag(GetStaffMembersEnabledUpgradeTag()) then
+        if UpgradeTag.HasUpgradeTag(GetHasAdvancedShopifyPlanUpgradeTag()) then
             exit;
 
         ShopDataTransfer.SetTables(Database::"Shpfy Shop", Database::"Shpfy Shop");
         ShopDataTransfer.AddSourceFilter(Shop.FieldNo("B2B Enabled"), '=%1', true);
-        ShopDataTransfer.AddConstantValue(true, Shop.FieldNo("Staff Members Enabled"));
+        ShopDataTransfer.AddConstantValue(true, Shop.FieldNo("Has Advanced Shopify Plan"));
         ShopDataTransfer.UpdateAuditFields := false;
         ShopDataTransfer.CopyFields();
 
-        UpgradeTag.SetUpgradeTag(GetStaffMembersEnabledUpgradeTag());
+        UpgradeTag.SetUpgradeTag(GetHasAdvancedShopifyPlanUpgradeTag());
     end;
 
     internal procedure GetAllowOutgoingRequestseUpgradeTag(): Code[250]
@@ -590,9 +590,9 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         exit('MS-610671-OrderTransactionShopCodeUpgrade-20251022');
     end;
 
-    local procedure GetStaffMembersEnabledUpgradeTag(): Code[250]
+    local procedure GetHasAdvancedShopifyPlanUpgradeTag(): Code[250]
     begin
-        exit('MS-630316-StaffMembersEnabledUpgrade-20260408');
+        exit('MS-630316-HasAdvancedShopifyPlanUpgrade-20260408');
     end;
 
     local procedure GetDateBeforeFeature(): DateTime
@@ -614,6 +614,6 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         PerCompanyUpgradeTags.Add(GetShopifyCatalogsTypeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetCreateInvoicesFromOrdersUpgradeTag());
         PerCompanyUpgradeTags.Add(GetOrderTransactionShopCodeUpgradeTag());
-        PerCompanyUpgradeTags.Add(GetStaffMembersEnabledUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetHasAdvancedShopifyPlanUpgradeTag());
     end;
 }
