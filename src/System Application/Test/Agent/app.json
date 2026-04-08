@@ -1,6 +1,6 @@
 {
   "id": "a8c7f9d2-4e5b-4a1c-9f8e-6d3b2a1c4e5f",
-  "name": "Agent SDK Tests",
+  "name": "Agent Test",
   "publisher": "Microsoft",
   "brief": "Comprehensive test suite for validating Agent SDK functionality.",
   "description": "The Agent SDK Tests app provides extensive automated testing for the Agent SDK functionality. Includes unit tests for agent operations, API validation, and agent lifecycle management. Features test coverage for error scenarios, warning conditions, successful operations, and edge cases to ensure reliable agent SDK workflows.",
