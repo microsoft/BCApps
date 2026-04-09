@@ -26,10 +26,8 @@ codeunit 139544 "Trial Balance Excel Reports"
 
     var
         LibraryERM: Codeunit "Library - ERM";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
-        LibrarySales: Codeunit "Library - Sales";
         Assert: Codeunit Assert;
         DocumentTypeShouldBeInvoiceErr: Label 'Document Type should be Invoice';
         DocumentNoShouldMatchErr: Label 'Document No should match the ledger entry';
@@ -685,7 +683,8 @@ codeunit 139544 "Trial Balance Excel Reports"
         InitializeAgingData();
 
         // [GIVEN] Vendor "V" with an open vendor ledger entry of type Invoice
-        LibraryPurchase.CreateVendor(Vendor);
+        // Create vendor directly to avoid VAT posting setup requirements in some localizations
+        CreateMinimalVendor(Vendor);
         CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
         Commit();
 
@@ -721,7 +720,8 @@ codeunit 139544 "Trial Balance Excel Reports"
         InitializeAgingData();
 
         // [GIVEN] Customer "C" with an open customer ledger entry of type Invoice
-        LibrarySales.CreateCustomer(Customer);
+        // Create customer directly to avoid VAT posting setup requirements in some localizations
+        CreateMinimalCustomer(Customer);
         CreateCustLedgerEntry(CustLedgerEntry, Customer."No.", "Gen. Journal Document Type"::Invoice);
         Commit();
 
@@ -879,6 +879,22 @@ codeunit 139544 "Trial Balance Excel Reports"
         CustLedgerEntry.DeleteAll();
         Vendor.DeleteAll();
         Customer.DeleteAll();
+    end;
+
+    local procedure CreateMinimalVendor(var Vendor: Record Vendor)
+    begin
+        Vendor.Init();
+        Vendor."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Vendor."No."));
+        Vendor.Name := Vendor."No.";
+        Vendor.Insert();
+    end;
+
+    local procedure CreateMinimalCustomer(var Customer: Record Customer)
+    begin
+        Customer.Init();
+        Customer."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Customer."No."));
+        Customer.Name := Customer."No.";
+        Customer.Insert();
     end;
 
     local procedure CreateVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
