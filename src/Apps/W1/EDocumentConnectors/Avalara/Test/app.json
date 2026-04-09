@@ -78,6 +78,6 @@
     "TranslationFile"
   ],
   "resourceFolders": [
-    "HttpResponseFiles"
+    ".resources"
   ]
 }

@@ -9,8 +9,11 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Setup;
 using System.Threading;
 using System.Utilities;
 
@@ -920,7 +923,11 @@ codeunit 148192 "Extended Integration Tests"
         GeneralLedgerSetup.Get();
         PrevVATReportingDateValue := GeneralLedgerSetup."VAT Reporting Date Usage";
         GeneralLedgerSetup."VAT Reporting Date Usage" := Enum::"VAT Reporting Date Usage"::Disabled;
+        if GeneralLedgerSetup."LCY Code" = '' then
+            GeneralLedgerSetup."LCY Code" := 'GBP';
         GeneralLedgerSetup.Modify();
+
+        EnsureSetupNumberSeries();
 
         // Clean up token between runs
         if ConnectionSetup.Get() then
@@ -939,6 +946,8 @@ codeunit 148192 "Extended Integration Tests"
         CompanyInformation.Get();
         OriginalVATNumber := CompanyInformation."VAT Registration No.";
         CompanyInformation."VAT Registration No." := 'GB777777771';
+        if CompanyInformation.Name = '' then
+            CompanyInformation.Name := 'Test Company';
         CompanyInformation.Modify();
 
         // Ensure mandate exists with correct state on every test run
@@ -949,15 +958,99 @@ codeunit 148192 "Extended Integration Tests"
         ActivationMandate.Activated := true;
         ActivationMandate.Insert(true);
 
+        // Detect rollback from a previous failed test and force re-init
+        if IsInitialized then
+            if not Customer.Get(Customer."No.") then
+                IsInitialized := false;
+
         if IsInitialized then
             exit;
 
         LibraryEDocument.SetupStandardVAT();
         LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
         EDocumentService."Avalara Mandate" := 'GB-Test-Mandate';
+        EnsureCountryISOCode(Customer."Country/Region Code");
+        EnsurePostingSetup();
         EDocumentService.Modify();
 
         IsInitialized := true;
+    end;
+
+    local procedure EnsurePostingSetup()
+    var
+        GenProdPostingGroup: Record "Gen. Product Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        Item: Record Item;
+    begin
+        if not GenProdPostingGroup.FindSet() then
+            exit;
+        repeat
+            if not GeneralPostingSetup.Get(Customer."Gen. Bus. Posting Group", GenProdPostingGroup.Code) then begin
+                GeneralPostingSetup.Init();
+                GeneralPostingSetup.Validate("Gen. Bus. Posting Group", Customer."Gen. Bus. Posting Group");
+                GeneralPostingSetup.Validate("Gen. Prod. Posting Group", GenProdPostingGroup.Code);
+                GeneralPostingSetup.Insert(true);
+            end;
+            if GeneralPostingSetup."Sales Account" = '' then begin
+                GeneralPostingSetup."Sales Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Sales Credit Memo Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Sales Line Disc. Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."COGS Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Purch. Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Purch. Credit Memo Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Inventory Adjmt. Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup.Modify(true);
+            end;
+        until GenProdPostingGroup.Next() = 0;
+
+        Item.SetFilter("Inventory Posting Group", '<>%1', '');
+        if Item.FindSet() then
+            repeat
+                if not InventoryPostingSetup.Get('', Item."Inventory Posting Group") then begin
+                    InventoryPostingSetup.Init();
+                    InventoryPostingSetup."Location Code" := '';
+                    InventoryPostingSetup."Invt. Posting Group Code" := Item."Inventory Posting Group";
+                    InventoryPostingSetup."Inventory Account" := LibraryERM.CreateGLAccountNo();
+                    InventoryPostingSetup.Insert(true);
+                end else
+                    if InventoryPostingSetup."Inventory Account" = '' then begin
+                        InventoryPostingSetup."Inventory Account" := LibraryERM.CreateGLAccountNo();
+                        InventoryPostingSetup.Modify(true);
+                    end;
+            until Item.Next() = 0;
+    end;
+
+    local procedure EnsureCountryISOCode(CountryCode: Code[10])
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        if CountryRegion.Get(CountryCode) then
+            if CountryRegion."ISO Code" = '' then begin
+                CountryRegion."ISO Code" := 'GB';
+                CountryRegion."ISO Numeric Code" := '826';
+                CountryRegion.Modify();
+            end;
+    end;
+
+    local procedure EnsureSetupNumberSeries()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        if not SalesReceivablesSetup.Get() then begin
+            SalesReceivablesSetup.Init();
+            SalesReceivablesSetup.Insert();
+        end;
+        if SalesReceivablesSetup."Invoice Nos." = '' then
+            SalesReceivablesSetup."Invoice Nos." := LibraryERM.CreateNoSeriesCode();
+        if SalesReceivablesSetup."Credit Memo Nos." = '' then
+            SalesReceivablesSetup."Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
+        if SalesReceivablesSetup."Posted Invoice Nos." = '' then
+            SalesReceivablesSetup."Posted Invoice Nos." := LibraryERM.CreateNoSeriesCode();
+        if SalesReceivablesSetup."Posted Credit Memo Nos." = '' then
+            SalesReceivablesSetup."Posted Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
+        SalesReceivablesSetup.Modify(true);
     end;
 
     local procedure MockServiceGuid(): Text
@@ -991,11 +1084,11 @@ codeunit 148192 "Extended Integration Tests"
     internal procedure HttpSubmitHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         Regex: Codeunit Regex;
-        CompaniesFileTok: Label 'Companies.txt', Locked = true;
-        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
-        DownloadDocumentFileTok: Label 'DownloadDocument.txt', Locked = true;
-        GetDocumentsFileTok: Label 'GetDocuments.txt', Locked = true;
-        SubmitDocumentFileTok: Label 'SubmitDocument.txt', Locked = true;
+        CompaniesFileTok: Label 'HttpResponseFiles/Companies.txt', Locked = true;
+        ConnectTokenFileTok: Label 'HttpResponseFiles/ConnectToken.txt', Locked = true;
+        DownloadDocumentFileTok: Label 'HttpResponseFiles/DownloadDocument.txt', Locked = true;
+        GetDocumentsFileTok: Label 'HttpResponseFiles/GetDocuments.txt', Locked = true;
+        SubmitDocumentFileTok: Label 'HttpResponseFiles/SubmitDocument.txt', Locked = true;
     begin
         case true of
             Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
@@ -1030,7 +1123,7 @@ codeunit 148192 "Extended Integration Tests"
     internal procedure Http401Handler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         Regex: Codeunit Regex;
-        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
+        ConnectTokenFileTok: Label 'HttpResponseFiles/ConnectToken.txt', Locked = true;
     begin
         case true of
             Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
@@ -1046,7 +1139,7 @@ codeunit 148192 "Extended Integration Tests"
     internal procedure Http503Handler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         Regex: Codeunit Regex;
-        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
+        ConnectTokenFileTok: Label 'HttpResponseFiles/ConnectToken.txt', Locked = true;
     begin
         case true of
             Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
@@ -1062,7 +1155,7 @@ codeunit 148192 "Extended Integration Tests"
     internal procedure Http400Handler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         Regex: Codeunit Regex;
-        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
+        ConnectTokenFileTok: Label 'HttpResponseFiles/ConnectToken.txt', Locked = true;
     begin
         case true of
             Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
@@ -1078,7 +1171,7 @@ codeunit 148192 "Extended Integration Tests"
     internal procedure Http403Handler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         Regex: Codeunit Regex;
-        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
+        ConnectTokenFileTok: Label 'HttpResponseFiles/ConnectToken.txt', Locked = true;
     begin
         case true of
             Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
@@ -1094,8 +1187,8 @@ codeunit 148192 "Extended Integration Tests"
     internal procedure HttpCreditMemoSubmitHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         Regex: Codeunit Regex;
-        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
-        SubmitDocumentCreditMemoFileTok: Label 'SubmitDocumentCreditMemo.txt', Locked = true;
+        ConnectTokenFileTok: Label 'HttpResponseFiles/ConnectToken.txt', Locked = true;
+        SubmitDocumentCreditMemoFileTok: Label 'HttpResponseFiles/SubmitDocumentCreditMemo.txt', Locked = true;
     begin
         case true of
             Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
@@ -1116,8 +1209,8 @@ codeunit 148192 "Extended Integration Tests"
     internal procedure HttpSubmitThenStatusErrorHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         Regex: Codeunit Regex;
-        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
-        SubmitDocumentFileTok: Label 'SubmitDocument.txt', Locked = true;
+        ConnectTokenFileTok: Label 'HttpResponseFiles/ConnectToken.txt', Locked = true;
+        SubmitDocumentFileTok: Label 'HttpResponseFiles/SubmitDocument.txt', Locked = true;
     begin
         case true of
             Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
@@ -1169,9 +1262,9 @@ codeunit 148192 "Extended Integration Tests"
 
     local procedure GetStatusResponse(var Response: TestHttpResponseMessage)
     var
-        GetResponseCompleteFileTok: Label 'GetResponseComplete.txt', Locked = true;
-        GetResponseErrorFileTok: Label 'GetResponseError.txt', Locked = true;
-        GetResponsePendingFileTok: Label 'GetResponsePending.txt', Locked = true;
+        GetResponseCompleteFileTok: Label 'HttpResponseFiles/GetResponseComplete.txt', Locked = true;
+        GetResponseErrorFileTok: Label 'HttpResponseFiles/GetResponseError.txt', Locked = true;
+        GetResponsePendingFileTok: Label 'HttpResponseFiles/GetResponsePending.txt', Locked = true;
     begin
         case DocumentStatus of
             DocumentStatus::Completed:
@@ -1187,8 +1280,8 @@ codeunit 148192 "Extended Integration Tests"
 
     local procedure GetCreditMemoStatusResponse(var Response: TestHttpResponseMessage)
     var
-        GetResponseCompleteCreditMemoFileTok: Label 'GetResponseCompleteCreditMemo.txt', Locked = true;
-        GetResponsePendingFileTok: Label 'GetResponsePending.txt', Locked = true;
+        GetResponseCompleteCreditMemoFileTok: Label 'HttpResponseFiles/GetResponseCompleteCreditMemo.txt', Locked = true;
+        GetResponsePendingFileTok: Label 'HttpResponseFiles/GetResponsePending.txt', Locked = true;
     begin
         case DocumentStatus of
             DocumentStatus::Completed:
@@ -1209,6 +1302,7 @@ codeunit 148192 "Extended Integration Tests"
         EDocumentService: Record "E-Document Service";
         Assert: Codeunit Assert;
         LibraryEDocument: Codeunit "Library - E-Document";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryJobQueue: Codeunit "Library - Job Queue";
         LibraryPermission: Codeunit "Library - Lower Permissions";
         IsInitialized: Boolean;

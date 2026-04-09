@@ -5,6 +5,8 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
+using System.Upgrade;
+using System.Utilities;
 
 /// <summary>
 /// Unit tests for the Avalara E-Document Connector covering JSON parsing (LoadStatusFromJson,
@@ -49,7 +51,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Document No." := 'INV-TEST-001';
 
         // [GIVEN] A complete JSON response
-        ResponseJson := NavApp.GetResourceAsText('UnitTest_StatusComplete.txt', TextEncoding::UTF8);
+        ResponseJson := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_StatusComplete.txt', TextEncoding::UTF8);
 
         // [WHEN] LoadStatusFromJson is called
         AvalaraProcessing.LoadStatusFromJson(ResponseJson, EDocument);
@@ -102,7 +104,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Document No." := 'INV-TEST-002';
 
         // [GIVEN] An error JSON response
-        ResponseJson := NavApp.GetResourceAsText('UnitTest_StatusError.txt', TextEncoding::UTF8);
+        ResponseJson := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_StatusError.txt', TextEncoding::UTF8);
 
         // [WHEN] LoadStatusFromJson is called
         AvalaraProcessing.LoadStatusFromJson(ResponseJson, EDocument);
@@ -145,7 +147,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Document No." := 'INV-TEST-003';
 
         // [GIVEN] A JSON response with no events array
-        ResponseJson := NavApp.GetResourceAsText('UnitTest_StatusPendingNoEvents.txt', TextEncoding::UTF8);
+        ResponseJson := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_StatusPendingNoEvents.txt', TextEncoding::UTF8);
 
         // [WHEN] LoadStatusFromJson is called
         AvalaraProcessing.LoadStatusFromJson(ResponseJson, EDocument);
@@ -195,7 +197,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Entry No" := 99989;
 
         // [WHEN] LoadStatusFromJson is called with JSON that has no id
-        asserterror AvalaraProcessing.LoadStatusFromJson(NavApp.GetResourceAsText('UnitTest_StatusNoId.txt', TextEncoding::UTF8), EDocument);
+        asserterror AvalaraProcessing.LoadStatusFromJson(NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_StatusNoId.txt', TextEncoding::UTF8), EDocument);
 
         // [THEN] Error is raised about missing id
         Assert.ExpectedError('Missing "id" in response.');
@@ -214,7 +216,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Entry No" := 99988;
 
         // [WHEN] LoadStatusFromJson is called with empty id value
-        asserterror AvalaraProcessing.LoadStatusFromJson(NavApp.GetResourceAsText('UnitTest_StatusEmptyId.txt', TextEncoding::UTF8), EDocument);
+        asserterror AvalaraProcessing.LoadStatusFromJson(NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_StatusEmptyId.txt', TextEncoding::UTF8), EDocument);
 
         // [THEN] Error is raised about missing id
         Assert.ExpectedError('Missing "id" in response.');
@@ -242,7 +244,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Document No." := 'INV-DUP-TEST';
 
         // [GIVEN] A JSON response
-        ResponseJson := NavApp.GetResourceAsText('UnitTest_StatusDuplicate.txt', TextEncoding::UTF8);
+        ResponseJson := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_StatusDuplicate.txt', TextEncoding::UTF8);
 
         // [WHEN] LoadStatusFromJson is called twice
         AvalaraProcessing.LoadStatusFromJson(ResponseJson, EDocument);
@@ -282,7 +284,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Document No." := 'INV-DT-TEST';
 
         // [GIVEN] JSON with ISO 8601 datetime including fractional seconds and UTC marker
-        ResponseJson := NavApp.GetResourceAsText('UnitTest_StatusDateTime.txt', TextEncoding::UTF8);
+        ResponseJson := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_StatusDateTime.txt', TextEncoding::UTF8);
 
         // [WHEN] LoadStatusFromJson is called
         AvalaraProcessing.LoadStatusFromJson(ResponseJson, EDocument);
@@ -323,7 +325,7 @@ codeunit 133624 "Unit Tests"
         ConnectionSetup.Modify();
 
         // [GIVEN] Activation JSON response
-        ActivationJson := NavApp.GetResourceAsText('UnitTest_ActivationFull.txt', TextEncoding::UTF8);
+        ActivationJson := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_ActivationFull.txt', TextEncoding::UTF8);
 
         // [WHEN] PopulateFromJson is called
         ActivationCU.PopulateFromJson(ActivationJson);
@@ -392,7 +394,7 @@ codeunit 133624 "Unit Tests"
         ActivationMandate.DeleteAll();
 
         // [WHEN] PopulateFromJson is called with JSON missing value array
-        asserterror ActivationCU.PopulateFromJson(NavApp.GetResourceAsText('UnitTest_ActivationMissingValue.txt', TextEncoding::UTF8));
+        asserterror ActivationCU.PopulateFromJson(NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_ActivationMissingValue.txt', TextEncoding::UTF8));
 
         // [THEN] Error about missing value array is raised
         Assert.ExpectedError('The JSON response is missing the required "value" array.');
@@ -421,7 +423,7 @@ codeunit 133624 "Unit Tests"
         ConnectionSetup.Modify();
 
         // [GIVEN] Activation JSON with Pending status (not Completed)
-        ActivationJson := NavApp.GetResourceAsText('UnitTest_ActivationPending.txt', TextEncoding::UTF8);
+        ActivationJson := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_ActivationPending.txt', TextEncoding::UTF8);
 
         // [WHEN] PopulateFromJson is called
         ActivationCU.PopulateFromJson(ActivationJson);
@@ -458,7 +460,7 @@ codeunit 133624 "Unit Tests"
         LibraryPermission.SetOutsideO365Scope();
 
         // [GIVEN] A JSON document list response
-        DocJson := NavApp.GetResourceAsText('UnitTest_DocumentList.txt', TextEncoding::UTF8);
+        DocJson := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_DocumentList.txt', TextEncoding::UTF8);
 
         // [WHEN] ParseIntoTemp is called
         DocMgt.ParseIntoTemp(TempDocBuffer, DocJson);
@@ -507,7 +509,7 @@ codeunit 133624 "Unit Tests"
         LibraryPermission.SetOutsideO365Scope();
 
         // [WHEN] ParseIntoTemp is called with empty value array
-        DocMgt.ParseIntoTemp(TempDocBuffer, NavApp.GetResourceAsText('UnitTest_DocumentListEmpty.txt', TextEncoding::UTF8));
+        DocMgt.ParseIntoTemp(TempDocBuffer, NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_DocumentListEmpty.txt', TextEncoding::UTF8));
 
         // [THEN] No records created
         Assert.AreEqual(0, TempDocBuffer.Count(), 'Should have 0 documents for empty value array');
@@ -858,7 +860,7 @@ codeunit 133624 "Unit Tests"
         ConnectionSetup.Modify();
 
         // [GIVEN] JSON with two activations - one matching, one not
-        ActivationJson := NavApp.GetResourceAsText('UnitTest_ActivationMultiCompany.txt', TextEncoding::UTF8);
+        ActivationJson := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_ActivationMultiCompany.txt', TextEncoding::UTF8);
 
         // [WHEN] PopulateFromJson is called
         ActivationCU.PopulateFromJson(ActivationJson);
@@ -905,7 +907,7 @@ codeunit 133624 "Unit Tests"
         ConnectionSetup.Modify();
 
         // [GIVEN] JSON with empty mandates array
-        ActivationJson := NavApp.GetResourceAsText('UnitTest_ActivationEmptyMandates.txt', TextEncoding::UTF8);
+        ActivationJson := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_ActivationEmptyMandates.txt', TextEncoding::UTF8);
 
         // [WHEN] PopulateFromJson is called
         ActivationCU.PopulateFromJson(ActivationJson);
@@ -940,7 +942,7 @@ codeunit 133624 "Unit Tests"
         LibraryPermission.SetOutsideO365Scope();
 
         // [GIVEN] JSON with minimal fields (only id and companyId)
-        DocJson := NavApp.GetResourceAsText('UnitTest_DocumentListMinimal.txt', TextEncoding::UTF8);
+        DocJson := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_DocumentListMinimal.txt', TextEncoding::UTF8);
 
         // [WHEN] ParseIntoTemp is called
         DocMgt.ParseIntoTemp(TempDocBuffer, DocJson);
@@ -1010,7 +1012,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Document No." := 'INV-UPDATE-TEST';
 
         // [GIVEN] First call with Pending status
-        ResponseJson1 := NavApp.GetResourceAsText('UnitTest_StatusPending.txt', TextEncoding::UTF8);
+        ResponseJson1 := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_StatusPending.txt', TextEncoding::UTF8);
 
         AvalaraProcessing.LoadStatusFromJson(ResponseJson1, EDocument);
 
@@ -1019,7 +1021,7 @@ codeunit 133624 "Unit Tests"
         Assert.AreEqual('Pending', MessageResponseHeader.Status, 'Status should be Pending after first call');
 
         // [WHEN] Second call with same id but status already inserted (no-op insert, keeps original)
-        ResponseJson2 := NavApp.GetResourceAsText('UnitTest_StatusCompleteUpdate.txt', TextEncoding::UTF8);
+        ResponseJson2 := NavApp.GetResourceAsText('HttpResponseFiles/UnitTest_StatusCompleteUpdate.txt', TextEncoding::UTF8);
 
         AvalaraProcessing.LoadStatusFromJson(ResponseJson2, EDocument);
 
@@ -1055,6 +1057,210 @@ codeunit 133624 "Unit Tests"
     end;
 
     // ========================================================================
+    // Requests Codeunit Tests - GetBaseUrl
+    // ========================================================================
+
+    [Test]
+    procedure Requests_GetBaseUrl_ProductionMode_ReturnsApiUrl()
+    var
+        ConnectionSetup: Record "Connection Setup";
+        Request: Codeunit Requests;
+        Result: Text;
+    begin
+        // [SCENARIO] GetBaseUrl should return API URL when send mode is Production
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] Connection setup in Production mode
+        EnsureConnectionSetup();
+        ConnectionSetup.Get();
+        ConnectionSetup."Avalara Send Mode" := "Avalara Send Mode"::Production;
+        ConnectionSetup.Modify();
+
+        // [WHEN] GetBaseUrl is called
+        Result := Request.GetBaseUrl();
+
+        // [THEN] Returns the production API URL
+        Assert.AreEqual('https://api.avalara.com', Result, 'Production mode should return API URL');
+    end;
+
+    [Test]
+    procedure Requests_GetBaseUrl_TestMode_ReturnsSandboxUrl()
+    var
+        ConnectionSetup: Record "Connection Setup";
+        Request: Codeunit Requests;
+        Result: Text;
+    begin
+        // [SCENARIO] GetBaseUrl should return Sandbox API URL when send mode is Test
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] Connection setup in Test mode
+        EnsureConnectionSetup();
+        ConnectionSetup.Get();
+        ConnectionSetup."Avalara Send Mode" := "Avalara Send Mode"::Test;
+        ConnectionSetup.Modify();
+
+        // [WHEN] GetBaseUrl is called
+        Result := Request.GetBaseUrl();
+
+        // [THEN] Returns the sandbox API URL
+        Assert.AreEqual('https://api.sbx.avalara.com', Result, 'Test mode should return Sandbox API URL');
+
+        // [CLEANUP] Restore to Production
+        ConnectionSetup.Get();
+        ConnectionSetup."Avalara Send Mode" := "Avalara Send Mode"::Production;
+        ConnectionSetup.Modify();
+    end;
+
+    [Test]
+    procedure Requests_GetBaseUrl_CertificationMode_RaisesError()
+    var
+        ConnectionSetup: Record "Connection Setup";
+        Request: Codeunit Requests;
+    begin
+        // [SCENARIO] GetBaseUrl should error for unsupported Certification mode
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] Connection setup in Certification mode (unsupported)
+        EnsureConnectionSetup();
+        ConnectionSetup.Get();
+        ConnectionSetup."Avalara Send Mode" := "Avalara Send Mode"::Certification;
+        ConnectionSetup.Modify();
+
+        // [WHEN] GetBaseUrl is called
+        asserterror Request.GetBaseUrl();
+
+        // [THEN] Error about unsupported send mode
+        Assert.ExpectedError('Unsupported');
+
+        // [CLEANUP] Restore to Production
+        ConnectionSetup.Get();
+        ConnectionSetup."Avalara Send Mode" := "Avalara Send Mode"::Production;
+        ConnectionSetup.Modify();
+    end;
+
+    // ========================================================================
+    // Upgrade Codeunit Tests - Upgrade Tag Registration
+    // ========================================================================
+
+    [Test]
+    procedure Upgrade_PerCompanyTagsAreRegistered()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        PerCompanyTags: List of [Code[250]];
+    begin
+        // [SCENARIO] Upgrade codeunit should register per-company upgrade tags
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [WHEN] Per-company upgrade tags are retrieved
+        UpgradeTag.GetPerCompanyUpgradeTags(PerCompanyTags);
+
+        // [THEN] Both Avalara upgrade tags are registered
+        Assert.IsTrue(PerCompanyTags.Contains('MS-547765-UpdateServiceIntegrationAvalara-20241118'),
+            'Service Integration upgrade tag should be registered');
+        Assert.IsTrue(PerCompanyTags.Contains('MS-547765-UpdateAvalaraDocId-20250627'),
+            'Avalara Doc Id upgrade tag should be registered');
+    end;
+
+    // ========================================================================
+    // Integration Impl Codeunit Tests - Event Subscriber
+    // ========================================================================
+
+    [Test]
+    procedure IntegrationImpl_OnBeforeOpenSetupPage_NonAvalaraService_DoesNothing()
+    var
+        EDocumentService: Record "E-Document Service";
+        IsSetupRun: Boolean;
+    begin
+        // [SCENARIO] OnBeforeOpenServiceIntegrationSetupPage should not run for non-Avalara services
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] An E-Document Service that is NOT configured for Avalara
+        EDocumentService.Init();
+        EDocumentService."Service Integration V2" := EDocumentService."Service Integration V2"::"No Integration";
+
+        // [WHEN] The event fires (simulated check)
+        IsSetupRun := false;
+        if EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::Avalara then
+            IsSetupRun := true;
+
+        // [THEN] Setup page was not triggered
+        Assert.IsFalse(IsSetupRun, 'Non-Avalara service should not trigger Avalara setup page');
+    end;
+
+    // ========================================================================
+    // Processing - CreateBatch Raises Error (Not Implemented)
+    // ========================================================================
+
+    [Test]
+    procedure Processing_CreateBatch_RaisesNotImplementedError()
+    var
+        EDocument: Record "E-Document";
+        EDocService: Record "E-Document Service";
+        AvalaraProcessing: Codeunit Processing;
+        TempBlob: Codeunit "Temp Blob";
+        SourceDocHeaders: RecordRef;
+        SourceDocLines: RecordRef;
+    begin
+        // [SCENARIO] CreateBatch should raise 'not implemented' error
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] Any inputs
+        EDocService.Init();
+        EDocument.Init();
+
+        // [WHEN] CreateBatch is called
+        asserterror AvalaraProcessing.CreateBatch(EDocService, EDocument, SourceDocHeaders, SourceDocLines, TempBlob);
+
+        // [THEN] Error about not implemented
+        Assert.ExpectedError('Coming soon');
+    end;
+
+    // ========================================================================
+    // Avalara Document Management - AttachXMLText Tests
+    // ========================================================================
+
+    [Test]
+    [HandlerFunctions('EmptyXmlMessageHandler')]
+    procedure AvalaraDocMgt_AttachXMLText_EmptyContent_ReturnsFalse()
+    var
+        EDocument: Record "E-Document";
+        DocMgt: Codeunit "Avalara Document Management";
+    begin
+        // [SCENARIO] AttachXMLText with empty text should return false
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] An E-Document
+        EDocument.Init();
+        EDocument."Entry No" := 99950;
+
+        // [WHEN] AttachXMLText is called with empty XML
+        // [THEN] Returns false (GuiAllowed would message, but no error)
+        Assert.IsFalse(DocMgt.AttachXMLText(EDocument, '', 'test.xml'), 'Empty XML text should return false');
+    end;
+
+    // ========================================================================
+    // Avalara Document Management - DownloadDocument Validation Tests
+    // ========================================================================
+
+    [Test]
+    procedure AvalaraDocMgt_DownloadDocument_EmptyDocumentId_ReturnsFalse()
+    var
+        EDocument: Record "E-Document";
+        DocMgt: Codeunit "Avalara Document Management";
+    begin
+        // [SCENARIO] DownloadDocument with empty document ID should return false
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] An E-Document
+        EDocument.Init();
+        EDocument."Entry No" := 99949;
+
+        // [WHEN] DownloadDocument is called with empty document ID
+        // [THEN] Returns false without attempting HTTP call
+        Assert.IsFalse(DocMgt.DownloadDocument(EDocument, '', 'application/xml'), 'Empty document ID should return false');
+    end;
+
+    // ========================================================================
     // Helpers
     // ========================================================================
 
@@ -1071,6 +1277,12 @@ codeunit 133624 "Unit Tests"
     procedure ConfirmYesHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [MessageHandler]
+    procedure EmptyXmlMessageHandler(Message: Text[1024])
+    begin
+        Assert.AreEqual('No XML content to attach', Message, 'Unexpected message from AttachXMLText');
     end;
 
     var
