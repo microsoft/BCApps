@@ -105,6 +105,35 @@ table 687 "Payment Practice Header"
         {
 
         }
+        field(15; "Reporting Scheme"; Enum "Paym. Prac. Reporting Scheme")
+        {
+            ToolTip = 'Specifies which reporting scheme is used, such as Standard, Dispute & Retention, or Small Business. Controls which fields and calculations apply.';
+        }
+        field(20; "Total Number of Payments"; Integer)
+        {
+            Editable = false;
+            ToolTip = 'Specifies the total number of payments made during the reporting period.';
+        }
+        field(21; "Total Amount of Payments"; Decimal)
+        {
+            Editable = false;
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            ToolTip = 'Specifies the total value of payments made during the reporting period.';
+        }
+        field(22; "Total Amt. of Overdue Payments"; Decimal)
+        {
+            Editable = false;
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            ToolTip = 'Specifies the total value of payments not made within the agreed payment terms.';
+        }
+        field(23; "Pct Overdue Due to Dispute"; Decimal)
+        {
+            Editable = false;
+            AutoFormatType = 0;
+            ToolTip = 'Specifies the percentage of payments not made within agreed terms that are due to disputes.';
+        }
     }
 
     keys
@@ -118,6 +147,7 @@ table 687 "Payment Practice Header"
     trigger OnInsert()
     begin
         UpdateNo();
+        DetectReportingScheme();
     end;
 
     trigger OnDelete()
@@ -168,4 +198,12 @@ table 687 "Payment Practice Header"
             if Rec."Starting Date" > Rec."Ending Date" then
                 Error(DateValidationErr);
     end;
+
+    local procedure DetectReportingScheme()
+    var
+        PaymentPeriodMgt: Codeunit "Payment Period Mgt.";
+    begin
+        "Reporting Scheme" := PaymentPeriodMgt.DetectReportingScheme();
+    end;
+
 }

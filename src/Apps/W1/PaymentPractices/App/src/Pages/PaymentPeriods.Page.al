@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+using System.Utilities;
+
 page 685 "Payment Periods"
 {
     ApplicationArea = Basic, Suite;
@@ -42,6 +44,36 @@ page 685 "Payment Periods"
 
     actions
     {
-    }
-}
+        area(Processing)
+        {
+            action(RestoreDefaults)
+            {
+                Caption = 'Restore Default Periods';
+                ToolTip = 'Deletes all payment periods and restores the default periods for the current environment.';
+                Image = Restore;
 
+                trigger OnAction()
+                var
+                    PaymentPeriod: Record "Payment Period";
+                    ConfirmManagement: Codeunit "Confirm Management";
+                begin
+                    if not ConfirmManagement.GetResponseOrDefault(RestoreDefaultsQst, false) then
+                        exit;
+
+                    PaymentPeriod.DeleteAll();
+                    PaymentPeriod.SetupDefaults();
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            actionref(RestoreDefaults_Promoted; RestoreDefaults)
+            {
+            }
+        }
+    }
+
+    var
+        RestoreDefaultsQst: Label 'This will replace all payment periods with the default periods for your environment. Do you want to continue?';
+}
