@@ -5,7 +5,6 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Journal;
 
 codeunit 99001503 "Subcontracting Comp. Init."
 {
@@ -53,7 +52,7 @@ codeunit 99001503 "Subcontracting Comp. Init."
         ReqWkshTemplate.Validate(Description, ReqWkshTempDescLbl);
         ReqWkshTemplate.Recurring := Recurring;
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
-        ReqWkshTemplate.Validate("Page ID", Page::"Subcontracting Worksheet");
+        ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
         ReqWkshTemplate.Insert(true);
     end;
 

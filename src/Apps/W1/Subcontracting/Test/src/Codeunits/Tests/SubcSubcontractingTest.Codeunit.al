@@ -19,7 +19,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Planning;
 using Microsoft.Manufacturing.ProductionBOM;
@@ -708,7 +707,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubManagementSetup: Record "Subc. Management Setup";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        CalculateSubContract: Report "Calculate Subcontracts";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         LibraryUtility: Codeunit "Library - Utility";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
@@ -763,9 +762,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
         RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
 
-        CalculateSubContract.SetWkShLine(RequisitionLine);
-        CalculateSubContract.UseRequestPage(false);
-        CalculateSubContract.RunModal();
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
 
         RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
@@ -849,7 +848,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         RoutingLink: Record "Routing Link";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        CalculateSubContract: Report "Calculate Subcontracts";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         LibraryUtility: Codeunit "Library - Utility";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
@@ -905,9 +904,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
         RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
 
-        CalculateSubContract.SetWkShLine(RequisitionLine);
-        CalculateSubContract.UseRequestPage(false);
-        CalculateSubContract.RunModal();
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
 
         RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
@@ -2179,7 +2178,7 @@ Comment = '|%1 = Transfer Order No.';
               Name, LibraryUtility.GenerateRandomCode(ReqWkshTemplate.FieldNo(Name), Database::"Req. Wksh. Template"));
             ReqWkshTemplate.Insert(true);
             ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
-            ReqWkshTemplate."Page ID" := Page::"Subcontracting Worksheet";
+            ReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
             ReqWkshTemplate.Modify(true);
         end;
         exit(ReqWkshTemplate.Name);

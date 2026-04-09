@@ -11,7 +11,6 @@ using Microsoft.Inventory.Setup;
 #endif
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
@@ -228,7 +227,7 @@ codeunit 139984 "Subc. Library Mfg. Management"
         ReqWkshTemplate.Validate(Description, ReqWkshTemplate.Name);  // Validate Description as Name because value is not important.
         ReqWkshTemplate.Recurring := Recurring;
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
-        ReqWkshTemplate.Validate("Page ID", Page::"Subcontracting Worksheet");
+        ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
         ReqWkshTemplate.Insert(true);
     end;
 

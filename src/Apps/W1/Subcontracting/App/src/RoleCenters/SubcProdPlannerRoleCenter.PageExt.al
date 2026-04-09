@@ -5,7 +5,6 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.RoleCenters;
 
 pageextension 99001538 "Subc. Prod. Planner RoleCenter" extends "Production Planner Role Center"
@@ -31,7 +30,7 @@ pageextension 99001538 "Subc. Prod. Planner RoleCenter" extends "Production Plan
                 ApplicationArea = Manufacturing;
                 Caption = 'Subcontracting &Worksheet';
                 Image = SubcontractingWorksheet;
-                RunObject = Page "Subcontracting Worksheet";
+                RunObject = Page "Subc. Subcontracting Worksheet";
                 ToolTip = 'Calculate the needed production supply, find the production orders that have material ready to send to a subcontractor, and automatically create purchase orders for subcontracted operations from production order routings.';
             }
         }

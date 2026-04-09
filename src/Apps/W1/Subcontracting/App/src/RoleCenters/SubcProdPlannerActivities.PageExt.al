@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.RoleCenters;
 
 pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Planner Activities"
@@ -22,7 +21,7 @@ pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Plan
                     {
                         ApplicationArea = Manufacturing;
                         Caption = 'Edit Subcontracting Worksheet';
-                        RunObject = Page "Subcontracting Worksheet";
+                        RunObject = Page "Subc. Subcontracting Worksheet";
                         ToolTip = 'Plan outsourcing of operation on released production orders.';
                     }
                 }
