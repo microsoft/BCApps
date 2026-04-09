@@ -253,12 +253,16 @@ Write-Host "Analyzing workflow run $RunId for instabilities..."
 
 # Step 1: Get the workflow run details
 $run = Get-WorkflowRun -RunId $RunId
-$currentAttempt = $run.run_attempt
-Write-Host "Current run attempt: $currentAttempt (max rerun attempts: $MaxRerunAttempts)"
 
-# Step 2: Check if we've already exceeded the maximum number of reruns
-if ($currentAttempt -gt $MaxRerunAttempts) {
-    Write-Host "::notice::Run has already been attempted $currentAttempt times (max: $MaxRerunAttempts). Skipping rerun."
+# run_attempt starts at 1 for the initial run. After each rerun it increments.
+# So if run_attempt is 3 and MaxRerunAttempts is 2, we've already done 2 reruns.
+$runAttempt = $run.run_attempt
+$rerunsDone = $runAttempt - 1
+Write-Host "Current run attempt: $runAttempt (reruns done: $rerunsDone, max reruns allowed: $MaxRerunAttempts)"
+
+# Step 2: Check if we've already used all allowed reruns
+if ($rerunsDone -ge $MaxRerunAttempts) {
+    Write-Host "::notice::Already rerun $rerunsDone time(s) (max: $MaxRerunAttempts). Skipping rerun."
     exit 0
 }
 
@@ -330,7 +334,7 @@ if ($allInstabilities) {
     $comment = @"
 ## 🔄 Automatic Rerun - Instability Detected
 
-The **Pull Request Build** workflow run [#$RunId](https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$RunId) (attempt $currentAttempt) failed with **$failedJobCount job(s)** identified as transient instabilities.
+The **Pull Request Build** workflow run [#$RunId](https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$RunId) (attempt $runAttempt) failed with **$failedJobCount job(s)** identified as transient instabilities.
 
 The failed jobs have been automatically rerun.
 
