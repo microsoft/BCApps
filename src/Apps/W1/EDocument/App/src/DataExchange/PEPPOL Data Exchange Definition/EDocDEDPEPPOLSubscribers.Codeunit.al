@@ -12,7 +12,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Peppol;
+using Microsoft.Peppol;
 using Microsoft.Service.History;
 using System.IO;
 using System.Utilities;
@@ -451,7 +451,7 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                             OriginCountryIdCode,
                             OriginCountryIdCodeListID);
 
-                        PEPPOLMgt.GetLineItemClassfiedTaxCategoryBIS(
+                        PEPPOLMgt.GetLineItemClassifiedTaxCategoryBIS(
                             SalesLine,
                             ClassifiedTaxCategoryID,
                             DummyVar,
@@ -631,7 +631,7 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                                 TempSalesLineRounding.TransferFields(SalesLine);
                                 TempSalesLineRounding.Insert();
                             end else begin
-                                PEPPOLMgt.GetTotals(SalesLine, TempVATAmtLine);
+                                PEPPOLMgt.GetTaxTotals(SalesLine, TempVATAmtLine);
                                 PEPPOLMgt.GetTaxCategories(SalesLine, TempVATProductPostingGroup);
                             end;
                         until SalesInvoiceLine.Next() = 0;
@@ -650,12 +650,12 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                     if ServiceInvoiceLine.FindSet() then
                         repeat
                             PEPPOLMgt.TransferLineToSalesLine(ServiceInvoiceLine, SalesLine);
-                            SalesLine.Type := ServPEPPOLMgt.MapServiceLineTypeToSalesLineType(ServiceInvoiceLine.Type);
+                            SalesLine.Type := PEPPOLMgt.MapServiceLineTypeToSalesLineType(ServiceInvoiceLine.Type);
                             if IsRoundingLine(SalesLine) then begin
                                 TempSalesLineRounding.TransferFields(SalesLine);
                                 TempSalesLineRounding.Insert();
                             end else begin
-                                PEPPOLMgt.GetTotals(SalesLine, TempVATAmtLine);
+                                PEPPOLMgt.GetTaxTotals(SalesLine, TempVATAmtLine);
                                 PEPPOLMgt.GetTaxCategories(SalesLine, TempVATProductPostingGroup);
                             end;
                         until ServiceInvoiceLine.Next() = 0;
@@ -678,7 +678,7 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                                 TempSalesLineRounding.TransferFields(SalesLine);
                                 TempSalesLineRounding.Insert();
                             end else begin
-                                PEPPOLMgt.GetTotals(SalesLine, TempVATAmtLine);
+                                PEPPOLMgt.GetTaxTotals(SalesLine, TempVATAmtLine);
                                 PEPPOLMgt.GetTaxCategories(SalesLine, TempVATProductPostingGroup);
                             end;
                         until SalesCrMemoLine.Next() = 0;
@@ -697,12 +697,12 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                     if ServiceCrMemoLine.FindSet() then
                         repeat
                             PEPPOLMgt.TransferLineToSalesLine(ServiceCrMemoLine, SalesLine);
-                            SalesLine.Type := ServPEPPOLMgt.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
+                            SalesLine.Type := PEPPOLMgt.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
                             if IsRoundingLine(SalesLine) then begin
                                 TempSalesLineRounding.TransferFields(SalesLine);
                                 TempSalesLineRounding.Insert();
                             end else begin
-                                PEPPOLMgt.GetTotals(SalesLine, TempVATAmtLine);
+                                PEPPOLMgt.GetTaxTotals(SalesLine, TempVATAmtLine);
                                 PEPPOLMgt.GetTaxCategories(SalesLine, TempVATProductPostingGroup);
                             end;
                         until ServiceCrMemoLine.Next() = 0;
@@ -738,7 +738,7 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                     ServiceInvoiceLine.FindFirst();
 
                     PEPPOLMgt.TransferLineToSalesLine(ServiceInvoiceLine, SalesLine);
-                    SalesLine.Type := ServPEPPOLMgt.MapServiceLineTypeToSalesLineType(ServiceInvoiceLine.Type);
+                    SalesLine.Type := PEPPOLMgt.MapServiceLineTypeToSalesLineType(ServiceInvoiceLine.Type);
                 end;
             ProcessedDocType::"Sales Credit Memo":
                 begin
@@ -754,7 +754,7 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                     ServiceCrMemoLine.FindFirst();
 
                     PEPPOLMgt.TransferLineToSalesLine(ServiceCrMemoLine, SalesLine);
-                    SalesLine.Type := ServPEPPOLMgt.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
+                    SalesLine.Type := PEPPOLMgt.MapServiceLineTypeToSalesLineType(ServiceCrMemoLine.Type);
                 end;
         end;
     end;
@@ -801,8 +801,7 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
 #pragma warning restore AL0432
         TempSalesLineRounding: Record "Sales Line" temporary;
         TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary;
-        PEPPOLMgt: Codeunit "PEPPOL Management";
-        ServPEPPOLMgt: Codeunit "Serv. PEPPOL Management";
+        PEPPOLMgt: Codeunit "PEPPOL30";
         ProcessedDocType: Enum "E-Document Type";
         DocumentAttachmentNumber, ProcessedDocTypeInt : Integer;
         AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, Filename, MimeCode, EmbeddedDocumentBinaryObject : Text;
