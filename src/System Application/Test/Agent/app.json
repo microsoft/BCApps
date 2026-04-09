@@ -1,0 +1,58 @@
+{
+  "id": "a8c7f9d2-4e5b-4a1c-9f8e-6d3b2a1c4e5f",
+  "name": "Agent Test",
+  "publisher": "Microsoft",
+  "brief": "Comprehensive test suite for validating Agent SDK functionality.",
+  "description": "The Agent SDK Tests app provides extensive automated testing for the Agent SDK functionality. Includes unit tests for agent operations, API validation, and agent lifecycle management. Features test coverage for error scenarios, warning conditions, successful operations, and edge cases to ensure reliable agent SDK workflows.",
+  "version": "29.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "95f7c0f8-d9b8-4538-80f9-6e17f6f7b91a",
+      "name": "Agent",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "e595541f-d183-4e93-910c-3eb99ed23c7b",
+      "name": "Default Role Center",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+        {
+      "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
+      "publisher": "Microsoft",
+      "name": "Any",
+      "version": "29.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "idRanges": [
+    {
+      "from": 133950,
+      "to": 133964
+    }
+  ],
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ],
+  "target": "OnPrem",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
+}

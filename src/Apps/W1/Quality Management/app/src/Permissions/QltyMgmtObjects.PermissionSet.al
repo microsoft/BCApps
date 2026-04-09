@@ -87,6 +87,7 @@ permissionset 20406 "QltyMgmt - Objects"
         codeunit "Qlty. Permission Mgmt." = X,
         codeunit "Qlty. Manufactur. Integration" = X,
         codeunit "Qlty. Assembly Integration" = X,
+        codeunit "Qlty. Batch Notif. Helper" = X,
         codeunit "Qlty. Demo Data Mgmt." = X,
         codeunit "Qlty. Receiving Integration" = X,
         codeunit "Qlty. Report Mgmt." = X,

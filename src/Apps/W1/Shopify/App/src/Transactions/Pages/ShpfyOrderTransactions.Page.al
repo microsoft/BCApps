@@ -39,6 +39,11 @@ page 30131 "Shpfy Order Transactions"
 
                     ToolTip = 'Specifies a unique identifier for the order.';
                 }
+                field(ShpfyOrderNo; Rec."Shpfy Order No.")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the order number from Shopify.';
+                }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = All;

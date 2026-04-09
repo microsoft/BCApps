@@ -4,7 +4,7 @@ Param(
 Import-Module (Join-Path $PSScriptRoot "../../../scripts/EnlistmentHelperFunctions.psm1" -Resolve)
 Import-Module (Join-Path $PSScriptRoot "../../../scripts/BuildOptimization.psm1" -Resolve)
 
-$baseFolder = (Join-Path $PSScriptRoot "../../.." -Resolve)
+$baseFolder = Get-BaseFolder
 if (Test-ShouldSkipTestApp -AppName $parameters["appName"] -BaseFolder $baseFolder) {
     return $true
 }

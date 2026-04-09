@@ -16,14 +16,70 @@ codeunit 139577 "Shpfy Test Locations"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
-    EventSubscriberInstance = Manual;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
+        Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
+        LibraryRandom: Codeunit "Library - Random";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         JData: JsonObject;
+        JLocationData: JsonObject;
         KnownIds: List of [Integer];
+        IsInitialized: Boolean;
+
+    local procedure Initialize()
+    var
+        AccessToken: SecretText;
+    begin
+        if IsInitialized then
+            exit;
+
+        Codeunit.Run(Codeunit::"Shpfy Initialize Test");
+        Shop := CommunicationMgt.GetShopRecord();
+
+        AccessToken := LibraryRandom.RandText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
+
+        IsInitialized := true;
+    end;
+
+    [HttpClientHandler]
+    internal procedure LocationsHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        RequestType: Text;
+        Body: Text;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        if OutboundHttpRequests.Length() = 0 then
+            exit(false);
+
+        RequestType := OutboundHttpRequests.DequeueText();
+        case RequestType of
+            'Locations':
+                Response.Content.WriteFrom(Format(JData));
+            'Location':
+                Response.Content.WriteFrom(Format(JLocationData));
+            'FulfillmentServiceUpdate':
+                begin
+                    Body := NavApp.GetResourceAsText('Locations/FulfillmentServiceUpdateResponse.txt', TextEncoding::UTF8);
+                    Response.Content.WriteFrom(GetFulfillmentServiceUpdateResponse(Body));
+                end;
+        end;
+        exit(false);
+    end;
+
+    local procedure GetFulfillmentServiceUpdateResponse(Body: Text): Text
+    var
+        SyncShopLocations: Codeunit "Shpfy Sync Shop Locations";
+    begin
+        exit(StrSubstNo(Body, SyncShopLocations.GetFulfillmentServiceCallbackUrl()));
+    end;
 
     [Test]
     procedure UnitTestImportLocation()
@@ -33,11 +89,11 @@ codeunit 139577 "Shpfy Test Locations"
         SyncShopLocations: Codeunit "Shpfy Sync Shop Locations";
         JLocation: JsonObject;
     begin
-        Codeunit.Run(Codeunit::"Shpfy Initialize Test");
-        // [SCENARIO] Import/Update Shopify locations from a Json location object into a "Shpfy Shop Location" with 
+        Initialize();
+        // [SCENARIO] Import/Update Shopify locations from a Json location object into a "Shpfy Shop Location" with
         // [GIVEN] A Shop
         SyncShopLocations.SetShop(CommunicationMgt.GetShopRecord());
-        // [GIVEN] A Shopify Location as an Jsonobject. 
+        // [GIVEN] A Shopify Location as an Jsonobject.
         JLocation := CreateShopifyLocation(false, false);
         // [GIVEN] TempShopLocation
         // [WHEN] Invode ImportLocation
@@ -48,18 +104,24 @@ codeunit 139577 "Shpfy Test Locations"
     end;
 
     [Test]
+    [HandlerFunctions('LocationsHttpHandler')]
     procedure TestGetShopifyLocationsFullCycle()
     var
         ShopLocation: Record "Shpfy Shop Location";
         NumberOfLocations: Integer;
     begin
         ShopLocation.DeleteAll();
-        Codeunit.Run(Codeunit::"Shpfy Initialize Test");
+        Initialize();
         // [SCENARIO] Invoke a REST API to get the locations from Shopify.
         // For the moking we will choose a random number between 1 and 5 to generate the number of locations that will be in the result set.
         // [GIVEN] The number of locations we want to have in the moking data.
         NumberOfLocations := Any.IntegerInRange(1, 5);
         CreateShopifyLocationsJson(NumberOfLocations);
+
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('Locations');
+
         // [WHEN] Invoke the request.
 
         // [THEN] The function return true if it was succesfull.
@@ -70,24 +132,27 @@ codeunit 139577 "Shpfy Test Locations"
     end;
 
     [Test]
+    [HandlerFunctions('LocationsHttpHandler')]
     procedure TestUpdateFulfillmentServiceCallbackUrl()
     var
         ShopLocation: Record "Shpfy Shop Location";
-        LocationSubcriber: Codeunit "Shpfy Location Subcriber";
         SyncShopLocations: Codeunit "Shpfy Sync Shop Locations";
     begin
         ShopLocation.DeleteAll();
-        Codeunit.Run(Codeunit::"Shpfy Initialize Test");
+        Initialize();
         // [SCENARIO] Update the Callback URL of an existing fulfillment service location.
         // [GIVEN] A Shop and fulfillment service location with empty Callback URL.
         SyncShopLocations.SetShop(CommunicationMgt.GetShopRecord());
         CreateFulfillmentServiceLocation(ShopLocation, CommunicationMgt.GetShopRecord());
-        LocationSubcriber.InitShopifyLocations(JData, CreateShopifyLocationJson());
-        BindSubscription(LocationSubcriber);
+        JLocationData := CreateShopifyLocationJson();
+
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('Location');
+        OutboundHttpRequests.Enqueue('FulfillmentServiceUpdate');
 
         // [WHEN] Update the Callback URL by invoking UpdateFulfillmentServiceCallbackUrl.
         SyncShopLocations.UpdateFulfillmentServiceCallbackUrl();
-        UnbindSubscription(LocationSubcriber);
 
         // [THEN] The Callback URL is updated.
         ShopLocation.Get(ShopLocation."Shop Code", ShopLocation.Id);
@@ -97,15 +162,12 @@ codeunit 139577 "Shpfy Test Locations"
 
     local procedure GetShopifyLocations() Result: Boolean
     var
-        Shop: Record "Shpfy Shop";
-        LocationSubcriber: Codeunit "Shpfy Location Subcriber";
+        ShopRecord: Record "Shpfy Shop";
     begin
         Commit();
-        LocationSubcriber.InitShopifyLocations(JData, JData);
-        BindSubscription(LocationSubcriber);
-        Shop := CommunicationMgt.GetShopRecord();
-        Result := Codeunit.Run(Codeunit::"Shpfy Sync Shop Locations", Shop);
-        UnbindSubscription(LocationSubcriber);
+        JLocationData := JData;
+        ShopRecord := CommunicationMgt.GetShopRecord();
+        Result := Codeunit.Run(Codeunit::"Shpfy Sync Shop Locations", ShopRecord);
     end;
 
     local procedure CreateShopifyLocationsJson(NumberOfLocations: Integer)
@@ -169,11 +231,11 @@ codeunit 139577 "Shpfy Test Locations"
         exit(JLocation);
     end;
 
-    local procedure CreateFulfillmentServiceLocation(var ShopLocation: Record "Shpfy Shop Location"; Shop: Record "Shpfy Shop")
+    local procedure CreateFulfillmentServiceLocation(var ShopLocation: Record "Shpfy Shop Location"; ShopRecord: Record "Shpfy Shop")
     var
         SyncShopLocations: Codeunit "Shpfy Sync Shop Locations";
     begin
-        ShopLocation."Shop Code" := Shop.Code;
+        ShopLocation."Shop Code" := ShopRecord.Code;
         ShopLocation.Id := Any.IntegerInRange(12354658, 99999999);
         ShopLocation.Name := CopyStr(SyncShopLocations.GetFulfillmentServiceName(), 1, MaxStrLen(ShopLocation.Name));
         ShopLocation."Is Fulfillment Service" := true;
