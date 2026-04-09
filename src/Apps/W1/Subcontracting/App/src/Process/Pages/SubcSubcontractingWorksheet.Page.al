@@ -239,6 +239,33 @@ page 99001504 "Subc. Subcontracting Worksheet"
                     ToolTip = 'Specifies whether the items on the line have been approved for purchase.';
                     Visible = false;
                 }
+                field("Standard Task Code"; Rec."Standard Task Code")
+                {
+                    ApplicationArea = Manufacturing;
+                    Editable = false;
+                }
+                field("Pricelist Cost"; Rec."Pricelist Cost")
+                {
+                    ApplicationArea = Manufacturing;
+                    Visible = false;
+                }
+                field("UoM for Pricelist"; Rec."UoM for Pricelist")
+                {
+                    ApplicationArea = Manufacturing;
+                    Visible = false;
+                }
+                field("PL UM Qty/Base UM Qty"; Rec."PL UM Qty/Base UM Qty")
+                {
+                    AutoFormatType = 0;
+                    ApplicationArea = Manufacturing;
+                    Visible = false;
+                }
+                field("Base UM Qty/PL UM Qty"; Rec."Base UM Qty/PL UM Qty")
+                {
+                    AutoFormatType = 0;
+                    ApplicationArea = Manufacturing;
+                    Visible = false;
+                }
             }
             group(Control20)
             {
