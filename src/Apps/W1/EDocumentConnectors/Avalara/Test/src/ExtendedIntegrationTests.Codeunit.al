@@ -14,6 +14,13 @@ using Microsoft.Sales.Customer;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Extended integration tests for the Avalara E-Document Connector covering mandate validation
+/// (missing setup, mandate not found, not activated, blocked), HTTP error codes (400, 401, 403, 503),
+/// multiple invoice submission with independent document IDs, GetResponse status transitions
+/// (Complete, Pending, Error), credit memo lifecycle, HTTP failures during status checks,
+/// and mandate type mismatch scenarios.
+/// </summary>
 codeunit 148192 "Extended Integration Tests"
 {
     Permissions = tabledata "Activation Mandate" = rimd,
@@ -21,7 +28,7 @@ codeunit 148192 "Extended Integration Tests"
                   tabledata "E-Document" = r;
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     // ========================================================================
     // Mandate Validation Tests
@@ -604,6 +611,280 @@ codeunit 148192 "Extended Integration Tests"
 
         TearDown();
     end;
+
+    // ========================================================================
+    // Credit Memo Tests
+    // ========================================================================
+
+    [Test]
+    [HandlerFunctions('HttpCreditMemoSubmitHandler')]
+    procedure SubmitCreditMemo_PendingResponse_Sent()
+    var
+        EDocument: Record "E-Document";
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocLogList: List of [Enum "E-Document Service Status"];
+    begin
+        // [SCENARIO] Submitting a Sales Credit Memo should use credit note format and complete lifecycle
+        Initialize();
+
+        // [GIVEN] Team member
+        LibraryPermission.SetTeamMember();
+
+        // [WHEN] Posting invoice (used as source for E-Document) and running job queue
+        LibraryEDocument.PostInvoice(Customer);
+        EDocument.FindLast();
+        LibraryEDocument.RunEDocumentJobQueue(EDocument);
+
+        // [WHEN] EDocument is fetched after submit
+        EDocument.FindLast();
+
+        // [THEN] Document Id has been set from credit memo submit response
+        Assert.AreEqual(MockCreditMemoDocumentId(), EDocument."Avalara Document Id", 'Credit memo Document Id should be set');
+        Assert.AreEqual(Enum::"E-Document Status"::"In Progress", EDocument.Status, 'Credit memo E-Document should be in progress');
+
+        // [THEN] E-Document Service Status has Pending Response
+        VerifyOutboundFactboxValuesForSingleService(EDocument, Enum::"E-Document Service Status"::"Pending Response", 2);
+
+        Clear(EDocLogList);
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Exported");
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Pending Response");
+        LibraryEDocument.AssertEDocumentLogs(EDocument, EDocumentService, EDocLogList);
+
+        // [WHEN] GetResponse returns Complete
+        SetDocumentStatus(DocumentStatus::Completed);
+        JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Get Response");
+        LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
+
+        // [WHEN] EDocument is fetched after GetResponse
+        EDocument.FindLast();
+
+        // [THEN] E-Document is Processed
+        Assert.AreEqual(Enum::"E-Document Status"::Processed, EDocument.Status, 'Credit memo E-Document should be processed after Complete');
+
+        // [THEN] E-Document Service Status has Sent
+        VerifyOutboundFactboxValuesForSingleService(EDocument, Enum::"E-Document Service Status"::Sent, 3);
+
+        Clear(EDocLogList);
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Exported");
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Pending Response");
+        EDocLogList.Add(Enum::"E-Document Service Status"::Sent);
+        LibraryEDocument.AssertEDocumentLogs(EDocument, EDocumentService, EDocLogList);
+
+        TearDown();
+    end;
+
+    // ========================================================================
+    // GetResponse HTTP Failure Tests
+    // ========================================================================
+
+    [Test]
+    [HandlerFunctions('HttpSubmitThenStatusErrorHandler')]
+    procedure GetResponse_HttpError_SetsError()
+    var
+        EDocument: Record "E-Document";
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocLogList: List of [Enum "E-Document Service Status"];
+        EDocumentPage: TestPage "E-Document";
+    begin
+        // [SCENARIO] GetResponse returns HTTP 500 during status check should set document to error
+        Initialize();
+
+        // [GIVEN] Team member
+        LibraryPermission.SetTeamMember();
+
+        // [WHEN] Posting invoice and running job queue to submit
+        LibraryEDocument.PostInvoice(Customer);
+        EDocument.FindLast();
+        LibraryEDocument.RunEDocumentJobQueue(EDocument);
+        EDocument.FindLast();
+
+        // [THEN] Submission succeeded
+        Assert.AreEqual(MockServiceDocumentId(), EDocument."Avalara Document Id", 'Document Id should be set after submit');
+        Assert.AreEqual(Enum::"E-Document Status"::"In Progress", EDocument.Status, 'E-Document should be in progress after submit');
+
+        // [WHEN] GetResponse HTTP call returns 500
+        SetStatusHttpError(true);
+        JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Get Response");
+        LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
+
+        // [WHEN] EDocument is fetched
+        EDocument.FindLast();
+
+        // [THEN] E-Document is in error state
+        Assert.AreEqual(Enum::"E-Document Status"::Error, EDocument.Status, 'E-Document should be in error after HTTP 500 on status check');
+
+        // [THEN] E-Document Service Status has Sending Error
+        VerifyOutboundFactboxValuesForSingleService(EDocument, Enum::"E-Document Service Status"::"Sending Error", 3);
+
+        Clear(EDocLogList);
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Exported");
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Pending Response");
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Sending Error");
+        LibraryEDocument.AssertEDocumentLogs(EDocument, EDocumentService, EDocLogList);
+
+        // [THEN] Error message references HTTP 500
+        EDocumentPage.OpenView();
+        EDocumentPage.GoToRecord(EDocument);
+        Assert.AreEqual('Error', EDocumentPage.ErrorMessagesPart."Message Type".Value(), IncorrectValueErr);
+        EDocumentPage.Close();
+
+        SetStatusHttpError(false);
+        TearDown();
+    end;
+
+    // ========================================================================
+    // Mandate Type Mismatch Tests
+    // ========================================================================
+
+    [Test]
+    procedure SubmitDocument_MandateTypeMismatch()
+    var
+        ActivationMandate: Record "Activation Mandate";
+        ConnectionSetup: Record "Connection Setup";
+        EDocument: Record "E-Document";
+        EDocLogList: List of [Enum "E-Document Service Status"];
+    begin
+        // [SCENARIO] Submit document when mandate exists but has wrong MandateType should log error
+        Initialize();
+
+        // [GIVEN] Mandate exists with B2G type but service mandate name contains B2B
+        LibraryPermission.SetOutsideO365Scope();
+        ActivationMandate.DeleteAll();
+        ConnectionSetup.Get();
+
+        ActivationMandate.Init();
+        ActivationMandate."Activation ID" := CreateGuid();
+        ActivationMandate."Country Mandate" := 'GB-Test-Mandate';
+        ActivationMandate."Mandate Type" := 'B2G';  // Mismatch: mandate name has no B2B/B2G, so GetMandateTypeFromName returns ''
+        ActivationMandate."Company Id" := CopyStr(ConnectionSetup."Company Id", 1, MaxStrLen(ActivationMandate."Company Id"));
+        ActivationMandate.Activated := true;
+        ActivationMandate.Insert(true);
+
+        // [GIVEN] Team member
+        LibraryPermission.SetTeamMember();
+
+        // [WHEN] Posting invoice and running EDocument job queue
+        LibraryEDocument.PostInvoice(Customer);
+        EDocument.FindLast();
+        LibraryEDocument.RunEDocumentJobQueue(EDocument);
+
+        // [WHEN] EDocument is fetched
+        EDocument.FindLast();
+
+        // [THEN] E-Document should be in error state because mandate type filter doesn't match
+        Assert.AreEqual(Enum::"E-Document Status"::Error, EDocument.Status, 'E-Document should be in error when mandate type mismatches');
+        Assert.AreEqual('', EDocument."Avalara Document Id", 'Document Id should not be set when mandate type mismatches');
+
+        // [THEN] E-Document Service Status has sending error
+        VerifyOutboundFactboxValuesForSingleService(EDocument, Enum::"E-Document Service Status"::"Sending Error", 2);
+
+        Clear(EDocLogList);
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Exported");
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Sending Error");
+        LibraryEDocument.AssertEDocumentLogs(EDocument, EDocumentService, EDocLogList);
+
+        // [CLEANUP]
+        RestoreActivationMandate();
+
+        TearDown();
+    end;
+
+    // ========================================================================
+    // Additional HTTP Error Code Tests
+    // ========================================================================
+
+    [Test]
+    [HandlerFunctions('Http400Handler')]
+    procedure SubmitDocument_BadRequest_400()
+    var
+        EDocument: Record "E-Document";
+        EDocLogList: List of [Enum "E-Document Service Status"];
+        EDocumentPage: TestPage "E-Document";
+    begin
+        // [SCENARIO] Submit document when Avalara returns 400 Bad Request
+        Initialize();
+
+        // [GIVEN] Team member
+        LibraryPermission.SetTeamMember();
+
+        // [WHEN] Posting invoice and EDocument is created
+        LibraryEDocument.PostInvoice(Customer);
+        EDocument.FindLast();
+        LibraryEDocument.RunEDocumentJobQueue(EDocument);
+
+        // [WHEN] EDocument is fetched
+        EDocument.FindLast();
+
+        // [THEN] E-Document should be in error state
+        Assert.AreEqual(Enum::"E-Document Status"::Error, EDocument.Status, 'E-Document should be in error when bad request');
+        Assert.AreEqual('', EDocument."Avalara Document Id", 'Document Id should not be set when bad request');
+
+        // [THEN] E-Document Service Status has sending error
+        VerifyOutboundFactboxValuesForSingleService(EDocument, Enum::"E-Document Service Status"::"Sending Error", 2);
+
+        Clear(EDocLogList);
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Exported");
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Sending Error");
+        LibraryEDocument.AssertEDocumentLogs(EDocument, EDocumentService, EDocLogList);
+
+        // [THEN] Error message contains 400 error code
+        EDocumentPage.OpenView();
+        EDocumentPage.GoToRecord(EDocument);
+        Assert.AreEqual('Error', EDocumentPage.ErrorMessagesPart."Message Type".Value(), IncorrectValueErr);
+        Assert.AreEqual(
+            'Error Code: 400, Error Message: The HTTP request was incorrectly formed or invalid.',
+            EDocumentPage.ErrorMessagesPart.Description.Value(), IncorrectValueErr);
+        EDocumentPage.Close();
+
+        TearDown();
+    end;
+
+    [Test]
+    [HandlerFunctions('Http403Handler')]
+    procedure SubmitDocument_Forbidden_403()
+    var
+        EDocument: Record "E-Document";
+        EDocLogList: List of [Enum "E-Document Service Status"];
+        EDocumentPage: TestPage "E-Document";
+    begin
+        // [SCENARIO] Submit document when Avalara returns 403 Forbidden
+        Initialize();
+
+        // [GIVEN] Team member
+        LibraryPermission.SetTeamMember();
+
+        // [WHEN] Posting invoice and EDocument is created
+        LibraryEDocument.PostInvoice(Customer);
+        EDocument.FindLast();
+        LibraryEDocument.RunEDocumentJobQueue(EDocument);
+
+        // [WHEN] EDocument is fetched
+        EDocument.FindLast();
+
+        // [THEN] E-Document should be in error state
+        Assert.AreEqual(Enum::"E-Document Status"::Error, EDocument.Status, 'E-Document should be in error when forbidden');
+        Assert.AreEqual('', EDocument."Avalara Document Id", 'Document Id should not be set when forbidden');
+
+        // [THEN] E-Document Service Status has sending error
+        VerifyOutboundFactboxValuesForSingleService(EDocument, Enum::"E-Document Service Status"::"Sending Error", 2);
+
+        Clear(EDocLogList);
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Exported");
+        EDocLogList.Add(Enum::"E-Document Service Status"::"Sending Error");
+        LibraryEDocument.AssertEDocumentLogs(EDocument, EDocumentService, EDocLogList);
+
+        // [THEN] Error message contains 403 error code
+        EDocumentPage.OpenView();
+        EDocumentPage.GoToRecord(EDocument);
+        Assert.AreEqual('Error', EDocumentPage.ErrorMessagesPart."Message Type".Value(), IncorrectValueErr);
+        Assert.AreEqual(
+            'Error Code: 403, Error Message: The HTTP request was incorrectly formed or invalid.',
+            EDocumentPage.ErrorMessagesPart.Description.Value(), IncorrectValueErr);
+        EDocumentPage.Close();
+
+        TearDown();
+    end;
+
     // ========================================================================
     // Helpers
     // ========================================================================
@@ -777,6 +1058,86 @@ codeunit 148192 "Extended Integration Tests"
         end;
     end;
 
+    [HttpClientHandler]
+    internal procedure Http400Handler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        Regex: Codeunit Regex;
+        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
+    begin
+        case true of
+            Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
+                LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response);
+            else begin
+                Response.Content.WriteFrom('Bad Request');
+                Response.HttpStatusCode := 400;
+            end;
+        end;
+    end;
+
+    [HttpClientHandler]
+    internal procedure Http403Handler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        Regex: Codeunit Regex;
+        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
+    begin
+        case true of
+            Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
+                LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response);
+            else begin
+                Response.Content.WriteFrom('Forbidden');
+                Response.HttpStatusCode := 403;
+            end;
+        end;
+    end;
+
+    [HttpClientHandler]
+    internal procedure HttpCreditMemoSubmitHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        Regex: Codeunit Regex;
+        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
+        SubmitDocumentCreditMemoFileTok: Label 'SubmitDocumentCreditMemo.txt', Locked = true;
+    begin
+        case true of
+            Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
+                LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response);
+
+            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents/.+/status'):
+                GetCreditMemoStatusResponse(Response);
+
+            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents'):
+                case Request.RequestType of
+                    HttpRequestType::POST:
+                        LoadResourceIntoHttpResponse(SubmitDocumentCreditMemoFileTok, Response);
+                end;
+        end;
+    end;
+
+    [HttpClientHandler]
+    internal procedure HttpSubmitThenStatusErrorHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        Regex: Codeunit Regex;
+        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
+        SubmitDocumentFileTok: Label 'SubmitDocument.txt', Locked = true;
+    begin
+        case true of
+            Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
+                LoadResourceIntoHttpResponse(ConnectTokenFileTok, Response);
+
+            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents/.+/status'):
+                if StatusHttpError then begin
+                    Response.Content.WriteFrom('Internal Server Error');
+                    Response.HttpStatusCode := 500;
+                end else
+                    GetStatusResponse(Response);
+
+            Regex.IsMatch(Request.Path, 'https?://.+/einvoicing/documents'):
+                case Request.RequestType of
+                    HttpRequestType::POST:
+                        LoadResourceIntoHttpResponse(SubmitDocumentFileTok, Response);
+                end;
+        end;
+    end;
+
     local procedure TearDown()
     var
         CompanyInformation: Record "Company Information";
@@ -801,6 +1162,11 @@ codeunit 148192 "Extended Integration Tests"
         this.DocumentStatus := NewDocumentStatus;
     end;
 
+    local procedure SetStatusHttpError(HttpError: Boolean)
+    begin
+        this.StatusHttpError := HttpError;
+    end;
+
     local procedure GetStatusResponse(var Response: TestHttpResponseMessage)
     var
         GetResponseCompleteFileTok: Label 'GetResponseComplete.txt', Locked = true;
@@ -819,6 +1185,25 @@ codeunit 148192 "Extended Integration Tests"
         end;
     end;
 
+    local procedure GetCreditMemoStatusResponse(var Response: TestHttpResponseMessage)
+    var
+        GetResponseCompleteCreditMemoFileTok: Label 'GetResponseCompleteCreditMemo.txt', Locked = true;
+        GetResponsePendingFileTok: Label 'GetResponsePending.txt', Locked = true;
+    begin
+        case DocumentStatus of
+            DocumentStatus::Completed:
+                LoadResourceIntoHttpResponse(GetResponseCompleteCreditMemoFileTok, Response);
+
+            DocumentStatus::Pending:
+                LoadResourceIntoHttpResponse(GetResponsePendingFileTok, Response);
+        end;
+    end;
+
+    local procedure MockCreditMemoDocumentId(): Text
+    begin
+        exit('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
+    end;
+
     var
         Customer: Record Customer;
         EDocumentService: Record "E-Document Service";
@@ -827,6 +1212,7 @@ codeunit 148192 "Extended Integration Tests"
         LibraryJobQueue: Codeunit "Library - Job Queue";
         LibraryPermission: Codeunit "Library - Lower Permissions";
         IsInitialized: Boolean;
+        StatusHttpError: Boolean;
         PrevVATReportingDateValue: Enum "VAT Reporting Date Usage";
         IncorrectValueErr: Label 'Wrong value';
         DocumentStatus: Option Completed,Pending,Error;

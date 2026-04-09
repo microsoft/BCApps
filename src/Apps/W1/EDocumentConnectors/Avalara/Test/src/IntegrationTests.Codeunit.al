@@ -17,6 +17,12 @@ using Microsoft.Sales.Customer;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Integration tests for the Avalara E-Document Connector verifying the full outbound document
+/// lifecycle (Submit, GetResponse with Pending/Complete/Error status transitions), inbound document
+/// import with purchase invoice creation, service-down error handling, manual resend after errors,
+/// credit memo submission, and company selection from the Connection Setup Card.
+/// </summary>
 codeunit 148191 "Integration Tests"
 {
     Permissions = tabledata "Activation Mandate" = rimd,
@@ -24,7 +30,7 @@ codeunit 148191 "Integration Tests"
                   tabledata "E-Document" = r;
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     [Test]
     [HandlerFunctions('HttpSubmitHandler')]

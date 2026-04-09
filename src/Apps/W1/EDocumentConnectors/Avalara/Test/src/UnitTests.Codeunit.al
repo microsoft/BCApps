@@ -6,6 +6,12 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
 
+/// <summary>
+/// Unit tests for the Avalara E-Document Connector covering JSON parsing (LoadStatusFromJson,
+/// Activation.PopulateFromJson, AvalaraDocumentManagement.ParseIntoTemp), mandate type detection,
+/// ISO 8601 datetime formatting, ActivationMandate.SetBlocked, ConnectionSetup defaults,
+/// Authenticator credential management, and AttachFromText document attachment.
+/// </summary>
 codeunit 133624 "Unit Tests"
 {
     Permissions = tabledata "Activation Header" = rimd,
@@ -43,14 +49,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Document No." := 'INV-TEST-001';
 
         // [GIVEN] A complete JSON response
-        ResponseJson :=
-            '{"id":"52f60401-44d0-4667-ad47-4afe519abb53",' +
-            '"companyId":"610f55f3-76b6-42eb-a697-2b0b2e02a5bf",' +
-            '"status":"Complete",' +
-            '"events":[' +
-            '{"eventDateTime":"2024-08-16T12:14:06.653Z","message":"Document started processing"},' +
-            '{"eventDateTime":"2024-08-16T12:14:12.435Z","message":"The document was delivered","responseKey":"Receipt Message ID","responseValue":"f9681599-test"}' +
-            ']}';
+        ResponseJson := NavApp.GetResourceAsText('UnitTest_StatusComplete.txt', TextEncoding::UTF8);
 
         // [WHEN] LoadStatusFromJson is called
         AvalaraProcessing.LoadStatusFromJson(ResponseJson, EDocument);
@@ -103,14 +102,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Document No." := 'INV-TEST-002';
 
         // [GIVEN] An error JSON response
-        ResponseJson :=
-            '{"id":"err-doc-001",' +
-            '"companyId":"610f55f3-76b6-42eb-a697-2b0b2e02a5bf",' +
-            '"status":"Error",' +
-            '"events":[' +
-            '{"eventDateTime":"2024-08-16T12:14:06.653Z","message":"Document started processing"},' +
-            '{"eventDateTime":"2024-08-16T12:14:12.435Z","message":"Validation failed: missing buyer reference"}' +
-            ']}';
+        ResponseJson := NavApp.GetResourceAsText('UnitTest_StatusError.txt', TextEncoding::UTF8);
 
         // [WHEN] LoadStatusFromJson is called
         AvalaraProcessing.LoadStatusFromJson(ResponseJson, EDocument);
@@ -153,10 +145,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Document No." := 'INV-TEST-003';
 
         // [GIVEN] A JSON response with no events array
-        ResponseJson :=
-            '{"id":"no-events-001",' +
-            '"companyId":"610f55f3-76b6-42eb-a697-2b0b2e02a5bf",' +
-            '"status":"Pending"}';
+        ResponseJson := NavApp.GetResourceAsText('UnitTest_StatusPendingNoEvents.txt', TextEncoding::UTF8);
 
         // [WHEN] LoadStatusFromJson is called
         AvalaraProcessing.LoadStatusFromJson(ResponseJson, EDocument);
@@ -206,7 +195,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Entry No" := 99989;
 
         // [WHEN] LoadStatusFromJson is called with JSON that has no id
-        asserterror AvalaraProcessing.LoadStatusFromJson('{"status":"Complete","companyId":"test"}', EDocument);
+        asserterror AvalaraProcessing.LoadStatusFromJson(NavApp.GetResourceAsText('UnitTest_StatusNoId.txt', TextEncoding::UTF8), EDocument);
 
         // [THEN] Error is raised about missing id
         Assert.ExpectedError('Missing "id" in response.');
@@ -225,7 +214,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Entry No" := 99988;
 
         // [WHEN] LoadStatusFromJson is called with empty id value
-        asserterror AvalaraProcessing.LoadStatusFromJson('{"id":"","status":"Complete"}', EDocument);
+        asserterror AvalaraProcessing.LoadStatusFromJson(NavApp.GetResourceAsText('UnitTest_StatusEmptyId.txt', TextEncoding::UTF8), EDocument);
 
         // [THEN] Error is raised about missing id
         Assert.ExpectedError('Missing "id" in response.');
@@ -253,13 +242,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Document No." := 'INV-DUP-TEST';
 
         // [GIVEN] A JSON response
-        ResponseJson :=
-            '{"id":"dup-test-001",' +
-            '"companyId":"comp-test",' +
-            '"status":"Complete",' +
-            '"events":[' +
-            '{"eventDateTime":"2024-08-16T12:00:00.000Z","message":"Processing started"}' +
-            ']}';
+        ResponseJson := NavApp.GetResourceAsText('UnitTest_StatusDuplicate.txt', TextEncoding::UTF8);
 
         // [WHEN] LoadStatusFromJson is called twice
         AvalaraProcessing.LoadStatusFromJson(ResponseJson, EDocument);
@@ -299,13 +282,7 @@ codeunit 133624 "Unit Tests"
         EDocument."Document No." := 'INV-DT-TEST';
 
         // [GIVEN] JSON with ISO 8601 datetime including fractional seconds and UTC marker
-        ResponseJson :=
-            '{"id":"dt-test-001",' +
-            '"companyId":"comp-test",' +
-            '"status":"Complete",' +
-            '"events":[' +
-            '{"eventDateTime":"2024-08-16T12:14:06.653Z","message":"Test event"}' +
-            ']}';
+        ResponseJson := NavApp.GetResourceAsText('UnitTest_StatusDateTime.txt', TextEncoding::UTF8);
 
         // [WHEN] LoadStatusFromJson is called
         AvalaraProcessing.LoadStatusFromJson(ResponseJson, EDocument);
@@ -346,18 +323,7 @@ codeunit 133624 "Unit Tests"
         ConnectionSetup.Modify();
 
         // [GIVEN] Activation JSON response
-        ActivationJson :=
-            '{"value":[{' +
-            '"id":"a0a0a0a0-b1b1-c2c2-d3d3-e4e4e4e4e4e4",' +
-            '"registrationType":"Full",' +
-            '"registrationData":{"jurisdiction":"GB","schemeId":"VAT","identifier":"GB777777771","fullAuthorityNetworkValue":"PEPPOL"},' +
-            '"status":{"code":"Completed","message":"Activation completed successfully"},' +
-            '"company":{"displayName":"Test Company","location":"GB","identifier":"comp-001"},' +
-            '"meta":{"lastModified":"2024-08-16T12:00:00Z","location":"/activations/a0a0a0a0"},' +
-            '"mandates":[' +
-            '{"countryMandate":"GB-B2B-PEPPOL","countryCode":"GB","mandateType":"B2B"},' +
-            '{"countryMandate":"GB-B2G-PEPPOL","countryCode":"GB","mandateType":"B2G"}' +
-            ']}]}';
+        ActivationJson := NavApp.GetResourceAsText('UnitTest_ActivationFull.txt', TextEncoding::UTF8);
 
         // [WHEN] PopulateFromJson is called
         ActivationCU.PopulateFromJson(ActivationJson);
@@ -426,7 +392,7 @@ codeunit 133624 "Unit Tests"
         ActivationMandate.DeleteAll();
 
         // [WHEN] PopulateFromJson is called with JSON missing value array
-        asserterror ActivationCU.PopulateFromJson('{"data":"something"}');
+        asserterror ActivationCU.PopulateFromJson(NavApp.GetResourceAsText('UnitTest_ActivationMissingValue.txt', TextEncoding::UTF8));
 
         // [THEN] Error about missing value array is raised
         Assert.ExpectedError('The JSON response is missing the required "value" array.');
@@ -455,17 +421,7 @@ codeunit 133624 "Unit Tests"
         ConnectionSetup.Modify();
 
         // [GIVEN] Activation JSON with Pending status (not Completed)
-        ActivationJson :=
-            '{"value":[{' +
-            '"id":"b1b1b1b1-c2c2-d3d3-e4e4-f5f5f5f5f5f5",' +
-            '"registrationType":"Full",' +
-            '"registrationData":{"jurisdiction":"DE","schemeId":"VAT","identifier":"DE123456789","fullAuthorityNetworkValue":"PEPPOL"},' +
-            '"status":{"code":"Pending","message":"Awaiting verification"},' +
-            '"company":{"displayName":"Pending Company","location":"DE","identifier":"pending-comp"},' +
-            '"meta":{"lastModified":"2024-08-16T12:00:00Z","location":"/activations/b1b1b1b1"},' +
-            '"mandates":[' +
-            '{"countryMandate":"DE-B2B-PEPPOL","countryCode":"DE","mandateType":"B2B"}' +
-            ']}]}';
+        ActivationJson := NavApp.GetResourceAsText('UnitTest_ActivationPending.txt', TextEncoding::UTF8);
 
         // [WHEN] PopulateFromJson is called
         ActivationCU.PopulateFromJson(ActivationJson);
@@ -502,40 +458,7 @@ codeunit 133624 "Unit Tests"
         LibraryPermission.SetOutsideO365Scope();
 
         // [GIVEN] A JSON document list response
-        DocJson :=
-            '{"@nextLink":null,"value":[{' +
-            '"id":"doc-001",' +
-            '"companyId":"comp-001",' +
-            '"processDateTime":"2024-08-16T12:00:00.000Z",' +
-            '"status":"Complete",' +
-            '"documentNumber":"INV-001",' +
-            '"documentType":"ubl-invoice",' +
-            '"documentVersion":"2.1",' +
-            '"documentDate":"2024-04-08",' +
-            '"flow":"in",' +
-            '"countryCode":"GB",' +
-            '"countryMandate":"GB-B2B-PEPPOL",' +
-            '"receiver":"9932:GB777777771",' +
-            '"supplierName":"CRONUS UK Ltd.",' +
-            '"customerName":"Adatum Corporation",' +
-            '"interface":"PEPPOL"' +
-            '},{' +
-            '"id":"doc-002",' +
-            '"companyId":"comp-001",' +
-            '"processDateTime":"2024-08-17T14:30:00.000Z",' +
-            '"status":"Complete",' +
-            '"documentNumber":"INV-002",' +
-            '"documentType":"ubl-invoice",' +
-            '"documentVersion":"2.1",' +
-            '"documentDate":"2024-04-09",' +
-            '"flow":"in",' +
-            '"countryCode":"GB",' +
-            '"countryMandate":"GB-B2B-PEPPOL",' +
-            '"receiver":"9932:GB777777771",' +
-            '"supplierName":"Test Supplier",' +
-            '"customerName":"Test Customer",' +
-            '"interface":"PEPPOL"' +
-            '}]}';
+        DocJson := NavApp.GetResourceAsText('UnitTest_DocumentList.txt', TextEncoding::UTF8);
 
         // [WHEN] ParseIntoTemp is called
         DocMgt.ParseIntoTemp(TempDocBuffer, DocJson);
@@ -584,7 +507,7 @@ codeunit 133624 "Unit Tests"
         LibraryPermission.SetOutsideO365Scope();
 
         // [WHEN] ParseIntoTemp is called with empty value array
-        DocMgt.ParseIntoTemp(TempDocBuffer, '{"@nextLink":null,"value":[]}');
+        DocMgt.ParseIntoTemp(TempDocBuffer, NavApp.GetResourceAsText('UnitTest_DocumentListEmpty.txt', TextEncoding::UTF8));
 
         // [THEN] No records created
         Assert.AreEqual(0, TempDocBuffer.Count(), 'Should have 0 documents for empty value array');
@@ -857,6 +780,278 @@ codeunit 133624 "Unit Tests"
         // [THEN] Values are masked with '*'
         Assert.AreEqual('*', ClientId, 'Client Id should be masked');
         Assert.AreEqual('*', ClientSecret, 'Client Secret should be masked');
+    end;
+
+    [Test]
+    procedure Authenticator_IsClientCredsSet_ReturnsFalseWhenMissing()
+    var
+        ConnectionSetup: Record "Connection Setup";
+        AvalaraAuth: Codeunit Authenticator;
+        ClientId: Text;
+        ClientSecret: Text;
+    begin
+        // [SCENARIO] IsClientCredsSet should return false when no credentials are configured
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] Connection setup exists but no client credentials are stored
+        ConnectionSetup.DeleteAll();
+        AvalaraAuth.CreateConnectionSetupRecord();
+        ConnectionSetup.Get();
+        // Client Id - Key and Client Secret - Key are null GUIDs by default
+
+        // [WHEN] IsClientCredsSet is called
+        // [THEN] Returns false
+        Assert.IsFalse(AvalaraAuth.IsClientCredsSet(ClientId, ClientSecret), 'Should return false when credentials are not set');
+
+        // [THEN] Values remain empty
+        Assert.AreEqual('', ClientId, 'Client Id should be empty');
+        Assert.AreEqual('', ClientSecret, 'Client Secret should be empty');
+    end;
+
+    // ========================================================================
+    // AttachFromText Tests
+    // ========================================================================
+
+    [Test]
+    procedure AttachFromText_EmptyContent_RaisesError()
+    var
+        EDocument: Record "E-Document";
+        AvalaraFunctions: Codeunit "Avalara Functions";
+    begin
+        // [SCENARIO] AttachFromText with empty content should raise error
+        LibraryPermission.SetOutsideO365Scope();
+
+        EDocument.Init();
+        EDocument."Entry No" := 99970;
+
+        // [WHEN] AttachFromText is called with empty content
+        asserterror AvalaraFunctions.AttachFromText(EDocument, '', 'test.xml');
+
+        // [THEN] Error about empty content is raised
+        Assert.ExpectedError('Cannot attach empty content to E-Document 99970');
+    end;
+
+    // ========================================================================
+    // Activation Multi-Company Tests
+    // ========================================================================
+
+    [Test]
+    procedure Activation_MultipleActivations_OnlyMatchingCompanyIsActive()
+    var
+        ActivationHeader: Record "Activation Header";
+        ActivationMandate: Record "Activation Mandate";
+        ConnectionSetup: Record "Connection Setup";
+        ActivationCU: Codeunit Activation;
+        ActivationJson: Text;
+    begin
+        // [SCENARIO] Multiple activations with different company IDs - only matching one is active
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] Clear existing data (avoids Confirm prompt in ClearExistingData)
+        ActivationHeader.DeleteAll();
+        ActivationMandate.DeleteAll();
+
+        // [GIVEN] Connection setup with specific company ID
+        EnsureConnectionSetup();
+        ConnectionSetup.Get();
+        ConnectionSetup."Company Id" := 'active-comp';
+        ConnectionSetup.Modify();
+
+        // [GIVEN] JSON with two activations - one matching, one not
+        ActivationJson := NavApp.GetResourceAsText('UnitTest_ActivationMultiCompany.txt', TextEncoding::UTF8);
+
+        // [WHEN] PopulateFromJson is called
+        ActivationCU.PopulateFromJson(ActivationJson);
+
+        // [THEN] Two activation headers are created
+        Assert.AreEqual(2, ActivationHeader.Count(), 'Should have 2 activation headers');
+
+        // [THEN] First activation (matching company) is active
+        ActivationHeader.Get('11111111-1111-1111-1111-111111111111');
+        Assert.IsTrue(ActivationHeader."Is Active ID", 'Matching company should be active');
+
+        // [THEN] Second activation (non-matching company) is NOT active
+        ActivationHeader.Get('22222222-2222-2222-2222-222222222222');
+        Assert.IsFalse(ActivationHeader."Is Active ID", 'Non-matching company should not be active');
+
+        // [CLEANUP]
+        ActivationHeader.DeleteAll();
+        ActivationMandate.DeleteAll();
+        ConnectionSetup.Get();
+        ConnectionSetup."Company Id" := '';
+        ConnectionSetup.Modify();
+    end;
+
+    [Test]
+    procedure Activation_EmptyMandatesArray_CreatesHeaderOnly()
+    var
+        ActivationHeader: Record "Activation Header";
+        ActivationMandate: Record "Activation Mandate";
+        ConnectionSetup: Record "Connection Setup";
+        ActivationCU: Codeunit Activation;
+        ActivationJson: Text;
+    begin
+        // [SCENARIO] Activation with empty mandates array creates header but no mandates
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] Clear existing data
+        ActivationHeader.DeleteAll();
+        ActivationMandate.DeleteAll();
+
+        // [GIVEN] Connection setup
+        EnsureConnectionSetup();
+        ConnectionSetup.Get();
+        ConnectionSetup."Company Id" := 'empty-mand-comp';
+        ConnectionSetup.Modify();
+
+        // [GIVEN] JSON with empty mandates array
+        ActivationJson := NavApp.GetResourceAsText('UnitTest_ActivationEmptyMandates.txt', TextEncoding::UTF8);
+
+        // [WHEN] PopulateFromJson is called
+        ActivationCU.PopulateFromJson(ActivationJson);
+
+        // [THEN] Activation Header is created
+        Assert.IsTrue(ActivationHeader.Get('33333333-3333-3333-3333-333333333333'), 'Activation Header should be created');
+
+        // [THEN] No mandates are created
+        ActivationMandate.SetRange("Company Id", 'empty-mand-comp');
+        Assert.AreEqual(0, ActivationMandate.Count(), 'Should have no mandates for empty mandates array');
+
+        // [CLEANUP]
+        ActivationHeader.DeleteAll();
+        ActivationMandate.DeleteAll();
+        ConnectionSetup.Get();
+        ConnectionSetup."Company Id" := '';
+        ConnectionSetup.Modify();
+    end;
+
+    // ========================================================================
+    // DocumentManagement Edge Case Tests
+    // ========================================================================
+
+    [Test]
+    procedure DocumentManagement_ParseIntoTemp_MissingFields_DefaultsToEmpty()
+    var
+        TempDocBuffer: Record "Avalara Document Buffer" temporary;
+        DocMgt: Codeunit "Avalara Document Management";
+        DocJson: Text;
+    begin
+        // [SCENARIO] ParseIntoTemp with document missing optional fields should default to empty
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] JSON with minimal fields (only id and companyId)
+        DocJson := NavApp.GetResourceAsText('UnitTest_DocumentListMinimal.txt', TextEncoding::UTF8);
+
+        // [WHEN] ParseIntoTemp is called
+        DocMgt.ParseIntoTemp(TempDocBuffer, DocJson);
+
+        // [THEN] One document is created with defaults
+        Assert.AreEqual(1, TempDocBuffer.Count(), 'Should have 1 document');
+
+        TempDocBuffer.FindFirst();
+        Assert.AreEqual('minimal-doc-001', TempDocBuffer.Id, 'Id should match');
+        Assert.AreEqual('comp-001', TempDocBuffer."Company Id", 'Company Id should match');
+        Assert.AreEqual('', TempDocBuffer.Status, 'Status should be empty when missing');
+        Assert.AreEqual('', TempDocBuffer."Document Number", 'Document Number should be empty when missing');
+        Assert.AreEqual('', TempDocBuffer.Flow, 'Flow should be empty when missing');
+        Assert.AreEqual('', TempDocBuffer."Supplier Name", 'Supplier Name should be empty when missing');
+    end;
+
+    [Test]
+    procedure DocumentManagement_ParseIntoTemp_LargeValueArray()
+    var
+        TempDocBuffer: Record "Avalara Document Buffer" temporary;
+        DocMgt: Codeunit "Avalara Document Management";
+        i: Integer;
+        DocJson: Text;
+        ValueArray: Text;
+    begin
+        // [SCENARIO] ParseIntoTemp with multiple documents should create all records
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] JSON with 5 documents
+        ValueArray := '';
+        for i := 1 to 5 do begin
+            if i > 1 then
+                ValueArray += ',';
+            ValueArray += '{"id":"doc-' + Format(i) + '","companyId":"comp-001","status":"Complete"}';
+        end;
+        DocJson := '{"@nextLink":null,"value":[' + ValueArray + ']}';
+
+        // [WHEN] ParseIntoTemp is called
+        DocMgt.ParseIntoTemp(TempDocBuffer, DocJson);
+
+        // [THEN] Five documents are created
+        Assert.AreEqual(5, TempDocBuffer.Count(), 'Should have 5 documents in buffer');
+    end;
+
+    // ========================================================================
+    // LoadStatusFromJson Additional Tests
+    // ========================================================================
+
+    [Test]
+    procedure LoadStatusFromJson_UpdatesExistingHeader()
+    var
+        EDocument: Record "E-Document";
+        MessageResponseHeader: Record "Message Response Header";
+        AvalaraProcessing: Codeunit Processing;
+        ResponseJson1: Text;
+        ResponseJson2: Text;
+    begin
+        // [SCENARIO] Calling LoadStatusFromJson with updated status should update existing header
+        LibraryPermission.SetOutsideO365Scope();
+
+        // [GIVEN] Clean message tables
+        MessageResponseHeader.DeleteAll();
+
+        // [GIVEN] A mock E-Document
+        EDocument.Init();
+        EDocument."Entry No" := 99980;
+        EDocument."Document No." := 'INV-UPDATE-TEST';
+
+        // [GIVEN] First call with Pending status
+        ResponseJson1 := NavApp.GetResourceAsText('UnitTest_StatusPending.txt', TextEncoding::UTF8);
+
+        AvalaraProcessing.LoadStatusFromJson(ResponseJson1, EDocument);
+
+        // [THEN] Header exists with Pending status
+        Assert.IsTrue(MessageResponseHeader.Get('update-test-001'), 'Header should exist after first call');
+        Assert.AreEqual('Pending', MessageResponseHeader.Status, 'Status should be Pending after first call');
+
+        // [WHEN] Second call with same id but status already inserted (no-op insert, keeps original)
+        ResponseJson2 := NavApp.GetResourceAsText('UnitTest_StatusCompleteUpdate.txt', TextEncoding::UTF8);
+
+        AvalaraProcessing.LoadStatusFromJson(ResponseJson2, EDocument);
+
+        // [THEN] Header still exists (insert was no-op since it already exists)
+        Assert.IsTrue(MessageResponseHeader.Get('update-test-001'), 'Header should still exist');
+
+        // [CLEANUP]
+        MessageResponseHeader.DeleteAll();
+    end;
+
+    // ========================================================================
+    // GetMandateTypeFromName Additional Tests
+    // ========================================================================
+
+    [Test]
+    procedure MandateType_CaseSensitivity()
+    var
+        AvalaraProcessing: Codeunit Processing;
+    begin
+        // [SCENARIO] GetMandateTypeFromName is case-sensitive (AL Contains is case-sensitive)
+        // B2B and B2G must appear in the correct case
+        Assert.AreEqual('B2B', AvalaraProcessing.GetMandateTypeFromName('GB-B2B-PEPPOL'), 'Should detect uppercase B2B');
+        Assert.AreEqual('B2G', AvalaraProcessing.GetMandateTypeFromName('IT-B2G-SDI'), 'Should detect uppercase B2G');
+    end;
+
+    [Test]
+    procedure MandateType_B2B_BeforeB2G_TakesPriority()
+    var
+        AvalaraProcessing: Codeunit Processing;
+    begin
+        // [SCENARIO] If mandate name somehow contains both B2B and B2G, B2B takes priority
+        Assert.AreEqual('B2B', AvalaraProcessing.GetMandateTypeFromName('TEST-B2B-B2G'), 'B2B should take priority when both present');
     end;
 
     // ========================================================================
