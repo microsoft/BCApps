@@ -4,6 +4,8 @@ on:
   issues:
     types: [labeled]
 
+permissions: {}
+
 jobs:
   dispatch:
     if: github.event.label.name == 'ai-triage' && github.event.issue.state == 'open'
