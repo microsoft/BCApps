@@ -456,6 +456,9 @@ ValueObject : JsonToken;
                 Error(AvalaraCountryMandateDescLongerErr);
 
             if not ShouldParseFields then begin
+                if TempMandatesLocal.Get(CountryMandate) then
+                    continue;
+
                 TempMandatesLocal.Init();
                 TempMandatesLocal."Country Mandate" := CopyStr(CountryMandate, 1, MaxStrLen(TempMandatesLocal."Country Mandate"));
                 TempMandatesLocal."Country Code" := CopyStr(CountryCode, 1, MaxStrLen(TempMandatesLocal."Country Code"));
