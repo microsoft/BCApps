@@ -26,10 +26,12 @@ codeunit 685 "Paym. Prac. Period Aggregator" implements PaymentPracticeLinesAggr
     var
         PaymentPracticeLine: Record "Payment Practice Line";
         PaymentPeriod: Record "Payment Period";
+        SchemeHandler: Interface PaymentPracticeSchemeHandler;
         SourceType: Integer;
         NextLineNo: Integer;
     begin
         NextLineNo := 1;
+        SchemeHandler := PaymentPracticeHeader."Reporting Scheme";
         PaymentPeriod.SetCurrentKey("Days From");
         PaymentPeriod.SetAscending("Days From", true);
         foreach SourceType in PaymentPracticeData."Source Type".Ordinals() do begin
@@ -37,7 +39,10 @@ codeunit 685 "Paym. Prac. Period Aggregator" implements PaymentPracticeLinesAggr
             if not PaymentPracticeData.IsEmpty() then
                 if PaymentPeriod.FindSet() then
                     repeat
-                        InsertPeriodLine(PaymentPracticeLine, PaymentPracticeData, PaymentPeriod, PaymentPracticeHeader."No.", NextLineNo);
+                        InsertPeriodLine(PaymentPracticeLine, PaymentPracticeData, PaymentPeriod, PaymentPracticeHeader."No.", NextLineNo, SourceType);
+                        SchemeHandler.CalculateLineTotals(PaymentPracticeLine, PaymentPracticeData);
+                        if (PaymentPracticeLine."Invoice Count" <> 0) or (PaymentPracticeLine."Invoice Value" <> 0) then
+                            PaymentPracticeLine.Modify();
                     until PaymentPeriod.Next() = 0;
         end;
     end;
@@ -47,7 +52,7 @@ codeunit 685 "Paym. Prac. Period Aggregator" implements PaymentPracticeLinesAggr
 
     end;
 
-    local procedure InsertPeriodLine(var PaymentPracticeLine: Record "Payment Practice Line"; var PaymentPracticeData: Record "Payment Practice Data"; PaymentPeriod: Record "Payment Period"; HeaderNo: Integer; var NextLineNo: Integer)
+    local procedure InsertPeriodLine(var PaymentPracticeLine: Record "Payment Practice Line"; var PaymentPracticeData: Record "Payment Practice Data"; PaymentPeriod: Record "Payment Period"; HeaderNo: Integer; var NextLineNo: Integer; SourceType: Integer)
     begin
         PaymentPracticeLine.Init();
         PaymentPracticeLine."Header No." := HeaderNo;
@@ -57,7 +62,7 @@ codeunit 685 "Paym. Prac. Period Aggregator" implements PaymentPracticeLinesAggr
         PaymentPracticeLine."Payment Period Code" := PaymentPeriod.Code;
         PaymentPracticeLine."Payment Period Description" := PaymentPeriod.Description;
         SetPercentPaidInPeriod(PaymentPracticeData, PaymentPeriod."Days From", PaymentPeriod."Days To", PaymentPracticeLine."Pct Paid in Period", PaymentPracticeLine."Pct Paid in Period (Amount)");
-        PaymentPracticeLine."Source Type" := PaymentPracticeData."Source Type";
+        PaymentPracticeLine."Source Type" := "Paym. Prac. Header Type".FromInteger(SourceType);
         PaymentPracticeLine.Insert();
     end;
 

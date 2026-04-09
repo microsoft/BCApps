@@ -25,6 +25,11 @@ page 687 "Payment Practice Card"
                 {
                     ToolTip = 'Specifies the number of the payment practice header.';
                 }
+                field("Reporting Scheme"; Rec."Reporting Scheme")
+                {
+                    Visible = false;
+                    Editable = false;
+                }
                 field("Aggregation Type"; Rec."Aggregation Type")
                 {
                     ToolTip = 'Specifies the aggregation type of the payment practice.';
@@ -33,7 +38,7 @@ page 687 "Payment Practice Card"
                 {
                     ToolTip = 'Specifies the source for entries in the payment practice.';
                 }
-                field("Startind Date"; Rec."Starting Date")
+                field("Starting Date"; Rec."Starting Date")
                 {
                     ToolTip = 'Specifies the starting date of the payment practice.';
                 }
@@ -63,9 +68,9 @@ page 687 "Payment Practice Card"
                     ToolTip = 'Specifies whether the payment practice was modified manually.';
                 }
             }
-            group("Statistics")
+            group("Payment Statistics")
             {
-                Caption = 'Statistics';
+                Caption = 'Payment Statistics';
                 field("Average Agreed Payment Period"; Rec."Average Agreed Payment Period")
                 {
                     ToolTip = 'Specifies the average agreed payment period.';
@@ -92,6 +97,18 @@ page 687 "Payment Practice Card"
                     begin
                         ShowHeaderDataLines();
                     end;
+                }
+                field("Total Number of Payments"; Rec."Total Number of Payments")
+                {
+                }
+                field("Total Amount of Payments"; Rec."Total Amount of Payments")
+                {
+                }
+                field("Total Amt. of Overdue Payments"; Rec."Total Amt. of Overdue Payments")
+                {
+                }
+                field("Pct Overdue Due to Dispute"; Rec."Pct Overdue Due to Dispute")
+                {
                 }
             }
             part(Lines; "Payment Practice Lines")
@@ -144,6 +161,20 @@ page 687 "Payment Practice Card"
                     FeatureTelemetry.LogUptake('0000KSV', 'Payment Practices', "Feature Uptake Status"::Used);
                 end;
             }
+            action(ExportAUCSV)
+            {
+                Caption = 'Export CSV';
+                ToolTip = 'Exports the Small Business scheme data in CSV format.';
+                Image = Export;
+                Visible = IsSmallBusiness;
+
+                trigger OnAction()
+                var
+                    PaymPracAUCSVExport: Codeunit "Paym. Prac. AU CSV Export";
+                begin
+                    PaymPracAUCSVExport.Export(Rec);
+                end;
+            }
         }
         area(Promoted)
         {
@@ -153,12 +184,20 @@ page 687 "Payment Practice Card"
             actionref(Print_Promoted; Print)
             {
             }
+            actionref(ExportAUCSV_Promoted; ExportAUCSV)
+            {
+            }
         }
     }
 
     trigger OnOpenPage()
     begin
+        UpdateVisibility();
         CurrPage.Update();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
         UpdateVisibility();
     end;
 
@@ -166,6 +205,7 @@ page 687 "Payment Practice Card"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         LinesWillBeDeletedQst: Label 'All previously generated lines will be deleted. Do you want to continue?';
         NoEntriesFoundMsg: Label 'The payment practice generator found no entries corresponding to the header type, starting and ending date.';
+        IsSmallBusiness: Boolean;
 
     local procedure PrepareLayout(PaymentPracticeLinesAggregator: Interface PaymentPracticeLinesAggregator)
     begin
@@ -182,7 +222,7 @@ page 687 "Payment Practice Card"
 
     local procedure UpdateVisibility()
     begin
-        CurrPage.Lines.Page.UpdateVisibility(Rec."Aggregation Type", Rec."Header Type");
-        CurrPage.Update();
+        IsSmallBusiness := Rec."Reporting Scheme" = Rec."Reporting Scheme"::"Small Business";
+        CurrPage.Lines.Page.UpdateVisibility(Rec."Aggregation Type", Rec."Header Type", Rec."Reporting Scheme");
     end;
 }

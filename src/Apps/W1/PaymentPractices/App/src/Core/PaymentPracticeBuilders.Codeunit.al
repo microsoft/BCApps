@@ -17,9 +17,13 @@ codeunit 688 "Payment Practice Builders"
     var
         Vendor: Record Vendor;
         VendorLedgerEntry: Record "Vendor Ledger Entry";
+        SchemeHandler: Interface PaymentPracticeSchemeHandler;
         LastVendNo: Code[20];
     begin
+        SchemeHandler := PaymentPracticeHeader."Reporting Scheme";
         LastVendNo := '';
+        Vendor.SetLoadFields("No.", "Exclude from Pmt. Practices", "Company Size Code");
+        VendorLedgerEntry.SetLoadFields("Entry No.", "Vendor No.", "External Document No.", "Document No.", "Posting Date", "Invoice Received Date", "Document Date", "Due Date", Open, "Closed at Date", "Closed by Entry No.", "SCF Payment Date");
         VendorLedgerEntry.SetCurrentKey("Vendor No.");
         VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
         VendorLedgerEntry.SetRange("Posting Date", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
@@ -39,7 +43,8 @@ codeunit 688 "Payment Practice Builders"
                     PaymentPracticeData."Header No." := PaymentPracticeHeader."No.";
                     PaymentPracticeData.CopyFromInvoiceVendLedgEntry(VendorLedgerEntry);
                     PaymentPracticeData."Company Size Code" := Vendor."Company Size Code";
-                    PaymentPracticeData.Insert();
+                    if SchemeHandler.UpdatePaymentPracData(PaymentPracticeData) then
+                        PaymentPracticeData.Insert();
                 end;
             until VendorLedgerEntry.Next() = 0;
     end;
@@ -48,9 +53,13 @@ codeunit 688 "Payment Practice Builders"
     var
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
+        SchemeHandler: Interface PaymentPracticeSchemeHandler;
         LastCustNo: Code[20];
     begin
+        SchemeHandler := PaymentPracticeHeader."Reporting Scheme";
         LastCustNo := '';
+        Customer.SetLoadFields("No.", "Exclude from Pmt. Practices");
+        CustLedgerEntry.SetLoadFields("Entry No.", "Customer No.", "External Document No.", "Document No.", "Posting Date", "Document Date", "Due Date", Open, "Closed at Date", "Closed by Entry No.");
         CustLedgerEntry.SetCurrentKey("Customer No.");
         CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
         CustLedgerEntry.SetRange("Posting Date", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
@@ -69,7 +78,8 @@ codeunit 688 "Payment Practice Builders"
                     PaymentPracticeData.Init();
                     PaymentPracticeData."Header No." := PaymentPracticeHeader."No.";
                     PaymentPracticeData.CopyFromInvoiceCustLedgEntry(CustLedgerEntry);
-                    PaymentPracticeData.Insert();
+                    if SchemeHandler.UpdatePaymentPracData(PaymentPracticeData) then
+                        PaymentPracticeData.Insert();
                 end;
             until CustLedgerEntry.Next() = 0;
     end;
