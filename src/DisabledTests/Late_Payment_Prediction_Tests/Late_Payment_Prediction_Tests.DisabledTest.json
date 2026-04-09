@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 139575,
+    "codeunitName": "LP Prediction Test",
+    "method": "TestCreateMyModelWhenNotEnoughDataAvailable"
+  },
+  {
+    "codeunitId": 139575,
+    "codeunitName": "LP Prediction Test",
+    "method": "TestEvaluateMyModelSunshine"
+  }
+]

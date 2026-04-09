@@ -1,25 +1,37 @@
 [
   {
-    "method": "UnitTestExportFulfillmentServiceShipment",
-    "codeunitName": "Shpfy Shipping Test",
-    "codeunitId": 139606
+    "codeunitId": 139605,
+    "codeunitName": "Shpfy Product Price Calc. Test",
+    "method": "UnitTestCalcPriceTest"
   },
   {
-    "bug": "621557",
+    "codeunitId": 139606,
+    "codeunitName": "Shpfy Shipping Test",
+    "method": "UnitTestExportFulfillmentServiceShipment"
+  },
+  {
+    "codeunitId": 139636,
+    "codeunitName": "Shpfy Company Export Test",
+    "method": "UnitTestFillInShopifyCustomerData"
+  },
+  {
     "codeunitId": 139646,
     "codeunitName": "Shpfy Catalog Prices Test",
     "method": "UnitTestCalcCatalogPrice"
   },
   {
-    "bug": "621557",
     "codeunitId": 139646,
     "codeunitName": "Shpfy Catalog Prices Test",
     "method": "UnitTestCalcMarketCatalogPrice"
   },
   {
-    "bug": "621557",
-    "codeunitId": 139605,
-    "codeunitName": "Shpfy Product Price Calc. Test",
-    "method": "UnitTestCalcPriceTest"
+    "codeunitId": 139648,
+    "codeunitName": "Shpfy Suggest Payment Test",
+    "method": "UnitTestSuggestShopifyPaymentOneTransactionWithPresentmentCurrency"
+  },
+  {
+    "codeunitId": 139648,
+    "codeunitName": "Shpfy Suggest Payment Test",
+    "method": "UnitTestSuggestShopifyPaymentRefundWithPresentmentCurrency"
   }
 ]

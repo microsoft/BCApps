@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 148125,
+    "codeunitName": "Intrastat CZ Test",
+    "method": "E2EErrorHandlingOfIntrastatReport"
+  },
+  {
+    "codeunitId": 148125,
+    "codeunitName": "Intrastat CZ Test",
+    "method": "E2EIntrastatReportFileCreation"
+  },
+  {
+    "codeunitId": 148125,
+    "codeunitName": "Intrastat CZ Test",
+    "method": "E2EIntrastatReportNoSplitFileCreation"
+  },
+  {
+    "codeunitId": 148125,
+    "codeunitName": "Intrastat CZ Test",
+    "method": "E2EIntrastatReportSplitFileCreation"
+  }
+]

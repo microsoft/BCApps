@@ -40,6 +40,11 @@
     "method": "LineDimensionLoopOnAfterGetRecordSingleDimension"
   },
   {
+    "codeunitId": 137456,
+    "codeunitName": "Phys. Invt. Recording UT REP",
+    "method": "PhysInvtRecordingNotThrowAnyErrorWhenImportingTxtFile"
+  },
+  {
     "codeunitId": 137457,
     "codeunitName": "PostedPhyInvtOrderDiff UT REP",
     "method": "LineDimensionLoopOnAfterGetRecordMultipleDimensions"
@@ -50,13 +55,13 @@
     "method": "LineDimensionLoopOnAfterGetRecordSingleDimension"
   },
   {
+    "codeunitId": 137460,
+    "codeunitName": "Phys. Invt. Item Tracking",
+    "method": "CalcPhysInvtOrderLinesFilterServiceAndNonInventoryItems"
+  },
+  {
     "codeunitId": 137462,
     "codeunitName": "Phys. Invt. Order Subform UT",
     "method": "ShowDimensionPhysInventoryOrderSubform"
-  },
-  {
-    "codeunitId": 137456,
-    "codeunitName": "Phys. Invt. Recording UT REP",
-    "method": "PhysInvtRecordingNotThrowAnyErrorWhenImportingTxtFile"
   }
 ]

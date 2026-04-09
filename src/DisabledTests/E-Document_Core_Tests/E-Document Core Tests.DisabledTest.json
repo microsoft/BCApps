@@ -1,121 +1,592 @@
 [
   {
-    "bug": "Not Provided",
-    "codeunitId": 133528,
-    "codeunitName": "EDocCopilotPOGeneralHarms",
-    "method": "*"
-  },
-  {
-    "bug": "Not Provided",
     "codeunitId": 133501,
     "codeunitName": "EDocCopilotPORedTeaming",
     "method": "*"
   },
   {
-    "bug": "Not Provided",
-    "codeunitId": 133527,
-    "codeunitName": "EDocCopilotPOUPIAHarms",
-    "method": "*"
-  },
-  {
-    "bug": "Not Provided",
-    "codeunitId": 133508,
-    "codeunitName": "EDocLineMatchAccPromptInj",
-    "method": "*"
-  },
-  {
-    "bug": "Not Provided",
     "codeunitId": 133502,
     "codeunitName": "EDocCopilotPOAccuracy",
     "method": "*"
   },
   {
-    "bug": "Not Provided",
+    "codeunitId": 133508,
+    "codeunitName": "EDocLineMatchAccPromptInj",
+    "method": "*"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "CalculatePOMatchWarningsGeneratesMissingInformationWarning"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "CalculatePOMatchWarningsGeneratesNotYetReceivedWarning"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "CalculatePOMatchWarningsGeneratesQuantityMismatchWarning"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsEDocumentLineMatchedReturnsFalseWhenNoMatchesExist"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsEDocumentLineMatchedReturnsTrueWhenMatchesExist"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsEDocumentLineMatchedToAnyReceiptLineWithMatches"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsEDocumentLineMatchedToAnyReceiptLineWithNoMatches"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsEDocumentMatchedReturnsFalseWhenNoLinesAreMatched"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsEDocumentMatchedReturnsTrueWhenAtLeastOneLineIsMatched"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsPOLineMatchedToEDocumentLineWithMatch"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsPOLineMatchedToEDocumentLineWithNoMatch"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsPOMatchConsistentReturnsFalseWhenPOLineMatchRefersToDeletedPurchaseLine"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsPOMatchConsistentReturnsFalseWhenReceiptLineMatchRefersToDeletedReceiptLine"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsPOMatchConsistentReturnsTrueWhenAllMatchesAreValid"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsReceiptLineMatchedToEDocumentLineWithMatch"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "IsReceiptLineMatchedToEDocumentLineWithNoMatch"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadAvailablePOLinesExcludesLinesMatchedToOtherEDocLines"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadAvailablePOLinesFiltersByUoMWhenEDocLineHasUoMSpecified"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadAvailablePOLinesForEDocLineWithNoMatchedVendor"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadAvailablePOLinesForEDocLineWithVendorButNoPOLines"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadAvailablePOLinesIncludesLinesMatchedToCurrentEDocLine"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadAvailablePOLinesReturnsAllLinesWhenEDocLineHasNoUoMSpecified"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadAvailablePOLinesReturnsNoLinesWhenNoMatchingUoMExists"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadAvailablePOLinesReturnsUnmatchedPOLinesForSameVendor"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadAvailableReceiptLinesForEDocLineWithNoMatchedPOLines"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadPOLinesMatchedToEDocLineWithNoMatches"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadPOsMatchedToEDocLineWithNoMatchedPOLines"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "LoadReceiptsMatchedToEDocLineWithNoReceiptMatches"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "MatchEmptyReceiptLinesToEDocumentLineCompletesWithoutCreatingMatches"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "MatchPOLinesAlreadyMatchedToOtherEDocumentLinesRaisesError"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "MatchPOLinesToEDocumentLineRemovesExistingMatchesFirst"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "MatchPOLinesWithDifferentVendorsToEDocumentLineRaisesError"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "MatchReceiptLinesNotMatchedToAnyPOLinesMatchedToEDocumentLineRaisesError"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "MatchReceiptLinesToEDocumentLineRemovesExistingReceiptMatchesFirst"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "MatchReceiptLinesWithInsufficientQuantityToCoverEDocumentLineRaisesError"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "MatchValidPOLinesToEDocumentLineCreatesMatchesAndUpdatesProperties"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "MatchValidReceiptLinesToEDocumentLineCreatesMatches"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "POMatchingConfigurationAlwaysAskAllowsMatchingAndGeneratesWarnings"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "POMatchingConfigurationAlwaysReceiveAllowsMatchingWithoutWarnings"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "POMatchingConfigurationNeverReceiveBlocksMatchingForNotYetReceivedLines"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "POMatchingConfigurationReceiveExceptForCertainVendorsAllowsMatchingForNonSpecifiedVendors"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "POMatchingConfigurationReceiveExceptForCertainVendorsBlocksMatchingForSpecifiedVendors"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "POMatchingConfigurationReceiveOnlyForCertainVendorsAllowsMatchingForSpecifiedVendors"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "POMatchingConfigurationReceiveOnlyForCertainVendorsGeneratesWarningsForNonSpecifiedVendors"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "RemoveAllMatchesForEDocumentLineDoesNotAffectOtherLines"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "RemoveAllMatchesForEDocumentLineRemovesBothPOAndReceiptMatches"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "RemoveAllMatchesForEDocumentRemovesAllLineMatches"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "RemoveAllReceiptMatchesForEDocumentLineDoesNotAffectOtherLines"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "RemoveAllReceiptMatchesForEDocumentLineRemovesOnlyReceiptMatches"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "RemoveAllReceiptMatchesForEDocumentLineWithNoMatches"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "SuggestReceiptsForMatchedOrderLinesDoesNotSuggestWhenEDocLineAlreadyHasReceiptMatch"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "SuggestReceiptsForMatchedOrderLinesProcessesMultipleEDocumentLinesIndependently"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "SuggestReceiptsForMatchedOrderLinesSuggestsNoReceiptWhenAllReceiptsHaveInsufficientQuantity"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "SuggestReceiptsForMatchedOrderLinesSuggestsReceiptWhenPOLineHasSingleReceiptCoveringFullQuantity"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "TransferPOMatchesFromEDocumentToInvoiceProcessesMultipleLinesIndependently"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "TransferPOMatchesFromEDocumentToInvoiceTransfersReceiptMatchAndRemovesEDocumentMatches"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "TransferPOMatchesFromInvoiceToEDocumentCreatesMatchesAndClearsInvoiceReceiptInfo"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "TransferPOMatchesFromInvoiceToEDocumentProcessesMultipleLinesIndependently"
+  },
+  {
+    "codeunitId": 133527,
+    "codeunitName": "EDocCopilotPOUPIAHarms",
+    "method": "*"
+  },
+  {
+    "codeunitId": 133528,
+    "codeunitName": "EDocCopilotPOGeneralHarms",
+    "method": "*"
+  },
+  {
     "codeunitId": 135575,
     "codeunitName": "E-Doc. API Test",
     "method": "*"
   },
   {
-    "bug": "613698",
-    "codeunitId": 139746,
-    "codeunitName": "E-Doc. Email Tests",
-    "method": "TestSendFromPostedSalesInvoice"
+    "codeunitId": 139235,
+    "codeunitName": "PEPPOL30 Management Tests",
+    "method": "GetTaxSubtotalInfo"
   },
   {
-    "bug": "613698",
-    "codeunitId": 139746,
-    "codeunitName": "E-Doc. Email Tests",
-    "method": "TestPostAndSendFromSalesInvoice"
+    "codeunitId": 139617,
+    "codeunitName": "E-Doc. Mapping Test",
+    "method": "MappingGeneralRuleSuccess"
   },
   {
-    "bug": "613698",
-    "codeunitId": 139659,
-    "codeunitName": "E-Doc. Line Matching Test",
-    "method": "MatchOneImportLineToOnePOLineSuccess"
+    "codeunitId": 139617,
+    "codeunitName": "E-Doc. Mapping Test",
+    "method": "MappingWithNoTempFailure"
   },
   {
-    "bug": "613698",
-    "codeunitId": 139659,
-    "codeunitName": "E-Doc. Line Matching Test",
-    "method": "MatchOneImportLineToOnePOLineThroughCreatePOLineSuccessItem"
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "DeleteLinkedPurchaseHeaderNoAllowedSuccess"
   },
   {
-    "bug": "613698",
-    "codeunitId": 139659,
-    "codeunitName": "E-Doc. Line Matching Test",
-    "method": "MatchOneImportLineToOnePOLineThroughCreatePOLineSuccessGLAccount"
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "DeleteLinkedPurchaseHeaderNoAllowedSuccess26"
   },
   {
-    "bug": "613698",
-    "codeunitId": 139659,
-    "codeunitName": "E-Doc. Line Matching Test",
-    "method": "MatchTwoImportLineToOnePOLineSuccess"
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceCreateBatchErrorE2ESuccess"
   },
   {
-    "bug": "613698",
-    "codeunitId": 139659,
-    "codeunitName": "E-Doc. Line Matching Test",
-    "method": "MatchTwoImportLineToOnePOLineFailure"
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceCreateBatchRuntimeErrorE2ESuccess"
   },
   {
-    "bug": "613698",
-    "codeunitId": 139659,
-    "codeunitName": "E-Doc. Line Matching Test",
-    "method": "CreateMatchingRulesFromCopilotScenario"
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceCreateErrorE2ESuccess"
   },
   {
-    "bug": "613698",
-    "codeunitId": 139659,
-    "codeunitName": "E-Doc. Line Matching Test",
-    "method": "MatchOneImportLineToOnePOLineSuccess26"
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceCreateRuntimeErrorE2ESuccess"
   },
   {
-    "bug": "613698",
-    "codeunitId": 139659,
-    "codeunitName": "E-Doc. Line Matching Test",
-    "method": "MatchDecimalQuantitySuccess"
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceCreateWithEmptyBlobE2ESuccess"
   },
   {
-    "bug": "613698",
-    "codeunitId": 139883,
-    "codeunitName": "E-Doc Process Test",
-    "method": "FinishDraftCanBeUndone"
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnGetApprovalLoggedErrorFailure26"
   },
   {
-    "bug": "Not Provided",
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnGetApprovalReturnFalseSuccess26"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnGetApprovalReturnTrueSuccess26"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnGetApprovalThrowErrorFailure26"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnGetResponseLoggedErrorFailure26"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnGetResponseThrowErrorFailure26"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "PostDocumentNoDefaultOrElectronicProfile"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "PostDocumentNoDefaultOrElectronicProfile26"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "PurchaseDocumentsCreatedFromEDocumentsUseDocumentTotalsValidation"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "PurchaseDocumentsCreatedFromStructuredEDocumentCantEditTotals"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "UIClickSendInWhenPendingResponseSuccess26"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "GetBasicInfoFromReceivedDocumentError"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "GetBasicInfoFromReceivedDocumentError26"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "GetCompleteInfoFromReceivedDocumentError"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "GetCompleteInfoFromReceivedDocumentError26"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveFivePurchaseCreditMemos"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveFivePurchaseCreditMemos26"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveFivePurchaseInvoices"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveFivePurchaseInvoices26"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveMultiCreditMemosToJournal"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveMultiCreditMemosToJournal26"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveMultiPurchaseInvoicesToJournal"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveMultiPurchaseInvoicesToJournal26"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveSinglePurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveSinglePurchaseCreditMemo26"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveSinglePurchaseCreditMemoToJournal"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveSinglePurchaseCreditMemoToJournal26"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveSinglePurchaseInvoice"
+  },
+  {
     "codeunitId": 139628,
     "codeunitName": "E-Doc. Receive Test",
     "method": "ReceiveSinglePurchaseInvoice_PEPPOLDataExch_WithAttachment"
   },
   {
-    "bug": "Not Provided",
     "codeunitId": 139628,
     "codeunitName": "E-Doc. Receive Test",
     "method": "ReceiveSinglePurchaseInvoice_PEPPOLDataExch_WithAttachment26"
   },
   {
-    "method": "GetTaxSubtotalInfo",
-    "codeunitId": 139235,
-    "codeunitName": "PEPPOL30 Management Tests"
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveSinglePurchaseInvoice26"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveSinglePurchaseInvoiceToJournal"
+  },
+  {
+    "codeunitId": 139628,
+    "codeunitName": "E-Doc. Receive Test",
+    "method": "ReceiveSinglePurchaseInvoiceToJournal26"
+  },
+  {
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "CreateMatchingRulesFromCopilotScenario"
+  },
+  {
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchDecimalQuantitySuccess"
+  },
+  {
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchOneImportLineToOnePOLineSuccess"
+  },
+  {
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchOneImportLineToOnePOLineSuccess26"
+  },
+  {
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchOneImportLineToOnePOLineThroughCreatePOLineSuccessGLAccount"
+  },
+  {
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchOneImportLineToOnePOLineThroughCreatePOLineSuccessItem"
+  },
+  {
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchTwoImportLineToOnePOLineFailure"
+  },
+  {
+    "codeunitId": 139659,
+    "codeunitName": "E-Doc. Line Matching Test",
+    "method": "MatchTwoImportLineToOnePOLineSuccess"
+  },
+  {
+    "codeunitId": 139746,
+    "codeunitName": "E-Doc. Email Tests",
+    "method": "TestPostAndSendFromSalesInvoice"
+  },
+  {
+    "codeunitId": 139746,
+    "codeunitName": "E-Doc. Email Tests",
+    "method": "TestSendFromPostedSalesInvoice"
+  },
+  {
+    "codeunitId": 139883,
+    "codeunitName": "E-Doc Process Test",
+    "method": "FinishDraftCanBeUndone"
   }
 ]

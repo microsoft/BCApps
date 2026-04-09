@@ -32,6 +32,46 @@
   {
     "codeunitId": 139550,
     "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryShipmentMethodOnServiceDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryShipmentMethodOnTransferDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransactionSpecificationOnTransferDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransactionSpecOnServiceDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransactionTypeOnServiceDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransactionTypeOnTransferDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransportMethodOnServiceDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
+    "method": "CheckMandatoryTransportMethodOnTransferDocument"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
     "method": "E2EErrorHandlingOfIntrastatReport"
   },
   {
@@ -187,6 +227,11 @@
   {
     "codeunitId": 139550,
     "codeunitName": "Intrastat Report Test",
+    "method": "IntrastatReportLineUsesIntrastatCode"
+  },
+  {
+    "codeunitId": 139550,
+    "codeunitName": "Intrastat Report Test",
     "method": "IntrastatReportWithItemChargeAssignmentAfterPurchaseCreditMemo"
   },
   {
@@ -308,10 +353,5 @@
     "codeunitId": 139550,
     "codeunitName": "Intrastat Report Test",
     "method": "VerifyNoIntraLinesCreatedForCrossedBoardItemChargeInNextPeriod"
-  },
-  {
-    "method": "IntrastatReportLineUsesIntrastatCode",
-    "codeunitId": 139550,
-    "codeunitName": "Intrastat Report Test"
   }
 ]

@@ -1,5 +1,10 @@
 [
   {
+    "codeunitId": 139650,
+    "codeunitName": "Hybrid Wizard Tests",
+    "method": "TestStatusNotCompletedWhenNotFinished"
+  },
+  {
     "codeunitId": 139657,
     "codeunitName": "ADL Migration Tests",
     "method": "AdlMigrationActionNotVisibleIfNotSupported"
@@ -8,10 +13,5 @@
     "codeunitId": 139657,
     "codeunitName": "ADL Migration Tests",
     "method": "AdlMigrationActionVisibleIfSupported"
-  },
-  {
-    "codeunitId": 139650,
-    "codeunitName": "Hybrid Wizard Tests",
-    "method": "TestStatusNotCompletedWhenNotFinished"
   }
 ]

@@ -1,0 +1,32 @@
+[
+  {
+    "codeunitId": 148087,
+    "codeunitName": "Fixed Assets CZF",
+    "method": "CalculateDepreciationDecliningBalance"
+  },
+  {
+    "codeunitId": 148087,
+    "codeunitName": "Fixed Assets CZF",
+    "method": "CalculateDepreciationStraightLine"
+  },
+  {
+    "codeunitId": 148087,
+    "codeunitName": "Fixed Assets CZF",
+    "method": "CalculateDepreciationStraightLineIntangible"
+  },
+  {
+    "codeunitId": 148087,
+    "codeunitName": "Fixed Assets CZF",
+    "method": "CalculateDepreciationWithInterruption"
+  },
+  {
+    "codeunitId": 148087,
+    "codeunitName": "Fixed Assets CZF",
+    "method": "LoggingFixedAssetChanges"
+  },
+  {
+    "codeunitId": 148087,
+    "codeunitName": "Fixed Assets CZF",
+    "method": "PostingFixedAssetDisposal"
+  }
+]

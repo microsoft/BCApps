@@ -5,9 +5,44 @@
     "method": "CheckLineTypesExport"
   },
   {
+    "codeunitId": 132549,
+    "codeunitName": "Import XML Gen Jnl Line",
+    "method": "CurrencyFactorShouldSameGLAccDifferentStatementCurrency"
+  },
+  {
+    "codeunitId": 132549,
+    "codeunitName": "Import XML Gen Jnl Line",
+    "method": "GLAccDifferentStatementCurrency"
+  },
+  {
+    "codeunitId": 132549,
+    "codeunitName": "Import XML Gen Jnl Line",
+    "method": "GLAccSameStatementCurrency"
+  },
+  {
+    "codeunitId": 132549,
+    "codeunitName": "Import XML Gen Jnl Line",
+    "method": "VerifyImportedLines"
+  },
+  {
+    "codeunitId": 134161,
+    "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
+    "method": "CheckPmtJnlLineAmountAfterExport"
+  },
+  {
+    "codeunitId": 134161,
+    "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
+    "method": "DataExchangeDefinitionTextPaddingForPaymentExport"
+  },
+  {
     "codeunitId": 134161,
     "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
     "method": "ExportAgainPmtJnlLineAutoApplied"
+  },
+  {
+    "codeunitId": 134161,
+    "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
+    "method": "ExportPaymentJournalWithEmployee"
   },
   {
     "codeunitId": 134161,
@@ -18,6 +53,21 @@
     "codeunitId": 134161,
     "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
     "method": "ExportPmtJnlLineNotApplied"
+  },
+  {
+    "codeunitId": 134161,
+    "codeunitName": "Pmt Export Mgt Gen. Jnl Test",
+    "method": "SavePaymentDetailsToFileForCurrencyWithFactorforLocalsBankAccount"
+  },
+  {
+    "codeunitId": 134660,
+    "codeunitName": "Exp. Workflow Gen. Jnl.",
+    "method": "SavePaymentDetailsToFileUsingFulllSetupClient"
+  },
+  {
+    "codeunitId": 134660,
+    "codeunitName": "Exp. Workflow Gen. Jnl.",
+    "method": "SavePaymentDetailsToFileUsingFulllSetupServer"
   },
   {
     "codeunitId": 139154,
@@ -112,6 +162,11 @@
   {
     "codeunitId": 139157,
     "codeunitName": "Invoice Premapping Tests",
+    "method": "TestAppliesToReferencedInvoice"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
     "method": "TestBuyFromNoGLNUnknownVATRegNo"
   },
   {
@@ -197,6 +252,11 @@
   {
     "codeunitId": 139157,
     "codeunitName": "Invoice Premapping Tests",
+    "method": "TestSuccessfulInvoicePremappingWithVendorDataFromIncomingDocument"
+  },
+  {
+    "codeunitId": 139157,
+    "codeunitName": "Invoice Premapping Tests",
     "method": "TestUnableToFindReferencedInvoice"
   },
   {
@@ -225,8 +285,8 @@
     "method": "TestUnsupportedDocumentTypeInDataExchangeDefinition"
   },
   {
-    "codeunitId": 139157,
-    "codeunitName": "Invoice Premapping Tests",
-    "method": "TestSuccessfulInvoicePremappingWithVendorDataFromIncomingDocument"
+    "codeunitId": 139158,
+    "codeunitName": "Invoice Mapping Tests",
+    "method": "VerifyIncomingDocumentsOnPostedPurchaseInvoice"
   }
 ]

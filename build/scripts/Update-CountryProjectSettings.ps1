@@ -97,6 +97,15 @@ function Get-AppFoldersForCountry {
     # language pack exclusion using the same logic as the build system.
     $allApps = Get-ApplicationGroup -GroupName "All" -CountryCode $Country -SkipLanguagePacks
 
+    # Apps that PublishBcContainerApp.ps1 refuses to publish to the container.
+    # If these end up in testFolders, the test runner's post-test verification
+    # fails because they were never installed. Exclude them from testFolders
+    # and treat them as regular appFolders instead.
+    $appsNotPublished = @(
+        "Library-NoTransactions",
+        "Prevent Metadata Updates"
+    )
+
     $appFolders = @()
     $testFolders = @()
 
@@ -115,7 +124,7 @@ function Get-AppFoldersForCountry {
 
         $relativePath = ConvertTo-SettingsRelativePath $sourcePath
 
-        if ($metadata.IsTest) {
+        if ($metadata.IsTest -and $metadata.ApplicationName -notin $appsNotPublished) {
             $testFolders += $relativePath
         } else {
             $appFolders += $relativePath

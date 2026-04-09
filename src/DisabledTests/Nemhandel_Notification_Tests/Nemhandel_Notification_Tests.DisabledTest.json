@@ -1,0 +1,67 @@
+[
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "CVRFormatNotificationNotShownWhenBlankCVRNumber"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "CVRFormatNotificationNotShownWhenValidNewCVRNumberFormat"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "CVRFormatNotificationShownWhenNotValidCVRNumberFormat"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "NotificationNotShownWhenChangeCVRNumberFromRegToNotReg"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "NotificationNotShownWhenCompanyStatusRegistered"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "NotificationShownForAccountantWhenCompanyNotRegistered"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "NotificationShownForBusinessManagerWhenCompanyNotRegistered"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "NotificationShownForOrderProcessorWhenCompanyNotRegistered"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "NotificationShownForSalesManagerWhenCompanyNotRegistered"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "NotificationShownForSecurityAdminWhenCompanyNotRegistered"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "NotificationShownWhenCompanyStatusNotRegistered"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "NotificationShownWhenCompanyStatusUnknown"
+  },
+  {
+    "codeunitId": 148012,
+    "codeunitName": "Nemhandel Tests",
+    "method": "NotificationShownWhenSetNotRegisteredCVRNumber"
+  }
+]

@@ -12,6 +12,136 @@
   {
     "codeunitId": 138000,
     "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "ChangeSalesHeaderBillToName"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "ChangeSalesHeaderSellToName"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "ChangeSalesHeaderSellToNameSalesSetupDisableSearchByName"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "ChangeSalesOrderSellToNameDisableSearchByName"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesInvoiceAllLines"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesInvoiceAndPost"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesInvoiceCancelScenarios"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesInvoiceNoLines"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesInvoiceSelectedLines"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesInvoiceWithDifferentItemVendors"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesInvoiceWithSameItemVendor"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesOrderAllLines"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesOrderAndPost"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesOrderCancelScenarios"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesOrderNoLines"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesOrderSelectedLines"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesOrderWithDifferentItemVendors"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseInvoiceFromSalesOrderWithSameItemVendor"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseOrderFromSalesOrderCancel"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseOrderFromSalesOrderErrorIfNoVendorSelected"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseOrderFromSalesOrderLookupVendorList"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseOrderFromSalesOrderWithAllAvailable"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CreatePurchaseOrderFromSalesOrderWithNonPurchaseReplenishment"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "CustomersWithSameNameQuote"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "ExistingCustomerQuote"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "MakeInvoiceFromQuoteAndPost"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
     "method": "MakeOrderFromQuoteKeepsUserEnteredInformation"
   },
   {
@@ -42,7 +172,122 @@
   {
     "codeunitId": 138000,
     "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "OpenCustomerCardFromSortedCustomerList"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "PostPurcahseInvoiceFromList"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "PostPurchaseInvoiceFromCard"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "SalesInvoiceControlsEnabledAfterCustomerSelected"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
     "method": "SelectNoWhenMakingOrderFromQuote"
+  },
+  {
+    "codeunitId": 138000,
+    "codeunitName": "O365 Simplify UI Sales Invoice",
+    "method": "UpdateCustomerNameWithExistingCustomerNameQuote"
+  },
+  {
+    "codeunitId": 138003,
+    "codeunitName": "O365 Sales Calc Disc By Type",
+    "method": "CustomerInvoiceDiscountSetFromCustomerCard"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "CreditMemoChangingBillToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "CreditMemoChangingCurrencySetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "CreditMemoChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "CreditMemoInvioceDiscountTypeAmountIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "CreditMemoPostSalesInvoiceOpensDialogAndPostedInvoice"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "CrMemoBillToNameValidationSavesBilltoICPartnerChange"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "InvioceDiscountTypeAmountIsSetWhenInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "InvoiceBillToNameValidationSavesBilltoICPartnerChange"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "InvoiceChangingBillToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "InvoiceChangingCurrencySetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "InvoiceChangingSellToCustomerSetsDiscountToZeroForInvoiceDiscountTypeAmount"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "InvoicePostSalesInvoiceOpensDialogAndPostedInvoice"
+  },
+  {
+    "codeunitId": 138004,
+    "codeunitName": "O365 Sales Totals Invoice/Cr.M",
+    "method": "InvoiceTotalsAreCalculatedWhenPostedInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 138006,
+    "codeunitName": "O365 Sales Totals Quote/Order",
+    "method": "BlanketOrderBillToNameValidationSavesBilltoICPartnerChange"
+  },
+  {
+    "codeunitId": 138006,
+    "codeunitName": "O365 Sales Totals Quote/Order",
+    "method": "OrderBillToNameValidationSavesBilltoICPartnerChange"
+  },
+  {
+    "codeunitId": 138006,
+    "codeunitName": "O365 Sales Totals Quote/Order",
+    "method": "QuoteBillToNameValidationSavesBilltoICPartnerChange"
+  },
+  {
+    "codeunitId": 138006,
+    "codeunitName": "O365 Sales Totals Quote/Order",
+    "method": "ReturnOrderBillToNameValidationSavesBilltoICPartnerChange"
   },
   {
     "codeunitId": 138007,
@@ -52,12 +297,27 @@
   {
     "codeunitId": 138007,
     "codeunitName": "O365 Shipping Agent",
+    "method": "PostSalesInvoiceWithShippingAgent"
+  },
+  {
+    "codeunitId": 138007,
+    "codeunitName": "O365 Shipping Agent",
     "method": "PostSalesInvoiceWithShippingAgentService"
   },
   {
     "codeunitId": 138007,
     "codeunitName": "O365 Shipping Agent",
+    "method": "PostSalesInvoiceWithShippingAgentSAAS"
+  },
+  {
+    "codeunitId": 138007,
+    "codeunitName": "O365 Shipping Agent",
     "method": "PostSalesOrderForCustomerWithShippingAgentService"
+  },
+  {
+    "codeunitId": 138007,
+    "codeunitName": "O365 Shipping Agent",
+    "method": "PostSalesOrderWithShippingAgent"
   },
   {
     "codeunitId": 138007,
@@ -90,6 +350,86 @@
     "method": "VendorTemplCardControls"
   },
   {
+    "codeunitId": 138010,
+    "codeunitName": "O365 Sales Invoice Status",
+    "method": "SalesInvoicePaid"
+  },
+  {
+    "codeunitId": 138010,
+    "codeunitName": "O365 Sales Invoice Status",
+    "method": "SalesInvoicePaidInTwoPayments"
+  },
+  {
+    "codeunitId": 138010,
+    "codeunitName": "O365 Sales Invoice Status",
+    "method": "SalesInvoiceUnpaid"
+  },
+  {
+    "codeunitId": 138021,
+    "codeunitName": "O365 Purchase Invoice Stat.",
+    "method": "PurchaseInvoicePaid"
+  },
+  {
+    "codeunitId": 138021,
+    "codeunitName": "O365 Purchase Invoice Stat.",
+    "method": "PurchaseInvoicePaidInTwoPayments"
+  },
+  {
+    "codeunitId": 138021,
+    "codeunitName": "O365 Purchase Invoice Stat.",
+    "method": "PurchaseInvoiceUnpaid"
+  },
+  {
+    "codeunitId": 138022,
+    "codeunitName": "O365 Charts Tests",
+    "method": "AgedAccReceivablesTest"
+  },
+  {
+    "codeunitId": 138022,
+    "codeunitName": "O365 Charts Tests",
+    "method": "AgedInventoryChartDataTest"
+  },
+  {
+    "codeunitId": 138022,
+    "codeunitName": "O365 Charts Tests",
+    "method": "AgedInventoryChartDrilldownTest"
+  },
+  {
+    "codeunitId": 138022,
+    "codeunitName": "O365 Charts Tests",
+    "method": "SalesByCustGrpChartDrilldownTest"
+  },
+  {
+    "codeunitId": 138022,
+    "codeunitName": "O365 Charts Tests",
+    "method": "SalesByCustPostingGroups"
+  },
+  {
+    "codeunitId": 138022,
+    "codeunitName": "O365 Charts Tests",
+    "method": "TopFiveCustomerChartDataTest"
+  },
+  {
+    "codeunitId": 138022,
+    "codeunitName": "O365 Charts Tests",
+    "method": "TopFiveCustomerChartDataTestOnlyTwoCustomersExists"
+  },
+  {
+    "codeunitId": 138022,
+    "codeunitName": "O365 Charts Tests",
+    "method": "TopTenCustomerChartDataTest"
+  },
+  {
+    "codeunitId": 138022,
+    "codeunitName": "O365 Charts Tests",
+    "method": "TopTenCustomerChartDataTestOnlyTwoCustomersExists"
+  },
+  {
+    "codeunitId": 138022,
+    "codeunitName": "O365 Charts Tests",
+    "method": "TopTenCustomerChartDrillDownTest"
+  },
+  {
     "codeunitId": 138023,
     "codeunitName": "O365 Generic Chart Page Tests",
     "method": "Top10CustPointClickedTest"
@@ -98,6 +438,26 @@
     "codeunitId": 138023,
     "codeunitName": "O365 Generic Chart Page Tests",
     "method": "Top5CustPointClickedTest"
+  },
+  {
+    "codeunitId": 138024,
+    "codeunitName": "O365 Totals and Inv.Disc.Purch",
+    "method": "InvoicePostPurchaseInvoiceOpensDialogAndPostedInvoice"
+  },
+  {
+    "codeunitId": 138024,
+    "codeunitName": "O365 Totals and Inv.Disc.Purch",
+    "method": "InvoiceTotalsAreCalculatedWhenPostedInvoiceIsOpened"
+  },
+  {
+    "codeunitId": 138026,
+    "codeunitName": "O365 Simplify UI Purch.Cr.Memo",
+    "method": "PostFromCard"
+  },
+  {
+    "codeunitId": 138026,
+    "codeunitName": "O365 Simplify UI Purch.Cr.Memo",
+    "method": "PostFromList"
   },
   {
     "codeunitId": 138029,
@@ -135,6 +495,281 @@
     "method": "TestTrialBalanceMatchesAccSchedOverview"
   },
   {
+    "codeunitId": 138033,
+    "codeunitName": "O365 Navigate",
+    "method": "TestFindByContact"
+  },
+  {
+    "codeunitId": 138033,
+    "codeunitName": "O365 Navigate",
+    "method": "TestFindByDocument"
+  },
+  {
+    "codeunitId": 138033,
+    "codeunitName": "O365 Navigate",
+    "method": "TestFindByExternalDocumentPurchase"
+  },
+  {
+    "codeunitId": 138033,
+    "codeunitName": "O365 Navigate",
+    "method": "TestFindByExternalDocumentSales"
+  },
+  {
+    "codeunitId": 138033,
+    "codeunitName": "O365 Navigate",
+    "method": "TestFindByVendor"
+  },
+  {
+    "codeunitId": 138033,
+    "codeunitName": "O365 Navigate",
+    "method": "TestNavigatePageOpensPage"
+  },
+  {
+    "codeunitId": 138042,
+    "codeunitName": "O365 Page Dimensions",
+    "method": "DimensionsOnPurchaseInvoices"
+  },
+  {
+    "codeunitId": 138042,
+    "codeunitName": "O365 Page Dimensions",
+    "method": "DimensionsOnSalesInvoices"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "PurchaseLinesItemsLocationsQueryInvalidLinesUT"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "PurchaseLinesItemsLocationsQueryValidLineUT"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "ReleasedOrderNoWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "SalesLinesItemsLocationsQueryEmptyOrderUT"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "SalesLinesItemsLocationsQueryInvalidLinesUT"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "SalesLinesItemsLocationsQueryInvoiceUT"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "SalesLinesItemsLocationsQueryValidLineUT"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestCloseUnpostedSalesCreditMemoNoWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestCloseUnpostedSalesCreditMemoWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestCloseUnpostedSalesCreditMemoWarningWithEmptyNotifications"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestCloseUnpostedSalesInvoiceNoWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestCloseUnpostedSalesInvoiceWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestCloseUnpostedSalesOrderNoWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestCloseUnpostedSalesOrderWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestCloseUnpostedSalesOrderWarningWithEmptyNotifications"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestCloseUnpostedSalesReturnOrderNoWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestCloseUnpostedSalesReturnOrderWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestCloseUnpostedSalesReturnOrderWarningWithEmptyNotifications"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "TestPostSalesOrderNoConfirmAboutClosingUnposted"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "UnreleasedNotificationOffNoWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "UnreleasedSalesNoPickOrShipmentNoWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "UnreleasedSalesRequirePickWarning"
+  },
+  {
+    "codeunitId": 138046,
+    "codeunitName": "Warn Closing Unposted Doc",
+    "method": "UnreleasedSalesRequireShipmentWarning"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "S475203_TestPostSalesInvoiceWithNavigate_EqualNoSeries"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "S475203_TestPostSalesInvoiceWithNavigate_RepeatPreAssignedNo"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostPurchaseCreditMemoWithNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostPurchaseCreditMemoWithoutNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostPurchaseInvoiceWithNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostPurchaseInvoiceWithoutNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostPurchaseOrderWithNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostPurchaseOrderWithoutNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostPurchaseReturnOrderWithNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostPurchaseReturnOrderWithoutNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostSalesCreditMemoNoWarning"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostSalesCreditMemoWithNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostSalesInvoiceWithNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostSalesInvoiceWithoutNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostSalesOrderWithNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostSalesOrderWithoutNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostSalesReturnOrderWithNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostSalesReturnOrderWithoutNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostServiceCreditMemoWithNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostServiceCreditMemoWithoutNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostServiceInvoiceWithNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostServiceInvoiceWithoutNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostServiceOrderWithNavigate"
+  },
+  {
+    "codeunitId": 138047,
+    "codeunitName": "Navigate to Posted Document",
+    "method": "TestPostServiceOrderWithoutNavigate"
+  },
+  {
     "codeunitId": 138048,
     "codeunitName": "O365 Inv. Item Availability",
     "method": "CreatePurchOrderItemVendorNoIsEmptyVendorSelected"
@@ -148,6 +783,21 @@
     "codeunitId": 138048,
     "codeunitName": "O365 Inv. Item Availability",
     "method": "CreatePurchOrderUsesTheVendorNoFromItem"
+  },
+  {
+    "codeunitId": 138050,
+    "codeunitName": "O365 Test Name Nearness",
+    "method": "TestSalesLine"
+  },
+  {
+    "codeunitId": 138100,
+    "codeunitName": "Streamline. Autofill No Series",
+    "method": "ValidateCustomerOnSalesHeader"
+  },
+  {
+    "codeunitId": 138100,
+    "codeunitName": "Streamline. Autofill No Series",
+    "method": "ValidateVendorOnPurchaseHeader"
   },
   {
     "codeunitId": 139125,
@@ -177,12 +827,12 @@
   {
     "codeunitId": 139126,
     "codeunitName": "O365 Activites Tests",
-    "method": "OverduePurchInvoiceRemainingAmountLCYSortingTest"
+    "method": "DrillDownSalesThisMonth"
   },
   {
     "codeunitId": 139126,
     "codeunitName": "O365 Activites Tests",
-    "method": "DrillDownSalesThisMonth"
+    "method": "OverduePurchInvoiceRemainingAmountLCYSortingTest"
   },
   {
     "codeunitId": 139157,

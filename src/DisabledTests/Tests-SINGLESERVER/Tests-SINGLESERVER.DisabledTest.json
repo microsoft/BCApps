@@ -140,6 +140,346 @@
     "method": "PlansNotVisibleInUserCardWhenNotSuperTest"
   },
   {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostOpenedPurchaseCreditMemoError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostOpenedPurchaseInvoiceError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostOpenedPurchaseOrderError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostOpenedPurchaseReturnOrderError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostOpenedSalesCreditMemoError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostOpenedSalesInvoiceError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostOpenedSalesOrderError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostOpenedSalesReturnOrderError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostPurchaseInvoiceOnBuyFromVendorRestrictionError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostPurchaseInvoiceOnPayToVendorRestrictionError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostSalesInvoiceOnBillToCustRestrictionError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PostSalesInvoiceOnSellToCustRestrictionError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PurchaseAmountApprovalLimitWithUnlimitedError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PurchaseBlanketOrderWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PurchaseCreditMemoWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PurchaseInvoiceWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PurchaseOrderPostOnItemRestriction"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PurchaseOrderPostPreviewOnItemRestriction"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PurchaseOrderWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PurchaseQuoteWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "PurchaseReturnOrderWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesBlanketOrderBeyondApprovalLimitError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesBlanketOrderNoWorkflow"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesBlanketOrderWithSalesPersonCodeError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesBlanketOrderWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesCreditMemoBeyondApprovalLimitError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesCreditMemoNoWorkflow"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesCreditMemoWithSalesPersonCodeError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesCreditMemoWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesInvoiceBeyondApprovalLimitError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesInvoiceNoWorkflow"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesInvoiceWithSalesPersonCodeError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesInvoiceWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesOrderBeyondApprovalLimitError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesOrderNoWorkflow"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesOrderPostOnItemRestriction"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesOrderPostPreviewOnItemRestriction"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesOrderWithSalesPersonCodeError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesOrderWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesQuoteBeyondApprovalLimitError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesQuoteNoWorkflow"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesQuoteWithSalesPersonCodeError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesQuoteWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesReturnOrderBeyondApprovalLimitError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesReturnOrderNoWorkflow"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesReturnOrderWithSalesPersonCodeError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "SalesReturnOrderWithSubstituteError"
+  },
+  {
+    "codeunitId": 134200,
+    "codeunitName": "Document Approval - Errors",
+    "method": "TestSalesInvoiceApproverChainLoop"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "ApprovalCommentFactBoxWhenCommentExist"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "ApprovalCommentFactBoxWhenCommentNotExist"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "ApprovalCommentFromSalesReturnOrder"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "ApprovalCommentIsMovedToPostedApprovalCommentLineWhenDocumentIsPosted"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "ApproverReadsSenderCommentFromSalesOrderCard"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "CheckApprovalEntryWithStatusApprovedForPurchase"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "CheckApprovalEntryWithStatusApprovedForSales"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "DeletePostedApprovalCommentEntry"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "InsertApprovalCommentsForSalesBlanketOrder"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "InsertApprovalCommentsForSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "InsertApprovalCommentsForSalesInvoice"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "InsertApprovalCommentsForSalesOrder"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "InsertApprovalCommentsForSalesQuote"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "InsertApprovalCommentsForSalesReturnOrder"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "RejectRequestForSalesBlanketOrderWithComments"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "RejectRequestForSalesCreditMemoWithComments"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "RejectRequestForSalesInvoiceWithComments"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "RejectRequestForSalesOrderWithComments"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "RejectRequestForSalesQuoteWithComments"
+  },
+  {
+    "codeunitId": 134201,
+    "codeunitName": "Document Approval - Comments",
+    "method": "RejectRequestForSalesReturnOrderWithComments"
+  },
+  {
     "codeunitId": 134202,
     "codeunitName": "Document Approval - Users",
     "method": "ApprovalAdministratorApproveApprovalEntry"
@@ -492,6 +832,11 @@
   {
     "codeunitId": 134202,
     "codeunitName": "Document Approval - Users",
+    "method": "NotificationSettingIsBasedOnRecipientNotificationSetup"
+  },
+  {
+    "codeunitId": 134202,
+    "codeunitName": "Document Approval - Users",
     "method": "PostingDropShipmentOrderForApprovalNotCompleted"
   },
   {
@@ -782,6 +1127,11 @@
   {
     "codeunitId": 134203,
     "codeunitName": "Document Approval - Documents",
+    "method": "ApprovalFactboxWithoutEntries"
+  },
+  {
+    "codeunitId": 134203,
+    "codeunitName": "Document Approval - Documents",
     "method": "BlanketPurchaseOrderApprovalFactbox"
   },
   {
@@ -792,7 +1142,32 @@
   {
     "codeunitId": 134203,
     "codeunitName": "Document Approval - Documents",
+    "method": "CopyPurchQuotetoOrderWithApprovalComment"
+  },
+  {
+    "codeunitId": 134203,
+    "codeunitName": "Document Approval - Documents",
+    "method": "CopySalesQuotetoOrderWithApprovalComment"
+  },
+  {
+    "codeunitId": 134203,
+    "codeunitName": "Document Approval - Documents",
+    "method": "CopyServiceQuotetoOrderWithApprovalComment"
+  },
+  {
+    "codeunitId": 134203,
+    "codeunitName": "Document Approval - Documents",
     "method": "CreateNonWindowsUserUT"
+  },
+  {
+    "codeunitId": 134203,
+    "codeunitName": "Document Approval - Documents",
+    "method": "PostPurchaseOrderWithApprovalComment"
+  },
+  {
+    "codeunitId": 134203,
+    "codeunitName": "Document Approval - Documents",
+    "method": "PostSalesOrderWithApprovalComment"
   },
   {
     "codeunitId": 134203,
@@ -927,6 +1302,16 @@
   {
     "codeunitId": 134302,
     "codeunitName": "Workflow E2E Tests",
+    "method": "TestRejectingApprovalRequestForPurchInvGeneratesNotification"
+  },
+  {
+    "codeunitId": 134302,
+    "codeunitName": "Workflow E2E Tests",
+    "method": "TestRejectingApprovalRequestForPurchInvWithLoopbackToEvent"
+  },
+  {
+    "codeunitId": 134302,
+    "codeunitName": "Workflow E2E Tests",
     "method": "TestRejectingApprovalRequestForPurchInvWithLoopbackToResponse"
   },
   {
@@ -942,17 +1327,152 @@
   {
     "codeunitId": 134302,
     "codeunitName": "Workflow E2E Tests",
-    "method": "TestRejectingApprovalRequestForPurchInvGeneratesNotification"
+    "method": "TestWorkflowInstaceIsDeletedWhenMultipleStepsAreExecuted"
   },
   {
-    "codeunitId": 134302,
-    "codeunitName": "Workflow E2E Tests",
-    "method": "TestRejectingApprovalRequestForPurchInvWithLoopbackToEvent"
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "DetailTrialBalance"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "DetailTrialBalanceAmountLCY"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "DetailTrialBalanceExclBalance"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "PurchaseCreditMemoReportTotalAmountExclVATWithPuchaseLineWithDimensions"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "PurchaseCreditMemoReportWithPuchaseLineWithDimensions"
   },
   {
     "codeunitId": 134335,
     "codeunitName": "ERM Purch. Doc. Reports",
     "method": "PurchaseInvoiceReportWithPuchaseLineWithDimensions"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "PurchaseListAmountLCY"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "PurchaseListIncludeZeroAmount"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "PurchaseReceiptInternalInfo"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "PurchaseReceiptLogEntry"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "PurchaseReceiptNoOption"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "PurchaseStatisticsInvDiscount"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "PurchaseStatisticsPmtDiscount"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "PurchaseStatisticsPmtTolerance"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateAmountLCY"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateDtldVendorLedgerEntryDocumentNumber"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateDtldVendorLedgerEntryExternalDocumentNumber"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateFCY"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateForZeroAmountInvoiceWithShowEntriesWithZeroBalance"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateMultipleCurrenciesWithTheSameAmount"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateMultipleCurrenciesWithTheSameAmountWithShowEntriesWithZeroBalance"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateUnapplied"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateVendorLedgerEntryDocumentNumber"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateVendorLedgerEntryExternalDocumentNumber"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateVendorNo"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorBalanceToDateWithTheSameAmountSkipReport"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorPaymentReceipt"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VendorPaymentReceiptFCYPaymentLCYInvoice"
+  },
+  {
+    "codeunitId": 134335,
+    "codeunitName": "ERM Purch. Doc. Reports",
+    "method": "VerifyVendorBalanceToDateVendorLedgerEntryWithExternalDocumentNumber"
   },
   {
     "codeunitId": 134610,
@@ -968,6 +1488,11 @@
     "codeunitId": 134610,
     "codeunitName": "Test User Permissions",
     "method": "TestCreateSuperUser"
+  },
+  {
+    "codeunitId": 134610,
+    "codeunitName": "Test User Permissions",
+    "method": "TestPermissionSetByUserPage1"
   },
   {
     "codeunitId": 134610,
@@ -1055,9 +1580,144 @@
     "method": "TestViewAggregatePermissionsSetsByUser"
   },
   {
+    "codeunitId": 134636,
+    "codeunitName": "API Setup UT",
+    "method": "TestPurchaseInvoicesBufferRecordsAreCreatedOnAPISetup"
+  },
+  {
+    "codeunitId": 134636,
+    "codeunitName": "API Setup UT",
+    "method": "TestPurchaseInvoicesBufferRecordsAreDeletedOnAPISetup"
+  },
+  {
+    "codeunitId": 134636,
+    "codeunitName": "API Setup UT",
+    "method": "TestSalesCreditMemoAggregateRecordsAreCreatedOnAPISetup"
+  },
+  {
+    "codeunitId": 134636,
+    "codeunitName": "API Setup UT",
+    "method": "TestSalesCreditMemoAggregateRecordsAreDeletedOnAPISetup"
+  },
+  {
+    "codeunitId": 134636,
+    "codeunitName": "API Setup UT",
+    "method": "TestSalesInvoiceAgregatesAreDeletedOnAPISetup"
+  },
+  {
+    "codeunitId": 134636,
+    "codeunitName": "API Setup UT",
+    "method": "TestSalesInvoicesAreCreatedOnAPISetup"
+  },
+  {
+    "codeunitId": 134636,
+    "codeunitName": "API Setup UT",
+    "method": "TestSalesOrderBufferRecordsAreCreatedOnAPISetup"
+  },
+  {
+    "codeunitId": 134636,
+    "codeunitName": "API Setup UT",
+    "method": "TestSalesOrderBufferRecordsAreDeletedOnAPISetup"
+  },
+  {
+    "codeunitId": 134636,
+    "codeunitName": "API Setup UT",
+    "method": "TestSalesQuoteEntityBufferRecordsAreCreatedOnAPISetup"
+  },
+  {
+    "codeunitId": 134636,
+    "codeunitName": "API Setup UT",
+    "method": "TestSalesQuoteEntityBufferRecordsAreDeletedOnAPISetup"
+  },
+  {
+    "codeunitId": 134826,
+    "codeunitName": "UT Contact Table",
+    "method": "TestGetContNoGetContactByName_CaseSensitive"
+  },
+  {
+    "codeunitId": 134912,
+    "codeunitName": "ERM User Personalization",
+    "method": "VerifyDefaultRoleCenterExist"
+  },
+  {
+    "codeunitId": 134988,
+    "codeunitName": "ERM Purchase Reports III",
+    "method": "CheckPostedPurchaseCreditMemoReport"
+  },
+  {
+    "codeunitId": 134988,
+    "codeunitName": "ERM Purchase Reports III",
+    "method": "DocEntryReportForPurchCrMemoShowAmtInLCYFalse"
+  },
+  {
+    "codeunitId": 134988,
+    "codeunitName": "ERM Purchase Reports III",
+    "method": "DocEntryReportForPurchCrMemoShowAmtInLCYTrue"
+  },
+  {
+    "codeunitId": 134988,
+    "codeunitName": "ERM Purchase Reports III",
+    "method": "DocEntryReportForPurchInvShowAmtInLCYFalse"
+  },
+  {
+    "codeunitId": 134988,
+    "codeunitName": "ERM Purchase Reports III",
+    "method": "DocEntryReportForPurchInvShowAmtInLCYTrue"
+  },
+  {
+    "codeunitId": 134988,
+    "codeunitName": "ERM Purchase Reports III",
+    "method": "PurchCreditMemoReportWithEnabledPrintVATSpecInLCY"
+  },
+  {
     "codeunitId": 134988,
     "codeunitName": "ERM Purchase Reports III",
     "method": "PurchInvoiceReportLayoutWithEnabledPrintVATSpecInLCY"
+  },
+  {
+    "codeunitId": 134988,
+    "codeunitName": "ERM Purchase Reports III",
+    "method": "PurchInvoiceReportWithEnabledPrintVATSpecInLCY"
+  },
+  {
+    "codeunitId": 134988,
+    "codeunitName": "ERM Purchase Reports III",
+    "method": "VendorTrialBalanceDateFilter"
+  },
+  {
+    "codeunitId": 134988,
+    "codeunitName": "ERM Purchase Reports III",
+    "method": "VendorTrialBalanceWithDimension"
+  },
+  {
+    "codeunitId": 135407,
+    "codeunitName": "Prepayments Plan-based E2E",
+    "method": "TestPrepaymentsInSalesOrderAsBusinessManager"
+  },
+  {
+    "codeunitId": 135407,
+    "codeunitName": "Prepayments Plan-based E2E",
+    "method": "TestPrepaymentsInSalesOrderAsDeviceISVEmbUser"
+  },
+  {
+    "codeunitId": 135407,
+    "codeunitName": "Prepayments Plan-based E2E",
+    "method": "TestPrepaymentsInSalesOrderAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135407,
+    "codeunitName": "Prepayments Plan-based E2E",
+    "method": "TestPrepaymentsInSalesOrderAsExternalAccountant"
+  },
+  {
+    "codeunitId": 135407,
+    "codeunitName": "Prepayments Plan-based E2E",
+    "method": "TestPrepaymentsInSalesOrderAsTeamMember"
+  },
+  {
+    "codeunitId": 135407,
+    "codeunitName": "Prepayments Plan-based E2E",
+    "method": "TestPrepaymentsInSalesOrderAsTeamMemberISVEmb"
   },
   {
     "codeunitId": 135411,
@@ -1068,6 +1728,16 @@
     "codeunitId": 135411,
     "codeunitName": "Assembly Mgmt. Plan-based E2E",
     "method": "AssemblyMgmtCreateAndPostSalesOrderAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 136601,
+    "codeunitName": "ERM RS Data Templates",
+    "method": "CreatingConfigTemplateWithServiceDefaultValueAndExistingSalesOrder"
+  },
+  {
+    "codeunitId": 136601,
+    "codeunitName": "ERM RS Data Templates",
+    "method": "CreatingConfigTemplateWithServiceDefaultValueAndExistingServiceContract"
   },
   {
     "codeunitId": 136601,
@@ -1095,6 +1765,11 @@
     "method": "ApplyJnlLineWithExistingDimension"
   },
   {
+    "codeunitId": 136608,
+    "codeunitName": "ERM RS Validate and Apply",
+    "method": "ApplyTableWithSeriesNo_ApplyRecordWithBlankPK_SeriesNoAssignedForPK"
+  },
+  {
     "codeunitId": 138697,
     "codeunitName": "Profile Import/Export Test",
     "method": "ForceExportInvalidProfile"
@@ -1117,7 +1792,27 @@
   {
     "codeunitId": 138698,
     "codeunitName": "AllProfile V2 Test",
+    "method": "TestCanSetAnyProfileInMySettings"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
     "method": "TestConfigureProfileAction"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "TestCopyDefaultProfileDoesNotCreateAnotherDefault"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "TestCopyProfileActionCard"
+  },
+  {
+    "codeunitId": 138698,
+    "codeunitName": "AllProfile V2 Test",
+    "method": "TestCopyProfileActionList"
   },
   {
     "codeunitId": 139004,
@@ -1235,18 +1930,28 @@
     "method": "TestUpdateUserAccessForSaaSWithInvalidRoleCenter"
   },
   {
-    "codeunitId": 138698,
-    "codeunitName": "AllProfile V2 Test",
-    "method": "TestCopyDefaultProfileDoesNotCreateAnotherDefault"
+    "codeunitId": 144161,
+    "codeunitName": "ERM Loc Num",
+    "method": "InsertElecPmtJnlLineForVendorInCaseOfUseForElecPmtIsFalse"
   },
   {
-    "codeunitId": 138698,
-    "codeunitName": "AllProfile V2 Test",
-    "method": "TestCopyProfileActionCard"
+    "codeunitId": 144161,
+    "codeunitName": "ERM Loc Num",
+    "method": "InsertElecPmtJnlLineForVendorInCaseOfUseForElecPmtIsTrue"
   },
   {
-    "codeunitId": 138698,
-    "codeunitName": "AllProfile V2 Test",
-    "method": "TestCopyProfileActionList"
+    "codeunitId": 144161,
+    "codeunitName": "ERM Loc Num",
+    "method": "ValidateElecPmtForVendPmtJnlLineInCaseOfUseForElecPmtIsFalse"
+  },
+  {
+    "codeunitId": 144161,
+    "codeunitName": "ERM Loc Num",
+    "method": "ValidateElecPmtForVendPmtJnlLineInCaseOfUseForElecPmtIsTrue"
+  },
+  {
+    "codeunitId": 144161,
+    "codeunitName": "ERM Loc Num",
+    "method": "VoidElectronicVendorPayment"
   }
 ]

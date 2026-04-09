@@ -1,5 +1,10 @@
 [
   {
+    "codeunitId": 132550,
+    "codeunitName": "Import XML Bank Acc. Rec. Line",
+    "method": "DeleteBankStatementDetailsWhenPosting"
+  },
+  {
     "codeunitId": 132558,
     "codeunitName": "AMC Banking Credential UT",
     "method": "AssistedSetupWithDemoUser"
@@ -28,6 +33,106 @@
     "codeunitId": 132558,
     "codeunitName": "AMC Banking Credential UT",
     "method": "TestMissingSetupUpdatedPmtExport"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "AMCBankingSetupIsCreatedIfItDoesNotExist"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "CheckCredentialsShouldFailIfPasswordIsBlank"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "CheckCredentialsShouldFailIfUserCancelConfirmation"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "CheckCredentialsShouldOpenSetupPageInRealCompany"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "PageInEditAllFieldsEditable"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "PageInViewAllFieldsReadOnly"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "StorePasswordWithEncryption"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "StorePasswordWithoutEncryption"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "StorePasswordWithoutEncryptionAndCheckConfirmDialog"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "UserCanChangeHisAMCPassword"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "UserCanChangeTheAMCServiceURL"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "UserCanChangeTheAMCServiceURLToBeBlank"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "UserCanChangeTheAMCSetupURL"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "UserCanChangeTheAMCSupportURL"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "UserCanDeleteTheAMCSetupInformation"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "UserCanEnterOnlySecureURLAsTheAMCServiceURL"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "UserCanEnterOnlyValidURLAsTheAMCServiceURL"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "UserCanSeeThatAPasswordExist"
+  },
+  {
+    "codeunitId": 134410,
+    "codeunitName": "ERM AMC banking Setup ATDD",
+    "method": "UserCanStoreHisAMCSetupInformation"
+  },
+  {
+    "codeunitId": 134423,
+    "codeunitName": "Payment Export XMLPort",
+    "method": "ExportAMCXMLSunshine"
   },
   {
     "codeunitId": 135080,
@@ -128,10 +233,5 @@
     "codeunitId": 135087,
     "codeunitName": "AMC CT E2E Web Service Test",
     "method": "TestSyslogResponseErrors"
-  },
-  {
-    "codeunitId": 134423,
-    "codeunitName": "Payment Export XMLPort",
-    "method": "ExportAMCXMLSunshine"
   }
 ]

@@ -1,5 +1,10 @@
 [
   {
+    "codeunitId": 139521,
+    "codeunitName": "VAT Group Representative Logic",
+    "method": "TestIncludeVATGroupAmounts"
+  },
+  {
     "codeunitId": 139524,
     "codeunitName": "VAT Group Setup Page Test",
     "method": "TestVATReportSetupMemberOAUTHPageBehavior"

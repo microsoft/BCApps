@@ -1,0 +1,108 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/7209c0276f09fa18469b985fd609d45255b77426/Actions/.Modules/settings.schema.json",
+  "projectName": "Unit Tests (CZ)",
+  "gitHubRunner": "GitHub-BCAppsSwec",
+  "projectsToTest": [
+    "build/projects/Apps CZ"
+  ],
+  "testFolders": [],
+  "runTestsInAllInstalledTestApps": true,
+  "installOnlyReferencedApps": false,
+  "memoryLimit": "16G",
+  "doNotRunTests": false,
+  "useCompilerFolder": false,
+  "doNotPublishApps": false,
+  "testType": "UnitTest",
+  "companyName": "Empty Company",
+  "country": "w1",
+  "buildModes": [
+    "IntegrationTests",
+    "UncategorizedTests",
+    "LegacyTestsBucket1",
+    "LegacyTestsBucket2",
+    "LegacyTestsBucket3",
+    "LegacyTestsBucket4",
+    "LegacyTestsBucket5",
+    "LegacyTestsBucket6"
+  ],
+  "ConditionalSettings": [
+    {
+      "buildModes": [
+        "IntegrationTests"
+      ],
+      "settings": {
+        "testType": "IntegrationTest",
+        "companyName": "My Company"
+      }
+    },
+    {
+      "buildModes": [
+        "UncategorizedTests"
+      ],
+      "settings": {
+        "testType": "Uncategorized",
+        "companyName": "CRONUS International Ltd."
+      }
+    },
+    {
+      "buildModes": [
+        "LegacyTestsBucket1"
+      ],
+      "settings": {
+        "testType": "Legacy",
+        "bucketNumber": 1,
+        "companyName": "CRONUS International Ltd."
+      }
+    },
+    {
+      "buildModes": [
+        "LegacyTestsBucket2"
+      ],
+      "settings": {
+        "testType": "Legacy",
+        "bucketNumber": 2,
+        "companyName": "CRONUS International Ltd."
+      }
+    },
+    {
+      "buildModes": [
+        "LegacyTestsBucket3"
+      ],
+      "settings": {
+        "testType": "Legacy",
+        "bucketNumber": 3,
+        "companyName": "CRONUS International Ltd."
+      }
+    },
+    {
+      "buildModes": [
+        "LegacyTestsBucket4"
+      ],
+      "settings": {
+        "testType": "Legacy",
+        "bucketNumber": 4,
+        "companyName": "CRONUS International Ltd."
+      }
+    },
+    {
+      "buildModes": [
+        "LegacyTestsBucket5"
+      ],
+      "settings": {
+        "testType": "Legacy",
+        "bucketNumber": 5,
+        "companyName": "CRONUS International Ltd."
+      }
+    },
+    {
+      "buildModes": [
+        "LegacyTestsBucket6"
+      ],
+      "settings": {
+        "testType": "Legacy",
+        "bucketNumber": 6,
+        "companyName": "CRONUS International Ltd."
+      }
+    }
+  ]
+}

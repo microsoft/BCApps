@@ -31,9 +31,6 @@ function Invoke-LegacyDemoDataTool() {
         [string]$ContainerName,
         [string]$CompanyName = (Get-TestCompanyName)
     )
-    # Get the repoversion
-    $repoVersion = Get-ConfigValue -ConfigType "AL-GO" -Key "RepoVersion"
-    $DemoDataType = "EXTENDED"
 
     # Allow access to configuration packages
     Set-BcContainerServerConfiguration -ContainerName $ContainerName -keyName EnforceUserPathForAlFileOperations -keyValue $false
@@ -43,9 +40,20 @@ function Invoke-LegacyDemoDataTool() {
     Write-Host "Initializing company"
     Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
 
-    Write-Host "Importing configuration package"
-    # TODO: For now we get the demo data from the configuration package. Later we need to generate this via the demo data tool
-    Invoke-NavContainerCodeunit -Codeunitid 8620 -containerName $ContainerName -CompanyName $CompanyName -MethodName "ImportAndApplyRapidStartPackage" -Argument "C:\ConfigurationPackages\NAV$($repoVersion).W1.ENU.$($DemoDataType).rapidstart"
+    # Find the EXTENDED rapidstart package in the container (works for both W1 and localized containers)
+    $repoVersion = Get-ConfigValue -ConfigType "AL-GO" -Key "RepoVersion"
+    $rapidstartFile = Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+        param($version)
+        $file = Get-ChildItem "C:\ConfigurationPackages" -Filter "NAV$version*EXTENDED.rapidstart" -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($file) { $file.FullName } else { $null }
+    } -argumentList $repoVersion
+
+    if (-not $rapidstartFile) {
+        throw "No EXTENDED rapidstart package found in C:\ConfigurationPackages in container $ContainerName"
+    }
+
+    Write-Host "Importing configuration package: $rapidstartFile"
+    Invoke-NavContainerCodeunit -Codeunitid 8620 -containerName $ContainerName -CompanyName $CompanyName -MethodName "ImportAndApplyRapidStartPackage" -Argument $rapidstartFile
 }
 
 function Get-TestCompanyName() {

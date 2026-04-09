@@ -40,6 +40,11 @@
     "method": "StanHasToUseUniqueNameForCopiedPermissionSet"
   },
   {
+    "codeunitId": 135404,
+    "codeunitName": "Sales Document Plan-based E2E",
+    "method": "TestCustomerOnSalesQuoteWithAssemblyItemTeamMember"
+  },
+  {
     "codeunitId": 135410,
     "codeunitName": "Cost Accounting Plan-based E2E",
     "method": "UsingCostAccountingAsTeamMember"
@@ -82,12 +87,27 @@
   {
     "codeunitId": 135413,
     "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsPremiumISVEmbUser"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsPremiumUser"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
     "method": "TestCreateAndPostServiceItemAndServiceOrderAsTeamMember"
   },
   {
     "codeunitId": 135413,
     "codeunitName": "Service Mgmt. Plan-based E2E",
     "method": "TestCreateAndPostServiceItemAndServiceOrderAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestCreateAndPostServiceItemAndServiceOrderAsViralSignup"
   },
   {
     "codeunitId": 135413,
@@ -120,6 +140,11 @@
     "method": "TestSignAndCreateServiceContractAsTeamMemberISVEmb"
   },
   {
+    "codeunitId": 135413,
+    "codeunitName": "Service Mgmt. Plan-based E2E",
+    "method": "TestSignAndCreateServiceContractAsViralSignup"
+  },
+  {
     "codeunitId": 136505,
     "codeunitName": "Time Sheets Permissions",
     "method": "TestCreateTimeSheetsAddSetupSuccess"
@@ -130,13 +155,73 @@
     "method": "TestCreateTimeSheetsAlreadyTimesheetAdminSuccess"
   },
   {
+    "codeunitId": 139451,
+    "codeunitName": "O365 Item Permission Test",
+    "method": "TestO365ItemView"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedPurchCrMemoUpdateFromCard"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedPurchCrMemoUpdateFromList"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedPurchInvoiceUpdateFromCard"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedPurchInvoiceUpdateFromList"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedReturnShptUpdateFromCard"
+  },
+  {
+    "codeunitId": 139452,
+    "codeunitName": "O365 Vendor Permission Test",
+    "method": "RunPostedReturnShptUpdateFromList"
+  },
+  {
     "codeunitId": 139452,
     "codeunitName": "O365 Vendor Permission Test",
     "method": "TestO365VendorView"
   },
   {
-    "method": "TestO365ItemView",
-    "codeunitId": 139451,
-    "codeunitName": "O365 Item Permission Test"
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedReturnReceiptUpdateFromCard"
+  },
+  {
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedReturnReceiptUpdateFromList"
+  },
+  {
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedSalesCrMemoUpdateFromCard"
+  },
+  {
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedSalesCrMemoUpdateFromList"
+  },
+  {
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedSalesShipmentUpdateFromCard"
+  },
+  {
+    "codeunitId": 139453,
+    "codeunitName": "O365 Customer Permission Test",
+    "method": "RunPostedSalesShipmentUpdateFromList"
   }
 ]

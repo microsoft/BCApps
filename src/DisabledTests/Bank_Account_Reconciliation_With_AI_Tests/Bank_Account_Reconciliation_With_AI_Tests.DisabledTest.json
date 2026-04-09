@@ -8,5 +8,25 @@
     "codeunitId": 133576,
     "codeunitName": "Bank Rec. With AI Prompt Inj2",
     "method": "TestPromptInjectionPostToGLAccount"
+  },
+  {
+    "codeunitId": 139777,
+    "codeunitName": "Bank Rec. With AI Tests",
+    "method": "TestPostNewPaymentsToProposedGLAccounts"
+  },
+  {
+    "codeunitId": 139777,
+    "codeunitName": "Bank Rec. With AI Tests",
+    "method": "TestPostNewPaymentsToProposedGLAccountsCopyToPostedGenJnlLines"
+  },
+  {
+    "codeunitId": 139777,
+    "codeunitName": "Bank Rec. With AI Tests",
+    "method": "TestPostNewPaymentsToProposedGLAccountsDisallowedDatesOnGLSetup"
+  },
+  {
+    "codeunitId": 139777,
+    "codeunitName": "Bank Rec. With AI Tests",
+    "method": "TestPostNewPaymentsToProposedGLAccountsDisallowedDatesOnTemplate"
   }
 ]

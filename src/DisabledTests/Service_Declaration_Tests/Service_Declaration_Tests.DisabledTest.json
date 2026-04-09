@@ -1,5 +1,10 @@
 [
   {
+    "codeunitId": 139901,
+    "codeunitName": "Service Declaration Demo Tests",
+    "method": "ServDeclSetupIsReadyToGo"
+  },
+  {
     "codeunitId": 139902,
     "codeunitName": "Service Declaration UI Tests",
     "method": "ShowErorMessageOnServDeclarationsPageWhenFeatureIsDisabled"
@@ -17,6 +22,21 @@
   {
     "codeunitId": 139904,
     "codeunitName": "Service Declaration Posting",
+    "method": "CannotReleasePurchDocumentWithServTransTypeNotSpecifiedForAllServDeclApplicableLines"
+  },
+  {
+    "codeunitId": 139904,
+    "codeunitName": "Service Declaration Posting",
+    "method": "CannotReleaseSalesDocumentWithServTransTypeNotSpecifiedForAllServDeclApplicableLines"
+  },
+  {
+    "codeunitId": 139904,
+    "codeunitName": "Service Declaration Posting",
+    "method": "CannotReleaseServDocumentWithServTransTypeNotSpecifiedForAllServDeclApplicableLines"
+  },
+  {
+    "codeunitId": 139904,
+    "codeunitName": "Service Declaration Posting",
     "method": "PurchDocApplicableForServDeclBasicPosting"
   },
   {
@@ -27,7 +47,17 @@
   {
     "codeunitId": 139904,
     "codeunitName": "Service Declaration Posting",
+    "method": "ReleaseServDocumentWithServTransTypeSpecifiedForAllServDeclApplicableLines"
+  },
+  {
+    "codeunitId": 139904,
+    "codeunitName": "Service Declaration Posting",
     "method": "SalesDocWithItemChargeApplicableForServDeclBasicPosting"
+  },
+  {
+    "codeunitId": 139904,
+    "codeunitName": "Service Declaration Posting",
+    "method": "ServDocApplicableForServDeclBasicPosting"
   },
   {
     "codeunitId": 139905,

@@ -122,12 +122,32 @@
   {
     "codeunitId": 135060,
     "codeunitName": "Document Mailing Tests",
+    "method": "DocumentSendingProfile_MultiInvoices_Email_Background"
+  },
+  {
+    "codeunitId": 135060,
+    "codeunitName": "Document Mailing Tests",
+    "method": "SendPostedSalesInvoiceWhenBlankEmailInDocumentLayoutAndEmailUseDefaultSettings"
+  },
+  {
+    "codeunitId": 135060,
+    "codeunitName": "Document Mailing Tests",
+    "method": "SendPostedSalesInvoiceWhenDocumentLayoutHasEmailAndEmailUseDefaultSettings"
+  },
+  {
+    "codeunitId": 135060,
+    "codeunitName": "Document Mailing Tests",
     "method": "SendPostedSalesInvoiceWhenPdfAndElectronicDocAndCombineEmailsNo"
   },
   {
     "codeunitId": 135060,
     "codeunitName": "Document Mailing Tests",
     "method": "SendPostedSalesInvoiceWhenPdfAndElectronicDocAndCombineEmailsYes"
+  },
+  {
+    "codeunitId": 135060,
+    "codeunitName": "Document Mailing Tests",
+    "method": "ShouldSendToCustDirectlyUTWhenDocumentLayoutHasEmail"
   },
   {
     "codeunitId": 135215,
@@ -200,6 +220,21 @@
     "method": "TestPostApiRoutesNotAllowed"
   },
   {
+    "codeunitId": 136580,
+    "codeunitName": "Email Address Selection",
+    "method": "VerifyEmailFromOnSalesHeaderFromCustomer"
+  },
+  {
+    "codeunitId": 136580,
+    "codeunitName": "Email Address Selection",
+    "method": "VerifyEmailFromOnSalesHeaderFromSalesHeader"
+  },
+  {
+    "codeunitId": 136580,
+    "codeunitName": "Email Address Selection",
+    "method": "VerifyNoEmail"
+  },
+  {
     "codeunitId": 139025,
     "codeunitName": "Test Email Logging on Exchange",
     "method": "TestExchangeWebServicesGetPublicFolders"
@@ -217,7 +252,112 @@
   {
     "codeunitId": 139048,
     "codeunitName": "SMB Office Pages",
+    "method": "InvoiceExistsPageCreateNewInvoice"
+  },
+  {
+    "codeunitId": 139048,
+    "codeunitName": "SMB Office Pages",
+    "method": "InvoiceExistsPageOpensWhenInvoiceExistsForAppointment"
+  },
+  {
+    "codeunitId": 139048,
+    "codeunitName": "SMB Office Pages",
+    "method": "InvoiceExistsPageOpensWhenInvoiceExistsForAppointmentCommand"
+  },
+  {
+    "codeunitId": 139048,
+    "codeunitName": "SMB Office Pages",
+    "method": "InvoiceExistsPageShowOngoingInvoice"
+  },
+  {
+    "codeunitId": 139048,
+    "codeunitName": "SMB Office Pages",
     "method": "InvoiceExistsPageShowPostedInvoice"
+  },
+  {
+    "codeunitId": 139050,
+    "codeunitName": "Add-in Hyperlink Purchasing",
+    "method": "CreatePostedPurchaseCreditMemoDocType"
+  },
+  {
+    "codeunitId": 139050,
+    "codeunitName": "Add-in Hyperlink Purchasing",
+    "method": "CreatePostedPurchaseCreditMemoKeyword"
+  },
+  {
+    "codeunitId": 139050,
+    "codeunitName": "Add-in Hyperlink Purchasing",
+    "method": "CreatePostedPurchaseCreditMemoTitle"
+  },
+  {
+    "codeunitId": 139050,
+    "codeunitName": "Add-in Hyperlink Purchasing",
+    "method": "CreatePostedPurchaseInvoiceDocType"
+  },
+  {
+    "codeunitId": 139050,
+    "codeunitName": "Add-in Hyperlink Purchasing",
+    "method": "CreatePostedPurchaseInvoiceKeyword"
+  },
+  {
+    "codeunitId": 139050,
+    "codeunitName": "Add-in Hyperlink Purchasing",
+    "method": "CreatePostedPurchaseInvoiceTitle"
+  },
+  {
+    "codeunitId": 139051,
+    "codeunitName": "Add-in Hyperlink Sales",
+    "method": "CreatePostedSalesCreditMemoDocType"
+  },
+  {
+    "codeunitId": 139051,
+    "codeunitName": "Add-in Hyperlink Sales",
+    "method": "CreatePostedSalesCreditMemoKeyword"
+  },
+  {
+    "codeunitId": 139051,
+    "codeunitName": "Add-in Hyperlink Sales",
+    "method": "CreatePostedSalesCreditMemoTitle"
+  },
+  {
+    "codeunitId": 139051,
+    "codeunitName": "Add-in Hyperlink Sales",
+    "method": "CreatePostedSalesInvoiceDocType"
+  },
+  {
+    "codeunitId": 139051,
+    "codeunitName": "Add-in Hyperlink Sales",
+    "method": "CreatePostedSalesInvoiceKeyword"
+  },
+  {
+    "codeunitId": 139051,
+    "codeunitName": "Add-in Hyperlink Sales",
+    "method": "CreatePostedSalesInvoiceTitle"
+  },
+  {
+    "codeunitId": 139052,
+    "codeunitName": "Office Addin Initiate Tasks",
+    "method": "MailEngineCustomerPageCreateOrderPostAndSendShipAndInvoice"
+  },
+  {
+    "codeunitId": 139052,
+    "codeunitName": "Office Addin Initiate Tasks",
+    "method": "MailEngineCustomerPageCreditMemoPostAndSendDefault"
+  },
+  {
+    "codeunitId": 139052,
+    "codeunitName": "Office Addin Initiate Tasks",
+    "method": "MailEngineCustomerPageCreditMemoPostAndSendEmailPDFOnly"
+  },
+  {
+    "codeunitId": 139052,
+    "codeunitName": "Office Addin Initiate Tasks",
+    "method": "MailEngineCustomerPageInvoicePostAndSendDefault"
+  },
+  {
+    "codeunitId": 139052,
+    "codeunitName": "Office Addin Initiate Tasks",
+    "method": "MailEngineCustomerPageInvoicePostAndSendEmailPDFOnly"
   },
   {
     "codeunitId": 139053,

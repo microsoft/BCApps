@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 144012,
+    "codeunitName": "ERM Sales Purch Documents",
+    "method": "ReverseChargeOnPostedSalesInvoiceWithPrepayment"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "AddReverseChargeItemToSalesLine"
+  },
+  {
+    "codeunitId": 144013,
+    "codeunitName": "VAT On Sales/Purchase Document",
+    "method": "CheckInvoiceWithReverseChargeItems"
+  }
+]

@@ -1772,6 +1772,11 @@
   {
     "codeunitId": 139839,
     "codeunitName": "APIV2 - Item Variants E2E",
+    "method": "TestDeleteInUse"
+  },
+  {
+    "codeunitId": 139839,
+    "codeunitName": "APIV2 - Item Variants E2E",
     "method": "TestDeleteItemVariant"
   },
   {

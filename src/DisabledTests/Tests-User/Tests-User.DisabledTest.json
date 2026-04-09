@@ -12,6 +12,26 @@
   {
     "codeunitId": 135402,
     "codeunitName": "Location Trans. Plan-based E2E",
+    "method": "CassieSellsAnItemExistingInSpecificLocationAfterTransferringItToAnotherLocation"
+  },
+  {
+    "codeunitId": 135402,
+    "codeunitName": "Location Trans. Plan-based E2E",
+    "method": "SusanSellsAnItemExistingInSpecificLocationAfterTransferringItToAnotherLocation"
+  },
+  {
+    "codeunitId": 135402,
+    "codeunitName": "Location Trans. Plan-based E2E",
+    "method": "SusanSellsAnItemExistingInSpecificLocationAfterTransferringItToAnotherLocationAsDeviceISVEmbUser"
+  },
+  {
+    "codeunitId": 135402,
+    "codeunitName": "Location Trans. Plan-based E2E",
+    "method": "SusanSellsAnItemExistingInSpecificLocationAfterTransferringItToAnotherLocationAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135402,
+    "codeunitName": "Location Trans. Plan-based E2E",
     "method": "TriciaSellsAnItemExistingInSpecificLocationAfterTransferringItToAnotherLocation"
   },
   {
@@ -35,6 +55,86 @@
     "method": "DeleteLogSegmentAsTeamMember"
   },
   {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectPurchaseInvoiceAsBusinessManager"
+  },
+  {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectPurchaseInvoiceAsDeviceISVEmbUser"
+  },
+  {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectPurchaseInvoiceAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectPurchaseInvoiceAsEsternalAccountant"
+  },
+  {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectPurchaseInvoiceAsTeamMember"
+  },
+  {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectPurchaseInvoiceAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectSalesInvoiceAsBusinessManager"
+  },
+  {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectSalesInvoiceAsDeviceISVEmb"
+  },
+  {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectSalesInvoiceAsEssentialISVEmb"
+  },
+  {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectSalesInvoiceAsExternalAccountant"
+  },
+  {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectSalesInvoiceAsTeamMember"
+  },
+  {
+    "codeunitId": 135406,
+    "codeunitName": "Item Charges Plan-based E2E",
+    "method": "ItemChargesCreatePostAndCorrectSalesInvoiceAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreatePurchaseReturnOrderAsBusinessManager"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreatePurchaseReturnOrderAsDeviceISVEmbUser"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreatePurchaseReturnOrderAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreatePurchaseReturnOrderAsExternalAccountant"
+  },
+  {
     "codeunitId": 135408,
     "codeunitName": "Return Order Plan-based E2E",
     "method": "CreatePurchaseReturnOrderAsTeamMember"
@@ -43,6 +143,26 @@
     "codeunitId": 135408,
     "codeunitName": "Return Order Plan-based E2E",
     "method": "CreatePurchaseReturnOrderAsTeamMemberISVEmb"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreateSalesReturnOrderAsBusinessManager"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreateSalesReturnOrderAsDeviceISVEmbUser"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreateSalesReturnOrderAsEssentialISVEmbUser"
+  },
+  {
+    "codeunitId": 135408,
+    "codeunitName": "Return Order Plan-based E2E",
+    "method": "CreateSalesReturnOrderAsExternalAccountant"
   },
   {
     "codeunitId": 135408,
@@ -62,7 +182,7 @@
   {
     "codeunitId": 135409,
     "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodLIFOAsExternalAccountant"
+    "method": "ItemCostingMethodLIFOAsDeviceISVEmbUser"
   },
   {
     "codeunitId": 135409,
@@ -72,7 +192,7 @@
   {
     "codeunitId": 135409,
     "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodLIFOAsDeviceISVEmbUser"
+    "method": "ItemCostingMethodLIFOAsExternalAccountant"
   },
   {
     "codeunitId": 135409,
@@ -82,7 +202,7 @@
   {
     "codeunitId": 135409,
     "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodStandardAsExternalAccountant"
+    "method": "ItemCostingMethodStandardAsDeviceISVEmbUser"
   },
   {
     "codeunitId": 135409,
@@ -92,7 +212,7 @@
   {
     "codeunitId": 135409,
     "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodStandardAsDeviceISVEmbUser"
+    "method": "ItemCostingMethodStandardAsExternalAccountant"
   },
   {
     "codeunitId": 135414,
@@ -127,56 +247,16 @@
   {
     "codeunitId": 135415,
     "codeunitName": "Reserv. & Order Promising E2E",
-    "method": "CreateReservationAndOrderPromisingAsBusinessManager"
-  },
-  {
-    "codeunitId": 135415,
-    "codeunitName": "Reserv. & Order Promising E2E",
     "method": "CreateReservationAndOrderPromisingAsAccountant"
   },
   {
     "codeunitId": 135415,
     "codeunitName": "Reserv. & Order Promising E2E",
+    "method": "CreateReservationAndOrderPromisingAsBusinessManager"
+  },
+  {
+    "codeunitId": 135415,
+    "codeunitName": "Reserv. & Order Promising E2E",
     "method": "CreateReservationAndOrderPromisingAsTeamMember"
-  },
-  {
-    "codeunitId": 135409,
-    "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodLIFOAsBusinessManager"
-  },
-  {
-    "codeunitId": 135409,
-    "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodLIFOAsExternalAccountant"
-  },
-  {
-    "codeunitId": 135409,
-    "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodLIFOAsEssentialISVEmbUser"
-  },
-  {
-    "codeunitId": 135409,
-    "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodLIFOAsDeviceISVEmbUser"
-  },
-  {
-    "codeunitId": 135409,
-    "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodStandardAsBusinessManager"
-  },
-  {
-    "codeunitId": 135409,
-    "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodStandardAsExternalAccountant"
-  },
-  {
-    "codeunitId": 135409,
-    "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodStandardAsEssentialISVEmbUser"
-  },
-  {
-    "codeunitId": 135409,
-    "codeunitName": "Item Costing Plan-based E2E",
-    "method": "ItemCostingMethodStandardAsDeviceISVEmbUser"
   }
 ]

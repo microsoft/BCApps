@@ -1,0 +1,637 @@
+[
+  {
+    "codeunitId": 148051,
+    "codeunitName": "Update from ARES CZL",
+    "method": "UpdateContactFromRegistrationLog"
+  },
+  {
+    "codeunitId": 148052,
+    "codeunitName": "Unreliable Payer CZL",
+    "method": "CreateBankAccountWithoutUnreliablePayerEntry"
+  },
+  {
+    "codeunitId": 148052,
+    "codeunitName": "Unreliable Payer CZL",
+    "method": "CreateBankAccountWithUnreliablePayerEntry"
+  },
+  {
+    "codeunitId": 148052,
+    "codeunitName": "Unreliable Payer CZL",
+    "method": "ReleasePurchInvNewVendor"
+  },
+  {
+    "codeunitId": 148052,
+    "codeunitName": "Unreliable Payer CZL",
+    "method": "ReleasePurchInvReliableVendor"
+  },
+  {
+    "codeunitId": 148052,
+    "codeunitName": "Unreliable Payer CZL",
+    "method": "ReleasePurchInvUnreliableVendorConfirmed"
+  },
+  {
+    "codeunitId": 148052,
+    "codeunitName": "Unreliable Payer CZL",
+    "method": "ReleasePurchInvUnreliableVendorDisabledCheck"
+  },
+  {
+    "codeunitId": 148052,
+    "codeunitName": "Unreliable Payer CZL",
+    "method": "ReleasePurchInvUnreliableVendorNotConfirmed"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "Invt. Mvmt. Templates CZL",
+    "method": "ValidateInvtMovementNegativeTemplateJobJournal"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "Invt. Mvmt. Templates CZL",
+    "method": "ValidateInvtMovementPositiveTemplateJobJournal"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "CalcAndPostVATByPostingDate"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "CalcAndPostVATBySettlementNo"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "CalcAndPostVATByVATDate"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "CheckGenJnlLineWithoutOriginalDocVATDateForCreditMemo"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "CheckGenJnlLineWithoutOriginalDocVATDateForFinanceChargeMemo"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "CheckGenJnlLineWithoutOriginalDocVATDateForInvoice"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "CheckGenJnlLineWithoutOriginalDocVATDateForPayment"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "CheckGenJnlLineWithoutOriginalDocVATDateForRefund"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "CheckGenJnlLineWithoutOriginalDocVATDateForReminder"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "GenJnlLinePostWithoutVATToClosedVATPeriod"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "GenJnlLinePostWithVatDate"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "GenJnlLinePostWithVATToClosedVATPeriod"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "GenJnlLineWithoutUseVatDate"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "GenJnlLineWithUseVatDate"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "VATStatementFilteredByPostingDate"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "VATStatementFilteredBySettlementNo"
+  },
+  {
+    "codeunitId": 148054,
+    "codeunitName": "VAT Date CZL",
+    "method": "VATStatementFilteredByVATDate"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "Posting Group Changing CZL",
+    "method": "BankAccPostingGroupChangeDisabled"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "Posting Group Changing CZL",
+    "method": "BankAccPostingGroupChangeEnabled"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "Posting Group Changing CZL",
+    "method": "CustomerPostingGroupChangeDisabled"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "Posting Group Changing CZL",
+    "method": "CustomerPostingGroupChangeEnabled"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "Posting Group Changing CZL",
+    "method": "InventoryPostingGroupChangeDisabled"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "Posting Group Changing CZL",
+    "method": "InventoryPostingGroupChangeEnabled"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "Posting Group Changing CZL",
+    "method": "VendorPostingGroupChangeDisabled"
+  },
+  {
+    "codeunitId": 148055,
+    "codeunitName": "Posting Group Changing CZL",
+    "method": "VendorPostingGroupChangeEnabled"
+  },
+  {
+    "codeunitId": 148056,
+    "codeunitName": "G/L Account Group CZL",
+    "method": "GLAccountGroupPostingCheckReportDifferentGroups"
+  },
+  {
+    "codeunitId": 148056,
+    "codeunitName": "G/L Account Group CZL",
+    "method": "GLAccountGroupPostingCheckReportSameGroups"
+  },
+  {
+    "codeunitId": 148057,
+    "codeunitName": "Reverse Charge CZL",
+    "method": "PostSalesWithCommodityUnderLimit"
+  },
+  {
+    "codeunitId": 148057,
+    "codeunitName": "Reverse Charge CZL",
+    "method": "ValidateSalesLineWithTariffNo"
+  },
+  {
+    "codeunitId": 148059,
+    "codeunitName": "Financial Reports CZL",
+    "method": "BalanceSheet"
+  },
+  {
+    "codeunitId": 148059,
+    "codeunitName": "Financial Reports CZL",
+    "method": "CalcPostVATSettlement"
+  },
+  {
+    "codeunitId": 148059,
+    "codeunitName": "Financial Reports CZL",
+    "method": "IncomeStatement"
+  },
+  {
+    "codeunitId": 148060,
+    "codeunitName": "VAT Statements CZL",
+    "method": "VATStatementDPHDP3Export"
+  },
+  {
+    "codeunitId": 148060,
+    "codeunitName": "VAT Statements CZL",
+    "method": "VATStatementDPHDP3Print"
+  },
+  {
+    "codeunitId": 148060,
+    "codeunitName": "VAT Statements CZL",
+    "method": "VATStatementDPHDP3PrintAdditional"
+  },
+  {
+    "codeunitId": 148060,
+    "codeunitName": "VAT Statements CZL",
+    "method": "VATStatementPreviewVATDate"
+  },
+  {
+    "codeunitId": 148061,
+    "codeunitName": "Document Attachment CZL",
+    "method": "VIESDeclarationAttachDocumentIsDeleted"
+  },
+  {
+    "codeunitId": 148061,
+    "codeunitName": "Document Attachment CZL",
+    "method": "VIESDeclarationPrintToAttachDocument"
+  },
+  {
+    "codeunitId": 148063,
+    "codeunitName": "Date Order Invt. Change CZL",
+    "method": "PostItemWithNewerDate"
+  },
+  {
+    "codeunitId": 148063,
+    "codeunitName": "Date Order Invt. Change CZL",
+    "method": "PostItemWithOlderDateDisabled"
+  },
+  {
+    "codeunitId": 148063,
+    "codeunitName": "Date Order Invt. Change CZL",
+    "method": "PostItemWithOlderDateEnabled"
+  },
+  {
+    "codeunitId": 148064,
+    "codeunitName": "VAT Ctrl. Report CZL",
+    "method": "SuggestPurchaseDocumentToVATControlReportByVATDate"
+  },
+  {
+    "codeunitId": 148064,
+    "codeunitName": "VAT Ctrl. Report CZL",
+    "method": "SuggestPurchaseDocumentToVATControlReportSectionA2"
+  },
+  {
+    "codeunitId": 148064,
+    "codeunitName": "VAT Ctrl. Report CZL",
+    "method": "SuggestPurchaseDocumentToVATControlReportSectionB1"
+  },
+  {
+    "codeunitId": 148064,
+    "codeunitName": "VAT Ctrl. Report CZL",
+    "method": "SuggestPurchaseDocumentToVATControlReportSectionB2"
+  },
+  {
+    "codeunitId": 148064,
+    "codeunitName": "VAT Ctrl. Report CZL",
+    "method": "SuggestPurchaseDocumentToVATControlReportSectionB3"
+  },
+  {
+    "codeunitId": 148064,
+    "codeunitName": "VAT Ctrl. Report CZL",
+    "method": "SuggestSalesDocumentToVATControlReportByVATDate"
+  },
+  {
+    "codeunitId": 148064,
+    "codeunitName": "VAT Ctrl. Report CZL",
+    "method": "SuggestSalesDocumentToVATControlReportSectionA1"
+  },
+  {
+    "codeunitId": 148064,
+    "codeunitName": "VAT Ctrl. Report CZL",
+    "method": "SuggestSalesDocumentToVATControlReportSectionA1WithTariffNoCombinations"
+  },
+  {
+    "codeunitId": 148064,
+    "codeunitName": "VAT Ctrl. Report CZL",
+    "method": "SuggestSalesDocumentToVATControlReportSectionA4"
+  },
+  {
+    "codeunitId": 148064,
+    "codeunitName": "VAT Ctrl. Report CZL",
+    "method": "SuggestSalesDocumentToVATControlReportSectionA5"
+  },
+  {
+    "codeunitId": 148064,
+    "codeunitName": "VAT Ctrl. Report CZL",
+    "method": "SuggestSalesDocumentToVATControlReportWithIgnoreSimpleDocLimit"
+  },
+  {
+    "codeunitId": 148065,
+    "codeunitName": "VAT Fields CZL",
+    "method": "CopyVATDateToPostedGenJournalLine"
+  },
+  {
+    "codeunitId": 148065,
+    "codeunitName": "VAT Fields CZL",
+    "method": "EU3PartyIntermediateRoleCopiedToPurchaseVATEntry"
+  },
+  {
+    "codeunitId": 148065,
+    "codeunitName": "VAT Fields CZL",
+    "method": "EU3PartyIntermediateRoleCopiedToSalesVATEntry"
+  },
+  {
+    "codeunitId": 148065,
+    "codeunitName": "VAT Fields CZL",
+    "method": "GeneralPostingWithEmptyOriginalDocumentVATDate"
+  },
+  {
+    "codeunitId": 148065,
+    "codeunitName": "VAT Fields CZL",
+    "method": "OriginalDocumetVATDateGreaterThanVATDate"
+  },
+  {
+    "codeunitId": 148065,
+    "codeunitName": "VAT Fields CZL",
+    "method": "VATStatementTotaling"
+  },
+  {
+    "codeunitId": 148065,
+    "codeunitName": "VAT Fields CZL",
+    "method": "VATStatementTotalingNegativeZero"
+  },
+  {
+    "codeunitId": 148065,
+    "codeunitName": "VAT Fields CZL",
+    "method": "VATStatementTotalingPositiveZero"
+  },
+  {
+    "codeunitId": 148066,
+    "codeunitName": "VAT Exchange Rate CZL",
+    "method": "CopyVATCurrExchAccountsWithCopyVATPostingSetup"
+  },
+  {
+    "codeunitId": 148066,
+    "codeunitName": "VAT Exchange Rate CZL",
+    "method": "ValidateVATCurrencyCodeInPurchaseHeader"
+  },
+  {
+    "codeunitId": 148066,
+    "codeunitName": "VAT Exchange Rate CZL",
+    "method": "ValidateVATCurrencyFactorInSalesHeader"
+  },
+  {
+    "codeunitId": 148066,
+    "codeunitName": "VAT Exchange Rate CZL",
+    "method": "ValidateVATDateInPurchaseHeaderWithConfirmNo"
+  },
+  {
+    "codeunitId": 148066,
+    "codeunitName": "VAT Exchange Rate CZL",
+    "method": "ValidateVATDateInPurchaseHeaderWithConfirmYes"
+  },
+  {
+    "codeunitId": 148066,
+    "codeunitName": "VAT Exchange Rate CZL",
+    "method": "VATCurrencyCodeInPostedPurchaseHeader"
+  },
+  {
+    "codeunitId": 148066,
+    "codeunitName": "VAT Exchange Rate CZL",
+    "method": "VATCurrencyFactorInPostedPurchaseHeader"
+  },
+  {
+    "codeunitId": 148066,
+    "codeunitName": "VAT Exchange Rate CZL",
+    "method": "VATCurrencyFactorInPostedSalesHeaderNormal"
+  },
+  {
+    "codeunitId": 148066,
+    "codeunitName": "VAT Exchange Rate CZL",
+    "method": "VATCurrencyFactorInPostedSalesHeaderReverseCharge"
+  },
+  {
+    "codeunitId": 148067,
+    "codeunitName": "VIES Declaration CZL",
+    "method": "CreateVIESDeclaration3PartyTrade"
+  },
+  {
+    "codeunitId": 148067,
+    "codeunitName": "VIES Declaration CZL",
+    "method": "CreateVIESDeclarationCorrective"
+  },
+  {
+    "codeunitId": 148067,
+    "codeunitName": "VIES Declaration CZL",
+    "method": "CreateVIESDeclarationServiceSales"
+  },
+  {
+    "codeunitId": 148067,
+    "codeunitName": "VIES Declaration CZL",
+    "method": "ExportVIESDeclarationCorrective"
+  },
+  {
+    "codeunitId": 148067,
+    "codeunitName": "VIES Declaration CZL",
+    "method": "ExportVIESDeclarationOpened"
+  },
+  {
+    "codeunitId": 148067,
+    "codeunitName": "VIES Declaration CZL",
+    "method": "ExportVIESDeclarationReleased"
+  },
+  {
+    "codeunitId": 148067,
+    "codeunitName": "VIES Declaration CZL",
+    "method": "PrintVIESDeclarationTestReport"
+  },
+  {
+    "codeunitId": 148068,
+    "codeunitName": "VAT Ctrl. Report UT CZL",
+    "method": "ChangeEditableFieldsOnVATControlReportLine"
+  },
+  {
+    "codeunitId": 148068,
+    "codeunitName": "VAT Ctrl. Report UT CZL",
+    "method": "ChangeExternalDocumentNoOnVATControlReportLine"
+  },
+  {
+    "codeunitId": 148068,
+    "codeunitName": "VAT Ctrl. Report UT CZL",
+    "method": "CloseVATControlReport"
+  },
+  {
+    "codeunitId": 148068,
+    "codeunitName": "VAT Ctrl. Report UT CZL",
+    "method": "ExcludeLineFromExportVATControlReport"
+  },
+  {
+    "codeunitId": 148068,
+    "codeunitName": "VAT Ctrl. Report UT CZL",
+    "method": "ExportInternalDocCheckToExcel"
+  },
+  {
+    "codeunitId": 148068,
+    "codeunitName": "VAT Ctrl. Report UT CZL",
+    "method": "ExportRecapitulativeVATControlReport"
+  },
+  {
+    "codeunitId": 148068,
+    "codeunitName": "VAT Ctrl. Report UT CZL",
+    "method": "ExportSupplementaryVATControlReport"
+  },
+  {
+    "codeunitId": 148068,
+    "codeunitName": "VAT Ctrl. Report UT CZL",
+    "method": "PrintVATControlReportTest"
+  },
+  {
+    "codeunitId": 148068,
+    "codeunitName": "VAT Ctrl. Report UT CZL",
+    "method": "ShowVATControlReportStatistic"
+  },
+  {
+    "codeunitId": 148069,
+    "codeunitName": "Balance Sheet Reports CZL",
+    "method": "FiscalYearAdditionalCurrency"
+  },
+  {
+    "codeunitId": 148069,
+    "codeunitName": "Balance Sheet Reports CZL",
+    "method": "NotRequiredMandatoryDimensionsForCloseBalance"
+  },
+  {
+    "codeunitId": 148069,
+    "codeunitName": "Balance Sheet Reports CZL",
+    "method": "NotRequiredMandatoryDimensionsForCloseIncome"
+  },
+  {
+    "codeunitId": 148069,
+    "codeunitName": "Balance Sheet Reports CZL",
+    "method": "OpeningBalanceSheet"
+  },
+  {
+    "codeunitId": 148088,
+    "codeunitName": "Foreign Currencies CZL",
+    "method": "AdjustExchangeRateIncrementalPosting"
+  },
+  {
+    "codeunitId": 148088,
+    "codeunitName": "Foreign Currencies CZL",
+    "method": "AdjustExchangeRatePostingByEntries"
+  },
+  {
+    "codeunitId": 148088,
+    "codeunitName": "Foreign Currencies CZL",
+    "method": "AdjustExchangeRateSplitToCustomer"
+  },
+  {
+    "codeunitId": 148088,
+    "codeunitName": "Foreign Currencies CZL",
+    "method": "AdjustExchangeRateSplitToVendor"
+  },
+  {
+    "codeunitId": 148088,
+    "codeunitName": "Foreign Currencies CZL",
+    "method": "AdjustExchangeRateTestReport"
+  },
+  {
+    "codeunitId": 148089,
+    "codeunitName": "Check User Setup Dim. CZL",
+    "method": "PurchHeaderWithMissedSelectedDimensionValue"
+  },
+  {
+    "codeunitId": 148089,
+    "codeunitName": "Check User Setup Dim. CZL",
+    "method": "SalesHeaderWithMissedSelectedDimensionValue"
+  },
+  {
+    "codeunitId": 148092,
+    "codeunitName": "Identification Numbers CZL",
+    "method": "CheckingDuplicityRegistrationNoOnContact"
+  },
+  {
+    "codeunitId": 148092,
+    "codeunitName": "Identification Numbers CZL",
+    "method": "CheckingDuplicityTaxRegistrationNoOnContact"
+  },
+  {
+    "codeunitId": 148092,
+    "codeunitName": "Identification Numbers CZL",
+    "method": "CheckingRegistrationNoOnContact"
+  },
+  {
+    "codeunitId": 148092,
+    "codeunitName": "Identification Numbers CZL",
+    "method": "CheckingTaxRegistrationNoOnContact"
+  },
+  {
+    "codeunitId": 148093,
+    "codeunitName": "Phys. Inventory CZL",
+    "method": "LoadingStoredItems"
+  },
+  {
+    "codeunitId": 148095,
+    "codeunitName": "Purchase Documents CZL",
+    "method": "RedEntriesFromPurchaseCorrectionDocuments"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Reports and Documents CZL",
+    "method": "PrintingCustomerBalReconciliation"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Reports and Documents CZL",
+    "method": "PrintingGeneralJournal"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Reports and Documents CZL",
+    "method": "PrintingGeneralLedgerLevel1"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Reports and Documents CZL",
+    "method": "PrintingGeneralLedgerLevel2"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Reports and Documents CZL",
+    "method": "PrintingTurnoverReportByGlobDim1"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Reports and Documents CZL",
+    "method": "PrintingTurnoverReportByGlobDim2"
+  },
+  {
+    "codeunitId": 148096,
+    "codeunitName": "Reports and Documents CZL",
+    "method": "PrintingVendorBalReconciliation"
+  },
+  {
+    "codeunitId": 148098,
+    "codeunitName": "Sales Documents CZL",
+    "method": "RedEntriesFromSalesCorrectionDocuments"
+  },
+  {
+    "codeunitId": 148099,
+    "codeunitName": "Sales Reports CZL",
+    "method": "PrintingInternalCorrectionDocument"
+  },
+  {
+    "codeunitId": 148100,
+    "codeunitName": "Tax Reports CZL",
+    "method": "PrintingDocumentationForVATInVATDate"
+  },
+  {
+    "codeunitId": 148100,
+    "codeunitName": "Tax Reports CZL",
+    "method": "PrintingDocumentationForVATOutVATDate"
+  },
+  {
+    "codeunitId": 148101,
+    "codeunitName": "Document Footer CZL",
+    "method": "TestDocumentFooterSalesCrMemo"
+  },
+  {
+    "codeunitId": 148101,
+    "codeunitName": "Document Footer CZL",
+    "method": "TestDocumentFooterSalesInvoice"
+  },
+  {
+    "codeunitId": 148101,
+    "codeunitName": "Document Footer CZL",
+    "method": "TestDocumentFooterSalesQuote"
+  },
+  {
+    "codeunitId": 148106,
+    "codeunitName": "Reconciliation CZL",
+    "method": "BankAccountReconcile"
+  }
+]

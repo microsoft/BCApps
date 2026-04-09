@@ -327,6 +327,16 @@
   {
     "codeunitId": 134819,
     "codeunitName": "ERM Cost Accounting - Tables",
+    "method": "CostAccSetupValidateStartingDateConfirmNo"
+  },
+  {
+    "codeunitId": 134819,
+    "codeunitName": "ERM Cost Accounting - Tables",
+    "method": "CostAccSetupValidateStartingDateConfirmYes"
+  },
+  {
+    "codeunitId": 134819,
+    "codeunitName": "ERM Cost Accounting - Tables",
     "method": "TestCostBudgetEntryGetFirstDateHiddenDate"
   },
   {
@@ -407,21 +417,16 @@
   {
     "codeunitId": 134821,
     "codeunitName": "ERM Cost Accounting - Pages",
-    "method": "TestCostTypeBalanceRoundingFactor"
+    "method": "TestCostBudgetByCostCenterAmountTypeNetChangeForPeriodMonth"
   },
   {
     "codeunitId": 134821,
     "codeunitName": "ERM Cost Accounting - Pages",
-    "method": "TestCostBudgetByCostCenterAmountTypeNetChangeForPeriodMonth"
+    "method": "TestCostTypeBalanceBudgetCalcBudgetPctForBudgetAmountNonZero"
   },
   {
-    "codeunitId": 134819,
-    "codeunitName": "ERM Cost Accounting - Tables",
-    "method": "CostAccSetupValidateStartingDateConfirmNo"
-  },
-  {
-    "codeunitId": 134819,
-    "codeunitName": "ERM Cost Accounting - Tables",
-    "method": "CostAccSetupValidateStartingDateConfirmYes"
+    "codeunitId": 134821,
+    "codeunitName": "ERM Cost Accounting - Pages",
+    "method": "TestCostTypeBalanceRoundingFactor"
   }
 ]

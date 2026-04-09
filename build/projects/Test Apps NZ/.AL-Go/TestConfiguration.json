@@ -1,0 +1,53 @@
+{
+    "LegacyTests-Bucket1": [
+        "Tests-ERM"
+    ],
+    "LegacyTests-Bucket2": [
+        "Tests-SCM"
+    ],
+    "LegacyTests-Bucket3": [
+        "Tests-Misc",
+        "Tests-SINGLESERVER",
+        "Tests-Bank",
+        "Tests-Cash Flow",
+        "Tests-Resource",
+        "Tests-Permissions",
+        "Tests-Azure AI"
+    ],
+    "LegacyTests-Bucket4": [
+        "Tests-SCM-Service",
+        "Tests-Workflow",
+        "Tests-Dimension",
+        "Tests-Report",
+        "Tests-Cost Accounting",
+        "Tests-Integration",
+        "Tests-User",
+        "Tests-Local"
+    ],
+    "LegacyTests-Bucket5": [
+        "Tests-SCM-Assembly",
+        "Tests-SCM-Manufacturing",
+        "Tests-CRM integration",
+        "Tests-Marketing",
+        "Tests-Fixed Asset",
+        "Tests-Rapid Start",
+        "Tests-Physical Inventory"
+    ],
+    "LegacyTests-Bucket6": [
+        "Tests-Job",
+        "Tests-VAT",
+        "Tests-SMB",
+        "Tests-General Journal",
+        "Tests-Prepayment",
+        "Tests-Data Exchange",
+        "Tests-Reverse",
+        "Tests-Graph",
+        "Tests-Monitor Sensitive Fields",
+        "Tests-Upgrade",
+        "Performance Toolkit Samples",
+        "Tests-MOCKSERVICETESTS-Internal",
+        "Tests-DotNet-Internal",
+        "Tests-NewObjects-Internal",
+        "Tests-Integration-Internal"
+    ]
+}

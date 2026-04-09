@@ -1,5 +1,25 @@
 [
   {
+    "codeunitId": 134129,
+    "codeunitName": "ERM Reverse For Cust/Vendor",
+    "method": "ReverseCustPmtTransactionWithPmtDisc"
+  },
+  {
+    "codeunitId": 134129,
+    "codeunitName": "ERM Reverse For Cust/Vendor",
+    "method": "ReverseCustPmtTransactionWithUnrealizedVAT"
+  },
+  {
+    "codeunitId": 134129,
+    "codeunitName": "ERM Reverse For Cust/Vendor",
+    "method": "ReverseVendPmtTransactionWithPmtDisc"
+  },
+  {
+    "codeunitId": 134129,
+    "codeunitName": "ERM Reverse For Cust/Vendor",
+    "method": "ReverseVendPmtTransactionWithUnrealizedVAT"
+  },
+  {
     "codeunitId": 134131,
     "codeunitName": "ERM Reverse GL Entries",
     "method": "AfterAllowPeriodFromRegister"
@@ -247,6 +267,11 @@
   {
     "codeunitId": 134134,
     "codeunitName": "ERM Reverse Bank Ledger",
+    "method": "VoidAndUnapplyVendCheckLedgEntryGLEntry"
+  },
+  {
+    "codeunitId": 134134,
+    "codeunitName": "ERM Reverse Bank Ledger",
     "method": "VoidAndUnapplyVendorCheckLedgerEntry"
   },
   {
@@ -278,5 +303,10 @@
     "codeunitId": 134134,
     "codeunitName": "ERM Reverse Bank Ledger",
     "method": "VoidVendorCheckLedgerEntry"
+  },
+  {
+    "codeunitId": 134135,
+    "codeunitName": "ERM Reverse Fixed Assets",
+    "method": "FAReversalError"
   }
 ]

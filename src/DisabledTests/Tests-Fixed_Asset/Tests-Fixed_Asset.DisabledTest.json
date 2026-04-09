@@ -30,6 +30,96 @@
     "method": "EmptyFARegistersMaintenance"
   },
   {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "AcquireFixedAssetUsingAcquisitionWizardAutoPostBankAccount"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "AcquireFixedAssetUsingAcquisitionWizardAutoPostGLAccount"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "AcquireFixedAssetUsingAcquisitionWizardAutoPostVendorAccount"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "FixedAssetPurchaseInvoice"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "FAAcquisitionWizardHandleCurrency"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "FAAcquisitionWizardUseJournalNameFromFAJOurnalNameByDepBookCode"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "FAAcquisitionWizardUseJournalNameFromFAJOurnalNameByDepBookCodeAndUserId"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "GetGenJournalBatchNameReturnsAutogenName"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "IndexFixedAssets"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "OpenFAGLJournalOptionWhenGenJnlLineWithSameBatchAndTemplate"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "OpenFAGLJournalOptionWhenGenJnlLineWithSameBatchDifferentTemplate"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "OpenFAGLJournalOptionWhenNoGenJnlLinesWithSameBatch"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "PartialDisposalOfFA"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "PostAcquisitionWithInsurance"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "RunAcquireWizardForBankAccountWhenAcquisitionAllocationExists"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "RunAcquireWizardForGLAccountWhenAcquisitionAllocationExists"
+  },
+  {
+    "codeunitId": 134450,
+    "codeunitName": "ERM Fixed Assets Journal",
+    "method": "RunAcquireWizardForVendorWhenAcquisitionAllocationExists"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "BlankDepreciationBookCodeOnPurchDocPostErr"
+  },
+  {
     "codeunitId": 134451,
     "codeunitName": "ERM Fixed Assets",
     "method": "CalculateDepreciationWithErrorMessages"
@@ -37,12 +127,197 @@
   {
     "codeunitId": 134451,
     "codeunitName": "ERM Fixed Assets",
+    "method": "CreateMultipleFACards"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "CreateMultipleFACardsWithDimensions"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "CreateSingleFACard"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "CreateZeroFACard"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "GLEntryVATEntryLinkForFASalesAccOnDispLoss"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "GLEntryVATEntryLinkForVATNetDisposal"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "InPurchaseLineValidateDepreciationBookCodeIfOnlyOne"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "InSalesLineValidateDepreciationBookCodeIfOnlyOne"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "MaintenanceVendorNoIsPreserved"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "PostPurchCrMemoFixedAssetAppreciation"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "PostPurchInvFixedAssetAppreciationAsFirstEntry"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "PostPurchInvFixedAssetAppreciationAsSecondEntry"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "PostPurchInvWithUseDuplicationList"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "PostSalesInvIntegrationError"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "PostSalesInvoiceWithFixedAsset"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "PostSalesOrderAllowCorrError"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "PreviewPostingDoesNotConsumeNumberSeries"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "ProceedsOnDisposalAndGainLoss"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "ProceedsOnDisposalWithGainLossAfterDepreciation"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "PurchaseInvoiceWithDifferentDeprUntilFAPostingDate"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "PurchaseInvoiceWithMixedFAAndNonFALinesMultipleFACards"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "PurchaseInvoiceWithSameDeprUntilFAPostingDate"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "UndoPurchaseReceiptLineFixedAsset"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "UndoPurchaseReturnShipmentLineFixedAsset"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "UndoSalesReturnReceiptLineFixedAsset"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
+    "method": "UndoSalesShipmentLineFixedAsset"
+  },
+  {
+    "codeunitId": 134451,
+    "codeunitName": "ERM Fixed Assets",
     "method": "WriteDownDepreciationTypeDisabled"
+  },
+  {
+    "codeunitId": 134452,
+    "codeunitName": "ERM Fixed Assets Insurance",
+    "method": "DateCompressInsuranceLedgerBatch"
+  },
+  {
+    "codeunitId": 134452,
+    "codeunitName": "ERM Fixed Assets Insurance",
+    "method": "IndexInsurance"
+  },
+  {
+    "codeunitId": 134453,
+    "codeunitName": "ERM Fixed Assets GL Journal",
+    "method": "CopyFAEntriesGLBudgetInactive"
+  },
+  {
+    "codeunitId": 134453,
+    "codeunitName": "ERM Fixed Assets GL Journal",
+    "method": "CopyFAEntriesToGLBudgetActive"
+  },
+  {
+    "codeunitId": 134453,
+    "codeunitName": "ERM Fixed Assets GL Journal",
+    "method": "ReverseErrorOnFALedgerEntry"
   },
   {
     "codeunitId": 134456,
     "codeunitName": "ERM Fixed Asset Card",
     "method": "TestFACardSaveSimpleBookOnClose"
+  },
+  {
+    "codeunitId": 134478,
+    "codeunitName": "ERM Dimension Fixed Assets",
+    "method": "DimensionErrorOnFixedAssetAllocation"
+  },
+  {
+    "codeunitId": 134913,
+    "codeunitName": "ERM Purch Inv Disc With FA",
+    "method": "PurchaseInvoiceDiscountFA"
+  },
+  {
+    "codeunitId": 134981,
+    "codeunitName": "ERM Fixed Assets Reports - II",
+    "method": "AcquisitionWithDisposalPeriod"
+  },
+  {
+    "codeunitId": 134981,
+    "codeunitName": "ERM Fixed Assets Reports - II",
+    "method": "Custom2WithBlankPeriod"
+  },
+  {
+    "codeunitId": 134981,
+    "codeunitName": "ERM Fixed Assets Reports - II",
+    "method": "FAGLAnalysisWithSalesReport"
+  },
+  {
+    "codeunitId": 134981,
+    "codeunitName": "ERM Fixed Assets Reports - II",
+    "method": "GainLossWithDisposalPeriod"
   },
   {
     "codeunitId": 134990,
@@ -83,75 +358,5 @@
     "codeunitId": 135401,
     "codeunitName": "Fixed Assets Plan-based E2E",
     "method": "FixedAssetJourneyAsTeamMemberISVEmb"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "AcquireFixedAssetUsingAcquisitionWizardAutoPostBankAccount"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "AcquireFixedAssetUsingAcquisitionWizardAutoPostGLAccount"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "AcquireFixedAssetUsingAcquisitionWizardAutoPostVendorAccount"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "FAAcquisitionWizardHandleCurrency"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "FAAcquisitionWizardUseJournalNameFromFAJOurnalNameByDepBookCode"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "FAAcquisitionWizardUseJournalNameFromFAJOurnalNameByDepBookCodeAndUserId"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "GetGenJournalBatchNameReturnsAutogenName"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "OpenFAGLJournalOptionWhenGenJnlLineWithSameBatchAndTemplate"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "OpenFAGLJournalOptionWhenGenJnlLineWithSameBatchDifferentTemplate"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "OpenFAGLJournalOptionWhenNoGenJnlLinesWithSameBatch"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "RunAcquireWizardForBankAccountWhenAcquisitionAllocationExists"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "RunAcquireWizardForGLAccountWhenAcquisitionAllocationExists"
-  },
-  {
-    "codeunitId": 134450,
-    "codeunitName": "ERM Fixed Assets Journal",
-    "method": "RunAcquireWizardForVendorWhenAcquisitionAllocationExists"
-  },
-  {
-    "codeunitId": 134451,
-    "codeunitName": "ERM Fixed Assets",
-    "method": "MaintenanceVendorNoIsPreserved"
   }
 ]

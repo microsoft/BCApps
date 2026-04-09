@@ -2,6 +2,21 @@
   {
     "codeunitId": 139515,
     "codeunitName": "Digital Vouchers Tests",
+    "method": "PaymentReconciliationDoesNotRequireDigitalVoucher"
+  },
+  {
+    "codeunitId": 139515,
+    "codeunitName": "Digital Vouchers Tests",
+    "method": "PostBlankDocTypeWithGenerateAutomaticallyAndConsiderBlankDocType"
+  },
+  {
+    "codeunitId": 139515,
+    "codeunitName": "Digital Vouchers Tests",
+    "method": "PostMultipleGeneralJournalLinesWithGenerateAutomaticallyOption"
+  },
+  {
+    "codeunitId": 139515,
+    "codeunitName": "Digital Vouchers Tests",
     "method": "PrepmtSalesCrMemoVoucherFeatureEnabledGenerateAutomatically"
   },
   {
@@ -18,6 +33,11 @@
     "codeunitId": 139515,
     "codeunitName": "Digital Vouchers Tests",
     "method": "PurchInvVoucherAutomaticGenerationDoesNoChangeNoPrinted"
+  },
+  {
+    "codeunitId": 139515,
+    "codeunitName": "Digital Vouchers Tests",
+    "method": "SalesInvVoucherFeatureEnabledAttachmentCorrect"
   },
   {
     "codeunitId": 139515,

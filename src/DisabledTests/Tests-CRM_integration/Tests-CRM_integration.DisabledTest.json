@@ -12,12 +12,37 @@
   {
     "codeunitId": 130481,
     "codeunitName": "Contact Sync Test",
+    "method": "TestProcessBidirectionalSync_EmptyQueue"
+  },
+  {
+    "codeunitId": 130481,
+    "codeunitName": "Contact Sync Test",
+    "method": "TestProcessBidirectionalSync_SuppressedUI_LargeBatch"
+  },
+  {
+    "codeunitId": 130481,
+    "codeunitName": "Contact Sync Test",
+    "method": "TestProcessBidirectionalSync_SuppressedUI_SyncToBCWithValidContacts"
+  },
+  {
+    "codeunitId": 130481,
+    "codeunitName": "Contact Sync Test",
     "method": "TestProcessBidirectionalSyncToBCDirection"
   },
   {
     "codeunitId": 130481,
     "codeunitName": "Contact Sync Test",
     "method": "TestProcessBidirectionalSyncToM365Direction"
+  },
+  {
+    "codeunitId": 130481,
+    "codeunitName": "Contact Sync Test",
+    "method": "TestSyncQueueCopyFromBCContact"
+  },
+  {
+    "codeunitId": 130481,
+    "codeunitName": "Contact Sync Test",
+    "method": "TestSyncQueueCopyFromO365Contact"
   },
   {
     "codeunitId": 139160,
@@ -220,14 +245,184 @@
     "method": "WorkingConnectionRequiredToEnable"
   },
   {
+    "codeunitId": 139161,
+    "codeunitName": "CRM Integration Record Test",
+    "method": "RemovalOfCoupledSalesHeaderWithLinesIsNotBlocked"
+  },
+  {
+    "codeunitId": 139162,
+    "codeunitName": "CRM Integration Mgt Test",
+    "method": "CoupleMultiplePostedSalesInvoicesToCRM"
+  },
+  {
+    "codeunitId": 139162,
+    "codeunitName": "CRM Integration Mgt Test",
+    "method": "CouplePostedSalesInvoiceCreatedInNAVToCRM"
+  },
+  {
+    "codeunitId": 139162,
+    "codeunitName": "CRM Integration Mgt Test",
+    "method": "CouplePostedSalesInvoiceInFCYCreatedInNAVToCRM"
+  },
+  {
+    "codeunitId": 139162,
+    "codeunitName": "CRM Integration Mgt Test",
+    "method": "CreateNewRecordInCRM"
+  },
+  {
+    "codeunitId": 139162,
+    "codeunitName": "CRM Integration Mgt Test",
+    "method": "CreateNewRecordsInCRMForMany"
+  },
+  {
+    "codeunitId": 139162,
+    "codeunitName": "CRM Integration Mgt Test",
+    "method": "CreateNewRecordsInCRMMixedForMany"
+  },
+  {
+    "codeunitId": 139162,
+    "codeunitName": "CRM Integration Mgt Test",
+    "method": "ExtendedAmountIsCopiedToCRMInvoiceLine"
+  },
+  {
+    "codeunitId": 139162,
+    "codeunitName": "CRM Integration Mgt Test",
+    "method": "SendCoupledAndPostedFCYSalesOrderToCRM"
+  },
+  {
+    "codeunitId": 139162,
+    "codeunitName": "CRM Integration Mgt Test",
+    "method": "SyncNAVInvoiceWithBlockedItem"
+  },
+  {
+    "codeunitId": 139162,
+    "codeunitName": "CRM Integration Mgt Test",
+    "method": "SyncNAVInvoiceWithBlockedResource"
+  },
+  {
+    "codeunitId": 139165,
+    "codeunitName": "Integration Table Synch. Test",
+    "method": "NoFalsePositiveConflictWhenFromIntegrationTableSyncAfterUnidirectionalFieldChange"
+  },
+  {
+    "codeunitId": 139165,
+    "codeunitName": "Integration Table Synch. Test",
+    "method": "NoFalsePositiveConflictWhenFromIntegrationTableSyncAfterUnmappedFieldChange"
+  },
+  {
+    "codeunitId": 139165,
+    "codeunitName": "Integration Table Synch. Test",
+    "method": "SynchNewRecord"
+  },
+  {
+    "codeunitId": 139173,
+    "codeunitName": "CRM Synch. Helper Test",
+    "method": "TestUpdateCRMInvoiceStateActive"
+  },
+  {
+    "codeunitId": 139173,
+    "codeunitName": "CRM Synch. Helper Test",
+    "method": "TestUpdateCRMInvoiceStatePaid"
+  },
+  {
+    "codeunitId": 139173,
+    "codeunitName": "CRM Synch. Helper Test",
+    "method": "TestUpdateCRMInvoiceStatePartial"
+  },
+  {
+    "codeunitId": 139173,
+    "codeunitName": "CRM Synch. Helper Test",
+    "method": "TestUpdateCRMInvoiceWithCreateBillsPaymentMethod"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "BidirectionalSalesOrderCreatesArchive"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "BidirectionalSalesOrderFulfillOrder"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "CRMSalesOrderLCYWithExternalDocNoCanBePosted"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "CRMSalesOrdersStateInvoicedAfterFullyInvoicedNAVOrdersByOneInvoice"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "CRMSalesOrderStateInvoicedAfterFullyInvoicedNAVOrder"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "CRMSalesOrderStateSubmittedAfterNAVOrderShippedOnly"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "CRMSalesOrderStateSubmittedAfterPartlyInvoicedNAVOrder"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "DoNotPostToAccountWhenCreditMemoIsPosted"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "DontPostToAccountWhenUncoupledInvoiceIsPosted"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "FreighLineOfSalesInvoiceCopiedToCRMInvoice"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "PostSalesOrderCoupledToDeletedCRMSalesOrder"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "PostToAccountWhenAccountDeleted"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "PostToAccountWhenSalesOrderIsPosted"
+  },
+  {
+    "codeunitId": 139175,
+    "codeunitName": "CRM Sales Order Integr. Test",
+    "method": "PostToCRMSalesOrderWhenSalesOrderIsShipped"
+  },
+  {
     "codeunitId": 139179,
     "codeunitName": "CRM Statistics Job Test",
     "method": "JobQueueFailsIfCRMConnectionDisabled"
   },
   {
+    "codeunitId": 139182,
+    "codeunitName": "CRM Coupling Test",
+    "method": "CoupleContactAndCustomerWithPrimaryContactBothAsCreateNew"
+  },
+  {
     "codeunitId": 139186,
     "codeunitName": "CRM Synch. Skipped Records",
     "method": "T138_CannotRemoveReferencedJobEntry"
+  },
+  {
+    "codeunitId": 139187,
+    "codeunitName": "CRM Full Synchronization",
+    "method": "T170_ParentMappingGetsSyncModifiedOnFilters"
   },
   {
     "codeunitId": 139194,
@@ -575,6 +770,31 @@
     "method": "UrlValidationWhenMissingHTTPS"
   },
   {
+    "codeunitId": 139199,
+    "codeunitName": "CDS Match Based Coupling",
+    "method": "IntegarionTableMappingListCoupleMultipleInBackground"
+  },
+  {
+    "codeunitId": 139199,
+    "codeunitName": "CDS Match Based Coupling",
+    "method": "IntegarionTableMappingListCoupleSingleInBackground"
+  },
+  {
+    "codeunitId": 139199,
+    "codeunitName": "CDS Match Based Coupling",
+    "method": "MasterDataListCoupleMultipleErrorNoMatch"
+  },
+  {
+    "codeunitId": 139199,
+    "codeunitName": "CDS Match Based Coupling",
+    "method": "MasterDataListCoupleMultipleInBackground"
+  },
+  {
+    "codeunitId": 139199,
+    "codeunitName": "CDS Match Based Coupling",
+    "method": "MasterDataListCoupleSingleInBackground"
+  },
+  {
     "codeunitId": 139314,
     "codeunitName": "CRM Connection Wizard Tests",
     "method": "CRMConnectionSetupEnableCRMConnectionFromWizard"
@@ -618,30 +838,5 @@
     "codeunitId": 139314,
     "codeunitName": "CRM Connection Wizard Tests",
     "method": "VerifyWizardWithExistedSetupCommonFieldsTrue"
-  },
-  {
-    "codeunitId": 130481,
-    "codeunitName": "Contact Sync Test",
-    "method": "TestProcessBidirectionalSync_EmptyQueue"
-  },
-  {
-    "codeunitId": 130481,
-    "codeunitName": "Contact Sync Test",
-    "method": "TestProcessBidirectionalSync_SuppressedUI_LargeBatch"
-  },
-  {
-    "codeunitId": 130481,
-    "codeunitName": "Contact Sync Test",
-    "method": "TestProcessBidirectionalSync_SuppressedUI_SyncToBCWithValidContacts"
-  },
-  {
-    "codeunitId": 130481,
-    "codeunitName": "Contact Sync Test",
-    "method": "TestSyncQueueCopyFromBCContact"
-  },
-  {
-    "codeunitId": 130481,
-    "codeunitName": "Contact Sync Test",
-    "method": "TestSyncQueueCopyFromO365Contact"
   }
 ]

@@ -1,135 +1,323 @@
 [
   {
-    "bug": "597430",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "TestIfContractRenewalSelectionIsUpdateOnAfterValidateCalcBasePercentage"
+    "codeunitId": 139687,
+    "codeunitName": "Recurring Billing Docs Test",
+    "method": "CheckMultipleContractsPurchaseInvoiceHeaderPostingDescription"
   },
   {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "CheckAndVerifyCreateSingleSalesQuote"
+    "codeunitId": 139687,
+    "codeunitName": "Recurring Billing Docs Test",
+    "method": "CheckMultipleContractsSalesInvoiceHeaderPostingDescription"
   },
   {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "CheckCreateMultipleContractRenewalQuotes"
+    "codeunitId": 139687,
+    "codeunitName": "Recurring Billing Docs Test",
+    "method": "CheckPurchInvoiceHeaderPostingDescription"
   },
   {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "CheckEndDateForRenewalTermDifferentThanSubsequentTerm"
+    "codeunitId": 139687,
+    "codeunitName": "Recurring Billing Docs Test",
+    "method": "CheckSingleContractSalesInvoiceHeaderPostingDescription"
   },
   {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "CheckSortingInRenewalQuote"
+    "codeunitId": 139687,
+    "codeunitName": "Recurring Billing Docs Test",
+    "method": "GetVendorContractLinesProducesCorrectAmountsDuringSelection"
   },
   {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "CheckVatCalculationForContractRenewalServiceCommitmentRhythmInReports"
+    "codeunitId": 139688,
+    "codeunitName": "Recurring Billing Test",
+    "method": "CheckBillingLineUpdateRequiredOnModifyCustomerContractLine"
   },
   {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "CheckServCommSelectionPageAcceptChanges"
+    "codeunitId": 139688,
+    "codeunitName": "Recurring Billing Test",
+    "method": "CheckBillingLineUpdateRequiredOnModifyVendorContractLine"
   },
   {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "CheckSerialNoDescriptionForRenewalSalesQuoteWithSNTracking"
+    "codeunitId": 139688,
+    "codeunitName": "Recurring Billing Test",
+    "method": "CheckDeleteArchivedBillingLinesPostedInvoiceFirst"
   },
   {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "ExpectErrorOnChangeQtyToShip"
-  },
-  {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "ExpectNoPostedSalesInvoiceOnPostRenewalSalesOrder"
-  },
-  {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "PostContractRenewalAndVerifyResult"
-  },
-  {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "PostModifiedContractRenewalWithFinalInvoiceAndVerifyResult"
-  },
-  {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "TestPostedDocumentsOnPostRenewalSalesOrder"
-  },
-  {
-    "bug": "574501",
-    "codeunitId": 139692,
-    "codeunitName": "Contract Renewal Test",
-    "method": "TestSalesQuoteToOrderYesNoForContractRenewal"
-  },
-  {
-    "bug": "603387",
     "codeunitId": 139692,
     "codeunitName": "Contract Renewal Test",
     "method": "AllowSelectionOfResponsibilityCenterInContractRenewalSalesDocuments"
   },
   {
-    "bug": "603387",
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckAndVerifyCreateSingleSalesQuote"
+  },
+  {
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckCreateMultipleContractRenewalQuotes"
+  },
+  {
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckEndDateForRenewalTermDifferentThanSubsequentTerm"
+  },
+  {
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckSerialNoDescriptionForRenewalSalesQuoteWithSNTracking"
+  },
+  {
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckServCommSelectionPageAcceptChanges"
+  },
+  {
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckSortingInRenewalQuote"
+  },
+  {
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "CheckVatCalculationForContractRenewalServiceCommitmentRhythmInReports"
+  },
+  {
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "ExpectErrorOnChangeQtyToShip"
+  },
+  {
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "ExpectNoPostedSalesInvoiceOnPostRenewalSalesOrder"
+  },
+  {
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "PostContractRenewalAndVerifyResult"
+  },
+  {
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "PostModifiedContractRenewalWithFinalInvoiceAndVerifyResult"
+  },
+  {
     "codeunitId": 139692,
     "codeunitName": "Contract Renewal Test",
     "method": "PreventExistingDimensionsInContractRenewalSalesDocumentsWhenResponsibilityCenterIsChanged"
   },
   {
-    "bug": "597430",
-    "codeunitId": 148155,
-    "CodeunitName": "Contracts Test",
-    "Method": "CheckValueChangesOnCustomerContractLines"
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "TestIfContractRenewalSelectionIsUpdateOnAfterValidateCalcBasePercentage"
   },
   {
-    "bug": "597430",
-    "codeunitId": 139687,
-    "CodeunitName": "Recurring Billing Docs Test",
-    "Method": "GetVendorContractLinesProducesCorrectAmountsDuringSelection"
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "TestPostedDocumentsOnPostRenewalSalesOrder"
   },
   {
-    "bug": "597430",
-    "codeunitId": 139688,
-    "CodeunitName": "Recurring Billing Test",
-    "Method": "CheckBillingLineUpdateRequiredOnModifyCustomerContractLine"
+    "codeunitId": 139692,
+    "codeunitName": "Contract Renewal Test",
+    "method": "TestSalesQuoteToOrderYesNoForContractRenewal"
   },
   {
-    "bug": "597430",
-    "codeunitId": 139688,
-    "CodeunitName": "Recurring Billing Test",
-    "Method": "CheckBillingLineUpdateRequiredOnModifyVendorContractLine"
+    "codeunitId": 139895,
+    "codeunitName": "Usage Based Service Comm. Test",
+    "method": "ErrorOnInsertUsageBasedFieldsToSalesServiceCommitmentWhenInvoicingViaSales"
   },
   {
-    "bug": "597430",
+    "codeunitId": 139895,
+    "codeunitName": "Usage Based Service Comm. Test",
+    "method": "TestTransferUsageBasedFieldsFromSalesServiceCommitmentToServiceCommitment"
+  },
+  {
+    "codeunitId": 139895,
+    "codeunitName": "Usage Based Service Comm. Test",
+    "method": "TestTransferUsageBasedFieldsFromServiceCommitmentPackageToSalesServiceCommitment"
+  },
+  {
+    "codeunitId": 139895,
+    "codeunitName": "Usage Based Service Comm. Test",
+    "method": "TestUsageBasedFieldsInSalesServiceCommitments"
+  },
+  {
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "DeferralsAreCorrectAfterPostingPartialSalesCreditMemo"
+  },
+  {
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "ExpectAmountOnContractDeferralAccountToBeZero"
+  },
+  {
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "ExpectAmountOnContractDeferralAccountToBeZeroForContractLinesWithDiscount"
+  },
+  {
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "ExpectAmountsToBeNullAfterPostSalesCrMemoOfReleasedDeferrals"
+  },
+  {
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "ExpectAmountsToBeNullOnAfterPostSalesCrMemo"
+  },
+  {
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "ExpectThatDeferralsForSalesCreditMemoAreCreatedOnce"
+  },
+  {
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "TestCorrectReleasedSalesInvoiceDeferrals"
+  },
+  {
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "TestIfDeferralsExistOnAfterPostSalesCreditMemo"
+  },
+  {
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "TestIfDeferralsExistOnAfterPostSalesCreditMemoWithoutAppliesToDocNo"
+  },
+  {
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "TestSalesCrMemoDeferralsDocumentsAndDate"
+  },
+  {
+    "codeunitId": 139912,
+    "codeunitName": "Customer Deferrals Test",
+    "method": "TestSalesInvoiceDeferralsOnAfterPostSalesCrMemo"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "DeferralsAreCorrectAfterPostingPartialPurchCreditMemo"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "ExpectAmountOnContractDeferralAccountToBeZero"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "ExpectAmountOnContractDeferralAccountToBeZeroForContractLinesWithDiscount"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "ExpectAmountsToBeNullAfterPostPurchCrMemoOfReleasedDeferrals"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "ExpectAmountsToBeNullOnAfterPostPurchCrMemo"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "ExpectThatDeferralsForPurchaseCreditMemoAreCreatedOnce"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "TestCorrectReleasedPurchaseInvoiceDeferrals"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "TestIfDeferralsExistOnAfterPostPurchCreditMemo"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "TestIfDeferralsExistOnAfterPostPurchCreditMemoWithoutAppliesToDocNo"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "TestPurchaseCrMemoDeferralsDocumentsAndDate"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "TestPurchInvoiceDeferralsOnAfterPostPurchCrMemo"
+  },
+  {
+    "codeunitId": 139915,
+    "codeunitName": "Sales Service Commitment Test",
+    "method": "CheckCopySalesServiceCommitmentFromSalesDocument"
+  },
+  {
+    "codeunitId": 139915,
+    "codeunitName": "Sales Service Commitment Test",
+    "method": "CheckCreateServCommitmentsFromSalesServiceCommitment"
+  },
+  {
+    "codeunitId": 139915,
+    "codeunitName": "Sales Service Commitment Test",
+    "method": "CheckCreateServiceObjectFromSales"
+  },
+  {
+    "codeunitId": 139915,
+    "codeunitName": "Sales Service Commitment Test",
+    "method": "CheckCreateServiceObjectWithSerialNoOnDropShipment"
+  },
+  {
+    "codeunitId": 139915,
+    "codeunitName": "Sales Service Commitment Test",
+    "method": "CheckCreateServiceObjectWithSerialNoOnShipSalesOrder"
+  },
+  {
+    "codeunitId": 139915,
+    "codeunitName": "Sales Service Commitment Test",
+    "method": "CheckDeleteSalesServiceCommitmentWhenTypeOrNoChangedForSalesLine"
+  },
+  {
+    "codeunitId": 139915,
+    "codeunitName": "Sales Service Commitment Test",
+    "method": "CheckEqualServiceStartDateAndAgreedServCommStartDateAfterInsertServCommFromSalesServComm"
+  },
+  {
+    "codeunitId": 139915,
+    "codeunitName": "Sales Service Commitment Test",
+    "method": "CheckEqualServiceStartDateAndSalesLineShipmentDateAfterInsertServCommFromSalesLine"
+  },
+  {
+    "codeunitId": 139915,
+    "codeunitName": "Sales Service Commitment Test",
+    "method": "CheckEqualShipmentDateForPartialSalesShipment"
+  },
+  {
+    "codeunitId": 139915,
+    "codeunitName": "Sales Service Commitment Test",
+    "method": "CheckIsServiceItemExcludedFromTotalsInReports"
+  },
+  {
+    "codeunitId": 139915,
+    "codeunitName": "Sales Service Commitment Test",
+    "method": "CheckVatCalculationForServiceCommitmentRhythmInReports"
+  },
+  {
     "codeunitId": 139916,
-    "CodeunitName": "Service Comm. Archive Test",
-    "Method": "ExpectSingleServiceCommitmentArchiveOnModifyMultipleFieldsOnCustomerContractLine"
+    "codeunitName": "Service Comm. Archive Test",
+    "method": "ExpectSingleServiceCommitmentArchiveOnModifyMultipleFieldsOnCustomerContractLine"
   },
   {
-    "bug": "597430",
     "codeunitId": 148154,
-    "CodeunitName": "Vendor Contracts Test",
-    "Method": "CheckValueChangesOnVendorContractLines"
+    "codeunitName": "Vendor Contracts Test",
+    "method": "CheckValueChangesOnVendorContractLines"
+  },
+  {
+    "codeunitId": 148155,
+    "codeunitName": "Contracts Test",
+    "method": "CheckValueChangesOnCustomerContractLines"
   },
   {
     "codeunitId": 148157,

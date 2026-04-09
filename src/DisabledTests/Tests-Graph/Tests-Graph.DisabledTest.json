@@ -1,8 +1,33 @@
 [
   {
+    "codeunitId": 134634,
+    "codeunitName": "Graph Collect Mgt Journal Line",
+    "method": "TestAppliesToDocIDErrorSync"
+  },
+  {
+    "codeunitId": 134634,
+    "codeunitName": "Graph Collect Mgt Journal Line",
+    "method": "TestAppliesToDocNoAndIDCorrectSync"
+  },
+  {
+    "codeunitId": 134634,
+    "codeunitName": "Graph Collect Mgt Journal Line",
+    "method": "TestAppliesToDocNoSpecificSync"
+  },
+  {
+    "codeunitId": 134634,
+    "codeunitName": "Graph Collect Mgt Journal Line",
+    "method": "TestEmptyAppliesToDocNoBlanksIdToo"
+  },
+  {
     "codeunitId": 135528,
     "codeunitName": "WFWH Subscription E2E Tests",
     "method": "CanCreateWorkflowWebhookSubscriptionWithWorkflow"
+  },
+  {
+    "codeunitId": 135528,
+    "codeunitName": "WFWH Subscription E2E Tests",
+    "method": "CanDeleteWorkflowWebhookSubscriptionHavingWorkflowWithActiveWorkflowSteps"
   },
   {
     "codeunitId": 135528,

@@ -90,6 +90,16 @@
     "method": "VerifyWorksheetLineDeletionSkipsRelatedTables"
   },
   {
+    "codeunitId": 136611,
+    "codeunitName": "ERM RS Dimensions as Columns",
+    "method": "ApplyPackageWithDimAsColumnsWithoutSettingDimSetIDField"
+  },
+  {
+    "codeunitId": 136611,
+    "codeunitName": "ERM RS Dimensions as Columns",
+    "method": "DimensionSet_DimAsColumnsDimTablesAdded"
+  },
+  {
     "codeunitId": 136612,
     "codeunitName": "ERM RS Process Data",
     "method": "CustomProcCodShouldBeRanForReleasePurchDoc"
