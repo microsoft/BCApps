@@ -346,7 +346,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     var
         GLAccount: Record "G/L Account";
         TempDimensionValue: Record "Dimension Value" temporary;
-        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
         DebitAmount: Decimal;
@@ -366,14 +366,14 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetRange("No.", PostingAccount);
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TempTrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TrialBalanceData);
 
         // [THEN] The buffer has gross debit and credit amounts, not netted
-        TempTrialBalanceData.SetRange("G/L Account No.", PostingAccount);
-        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'Buffer record should exist for the posting account');
-        Assert.AreEqual(DebitAmount + CreditAmount, TempTrialBalanceData."Net Change", 'Net Change should be the algebraic sum');
-        Assert.AreEqual(DebitAmount, TempTrialBalanceData."Net Change (Debit)", 'Net Change (Debit) should be the gross debit amount');
-        Assert.AreEqual(-CreditAmount, TempTrialBalanceData."Net Change (Credit)", 'Net Change (Credit) should be the gross credit amount');
+        TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        Assert.IsTrue(TrialBalanceData.FindFirst(), 'Buffer record should exist for the posting account');
+        Assert.AreEqual(DebitAmount + CreditAmount, TrialBalanceData."Net Change", 'Net Change should be the algebraic sum');
+        Assert.AreEqual(DebitAmount, TrialBalanceData."Net Change (Debit)", 'Net Change (Debit) should be the gross debit amount');
+        Assert.AreEqual(-CreditAmount, TrialBalanceData."Net Change (Credit)", 'Net Change (Credit) should be the gross credit amount');
     end;
 
     [Test]
