@@ -361,7 +361,7 @@ page 8080 "Closed Cust. Cont. Line Subp."
 
     trigger OnAfterGetRecord()
     begin
-        InitializePageVariables();
+        Rec.GetServiceObject(ServiceObject);
         Rec.LoadServiceCommitmentForContractLine(ServiceCommitment);
         LoadQuantityForContractLine();
         VariantCode := ServiceObject."Variant Code";
@@ -379,12 +379,6 @@ page 8080 "Closed Cust. Cont. Line Subp."
         ContractsGeneralMgt: Codeunit "Sub. Contracts General Mgt.";
         ContractLineQty: Decimal;
         VariantCode: Code[10];
-
-    local procedure InitializePageVariables()
-    begin
-        Rec.GetServiceCommitment(ServiceCommitment);
-        Rec.GetServiceObject(ServiceObject);
-    end;
 
     local procedure LoadQuantityForContractLine()
     begin
