@@ -334,68 +334,6 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
-    procedure TrialBalanceBufferNetChangeSplitsIntoDebitAndCreditWhenCalledSeveralTimes()
-    var
-        EXRTrialBalanceBuffer: Record "EXR Trial Balance Buffer";
-        ValuesToSplitInCreditAndDebit: array[3] of Decimal;
-    begin
-        // [SCENARIO 547558] Trial Balance Buffer data split into Debit and Credit correctly, even if called multiple times.
-        // [GIVEN] Trial Balance Buffer filled with positive Balance/Net Change
-        ValuesToSplitInCreditAndDebit[1] := 837;
-        // [GIVEN] Trial Balance Buffer filled with negative Balance/Net Change
-        ValuesToSplitInCreditAndDebit[2] := -110;
-        // [GIVEN] Trial Balance Buffer filled with positive Balance/Net Change
-        ValuesToSplitInCreditAndDebit[3] := 998;
-        // [WHEN] Trial Balance Buffer entries are inserted
-        EXRTrialBalanceBuffer."G/L Account No." := 'A';
-        EXRTrialBalanceBuffer.Validate("Starting Balance", ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Validate("Net Change", ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Validate(Balance, ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Validate("Starting Balance (ACY)", ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Validate("Net Change (ACY)", ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Validate("Balance (ACY)", ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Insert();
-        EXRTrialBalanceBuffer."G/L Account No." := 'B';
-        EXRTrialBalanceBuffer.Validate("Starting Balance", ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Validate("Net Change", ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Validate(Balance, ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Validate("Starting Balance (ACY)", ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Validate("Net Change (ACY)", ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Validate("Balance (ACY)", ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Insert();
-        EXRTrialBalanceBuffer."G/L Account No." := 'C';
-        EXRTrialBalanceBuffer.Validate("Starting Balance", ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Validate("Net Change", ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Validate(Balance, ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Validate("Starting Balance (ACY)", ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Validate("Net Change (ACY)", ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Validate("Balance (ACY)", ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Insert();
-        // [THEN] All Entries have the right split in Credit and Debit
-        EXRTrialBalanceBuffer.FindSet();
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit)" + EXRTrialBalanceBuffer."Starting Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Net Change (Debit)" + EXRTrialBalanceBuffer."Net Change (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Balance (Debit)" + EXRTrialBalanceBuffer."Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Starting Balance (Credit)(ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Net Change (Debit) (ACY)" + EXRTrialBalanceBuffer."Net Change (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Balance (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        EXRTrialBalanceBuffer.Next();
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit)" + EXRTrialBalanceBuffer."Starting Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Net Change (Debit)" + EXRTrialBalanceBuffer."Net Change (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Balance (Debit)" + EXRTrialBalanceBuffer."Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Starting Balance (Credit)(ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Net Change (Debit) (ACY)" + EXRTrialBalanceBuffer."Net Change (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Balance (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        EXRTrialBalanceBuffer.Next();
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit)" + EXRTrialBalanceBuffer."Starting Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Net Change (Debit)" + EXRTrialBalanceBuffer."Net Change (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Balance (Debit)" + EXRTrialBalanceBuffer."Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Starting Balance (Credit)(ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Net Change (Debit) (ACY)" + EXRTrialBalanceBuffer."Net Change (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Balance (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-    end;
-
-    [Test]
     procedure QueryPathProducesCorrectAmounts()
     var
         GLAccount: Record "G/L Account";
@@ -428,6 +366,41 @@ codeunit 139544 "Trial Balance Excel Reports"
         Assert.AreEqual(BeforePeriodAmount, TrialBalanceData."Starting Balance", 'Starting Balance should equal the entry before the period');
         Assert.AreEqual(InPeriodAmount, TrialBalanceData."Net Change", 'Net Change should equal the entry within the period');
         Assert.AreEqual(BeforePeriodAmount + InPeriodAmount, TrialBalanceData.Balance, 'Balance should equal Starting Balance + Net Change');
+    end;
+
+    [Test]
+    procedure GrossDebitAndCreditTurnoverReportedForEachAccount()
+    var
+        GLAccount: Record "G/L Account";
+        TempDimensionValue: Record "Dimension Value" temporary;
+        TrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        DebitAmount: Decimal;
+        CreditAmount: Decimal;
+    begin
+        // [SCENARIO] The query path produces gross debit and credit turnover, not netted amounts.
+        // [GIVEN] A posting account with both debit and credit entries in the same period
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        DebitAmount := 5000;
+        CreditAmount := -8000;
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(1, 3, Date2DMY(WorkDate(), 3)), DebitAmount);
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(15, 3, Date2DMY(WorkDate(), 3)), CreditAmount);
+
+        // [WHEN] Running the query-based trial balance for the current year
+        GLAccount.SetRange("No.", PostingAccount);
+        GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TrialBalanceData);
+
+        // [THEN] The buffer has gross debit and credit amounts, not netted
+        TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        Assert.IsTrue(TrialBalanceData.FindFirst(), 'Buffer record should exist for the posting account');
+        Assert.AreEqual(DebitAmount + CreditAmount, TrialBalanceData."Net Change", 'Net Change should be the algebraic sum');
+        Assert.AreEqual(DebitAmount, TrialBalanceData."Net Change (Debit)", 'Net Change (Debit) should be the gross debit amount');
+        Assert.AreEqual(-CreditAmount, TrialBalanceData."Net Change (Credit)", 'Net Change (Credit) should be the gross credit amount');
     end;
 
     [Test]
@@ -798,10 +771,13 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLEntry."Business Unit Code" := BusinessUnitCode;
         GLEntry.Amount := Amount;
         GLEntry."Additional-Currency Amount" := Amount;
-        if Amount > 0 then
-            GLEntry."Debit Amount" := Amount
-        else
+        if Amount > 0 then begin
+            GLEntry."Debit Amount" := Amount;
+            GLEntry."Add.-Currency Debit Amount" := Amount;
+        end else begin
             GLEntry."Credit Amount" := -Amount;
+            GLEntry."Add.-Currency Credit Amount" := -Amount;
+        end;
         GLEntry."Posting Date" := PostingDate;
         GLEntry.Insert();
     end;
