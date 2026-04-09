@@ -17,7 +17,6 @@ codeunit 149037 "AIT AL Test Suite Mgt"
     var
         RunProcedureOperationTok: Label 'Run Procedure', Locked = true;
         AITTestSuitePrefixTok: Label 'AIT-', Locked = true;
-        InvalidSuiteSetupYamlErr: Label 'The per-suite setup content is not valid YAML.';
 
     internal procedure GetDefaultRunProcedureOperationLbl(): Text
     begin
@@ -223,22 +222,6 @@ codeunit 149037 "AIT AL Test Suite Mgt"
             until AITLogEntry.Next() = 0;
 
         exit(OutputJsonArray);
-    end;
-
-    /// <summary>
-    /// Import per-suite setup data from YAML content.
-    /// The YAML is parsed and stored for access via AITTestContext.GetSuiteSetupData().
-    /// </summary>
-    /// <param name="SuiteSetupYamlContent">The YAML content as text.</param>
-    procedure ImportSuiteSetupData(SuiteSetupYamlContent: Text)
-    var
-        AITTestContextImpl: Codeunit "AIT Test Context Impl.";
-        SuiteSetupDataJsonObj: JsonObject;
-    begin
-        if not SuiteSetupDataJsonObj.ReadFromYaml(SuiteSetupYamlContent) then
-            Error(InvalidSuiteSetupYamlErr);
-
-        AITTestContextImpl.ImportSuiteSetupData(SuiteSetupDataJsonObj.AsToken());
     end;
 
     /// <summary>
