@@ -2,13 +2,18 @@ name: Dispatch AI Triage
 
 on:
   issues:
-    types: [labeled]
+    types: [opened, edited, labeled]
 
 permissions: {}
 
 jobs:
   dispatch:
-    if: github.event.label.name == 'ai-triage' && github.event.issue.state == 'open'
+    if: >-
+      github.event.issue.state == 'open' && (
+        github.event.action == 'opened' ||
+        github.event.action == 'edited' ||
+        github.event.label.name == 'ai-triage'
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Trigger triage on BCAppsTriage
