@@ -14,11 +14,9 @@ page 20463 "Qlty. Routing Line Lookup"
     SourceTable = "Routing Line";
     UsageCategory = None;
     ApplicationArea = Manufacturing;
-#pragma warning disable AS0072
     ObsoleteReason = 'Unused and replaced with "Routing Line List" page.';
     ObsoleteState = Pending;
     ObsoleteTag = '28.0';
-#pragma warning restore AS0072
 
     layout
     {
