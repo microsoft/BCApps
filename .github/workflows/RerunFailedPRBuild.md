@@ -20,10 +20,12 @@ tools:
 
 safe-outputs:
   rerun-failed-jobs:
+    max: 1
   add-comment:
     max: 1
     hide-older-comments: true
   noop:
+    max: 1
   messages:
     footer: "> 🔄 *Analysis by [{workflow_name}]({run_url})*"
     run-started: "🔍 Analyzing failed PR Build [{workflow_name}]({run_url})..."
@@ -93,7 +95,7 @@ steps:
 
         # Apply error heuristics
         HINTS_FILE="$FILTERED_DIR/job-${JOB_ID}-hints.txt"
-        grep -n -iE "(error[: ]|ERROR|FAIL|panic:|fatal[: ]|exception|exit status [^0]|timeout|timed out|connection refused|cannot access|rate limit)" \
+        grep -n -iE "(error[: ]|ERROR|FAIL|panic:|fatal[: ]|exception|exit status [1-9]|timeout|timed out|connection refused|cannot access|rate limit)" \
           "$LOG_FILE" | head -30 > "$HINTS_FILE" 2>/dev/null || true
 
         if [ -s "$HINTS_FILE" ]; then
@@ -154,7 +156,7 @@ Follow these steps precisely:
 
 1. Read `/tmp/rerun-analyzer/run-info.txt`.
 2. If `NO_PR=true` is present, call `noop` with "No PR associated with this workflow run" and stop.
-3. Extract the **run attempt** number. If 3 or higher (meaning 2 reruns have already been done), call `noop` with "Maximum rerun attempts (2) already reached for this run" and stop.
+3. Extract the **run attempt** number. The initial run is attempt 1; each rerun increments it. If the attempt number is **3 or higher** (meaning 2 reruns have already been triggered — attempts 2 and 3 were reruns), call `noop` with "Maximum rerun attempts (2) already reached for this run" and stop. In other words: only proceed if the attempt number is 1 (original, no reruns yet) or 2 (one rerun done, one more allowed).
 4. Extract the **failed job count**. If it is greater than 3, call `noop` with "Too many failed jobs (N > 3) — likely a systemic issue, not transient instability" and stop.
 5. If the failed job count is 0, call `noop` with "No failed jobs found" and stop.
 
@@ -165,8 +167,8 @@ For each failed job listed in `/tmp/rerun-analyzer/logs/failed-jobs.json`:
 1. Read the job's log file at `/tmp/rerun-analyzer/logs/job-{id}.log`.
 2. Read the error hints at `/tmp/rerun-analyzer/filtered/job-{id}-hints.txt` (if it exists).
 3. Analyze the errors and classify the failure as either:
-   - **INSTABILITY** (transient/flaky): network timeouts, Docker/container startup failures, resource exhaustion on runners, HTTP 429/503 errors, file locking issues, DNS failures, artifact download failures, BcContainer transient errors, container health check failures, "process cannot access the file" errors, flaky test failures.
-   - **GENUINE** (code issue): AL compilation errors, test assertion failures indicating logic bugs, missing dependencies from the code change, configuration errors introduced by code changes, consistent reproducible error patterns.
+   - **INSTABILITY** (transient/flaky): network timeouts, Docker/container startup failures, resource exhaustion on runners, HTTP 429/503 errors, file locking issues, DNS failures, artifact download failures, BcContainer transient errors, container health check failures, "process cannot access the file" errors, non-deterministic test failures (tests that fail sporadically with different errors across runs).
+   - **GENUINE** (code issue): AL compilation errors, test assertion failures that consistently indicate logic bugs (same assertion failing with a clear cause), missing dependencies from the code change, configuration errors introduced by code changes, consistent reproducible error patterns. Note: test failures should only be classified as INSTABILITY if they appear non-deterministic or infrastructure-related; if a test assertion clearly points to a code logic problem, classify it as GENUINE.
 
 Record your classification and a brief reason for each job.
 
