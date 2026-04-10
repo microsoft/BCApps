@@ -221,6 +221,7 @@ page 36950 "PowerBI Assisted Setup"
                     ApplicationArea = All;
                     Caption = 'I would like to';
                     ToolTip = 'Choose whether to manually configure report settings or deploy pre-built reports.';
+                    OptionCaption = 'Deploy out-of-the-box reports,Configure report settings';
                 }
             }
             group(Step5)
@@ -841,7 +842,7 @@ page 36950 "PowerBI Assisted Setup"
     trigger OnOpenPage()
     var
         UserSetup: Record "User Setup";
-        Company: Record Company;
+        CurrentCompany: Record Company;
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
         if not PowerBIReportsSetup.WritePermission() then
@@ -853,8 +854,8 @@ page 36950 "PowerBI Assisted Setup"
         if NavApp.GetCurrentModuleInfo(AppInfo) then
             AssistedSetupComplete := GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"PowerBI Assisted Setup");
 
-        Company.Get(CompanyName());
-        IsEvalCompany := Company."Evaluation Company";
+        CurrentCompany.Get(CompanyName());
+        IsEvalCompany := CurrentCompany."Evaluation Company";
 
         if UserSetup.Get(UserId()) then
             TestEmailAddress := UserSetup."E-Mail";

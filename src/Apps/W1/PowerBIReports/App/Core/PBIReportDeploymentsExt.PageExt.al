@@ -22,7 +22,7 @@ pageextension 36965 "PBI Report Deployments Ext." extends "Power BI Report Deplo
     {
         addlast(NavigateActions)
         {
-            action(PowerBIReportsSetup)
+            action(OpenPowerBIReportsSetup)
             {
                 ApplicationArea = All;
                 Caption = 'Power BI Reports Setup';
@@ -33,7 +33,7 @@ pageextension 36965 "PBI Report Deployments Ext." extends "Power BI Report Deplo
         }
         addlast(Category_Category2)
         {
-            actionref(PowerBIReportsSetup_Promoted; PowerBIReportsSetup)
+            actionref(PowerBIReportsSetup_Promoted; OpenPowerBIReportsSetup)
             {
             }
         }

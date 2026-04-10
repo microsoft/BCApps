@@ -6,8 +6,8 @@ namespace Microsoft.PowerBIReports;
 
 using System.Environment.Configuration;
 using System.Globalization;
-using System.Utilities;
 using System.Integration.PowerBI;
+using System.Utilities;
 
 codeunit 36962 "Power BI Report Setup"
 {
@@ -57,8 +57,8 @@ codeunit 36962 "Power BI Report Setup"
     local procedure GetConfiguredReportId(PBIReportSetup: Enum "PBI Report Setup"): Guid
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
-        ReportSetup: Interface "PBI Report Setup";
         RecRef: RecordRef;
+        ReportSetup: Interface "PBI Report Setup";
         ConfiguredReportId: Guid;
     begin
         PowerBIReportsSetup.GetOrCreate();
@@ -121,29 +121,6 @@ codeunit 36962 "Power BI Report Setup"
                 Page.Run(Page::"Power BI Report Deployments");
             Error('');
         end;
-    end;
-
-    local procedure IsReportBeingDeployed(FieldId: Integer): Boolean
-    var
-        PowerBIDeployment: Record "Power BI Deployment";
-        UploadStatus: Enum "Power BI Upload Status";
-        ReportSetup: Interface "PBI Report Setup";
-        Ordinal: Integer;
-    begin
-        foreach Ordinal in Enum::"PBI Report Setup".Ordinals() do begin
-            ReportSetup := Enum::"PBI Report Setup".FromInteger(Ordinal);
-            if ReportSetup.GetSetupReportIdFieldNo() = FieldId then begin
-                if not PowerBIDeployment.Get(ReportSetup.GetDeployableReportType()) then
-                    exit(false);
-                UploadStatus := PowerBIDeployment.GetUploadStatus();
-                exit(not (UploadStatus in [
-                    Enum::"Power BI Upload Status"::Completed,
-                    Enum::"Power BI Upload Status"::Failed,
-                    Enum::"Power BI Upload Status"::Skipped,
-                    Enum::"Power BI Upload Status"::PendingDeletion]));
-            end;
-        end;
-        exit(false);
     end;
 
     local procedure GetReportId(FieldId: Integer): Guid
