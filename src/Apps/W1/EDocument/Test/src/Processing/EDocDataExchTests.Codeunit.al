@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.IO;
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
@@ -257,8 +258,8 @@ codeunit 139897 "E-Doc Data Exch Tests"
         EDocServiceDataExchDef.DeleteAll();
         DocumentAttachment.DeleteAll();
 
-        // Shipped PEPPOL Data Exchange Definitions (EDOCPEPPOLINVIMP, EDOCPEPPOLCRMEMOIMP) are
-        // installed by E-Document Install codeunit on app install. They should already exist.
+        // Ensure PEPPOL Data Exchange Definitions exist (they may not in CI environments)
+        EnsurePEPPOLDataExchDefsExist();
 
         LibraryEDoc.SetupStandardVAT();
         LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
@@ -343,5 +344,16 @@ codeunit 139897 "E-Doc Data Exch Tests"
                 '. ReadIntoDraft: ' + Format(EDocument."Read into Draft Impl.") + '. Service: ' + Format(EDocument.GetEDocumentService()."Read into Draft Impl."));
         end;
         exit(true);
+    end;
+
+    local procedure EnsurePEPPOLDataExchDefsExist()
+    var
+        DataExchDef: Record "Data Exch. Def";
+        EDocumentInstall: Codeunit "E-Document Install";
+    begin
+        if not DataExchDef.Get('EDOCPEPPOLINVIMP') then
+            EDocumentInstall.ImportInvoiceXML();
+        if not DataExchDef.Get('EDOCPEPPOLCRMEMOIMP') then
+            EDocumentInstall.ImportCreditMemoXML();
     end;
 }
