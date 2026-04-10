@@ -142,11 +142,11 @@ table 2681 "Data Search Setup (Table)"
 
     internal procedure GetProfileID(): Code[30]
     var
-        UserSettingsRec: Record "User Settings";
+        TempUserSettingsRec: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
-        UserSettings.GetUserSettings(UserSecurityId(), UserSettingsRec);
-        exit(UserSettingsRec."Profile ID");
+        UserSettings.GetUserSettings(UserSecurityId(), TempUserSettingsRec);
+        exit(TempUserSettingsRec."Profile ID");
     end;
 
     procedure GetRoleCenterID(): Integer

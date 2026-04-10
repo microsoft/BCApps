@@ -38,6 +38,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         DefaultDateFieldDoesNotExistLbl: Label 'The retention policy allowed tables list has a default date field number %1 which does not exist in table %2.', Comment = '%1 = Field number, %2 = table number';
         MinExpirationDateFormulaLbl: Label '<-%1D>', Locked = true;
         MaxDateDateFormulaTxt: Label '<+CY+%1Y>', Locked = true;
+        MissingRetentionPolicyAllowedTableErr: Label 'Table %1 is not configured in Retention Policy Allowed Table.', Comment = '%1 = table number';
 
     procedure AddToAllowedTables(TableId: Integer; DefaultDateFieldNo: Integer; CallerModuleInfo: ModuleInfo; MandatoryMinRetenDays: Integer; TableFilters: JsonArray): Boolean
     var
@@ -436,6 +437,32 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         if AppId in [SystemApplicationId, PerformanceProfilerId] then
             exit(true);
 
+        exit(false);
+    end;
+
+    procedure SetTruncateAllowed(TableId: Integer; TruncateAllowed: Boolean; CallerModuleInfo: ModuleInfo)
+    var
+        RetentionPolicyAllowedTable: Record "Retention Policy Allowed Table";
+        RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
+    begin
+        if not ModuleOwnsTable(CallerModuleInfo, TableId) then
+            exit;
+
+        if not RetentionPolicyAllowedTable.Get(TableId) then
+            Error(MissingRetentionPolicyAllowedTableErr, TableId);
+
+        RetentionPolicyAllowedTable."Truncate Allowed" := TruncateAllowed;
+        BindSubscription(RetenPolAllowedTblImpl);
+        RetentionPolicyAllowedTable.Modify(true);
+        UnbindSubscription(RetenPolAllowedTblImpl);
+    end;
+
+    procedure IsTruncateAllowed(TableId: Integer): Boolean
+    var
+        RetentionPolicyAllowedTable: Record "Retention Policy Allowed Table";
+    begin
+        if RetentionPolicyAllowedTable.Get(TableId) then
+            exit(RetentionPolicyAllowedTable."Truncate Allowed");
         exit(false);
     end;
 }

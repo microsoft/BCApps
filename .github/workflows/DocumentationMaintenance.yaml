@@ -51,7 +51,7 @@ jobs:
 
       - name: Setup Node.js
         if: steps.dedup.outputs.skip != 'true'
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
 
       - name: Install Copilot CLI
         if: steps.dedup.outputs.skip != 'true'
