@@ -1,5 +1,15 @@
 [
   {
+    "codeunitId": 148086,
+    "codeunitName": "ERM G/L Account Where-Used CZF",
+    "method": "CheckFAExtendedPostingGroup"
+  },
+  {
+    "codeunitId": 148086,
+    "codeunitName": "ERM G/L Account Where-Used CZF",
+    "method": "ShowDetailsWhereUsedFAExtendedPostingGroup"
+  },
+  {
     "codeunitId": 148087,
     "codeunitName": "Fixed Assets CZF",
     "method": "CalculateDepreciationDecliningBalance"

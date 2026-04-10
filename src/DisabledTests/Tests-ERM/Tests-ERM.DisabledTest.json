@@ -207,7 +207,17 @@
   {
     "codeunitId": 132523,
     "codeunitName": "Discount Setup Notifications",
+    "method": "NotifyAboutMissingPurchaseSetupRespectsProductPostingGroup"
+  },
+  {
+    "codeunitId": 132523,
+    "codeunitName": "Discount Setup Notifications",
     "method": "NotifyAboutMissingSalesSetupRespectsProductPostingGroup"
+  },
+  {
+    "codeunitId": 132523,
+    "codeunitName": "Discount Setup Notifications",
+    "method": "NotifyAboutMissingSalesSetupRespectsProductPostingGroupOnServiceLine"
   },
   {
     "codeunitId": 132523,
@@ -15597,6 +15607,36 @@
   {
     "codeunitId": 134929,
     "codeunitName": "ERM MIR Test",
+    "method": "AverageDailyBalanceFinanceChargeMemoLine"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "AverageDailyBalanceFinanceChargeMemoLineError"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "AverageDailyBalanceReminderLineError"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "BalanceDueFinanceChargeMemoLine"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "BalanceDueFinanceChargeMemoLineError"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "BalanceDueReminderLineError"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
     "method": "InterestAmountBeforeInterestPeriodAndAfterDueDate"
   },
   {
@@ -15658,6 +15698,41 @@
     "codeunitId": 134929,
     "codeunitName": "ERM MIR Test",
     "method": "MakeLines2WithTermsDescriptionFinChrgMemoMake"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "MakeReminder"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "MakeReminderWithoutReminderTermsCodeOnCustomer"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "MakeReminderWithoutReminderTermsCodeOnHeader"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "MakeReminderWithoutReminderTermsCodeOnHeaderAndCustomer"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "OnRunTypeCustomerLedgerEntryFinChrgMemoIssue"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "OnRunTypeCustomerLedgerEntryReminderIssue"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "OnValidateInterestRateFinanceChargeMemoLine"
   },
   {
     "codeunitId": 134929,
@@ -15938,6 +16013,16 @@
     "codeunitId": 134987,
     "codeunitName": "ERM Financial Reports III",
     "method": "AmountInLCYOnDocumentEntriesReport"
+  },
+  {
+    "codeunitId": 134987,
+    "codeunitName": "ERM Financial Reports III",
+    "method": "AmountTextOnCheckPreview"
+  },
+  {
+    "codeunitId": 134987,
+    "codeunitName": "ERM Financial Reports III",
+    "method": "AmountTextOnCheckPreviewWithCurrency"
   },
   {
     "codeunitId": 134987,

@@ -665,6 +665,56 @@
     "method": "TestUpdateUserFromAzureGraphForAValidUserWithUpdatedState"
   },
   {
+    "codeunitId": 132912,
+    "codeunitName": "Azure AD Plan Tests",
+    "method": "GetAvailablePlansCount"
+  },
+  {
+    "codeunitId": 132912,
+    "codeunitName": "Azure AD Plan Tests",
+    "method": "TestDoesPlanExist"
+  },
+  {
+    "codeunitId": 132912,
+    "codeunitName": "Azure AD Plan Tests",
+    "method": "TestDoesUserHavePlans"
+  },
+  {
+    "codeunitId": 132912,
+    "codeunitName": "Azure AD Plan Tests",
+    "method": "TestDoPlansExist"
+  },
+  {
+    "codeunitId": 132912,
+    "codeunitName": "Azure AD Plan Tests",
+    "method": "TestDoUserPlansExist"
+  },
+  {
+    "codeunitId": 132912,
+    "codeunitName": "Azure AD Plan Tests",
+    "method": "TestIsGraphUserEntitledFromServicePlan"
+  },
+  {
+    "codeunitId": 132912,
+    "codeunitName": "Azure AD Plan Tests",
+    "method": "TestIsPlanAssigned"
+  },
+  {
+    "codeunitId": 132912,
+    "codeunitName": "Azure AD Plan Tests",
+    "method": "TestIsPlanAssignedToSpecificUser"
+  },
+  {
+    "codeunitId": 132912,
+    "codeunitName": "Azure AD Plan Tests",
+    "method": "TestIsPlanAssignedToUser"
+  },
+  {
+    "codeunitId": 132912,
+    "codeunitName": "Azure AD Plan Tests",
+    "method": "TestUpdateUserPlans"
+  },
+  {
     "codeunitId": 132919,
     "codeunitName": "ABS Container Client Test",
     "method": "CreateContainerFailedTest"

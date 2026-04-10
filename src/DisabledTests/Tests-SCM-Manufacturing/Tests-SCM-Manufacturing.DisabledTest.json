@@ -2522,6 +2522,11 @@
   {
     "codeunitId": 137404,
     "codeunitName": "SCM Manufacturing",
+    "method": "ExpectedQuantityOnProductionOrderComponenent"
+  },
+  {
+    "codeunitId": 137404,
+    "codeunitName": "SCM Manufacturing",
     "method": "GLEntryAfterPostOutputJournal"
   },
   {
@@ -2543,6 +2548,11 @@
     "codeunitId": 137404,
     "codeunitName": "SCM Manufacturing",
     "method": "QuantityOnAppliedEntriesAfterApplicationWorkSheet"
+  },
+  {
+    "codeunitId": 137404,
+    "codeunitName": "SCM Manufacturing",
+    "method": "QuantityOnProductionOrderLine"
   },
   {
     "codeunitId": 137404,

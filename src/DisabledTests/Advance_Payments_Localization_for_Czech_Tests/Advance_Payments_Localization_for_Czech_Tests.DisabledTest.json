@@ -2,6 +2,11 @@
   {
     "codeunitId": 148108,
     "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "AdditionalLinkPurchAdvLetterToPayment"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
     "method": "AdditionalLinkPurchaseAdvLetterToInvoice"
   },
   {
@@ -32,12 +37,37 @@
   {
     "codeunitId": 148108,
     "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "CancelApplicationOfVendorLedgerEntryForAdvancePayment"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "CancelApplicationOfVendorLedgerEntryForClosedAdvanceLetter"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
     "method": "CancelApplicationOfVendorLedgerEntryForLinkedAdvanceLetterToInvoice"
   },
   {
     "codeunitId": 148108,
     "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "CancelApplicationOfVendorLedgerEntryForReappliedPaymentToAdvanceLetter"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "CancelApplicationOfVendorLedgerEntryForUnappliedPaymentFromAdvanceLetter"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
     "method": "CloseLinkedAdvanceLetterWithPurchOrder"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "ClosePurchaseAdvanceLetterWithoutVATPayment"
   },
   {
     "codeunitId": 148108,
@@ -58,6 +88,11 @@
     "codeunitId": 148108,
     "codeunitName": "Purchase Advance Payments CZZ",
     "method": "CreatePurchAdvanceLetterFromOrderForAdvanceAmount"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "CreatePurchAdvLetter"
   },
   {
     "codeunitId": 148108,
@@ -147,6 +182,11 @@
   {
     "codeunitId": 148108,
     "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "MultipleAdvancePayment"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
     "method": "MultipleAdvancePaymentWithTimeShift"
   },
   {
@@ -158,6 +198,16 @@
     "codeunitId": 148108,
     "codeunitName": "Purchase Advance Payments CZZ",
     "method": "NoticeToUnpaidPurchAdvanceLetter"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "PaymentPurchAdvLetter"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "PaymentPurchAdvLetterWithForeignCurrency"
   },
   {
     "codeunitId": 148108,
@@ -182,6 +232,11 @@
   {
     "codeunitId": 148108,
     "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "UnlinkPurchAdvLetterFromPayment"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
     "method": "VATPaymentToPurchAdvLetterWithTwoVATRates"
   },
   {
@@ -193,6 +248,11 @@
     "codeunitId": 148109,
     "codeunitName": "Sales Advance Payments CZZ",
     "method": "AdditionalLinkSalesAdvLetterToInvoice"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "AdditionalLinkSalesAdvLetterToPayment"
   },
   {
     "codeunitId": 148109,
@@ -212,12 +272,32 @@
   {
     "codeunitId": 148109,
     "codeunitName": "Sales Advance Payments CZZ",
+    "method": "CancelApplicationOfCustLedgerEntryForAdvancePayment"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "CancelApplicationOfCustLedgerEntryForClosedAdvanceLetter"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
     "method": "CancelApplicationOfCustLedgerEntryForLinkedAdvanceLetterToInvoice"
   },
   {
     "codeunitId": 148109,
     "codeunitName": "Sales Advance Payments CZZ",
+    "method": "CancelApplicationOfCustLedgerEntryForReappliedPaymentToAdvanceLetter"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
     "method": "CancelApplicationOfCustLedgerEntryForRelinkedAdvanceLetterToInvoice"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "CancelApplicationOfCustLedgerEntryForUnappliedPaymentFromAdvanceLetter"
   },
   {
     "codeunitId": 148109,
@@ -228,6 +308,11 @@
     "codeunitId": 148109,
     "codeunitName": "Sales Advance Payments CZZ",
     "method": "CloseLinkedAdvanceLetterWithSalesOrder"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "CloseSalesAdvanceLetterWithoutVATPayment"
   },
   {
     "codeunitId": 148109,
@@ -273,6 +358,11 @@
     "codeunitId": 148109,
     "codeunitName": "Sales Advance Payments CZZ",
     "method": "CreateSalesAdvanceLetterFromOrderForAdvanceAmount"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "CreateSalesAdvLetter"
   },
   {
     "codeunitId": 148109,
@@ -332,6 +422,11 @@
   {
     "codeunitId": 148109,
     "codeunitName": "Sales Advance Payments CZZ",
+    "method": "LinkPaidAdvanceLetterToSalesOrder"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
     "method": "LinkSalesAdvanceLetterWithReverseChargeToInvoice"
   },
   {
@@ -347,7 +442,22 @@
   {
     "codeunitId": 148109,
     "codeunitName": "Sales Advance Payments CZZ",
+    "method": "LinkUnpaidAdvanceLetterToSalesOrder"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
     "method": "ManualPaymentVATUsageInSalesAdvanceLetter"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "ManualVATPaymentInSalesAdvLetter"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "MultipleAdvancePayment"
   },
   {
     "codeunitId": 148109,
@@ -363,6 +473,16 @@
     "codeunitId": 148109,
     "codeunitName": "Sales Advance Payments CZZ",
     "method": "NoticeToUnpaidSalesAdvanceLetter"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "PaymentSalesAdvLetter"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "PaymentSalesAdvLetterWithForeignCurrency"
   },
   {
     "codeunitId": 148109,
@@ -387,12 +507,47 @@
   {
     "codeunitId": 148109,
     "codeunitName": "Sales Advance Payments CZZ",
+    "method": "UnlinkSalesAdvLetterFromPayment"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
     "method": "VATPaymentToSalesAdvLetterWithTwoVATRates"
   },
   {
     "codeunitId": 148109,
     "codeunitName": "Sales Advance Payments CZZ",
     "method": "VATPaymentToSalesAdvLetterWithTwoVATRatesPartiallyPaid"
+  },
+  {
+    "codeunitId": 148113,
+    "codeunitName": "Incoming Documents CZZ",
+    "method": "CreationPurchaseAdvanceDocument"
+  },
+  {
+    "codeunitId": 148113,
+    "codeunitName": "Incoming Documents CZZ",
+    "method": "CreationSalesAdvanceDocument"
+  },
+  {
+    "codeunitId": 148113,
+    "codeunitName": "Incoming Documents CZZ",
+    "method": "DeletionRelatedPurchaseAdvanceLetterDocument"
+  },
+  {
+    "codeunitId": 148113,
+    "codeunitName": "Incoming Documents CZZ",
+    "method": "DeletionRelatedSalesAdvanceLetterDocument"
+  },
+  {
+    "codeunitId": 148113,
+    "codeunitName": "Incoming Documents CZZ",
+    "method": "TestIfPurchaseAdvanceLetterAlreadyExists"
+  },
+  {
+    "codeunitId": 148113,
+    "codeunitName": "Incoming Documents CZZ",
+    "method": "TestIfSalesAdvanceLetterAlreadyExists"
   },
   {
     "codeunitId": 148122,
@@ -617,12 +772,22 @@
   {
     "codeunitId": 148127,
     "codeunitName": "Purch. Adv. Pmt.Rev.Charge CZZ",
+    "method": "PurchAdvLetterWithNormalVAT"
+  },
+  {
+    "codeunitId": 148127,
+    "codeunitName": "Purch. Adv. Pmt.Rev.Charge CZZ",
     "method": "PurchAdvLetterWithNormalVATAndReverseCharge"
   },
   {
     "codeunitId": 148127,
     "codeunitName": "Purch. Adv. Pmt.Rev.Charge CZZ",
     "method": "PurchAdvLetterWithNormalVATAndReverseChargePartiallyPaid"
+  },
+  {
+    "codeunitId": 148127,
+    "codeunitName": "Purch. Adv. Pmt.Rev.Charge CZZ",
+    "method": "PurchAdvLetterWithReverseCharge"
   },
   {
     "codeunitId": 148129,
@@ -657,12 +822,22 @@
   {
     "codeunitId": 148129,
     "codeunitName": "Sales Adv. Pmt.Rev.Charge CZZ",
+    "method": "SalesAdvLetterWithNormalVAT"
+  },
+  {
+    "codeunitId": 148129,
+    "codeunitName": "Sales Adv. Pmt.Rev.Charge CZZ",
     "method": "SalesAdvLetterWithNormalVATAndReverseCharge"
   },
   {
     "codeunitId": 148129,
     "codeunitName": "Sales Adv. Pmt.Rev.Charge CZZ",
     "method": "SalesAdvLetterWithNormalVATAndReverseChargePartiallyPaid"
+  },
+  {
+    "codeunitId": 148129,
+    "codeunitName": "Sales Adv. Pmt.Rev.Charge CZZ",
+    "method": "SalesAdvLetterWithReverseCharge"
   },
   {
     "codeunitId": 148109,

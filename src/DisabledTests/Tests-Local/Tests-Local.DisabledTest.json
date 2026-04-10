@@ -4972,6 +4972,11 @@
   {
     "codeunitId": 144005,
     "codeunitName": "VAT Statement",
+    "method": "UpdateEndDateOfOldRates"
+  },
+  {
+    "codeunitId": 144005,
+    "codeunitName": "VAT Statement",
     "method": "UpdateVATCipherSetup"
   },
   {
@@ -5788,6 +5793,11 @@
     "codeunitId": 144008,
     "codeunitName": "EB - Payment Journal Export",
     "method": "VerifyPaymentInformationXMLNodesCurrencyCodes"
+  },
+  {
+    "codeunitId": 144008,
+    "codeunitName": "EB - Payment Journal Export",
+    "method": "VerifyPaymentInformationXMLNodesCurrencyCodesMustFail"
   },
   {
     "codeunitId": 144008,
@@ -11088,6 +11098,11 @@
     "codeunitId": 144051,
     "codeunitName": "ERM Sales/Purchase VAT",
     "method": "UnApplyPstdPurchCrMemoWithoutCurr"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "UnApplyPstdPurchInvUsingACY"
   },
   {
     "codeunitId": 144051,
@@ -18387,6 +18402,11 @@
   {
     "codeunitId": 144352,
     "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType1_Negative_BlankedReferenceNo"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
     "method": "XMLExport_PaymentType21_CHF"
   },
   {
@@ -18673,6 +18693,11 @@
     "codeunitId": 144354,
     "codeunitName": "Swiss SEPA CT 09 Export",
     "method": "XMLExport_PaymentType1_EUR"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType1_Negative_BlankedReferenceNo"
   },
   {
     "codeunitId": 144354,

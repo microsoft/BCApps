@@ -30,6 +30,21 @@
     "method": "TestVendMatchOnBankAccountOnly"
   },
   {
+    "codeunitId": 138075,
+    "codeunitName": "O365 Preview RC Notifications",
+    "method": "TestSandboxNotification"
+  },
+  {
+    "codeunitId": 138075,
+    "codeunitName": "O365 Preview RC Notifications",
+    "method": "TestSandboxNotificationDontShowAgain"
+  },
+  {
+    "codeunitId": 138075,
+    "codeunitName": "O365 Preview RC Notifications",
+    "method": "TestWarningNotification"
+  },
+  {
     "codeunitId": 148017,
     "codeunitName": "Posting Restrictions Tests",
     "method": "CannotPostPurchaseInvoiceInProductionSaaSWhenCVRNumberIsBlank"
@@ -38,6 +53,11 @@
     "codeunitId": 148017,
     "codeunitName": "Posting Restrictions Tests",
     "method": "CannotPostSalesInvoiceInProductionSaaSWhenCVRNumberIsBlank"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "Posting Restrictions Tests",
+    "method": "CannotPostToGLInProductionSaaSWhenCVRNumberIsBlank"
   },
   {
     "codeunitId": 148017,
@@ -78,6 +98,26 @@
     "codeunitId": 148017,
     "codeunitName": "Posting Restrictions Tests",
     "method": "PostSalesInvoiceInSandboxSaaSWhenCVRNumberIsBlank"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "Posting Restrictions Tests",
+    "method": "PostToGLInProdSaaSWhenEvaluationCompanyCVRNotSpecified"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "Posting Restrictions Tests",
+    "method": "PostToGLInProductionOnPremWhenCVRNumberIsBlank"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "Posting Restrictions Tests",
+    "method": "PostToGLInProductionSaaSWhenCVRNumberIsSpecified"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "Posting Restrictions Tests",
+    "method": "PostToGLInSandboxSaaSWhenCVRNumberIsBlank"
   },
   {
     "codeunitId": 148017,
