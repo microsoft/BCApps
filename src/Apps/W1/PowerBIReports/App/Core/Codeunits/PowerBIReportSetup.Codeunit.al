@@ -54,7 +54,7 @@ codeunit 36962 "Power BI Report Setup"
         Error(ReportNotSetupErr)
     end;
 
-    procedure GetConfiguredReportId(PBIReportSetup: Enum "PBI Report Setup"): Guid
+    local procedure GetConfiguredReportId(PBIReportSetup: Enum "PBI Report Setup"): Guid
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
         ReportSetup: Interface "PBI Report Setup";
