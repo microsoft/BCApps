@@ -757,6 +757,7 @@ page 30101 "Shpfy Shop Card"
                 RunObject = Page "Shpfy Catalogs";
                 RunPageLink = "Shop Code" = field(Code);
                 ToolTip = 'View a list of Shopify B2B catalogs for the shop.';
+                Visible = Rec."Advanced Shopify Plan";
             }
             action(MarketCatalogs)
             {
@@ -1122,7 +1123,8 @@ page 30101 "Shpfy Shop Card"
                         BackgroundSyncs.ProductImagesSync(Rec, '');
                         BackgroundSyncs.ProductPricesSync(Rec);
                         BackgroundSyncs.CompanySync(Rec);
-                        BackgroundSyncs.CatalogPricesSync(Rec, '', "Shpfy Catalog Type"::" ");
+                        if Rec."Advanced Shopify Plan" then
+                            BackgroundSyncs.CatalogPricesSync(Rec, '', "Shpfy Catalog Type"::" ");
                     end;
                 }
             }
