@@ -47,18 +47,4 @@ codeunit 132225 "Library - Item Reference"
         ItemReference.Validate("Ending Date", EndingDate);
         ItemReference.Modify(true);
     end;
-
-#if not CLEAN26
-    [Obsolete('Functionality is enabled permanently.', '23.0')]
-    procedure EnableFeature(Bind: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('Functionality is enabled permanently.', '23.0')]
-    procedure DisableFeature()
-    begin
-    end;
-#endif
 }

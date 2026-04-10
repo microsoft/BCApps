@@ -30,12 +30,10 @@ page 323 "EC Sales List Reports"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("VAT Report Config. Code"; Rec."VAT Report Config. Code")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the appropriate configuration code for EC Sales List Reports.';
                     Visible = false;
                 }
                 field("VAT Report Type"; Rec."VAT Report Type")
@@ -47,7 +45,6 @@ page 323 "EC Sales List Reports"
                 field("Start Date"; Rec."Start Date")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the first date of the reporting period.';
                 }
                 field("End Date"; Rec."End Date")
                 {
@@ -62,17 +59,14 @@ page 323 "EC Sales List Reports"
                 field("No. Series"; Rec."No. Series")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
                 }
                 field("Original Report No."; Rec."Original Report No.")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the number of the original report.';
                 }
                 field("Report Period Type"; Rec."Report Period Type")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the length of the reporting period.';
                 }
                 field("Report Period No."; Rec."Report Period No.")
                 {
@@ -82,7 +76,6 @@ page 323 "EC Sales List Reports"
                 field("Report Year"; Rec."Report Year")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the year of the reporting period.';
                 }
             }
         }

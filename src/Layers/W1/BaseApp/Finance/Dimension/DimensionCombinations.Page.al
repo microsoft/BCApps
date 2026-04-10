@@ -28,6 +28,8 @@ page 538 "Dimension Combinations"
     SaveValues = true;
     SourceTable = Dimension;
     UsageCategory = Administration;
+    AboutTitle = 'About Dimension Combinations';
+    AboutText = 'To avoid posting entries with contradictory or irrelevant dimensions, you can block or limit specific combinations of two dimensions. A blocked dimension combination means you can''t post both dimensions on the same entry regardless of what the dimension values are. In contrast, a limited dimension combination means you can post both dimensions to the same entry, but only for certain combinations of dimension values.';
 
     layout
     {

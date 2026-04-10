@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,12 +28,10 @@ page 550 "VAT Rate Change Setup"
                 field("VAT Rate Change Tool Completed"; Rec."VAT Rate Change Tool Completed")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the VAT rate change conversion is complete.';
                 }
                 field("Perform Conversion"; Rec."Perform Conversion")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the VAT rate conversion is performed on existing data.';
                 }
             }
             group("Master Data")
@@ -42,12 +40,10 @@ page 550 "VAT Rate Change Setup"
                 field("Update G/L Accounts"; Rec."Update G/L Accounts")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT rate change for general ledger accounts.';
                 }
                 field("Account Filter"; Rec."Account Filter")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies which accounts will be updated by setting appropriate filters.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -57,12 +53,10 @@ page 550 "VAT Rate Change Setup"
                 field("Update Items"; Rec."Update Items")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT rate change for items.';
                 }
                 field("Item Filter"; Rec."Item Filter")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies which items will be updated by setting appropriate filters.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -72,12 +66,10 @@ page 550 "VAT Rate Change Setup"
                 field("Update Resources"; Rec."Update Resources")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT rate change for resources.';
                 }
                 field("Resource Filter"; Rec."Resource Filter")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies which resources will be updated by setting appropriate filters.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -87,17 +79,14 @@ page 550 "VAT Rate Change Setup"
                 field("Update Item Templates"; Rec."Update Item Templates")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that VAT rate changes are updated for item categories.';
                 }
                 field("Update Item Charges"; Rec."Update Item Charges")
                 {
                     ApplicationArea = ItemCharges;
-                    ToolTip = 'Specifies the VAT rate change for item charges.';
                 }
                 field("Update Gen. Prod. Post. Groups"; Rec."Update Gen. Prod. Post. Groups")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the VAT rate change for general product posting groups.';
                 }
             }
             group(Journals)
@@ -106,37 +95,30 @@ page 550 "VAT Rate Change Setup"
                 field("Update Gen. Journal Lines"; Rec."Update Gen. Journal Lines")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT rate change for general journal lines.';
                 }
                 field("Update Gen. Journal Allocation"; Rec."Update Gen. Journal Allocation")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT rate change for general journal allocation.';
                 }
                 field("Update Std. Gen. Jnl. Lines"; Rec."Update Std. Gen. Jnl. Lines")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT rate change for standard general journal lines.';
                 }
                 field("Update Res. Journal Lines"; Rec."Update Res. Journal Lines")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT rate change for resource journal lines.';
                 }
                 field("Update Job Journal Lines"; Rec."Update Job Journal Lines")
                 {
                     ApplicationArea = Jobs;
-                    ToolTip = 'Specifies the VAT rate change for job journal lines.';
                 }
                 field("Update Requisition Lines"; Rec."Update Requisition Lines")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT rate change for requisition lines.';
                 }
                 field("Update Std. Item Jnl. Lines"; Rec."Update Std. Item Jnl. Lines")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT rate change for standard item journal lines.';
                 }
             }
             group(Documents)
@@ -145,32 +127,26 @@ page 550 "VAT Rate Change Setup"
                 field("Update Sales Documents"; Rec."Update Sales Documents")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT rate change for sales documents.';
                 }
                 field("Ignore Status on Sales Docs."; Rec."Ignore Status on Sales Docs.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that all existing sales documents regardless of status, including documents with a status of released, are updated.';
                 }
                 field("Update Purchase Documents"; Rec."Update Purchase Documents")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT rate change for purchase documents.';
                 }
                 field("Ignore Status on Purch. Docs."; Rec."Ignore Status on Purch. Docs.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies all existing purchase documents regardless of status, including documents with a status of released, are updated.';
                 }
                 field("Update Reminders"; Rec."Update Reminders")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the VAT rate change for reminders.';
                 }
                 field("Update Finance Charge Memos"; Rec."Update Finance Charge Memos")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the VAT rate change for finance charge memos.';
                 }
             }
             group("Unit Price Incl. VAT")
@@ -179,17 +155,14 @@ page 550 "VAT Rate Change Setup"
                 field("Update Unit Price For G/L Acc."; Rec."Update Unit Price For G/L Acc.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the unit price must be updated for document lines that have the type G/L Account.';
                 }
                 field("Upd. Unit Price For Item Chrg."; Rec."Upd. Unit Price For Item Chrg.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the unit price must be updated for document lines that have the type Charge (Item).';
                 }
                 field("Upd. Unit Price For FA"; Rec."Upd. Unit Price For FA")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the unit price must be updated for document lines that have the type Fixed Asset.';
                 }
             }
         }

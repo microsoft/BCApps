@@ -11,10 +11,9 @@ using System.Utilities;
 
 report 5752 "Picking List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Warehouse/Reports/PickingList.rdlc';
     Caption = 'Picking List';
     WordMergeDataItem = "Warehouse Activity Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -378,6 +377,16 @@ report 5752 "Picking List"
                 SumUpLinesEditable := false;
             end;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Warehouse/Reports/PickingList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

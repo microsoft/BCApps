@@ -2745,7 +2745,7 @@ codeunit 137350 "SCM Inventory Reports - III"
         // Verify Revaluation.
         LibraryReportDataset.FindCurrentRowValue('UnitCost2', VarDecimal);
         Revaluation := VarDecimal;
-        Assert.AreNearlyEqual(Round(Item."Standard Cost" - Item."Last Direct Cost"),
+        Assert.AreNearlyEqual(Item."Standard Cost" - Item."Last Direct Cost",
           Revaluation,
           LibraryERM.GetAmountRoundingPrecision(), ValueNotMatchedError);
 

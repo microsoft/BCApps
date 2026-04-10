@@ -2877,6 +2877,45 @@ codeunit 137621 "SCM Costing Bugs II"
         UnrelatedItem.TestField("Cost is Adjusted", false);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteItemWithUnadjustedCostShowsInformativeError()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 624609] Deleting Item "I" with unadjusted cost entries shows informative error message
+        Initialize();
+
+        // [GIVEN] Automatic Cost Adjustment is disabled in Inventory Setup
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+
+        // [GIVEN] Item "I" with Average costing method
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Costing Method", Item."Costing Method"::Average);
+        Item.Modify(true);
+
+        // [GIVEN] Two positive adjustments with different costs (10 and 20)
+        LibraryInventory.PostPositiveAdjustment(Item, '', '', '', 1, WorkDate(), 10);
+        LibraryInventory.PostPositiveAdjustment(Item, '', '', '', 1, WorkDate(), 20);
+
+        // [GIVEN] Negative adjustment to consume all inventory creating unadjusted entries
+        LibraryInventory.PostNegativeAdjustment(Item, '', '', '', 2, WorkDate(), 0);
+
+        // [GIVEN] All item ledger entries are closed
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.ModifyAll(Open, false);
+
+        // [GIVEN] Item "I" has "Cost is Adjusted" = false
+        Item.Find();
+        Item."Cost is Adjusted" := false;
+        Item.Modify();
+
+        // [WHEN] Delete Item "I"
+        // [THEN] Error message indicates unadjusted cost entries for Item "I"
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

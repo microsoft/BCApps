@@ -1043,17 +1043,20 @@ codeunit 5407 "Prod. Order Status Management"
         OnFlushProdOrderOnAfterProdOrderCompSetFilters(ProdOrder, ProdOrderComp);
         if ProdOrderComp.FindSet() then begin
             NoOfRecords := ProdOrderComp.Count;
-            Window.Open(
-              Text002 +
-              Text003);
+            if GuiAllowed() then
+                Window.Open(
+                    Text002 +
+                    Text003);
             LineCount := 0;
 
             repeat
                 LineCount := LineCount + 1;
                 Item.Get(ProdOrderComp."Item No.");
                 Item.TestField("Rounding Precision");
-                Window.Update(1, LineCount);
-                Window.Update(2, Round(LineCount / NoOfRecords * 10000, 1));
+                if GuiAllowed() then begin
+                    Window.Update(1, LineCount);
+                    Window.Update(2, Round(LineCount / NoOfRecords * 10000, 1));
+                end;
                 ProdOrderLine.Get(ProdOrderComp.Status, ProdOrder."No.", ProdOrderComp."Prod. Order Line No.");
                 if NewStatus = NewStatus::Released then
                     QtyToPost := ProdOrderComp.GetNeededQty(1, false)
@@ -1083,7 +1086,8 @@ codeunit 5407 "Prod. Order Status Management"
                     OnFlushProdOrderOnAfterPostFlushItemJnlLine(ItemJnlLine);
                 end;
             until ProdOrderComp.Next() = 0;
-            Window.Close();
+            if GuiAllowed() then
+                Window.Close();
         end;
     end;
 
@@ -2019,4 +2023,3 @@ codeunit 5407 "Prod. Order Status Management"
     begin
     end;
 }
-

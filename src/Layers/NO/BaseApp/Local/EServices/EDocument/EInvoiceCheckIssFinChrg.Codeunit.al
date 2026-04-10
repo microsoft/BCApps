@@ -42,7 +42,9 @@ codeunit 10617 "E-Invoice Check Iss. Fin.Chrg."
         SalesSetup: Record "Sales & Receivables Setup";
     begin
         SalesSetup.Get();
+#if not CLEAN29
         SalesSetup.TestField("E-Invoice Fin. Charge Path");
+#endif
     end;
 
     local procedure CheckFinChargeMemoHeader(IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header")

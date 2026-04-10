@@ -18,11 +18,7 @@ report 1702 "Deferral Summary - Purchasing"
 {
     ApplicationArea = Suite;
     Caption = 'Deferral Summary - Purchasing';
-#if not CLEAN27
-    DefaultRenderingLayout = Word;
-#else
     DefaultRenderingLayout = Excel;
-#endif
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -346,12 +342,14 @@ report 1702 "Deferral Summary - Purchasing"
             Caption = 'Deferral Summary Purchasing Excel';
             Type = Excel;
             LayoutFile = './Finance/Deferral/DeferralSummaryPurchasing.xlsx';
+            Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
         layout(Word)
         {
             Caption = 'Deferral Summary Purchasing Word';
             Type = Word;
             LayoutFile = './Finance/Deferral/DeferralSummaryPurchasing.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
 #if not CLEAN27
         layout(RDLC)
@@ -362,6 +360,7 @@ report 1702 "Deferral Summary - Purchasing"
             ObsoleteState = Pending;
             ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
             ObsoleteTag = '27.0';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
     }

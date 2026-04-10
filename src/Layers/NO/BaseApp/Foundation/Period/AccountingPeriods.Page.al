@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,27 +30,22 @@ page 100 "Accounting Periods"
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date that the accounting period will begin.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the accounting period.';
                 }
                 field("New Fiscal Year"; Rec."New Fiscal Year")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to use the accounting period to start a fiscal year.';
                 }
                 field(Closed; Rec.Closed)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the accounting period belongs to a closed fiscal year.';
                 }
                 field("Date Locked"; Rec."Date Locked")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if you can change the starting date for the accounting period.';
                 }
 #pragma warning disable AA0100
                 field("InvtPeriod.IsInvtPeriodClosed(""Starting Date"")"; InvtPeriod.IsInvtPeriodClosed(Rec."Starting Date"))
@@ -64,13 +59,11 @@ page 100 "Accounting Periods"
                 field("Average Cost Period"; Rec."Average Cost Period")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the period type that was used in the accounting period to calculate the average cost.';
                     Visible = false;
                 }
                 field("Average Cost Calc. Type"; Rec."Average Cost Calc. Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how the average cost for items in the accounting period was calculated.';
                     Visible = false;
                 }
             }

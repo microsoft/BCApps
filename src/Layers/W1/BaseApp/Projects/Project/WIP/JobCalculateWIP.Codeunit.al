@@ -169,6 +169,7 @@ codeunit 1000 "Job Calculate WIP"
         JobWIPEntry.DeleteEntriesForJob(Job);
 
         JobLedgerEntry.SetRange("Job No.", Job."No.");
+        JobLedgerEntry.SetFilter("Amt. to Post to G/L", '<> %1', 0);
         JobLedgerEntry.ModifyAll("Amt. to Post to G/L", 0);
     end;
 

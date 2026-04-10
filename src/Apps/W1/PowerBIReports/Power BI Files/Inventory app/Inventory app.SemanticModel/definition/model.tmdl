@@ -29,7 +29,7 @@ queryGroup 'Parameters and Functions\Functions'
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["Item Ledger Entries","Warehouse Entries","Item","Location","Customer","Vendor","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","Working Days","Date Table Setup","Purchase Lines","Zone","Bin","Dimension Sets","Sales Lines","Assembly Lines","Assembly Headers","Project Planning Lines","Warehouse Journal Lines (To Bin)","Warehouse Journal Lines (From Bin)","Warehouse Activity Lines","Production Order Lines","Prod Order Component Lines","Service Lines","Transfer Lines","Requisition Line","Planning Component Lines","Lot No","Serial No","ENVIRONMENT","COMPANY","API_ENDPOINT","ConvertUTC","Item Category","ABC Classes"]
+annotation PBI_QueryOrder = ["Item Ledger Entries","Warehouse Entries","Item","Location","Customer","Vendor","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","Working Days","Date Table Setup","Purchase Lines","Zone","Bin","Dimension Sets","Sales Lines","Assembly Lines","Assembly Headers","Project Planning Lines","Warehouse Journal Lines (To Bin)","Warehouse Journal Lines (From Bin)","Warehouse Activity Lines","Production Order Lines","Prod Order Component Lines","Service Lines","Transfer Lines","Requisition Line","Planning Component Lines","Lot No","Serial No","ENVIRONMENT","COMPANY","API_ENDPOINT","ConvertUTC","Item Category","ABC Classes","Company Encoding"]
 
 annotation __TEdtr = 1
 
@@ -74,6 +74,7 @@ ref table 'Item Category'
 ref table 'ABC Classes'
 ref table 'ABC Classification'
 ref table 'Translated Localized Labels'
+ref table 'Company Encoding'
 
 ref perspective 'Fiscal Calendar'
 ref perspective 'Standard Calendar'

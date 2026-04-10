@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,24 +41,20 @@ page 570 "Chart of Accounts (G/L)"
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the name of the general ledger account.';
                 }
                 field("Account Type"; Rec."Account Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the purpose of the account. Total: Used to total a series of balances on accounts from many different account groupings. To use Total, leave this field blank. Begin-Total: A marker for the beginning of a series of accounts to be totaled that ends with an End-Total account. End-Total: A total of a series of accounts that starts with the preceding Begin-Total account. The total is defined in the Totaling field.';
                 }
                 field("Income/Balance"; Rec."Income/Balance")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether a general ledger account is an income statement account or a balance sheet account.';
                 }
                 field("Direct Posting"; Rec."Direct Posting")
                 {
@@ -69,7 +65,6 @@ page 570 "Chart of Accounts (G/L)"
                 field(Totaling; Rec.Totaling)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an account interval or a list of account numbers. The entries of the account will be totaled to give a total balance. How entries are totaled depends on the value in the Account Type field.';
                 }
                 field("Gen. Posting Type"; Rec."Gen. Posting Type")
                 {
@@ -79,75 +74,63 @@ page 570 "Chart of Accounts (G/L)"
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                 }
                 field("Net Change"; Rec."Net Change")
                 {
                     ApplicationArea = Basic, Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the net change in the account balance during the time period in the Date Filter field.';
                 }
                 field("Balance at Date"; Rec."Balance at Date")
                 {
                     ApplicationArea = Basic, Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the G/L account balance on the last date included in the Date Filter field.';
                     Visible = false;
                 }
                 field(Balance; Rec.Balance)
                 {
                     ApplicationArea = Basic, Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the balance on this account.';
                     Visible = false;
                 }
                 field("Additional-Currency Net Change"; Rec."Additional-Currency Net Change")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the net change in the account balance.';
                     Visible = false;
                 }
                 field("Add.-Currency Balance at Date"; Rec."Add.-Currency Balance at Date")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the G/L account balance, in the additional reporting currency, on the last date included in the Date Filter field.';
                     Visible = false;
                 }
                 field("Additional-Currency Balance"; Rec."Additional-Currency Balance")
                 {
                     ApplicationArea = Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the balance on this account, in the additional reporting currency.';
                     Visible = false;
                 }
                 field(BudgetedAmount; Rec."Budgeted Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies either the G/L account''s total budget or, if you have specified a name in the Budget Name field, a specific budget.';
                 }
                 field("Consol. Debit Acc."; Rec."Consol. Debit Acc.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the account number in a consolidated company to transfer credit balances.';
                     Visible = false;
                 }
                 field("Consol. Credit Acc."; Rec."Consol. Credit Acc.")

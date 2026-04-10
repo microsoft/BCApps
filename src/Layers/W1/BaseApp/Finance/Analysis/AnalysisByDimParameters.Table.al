@@ -24,6 +24,7 @@ table 361 "Analysis by Dim. Parameters"
         field(1; "Analysis View Code"; Code[10])
         {
             Caption = 'Analysis View Code';
+            ToolTip = 'Specifies the code for the analysis view that the filter belongs to.';
             TableRelation = "Analysis View";
             DataClassification = SystemMetadata;
         }
@@ -50,6 +51,7 @@ table 361 "Analysis by Dim. Parameters"
         field(5; "Date Filter"; Text[250])
         {
             Caption = 'Date Filter';
+            ToolTip = 'Specifies the dates that will be used to filter the amounts in the window.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -59,6 +61,7 @@ table 361 "Analysis by Dim. Parameters"
         field(6; "Account Filter"; Text[250])
         {
             Caption = 'Account Filter';
+            ToolTip = 'Specifies a filter for the general ledger accounts for which entries will be shown in the matrix window.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -77,6 +80,7 @@ table 361 "Analysis by Dim. Parameters"
         field(8; "Cash Flow Forecast Filter"; Text[250])
         {
             Caption = 'Cash Flow Forecast Filter';
+            ToolTip = 'Specifies the cash flow forecast that information in the matrix is shown for.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -86,6 +90,7 @@ table 361 "Analysis by Dim. Parameters"
         field(9; "Budget Filter"; Text[250])
         {
             Caption = 'Budget Filter';
+            ToolTip = 'Specifies the budget that information in the matrix is shown for.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -94,6 +99,7 @@ table 361 "Analysis by Dim. Parameters"
         /// </summary>
         field(10; "Dimension 1 Filter"; Text[250])
         {
+            ToolTip = 'Specifies a filter for the Dimension 1 for which entries will be shown in the matrix window.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -102,6 +108,7 @@ table 361 "Analysis by Dim. Parameters"
         /// </summary>
         field(11; "Dimension 2 Filter"; Text[250])
         {
+            ToolTip = 'Specifies a filter for the Dimension 2 for which entries will be shown in the matrix window.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -110,6 +117,7 @@ table 361 "Analysis by Dim. Parameters"
         /// </summary>
         field(12; "Dimension 3 Filter"; Text[250])
         {
+            ToolTip = 'Specifies a filter for the Dimension 3 for which entries will be shown in the matrix window.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -118,6 +126,7 @@ table 361 "Analysis by Dim. Parameters"
         /// </summary>
         field(13; "Dimension 4 Filter"; Text[250])
         {
+            ToolTip = 'Specifies a filter for the Dimension 4 for which entries will be shown in the matrix window.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -127,6 +136,7 @@ table 361 "Analysis by Dim. Parameters"
         field(20; "Show Actual/Budgets"; Enum "Analysis Show Amount Type")
         {
             Caption = 'Show';
+            ToolTip = 'Specifies if the selected value is shown in the window.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -135,6 +145,7 @@ table 361 "Analysis by Dim. Parameters"
         /// </summary>
         field(21; "Show Amount Field"; Enum "Analysis Show Amount Field")
         {
+            ToolTip = 'Specifies the type of entries that will be included in the matrix window. The Amount options means that amounts that are the sum of debit and credit amounts are shown.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -144,6 +155,7 @@ table 361 "Analysis by Dim. Parameters"
         field(22; "Closing Entries"; Option)
         {
             Caption = 'Closing Entries';
+            ToolTip = 'Specifies whether the balance shown will include closing entries. If you want to see the amounts on income statement accounts in closed years, you must exclude closing entries.';
             OptionCaption = 'Include,Exclude';
             OptionMembers = Include,Exclude;
             DataClassification = SystemMetadata;
@@ -155,6 +167,7 @@ table 361 "Analysis by Dim. Parameters"
         field(23; "Rounding Factor"; Enum "Analysis Rounding Factor")
         {
             Caption = 'Rounding Factor';
+            ToolTip = 'Specifies the factor that is used to round the amounts.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -164,6 +177,7 @@ table 361 "Analysis by Dim. Parameters"
         field(24; "Show In Add. Currency"; Boolean)
         {
             Caption = 'Show Amounts in Add. Reporting Currency';
+            ToolTip = 'Specifies whether to show the reported amounts in the additional reporting currency.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -173,6 +187,7 @@ table 361 "Analysis by Dim. Parameters"
         field(25; "Show Column Name"; Boolean)
         {
             Caption = 'Show Column Name';
+            ToolTip = 'Specifies that the names of columns are shown in the matrix window.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -182,6 +197,7 @@ table 361 "Analysis by Dim. Parameters"
         field(26; "Show Opposite Sign"; Boolean)
         {
             Caption = 'Show Opposite Sign';
+            ToolTip = 'Specifies whether to show debits as negative amounts (with minus signs) and credits as positive amounts in the matrix window.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -191,6 +207,7 @@ table 361 "Analysis by Dim. Parameters"
         field(30; "Period Type"; Enum "Analysis Period Type")
         {
             Caption = 'View by';
+            ToolTip = 'Specifies by which period amounts are displayed.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -200,6 +217,7 @@ table 361 "Analysis by Dim. Parameters"
         field(31; "Column Set"; Text[250])
         {
             Caption = 'Column Set';
+            ToolTip = 'Specifies the range of values that are displayed in the matrix window, for example, the total period. To change the contents of the field, choose Next Set or Previous Set.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -209,6 +227,7 @@ table 361 "Analysis by Dim. Parameters"
         field(33; "Amount Type"; Enum "Analysis Amount Type")
         {
             Caption = 'View as';
+            ToolTip = 'Specifies how amounts are displayed. Net Change: The net change in the balance for the selected period. Balance at Date: The balance as of the last day in the selected period.';
             DataClassification = SystemMetadata;
         }
         /// <summary>

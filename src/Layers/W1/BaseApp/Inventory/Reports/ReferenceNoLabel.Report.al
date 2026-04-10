@@ -82,6 +82,7 @@ report 6626 "Reference No Label"
         {
             Type = Word;
             LayoutFile = './Inventory/Reports/ReferenceNoLabel.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
     }
 

@@ -28,11 +28,10 @@ using System.Utilities;
 /// </summary>
 report 6631 "Return Order Confirmation"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/Document/ReturnOrderConfirmation.rdlc';
     Caption = 'Return Order Confirmation';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Sales Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -301,9 +300,11 @@ report 6631 "Return Order Confirmation"
                     column(SelltoCustNo_SalesHdrCaption; "Sales Header".FieldCaption("Sell-to Customer No."))
                     {
                     }
+#if not CLEAN29
                     column(EnterpriseRegister; CompanyInfo.GetEnterpriseClassification())
                     {
                     }
+#endif
                     dataitem(DimensionLoop1; "Integer")
                     {
                         DataItemLinkReference = "Sales Header";
@@ -817,6 +818,16 @@ report 6631 "Return Order Confirmation"
             InitLogInteraction();
             LogInteractionEnable := LogInteraction;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Document/ReturnOrderConfirmation.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

@@ -1712,7 +1712,7 @@ table 11401 "CBG Statement Line"
     procedure ShowDimensions()
     begin
         "Dimension Set ID" := DimManagement.EditDimensionSet(
-            "Dimension Set ID", StrSubstNo('%1 %2 %3', "Journal Template Name", "No.", "Line No."),
+            Rec, "Dimension Set ID", StrSubstNo('%1 %2 %3', "Journal Template Name", "No.", "Line No."),
             "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
     end;
 

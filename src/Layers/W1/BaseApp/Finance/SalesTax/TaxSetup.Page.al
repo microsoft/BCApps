@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,12 +30,10 @@ page 485 "Tax Setup"
                 field("Auto. Create Tax Details"; Rec."Auto. Create Tax Details")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the required tax information is created automatically.';
                 }
                 field("Non-Taxable Tax Group Code"; Rec."Non-Taxable Tax Group Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the group code for non-taxable sales.';
                 }
             }
             group("Default Accounts")

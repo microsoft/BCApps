@@ -10,12 +10,11 @@ using Microsoft.Purchases.Vendor;
 
 report 319 "Payments on Hold"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/PaymentsonHold.rdlc';
     Caption = 'Payments on Hold (Obsolete)';
     ObsoleteState = Pending;
     ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
     ObsoleteTag = '28.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -121,6 +120,16 @@ report 319 "Payments on Hold"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/PaymentsonHold.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

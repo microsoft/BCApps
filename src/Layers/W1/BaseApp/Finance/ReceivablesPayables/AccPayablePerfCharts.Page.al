@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,11 +27,9 @@ page 9074 "Acc. Payable Perf. Charts"
                 {
                     Caption = 'Chart Name';
                     Editable = false;
-                    ToolTip = 'Specifies the name of the chart.';
                 }
                 field(Enabled; Rec.Enabled)
                 {
-                    ToolTip = 'Specifies that the chart is enabled.';
                 }
             }
         }

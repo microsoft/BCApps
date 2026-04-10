@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,14 +42,12 @@ page 9037 "Accountant Activities"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Vendor Ledger Entries";
-                    ToolTip = 'Specifies the number of purchase invoices where your payment is late.';
                 }
                 field("Cash Accounts Balance"; Rec."Cash Accounts Balance")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Chart of Accounts";
                     Image = Cash;
-                    ToolTip = 'Specifies the sum of the accounts that have the cash account category.';
 
                     trigger OnDrillDown()
                     var
@@ -62,7 +60,6 @@ page 9037 "Accountant Activities"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Incoming Documents";
-                    ToolTip = 'Specifies the number of new incoming documents in the company. The documents are filtered by today''s date.';
                 }
             }
             cuegroup(Payments)
@@ -77,12 +74,10 @@ page 9037 "Accountant Activities"
                 field("Purch. Invoices Due Next Week"; Rec."Purch. Invoices Due Next Week")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of payments to vendors that are due next week.';
                 }
                 field("Purchase Discounts Next Week"; Rec."Purchase Discounts Next Week")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of purchase discounts that are available next week, for example, because the discount expires after next week.';
                 }
 
                 actions
@@ -126,13 +121,11 @@ page 9037 "Accountant Activities"
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies the number of purchase orders that are pending approval.';
                 }
                 field("SOs Pending Approval"; Rec."SOs Pending Approval")
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Sales Order List";
-                    ToolTip = 'Specifies the number of sales orders that are pending approval.';
                 }
 
                 actions
@@ -162,7 +155,6 @@ page 9037 "Accountant Activities"
                     Caption = 'Unprocessed Payments';
                     DrillDownPageID = "Pmt. Reconciliation Journals";
                     Image = Cash;
-                    ToolTip = 'Specifies a window to reconcile unpaid documents automatically with their related bank transactions by importing a bank statement feed or file. In the payment reconciliation journal, incoming or outgoing payments on your bank are automatically, or semi-automatically, applied to their related open customer or vendor ledger entries. Any open bank account ledger entries related to the applied customer or vendor ledger entries will be closed when you choose the Post Payments and Reconcile Bank Account action. This means that the bank account is automatically reconciled for payments that you post with the journal.';
                 }
 
                 actions
@@ -189,13 +181,11 @@ page 9037 "Accountant Activities"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Incoming Documents";
-                    ToolTip = 'Specifies the number of approved incoming documents in the company. The documents are filtered by today''s date.';
                 }
                 field("OCR Completed"; Rec."OCR Completed")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Incoming Documents";
-                    ToolTip = 'Specifies that incoming document records that have been created by the OCR service.';
                 }
 
                 actions

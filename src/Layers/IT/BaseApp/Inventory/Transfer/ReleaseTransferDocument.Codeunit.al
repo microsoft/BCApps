@@ -45,10 +45,8 @@ codeunit 5708 "Release Transfer Document"
             if not TransferHeader."Direct Transfer" then
                 TransferHeader.TestField("In-Transit Code")
             else
-                if InvtSetup."Direct Transfer Posting" = InvtSetup."Direct Transfer Posting"::"Receipt and Shipment" then begin
-                    TransferHeader.VerifyNoOutboundWhseHandlingOnLocation(TransferHeader."Transfer-from Code");
+                if InvtSetup."Direct Transfer Posting" = InvtSetup."Direct Transfer Posting"::"Receipt and Shipment" then
                     TransferHeader.VerifyNoInboundWhseHandlingOnLocation(TransferHeader."Transfer-to Code");
-                end;
 
         TransferHeader.TestField(Status, TransferHeader.Status::Open);
 

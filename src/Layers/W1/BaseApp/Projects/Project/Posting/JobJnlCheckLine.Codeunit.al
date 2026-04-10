@@ -255,6 +255,11 @@ codeunit 1011 "Job Jnl.-Check Line"
         if not ShouldCheckWhseQtyPicked then
             ShouldCheckWhseQtyPicked := WhseValidateSourceLine.IsInventoryPickRequiredForJobJnlLine(JobJournalLine);
         if ShouldCheckWhseQtyPicked then begin
+            if (JobJournalLine."Job No." <> '') and (JobJournalLine."Job Task No." <> '') then begin
+                GetLocation(JobJournalLine."Location Code");
+                if Location."Directed Put-away and Pick" then
+                    JobJournalLine.TestField("Job Planning Line No.");
+            end;
             JobPlanningLine.SetLoadFields(Quantity, "Qty. Picked", "Qty. Posted", "Qty. to Assemble");
             if JobPlanningLine.Get(JobJournalLine."Job No.", JobJournalLine."Job Task No.", JobJournalLine."Job Planning Line No.") and (JobPlanningLine."Qty. Picked" - JobPlanningLine."Qty. Posted" < JobJournalLine.Quantity - JobPlanningLine."Qty. to Assemble") then
                 JobPlanningLine.FieldError("Qty. Picked", ErrorInfo.Create(StrSubstNo(WhseRemainQtyPickedErr, JobPlanningLine."Job No.", JobPlanningLine."Line No.", JobJournalLine.Quantity + JobPlanningLine."Qty. Posted" - JobPlanningLine."Qty. Picked" - JobPlanningLine."Qty. to Assemble"), true));

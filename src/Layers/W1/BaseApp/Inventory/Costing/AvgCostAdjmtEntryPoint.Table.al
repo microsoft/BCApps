@@ -283,6 +283,7 @@ table 5804 "Avg. Cost Adjmt. Entry Point"
     begin
         InventorySetup.Get();
         GetItem("Item No.");
+        Item.TestField("Costing Method", Item."Costing Method"::Average);
         Item.SetRecFilter();
         Item.SetRange("Date Filter", 0D, "Valuation Date");
 

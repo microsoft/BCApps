@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -75,7 +75,6 @@ page 2678 "Redistribute Acc. Allocations"
                 {
                     Caption = 'Destination Account Type';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the type of the Destination Account.';
 
                     trigger OnValidate()
                     begin
@@ -87,7 +86,6 @@ page 2678 "Redistribute Acc. Allocations"
                 {
                     Caption = 'Destination Account No.';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the Destination Account.';
 
                     trigger OnValidate()
                     begin
@@ -99,14 +97,12 @@ page 2678 "Redistribute Acc. Allocations"
                 {
                     Caption = 'Destination Account Name';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the name of the Destination Account.';
                     Editable = false;
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     Caption = 'Quantity';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the quantity to be allocated to the Destination Account.';
                     Visible = QuantityVisible;
                     trigger OnValidate()
                     begin
@@ -118,7 +114,6 @@ page 2678 "Redistribute Acc. Allocations"
                     Caption = 'Amount';
                     Editable = not QuantityVisible;
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the amount to be allocated to the Destination Account.';
 
                     trigger OnValidate()
                     begin

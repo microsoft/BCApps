@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,7 +23,6 @@ page 387 "Extended Text Lines"
                 field(Text; Rec.Text)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the text. You can use both numbers and letters. There are no restrictions as to the number of lines you can use.';
                 }
             }
         }

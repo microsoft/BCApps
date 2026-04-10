@@ -11,11 +11,10 @@ using Microsoft.Projects.Project.Job;
 report 10217 "Job Register"
 {
     AdditionalSearchTerms = 'Job Register';
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Project/Reports/JobRegister.rdlc';
     ApplicationArea = Jobs;
     Caption = 'Project Register';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -217,6 +216,16 @@ report 10217 "Job Register"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Project/Reports/JobRegister.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

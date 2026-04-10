@@ -13,10 +13,14 @@ permissionset 1001 "LOCAL"
     Assignable = true;
     Caption = 'Country/region-specific func.';
 
+#if not CLEAN29
     Permissions = tabledata "E-Invoice Export Header" = RIMD,
                   tabledata "E-Invoice Export Line" = RIMD,
                   tabledata "E-Invoice Transfer File" = RIMD,
                   tabledata "Gen. Jnl. Line Reg. Rep. Code" = RIMD,
+#else
+    Permissions = tabledata "Gen. Jnl. Line Reg. Rep. Code" = RIMD,
+#endif
                   tabledata "OCR Setup" = RIMD,
                   tabledata "Payment Order Data" = RIMD,
                   tabledata "Payment Type Code Abroad" = RIMD,

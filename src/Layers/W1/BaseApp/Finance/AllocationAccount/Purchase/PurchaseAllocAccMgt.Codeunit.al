@@ -554,7 +554,8 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
         if AllocationAccount."Document Lines Split" = AllocationAccount."Document Lines Split"::"Split Amount" then begin
             if IsInheritFromParent then begin
                 PurchaseLine.Validate("Direct Unit Cost", GetUnitPrice(PurchaseLine, AllocationLine.Amount));
-                PurchaseLine."Line Amount" := AllocationLine.Amount;
+                PurchaseLine."Line Amount" := GetAmount(PurchaseLine, AllocationLine.Amount);
+                PurchaseLine.Amount := PurchaseLine."Line Amount";
             end else begin
                 AmountRoundingPrecision := AllocationAccountMgt.GetCurrencyRoundingPrecision(PurchaseLine."Currency Code");
                 PurchaseLine.Validate("Direct Unit Cost", Round(AllocationLine.Amount / PurchaseLine.Quantity, AmountRoundingPrecision));
@@ -564,6 +565,22 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
             PurchaseLine.Validate("Direct Unit Cost", AllocationPurchaseLine."Direct Unit Cost");
             PurchaseLine."Line Amount" := AllocationPurchaseLine."Line Amount";
         end;
+    end;
+
+    local procedure GetAmount(var PurchaseLine: Record "Purchase Line"; AllocationLineAmount: Decimal): Decimal
+    var
+        AllocationAccountMgt: Codeunit "Allocation Account Mgt.";
+        AmountRoundingPrecision: Decimal;
+        Amount: Decimal;
+    begin
+        if PurchaseLine.GetPurchHeader()."Prices Including VAT" then
+            AllocationLineAmount += AllocationLineAmount * PurchaseLine."VAT %" / 100;
+
+        AmountRoundingPrecision := AllocationAccountMgt.GetCurrencyRoundingPrecision(PurchaseLine."Currency Code");
+        Amount := Round((AllocationLineAmount + AmountRounding), AmountRoundingPrecision);
+        AmountRounding += (AllocationLineAmount - Amount);
+
+        exit(Amount);
     end;
 
     local procedure GetUnitPrice(var PurchaseLine: Record "Purchase Line"; AllocationLineAmount: Decimal): Decimal
@@ -701,8 +718,12 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
     /// <param name="PurchaseLine">Purchase line with selected allocation account to validate</param>
     procedure VerifySelectedAllocationAccountNo(var PurchaseLine: Record "Purchase Line")
     var
+        PurchaseHeader: Record "Purchase Header";
         AllocationAccount: Record "Allocation Account";
     begin
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseHeader.TestField(Status, PurchaseHeader.Status::Open);
+
         if PurchaseLine."Selected Alloc. Account No." = '' then
             exit;
 
@@ -809,6 +830,7 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
     end;
 
     var
+        AmountRounding: Decimal;
         IsInheritFromParent: Boolean;
         AllocationAccountMustOnlyDistributeToGLAccountsErr: Label 'The allocation account must contain G/L accounts as distribution accounts.';
         CannotGetAllocationAccountFromLineErr: Label 'Cannot get allocation account from Purchase line %1.', Comment = '%1 - Line No., it is an integer that identifies the line e.g. 10000, 200000.';

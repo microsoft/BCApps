@@ -33,14 +33,9 @@ using System.Utilities;
 /// </summary>
 report 118 "Finance Charge Memo"
 {
-    DefaultLayout = RDLC;
-#if not CLEAN28
-    RDLCLayout = './Sales/FinanceCharge/FinanceChargeMemoGB.rdlc';
-#else
-    RDLCLayout = './Sales/FinanceCharge/FinanceChargeMemo.rdlc';
-#endif
     Caption = 'Finance Charge Memo';
     WordMergeDataItem = "Issued Fin. Charge Memo Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -932,6 +927,25 @@ report 118 "Finance Charge Memo"
             InitLogInteraction();
             LogInteractionEnable := LogInteraction;
         end;
+    }
+
+    rendering
+    {
+#if not CLEAN28
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/FinanceCharge/FinanceChargeMemoGB.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
+#else
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/FinanceCharge/FinanceChargeMemo.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
+#endif
     }
 
     labels

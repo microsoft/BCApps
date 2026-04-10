@@ -231,12 +231,13 @@ codeunit 12170 "Recall Customer Bill"
                 CustLedgEntry.SetRange("Document Type to Close", CustLedgEntry2."Document Type");
                 CustLedgEntry.SetFilter("Document No. to Close", CustLedgEntry2."Document No.");
                 CustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry2."Document Occurrence");
-                CustLedgEntry.SetRange(Open, false);
-                if CustLedgEntry.FindFirst() then
-                    Error(Text1130026, CustLedgEntry."Entry No.");
-
                 CustLedgEntry.SetRange(Open, true);
-                CustLedgEntry.FindFirst();
+                if not CustLedgEntry.FindFirst() then begin
+                    CustLedgEntry.SetRange(Open, false);
+                    if CustLedgEntry.FindFirst() then
+                        Error(Text1130026, CustLedgEntry."Entry No.");
+                    Error(Text1130015);
+                end;
 
                 Window.Update(1, CustLedgEntry."Customer No.");
                 Window.Update(2, CustLedgEntry."Document No.");
@@ -247,6 +248,7 @@ codeunit 12170 "Recall Customer Bill"
                 CustLedgEntry."Customer Bill No." := CustLedgEntry2."Customer Bill No.";
                 CustLedgEntry."Bank Receipts List No." := CustLedgEntry2."Bank Receipts List No.";
                 CustLedgEntry."Document Occurrence" := CustLedgEntry2."Document Occurrence";
+                OnRecallIssuedBillOnBeforeCustLedgerEntryModify(CustLedgEntry, CustLedgEntry2);
                 CustLedgEntry.Modify();
 
                 InitGenJnlLine(BalanceAccountNo);
@@ -304,6 +306,11 @@ codeunit 12170 "Recall Customer Bill"
 
     [IntegrationEvent(false, false)]
     local procedure OnRecallIssuedBillOnAfterInitGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; BillPostingGroup: Record "Bill Posting Group"; IssuedCustomerBillHeader: Record "Issued Customer Bill Header"; var IssuedCustomerBillLine: Record "Issued Customer Bill Line"; var CustLedgerEntry2: Record "Cust. Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRecallIssuedBillOnBeforeCustLedgerEntryModify(var CustLedgerEntry: Record "Cust. Ledger Entry"; var CustLedgerEntry2: Record "Cust. Ledger Entry")
     begin
     end;
 }

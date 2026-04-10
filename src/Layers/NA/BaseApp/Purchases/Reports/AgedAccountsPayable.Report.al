@@ -14,13 +14,12 @@ using System.Utilities;
 
 report 322 "Aged Accounts Payable"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/AgedAccountsPayable.rdlc';
     Caption = 'Aged Accounts Payable (Obsolete)';
     DataAccessIntent = ReadOnly;
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been replaced by the report Aged Accounts Payable (Excel). This report will be removed in a future release.';
     ObsoleteTag = '28.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -640,6 +639,16 @@ report 322 "Aged Accounts Payable"
             if Format(PeriodLength) = '' then
                 Evaluate(PeriodLength, '<1M>');
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/AgedAccountsPayable.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

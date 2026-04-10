@@ -68,7 +68,9 @@ table 296 "Reminder Line"
                     ReminderLine := Rec;
                     Init();
                     Type := ReminderLine.Type;
+#if not CLEAN29
                     "Account Code" := ReminderLine."Account Code";
+#endif
                     GetReminderHeader();
                     if Type = Type::"Line Fee" then begin
                         "Line Type" := "Line Type"::"Line Fee";
@@ -76,10 +78,12 @@ table 296 "Reminder Line"
                         if CustPostingGr."Add. Fee per Line Account" <> '' then
                             Validate("No.", CustPostingGr."Add. Fee per Line Account");
                     end;
+#if not CLEAN29
                     if (Type <> Type::" ") and ("Account Code" = '') then
                         "Account Code" := ReminderHeader."Account Code"
                     else
                         "Account Code" := '';
+#endif
                 end;
             end;
         }
@@ -612,16 +616,28 @@ table 296 "Reminder Line"
             Caption = 'System-Created Entry';
             Editable = false;
         }
+#if not CLEANSCHEMA32
         field(10601; "Account Code"; Text[30])
         {
             Caption = 'Account Code';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
 
+#if not CLEAN29
             trigger OnValidate()
             begin
                 if (Type = Type::" ") and ("Account Code" <> '') then
                     Error(InvalidEntryDueToFieldValueErr, FieldCaption("Account Code"), FieldCaption(Type), Type);
             end;
+#endif
         }
+#endif
     }
 
     keys
@@ -699,7 +715,9 @@ table 296 "Reminder Line"
         MustBePositiveErr: Label '%1 must be positive.', Comment = '%1 = Field name';
         NotEnoughSpaceToInsertErr: Label 'There is not enough space to insert lines with additional interest rates.';
         InvalidInterestRateDateErr: Label 'Create interest rate with start date prior to %1.', Comment = '%1 - date';
+#if not CLEAN29
         InvalidEntryDueToFieldValueErr: Label 'You cannot enter %1 if %2 is "%3".', Comment = '%1 = Field name, %2 = Second field name, %3 = Second field value';
+#endif
 
     /// <summary>
     /// Calculates the finance charge amount for this reminder line based on overdue days and interest terms.

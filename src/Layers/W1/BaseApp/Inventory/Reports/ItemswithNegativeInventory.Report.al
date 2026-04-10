@@ -15,13 +15,12 @@ using System.Utilities;
 
 report 5757 "Items with Negative Inventory"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/ItemswithNegativeInventory.rdlc';
     Caption = 'Items with Negative Inventory (Obsolete)';
     DataAccessIntent = ReadOnly;
     ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
     ObsoleteState = Pending;
     ObsoleteTag = '28.0';
+    DefaultRenderingLayout = RDLCLayout;
     dataset
     {
         dataitem(Output; "Integer")
@@ -198,6 +197,16 @@ report 5757 "Items with Negative Inventory"
                     }
                 }
             }
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/ItemswithNegativeInventory.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

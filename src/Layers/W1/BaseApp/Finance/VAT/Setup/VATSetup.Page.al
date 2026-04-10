@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,7 +38,6 @@ page 187 "VAT Setup"
                 field("Enable Non-Deductible VAT"; Rec."Enable Non-Deductible VAT")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the Non-Deductible VAT feature is enabled.';
                     Editable = not Rec."Non-Deductible VAT Is Enabled";
                 }
             }
@@ -49,12 +48,10 @@ page 187 "VAT Setup"
                 field("Allow VAT From"; Rec."Allow VAT Date From")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the earliest date on which VAT posting to the company books is allowed.';
                 }
                 field("Allow VAT To"; Rec."Allow VAT Date To")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the last date on which VAT posting to the company books is allowed.';
                 }
             }
             group(NonDeductibleVAT)
@@ -65,22 +62,18 @@ page 187 "VAT Setup"
                 field(UseForItemCost; Rec."Use For Item Cost")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the non-deductible VAT must be added to the item cost.';
                 }
                 field(UseForFixedAssetCost; Rec."Use For Fixed Asset Cost")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the non-deductible VAT must be added to the fixed asset cost.';
                 }
                 field(UseForJobCost; Rec."Use For Job Cost")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the non-deductible VAT must be added to the project cost.';
                 }
                 field("Show Non-Ded. VAT In Lines"; Rec."Show Non-Ded. VAT In Lines")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the non-deductible VAT must be shown in document lines pages.';
                 }
             }
         }

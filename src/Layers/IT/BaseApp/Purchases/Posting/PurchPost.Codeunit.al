@@ -9409,6 +9409,13 @@ codeunit 90 "Purch.-Post"
     local procedure OnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
     begin
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Purch.-Post", 'OnAfterPostItemJnlLineCopyProdOrder', '', false, false)]
+    local procedure HandleOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
+    begin
+        ItemJnlLine."Subcontr. Purch. Order No." := PurchLine."Document No.";
+        ItemJnlLine."Subcontr. Purch. Order Line" := PurchLine."Line No.";
+    end;
 #endif
 
     [IntegrationEvent(false, false)]

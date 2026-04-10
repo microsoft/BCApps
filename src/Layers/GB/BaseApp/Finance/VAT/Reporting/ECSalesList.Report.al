@@ -20,15 +20,10 @@ using System.Utilities;
 /// </summary>
 report 130 "EC Sales List"
 {
-    DefaultLayout = RDLC;
-#if not CLEAN27
-    RDLCLayout = './Finance/VAT/Reporting/ECSalesListGB.rdlc';
-#else
-    RDLCLayout = './Finance/VAT/Reporting/ECSalesList.rdlc';
-#endif
     ApplicationArea = BasicEU;
     Caption = 'EC Sales List';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -358,6 +353,25 @@ report 130 "EC Sales List"
 #endif
     }
 
+    rendering
+    {
+#if not CLEAN27
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/VAT/Reporting/ECSalesListGB.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
+#else
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/VAT/Reporting/ECSalesList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
+#endif
+    }
+
     labels
     {
     }
@@ -501,7 +515,7 @@ report 130 "EC Sales List"
         RBMgt: Codeunit "File Management";
         IsHandled: Boolean;
     begin
-        IsHandled := true;
+        IsHandled := false;
         OnBeforeCreateXMLDocument(IsHandled);
         if IsHandled then
             exit;

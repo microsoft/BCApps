@@ -2228,6 +2228,18 @@ table 901 "Assembly Line"
         Rec."Qty. Rounding Precision (Base)" := Item2."Rounding Precision";
     end;
 
+    procedure UpdateAndPersistAvailWarning()
+    var
+        AssemblyLineExists: Record "Assembly Line";
+        PrevValue: Boolean;
+    begin
+        PrevValue := "Avail. Warning";
+        UpdateAvailWarning();
+        if (PrevValue <> "Avail. Warning") and not IsTemporary then
+            if AssemblyLineExists.Get("Document Type", "Document No.", "Line No.") then
+                Modify();
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var AssemblyLine: Record "Assembly Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin

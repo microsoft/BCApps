@@ -210,6 +210,7 @@ table 12144 "GL Book Entry"
     var
         GLSetup: Record Microsoft.Finance.GeneralLedger.Setup."General Ledger Setup";
     begin
+        GLSetup.Get();
         exit(GLSetup."Additional Reporting Currency");
     end;
 }

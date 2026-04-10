@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,12 +28,10 @@ page 466 "Tax Jurisdictions"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code you want to assign to this tax jurisdiction. You can enter up to 10 characters, both numbers and letters. It is a good idea to enter a code that is easy to remember.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies a description of the tax jurisdiction. For example, if the tax jurisdiction code is ATLANTA GA, enter the description as Atlanta, Georgia.';
                 }
                 field("Default Sales and Use Tax"; DefaultTax)
                 {
@@ -62,19 +60,16 @@ page 466 "Tax Jurisdictions"
                 field("Calculate Tax on Tax"; Rec."Calculate Tax on Tax")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies whether to calculate the sales tax amount with the tax on tax principle.';
                     Visible = false;
                 }
                 field("Unrealized VAT Type"; Rec."Unrealized VAT Type")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies how to handle unrealized tax, which is tax that is calculated but not due until the invoice is paid.';
                     Visible = false;
                 }
                 field("Adjust for Payment Discount"; Rec."Adjust for Payment Discount")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies whether to recalculate tax amounts when you post payments that trigger payment discounts.';
                     Visible = false;
                 }
                 field("Tax Account (Sales)"; Rec."Tax Account (Sales)")
@@ -113,7 +108,6 @@ page 466 "Tax Jurisdictions"
                 field("Report-to Jurisdiction"; Rec."Report-to Jurisdiction")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax jurisdiction you want to associate with the jurisdiction you are setting up. For example, if you are setting up a jurisdiction for Atlanta, Georgia, the report-to jurisdiction is Georgia because Georgia is the tax authority to which you report Atlanta sales tax.';
                 }
             }
         }

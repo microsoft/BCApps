@@ -1221,17 +1221,10 @@ codeunit 137296 "SCM Inventory Misc. IV"
         CreateItemReference(ItemReference, Item."No.", Vendor."No.");
 
         Description := Item.Description;
-#if not CLEAN26
-        Assert.IsTrue(
-          ItemReference.FindItemDescription(
-            Description, Description2, Item."No.", '', Item."Base Unit of Measure",
-            ItemReference."Reference Type"::Vendor, Vendor."No."), '');
-#else
         Assert.IsTrue(
           ItemReference.FindItemDescription(
             Description, Description2, Item."No.", '', Item."Base Unit of Measure", WorkDate(),
             ItemReference."Reference Type"::Vendor, Vendor."No."), '');
-#endif
         Assert.AreEqual(ItemReference.Description, Description, '');
     end;
 
@@ -1251,17 +1244,10 @@ codeunit 137296 "SCM Inventory Misc. IV"
         LibraryInventory.CreateItem(Item);
 
         Description := Item.Description;
-#if not CLEAN26
-        Assert.IsFalse(
-          ItemReference.FindItemDescription(
-            Description, Description2, Item."No.", '', Item."Base Unit of Measure",
-            ItemReference."Reference Type"::Vendor, ''), '');
-#else
         Assert.IsFalse(
           ItemReference.FindItemDescription(
             Description, Description2, Item."No.", '', Item."Base Unit of Measure", WorkDate(),
             ItemReference."Reference Type"::Vendor, ''), '');
-#endif
         Assert.AreEqual(Item.Description, Description, '');
     end;
 

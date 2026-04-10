@@ -1038,38 +1038,6 @@
         DeleteUserSetup(UserSetup, ResponsibilityCenterCode);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseOrderStatisticsHandler,VATAmountLinesHandler')]
-    [Scope('OnPrem')]
-    procedure PostPurchaseOrderWithChangedVATAmount()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseOrder: TestPage "Purchase Order";
-        DocumentNo: Code[20];
-    begin
-        // Verify Purchase Order Posting After Changing VAT Amount.
-
-        // Setup: Modify GeneralLedger And PurchasesPayables Setup, Create Purchase Order, VAT Amount Modified Using Handler.
-        Initialize();
-        UpdateGeneralLedgerSetup(0);
-        LibraryVariableStorage.Enqueue(
-          UpdateGeneralLedgerSetup(LibraryRandom.RandDec(0, 1)));
-        ModifyPurchasesPayablesSetup(true);
-        CreatePurchaseOrderWithMultipleLines(PurchaseHeader);
-        PurchaseOrder.OpenView();
-        PurchaseOrder.FILTER.SetFilter("No.", PurchaseHeader."No.");
-        PurchaseOrder.Statistics.Invoke();
-
-        // Exercise.
-        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        // Verify : Verify VAT Amount After Posting.
-        VerifyVATAmount(DocumentNo);
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('PurchaseOrderStatisticsPageHandler,VATAmountLinesHandler')]
     [Scope('OnPrem')]
@@ -1824,78 +1792,6 @@
         PurchasePrice.SetRange("Vendor No.", CopyToVendorNo);
         Assert.RecordCount(PurchasePrice, 2);
     end;
-
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseOrderStatisticsUpdateInvDiscontAndTotalVATHandler,VATAmountLinesHandler')]
-    [Scope('OnPrem')]
-    procedure PostPurchaseOrderWithChangedVATAmountAndInvoiceDiscount()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        VATEntry: Record "VAT Entry";
-        VATDiffAmount: Decimal;
-        InvDiscAmount: Decimal;
-        ExpectedVATAmount: Decimal;
-        AmountToPost: Decimal;
-        DocumentNo: Code[20];
-    begin
-        // [FEATURE] [Statistics] [VAT Difference] [Invoice Discount]
-        // [SCENARIO 215643] Cassie can adjust Invoice Discount at invoice tab of Purchase Order statistics page and can update Total VAT amount on VAT Amount lines.
-        // [SCENARIO 215643] Changed amounts are reflected on totals subform of purchase order and are reflected at posted VAT, Vendor Ledger Entries.
-        Initialize();
-
-        // [GIVEN] System setup allows Invoice Discount and Max. VAT Difference = 10
-        VATDiffAmount := LibraryRandom.RandIntInRange(5, 10);
-        LibraryERM.SetMaxVATDifferenceAllowed(VATDiffAmount);
-        LibraryPurchase.SetAllowVATDifference(true);
-        LibraryPurchase.SetCalcInvDiscount(true);
-
-        // [GIVEN] Purchase Order with Amount = 100 and VAT % = 10
-        CreatePurchaseOrderWithItem(PurchaseHeader, PurchaseLine);
-        AmountToPost := Round(PurchaseLine.Amount / 10, 1);
-        InvDiscAmount := PurchaseLine.Amount - AmountToPost;
-        ExpectedVATAmount := Round(AmountToPost * PurchaseLine."VAT %" / 100, LibraryERM.GetAmountRoundingPrecision()) + VATDiffAmount;
-
-        // [GIVEN] Cassie changed Invoice Discount to 90 => calculated VAT amount = 1 ((100 - 90) * VAT%)  at statistics page
-        // [GIVEN] Cassie updated Total VAT = 4 => "VAT Difference" = 3
-        LibraryVariableStorage.Enqueue(InvDiscAmount);
-        LibraryVariableStorage.Enqueue(VATDiffAmount);
-
-        UpdateInvoiceDiscountAndVATAmountOnPusrchaseOrderStatistics(
-          PurchaseHeader, PurchaseLine, AmountToPost, ExpectedVATAmount, VATDiffAmount);
-
-        // [WHEN] Post purchase order
-        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        // [THEN] Two VAT Entries posted
-        // [THEN] "VAT Entry"[1].Base = -90 and "VAT Entry"[1].Amount = -9
-        // [THEN] "VAT Entry"[2].Base = 100 and "VAT Entry"[2].Amount = 13 = 100 * 10 % + 3
-        FindVATEntry(VATEntry, DocumentNo, VATEntry.Type::Purchase);
-        VerifyVATEntryAmounts(
-          VATEntry,
-          -InvDiscAmount,
-          -Round(InvDiscAmount * PurchaseLine."VAT %" / 100, LibraryERM.GetAmountRoundingPrecision()));
-        VATEntry.Next();
-        VerifyVATEntryAmounts(
-          VATEntry,
-          InvDiscAmount + AmountToPost,
-          Round((InvDiscAmount + AmountToPost) * PurchaseLine."VAT %" / 100, LibraryERM.GetAmountRoundingPrecision()) + VATDiffAmount);
-        Assert.RecordCount(VATEntry, 2);
-
-        // [THEN] VLE with Amount = -14 = -(100 - 90 + 4), "Purchase (LCY)" = -10 and "Inv. Discount (LCY)" = -90 posted
-        FindVLE(VendorLedgerEntry, DocumentNo, PurchaseHeader."Buy-from Vendor No.");
-
-        VendorLedgerEntry.CalcFields(Amount);
-        VendorLedgerEntry.TestField(Amount, -PurchaseLine."Amount Including VAT");
-        VendorLedgerEntry.TestField("Purchase (LCY)", -AmountToPost);
-        VendorLedgerEntry.TestField("Inv. Discount (LCY)", -InvDiscAmount);
-
-        LibraryVariableStorage.Clear();
-    end;
-#endif
 
     [Test]
     [HandlerFunctions('PurchaseOrderStatisticsUpdateInvDiscontAndTotalVATPageHandler,VATAmountLinesHandler')]
@@ -4066,25 +3962,6 @@
         UserSetup.Modify(true);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure UpdateInvoiceDiscountAndVATAmountOnPusrchaseOrderStatistics(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; AmountToPost: Decimal; VATAmount: Decimal; VATDiffAmount: Decimal)
-    var
-        PurchaseOrder: TestPage "Purchase Order";
-    begin
-        PurchaseOrder.OpenView();
-        PurchaseOrder.GotoRecord(PurchaseHeader);
-        PurchaseOrder.Statistics.Invoke();
-
-        PurchaseOrder.PurchLines."Total Amount Excl. VAT".AssertEquals(AmountToPost);
-        PurchaseOrder.PurchLines."Total VAT Amount".AssertEquals(VATAmount);
-        PurchaseOrder.PurchLines."Total Amount Incl. VAT".AssertEquals(AmountToPost + VATAmount);
-
-        PurchaseLine.Find();
-        PurchaseLine.TestField("VAT Difference", VATDiffAmount);
-    end;
-#endif
-
     local procedure UpdateInvoiceDiscountAndVATAmountOnPusrchaseOrderStats(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; AmountToPost: Decimal; VATAmount: Decimal; VATDiffAmount: Decimal)
     var
         PurchaseOrder: TestPage "Purchase Order";
@@ -4753,17 +4630,6 @@
     begin
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseOrderStatisticsHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
-    begin
-        // Modal Page Handler.
-        PurchaseOrderStatistics.NoOfVATLines_Invoicing.DrillDown();
-    end;
-#endif
-
     [PageHandler]
     [Scope('OnPrem')]
     procedure PurchaseOrderStatisticsPageHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
@@ -4771,17 +4637,6 @@
         // Modal Page Handler.
         PurchaseOrderStatistics.NoOfVATLines_Invoicing.DrillDown();
     end;
-
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseOrderStatisticsUpdateInvDiscontAndTotalVATHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
-    begin
-        PurchaseOrderStatistics.InvDiscountAmount_Invoicing.SetValue(LibraryVariableStorage.DequeueDecimal()); // Invoice Discount on Invoicing tab
-        PurchaseOrderStatistics.NoOfVATLines_Invoicing.DrillDown();
-    end;
-#endif
 
     [PageHandler]
     [Scope('OnPrem')]

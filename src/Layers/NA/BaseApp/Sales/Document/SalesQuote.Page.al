@@ -1147,35 +1147,6 @@ page 41 "Sales Quote"
             {
                 Caption = '&Quote';
                 Image = Quote;
-#if not CLEAN26
-                action(Statistics)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Statistics';
-                    Enabled = Rec."No." <> '';
-                    Image = Statistics;
-                    ShortCutKey = 'F7';
-                    ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-                    ObsoleteReason = 'The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-
-                    trigger OnAction()
-                    var
-                        Handled: Boolean;
-                    begin
-                        Handled := false;
-                        OnBeforeStatisticsAction(Rec, Handled);
-                        if Handled then
-                            exit;
-
-                        Rec.PrepareOpeningDocumentStatistics();
-                        OnBeforeCalculateSalesTaxStatistics(Rec, true);
-                        Rec.ShowDocumentStatisticsPage();
-                        CurrPage.SalesLines.Page.ForceTotalsCalculation();
-                    end;
-                }
-#endif
                 action(SalesStatistics)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1183,11 +1154,7 @@ page 41 "Sales Quote"
                     Enabled = Rec."No." <> '';
                     Image = Statistics;
                     ShortCutKey = 'F7';
-#if CLEAN26
                     Visible = not SalesTaxStatisticsVisible;
-#else
-                    Visible = false;
-#endif
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
                     RunObject = Page "Sales Statistics";
                     RunPageOnRec = true;
@@ -1199,11 +1166,7 @@ page 41 "Sales Quote"
                     Enabled = Rec."No." <> '';
                     Image = Statistics;
                     ShortCutKey = 'F7';
-#if CLEAN26
                     Visible = SalesTaxStatisticsVisible;
-#else
-                    Visible = false;
-#endif
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
                     RunObject = Page "Sales Stats.";
                     RunPageOnRec = true;
@@ -1790,21 +1753,12 @@ page 41 "Sales Quote"
                 actionref(Dimensions_Promoted; Dimensions)
                 {
                 }
-#if not CLEAN26
-                actionref(Statistics_Promoted; Statistics)
-                {
-                    ObsoleteReason = 'The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                }
-#else
                 actionref(SalesStatistics_Promoted; SalesStatistics)
                 {
                 }
                 actionref(SalesStats_Promoted; SalesStats)
                 {
                 }
-#endif
                 actionref("Co&mments_Promoted"; "Co&mments")
                 {
                 }
@@ -2059,19 +2013,6 @@ page 41 "Sales Quote"
         EnableNewSellToCustomerTemplateCode := Rec."Sell-to Customer No." = '';
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeStatisticsAction(var SalesHeader: Record "Sales Header"; var Handled: Boolean)
-    begin
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalculateSalesTaxStatistics(var SalesHeader: Record "Sales Header"; ShowDialog: Boolean)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShipToOptions(var SalesHeader: Record "Sales Header"; ShipToOptions: Option; var IsHandled: Boolean)
     begin

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -44,6 +44,7 @@ table 352 "Default Dimension"
         field(1; "Table ID"; Integer)
         {
             Caption = 'Table ID';
+            ToolTip = 'Specifies a table ID for the account type if you are specifying default dimensions for an entire account type.';
             NotBlank = true;
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
 
@@ -84,6 +85,7 @@ table 352 "Default Dimension"
         field(2; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the account number you wish to define a default dimension for.';
 
             trigger OnValidate()
             var
@@ -111,6 +113,7 @@ table 352 "Default Dimension"
         field(3; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
+            ToolTip = 'Specifies the code for the default dimension.';
             NotBlank = true;
             TableRelation = Dimension;
 
@@ -130,6 +133,7 @@ table 352 "Default Dimension"
         field(4; "Dimension Value Code"; Code[20])
         {
             Caption = 'Dimension Value Code';
+            ToolTip = 'Specifies the dimension value code to suggest as the default dimension.';
             TableRelation = "Dimension Value".Code where("Dimension Code" = field("Dimension Code"),
                                                          Blocked = const(false));
 
@@ -146,6 +150,7 @@ table 352 "Default Dimension"
         field(5; "Value Posting"; Enum "Default Dimension Value Posting Type")
         {
             Caption = 'Value Posting';
+            ToolTip = 'Specifies how default dimensions and their values must be used.';
 
             trigger OnValidate()
             var
@@ -166,6 +171,7 @@ table 352 "Default Dimension"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
                                                                            "Object ID" = field("Table ID")));
             Caption = 'Table Caption';
+            ToolTip = 'Specifies the table name for the account type you wish to define a default dimension for.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -208,6 +214,7 @@ table 352 "Default Dimension"
         field(10; "Allowed Values Filter"; Text[250])
         {
             Caption = 'Allowed Values Filter';
+            ToolTip = 'Specifies the dimension values that can be used for the selected account.';
 
             trigger OnValidate()
             var
@@ -233,6 +240,7 @@ table 352 "Default Dimension"
         {
             CalcFormula = lookup("Dimension Value".Name where("Dimension Code" = field("Dimension Code"), Code = field("Dimension Value Code")));
             Caption = 'Dimension Value Name';
+            ToolTip = 'Specifies the name of selected dimension value.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1854,25 +1862,6 @@ table 352 "Default Dimension"
     local procedure OnUpdateVendorTemplGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; VendorTemplCode: Code[20]; NewDimValue: Code[20])
     begin
     end;
-
-#if not CLEAN26
-    internal procedure RunOnUpdateWorkCenterGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; WorkCenterNo: Code[20]; NewDimValue: Code[20])
-    begin
-        OnUpdateWorkCenterGlobalDimCodeCaseElse(GlobalDimCodeNo, WorkCenterNo, NewDimValue);
-    end;
-
-    /// <summary>
-    /// Integration event raised when updating work center global dimension code for cases not handled by standard processing.
-    /// </summary>
-    /// <param name="GlobalDimCodeNo">Global dimension code number being updated</param>
-    /// <param name="WorkCenterNo">Work center number being updated</param>
-    /// <param name="NewDimValue">New dimension value to assign</param>
-    [Obsolete('Moved to codeunit Mfg. Dimension Management', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnUpdateWorkCenterGlobalDimCodeCaseElse(GlobalDimCodeNo: Integer; WorkCenterNo: Code[20]; NewDimValue: Code[20])
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Integration event raised before setting range filter to the last field in primary key during default dimension validation.

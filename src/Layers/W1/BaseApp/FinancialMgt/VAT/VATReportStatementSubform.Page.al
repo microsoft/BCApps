@@ -22,38 +22,32 @@ page 742 "VAT Report Statement Subform"
                 field("Row No."; Rec."Row No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a number that identifies the line.';
                     Editable = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the VAT report statement.';
                     Editable = false;
                 }
                 field("Box No."; Rec."Box No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number on the box that the VAT statement applies to.';
                     Editable = false;
                 }
                 field(Note; Rec.Note)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies any text that you want to add to the specific line.';
                     Visible = ShowVATNote;
                 }
                 field(Base; Rec.Base)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount that the VAT amount in the amount is calculated from.';
                     Visible = ShowBase;
                     Editable = false;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount of the entry in the report statement.';
                     Editable = false;
                 }
             }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,7 +20,6 @@ page 726 "Custom Address Format Lines"
                 field("Field ID"; Rec."Field ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies reference field ID.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -31,12 +30,10 @@ page 726 "Custom Address Format Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies reference address field name.';
                 }
                 field(Separator; Rec.Separator)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies separator symbol.';
                 }
             }
         }

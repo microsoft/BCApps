@@ -19,6 +19,9 @@ codeunit 99001513 "Subc. Req.Line Extension"
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", OnAfterValidateEvent, "Vendor No.", false, false)]
     local procedure OnAfterValidateVendorNo(var Rec: Record "Requisition Line"; var xRec: Record "Requisition Line"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
+
         if (Rec.Type = Rec.Type::Item) and (Rec."No." <> '') and (Rec."Prod. Order No." <> '') then
             Rec.UpdateSubcontractorPrice();
     end;
@@ -26,6 +29,9 @@ codeunit 99001513 "Subc. Req.Line Extension"
     [EventSubscriber(ObjectType::Table, Database::"Requisition Line", OnAfterValidateEvent, Quantity, false, false)]
     local procedure OnAfterValidateQuantity(var Rec: Record "Requisition Line"; var xRec: Record "Requisition Line"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
+
         if (Rec.Type = Rec.Type::Item) and (Rec."No." <> '') and (Rec."Prod. Order No." <> '') then
             Rec.UpdateSubcontractorPrice();
     end;

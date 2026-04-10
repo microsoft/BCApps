@@ -134,6 +134,7 @@ report 5692 "Calculate Depreciation"
                 end;
                 if TempFAJnlLine.Find('-') then
                     repeat
+                        InsertBonusDepreciationFAJnlLine();
                         FAJnlLine.Init();
                         OnPostFixedAssetOnAfterFAJnlLineInit(TempFAJnlLine, FAJnlLine, DocumentNo, AutoDocumentNo);
                         FAJnlLine."Line No." := 0;
@@ -184,6 +185,7 @@ report 5692 "Calculate Depreciation"
                 end;
                 if TempGenJnlLine.Find('-') then
                     repeat
+                        InsertBonusDepreciationGenJnlLine();
                         GenJnlLine.Init();
                         OnBeforeGenJnlLineCreate(TempGenJnlLine, GenJnlLine, DocumentNo, AutoDocumentNo);
                         GenJnlLine."Line No." := 0;
@@ -466,6 +468,7 @@ report 5692 "Calculate Depreciation"
         ActivateErrorMessageHandling("Fixed Asset");
 
         GeneralLedgerSetup.Get();
+        FASetup.Get();
 
         DeprBook.Get(DeprBookCode);
         if UseCustom1 then
@@ -557,6 +560,8 @@ report 5692 "Calculate Depreciation"
         Text1130000: Label 'You must specify %1 for %2 = %3.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
+        FADeprBookBonusDepreciationApplied: Dictionary of [RecordId, Boolean];
+        FADeprBookBonusDepreciationAmount: Dictionary of [RecordId, Decimal];
 
     protected var
         DeprBookCode: Code[10];
@@ -631,6 +636,142 @@ report 5692 "Calculate Depreciation"
     procedure SetSuppressCommit(NewSuppressCommmit: Boolean)
     begin
         SuppressCommit := NewSuppressCommmit;
+    end;
+
+    local procedure InsertBonusDepreciationFAJnlLine()
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+        BonusDepreciationAmount: Decimal;
+    begin
+        if not FASetup.BonusDepreciationCorrectlySetup() then
+            exit;
+
+        FADepreciationBook.SetLoadFields("Use Bonus Depreciation", "Depreciation Starting Date");
+        if not FADepreciationBook.Get(TempFAJnlLine."FA No.", DeprBookCode) then
+            exit;
+
+        if not FADepreciationBook."Use Bonus Depreciation" then
+            exit;
+
+        if not FADepreciationBook.EligibleForBonusDepreciation(FASetup) then
+            exit;
+
+        if GetBonusDepreciationApplied(FADepreciationBook) then
+            exit;
+
+        // Implementation for inserting bonus depreciation line
+        FAJnlLine.Init();
+        FAJnlLine."Line No." := 0;
+        FAJnlSetup.SetFAJnlTrailCodes(FAJnlLine);
+        LineNo := LineNo + 1;
+        if GuiAllowed() then
+            Window.Update(3, LineNo);
+        FAJnlLine."Posting Date" := PostingDate;
+        FAJnlLine."FA Posting Date" := DeprUntilDate;
+        if FAJnlLine."Posting Date" = FAJnlLine."FA Posting Date" then
+            FAJnlLine."Posting Date" := 0D;
+        FAJnlLine."FA Posting Type" := "FA Journal Line FA Posting Type"::"Bonus Depreciation";
+        FAJnlLine.Validate("FA No.", TempFAJnlLine."FA No.");
+        if UseAutomaticDocumentNo then
+            FAJnlLine."Document No." := AutoDocumentNo
+        else
+            FAJnlLine."Document No." := TempFAJnlLine."Document No.";
+        FAJnlLine."Posting No. Series" := NoSeries;
+        FAJnlLine.Description := PostingDescriptionTxt;
+        if FAJnlLine."FA Posting Type" = FAJnlLine."FA Posting Type"::"Custom 1" then
+            FAJnlLine.Description := PostingDescriptionTxt2;
+        if FAJnlLine."FA Posting Type" = FAJnlLine."FA Posting Type"::"Custom 2" then
+            FAJnlLine.Description := PostingDescriptionTxt3;
+        FAJnlLine.Validate("Depreciation Book Code", DeprBookCode);
+        BonusDepreciationAmount := GetBonusDepreciationAmount(FADepreciationBook);
+        FAJnlLine.Validate(Amount, BonusDepreciationAmount);
+        FAJnlLine."FA Error Entry No." := TempFAJnlLine."FA Error Entry No.";
+        FAJnlNextLineNo := FAJnlNextLineNo + 10000;
+        FAJnlLine."Line No." := FAJnlNextLineNo;
+        FAJnlLine.Insert(true);
+        FAJnlLineCreatedCount += 1;
+    end;
+
+    local procedure GetBonusDepreciationApplied(FADepreciationBook: Record "FA Depreciation Book"): Boolean
+    var
+        BonusDepreciationApplied: Boolean;
+    begin
+        if not FADeprBookBonusDepreciationApplied.ContainsKey(FADepreciationBook.RecordId) then begin
+            BonusDepreciationApplied := FADepreciationBook.BonusDepreciationApplied();
+            FADeprBookBonusDepreciationApplied.Add(FADepreciationBook.RecordId, BonusDepreciationApplied);
+            exit(BonusDepreciationApplied)
+        end else
+            exit(FADeprBookBonusDepreciationApplied.Get(FADepreciationBook.RecordId));
+    end;
+
+    local procedure GetBonusDepreciationAmount(FADepreciationBook: Record "FA Depreciation Book"): Decimal
+    var
+        BonusDepreciationAmount: Decimal;
+    begin
+        if FADeprBookBonusDepreciationAmount.ContainsKey(FADepreciationBook.RecordId) then
+            exit(-FADeprBookBonusDepreciationAmount.Get(FADepreciationBook.RecordId))
+        else begin
+            BonusDepreciationAmount := -FADepreciationBook.BonusDepreciationAmount(GeneralLedgerSetup, FASetup);
+            FADeprBookBonusDepreciationAmount.Add(FADepreciationBook.RecordId, -BonusDepreciationAmount);
+            exit(BonusDepreciationAmount)
+        end;
+    end;
+
+    local procedure InsertBonusDepreciationGenJnlLine()
+    var
+        FADepreciationBook: Record "FA Depreciation Book";
+        BonusDepreciationAmount: Decimal;
+    begin
+        if not FASetup.BonusDepreciationCorrectlySetup() then
+            exit;
+
+        FADepreciationBook.SetLoadFields("Use Bonus Depreciation", "Depreciation Starting Date");
+        if not FADepreciationBook.Get(TempGenJnlLine."Account No.", DeprBookCode) then
+            exit;
+
+        if not FADepreciationBook."Use Bonus Depreciation" then
+            exit;
+
+        if not FADepreciationBook.EligibleForBonusDepreciation(FASetup) then
+            exit;
+
+        if GetBonusDepreciationApplied(FADepreciationBook) then
+            exit;
+
+        // Implementation for inserting bonus depreciation line
+        GenJnlLine.Init();
+        GenJnlLine."Line No." := 0;
+        FAJnlSetup.SetGenJnlTrailCodes(GenJnlLine);
+        LineNo := LineNo + 1;
+        if GuiAllowed() then
+            Window.Update(3, LineNo);
+        GenJnlLine."Posting Date" := PostingDate;
+        GenJnlLine."FA Posting Date" := DeprUntilDate;
+        if GenJnlLine."Posting Date" = GenJnlLine."FA Posting Date" then
+            GenJnlLine."FA Posting Date" := 0D;
+        GenJnlLine."FA Posting Type" := "Gen. Journal Line FA Posting Type"::"Bonus Depreciation";
+        GenJnlLine."Account Type" := GenJnlLine."Account Type"::"Fixed Asset";
+        GenJnlLine.Validate("Account No.", TempGenJnlLine."Account No.");
+        GenJnlLine."Posting No. Series" := NoSeries;
+        GenJnlLine.Description := PostingDescriptionTxt;
+        if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::"Custom 1" then
+            GenJnlLine.Description := PostingDescriptionTxt2;
+        if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::"Custom 2" then
+            GenJnlLine.Description := PostingDescriptionTxt3;
+        if UseAutomaticDocumentNo then
+            GenJnlLine."Document No." := AutoDocumentNo
+        else
+            GenJnlLine."Document No." := TempGenJnlLine."Document No.";
+        GenJnlLine.Validate("Depreciation Book Code", DeprBookCode);
+        BonusDepreciationAmount := GetBonusDepreciationAmount(FADepreciationBook);
+        GenJnlLine.Validate(Amount, BonusDepreciationAmount);
+        GenJnlLine."FA Error Entry No." := TempGenJnlLine."FA Error Entry No.";
+        GenJnlNextLineNo := GenJnlNextLineNo + 1000;
+        GenJnlLine."Line No." := GenJnlNextLineNo;
+        GenJnlLine.Insert(true);
+        GenJnlLineCreatedCount += 1;
+        if BalAccount then
+            FAInsertGLAcc.GetBalAcc(GenJnlLine, GenJnlNextLineNo);
     end;
 
     [IntegrationEvent(false, false)]

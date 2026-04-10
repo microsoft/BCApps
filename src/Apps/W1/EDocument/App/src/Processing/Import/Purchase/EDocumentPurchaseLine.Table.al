@@ -329,12 +329,14 @@ table 6101 "E-Document Purchase Line"
     var
         OldDimSetID: Integer;
     begin
-        OldDimSetID := "[BC] Dimension Set ID";
-        "[BC] Dimension Set ID" := DimMgt.EditDimensionSet(
-            Rec, "[BC] Dimension Set ID", StrSubstNo('%1 %2', "E-Document Entry No.", "Line No."),
-            "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
-        DimMgt.UpdateGlobalDimFromDimSetID("[BC] Dimension Set ID", "[BC] Shortcut Dimension 1 Code", "[BC] Shortcut Dimension 2 Code");
-        exit(OldDimSetID <> "[BC] Dimension Set ID");
+        OldDimSetID := Rec."[BC] Dimension Set ID";
+        Rec."[BC] Dimension Set ID" := DimMgt.EditDimensionSet(
+            Rec, Rec."[BC] Dimension Set ID", StrSubstNo('%1 %2', Rec."E-Document Entry No.", Rec."Line No."),
+            Rec."[BC] Shortcut Dimension 1 Code", Rec."[BC] Shortcut Dimension 2 Code");
+        DimMgt.UpdateGlobalDimFromDimSetID(Rec."[BC] Dimension Set ID", Rec."[BC] Shortcut Dimension 1 Code", Rec."[BC] Shortcut Dimension 2 Code");
+        if OldDimSetID <> Rec."[BC] Dimension Set ID" then
+            Rec.Modify();
+        exit(OldDimSetID <> Rec."[BC] Dimension Set ID");
     end;
 
     internal procedure GetFromLinkedPurchaseLine(PurchaseLine: Record "Purchase Line"): Boolean

@@ -48,24 +48,44 @@ table 10751 "SII Setup"
             Caption = 'InvoicesIssuedEndpointUrl';
             InitValue = 'https://www1.agenciatributaria.gob.es/wlpl/SSII-FACT/ws/fe/SiiFactFEV1SOAP';
             NotBlank = true;
+
+            trigger OnValidate()
+            begin
+                ValidateEndpointUrl(InvoicesIssuedEndpointUrl);
+            end;
         }
         field(6; InvoicesReceivedEndpointUrl; Text[250])
         {
             Caption = 'InvoicesReceivedEndpointUrl';
             InitValue = 'https://www1.agenciatributaria.gob.es/wlpl/SSII-FACT/ws/fr/SiiFactFRV1SOAP';
             NotBlank = true;
+
+            trigger OnValidate()
+            begin
+                ValidateEndpointUrl(InvoicesReceivedEndpointUrl);
+            end;
         }
         field(7; PaymentsIssuedEndpointUrl; Text[250])
         {
             Caption = 'PaymentsIssuedEndpointUrl';
             InitValue = 'https://www1.agenciatributaria.gob.es/wlpl/SSII-FACT/ws/fr/SiiFactPAGV1SOAP';
             NotBlank = true;
+
+            trigger OnValidate()
+            begin
+                ValidateEndpointUrl(PaymentsIssuedEndpointUrl);
+            end;
         }
         field(8; PaymentsReceivedEndpointUrl; Text[250])
         {
             Caption = 'PaymentsReceivedEndpointUrl';
             InitValue = 'https://www1.agenciatributaria.gob.es/wlpl/SSII-FACT/ws/fe/SiiFactCOBV1SOAP';
             NotBlank = true;
+
+            trigger OnValidate()
+            begin
+                ValidateEndpointUrl(PaymentsReceivedEndpointUrl);
+            end;
         }
 #if not CLEANSCHEMA25
         field(9; IntracommunityEndpointUrl; Text[250])
@@ -96,6 +116,11 @@ table 10751 "SII Setup"
             Caption = 'CollectionInCashEndpointUrl';
             InitValue = 'https://www1.agenciatributaria.gob.es/wlpl/SSII-FACT/ws/pm/SiiFactCMV1SOAP';
             NotBlank = true;
+
+            trigger OnValidate()
+            begin
+                ValidateEndpointUrl(CollectionInCashEndpointUrl);
+            end;
         }
         field(20; "Invoice Amount Threshold"; Decimal)
         {
@@ -202,6 +227,7 @@ table 10751 "SII Setup"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         CannotEnableWithoutCertificateErr: Label 'The setup cannot be enabled without a valid certificate.';
+        InvalidEndpointUrlErr: Label 'The endpoint URL must start with one of the following base URLs: https://www1.agenciatributaria.gob.es, https://www2.agenciatributaria.gob.es, https://prewww1.aeat.es, https://prewww2.aeat.es.';
         SiiTxt: Label 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroInformacion.xsd', Locked = true;
         SiiLRTxt: Label 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroLR.xsd', Locked = true;
         SIIFeatureNameTok: Label 'SII', Locked = true;
@@ -222,6 +248,28 @@ table 10751 "SII Setup"
         "SuministroInformacion Schema" := SiiTxt;
         "SuministroLR Schema" := SiiLRTxt;
         Modify(true);
+    end;
+
+    procedure ValidateEndpointUrl(Url: Text)
+    begin
+        if not IsAllowedEndpointUrl(Url) then
+            Error(InvalidEndpointUrlErr);
+    end;
+
+    procedure IsAllowedEndpointUrl(Url: Text): Boolean
+    var
+        LowerUrl: Text;
+    begin
+        LowerUrl := LowerCase(Url);
+        if StrPos(LowerUrl, 'https://www1.agenciatributaria.gob.es/') = 1 then
+            exit(true);
+        if StrPos(LowerUrl, 'https://www2.agenciatributaria.gob.es/') = 1 then
+            exit(true);
+        if StrPos(LowerUrl, 'https://prewww1.aeat.es/') = 1 then
+            exit(true);
+        if StrPos(LowerUrl, 'https://prewww2.aeat.es/') = 1 then
+            exit(true);
+        exit(false);
     end;
 
     [IntegrationEvent(false, false)]

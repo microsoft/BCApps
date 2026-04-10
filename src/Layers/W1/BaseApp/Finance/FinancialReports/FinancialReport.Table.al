@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -301,6 +301,7 @@ table 88 "Financial Report"
         field(61; DimPerspective; Code[10])
         {
             Caption = 'Dimension Perspective';
+            ToolTip = 'Specifies the dimension perspective to be used for the financial report.';
             TableRelation = "Dimension Perspective Name";
 
             trigger OnValidate()

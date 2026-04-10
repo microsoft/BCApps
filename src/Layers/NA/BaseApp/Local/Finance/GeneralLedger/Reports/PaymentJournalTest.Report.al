@@ -754,22 +754,22 @@ report 10089 "Payment Journal - Test"
                         GenJnlLine2.Reset();
                         GenJnlLine2.CopyFilters("Gen. Journal Line");
 
-                        GLAccNetChange.DeleteAll();
+                        TempGLAccNetChange.DeleteAll();
                     end;
                 }
                 dataitem(ReconcileLoop; "Integer")
                 {
                     DataItemTableView = sorting(Number);
-                    column(GLAccNetChange__No__; GLAccNetChange."No.")
+                    column(GLAccNetChange__No__; TempGLAccNetChange."No.")
                     {
                     }
-                    column(GLAccNetChange_Name; GLAccNetChange.Name)
+                    column(GLAccNetChange_Name; TempGLAccNetChange.Name)
                     {
                     }
-                    column(GLAccNetChange__Net_Change_in_Jnl__; GLAccNetChange."Net Change in Jnl.")
+                    column(GLAccNetChange__Net_Change_in_Jnl__; TempGLAccNetChange."Net Change in Jnl.")
                     {
                     }
-                    column(GLAccNetChange__Balance_after_Posting_; GLAccNetChange."Balance after Posting")
+                    column(GLAccNetChange__Balance_after_Posting_; TempGLAccNetChange."Balance after Posting")
                     {
                     }
                     column(ReconcileLoop_Number; Number)
@@ -794,19 +794,19 @@ report 10089 "Payment Journal - Test"
                     trigger OnAfterGetRecord()
                     begin
                         if Number = 1 then
-                            GLAccNetChange.Find('-')
+                            TempGLAccNetChange.Find('-')
                         else
-                            GLAccNetChange.Next();
+                            TempGLAccNetChange.Next();
                     end;
 
                     trigger OnPostDataItem()
                     begin
-                        GLAccNetChange.DeleteAll();
+                        TempGLAccNetChange.DeleteAll();
                     end;
 
                     trigger OnPreDataItem()
                     begin
-                        SetRange(Number, 1, GLAccNetChange.Count);
+                        SetRange(Number, 1, TempGLAccNetChange.Count);
                     end;
                 }
             }
@@ -946,7 +946,7 @@ report 10089 "Payment Journal - Test"
         DeprBook: Record "Depreciation Book";
         FADeprBook: Record "FA Depreciation Book";
         FASetup: Record "FA Setup";
-        GLAccNetChange: Record "G/L Account Net Change" temporary;
+        TempGLAccNetChange: Record "G/L Account Net Change" temporary;
         CompanyInformation: Record "Company Information";
         DimSetEntry: Record "Dimension Set Entry";
         ExchAccGLJnlLine: Codeunit "Exchange Acc. G/L Journal Line";
@@ -1255,18 +1255,18 @@ report 10089 "Payment Journal - Test"
 
     local procedure ReconcileGLAccNo(GLAccNo: Code[20]; ReconcileAmount: Decimal)
     begin
-        if not GLAccNetChange.Get(GLAccNo) then begin
+        if not TempGLAccNetChange.Get(GLAccNo) then begin
             GLAcc.Get(GLAccNo);
             GLAcc.CalcFields("Balance at Date");
-            GLAccNetChange.Init();
-            GLAccNetChange."No." := GLAcc."No.";
-            GLAccNetChange.Name := GLAcc.Name;
-            GLAccNetChange."Balance after Posting" := GLAcc."Balance at Date";
-            GLAccNetChange.Insert();
+            TempGLAccNetChange.Init();
+            TempGLAccNetChange."No." := GLAcc."No.";
+            TempGLAccNetChange.Name := GLAcc.Name;
+            TempGLAccNetChange."Balance after Posting" := GLAcc."Balance at Date";
+            TempGLAccNetChange.Insert();
         end;
-        GLAccNetChange."Net Change in Jnl." := GLAccNetChange."Net Change in Jnl." + ReconcileAmount;
-        GLAccNetChange."Balance after Posting" := GLAccNetChange."Balance after Posting" + ReconcileAmount;
-        GLAccNetChange.Modify();
+        TempGLAccNetChange."Net Change in Jnl." := TempGLAccNetChange."Net Change in Jnl." + ReconcileAmount;
+        TempGLAccNetChange."Balance after Posting" := TempGLAccNetChange."Balance after Posting" + ReconcileAmount;
+        TempGLAccNetChange.Modify();
     end;
 
     local procedure CheckGLAcc(var GenJnlLine: Record "Gen. Journal Line"; var AccName: Text[100])

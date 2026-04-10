@@ -8,15 +8,6 @@ pageextension 10026 "Service Quote NA" extends "Service Quote"
 {
     actions
     {
-#if not CLEAN26
-        modify(Statistics)
-        {
-            trigger OnBeforeAction()
-            begin
-                OnBeforeCalculateSalesTaxStatistics(Rec, true);
-            end;
-        }
-#endif
 #if CLEAN27
         modify(ServiceStatistics)
         {
@@ -58,12 +49,4 @@ pageextension 10026 "Service Quote NA" extends "Service Quote"
 
     protected var
         SalesTaxStatisticsVisible: Boolean;
-
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the ServiceStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalculateSalesTaxStatistics(var ServiceHeader: Record "Service Header"; ShowDialog: Boolean)
-    begin
-    end;
-#endif
 }

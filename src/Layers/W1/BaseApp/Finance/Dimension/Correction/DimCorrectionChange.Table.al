@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 2581 "Dim Correction Change"
         /// </summary>
         field(2; "Dimension Code"; Code[20])
         {
+            ToolTip = 'Specifies the Dimension Code.';
             DataClassification = CustomerContent;
             TableRelation = Dimension.Code;
         }

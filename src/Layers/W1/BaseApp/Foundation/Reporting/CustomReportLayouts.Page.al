@@ -38,53 +38,44 @@ page 9650 "Custom Report Layouts"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = IsNotBuiltIn;
-                    ToolTip = 'Specifies the Code.';
                     Visible = false;
                 }
                 field("Report ID"; Rec."Report ID")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = false;
-                    ToolTip = 'Specifies the object ID of the report.';
                 }
                 field("Report Name"; Rec."Report Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = false;
-                    ToolTip = 'Specifies the name of the report.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the report layout.';
                 }
                 field("Company Name"; Rec."Company Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the Business Central company that the report layout applies to. You to create report layouts that can only be used on reports when they are run for a specific to a company. If the field is blank, then the layout will be available for use in all companies.';
                 }
                 field("Built-In"; Rec."Built-In")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = false;
-                    ToolTip = 'Specifies if the report layout is built-in or not.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the file type of the report layout. The following table includes the types that are available:';
                 }
                 field("Last Modified"; Rec."Last Modified")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date and time of the last change to the report layout entry.';
                     Visible = false;
                 }
                 field("Last Modified by User"; Rec."Last Modified by User")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the user who made the last change to the report layout entry.';
                     Visible = false;
 
                     trigger OnDrillDown()

@@ -48,6 +48,7 @@ table 742 "VAT Statement Report Line"
         field(4; "Row No."; Code[10])
         {
             Caption = 'Row No.';
+            ToolTip = 'Specifies a number that identifies the line.';
         }
         /// <summary>
         /// Description text for the VAT statement line explaining its purpose.
@@ -55,6 +56,7 @@ table 742 "VAT Statement Report Line"
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the VAT report statement.';
         }
         /// <summary>
         /// Box number or field identifier used for electronic VAT return mapping.
@@ -62,6 +64,7 @@ table 742 "VAT Statement Report Line"
         field(6; "Box No."; Text[30])
         {
             Caption = 'Box No.';
+            ToolTip = 'Specifies the number on the box that the VAT statement applies to.';
         }
         /// <summary>
         /// Base amount calculated for this VAT statement line from underlying transactions.
@@ -71,6 +74,7 @@ table 742 "VAT Statement Report Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Base';
+            ToolTip = 'Specifies the amount that the VAT amount in the amount is calculated from.';
             Editable = false;
         }
         /// <summary>
@@ -81,6 +85,7 @@ table 742 "VAT Statement Report Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount of the entry in the report statement.';
             Editable = false;
         }
         /// <summary>
@@ -89,6 +94,7 @@ table 742 "VAT Statement Report Line"
         field(9; Note; Text[250])
         {
             Caption = 'Note';
+            ToolTip = 'Specifies any text that you want to add to the specific line.';
         }
     }
 

@@ -21,7 +21,7 @@ page 6700 "Exchange Sync. Setup"
     ObsoleteState = Pending;
     ObsoleteTag = '28.0';
 
-    UsageCategory = Administration;
+    UsageCategory = None;
 
     layout
     {

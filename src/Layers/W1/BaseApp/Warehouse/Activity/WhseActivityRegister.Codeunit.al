@@ -1887,15 +1887,17 @@ codeunit 7307 "Whse.-Activity-Register"
         OnAfterUpdateSourceDocumentForInvtMovement(WhseActivityLine);
     end;
 
-    local procedure AutoReserveForSalesLine(var TempWhseActivLineToReserve: Record "Warehouse Activity Line" temporary; var TempReservEntryBefore: Record "Reservation Entry" temporary; var TempReservEntryAfter: Record "Reservation Entry" temporary)
+    local procedure AutoReserveForSalesLine(var TempWhseActivLineToReserve: Record "Warehouse Activity Line" temporary; var TempReservEntryAfterSync: Record "Reservation Entry" temporary)
     var
         SalesLine: Record "Sales Line";
         WhseItemTrackingSetup: Record "Item Tracking Setup";
+        WhseItemTrkgLine: Record "Whse. Item Tracking Line";
         ReservMgt: Codeunit "Reservation Management";
         FullAutoReservation: Boolean;
         IsHandled: Boolean;
         QtyToReserve: Decimal;
         QtyToReserveBase: Decimal;
+        MaxQtyToReserveBase: Decimal;
     begin
         IsHandled := false;
         OnBeforeAutoReserveForSalesLine(TempWhseActivLineToReserve, IsHandled);
@@ -1908,17 +1910,27 @@ codeunit 7307 "Whse.-Activity-Register"
                 if TempWhseActivLineToReserve.HasRequiredTracking(WhseItemTrackingSetup) then begin
                     SalesLine.Get(TempWhseActivLineToReserve."Source Subtype", TempWhseActivLineToReserve."Source No.", TempWhseActivLineToReserve."Source Line No.");
 
-                    TempReservEntryBefore.SetSourceFilter(TempWhseActivLineToReserve."Source Type", TempWhseActivLineToReserve."Source Subtype", TempWhseActivLineToReserve."Source No.", TempWhseActivLineToReserve."Source Line No.", true);
-                    TempReservEntryBefore.SetTrackingFilterFromWhseActivityLine(TempWhseActivLineToReserve);
-                    TempReservEntryBefore.CalcSums(Quantity, "Quantity (Base)");
+                    QtyToReserveBase := TempWhseActivLineToReserve."Qty. to Handle (Base)";
+                    QtyToReserve := TempWhseActivLineToReserve."Qty. to Handle";
 
-                    TempReservEntryAfter.CopyFilters(TempReservEntryBefore);
-                    TempReservEntryAfter.CalcSums(Quantity, "Quantity (Base)");
+                    if QtyToReserveBase > 0 then begin
+                        TempReservEntryAfterSync.SetSourceFilter(TempWhseActivLineToReserve."Source Type", TempWhseActivLineToReserve."Source Subtype", TempWhseActivLineToReserve."Source No.", TempWhseActivLineToReserve."Source Line No.", true);
+                        TempReservEntryAfterSync.SetTrackingFilterFromWhseActivityLine(TempWhseActivLineToReserve);
+                        TempReservEntryAfterSync.CalcSums("Quantity (Base)");
 
-                    QtyToReserve :=
-                      TempWhseActivLineToReserve."Qty. to Handle" + (TempReservEntryAfter.Quantity - TempReservEntryBefore.Quantity);
-                    QtyToReserveBase :=
-                      TempWhseActivLineToReserve."Qty. to Handle (Base)" + (TempReservEntryAfter."Quantity (Base)" - TempReservEntryBefore."Quantity (Base)");
+                        SetPointerFilter(TempWhseActivLineToReserve, WhseItemTrkgLine);
+                        WhseItemTrkgLine.SetTrackingFilterFromWhseActivityLine(TempWhseActivLineToReserve);
+                        WhseItemTrkgLine.CalcSums("Qty. Registered (Base)");
+
+                        MaxQtyToReserveBase := WhseItemTrkgLine."Qty. Registered (Base)" - (-TempReservEntryAfterSync."Quantity (Base)");
+                        if MaxQtyToReserveBase < 0 then
+                            MaxQtyToReserveBase := 0;
+
+                        if QtyToReserveBase > MaxQtyToReserveBase then begin
+                            QtyToReserveBase := MaxQtyToReserveBase;
+                            QtyToReserve := TempWhseActivLineToReserve.CalcQty(QtyToReserveBase);
+                        end;
+                    end;
 
                     if not IsSalesLineCompletelyReserved(SalesLine) and (QtyToReserve > 0) then begin
                         ReservMgt.SetReservSource(SalesLine);
@@ -1971,7 +1983,6 @@ codeunit 7307 "Whse.-Activity-Register"
 
     local procedure SyncItemTrackingAndReserveSourceDocument(var TempWhseActivLineToReserve: Record "Warehouse Activity Line" temporary)
     var
-        TempReservEntryBeforeSync: Record "Reservation Entry" temporary;
         TempReservEntryAfterSync: Record "Reservation Entry" temporary;
     begin
         if not TempWhseActivLineToReserve.FindFirst() then begin
@@ -1983,10 +1994,9 @@ codeunit 7307 "Whse.-Activity-Register"
             "Warehouse Activity Source Document"::"Sales Order":
                 begin
                     CheckAndRemoveOrderToOrderBinding(TempWhseActivLineToReserve);
-                    CollectReservEntries(TempReservEntryBeforeSync, TempWhseActivLineToReserve);
                     SyncItemTracking();
                     CollectReservEntries(TempReservEntryAfterSync, TempWhseActivLineToReserve);
-                    AutoReserveForSalesLine(TempWhseActivLineToReserve, TempReservEntryBeforeSync, TempReservEntryAfterSync);
+                    AutoReserveForSalesLine(TempWhseActivLineToReserve, TempReservEntryAfterSync);
                 end;
         end;
 

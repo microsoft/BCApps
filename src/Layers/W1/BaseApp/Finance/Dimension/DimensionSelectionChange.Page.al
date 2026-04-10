@@ -35,29 +35,24 @@ page 567 "Dimension Selection-Change"
                 field(Selected; Rec.Selected)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies that this dimension will be included.';
                 }
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the code for the dimension.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies a description of the dimension.';
                 }
                 field("Dimension Value Filter"; Rec."Dimension Value Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value that the analysis view is based on.';
                 }
                 field("New Dimension Value Code"; Rec."New Dimension Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the new dimension value to that you are changing to.';
                 }
             }
         }

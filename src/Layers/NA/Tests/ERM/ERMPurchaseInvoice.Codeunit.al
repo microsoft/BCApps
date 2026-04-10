@@ -3241,6 +3241,7 @@
         VATPostingSetup: Record "VAT Posting Setup";
         PostedInvoiceNo: Code[20];
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 620803] Printing/Sending of documents with removed SalesPerson/Purchaser Codes is not possible.
         Initialize();
 

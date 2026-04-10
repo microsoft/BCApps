@@ -9,6 +9,8 @@ using System.Reflection;
 
 page 347 "Report Selection - Purchase"
 {
+    AboutTitle = 'About report selection for purchases';
+    AboutText = 'On this page, you set up the default reports that are used when printing or emailing purchase documents such as orders, invoices, and credit memos. Use the Usage field to select the type of document, then specify which reports to use in the list below.';
     ApplicationArea = Basic, Suite;
     Caption = 'Report Selection - Purchase';
     PageType = Worksheet;
@@ -38,44 +40,53 @@ page 347 "Report Selection - Purchase"
                 field(Sequence; Rec.Sequence)
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies a number that indicates where this report is in the printing order.';
                 }
                 field("Report ID"; Rec."Report ID")
                 {
                     ApplicationArea = Basic, Suite;
                     LookupPageID = Objects;
+                    ToolTip = 'Specifies the object ID of the report.';
                 }
                 field("Report Caption"; Rec."Report Caption")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
                     LookupPageID = Objects;
+                    ToolTip = 'Specifies the display name of the report.';
                 }
                 field("Use for Email Body"; Rec."Use for Email Body")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies that summarized information, such as invoice number, due date, and payment service link, will be inserted in the body of the email that you send.';
                 }
                 field("Use for Email Attachment"; Rec."Use for Email Attachment")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies that the related document will be attached to the email.';
                 }
                 field(EmailBodyName; Rec."Email Body Layout Name")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the name of the email body layout that is used.';
                     Visible = false;
                 }
                 field(EmailBodyPublisher; Rec."Email Body Layout Publisher")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the publisher of the email body layout that is used.';
                     Visible = false;
                 }
                 field(ReportLayoutName; Rec."Report Layout Name")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the name of the report layout that is used.';
                     Visible = false;
                 }
                 field(EmailLayoutCaption; Rec."Email Body Layout Caption")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the email body layout that is used.';
 
                     trigger OnDrillDown()
                     begin
@@ -86,6 +97,7 @@ page 347 "Report Selection - Purchase"
                 field(ReportLayoutCaption; Rec."Report Layout Caption")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the report layout that is used.';
 
                     trigger OnDrillDown()
                     begin
@@ -96,16 +108,19 @@ page 347 "Report Selection - Purchase"
                 field(ReportLayoutPublisher; Rec."Report Layout Publisher")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the publisher of the report layout that is used.';
                     Visible = false;
                 }
                 field("Email Body Layout Code"; Rec."Email Body Layout Code")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the ID of the custom email body layout that is used.';
                     Visible = false;
                 }
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies a description of the custom email body layout that is used.';
                     Visible = false;
 
 #if not CLEAN28

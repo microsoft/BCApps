@@ -15,8 +15,6 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
     var
         DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
         ProductionDocumentAttachmentFeatureTelemetryNameLbl: Label 'Production Document Attachment', Locked = true;
-        CopyAttachmentLbl: Label 'Copy Attachment From %1 to %2.', Comment = '%1 = From Table Caption, %2 = To Table Caption ';
-        DeleteAttachmentLbl: Label 'Delete Attachment From %1.', Comment = '%1 = From Table Caption';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Document Attachment Mgmt", 'OnAfterIsProductionDocumentFlow', '', true, false)]
     local procedure OnAfterIsProductionDocumentFlow(TableNo: Integer; var IsDocumentFlow: Boolean)
@@ -269,6 +267,7 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
         Item: Record Item;
         ProductionBOMHeader: Record "Production BOM Header";
         RoutingHeader: Record "Routing Header";
+        DocumentAttachment: Record "Document Attachment";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if (Rec."Line No." = 0) or IsNullGuid(Rec.SystemId) then
@@ -284,26 +283,24 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             exit;
 
         DocumentAttachmentMgmt.CopyAttachments(Item, Rec);
-        FeatureTelemetry.LogUptake('0000OC5', GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000OCF', GetFeatureTelemetryName(), StrSubstNo(CopyAttachmentLbl, Item.TableCaption(), Rec.TableCaption()));
 
         if Rec."Routing No." <> '' then
-            if RoutingHeader.Get(Rec."Routing No.") then begin
+            if RoutingHeader.Get(Rec."Routing No.") then
                 DocumentAttachmentMgmt.CopyAttachments(RoutingHeader, Rec);
-                FeatureTelemetry.LogUsage('0000OF7', GetFeatureTelemetryName(), StrSubstNo(CopyAttachmentLbl, RoutingHeader.TableCaption(), Rec.TableCaption()));
-            end;
 
         if Rec."Production BOM No." <> '' then
-            if ProductionBOMHeader.Get(Rec."Production BOM No.") then begin
+            if ProductionBOMHeader.Get(Rec."Production BOM No.") then
                 DocumentAttachmentMgmt.CopyAttachments(ProductionBOMHeader, Rec);
-                FeatureTelemetry.LogUsage('0000OF8', GetFeatureTelemetryName(), StrSubstNo(CopyAttachmentLbl, ProductionBOMHeader.TableCaption(), Rec.TableCaption()));
-            end;
+
+        DocumentAttachment.SetRange("Table ID", Database::"Prod. Order Line");
+        DocumentAttachment.SetRange("No.", Rec."Prod. Order No.");
+        DocumentAttachment.SetRange("Line No.", Rec."Line No.");
+        if not DocumentAttachment.IsEmpty() then
+            FeatureTelemetry.LogUptake('0000OC5', GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", OnAfterValidateEvent, "Item No.", true, false)]
     local procedure DocumentAttachmentFlow_ForProdOrderLineNoChange(var Rec: Record "Prod. Order Line"; var xRec: Record "Prod. Order Line")
-    var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if (Rec."Line No." = 0) or IsNullGuid(Rec.SystemId) then
             exit;
@@ -315,16 +312,11 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             exit;
 
         DocumentAttachmentMgmt.DeleteAttachedDocuments(xRec, false);
-        FeatureTelemetry.LogUptake('0000OC6', GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000OCH', GetFeatureTelemetryName(), StrSubstNo(DeleteAttachmentLbl, xRec.TableCaption()));
-
         DocumentAttachmentFlow_ForProdOrderLineInsert(Rec, true);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", OnAfterValidateEvent, "Production BOM No.", true, false)]
     local procedure DocumentAttachmentFlow_ForProdOrderBomInsert(var Rec: Record "Prod. Order Line"; var xRec: Record "Prod. Order Line")
-    var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if (Rec."Line No." = 0) or IsNullGuid(Rec.SystemId) then
             exit;
@@ -336,16 +328,11 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             exit;
 
         DocumentAttachmentMgmt.DeleteAttachedDocuments(xRec, false);
-        FeatureTelemetry.LogUptake('0000OC7', GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000OCI', GetFeatureTelemetryName(), StrSubstNo(DeleteAttachmentLbl, xRec.TableCaption()));
-
         DocumentAttachmentFlow_ForProdOrderLineInsert(Rec, true);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", OnAfterValidateEvent, "Routing No.", true, false)]
     local procedure DocumentAttachmentFlow_ForRoutingNoInsert(var Rec: Record "Prod. Order Line"; var xRec: Record "Prod. Order Line")
-    var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if (Rec."Line No." = 0) or IsNullGuid(Rec.SystemId) then
             exit;
@@ -357,9 +344,6 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
             exit;
 
         DocumentAttachmentMgmt.DeleteAttachedDocuments(xRec, false);
-        FeatureTelemetry.LogUptake('0000OC9', GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000OCK', GetFeatureTelemetryName(), StrSubstNo(DeleteAttachmentLbl, xRec.TableCaption()));
-
         DocumentAttachmentFlow_ForProdOrderLineInsert(Rec, true);
     end;
 
@@ -394,41 +378,62 @@ codeunit 99000783 "Prod. Document Attachment Mgt."
     [EventSubscriber(ObjectType::Table, Database::"Production Order", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteProductionOrder(var Rec: Record "Production Order"; RunTrigger: Boolean)
     var
+        DocumentAttachment: Record "Document Attachment";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
+        DocumentAttachment.SetRange("Table ID", Database::"Production Order");
+        DocumentAttachment.SetRange("No.", Rec."No.");
+        if DocumentAttachment.IsEmpty() then
+            exit;
+
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
         FeatureTelemetry.LogUptake('0000OCB', GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000OCM', GetFeatureTelemetryName(), StrSubstNo(DeleteAttachmentLbl, Rec.TableCaption()));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Line", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteProdOrderLine(var Rec: Record "Prod. Order Line"; RunTrigger: Boolean)
     var
+        DocumentAttachment: Record "Document Attachment";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
+        DocumentAttachment.SetRange("Table ID", Database::"Prod. Order Line");
+        DocumentAttachment.SetRange("No.", Rec."Prod. Order No.");
+        DocumentAttachment.SetRange("Line No.", Rec."Line No.");
+        if DocumentAttachment.IsEmpty() then
+            exit;
+
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
         FeatureTelemetry.LogUptake('0000OCC', GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000OCN', GetFeatureTelemetryName(), StrSubstNo(DeleteAttachmentLbl, Rec.TableCaption()));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Routing Header", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteRoutingHeader(var Rec: Record "Routing Header"; RunTrigger: Boolean)
     var
+        DocumentAttachment: Record "Document Attachment";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
+        DocumentAttachment.SetRange("Table ID", Database::"Routing Header");
+        DocumentAttachment.SetRange("No.", Rec."No.");
+        if DocumentAttachment.IsEmpty() then
+            exit;
+
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
         FeatureTelemetry.LogUptake('0000OCD', GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000OCO', GetFeatureTelemetryName(), StrSubstNo(DeleteAttachmentLbl, Rec.TableCaption()));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Production BOM Header", 'OnAfterDeleteEvent', '', true, false)]
     local procedure DeleteAttachedDocumentsOnAfterDeleteProductionBOM(var Rec: Record "Production BOM Header"; RunTrigger: Boolean)
     var
+        DocumentAttachment: Record "Document Attachment";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
+        DocumentAttachment.SetRange("Table ID", Database::"Production BOM Header");
+        DocumentAttachment.SetRange("No.", Rec."No.");
+        if DocumentAttachment.IsEmpty() then
+            exit;
+
         DocumentAttachmentMgmt.DeleteAttachedDocuments(Rec, false);
         FeatureTelemetry.LogUptake('0000OCE', GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000OCP', GetFeatureTelemetryName(), StrSubstNo(DeleteAttachmentLbl, Rec.TableCaption()));
     end;
 
     local procedure TransformAttachmentDocumentTypeValue(TableNo: Integer; var AttachmentDocumentType: Enum "Attachment Document Type")

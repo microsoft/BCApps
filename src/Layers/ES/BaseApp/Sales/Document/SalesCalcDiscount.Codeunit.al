@@ -300,7 +300,12 @@ codeunit 60 "Sales-Calc. Discount"
                 SalesLine2.SetSalesHeader(SalesHeader);
                 SalesLine2.UpdateVATOnLines(0, SalesHeader, SalesLine2, TempVATAmountLine);
                 UpdatePrepmtLineAmount(SalesHeader);
-            end;
+            end else
+                if GLSetup."Payment Discount Type" = GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines" then begin
+                    SalesLine2.CalcVATAmountLines(0, SalesHeader, SalesLine2, TempVATAmountLine);
+                    SalesLine2.SetSalesHeader(SalesHeader);
+                    SalesLine2.UpdateVATOnLines(0, SalesHeader, SalesLine2, TempVATAmountLine);
+                end;
 
         SalesCalcDiscountByType.ResetRecalculateInvoiceDisc(SalesHeader);
         OnAfterCalcSalesDiscount(SalesHeader, TempVATAmountLine, SalesLine2);

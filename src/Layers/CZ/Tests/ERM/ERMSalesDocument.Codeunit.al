@@ -59,6 +59,7 @@
         QtyHandleMustSameErr: Label 'Qty to handle must equal';
         CannotRenameItemErr: Label 'You cannot rename %1 in a %2 because it is used in Sales Document lines.';
         CurrencyFactorErr: Label 'Currency Factor should be set when Currency Code is not empty';
+        DeleteCustSalesDocExistsErr: Label 'The salesperson/purchaser %1 cannot be deleted because customer ledger entries exist.', Comment = '%1 = Salesperson/Purchaser code.';
 
     [Test]
     [Scope('OnPrem')]
@@ -5079,6 +5080,38 @@
         Assert.AreNotEqual(0, SalesHeader."Currency Factor", CurrencyFactorErr);
     end;
 
+    [Test]
+    procedure PrintSendDocumentsWithRemovedSalesPersonPurchaserCodesIsNotPossible()
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalespersonPurchaser1: Record "Salesperson/Purchaser";
+        VATPostingSetup: Record "VAT Posting Setup";
+        PostedInvoiceNo: Code[20];
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 620803] Printing/Sending of documents with removed SalesPerson/Purchaser Codes is not possible.
+        Initialize();
+
+        //[GIVEN] Create Sales setup
+        FindVATPostingSetup(VATPostingSetup);
+
+        //[GIVEN] Create Salesperson/Purchaser
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+
+        //[GIVEN] Create and Post Sales Invoice with Salesperson Code.
+        PostedInvoiceNo := CreateAndPostSalesInvoice(CreateCustomer(), SalespersonPurchaser.Code);
+
+
+        //[THEN] Remove Salesperson/Purchaser Code
+        SalespersonPurchaser1.SetRange(Code, SalespersonPurchaser.Code);
+        if SalespersonPurchaser1.FindFirst() then
+            asserterror SalespersonPurchaser1.Delete(true);
+
+        Assert.ExpectedError(
+      StrSubstNo(
+        DeleteCustSalesDocExistsErr, SalespersonPurchaser1.Code));
+    end;
+
     local procedure Initialize()
     var
         AllProfile: Record "All Profile";
@@ -7141,6 +7174,19 @@
     begin
         ReservMgt.SetReservSource(SalesLine);
         ReservMgt.AutoReserve(FullAutoReservation, '', SalesLine."Shipment Date", SalesLine.Quantity, SalesLine."Quantity (Base)");
+    end;
+
+    local procedure CreateAndPostSalesInvoice(CustomerNo: Code[20]; SalespersonCode: Code[20]) PostedDocumentNo: Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // Take Random Quantity for Sales Invoice.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(), LibraryRandom.RandInt(10));
+        SalesHeader.Validate("Salesperson Code", SalespersonCode);
+        SalesHeader.Modify(true);
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
     end;
 
     [PageHandler]

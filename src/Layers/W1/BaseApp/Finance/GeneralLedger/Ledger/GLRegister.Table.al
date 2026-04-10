@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ table 45 "G/L Register"
         field(1; "No."; Integer)
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the general ledger register.';
         }
         /// <summary>
         /// First G/L entry number in this posting batch.
@@ -40,6 +41,7 @@ table 45 "G/L Register"
         field(2; "From Entry No."; Integer)
         {
             Caption = 'From Entry No.';
+            ToolTip = 'Specifies the first general ledger entry number in the register.';
             TableRelation = "G/L Entry";
         }
         /// <summary>
@@ -48,6 +50,7 @@ table 45 "G/L Register"
         field(3; "To Entry No."; Integer)
         {
             Caption = 'To Entry No.';
+            ToolTip = 'Specifies the last general ledger entry number in the register.';
             TableRelation = "G/L Entry";
         }
         /// <summary>
@@ -56,6 +59,7 @@ table 45 "G/L Register"
         field(4; "Creation Date"; Date)
         {
             Caption = 'Creation Date';
+            ToolTip = 'Specifies the date when the entries in the register were posted.';
         }
         /// <summary>
         /// Source code indicating the journal or process that created this register.
@@ -63,6 +67,7 @@ table 45 "G/L Register"
         field(5; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code for the entries in the register.';
             TableRelation = "Source Code";
         }
         /// <summary>
@@ -71,6 +76,7 @@ table 45 "G/L Register"
         field(6; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
@@ -80,6 +86,7 @@ table 45 "G/L Register"
         field(7; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
+            ToolTip = 'Specifies the batch name of the general journal that the entries were posted from.';
         }
         /// <summary>
         /// First VAT entry number in this posting batch.
@@ -87,6 +94,7 @@ table 45 "G/L Register"
         field(8; "From VAT Entry No."; Integer)
         {
             Caption = 'From VAT Entry No.';
+            ToolTip = 'Specifies the first VAT entry number in the register.';
             TableRelation = "VAT Entry";
         }
         /// <summary>
@@ -95,6 +103,7 @@ table 45 "G/L Register"
         field(9; "To VAT Entry No."; Integer)
         {
             Caption = 'To VAT Entry No.';
+            ToolTip = 'Specifies the last entry number in the register.';
             TableRelation = "VAT Entry";
         }
         /// <summary>
@@ -103,6 +112,7 @@ table 45 "G/L Register"
         field(10; Reversed; Boolean)
         {
             Caption = 'Reversed';
+            ToolTip = 'Specifies if the register has been reversed (undone) from the Reverse Entries window.';
         }
         /// <summary>
         /// The Creation Time field has been replaced with the SystemCreateAt field but needs to be kept for historical audit purposes.
@@ -110,6 +120,7 @@ table 45 "G/L Register"
         field(11; "Creation Time"; Time)
         {
             Caption = 'Creation Time';
+            ToolTip = 'Specifies the time when the entries in the register were posted.';
         }
         /// <summary>
         /// Journal template name from the original journal that created this register.

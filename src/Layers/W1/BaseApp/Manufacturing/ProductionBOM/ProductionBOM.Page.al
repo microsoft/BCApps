@@ -150,28 +150,6 @@ page 99000786 "Production BOM"
                         RefreshActiveVersionCode();
                     end;
                 }
-#if not CLEAN26
-                action("Ma&trix per Version")
-                {
-                    ApplicationArea = Manufacturing;
-                    Caption = 'Ma&trix per Version';
-                    Image = ProdBOMMatrixPerVersion;
-                    ObsoleteReason = 'Replaced by "Prod. BOM Version Comparison"';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    ToolTip = 'View a list of all versions and items and the used quantity per item of a production BOM. You can use the matrix to compare different production BOM versions concerning the used items per version.';
-
-                    trigger OnAction()
-                    var
-                        ProdBOMMatrixPerVersion: Page "Prod. BOM Matrix per Version";
-                    begin
-                        ProdBOMMatrixPerVersion.Set(Rec);
-                        ProdBOMMatrixPerVersion.RunModal();
-                        Clear(ProdBOMMatrixPerVersion);
-                    end;
-                }
-#endif
                 action("Prod. BOM Version Comparison")
                 {
                     ApplicationArea = Manufacturing;
@@ -259,15 +237,6 @@ page 99000786 "Production BOM"
                 actionref("Copy &BOM_Promoted"; "Copy &BOM")
                 {
                 }
-#if not CLEAN26
-                actionref("Ma&trix per Version_Promoted"; "Ma&trix per Version")
-                {
-                    ObsoleteReason = 'Replaced by "Prod. BOM Version Comparison"';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                }
-#endif
                 actionref("Prod. BOM Version Comparison_Promoted"; "Prod. BOM Version Comparison")
                 {
                 }

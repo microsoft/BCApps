@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ page 551 "VAT Prod. Posting Group Conv."
                 field("From Code"; Rec."From Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the current VAT product posting group that will be changed in connection with the VAT rate conversion.';
                 }
                 field("To Code"; Rec."To Code")
                 {
@@ -38,7 +37,6 @@ page 551 "VAT Prod. Posting Group Conv."
                 field("Converted Date"; Rec."Converted Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date on which the VAT rate change conversion was performed.';
                 }
             }
         }

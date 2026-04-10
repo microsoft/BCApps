@@ -9,12 +9,11 @@ using Microsoft.Purchases.Vendor;
 
 report 329 "Vendor - Trial Balance"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/VendorTrialBalance.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor - Trial Balance';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -151,6 +150,16 @@ report 329 "Vendor - Trial Balance"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/VendorTrialBalance.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

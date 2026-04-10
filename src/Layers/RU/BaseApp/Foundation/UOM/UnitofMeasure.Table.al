@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,15 +22,18 @@ table 204 "Unit of Measure"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the unit of measure, which you can select on item and resource cards from where it is copied to.';
             NotBlank = true;
         }
         field(2; Description; Text[50])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the unit of measure.';
         }
         field(3; "International Standard Code"; Code[10])
         {
             Caption = 'International Standard Code';
+            ToolTip = 'Specifies the unit of measure code expressed according to the UNECERec20 standard in connection with electronic sending of sales documents. For example, when sending sales documents through the PEPPOL service, the value in this field is used to populate the UnitCode element in the Product group.';
         }
         field(4; Symbol; Text[10])
         {
@@ -55,6 +58,7 @@ table 204 "Unit of Measure"
         {
             FieldClass = FlowField;
             Caption = 'Coupled to Dynamics 365 Sales';
+            ToolTip = 'Specifies that the unit of measure is coupled to a unit group in Dynamics 365 Sales.';
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::"Unit of Measure")));
         }

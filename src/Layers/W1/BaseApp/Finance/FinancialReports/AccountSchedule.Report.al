@@ -382,13 +382,13 @@ report 25 "Account Schedule"
                     group("Layout")
                     {
                         Caption = 'Layout';
-                        Visible = AccSchedNameEditable;
 
                         field(FinancialReport; FinancialReportName)
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Financial Report';
                             Editable = AccSchedNameEditable;
+                            Visible = AccSchedNameEditable;
                             Importance = Promoted;
                             Lookup = true;
                             ShowMandatory = true;
@@ -429,6 +429,7 @@ report 25 "Account Schedule"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Row Definition';
                             Editable = AccSchedNameEditable;
+                            Visible = AccSchedNameEditable;
                             Importance = Additional;
                             Lookup = true;
                             ShowMandatory = true;
@@ -453,6 +454,7 @@ report 25 "Account Schedule"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Column Definition';
                             Editable = AccSchedNameEditable;
+                            Visible = AccSchedNameEditable;
                             Importance = Additional;
                             Lookup = true;
                             ShowMandatory = true;
@@ -484,7 +486,6 @@ report 25 "Account Schedule"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Dimension Perspective';
-                            Editable = AccSchedNameEditable;
                             Importance = Additional;
                             TableRelation = "Dimension Perspective Name";
                             ToolTip = 'Specifies the name (code) of the dimension perspective to be used for the report (default is the one used in the report definition, but you can override this here).';
@@ -1475,7 +1476,8 @@ report 25 "Account Schedule"
                 AccSchedName := AccSchedNameHidden;
             if ColumnLayoutNameHidden <> '' then
                 ColumnLayoutName := ColumnLayoutNameHidden;
-            DimPerspectiveNameText := '';
+            if not RunForExport then
+                DimPerspectiveNameText := '';
             if DimPerspectiveNameTextHidden <> '' then
                 DimPerspectiveNameText := DimPerspectiveNameTextHidden;
             if DateFilterHidden <> '' then
@@ -1511,8 +1513,6 @@ report 25 "Account Schedule"
             AccSchedName := FinancialReportLocal."Financial Report Row Group";
         if ColumnLayoutName = '' then
             ColumnLayoutName := FinancialReportLocal."Financial Report Column Group";
-        if DimPerspectiveNameText = '' then
-            DimPerspectiveNameText := FinancialReportLocal.DimPerspective;
 
         if AccSchedName <> '' then
             if not AccScheduleName.Get(AccSchedName) then

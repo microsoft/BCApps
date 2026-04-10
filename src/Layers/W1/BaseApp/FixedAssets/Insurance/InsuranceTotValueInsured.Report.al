@@ -10,11 +10,10 @@ using Microsoft.FixedAssets.Setup;
 
 report 5625 "Insurance - Tot. Value Insured"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Insurance/InsuranceTotValueInsured.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Total Value Insured';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -123,6 +122,16 @@ report 5625 "Insurance - Tot. Value Insured"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Insurance/InsuranceTotValueInsured.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ table 922 "G/L Acc. Balance/Budget Buffer"
         field(6; "Period Name"; Text[50])
         {
             Caption = 'Period Name';
+            ToolTip = 'Specifies the name of the period that you want to view.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -40,6 +41,7 @@ table 922 "G/L Acc. Balance/Budget Buffer"
         field(7; "Period Start"; Date)
         {
             Caption = 'Period Start';
+            ToolTip = 'Specifies the starting date of the period that you want to view.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -60,6 +62,7 @@ table 922 "G/L Acc. Balance/Budget Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the total of the debit entries that have been posted to the account.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -71,6 +74,7 @@ table 922 "G/L Acc. Balance/Budget Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the total of the credit entries that have been posted to the account.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -82,6 +86,7 @@ table 922 "G/L Acc. Balance/Budget Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Net Change';
+            ToolTip = 'Specifies the net change in the account balance during the time period in the Date Filter field.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -93,6 +98,7 @@ table 922 "G/L Acc. Balance/Budget Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Budgeted Debit Amount';
+            ToolTip = 'Specifies the total of the budget debit entries that have been posted to the account.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -104,6 +110,7 @@ table 922 "G/L Acc. Balance/Budget Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Budgeted Credit Amount';
+            ToolTip = 'Specifies the total of the budget credit entries that have been posted to the account.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -115,6 +122,7 @@ table 922 "G/L Acc. Balance/Budget Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Budgeted Amount';
+            ToolTip = 'Specifies the total of the budget entries that have been posted to the account.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -125,6 +133,7 @@ table 922 "G/L Acc. Balance/Budget Buffer"
         {
             AutoFormatType = 0;
             Caption = 'Balance/Budget (%)';
+            ToolTip = 'Specifies a summary of the debit and credit balances and the budgeted amounts for different time periods for the account that you select in the chart of accounts.';
             DataClassification = SystemMetadata;
         }
     }

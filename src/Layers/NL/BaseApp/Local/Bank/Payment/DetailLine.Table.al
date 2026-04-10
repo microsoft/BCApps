@@ -104,7 +104,7 @@ table 11000003 "Detail Line"
                             FillVendorDescription(CompanyInfo, Vend);
 
                             IsHandled := false;
-                            OnValidateSerialNoEntryOnBeforeValidateAmountFromVendLedgEntry(Rec, TrMode, VendLedgEntry, IsHandled);
+                            OnValidateSerialNoEntryOnBeforeValidateAmountFromVendLedgEntry(Rec, TrMode, VendLedgEntry, CurrFieldNo, IsHandled);
                             if not IsHandled then
                                 if TrMode."Pmt. Disc. Possible" and
                                 (VendLedgEntry."Remaining Pmt. Disc. Possible" <> 0) and
@@ -732,7 +732,7 @@ table 11000003 "Detail Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnValidateSerialNoEntryOnBeforeValidateAmountFromVendLedgEntry(var DetailLineRec: Record "Detail Line"; TrMode: Record "Transaction Mode"; VendLedgEntry: Record "Vendor Ledger Entry"; var IsHandled: Boolean)
+    local procedure OnValidateSerialNoEntryOnBeforeValidateAmountFromVendLedgEntry(var DetailLineRec: Record "Detail Line"; TrMode: Record "Transaction Mode"; VendLedgEntry: Record "Vendor Ledger Entry"; CurrFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 

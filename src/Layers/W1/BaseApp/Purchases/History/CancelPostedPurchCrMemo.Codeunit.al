@@ -316,7 +316,13 @@ codeunit 1402 "Cancel Posted Purch. Cr. Memo"
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         PostingDate: Date;
         PostingNoSeries: Code[20];
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeTestIfAnyFreeNumberSeries(PurchCrMemoHdr, IsHandled);
+        if IsHandled then
+           exit;
+
         PostingDate := WorkDate();
         PurchasesPayablesSetup.Get();
 
@@ -605,6 +611,11 @@ codeunit 1402 "Cancel Posted Purch. Cr. Memo"
 
     [IntegrationEvent(false, false)]
     local procedure OnTestIfAppliedCorrectlyBeforeCalcPartiallyApplied(var VendorLedgerEntry: Record "Vendor Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestIfAnyFreeNumberSeries(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var IsHandled: Boolean)
     begin
     end;
 }

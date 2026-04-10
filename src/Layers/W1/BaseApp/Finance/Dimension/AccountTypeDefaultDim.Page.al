@@ -30,7 +30,6 @@ page 541 "Account Type Default Dim."
                 field("Table ID"; Rec."Table ID")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a table ID for the account type if you are specifying default dimensions for an entire account type.';
 
                     trigger OnValidate()
                     begin
@@ -41,22 +40,18 @@ page 541 "Account Type Default Dim."
                 {
                     ApplicationArea = Dimensions;
                     DrillDown = false;
-                    ToolTip = 'Specifies the table name for the account type you wish to define a default dimension for.';
                 }
                 field("Dimension Value Code"; Rec."Dimension Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value code to suggest as the default dimension.';
                 }
                 field("Value Posting"; Rec."Value Posting")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies how default dimensions and their values must be used.';
                 }
                 field(AllowedValues; Rec."Allowed Values Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension values that can be used for the selected account.';
 
                     trigger OnAssistEdit()
                     var

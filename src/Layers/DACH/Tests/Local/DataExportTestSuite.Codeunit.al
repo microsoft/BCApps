@@ -22,6 +22,7 @@ codeunit 142007 "Data Export Test Suite"
         GLAccRenamedTxt: Label 'GLAcc22~1';
         FAAccRenamedTxt: Label 'FAAcc22~1';
         ItemAccRenamedTxt: Label 'Item 22~1';
+        GLRegisterSystemCreatedAtFieldErr: Label 'G/L Register SystemCreatedAt field must be configured correctly';
 
     [Test]
     [Scope('OnPrem')]
@@ -238,6 +239,40 @@ codeunit 142007 "Data Export Test Suite"
         DeleteDataExportRecord(GLAccRenamedTxt, GLAccRenamedTxt);
         DeleteDataExportRecord(FAAccRenamedTxt, FAAccRenamedTxt);
         DeleteDataExportRecord(ItemAccRenamedTxt, ItemAccRenamedTxt);
+    end;
+
+    [Test]
+    procedure VerifyGLRegisterCreatedAtFieldIsConfigured()
+    var
+        DataExportRecField: Record "Data Export Record Field";
+        GLRegister: Record "G/L Register";
+        DataExports: TestPage "Data Exports";
+        ExpectedFieldNo: Integer;
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 621112] G/L Register export configuration uses correct SystemCreatedAt field number
+        Initialize();
+
+        // [GIVEN] Data Export templates are created
+        DataExports.OpenEdit();
+        DataExports.Close();
+
+        // [WHEN] G/L Register data export record field is configured for Created At field
+        ExpectedFieldNo := GLRegister.FieldNo(SystemCreatedAt);
+
+        DataExportRecField.SetRange("Data Export Code", GLAccTxt);
+        DataExportRecField.SetRange("Data Exp. Rec. Type Code", GLAccTxt);
+        DataExportRecField.SetRange("Table No.", Database::"G/L Register");
+        DataExportRecField.SetRange("Line No.", 30000); // Line No for Created At field.
+        DataExportRecField.FindFirst();
+
+        // [THEN] Verify the field number should be SystemCreatedAt field number.
+        Assert.AreEqual(ExpectedFieldNo, DataExportRecField."Field No.", GLRegisterSystemCreatedAtFieldErr);
+
+        // tear down
+        DeleteDataExportRecord(GLAccTxt, GLAccTxt);
+        DeleteDataExportRecord(FAAccTxt, FAAccTxt);
+        DeleteDataExportRecord(ItemAccTxt, ItemAccTxt);
     end;
 
     local procedure Initialize()

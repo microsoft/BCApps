@@ -24,11 +24,10 @@ using System.Utilities;
 
 report 404 "Purchase - Quote"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Document/PurchaseQuote.rdlc';
     Caption = 'Purchase - Quote';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Purchase Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -746,6 +745,16 @@ report 404 "Purchase - Quote"
                     ArchiveDocument := true;
             end;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Document/PurchaseQuote.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

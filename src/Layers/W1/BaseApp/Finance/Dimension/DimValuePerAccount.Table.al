@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -44,6 +44,7 @@ table 356 "Dim. Value per Account"
         /// </summary>
         field(4; "Dimension Value Code"; Code[20])
         {
+            ToolTip = 'Specifies the code for the dimension value.';
         }
         /// <summary>
         /// Display name of the dimension value for user interface presentation.
@@ -53,6 +54,7 @@ table 356 "Dim. Value per Account"
             CalcFormula = lookup("Dimension Value".Name where("Dimension Code" = field("Dimension Code"),
                                                                Code = field("Dimension Value Code")));
             Caption = 'Dimension Value Name';
+            ToolTip = 'Specifies a descriptive name for the dimension value.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -85,6 +87,7 @@ table 356 "Dim. Value per Account"
         /// </summary>
         field(10; Allowed; Boolean)
         {
+            ToolTip = 'Specifies whether the related record can be posted in transactions.';
             InitValue = true;
 
             trigger OnValidate()

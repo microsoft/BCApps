@@ -20,9 +20,8 @@ using System.Utilities;
 /// </remarks>
 report 23 "G/L Document Nos."
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/GeneralLedger/Reports/GLDocumentNos.rdlc';
     Caption = 'G/L Document Nos.';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -182,6 +181,16 @@ report 23 "G/L Document Nos."
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/GeneralLedger/Reports/GLDocumentNos.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

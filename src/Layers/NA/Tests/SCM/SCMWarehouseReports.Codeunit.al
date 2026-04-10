@@ -907,7 +907,9 @@ codeunit 137305 "SCM Warehouse Reports"
         Commit();
         Customer.SetRange("No.", Customer."No.");
         LibraryVariableStorage.Enqueue(false);
+#if not CLEAN28
         LibraryVariableStorage.Enqueue(false);
+#endif
         REPORT.Run(REPORT::"Customer - Order Detail", true, false, Customer);
 
         // Verify.
@@ -3675,13 +3677,19 @@ codeunit 137305 "SCM Warehouse Reports"
     procedure CustomerOrderDetailRequestPageHandler(var CustomerOrderDetail: TestRequestPage "Customer - Order Detail")
     var
         ShowAmountInLCY: Variant;
+#if not CLEAN28
         NewPagePerCustomer: Variant;
+#endif
     begin
         LibraryVariableStorage.Dequeue(ShowAmountInLCY);
+#if not CLEAN28
         LibraryVariableStorage.Dequeue(NewPagePerCustomer);
+#endif
 
         CustomerOrderDetail.ShowAmountsInLCY.SetValue(ShowAmountInLCY);
+#if not CLEAN28
         CustomerOrderDetail.NewPagePerCustomer.SetValue(NewPagePerCustomer);
+#endif
         CustomerOrderDetail.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
@@ -3781,4 +3789,3 @@ codeunit 137305 "SCM Warehouse Reports"
         LibraryVariableStorage.Enqueue(ReportExecuted);
     end;
 }
-

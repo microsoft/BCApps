@@ -28,7 +28,10 @@ codeunit 1325 "Cancel PstdPurchInv (Yes/No)"
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
         IsHandled: Boolean;
     begin
-        CorrectPostedPurchInvoice.TestCorrectInvoiceIsAllowed(PurchInvHeader, true);
+        IsHandled := false;
+        OnCancelInvoiceOnBeforeTestCorrectInvoiceIsAllowed(PurchInvHeader, IsHandled);
+        if not IsHandled then
+            CorrectPostedPurchInvoice.TestCorrectInvoiceIsAllowed(PurchInvHeader, true);
         if Confirm(CancelPostedInvoiceQst) then
             if CorrectPostedPurchInvoice.CancelPostedInvoice(PurchInvHeader) then
                 if Confirm(OpenPostedCreditMemoQst) then begin
@@ -46,6 +49,11 @@ codeunit 1325 "Cancel PstdPurchInv (Yes/No)"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowPostedPurchaseCreditMemo(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCancelInvoiceOnBeforeTestCorrectInvoiceIsAllowed(var PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean)
     begin
     end;
 }

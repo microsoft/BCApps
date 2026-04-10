@@ -2168,6 +2168,7 @@ codeunit 137260 "SCM Inventory Item Tracking"
         LotNo: array[2] of Code[20];
         Quantity: array[2] of Decimal;
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 616927] Item Tracking Lines Quantity Not Updated After Posting pick
         Initialize();
 

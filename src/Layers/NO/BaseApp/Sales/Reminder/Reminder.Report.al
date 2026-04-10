@@ -242,9 +242,11 @@ report 117 Reminder
                 column(CompanyVATRegistrationNoCaption; CompanyInfo.GetVATRegistrationNumberLbl())
                 {
                 }
+#if not CLEAN29
                 column(EnterpriseClassification; CompanyInfo.GetEnterpriseClassification())
                 {
                 }
+#endif
                 column(KundeIDCaption; KundeTxt)
                 {
                 }
@@ -805,7 +807,7 @@ report 117 Reminder
                 TotalRemAmt := 0;
 
                 DocumentTools.GetKundeID(KundeTxt, KundeID, 3, "No.", "Customer No.");
-		OnAfterResetAmounts(VATInterest, AddFeeInclVAT, AddFeePerLineInclVAT);
+                OnAfterResetAmounts(VATInterest, AddFeeInclVAT, AddFeePerLineInclVAT);
             end;
 
             trigger OnPreDataItem()
@@ -1049,7 +1051,7 @@ report 117 Reminder
         ClosingTxt: Text;
         DescriptionTxt: Text;
         RemainingAmt: Text;
-     	ReportParametersInitialized: Boolean;
+        ReportParametersInitialized: Boolean;
         KundeTxt: Text;
         KundeID: Text[25];
 

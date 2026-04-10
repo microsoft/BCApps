@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,17 +23,14 @@ page 1707 "Deferral Sched. Arch. Subform"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the posting date for the entry.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the record.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the line''s net amount.';
                 }
             }
             group(Control8)

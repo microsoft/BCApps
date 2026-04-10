@@ -26,6 +26,7 @@ table 255 "VAT Statement Template"
         field(1; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the VAT statement template you are about to create.';
             NotBlank = true;
         }
         /// <summary>
@@ -34,6 +35,7 @@ table 255 "VAT Statement Template"
         field(2; Description; Text[80])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the VAT statement template.';
         }
         /// <summary>
         /// Page ID for the VAT statement interface associated with this template.

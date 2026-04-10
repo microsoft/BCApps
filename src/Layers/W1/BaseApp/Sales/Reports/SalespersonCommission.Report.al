@@ -17,11 +17,7 @@ report 115 "Salesperson - Commission"
 {
     ApplicationArea = Suite;
     Caption = 'Salesperson - Commission';
-#if not CLEAN27
-    DefaultRenderingLayout = Word;
-#else
     DefaultRenderingLayout = Excel;
-#endif
     UsageCategory = ReportsAndAnalysis;
 
     dataset
@@ -321,8 +317,10 @@ report 115 "Salesperson - Commission"
 
             trigger OnAfterGetRecord()
             begin
+#if not CLEAN28
                 if PrintOnlyOnePerPageReq then
                     PageGroupNo := PageGroupNo + 1;
+#endif
 
                 // Reset SubTotals for Word Layout
                 SubtotalsSales := 0;
@@ -389,12 +387,20 @@ report 115 "Salesperson - Commission"
                 group(Options)
                 {
                     Caption = 'Options';
+#if not CLEAN28
                     field(PrintOnlyOnePerPage; PrintOnlyOnePerPageReq)
                     {
                         ApplicationArea = Suite;
                         Caption = 'New Page per Person';
                         ToolTip = 'Specifies if each person''s information is printed on a new page if you have chosen two or more persons to be included in the report.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'The New Page per Person option is only supported by the RDLC layout which has been deprecated.';
+                        ObsoleteTag = '28.0';
+#if CLEAN27
+                        Visible = false;
+#endif
                     }
+#endif
                     // Used to set the Period on the report header across multiple languages
                     field(RequestPeriodText; PeriodText)
                     {
@@ -441,12 +447,14 @@ report 115 "Salesperson - Commission"
             Caption = 'Salesperson Commission Excel';
             Type = Excel;
             LayoutFile = './Sales/Reports/SalespersonCommission.xlsx';
+            Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
         layout(Word)
         {
             Caption = 'Salesperson Commission Word';
             Type = Word;
             LayoutFile = './Sales/Reports/SalespersonCommission.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
 #if not CLEAN27
         layout(RDLC)
@@ -457,6 +465,7 @@ report 115 "Salesperson - Commission"
             ObsoleteState = Pending;
             ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
             ObsoleteTag = '27.0';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
     }
@@ -508,7 +517,9 @@ report 115 "Salesperson - Commission"
         ProfitCommissionAmt: Decimal;
         AdjProfitCommissionAmt: Decimal;
         SalesCommissionAmt: Decimal;
+#if not CLEAN28
         PrintOnlyOnePerPageReq: Boolean;
+#endif
         PageGroupNo: Integer;
         // SubTotals for the Word Layout
         SubtotalsSales: Decimal;

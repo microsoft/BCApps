@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 1827 "Business Unit Setup"
         field(1; "Company Name"; Text[30])
         {
             Caption = 'Company Name';
+            ToolTip = 'Specifies the name of the company.';
         }
         /// <summary>
         /// Indicates whether the company should be included in business unit consolidation processing.
@@ -35,6 +36,7 @@ table 1827 "Business Unit Setup"
         field(2; Include; Boolean)
         {
             Caption = 'Include';
+            ToolTip = 'Specifies if the business unit is include on the subform.';
         }
         /// <summary>
         /// Indicates whether the business unit setup for this company has been completed.

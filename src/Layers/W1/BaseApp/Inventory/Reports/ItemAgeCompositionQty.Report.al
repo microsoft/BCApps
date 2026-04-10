@@ -10,14 +10,13 @@ using Microsoft.Inventory.Ledger;
 
 report 5807 "Item Age Composition - Qty."
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/ItemAgeCompositionQty.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Item Age Composition - Quantity (Obsolete)';
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been deprecated and will be merged into the Item Age Composition - (Value and Quantity) report in a future release.';
     ObsoleteTag = '28.0';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -185,6 +184,16 @@ report 5807 "Item Age Composition - Qty."
             if Format(PeriodLength) = '' then
                 Evaluate(PeriodLength, '<1M>');
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/ItemAgeCompositionQty.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

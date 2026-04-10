@@ -20,16 +20,22 @@ report 10640 "Create Electronic Invoices"
         dataitem("Sales Invoice Header"; "Sales Invoice Header")
         {
             DataItemTableView = sorting("No.");
+#if not CLEAN29
             RequestFilterFields = "No.", "Sell-to Customer No.", "Bill-to Customer No.", GLN, "E-Invoice Created";
+#endif
 
             trigger OnAfterGetRecord()
+#if not CLEAN29
             var
                 EInvoiceExportSalesInvoice: Codeunit "E-Invoice Export Sales Invoice";
+#endif
             begin
+#if not CLEAN29
                 EInvoiceExportSalesInvoice.Run("Sales Invoice Header");
                 EInvoiceExportSalesInvoice.GetExportedFileInfo(TempEInvoiceTransferFile);
                 TempEInvoiceTransferFile."Line No." := Counter + 1;
                 TempEInvoiceTransferFile.Insert();
+#endif
 
                 if LogInteraction then
                     if "Bill-to Contact No." <> '' then
@@ -46,10 +52,14 @@ report 10640 "Create Electronic Invoices"
             end;
 
             trigger OnPostDataItem()
+#if not CLEAN29
             var
                 EInvoiceExportCommon: Codeunit "E-Invoice Export Common";
+#endif
             begin
+#if not CLEAN29
                 EInvoiceExportCommon.DownloadEInvoiceFile(TempEInvoiceTransferFile);
+#endif
                 Message(Text002, Counter);
             end;
 
@@ -62,24 +72,34 @@ report 10640 "Create Electronic Invoices"
                 // Any electronic invoices?
                 SalesInvHeader.Copy("Sales Invoice Header");
                 SalesInvHeader.FilterGroup(6);
+#if not CLEAN29
                 SalesInvHeader.SetRange("E-Invoice", true);
+#endif
                 if not SalesInvHeader.FindFirst() then
                     Error(Text003);
 
                 // All electronic invoices?
+#if not CLEAN29
                 SalesInvHeader.SetRange("E-Invoice", false);
+#endif
                 if SalesInvHeader.FindFirst() then
                     if not Confirm(Text000, true) then
                         CurrReport.Quit();
+#if not CLEAN29
                 SalesInvHeader.SetRange("E-Invoice");
+#endif
 
                 // Some already sent?
+#if not CLEAN29
                 SalesInvHeader.SetRange("E-Invoice Created", true);
+#endif
                 if SalesInvHeader.FindFirst() then
                     if not Confirm(Text001, true) then
                         CurrReport.Quit();
 
+#if not CLEAN29
                 SetRange("E-Invoice", true);
+#endif
             end;
         }
     }
@@ -135,7 +155,9 @@ report 10640 "Create Electronic Invoices"
         Text000: Label 'One or more invoice documents that match your filter criteria are not electronic invoices and will be skipped.\\Do you want to continue?';
         Text001: Label 'One or more invoice documents that match your filter criteria have been created before.\\Do you want to continue?';
         Text002: Label 'Successfully created %1 electronic invoice documents.';
+#if not CLEAN29
         TempEInvoiceTransferFile: Record "E-Invoice Transfer File" temporary;
+#endif
         SegManagement: Codeunit SegManagement;
         Counter: Integer;
         Text003: Label 'Nothing to create.';

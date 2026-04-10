@@ -19,12 +19,11 @@ using System.Utilities;
 /// </remarks>
 report 1406 "Bank Account - Check Details"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Bank/Reports/BankAccountCheckDetails.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Account - Check Details';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Bank Account";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -237,6 +236,16 @@ report 1406 "Bank Account - Check Details"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Bank/Reports/BankAccountCheckDetails.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

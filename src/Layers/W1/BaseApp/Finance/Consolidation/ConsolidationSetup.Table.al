@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ table 1833 "Consolidation Setup"
         field(2; MaxAttempts429; Integer)
         {
             Caption = 'Maximum number of retries after receiving HTTP 429 responses';
+            ToolTip = 'The maximum number of times to retry API calls that return a 429 error';
             DataClassification = SystemMetadata;
             MinValue = 0;
             MaxValue = 10;
@@ -30,6 +31,7 @@ table 1833 "Consolidation Setup"
         field(3; WaitMsRetries; Integer)
         {
             Caption = 'Wait time in ms between retries';
+            ToolTip = 'The number of milliseconds to wait between retries';
             DataClassification = SystemMetadata;
             MinValue = 100;
             MaxValue = 10000;
@@ -37,6 +39,7 @@ table 1833 "Consolidation Setup"
         field(4; PageSize; Integer)
         {
             Caption = 'Page Size';
+            ToolTip = 'The number of records to import in each API call';
             DataClassification = SystemMetadata;
             MinValue = 1;
             MaxValue = 1000;
@@ -44,6 +47,7 @@ table 1833 "Consolidation Setup"
         field(5; MaxAttempts; Integer)
         {
             Caption = 'Maximum number of retries for a consolidation process';
+            ToolTip = 'Maximum number of retries for the complete consolidation process';
             DataClassification = SystemMetadata;
             MinValue = 0;
             MaxValue = 5;

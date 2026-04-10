@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,28 +25,23 @@ page 367 "Post Codes"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code that is associated with a city.';
                 }
                 field(City; Rec.City)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the city linked to the postal code in the Code field.';
                 }
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region of the address.';
                 }
                 field(County; Rec.County)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a county name.';
                 }
                 field(TimeZone; Rec."Time Zone")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Time Zone';
-                    ToolTip = 'Specifies the time zone for the selected post code.';
                 }
                 field("County Code"; Rec."County Code")
                 {

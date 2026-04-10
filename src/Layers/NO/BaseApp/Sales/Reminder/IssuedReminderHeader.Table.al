@@ -563,23 +563,57 @@ table 297 "Issued Reminder Header"
             DataClassification = CustomerContent;
             TableRelation = "Reminder Action Group"."Code";
         }
+#if not CLEANSCHEMA32
         field(10605; GLN; Code[13])
         {
             Caption = 'GLN';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10606; "Account Code"; Text[30])
         {
             Caption = 'Account Code';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10612; "E-Invoice Created"; Boolean)
         {
             Caption = 'E-Invoice Created';
             Editable = false;
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10613; "E-Invoice"; Boolean)
         {
             Caption = 'E-Invoice';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
     }
 
     keys
@@ -777,7 +811,9 @@ table 297 "Issued Reminder Header"
         IssuedReminderLine.Reset();
         IssuedReminderLine.SetRange("Reminder No.", "No.");
         IssuedReminderLine.SetFilter(Type, '>%1', IssuedReminderLine.Type::" ");
+#if not CLEAN29
         IssuedReminderLine.SetFilter("Account Code", '<>%1&<>%2', '', "Account Code");
+#endif
         exit(not IssuedReminderLine.IsEmpty);
     end;
 

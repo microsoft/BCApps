@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +27,6 @@ page 2590 "Dimension Correction Changes"
                     ApplicationArea = All;
                     Caption = 'Dimension Code';
                     StyleExpr = FieldStyle;
-                    ToolTip = 'Specifies the Dimension Code.';
                 }
 
                 field(DimensionValueCode; DimensionValueText)

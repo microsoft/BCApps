@@ -1,4 +1,4 @@
-namespace Microsoft.API.Upgrade;
+﻿namespace Microsoft.API.Upgrade;
 
 using Microsoft.Integration.Graph;
 using System.Upgrade;
@@ -21,19 +21,16 @@ page 9994 "API Data Upgrade List"
                 {
                     ApplicationArea = All;
                     Caption = 'Entity Name';
-                    ToolTip = 'Name of the entity.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
                     Caption = 'Endpoints';
-                    ToolTip = 'API endpoints of the entity.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = All;
                     Caption = 'Status';
-                    ToolTip = 'Status of the API data upgrade.';
                 }
             }
         }

@@ -770,6 +770,8 @@ codeunit 6620 "Copy Document Mgt."
         FromSalesShptHeader.CalcFields("Work Description");
         ToSalesHeader.Validate("Sell-to Customer No.", FromSalesShptHeader."Sell-to Customer No.");
         OnCopySalesDocOnBeforeTransferPostedShipmentFields(ToSalesHeader, FromSalesShptHeader);
+        if ToSalesHeader."Sell-to Customer No." <> FromSalesShptHeader."Sell-to Customer No." then
+            exit;
         ToSalesHeader.TransferFields(FromSalesShptHeader, false);
         UpdateShipToAddress(ToSalesHeader);
         SetReceivedFromCountryCode(FromSalesShptHeader, ToSalesHeader);
@@ -786,6 +788,8 @@ codeunit 6620 "Copy Document Mgt."
             FromSalesInvHeader.CalcFields("Work Description");
             ToSalesHeader.Validate("Sell-to Customer No.", FromSalesInvHeader."Sell-to Customer No.");
             OnCopySalesDocOnBeforeTransferPostedInvoiceFields(ToSalesHeader, FromSalesInvHeader, CopyJobData);
+            if ToSalesHeader."Sell-to Customer No." <> FromSalesInvHeader."Sell-to Customer No." then
+                exit;
             ToSalesHeader.TransferFields(FromSalesInvHeader, false);
             UpdateShipToAddress(ToSalesHeader);
             SetReceivedFromCountryCode(FromSalesInvHeader, ToSalesHeader);
@@ -797,6 +801,8 @@ codeunit 6620 "Copy Document Mgt."
     begin
         ToSalesHeader.Validate("Sell-to Customer No.", FromReturnRcptHeader."Sell-to Customer No.");
         OnCopySalesDocOnBeforeTransferPostedReturnReceiptFields(ToSalesHeader, FromReturnRcptHeader);
+        if ToSalesHeader."Sell-to Customer No." <> FromReturnRcptHeader."Sell-to Customer No." then
+            exit;
         ToSalesHeader.TransferFields(FromReturnRcptHeader, false);
         SetReceivedFromCountryCode(ToSalesHeader);
         OnAfterCopyPostedReturnReceipt(ToSalesHeader, OldSalesHeader, FromReturnRcptHeader);
@@ -806,6 +812,8 @@ codeunit 6620 "Copy Document Mgt."
     begin
         FromSalesHeaderArchive.CalcFields("Work Description");
         ToSalesHeader.Validate("Sell-to Customer No.", FromSalesHeaderArchive."Sell-to Customer No.");
+        if ToSalesHeader."Sell-to Customer No." <> FromSalesHeaderArchive."Sell-to Customer No." then
+            exit;
         ToSalesHeader.TransferFields(FromSalesHeaderArchive, false);
         OnCopySalesDocOnAfterTransferArchSalesHeaderFields(ToSalesHeader, FromSalesHeaderArchive);
         UpdateSalesHeaderWhenCopyFromSalesHeaderArchive(ToSalesHeader);
@@ -1630,6 +1638,8 @@ codeunit 6620 "Copy Document Mgt."
         ToSalesLine."Document Type" := ToSalesHeader."Document Type";
         ToSalesLine."Document No." := ToSalesHeader."No.";
         ToSalesLine."Line No." := NextLineNo;
+        if ToSalesHeader."Document Type" = ToSalesHeader."Document Type"::Quote then
+            ToSalesLine."Promised Delivery Date" := 0D;
         if not IncludeHeader then
             CheckSalesVATBusPostingGroup(ToSalesHeader, ToSalesLine);
         ToSalesLine."Copied From Posted Doc." := FromSalesLine."Copied From Posted Doc.";
@@ -8025,6 +8035,8 @@ codeunit 6620 "Copy Document Mgt."
         OnBeforeTransferFieldsFromCrMemoToInv(ToSalesHeader, FromSalesCrMemoHeader, IsHandled);
         if not IsHandled then begin
             ToSalesHeader.Validate("Sell-to Customer No.", FromSalesCrMemoHeader."Sell-to Customer No.");
+            if ToSalesHeader."Sell-to Customer No." <> FromSalesCrMemoHeader."Sell-to Customer No." then
+                exit;
             OnTransferFieldsFromCrMemoToInvOnBeforeTransferFields(ToSalesHeader, FromSalesCrMemoHeader);
             ToSalesHeader.TransferFields(FromSalesCrMemoHeader, false);
             if (ToSalesHeader."Document Type" = ToSalesHeader."Document Type"::Invoice) and IncludeHeader then begin

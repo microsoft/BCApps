@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,24 +32,20 @@ page 545 "Dim. Values per Account"
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies a table ID for the account type if you are specifying default dimensions for an entire account type.';
                 }
                 field("Table Caption"; Rec."Table Caption")
                 {
                     ApplicationArea = Dimensions;
                     DrillDown = false;
-                    ToolTip = 'Specifies the table name for the account type you wish to define a default dimension for.';
                 }
                 field(AccountNo; Rec."No.")
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the account number you wish to define a default dimension for.';
                 }
                 field(AllowedValues; Rec."Allowed Values Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension values that can be used for the selected account.';
 
                     trigger OnAssistEdit()
                     var

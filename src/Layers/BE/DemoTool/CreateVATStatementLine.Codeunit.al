@@ -469,7 +469,7 @@ codeunit 101256 "Create VAT Statement Line"
         XImportInvstRevCharge0PERCVAT: Label '  Import Investments Reverse Charge 0% VAT';
         XImportInvstRevCharge21PERCVAT: Label '  Import Investments Reverse Charge 21% VAT';
         XPrepayment: Label 'Prepayment';
-        XExporttocountriesnotmemberEU: Label 'Export to other countries (not member of EU)';
+        XExporttocountriesnotmemberEU: Label 'Export to other countries (not member of EU)', MaxLength = 50;
 
     procedure InsertData(RowNo: Code[10]; Description: Text[50]; Type: Option; AccountTotaling: Text[30]; DocumentType: Option; GenPostingType: Option; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; RowTotaling: Text[50]; AmountType: Option; CalculateWith: Option; Print: Boolean; PrintWith: Option; NewPage: Boolean)
     var

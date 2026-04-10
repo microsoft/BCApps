@@ -198,25 +198,6 @@ page 846 "Cash Flow Setup"
             group("Chart Options")
             {
                 Caption = 'Chart Options';
-#if not CLEAN26
-                action("Open Azure AI Gallery")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Open Azure AI Gallery';
-                    Gesture = None;
-                    Image = LinkWeb;
-                    ObsoleteReason = 'Webpage does not exist';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    ToolTip = 'Explore models for Azure Machine Learning, and use Azure Machine Learning Studio to build, test, and deploy the Forecasting Model for Dynamics 365 Business Central.';
-                    Visible = false;
-
-                    trigger OnAction()
-                    begin
-                        HyperLink('https://go.microsoft.com/fwlink/?linkid=828352');
-                    end;
-                }
-#endif                
             }
         }
         area(Promoted)
@@ -224,15 +205,6 @@ page 846 "Cash Flow Setup"
             group(Category_Process)
             {
                 Caption = 'Process';
-#if not CLEAN26
-                actionref("Open Azure AI Gallery_Promoted"; "Open Azure AI Gallery")
-                {
-                    ObsoleteReason = 'Webpage does not exist';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                }
-#endif
             }
         }
     }

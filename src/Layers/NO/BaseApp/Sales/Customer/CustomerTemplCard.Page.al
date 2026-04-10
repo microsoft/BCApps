@@ -208,16 +208,24 @@ page 1382 "Customer Templ. Card"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+#if not CLEAN29
                 field("Account Code"; Rec."Account Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the account code for the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 field("E-Invoice"; Rec."E-Invoice")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether the customer is part of the EHF system and requires an electronic invoice.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field("Tax Liable"; Rec."Tax Liable")
                 {
                     ApplicationArea = SalesTax;

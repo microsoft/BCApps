@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,19 +31,16 @@ page 9036 "Bookkeeper Activities"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Vendor Ledger Entries";
-                    ToolTip = 'Specifies the number of purchase invoices where you are late with payment.';
                 }
                 field("Vendors - Payment on Hold"; Rec."Vendors - Payment on Hold")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Vendor List";
-                    ToolTip = 'Specifies the number of vendor to whom your payment is on hold.';
                 }
                 field("Approved Purchase Orders"; Rec."Approved Purchase Orders")
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies the number of approved purchase orders.';
                 }
 
                 actions
@@ -72,19 +69,16 @@ page 9036 "Bookkeeper Activities"
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Sales Order List";
-                    ToolTip = 'Specifies the number of sales orders that are pending approval.';
                 }
                 field("Overdue Sales Documents"; Rec."Overdue Sales Documents")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Customer Ledger Entries";
-                    ToolTip = 'Specifies the number of sales invoices where the customer is late with payment.';
                 }
                 field("Approved Sales Orders"; Rec."Approved Sales Orders")
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Sales Order List";
-                    ToolTip = 'Specifies the number of approved sales orders.';
                 }
 
                 actions
@@ -115,7 +109,6 @@ page 9036 "Bookkeeper Activities"
                     Caption = 'Payment Reconciliation Journals';
                     DrillDownPageID = "Pmt. Reconciliation Journals";
                     Image = Cash;
-                    ToolTip = 'Specifies a window to reconcile unpaid documents automatically with their related bank transactions by importing a bank statement feed or file. In the payment reconciliation journal, incoming or outgoing payments on your bank are automatically, or semi-automatically, applied to their related open customer or vendor ledger entries. Any open bank account ledger entries related to the applied customer or vendor ledger entries will be closed when you choose the Post Payments and Reconcile Bank Account action. This means that the bank account is automatically reconciled for payments that you post with the journal.';
                 }
                 field("Bank Acc. Reconciliations"; Rec."Bank Acc. Reconciliations")
                 {

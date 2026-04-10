@@ -11,11 +11,10 @@ using System.Utilities;
 report 1006 "Job - Planning Lines"
 {
     AdditionalSearchTerms = 'Job - Planning Lines';
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Project/Reports/JobPlanningLines.rdlc';
     ApplicationArea = Jobs;
     Caption = 'Project - Planning Lines';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -298,6 +297,16 @@ report 1006 "Job - Planning Lines"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Project/Reports/JobPlanningLines.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -663,5 +663,25 @@
     "codeunitId": 148129,
     "codeunitName": "Sales Adv. Pmt.Rev.Charge CZZ",
     "method": "SalesAdvLetterWithNormalVATAndReverseChargePartiallyPaid"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "LinkPaidAdvanceLetterToSalesOrder"
+  },
+  {
+    "codeunitId": 148108,
+    "codeunitName": "Purchase Advance Payments CZZ",
+    "method": "PaymentPurchAdvLetterWithForeignCurrency"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "LinkUnpaidAdvanceLetterToSalesOrder"
+  },
+  {
+    "codeunitId": 148109,
+    "codeunitName": "Sales Advance Payments CZZ",
+    "method": "PaymentSalesAdvLetterWithForeignCurrency"
   }
 ]

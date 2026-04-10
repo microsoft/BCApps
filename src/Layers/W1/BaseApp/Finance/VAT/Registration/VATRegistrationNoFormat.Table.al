@@ -257,6 +257,7 @@ table 381 "VAT Registration No. Format"
         Cont.SetCurrentKey("VAT Registration No.");
         Cont.SetRange("VAT Registration No.", VATRegNo);
         Cont.SetFilter("No.", '<>%1', Number);
+        OnCheckContactOnBeforeContactFindSet(Cont);
         if Cont.FindSet() then begin
             Check := false;
             Finish := false;
@@ -463,6 +464,15 @@ table 381 "VAT Registration No. Format"
     /// <param name="IsHandled">Set to true if custom error message is provided</param>
     [IntegrationEvent(false, false)]
     local procedure OnConstructErrorMessageIfNotCheck(ErrorMessageLbl: Text; Number: Code[20]; TableID: Option; var ErrorMsg: Text; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised before contact record filtering for VAT registration number duplicate checking.
+    /// </summary>
+    /// <param name="Contact">Contact record with applied filters for validation</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckContactOnBeforeContactFindSet(var Contact: Record Contact)
     begin
     end;
 }

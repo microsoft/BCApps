@@ -18,11 +18,10 @@ using System.Utilities;
 /// </remarks>
 report 17 "Consolidated Trial Balance"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/Consolidation/ConsolidatedTrialBalance.rdlc';
     ApplicationArea = Suite;
     Caption = 'Consolidated Trial Balance';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -250,6 +249,16 @@ report 17 "Consolidated Trial Balance"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/Consolidation/ConsolidatedTrialBalance.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,6 +17,7 @@ table 1834 "Consolidation Log Entry"
     {
         field(1; "Entry No."; BigInteger)
         {
+            ToolTip = 'The unique identifier of the log entry.';
             AutoIncrement = true;
             DataClassification = SystemMetadata;
         }
@@ -30,10 +31,12 @@ table 1834 "Consolidation Log Entry"
         }
         field(4; "Status Code"; Integer)
         {
+            ToolTip = 'The status code of the response that was received from the API for this request.';
             DataClassification = SystemMetadata;
         }
         field(5; "Request URI Preview"; Text[50])
         {
+            ToolTip = 'The URI of the request that was sent to the API of the business unit.';
             DataClassification = SystemMetadata;
         }
     }

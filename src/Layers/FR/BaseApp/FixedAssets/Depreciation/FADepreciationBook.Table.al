@@ -4,10 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.Depreciation;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
 using Microsoft.FixedAssets.Setup;
+using System.Telemetry;
 
 table 5612 "FA Depreciation Book"
 {
@@ -110,6 +112,8 @@ table 5612 "FA Depreciation Book"
             trigger OnValidate()
             begin
                 ModifyDeprFields();
+                VerifyBonusDepreciationEligibility();
+                ToggleUseBonusDepreciationOnChangingDepreciationStartingDate();
                 CalcDeprPeriod();
             end;
         }
@@ -789,6 +793,46 @@ table 5612 "FA Depreciation Book"
                 ModifyDeprFields();
             end;
         }
+        field(64; "Use Bonus Depreciation"; Boolean)
+        {
+            Caption = 'Use Bonus Depreciation';
+            ToolTip = 'Specifies if the bonus depreciation should be used in this book.';
+
+            trigger OnValidate()
+            var
+                FASetup: Record "FA Setup";
+            begin
+                if Rec."Use Bonus Depreciation" then begin
+                    FASetup.Get();
+                    if not FASetup.BonusDepreciationCorrectlySetup() then
+                        Error(BonusDepreciationNotSetupCorrectlyErr);
+
+                    if not EligibleForBonusDepreciation(FASetup) then
+                        Error(NotEligibleForBonusDepreciationErr);
+
+                    Rec.CalcFields(Depreciation);
+                    if Rec.Depreciation <> 0 then
+                        Error(CannotUseBonusDepreciationDepreciationStartedErr);
+                end else begin
+                    Rec.CalcFields("Bonus Depr. Applied Amount");
+                    if Rec."Bonus Depr. Applied Amount" <> 0 then
+                        Error(CannotTurnOffBonusDepreciationAlreadyAppliedErr);
+                end;
+            end;
+        }
+        field(65; "Bonus Depr. Applied Amount"; Decimal)
+        {
+            Caption = 'Bonus Depreciation Applied Amount';
+            ToolTip = 'Specifies the amount of bonus depreciation that has been applied to the fixed asset.';
+            DecimalPlaces = 0 : 5;
+            AutoFormatType = 0;
+            FieldClass = FlowField;
+            CalcFormula = sum("FA Ledger Entry"."Amount" where("FA No." = field("FA No."),
+                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
+                                                               "FA Posting Category" = const(" "),
+                                                               "FA Posting Type" = const("FA Ledger Entry FA Posting Type"::"Bonus Depreciation"),
+                                                               "FA Posting Date" = field("FA Posting Date Filter")));
+        }
         field(70; "Default FA Depreciation Book"; Boolean)
         {
             Caption = 'Default FA Depreciation Book';
@@ -931,6 +975,12 @@ table 5612 "FA Depreciation Book"
         OnlyOneDefaultDeprBookErr: Label 'Only one fixed asset depreciation book can be marked as the default book';
         FiscalYear365Err: Label 'An ending date for depreciation cannot be calculated automatically when the Fiscal Year 365 Days option is chosen. You must manually enter the ending date.';
         MustBeStraightLineTxt: Label '%1 must be Straight-Line if %2 is %3 in %4: %5.', Comment = '%1="Depreciation Method" Field Caption %2="Use Accounting Period" Field Caption %3="Use Accounting Period" Field Value %4="Depreciation Book" Table Caption %5="Depreciation Book" Value of field Code';
+        CannotUseBonusDepreciationDepreciationStartedErr: Label 'Bonus depreciation cannot be used because depreciation has already started for this fixed asset.';
+        NotEligibleForBonusDepreciationErr: Label 'This fixed asset is not eligible for bonus depreciation.';
+        BonusDepreciationNotSetupCorrectlyErr: Label 'Bonus depreciation is not set up correctly in the Fixed Asset Setup.';
+        CannotTurnOffBonusDepreciationAlreadyAppliedErr: Label 'Bonus depreciation has already been applied to this fixed asset.';
+        BonusDepreciationAlreadyAppliedErr: Label 'The bonus depreciation has already been applied for this depreciation book. This change is making the fixed asset not eligible for bonus depreciation.';
+        BonusDepreciationTurnedOnErr: Label 'You must uncheck Use Bonus Depreciation, because this change is making the fixed asset not eligible for bonus depreciation.';
 
     protected var
         FA: Record "Fixed Asset";
@@ -972,6 +1022,75 @@ table 5612 "FA Depreciation Book"
             end;
 
         OnAfterModifyDeprFields(Rec);
+    end;
+
+    procedure EligibleForBonusDepreciation(FASetup: Record "FA Setup"): Boolean
+    begin
+        if not FASetup.BonusDepreciationCorrectlySetup() then
+            exit(false);
+
+        if Rec."Depreciation Starting Date" = 0D then
+            exit(false);
+
+        exit(Rec."Depreciation Starting Date" >= FASetup."Bonus Depr. Effective Date");
+    end;
+
+    internal procedure BonusDepreciationApplied(): Boolean
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        FALedgerEntry.ReadIsolation(IsolationLevel::ReadCommitted);
+        FALedgerEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type");
+        FALedgerEntry.SetRange("FA No.", Rec."FA No.");
+        FALedgerEntry.SetRange("Depreciation Book Code", Rec."Depreciation Book Code");
+        FALedgerEntry.SetRange("FA Posting Category", FALedgerEntry."FA Posting Category"::" ");
+        FALedgerEntry.SetRange("FA Posting Type", "FA Ledger Entry FA Posting Type"::"Bonus Depreciation");
+        exit(not FALedgerEntry.IsEmpty());
+    end;
+
+    local procedure VerifyBonusDepreciationEligibility()
+    var
+        FASetup: Record "FA Setup";
+    begin
+        if not Rec."Use Bonus Depreciation" then
+            exit;
+
+        FASetup.Get();
+        if not Rec.EligibleForBonusDepreciation(FASetup) then
+            Error(BonusDepreciationTurnedOnErr);
+
+        if (Rec."Depreciation Starting Date" = 0D) or (FASetup."Bonus Depr. Effective Date" = 0D) then
+            Error(BonusDepreciationAlreadyAppliedErr);
+
+        if Rec."Depreciation Starting Date" < FASetup."Bonus Depr. Effective Date" then
+            if Rec.BonusDepreciationApplied() then
+                Error(BonusDepreciationAlreadyAppliedErr);
+    end;
+
+    local procedure ToggleUseBonusDepreciationOnChangingDepreciationStartingDate()
+    var
+        FASetup: Record "FA Setup";
+        DepreciationBook: Record "Depreciation Book";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        DepreciationBook.Get(Rec."Depreciation Book Code");
+        if not DepreciationBook."Use Bonus Depreciation" then
+            exit;
+
+        FASetup.Get();
+        if not FASetup.BonusDepreciationCorrectlySetup() then
+            exit;
+
+        if Rec."Depreciation Starting Date" = 0D then begin
+            Rec."Use Bonus Depreciation" := false;
+            exit;
+        end;
+
+        if Rec."Depreciation Starting Date" >= FASetup."Bonus Depr. Effective Date" then begin
+            Rec."Use Bonus Depreciation" := true;
+            FeatureTelemetry.LogUsage('0000SEM', 'Fixed Asset', 'Using Bonus Depreciation');
+        end else
+            Rec."Use Bonus Depreciation" := false;
     end;
 
     procedure CalcDeprPeriod()
@@ -1179,6 +1298,54 @@ table 5612 "FA Depreciation Book"
         FALedgerEntry.SetRange("Part of Book Value", true);
         FALedgerEntry.SetRange("Exclude Derogatory", false);
         OnAfterSetBookValueFiltersOnFALedgerEntry(FALedgerEntry);
+    end;
+
+    internal procedure DrillDownOnAcquisitionCost()
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        SetAcquisitionCostFiltersOnFALedgerEntry(FALedgerEntry);
+        PAGE.Run(0, FALedgerEntry);
+    end;
+
+    internal procedure DrillDownOnBonusDeprAppliedAmount()
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        SetBonusDepreciationFiltersOnFALedgerEntry(FALedgerEntry);
+        PAGE.Run(0, FALedgerEntry);
+    end;
+
+    internal procedure SetAcquisitionCostFiltersOnFALedgerEntry(var FALedgerEntry: Record "FA Ledger Entry")
+    begin
+        FALedgerEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "FA Posting Date");
+        FALedgerEntry.SetRange("FA No.", "FA No.");
+        FALedgerEntry.SetRange("Depreciation Book Code", "Depreciation Book Code");
+        FALedgerEntry.SetRange("FA Posting Category", FALedgerEntry."FA Posting Category"::" ");
+        FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::"Acquisition Cost")
+    end;
+
+    internal procedure SetBonusDepreciationFiltersOnFALedgerEntry(var FALedgerEntry: Record "FA Ledger Entry")
+    begin
+        FALedgerEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "FA Posting Date");
+        FALedgerEntry.SetRange("FA No.", "FA No.");
+        FALedgerEntry.SetRange("Depreciation Book Code", "Depreciation Book Code");
+        FALedgerEntry.SetRange("FA Posting Category", FALedgerEntry."FA Posting Category"::" ");
+        FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::"Bonus Depreciation")
+    end;
+
+    internal procedure BonusDepreciationAmount(GeneralLedgerSetup: Record "General Ledger Setup"; FASetup: Record "FA Setup"): Decimal
+    begin
+        Rec.CalcFields("Acquisition Cost");
+        exit(Round(Rec."Acquisition Cost" * FASetup."Bonus Depreciation %" * 0.01, GeneralLedgerSetup."Amount Rounding Precision"));
+    end;
+
+    internal procedure BonusDepreciationAmount(FASetup: Record "FA Setup"): Decimal
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        exit(BonusDepreciationAmount(GeneralLedgerSetup, FASetup));
     end;
 
     procedure LineIsReadyForAcquisition(FANo: Code[20]): Boolean

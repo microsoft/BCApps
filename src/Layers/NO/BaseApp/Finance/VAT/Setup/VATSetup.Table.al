@@ -43,6 +43,7 @@ table 189 "VAT Setup"
         field(2; "Enable Non-Deductible VAT"; Boolean)
         {
             Caption = 'Enable Non-Deductible VAT';
+            ToolTip = 'Specifies if the Non-Deductible VAT feature is enabled.';
             Editable = false;
 
             trigger OnValidate()
@@ -66,6 +67,7 @@ table 189 "VAT Setup"
         field(3; "Use For Item Cost"; Boolean)
         {
             Caption = 'Use For Item Cost';
+            ToolTip = 'Specifies if the non-deductible VAT must be added to the item cost.';
         }
         /// <summary>
         /// Controls whether non-deductible VAT amounts are included in fixed asset cost calculations.
@@ -73,6 +75,7 @@ table 189 "VAT Setup"
         field(4; "Use For Fixed Asset Cost"; Boolean)
         {
             Caption = 'Use For Fixed Asset Cost';
+            ToolTip = 'Specifies if the non-deductible VAT must be added to the fixed asset cost.';
         }
         /// <summary>
         /// Controls whether non-deductible VAT amounts are included in project cost calculations.
@@ -80,6 +83,7 @@ table 189 "VAT Setup"
         field(5; "Use For Job Cost"; Boolean)
         {
             Caption = 'Use For Project Cost';
+            ToolTip = 'Specifies if the non-deductible VAT must be added to the project cost.';
         }
         /// <summary>
         /// Controls visibility of non-deductible VAT information in transaction line details.
@@ -87,6 +91,7 @@ table 189 "VAT Setup"
         field(10; "Show Non-Ded. VAT In Lines"; Boolean)
         {
             Caption = 'Show Non-Ded. VAT In Lines';
+            ToolTip = 'Specifies if the non-deductible VAT must be shown in document lines pages.';
         }
         /// <summary>
         /// Read-only indicator showing non-deductible VAT feature activation status.
@@ -102,6 +107,7 @@ table 189 "VAT Setup"
         field(12; "Allow VAT Date From"; Date)
         {
             Caption = 'Allow VAT Date From';
+            ToolTip = 'Specifies the earliest date on which VAT posting to the company books is allowed.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -115,6 +121,7 @@ table 189 "VAT Setup"
         field(13; "Allow VAT Date To"; Date)
         {
             Caption = 'Allow VAT Date To';
+            ToolTip = 'Specifies the last date on which VAT posting to the company books is allowed.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()

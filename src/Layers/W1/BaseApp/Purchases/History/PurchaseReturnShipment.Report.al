@@ -20,11 +20,10 @@ using System.Utilities;
 
 report 6636 "Purchase - Return Shipment"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/History/PurchaseReturnShipment.rdlc';
     Caption = 'Purchase - Return Shipment';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Return Shipment Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -527,6 +526,16 @@ report 6636 "Purchase - Return Shipment"
             InitLogInteraction();
             LogInteractionEnable := LogInteraction;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/History/PurchaseReturnShipment.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

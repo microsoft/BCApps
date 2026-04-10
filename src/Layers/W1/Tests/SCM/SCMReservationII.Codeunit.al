@@ -1887,32 +1887,6 @@ codeunit 137065 "SCM Reservation II"
         VerifyItemLedgerEntriesForCostAmountActual(Item."No.");
     end;
 
-#if not CLEAN26
-    [Test]
-    [Obsolete('Matrix per Version is removed', '26.0')]
-    [HandlerFunctions('ProdBOMMatrixPerVersionHandler,ShowMatrixHandler')]
-    [Scope('OnPrem')]
-    procedure ShowMatrixWithMaxLengthOfDescription()
-    var
-        Item: Record Item;
-        ProductionBOM: TestPage "Production BOM";
-        ItemNo: Code[20];
-    begin
-        // Setup: Create parent and child Item, create Production BOM.
-        Initialize();
-        ItemNo := CreateItemsSetup(Item);
-        LibraryVariableStorage.Enqueue(ItemNo); // Enqueue variable for ShowMatrixHandler.
-        UpdateProductionBOMDescription(Item."Production BOM No."); // Required for test.
-
-        // Exercise: Open Matrix per Version on Production BOM page.
-        ProductionBOM.OpenEdit();
-        ProductionBOM.FILTER.SetFilter("No.", Item."Production BOM No.");
-        ProductionBOM."Ma&trix per Version".Invoke(); // To invoke ProdBOMMatrixPerVersionHandler.
-
-        // Verify: Verify the Item No. through ShowMatrixHandler.
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('WhereUsedHandler')]
     [Scope('OnPrem')]

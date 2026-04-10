@@ -106,7 +106,6 @@ codeunit 6301 "Power BI Service Mgt."
         exit(PowerBIMyOrgUrlTxt);
     end;
 
-    [Scope('OnPrem')]
     procedure SynchronizeReportsInBackground(Context: Text[50])
     var
         JobQueueEntry: Record "Job Queue Entry";

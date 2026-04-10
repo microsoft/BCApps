@@ -53,7 +53,7 @@
     },
     {
       "id": "d852d5d2-a39d-4179-baeb-f99a19e32510",
-      "name": "Test Libraries SaaS",
+      "name": "Application Test Library",
       "publisher": "Microsoft"
     },
     {
@@ -114,6 +114,11 @@
     {
       "id": "2b634ad5-63df-4a3c-9e35-e347f646e940",
       "name": "Tests-Integration",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "c81764a5-be79-4d50-ba3e-4ade02073780",
+      "name": "Tests-Fixed Asset",
       "publisher": "Microsoft"
     },
     {

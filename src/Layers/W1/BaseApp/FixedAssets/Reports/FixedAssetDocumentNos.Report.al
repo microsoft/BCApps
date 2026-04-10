@@ -13,9 +13,8 @@ using System.Utilities;
 
 report 5636 "Fixed Asset Document Nos."
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Reports/FixedAssetDocumentNos.rdlc';
     Caption = 'Fixed Asset Document Nos.';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -189,6 +188,16 @@ report 5636 "Fixed Asset Document Nos."
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Reports/FixedAssetDocumentNos.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

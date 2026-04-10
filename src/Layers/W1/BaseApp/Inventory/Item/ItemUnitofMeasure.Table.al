@@ -494,37 +494,10 @@ table 5404 "Item Unit of Measure"
     begin
     end;
 
-#if not CLEAN26
-    internal procedure RunOnBeforeCheckNoRemQtyProdOrderLine(ItemUnitOfMeasure: Record "Item Unit of Measure"; xItemUnitOfMeasure: Record "Item Unit of Measure"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeCheckNoRemQtyProdOrderLine(ItemUnitOfMeasure, xItemUnitOfMeasure, ProdOrderLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Mfg. Item Integration', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckNoRemQtyProdOrderLine(ItemUnitOfMeasure: Record "Item Unit of Measure"; xItemUnitOfMeasure: Record "Item Unit of Measure"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    internal procedure RunOnBeforeCheckNoRemQtyProdOrderComponent(ItemUnitOfMeasure: Record "Item Unit of Measure"; xItemUnitOfMeasure: Record "Item Unit of Measure"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var IsHandled: Boolean)
-    begin
-        OnBeforeCheckNoRemQtyProdOrderComponent(ItemUnitOfMeasure, xItemUnitOfMeasure, ProdOrderComponent, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Mfg. Inventory Integration', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckNoRemQtyProdOrderComponent(ItemUnitOfMeasure: Record "Item Unit of Measure"; xItemUnitOfMeasure: Record "Item Unit of Measure"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckNoOutstandingQtyPurchLine(ItemUnitOfMeasure: Record "Item Unit of Measure"; xItemUnitOfMeasure: Record "Item Unit of Measure"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
-
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckNoOutstandingQtyTransferLine(ItemUnitOfMeasure: Record "Item Unit of Measure"; xItemUnitOfMeasure: Record "Item Unit of Measure"; var TransferLine: Record "Transfer Line"; var IsHandled: Boolean)

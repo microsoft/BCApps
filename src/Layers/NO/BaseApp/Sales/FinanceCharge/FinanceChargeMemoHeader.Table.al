@@ -5,7 +5,9 @@
 namespace Microsoft.Sales.FinanceCharge;
 
 using Microsoft.Bank.BankAccount;
+#if not CLEAN29
 using Microsoft.EServices.EDocument;
+#endif
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -97,9 +99,11 @@ table 302 "Finance Charge Memo Header"
                 "Tax Area Code" := Cust."Tax Area Code";
                 "Tax Liable" := Cust."Tax Liable";
                 Validate("Fin. Charge Terms Code", Cust."Fin. Charge Terms Code");
+#if not CLEAN29
                 "Account Code" := Cust."Account Code";
                 GLN := Cust.GLN;
                 "E-Invoice" := Cust."E-Invoice";
+#endif
                 OnValidateCustomerNoOnAfterAssignCustomerValues(Rec, Cust);
 
                 CreateDimFromDefaultDim();
@@ -615,30 +619,60 @@ table 302 "Finance Charge Memo Header"
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
         }
+#if not CLEANSCHEMA32
         field(10605; GLN; Code[13])
         {
             Caption = 'GLN';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
 
+#if not CLEAN29
             trigger OnValidate()
             begin
                 if not EInvoiceDocumentEncode.IsValidEANNo(GLN, true) then
                     FieldError(GLN, Text10600);
             end;
+#endif
         }
         field(10606; "Account Code"; Text[30])
         {
             Caption = 'Account Code';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
 
+#if not CLEAN29
             trigger OnValidate()
             begin
                 if "Account Code" <> xRec."Account Code" then
                     UpdateFinChrgLines(FieldCaption("Account Code"));
             end;
+#endif
         }
         field(10613; "E-Invoice"; Boolean)
         {
             Caption = 'E-Invoice';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
     }
 
     keys
@@ -682,9 +716,9 @@ table 302 "Finance Charge Memo Header"
         if "No." = '' then begin
             TestNoSeries();
             "No. Series" := GetNoSeriesCode();
-                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                    "No. Series" := xRec."No. Series";
-                "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
+            if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                "No. Series" := xRec."No. Series";
+            "No." := NoSeries.GetNextNo("No. Series", "Posting Date");
 
         end;
         "Posting Description" := StrSubstNo(Text000, "No.");
@@ -697,8 +731,8 @@ table 302 "Finance Charge Memo Header"
             then
                 "Issuing No. Series" := "No. Series"
             else
-            if NoSeries.IsAutomatic(GetIssuingNoSeriesCode()) then
-                "Issuing No. Series" := GetIssuingNoSeriesCode();
+                if NoSeries.IsAutomatic(GetIssuingNoSeriesCode()) then
+                    "Issuing No. Series" := GetIssuingNoSeriesCode();
 
         if "Posting Date" = 0D then
             "Posting Date" := WorkDate();
@@ -728,7 +762,9 @@ table 302 "Finance Charge Memo Header"
         GenBusPostingGrp: Record "Gen. Business Posting Group";
         CurrExchRate: Record "Currency Exchange Rate";
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN29
         EInvoiceDocumentEncode: Codeunit "E-Invoice Document Encode";
+#endif
         AutoFormat: Codeunit "Auto Format";
         NoSeries: Codeunit "No. Series";
         TransferExtendedText: Codeunit "Transfer Extended Text";
@@ -751,7 +787,9 @@ table 302 "Finance Charge Memo Header"
         Text005: Label 'Deleting this document will cause a gap in the number series for finance charge memos.';
 #pragma warning disable AA0470
         Text006: Label 'An empty finance charge memo %1 will be created to fill this gap in the number series.\\';
+#if not CLEAN29
         Text10600: Label 'The GLN No. field does not contain a valid, 13-digit GLN  number';
+#endif
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
@@ -911,7 +949,9 @@ table 302 "Finance Charge Memo Header"
         if FinChrgTerms."Additional Fee (LCY)" <> 0 then begin
             NextLineNo := NextLineNo + 10000;
             FinChrgMemoLine.Init();
+#if not CLEAN29
             FinChrgMemoLine."Account Code" := "Account Code";
+#endif
             FinChrgMemoLine."Line No." := NextLineNo;
             FinChrgMemoLine.Type := FinChrgMemoLine.Type::"G/L Account";
             TestField("Customer Posting Group");
@@ -1300,6 +1340,8 @@ table 302 "Finance Charge Memo Header"
         exit(FinChrgMemoLine.FindFirst())
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Scope('OnPrem')]
     procedure UpdateFinChrgLines(ChangedFieldName: Text[100])
     begin
@@ -1320,6 +1362,7 @@ table 302 "Finance Charge Memo Header"
                 until FinChrgMemoLine.Next() = 0;
         end;
     end;
+#endif
 
     local procedure GetFilterCustNo(): Code[20]
     begin

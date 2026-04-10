@@ -643,6 +643,8 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Power BI Chart Buffer" = RIMD,
                   tabledata "Power BI Context Settings" = RIMD,
                   tabledata "Power BI Customer Reports" = RIMD,
+                  tabledata "Power BI Deployment" = RIMD,
+                  tabledata "Power BI Deployment State" = RIMD,
                   tabledata "Power BI Displayed Element" = RIMD,
                   tabledata "Power BI Report Labels" = R,
                   tabledata "Power BI Report Uploads" = RIMD,

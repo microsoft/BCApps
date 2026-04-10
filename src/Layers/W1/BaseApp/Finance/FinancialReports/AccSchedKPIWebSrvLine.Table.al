@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,6 +26,7 @@ table 136 "Acc. Sched. KPI Web Srv. Line"
         field(1; "Acc. Schedule Name"; Code[10])
         {
             Caption = 'Row Definition Name';
+            ToolTip = 'Specifies the row definition that the KPI web service is based on. To view or edit the selected financial report, choose the Edit Row Definition button.';
             NotBlank = true;
             TableRelation = "Acc. Schedule Name";
         }
@@ -36,6 +37,7 @@ table 136 "Acc. Sched. KPI Web Srv. Line"
         {
             CalcFormula = lookup("Acc. Schedule Name".Description where(Name = field("Acc. Schedule Name")));
             Caption = 'Row Definition Description';
+            ToolTip = 'Specifies the description of the row definition that the KPI web service is based on.';
             Editable = false;
             FieldClass = FlowField;
         }

@@ -28,34 +28,28 @@ page 737 "VAT Return Period List"
                 field("Start Date"; Rec."Start Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the start date of the VAT return period.';
                 }
                 field("End Date"; Rec."End Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the end date of the VAT return period.';
                 }
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = WarningStyleExpr;
-                    ToolTip = 'Specifies the due date for the VAT return period.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = WarningStyleExpr;
-                    ToolTip = 'Specifies the status of the VAT return period.';
                 }
                 field("Received Date"; Rec."Received Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT return period received date.';
                 }
                 field("VAT Return No."; Rec."VAT Return No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the associated VAT return.';
 
                     trigger OnDrillDown()
                     begin

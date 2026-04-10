@@ -23,10 +23,9 @@ using System.Utilities;
 
 report 416 "Archived Purchase Order"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Archive/ArchivedPurchaseOrder.rdlc';
     Caption = 'Archived Purchase Order';
     WordMergeDataItem = "Purchase Header Archive";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -968,6 +967,16 @@ report 416 "Archived Purchase Order"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Archive/ArchivedPurchaseOrder.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -11,12 +11,11 @@ using Microsoft.Utilities;
 
 report 307 "Vendor - Order Summary"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/VendorOrderSummary.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor - Order Summary';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = Vendor;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -265,6 +264,16 @@ report 307 "Vendor - Order Summary"
             if PeriodStartDate[1] = 0D then
                 PeriodStartDate[1] := WorkDate();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/VendorOrderSummary.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

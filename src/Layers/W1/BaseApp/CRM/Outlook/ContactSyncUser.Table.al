@@ -1,6 +1,5 @@
 namespace Microsoft.CRM.Outlook;
 using System.Security.AccessControl;
-using System.Security.Encryption;
 
 table 7121 "Contact Sync User"
 {
@@ -64,47 +63,21 @@ table 7121 "Contact Sync User"
     }
 
     procedure SetDeltaUrl(NewDeltaUrl: Text)
-    var
-        IsolatedStorageManagement: Codeunit "Isolated Storage Management";
     begin
         if "ID" = 0 then
             exit;
 
-        if NewDeltaUrl = '' then begin
-            IsolatedStorageManagement.Delete(GetDeltaUrlStorageKey(), DataScope::Company);
-            "Delta Url" := '';
-            exit;
-        end;
-
-        IsolatedStorageManagement.Set(GetDeltaUrlStorageKey(), CopyStr(NewDeltaUrl, 1, MaxStrLen("Delta Url")), DataScope::Company);
-        "Delta Url" := '';
+        "Delta Url" := CopyStr(NewDeltaUrl, 1, MaxStrLen("Delta Url"));
+        if StrLen(NewDeltaUrl) > MaxStrLen("Delta Url") then
+            Session.LogMessage('0000SET', StrSubstNo(DeltaUrlTruncatedTelemetryMsg, StrLen(NewDeltaUrl)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Contact Sync');
+        Modify();
     end;
 
     procedure GetDeltaUrl(): Text
-    var
-        IsolatedStorageManagement: Codeunit "Isolated Storage Management";
-        DeltaUrlText: Text;
     begin
-        if ("ID" <> 0) and IsolatedStorageManagement.Get(GetDeltaUrlStorageKey(), DataScope::Company, DeltaUrlText) then
-            exit(CopyStr(DeltaUrlText, 1, MaxStrLen("Delta Url")));
-
         exit("Delta Url");
     end;
 
-    procedure MigrateDeltaUrlToIsolatedStorage()
-    begin
-        if ("ID" = 0) or ("Delta Url" = '') then
-            exit;
-
-        SetDeltaUrl("Delta Url");
-        Modify(false);
-    end;
-
-    local procedure GetDeltaUrlStorageKey(): Text
-    begin
-        exit(CopyStr(DeltaUrlStorageKeyTok + Format("ID"), 1, 200));
-    end;
-
     var
-        DeltaUrlStorageKeyTok: Label 'ContactSyncDeltaUrl|', Locked = true;
+        DeltaUrlTruncatedTelemetryMsg: Label 'Delta URL was truncated for user Original length: %1', Locked = true, Comment = '%1 = original Delta URL length';
 }

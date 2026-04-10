@@ -257,6 +257,14 @@ page 138 "Posted Purchase Invoice"
                         Rec.ShowCancelledCreditMemo();
                     end;
                 }
+                field("Dispute Status"; Rec."Dispute Status")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    Visible = false;
+                    Importance = Additional;
+                    ToolTip = 'Specifies if there is an ongoing dispute for this document.';
+                }
             }
             part(PurchInvLines; "Posted Purch. Invoice Subform")
             {

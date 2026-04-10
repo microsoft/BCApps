@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,7 +33,6 @@ page 542 "Default Dimensions-Multiple"
                 field("Dimension Code"; Rec."Dimension Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the default dimension.';
 
                     trigger OnValidate()
                     begin
@@ -44,12 +43,10 @@ page 542 "Default Dimensions-Multiple"
                 field("Dimension Value Code"; Rec."Dimension Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value code to suggest as the default dimension.';
                 }
                 field("Value Posting"; Rec."Value Posting")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies how default dimensions and their values must be used.';
 
                     trigger OnValidate()
                     begin
@@ -59,7 +56,6 @@ page 542 "Default Dimensions-Multiple"
                 field(AllowedValuesFilter; Rec."Allowed Values Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension values that can be used for the selected account.';
 
                     trigger OnAssistEdit()
                     var

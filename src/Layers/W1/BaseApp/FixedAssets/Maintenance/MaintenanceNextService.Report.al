@@ -8,11 +8,10 @@ using Microsoft.FixedAssets.FixedAsset;
 
 report 5635 "Maintenance - Next Service"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Maintenance/MaintenanceNextService.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Maintenance Next Service';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -100,6 +99,16 @@ report 5635 "Maintenance - Next Service"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Maintenance/MaintenanceNextService.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

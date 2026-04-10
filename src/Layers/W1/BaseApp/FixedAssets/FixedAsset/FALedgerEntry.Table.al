@@ -672,6 +672,8 @@ table 5601 "FA Ledger Entry"
                 FAJnlLine."FA Posting Type" := FAJnlLine."FA Posting Type"::Disposal;
             "FA Posting Type"::"Salvage Value":
                 FAJnlLine."FA Posting Type" := FAJnlLine."FA Posting Type"::"Salvage Value";
+            "FA Posting Type"::"Bonus Depreciation":
+                FAJnlLine."FA Posting Type" := FAJnlLine."FA Posting Type"::"Bonus Depreciation";
             else
                 OnAfterConvertPostingTypeElse(FAJnlLine, Rec);
         end;

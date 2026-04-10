@@ -13,9 +13,8 @@ using System.Utilities;
 
 report 7112 "Analysis Report"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Analysis/AnalysisReport.rdlc';
     Caption = 'Analysis Report';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -639,6 +638,16 @@ report 7112 "Analysis Report"
                 SourceNoFilter := SourceNoFilterHidden;
             end;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Analysis/AnalysisReport.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

@@ -356,8 +356,6 @@ report 7000086 "Batch Settl. Posted Bill Grs."
         CarteraManagement: Codeunit CarteraManagement;
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         Window: Dialog;
-        PostingDate: Date;
-        DueOnly: Boolean;
         Delay: Decimal;
         SourceCode: Code[10];
         Acct: Code[20];
@@ -378,6 +376,10 @@ report 7000086 "Batch Settl. Posted Bill Grs."
         BGPOPostBuffer: Record "BG/PO Post. Buffer" temporary;
         NoRealVATBuffer: Record "BG/PO Post. Buffer" temporary;
         ExistsNoRealVAT: Boolean;
+
+    protected var
+        PostingDate: Date;
+        DueOnly: Boolean;
 
     [Scope('OnPrem')]
     procedure DiscFactLiabs(PostedDoc2: Record "Posted Cartera Doc.")

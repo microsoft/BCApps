@@ -200,11 +200,11 @@ codeunit 397 Mail
 
     local procedure GetDefaultScenarioEmailAddress(): Text
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailScenario: Codeunit "Email Scenario";
     begin
-        if EmailScenario.GetEmailAccount(Enum::"Email Scenario"::Default, EmailAccount) then
-            exit(EmailAccount."Email Address");
+        if EmailScenario.GetEmailAccount(Enum::"Email Scenario"::Default, TempEmailAccount) then
+            exit(TempEmailAccount."Email Address");
     end;
 
     local procedure GetActiveDirectoryMailFromUser(): Text

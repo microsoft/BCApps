@@ -397,6 +397,7 @@ codeunit 99000833 "Req. Line-Reserve"
 
                 for ReservStatus := ReservStatus::Reservation to ReservStatus::Prospect do begin
                     OldReservationEntry.SetRange("Reservation Status", ReservStatus);
+                    OldReservationEntry.SetRange("Item No.", RequisitionLine."No.");
 
                     if OldReservationEntry.FindSet() then
                         repeat

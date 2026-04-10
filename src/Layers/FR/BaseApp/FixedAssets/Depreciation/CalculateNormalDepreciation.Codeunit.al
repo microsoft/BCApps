@@ -576,7 +576,7 @@ codeunit 5611 "Calculate Normal Depreciation"
                 BookValue := DerogFALedgEntry.Amount;
             end;
         end;
-        MinusBookValue := DepreciationCalc.GetMinusBookValue(FA."No.", DeprBookCode, 0D, 0D);
+        MinusBookValue := DepreciationCalc.GetMinusBookValue(FA."No.", DeprBookCode, 0D, 0D) + DepreciationCalc.GetUnpostedBonusDepreciationForCalc(FADeprBook, 0D, 0D);
         FADeprBook.CalcFields("Depreciable Basis", "Salvage Value");
         DeprBasis := FADeprBook."Depreciable Basis";
         SalvageValue := FADeprBook."Salvage Value";

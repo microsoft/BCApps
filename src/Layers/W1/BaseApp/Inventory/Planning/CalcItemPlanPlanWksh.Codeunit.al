@@ -304,6 +304,25 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
         exit(InvtProfileOffsetting.GetResiliencyError(PlanningErrorLogEntry));
     end;
 
+    /// <summary> 
+    /// Gets the resiliency errors for the current item in planning and logs them in the "Planning Error Log" table. 
+    /// </summary>
+    /// <param name="PlanningErrorLogEntry"> A record of the "Planning Error Log" table used to log the resiliency errors. </param>
+    /// <returns> True if there are resiliency errors for the current item in planning; otherwise, false. </returns>
+    procedure GetResiliencyErrors(var PlanningErrorLogEntry: Record "Planning Error Log"): Boolean
+    begin
+        exit(InvtProfileOffsetting.GetResiliencyErrors(PlanningErrorLogEntry));
+    end;
+
+    /// <summary>
+    /// Gets whether planning was skipped for the current item due to a missing SKU policy.
+    /// </summary>
+    /// <returns> True if planning was skipped for the current item due to a missing SKU policy; otherwise, false. </returns>
+    procedure GetPlanningSkippedForMissingSKUPolicy(): Boolean
+    begin
+        exit(InvtProfileOffsetting.GetPlanningSkippedForMissingSKUPolicy());
+    end;
+
     procedure ClearInvtProfileOffsetting()
     begin
         Clear(InvtProfileOffsetting);

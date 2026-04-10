@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ table 252 "General Posting Setup"
         field(1; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         /// <summary>
@@ -45,6 +46,7 @@ table 252 "General Posting Setup"
         field(2; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             NotBlank = true;
             TableRelation = "Gen. Product Posting Group";
         }
@@ -54,6 +56,7 @@ table 252 "General Posting Setup"
         field(10; "Sales Account"; Code[20])
         {
             Caption = 'Sales Account';
+            ToolTip = 'Specifies the number of the general ledger sales account to which the program will post sales transactions with this particular combination of business group and product group.';
             TableRelation = "G/L Account";
 
             trigger OnLookup()
@@ -77,6 +80,7 @@ table 252 "General Posting Setup"
         field(11; "Sales Line Disc. Account"; Code[20])
         {
             Caption = 'Sales Line Disc. Account';
+            ToolTip = 'Specifies the general ledger account number to post customer/item and quantity discounts when you post sales transactions with this particular combination of business group and product group.';
             TableRelation = "G/L Account";
 
             trigger OnLookup()
@@ -100,6 +104,7 @@ table 252 "General Posting Setup"
         field(12; "Sales Inv. Disc. Account"; Code[20])
         {
             Caption = 'Sales Inv. Disc. Account';
+            ToolTip = 'Specifies the general ledger account number to which to post sales invoice discount amounts when you post sales transactions for this particular combination of business group and product group.';
             TableRelation = "G/L Account";
 
             trigger OnLookup()
@@ -123,6 +128,7 @@ table 252 "General Posting Setup"
         field(13; "Sales Pmt. Disc. Debit Acc."; Code[20])
         {
             Caption = 'Sales Pmt. Disc. Debit Acc.';
+            ToolTip = 'Specifies the general ledger account number to post granted sales payment discount amounts when you post payments for sales with this particular combination of business group and product group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -140,6 +146,7 @@ table 252 "General Posting Setup"
         field(14; "Purch. Account"; Code[20])
         {
             Caption = 'Purch. Account';
+            ToolTip = 'Specifies the general ledger account number to which the program will post purchase transactions with this particular combination of business posting group and product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnLookup()
@@ -163,6 +170,7 @@ table 252 "General Posting Setup"
         field(15; "Purch. Line Disc. Account"; Code[20])
         {
             Caption = 'Purch. Line Disc. Account';
+            ToolTip = 'Specifies the general ledger account number to which to post purchase line discount amounts with this particular combination of business group and product group.';
             TableRelation = "G/L Account";
 
             trigger OnLookup()
@@ -186,6 +194,7 @@ table 252 "General Posting Setup"
         field(16; "Purch. Inv. Disc. Account"; Code[20])
         {
             Caption = 'Purch. Inv. Disc. Account';
+            ToolTip = 'Specifies the general ledger account number to which to post purchase invoice discount amounts with this particular combination of business group and product group.';
             TableRelation = "G/L Account";
 
             trigger OnLookup()
@@ -209,6 +218,7 @@ table 252 "General Posting Setup"
         field(17; "Purch. Pmt. Disc. Credit Acc."; Code[20])
         {
             Caption = 'Purch. Pmt. Disc. Credit Acc.';
+            ToolTip = 'Specifies the general ledger account number to which to post received purchase payment discount amounts when you post payments for purchases with this particular combination of business posting group and product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -226,6 +236,7 @@ table 252 "General Posting Setup"
         field(18; "COGS Account"; Code[20])
         {
             Caption = 'COGS Account';
+            ToolTip = 'Specifies the general ledger account number to which to post the cost of goods sold with this particular combination of business group and product group.';
             TableRelation = "G/L Account";
 
             trigger OnLookup()
@@ -249,6 +260,7 @@ table 252 "General Posting Setup"
         field(19; "Inventory Adjmt. Account"; Code[20])
         {
             Caption = 'Inventory Adjmt. Account';
+            ToolTip = 'Specifies the general ledger account number to which to post inventory adjustments (positive and negative) with this particular combination of business posting group and product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnLookup()
@@ -293,6 +305,7 @@ table 252 "General Posting Setup"
         field(27; "Sales Credit Memo Account"; Code[20])
         {
             Caption = 'Sales Credit Memo Account';
+            ToolTip = 'Specifies the general ledger account number to which the program will post transactions involving sales credit memos for this particular combination of business posting group and product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnLookup()
@@ -317,6 +330,7 @@ table 252 "General Posting Setup"
         field(28; "Purch. Credit Memo Account"; Code[20])
         {
             Caption = 'Purch. Credit Memo Account';
+            ToolTip = 'Specifies the general ledger account number to which the program will post transactions involving purchase credit memos for this particular combination of business posting group and product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnLookup()
@@ -341,6 +355,7 @@ table 252 "General Posting Setup"
         field(30; "Sales Pmt. Disc. Credit Acc."; Code[20])
         {
             Caption = 'Sales Pmt. Disc. Credit Acc.';
+            ToolTip = 'Specifies the general ledger account number to which to post reductions in sales payment discount amounts when you post payments for sales with this particular combination of business group and product group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -359,6 +374,7 @@ table 252 "General Posting Setup"
         field(31; "Purch. Pmt. Disc. Debit Acc."; Code[20])
         {
             Caption = 'Purch. Pmt. Disc. Debit Acc.';
+            ToolTip = 'Specifies the general ledger account number to which to post reductions in purchase payment discount amounts when you post payments for purchases with this particular combination of business posting group and product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -377,6 +393,7 @@ table 252 "General Posting Setup"
         field(32; "Sales Pmt. Tol. Debit Acc."; Code[20])
         {
             Caption = 'Sales Pmt. Tol. Debit Acc.';
+            ToolTip = 'Specifies the number of the G/L account to which you want the program to post payment tolerance for purchases with this combination.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -395,6 +412,7 @@ table 252 "General Posting Setup"
         field(33; "Sales Pmt. Tol. Credit Acc."; Code[20])
         {
             Caption = 'Sales Pmt. Tol. Credit Acc.';
+            ToolTip = 'Specifies the number of the G/L account to which you want the program to post payment tolerance for purchases with this combination.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -413,6 +431,7 @@ table 252 "General Posting Setup"
         field(34; "Purch. Pmt. Tol. Debit Acc."; Code[20])
         {
             Caption = 'Purch. Pmt. Tol. Debit Acc.';
+            ToolTip = 'Specifies the number of the G/L account to which you want the program to post payment tolerance for purchases with this combination.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -431,6 +450,7 @@ table 252 "General Posting Setup"
         field(35; "Purch. Pmt. Tol. Credit Acc."; Code[20])
         {
             Caption = 'Purch. Pmt. Tol. Credit Acc.';
+            ToolTip = 'Specifies the number of the G/L account to which you want the program to post payment tolerance for purchases with this combination.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -449,6 +469,7 @@ table 252 "General Posting Setup"
         field(36; "Sales Prepayments Account"; Code[20])
         {
             Caption = 'Sales Prepayments Account';
+            ToolTip = 'Specifies the general ledger account number to which to post sales prepayment amounts when you post prepayment invoices from a sales order for this particular combination of business group and product group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -465,6 +486,7 @@ table 252 "General Posting Setup"
         field(37; "Purch. Prepayments Account"; Code[20])
         {
             Caption = 'Purch. Prepayments Account';
+            ToolTip = 'Specifies the general ledger account number to which to post purchase prepayment amounts when you post prepayment invoices from a purchase order for this particular combination of business group and product group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -480,6 +502,7 @@ table 252 "General Posting Setup"
         field(50; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the general posting setup.';
         }
         /// <summary>
         /// Controls whether all G/L accounts are shown during account lookup or only relevant account categories are filtered.
@@ -487,6 +510,7 @@ table 252 "General Posting Setup"
         field(51; "View All Accounts on Lookup"; Boolean)
         {
             Caption = 'View All Accounts on Lookup';
+            ToolTip = 'Specifies that all possible accounts are shown when you look up from a field. If the check box is not selected, then only accounts related to the involved account category are shown.';
         }
         /// <summary>
         /// Prevents this general posting setup combination from being used in new transactions when enabled.
@@ -494,6 +518,7 @@ table 252 "General Posting Setup"
         field(52; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies if this particular combination of general business posting group and general product posting group is blocked.';
         }
         /// <summary>
         /// G/L account used for posting purchase fixed asset discount transactions.
@@ -502,6 +527,7 @@ table 252 "General Posting Setup"
         field(5600; "Purch. FA Disc. Account"; Code[20])
         {
             Caption = 'Purch. FA Disc. Account';
+            ToolTip = 'Specifies the account the line and invoice discount will be posted to when a check mark is placed in the Subtract Disc. in Purch. Inv. field.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -589,6 +615,7 @@ table 252 "General Posting Setup"
         field(99000752; "Direct Cost Applied Account"; Code[20])
         {
             Caption = 'Direct Cost Applied Account';
+            ToolTip = 'Specifies the general ledger account number to post the direct cost applied with this particular combination of business posting group and product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -603,6 +630,7 @@ table 252 "General Posting Setup"
         field(99000753; "Overhead Applied Account"; Code[20])
         {
             Caption = 'Overhead Applied Account';
+            ToolTip = 'Specifies the general ledger account number to post the overhead applied with this particular combination of business posting group and product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -617,6 +645,7 @@ table 252 "General Posting Setup"
         field(99000754; "Purchase Variance Account"; Code[20])
         {
             Caption = 'Purchase Variance Account';
+            ToolTip = 'Specifies the general ledger account number to post the direct cost applied with this particular combination of business posting group and product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()

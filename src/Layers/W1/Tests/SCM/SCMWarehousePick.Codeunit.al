@@ -1809,7 +1809,8 @@ codeunit 137055 "SCM Warehouse Pick"
         Initialize();
 
         // [GIVEN] Setup variables for rounding test with random values within problematic ranges
-        SetStaticValues579500(QtyPerUOM, QtyRoundingPrecision, OrderQuantity);
+        SetStaticValues579500(QtyPerUOM, OrderQuantity);
+        QtyRoundingPrecision := 0.00001;
 
         // [GIVEN] Generate random bin code
         BinCode := LibraryUtility.GenerateRandomCode(SalesLine.FieldNo("Bin Code"), Database::"Sales Line"); // Random bin code
@@ -1977,6 +1978,7 @@ codeunit 137055 "SCM Warehouse Pick"
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         Quantity: Decimal;
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 621155] Create Pick prioritizes reserved sales lines over unreserved lines even after warehouse shipment deletion and item reclassification
         Initialize();
 
@@ -2066,6 +2068,94 @@ codeunit 137055 "SCM Warehouse Pick"
         Assert.RecordIsEmpty(WarehouseActivityLine);
 
         NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('CreateInvtPutAwayPickRequestPageHandler,MessageHandler')]
+    procedure InventoryPickRoundingWithDefaultPrecision()
+    var
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        UnitOfMeasure: Record "Unit of Measure";
+        Bin: Record Bin;
+        TotalPickedQty: Decimal;
+        QtyPerUOM: Decimal;
+        OrderQuantity: Decimal;
+        BinCode: Code[20];
+    begin
+        // [SCENARIO 619995] Inventory pick rounding with default Qty. Rounding Precision does not cause residual quantity
+        // When picking items with non-integer UOM conversion and default rounding precision, the pick process should complete without residuals
+        Initialize();
+
+        // [GIVEN] Setup variables for rounding test with same values as bug 603832 but using default rounding precision
+        SetStaticValues579500(QtyPerUOM, OrderQuantity);
+
+        // [GIVEN] Generate random bin code
+        BinCode := LibraryUtility.GenerateRandomCode(SalesLine.FieldNo("Bin Code"), Database::"Sales Line");
+
+        // [GIVEN] Create item with specific UOM configuration for rounding test and LOT tracking with expiration dates
+        LibraryInventory.CreateItem(Item);
+        SetupItemTrackingWithExpirationDates(Item);
+
+        // [GIVEN] Add secondary UOM with conversion factor, using default rounding precision
+        CreateItemUnitOfMeasureWithDefaultPrecision(ItemUnitOfMeasure, UnitOfMeasure, Item, QtyPerUOM);
+
+        // [GIVEN] Set Sales Unit of Measure to the secondary UOM
+        Item.Validate("Sales Unit of Measure", UnitOfMeasure.Code);
+        Item.Modify(true);
+
+        // [GIVEN] Setup Location with Require Pick = YES and Pick According to FEFO = Yes
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, true, false, false);
+        Location.Validate("Bin Mandatory", true);
+        Location.Validate("Pick According to FEFO", true);
+        Location.Modify(true);
+
+        // [GIVEN] Add Warehouse Employee for location
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+
+        // [GIVEN] Create bin for the location
+        LibraryWarehouse.CreateBin(Bin, Location.Code, BinCode, '', '');
+
+        // [GIVEN] Add inventory for the item (sufficient for order quantity)
+        CreateInventoryForLotAndExpiry579500(Item."No.", Location.Code, Bin.Code);
+
+        // [GIVEN] Create Customer
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Create Sales Order with quantity 248
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", OrderQuantity);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Release Sales Order
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        // [GIVEN] Create Inventory Pick from Sales Order
+        Commit();
+        SalesHeader.CreateInvtPutAwayPick();
+
+        // [WHEN] Autofill Qty. to Handle and post the pick
+        PostInventoryActivity(WarehouseActivityHeader."Source Document"::"Sales Order", SalesHeader."No.", WarehouseActivityLine."Activity Type"::"Invt. Pick");
+
+        // [GIVEN] Get total picked quantity from Item Ledger Entries
+        GetTotalPickedQuantity(Item."No.", Location.Code, QtyPerUOM, TotalPickedQty);
+
+        // [THEN] Assert that picked quantity equals expected (with tolerance for default rounding)
+        Assert.AreEqual(OrderQuantity, TotalPickedQty,
+            StrSubstNo(PickQuantityErr, OrderQuantity, UnitOfMeasure.Code, TotalPickedQty));
+
+        // [THEN] Validate that no residual quantity remains (no second pick is required) Check that sales line is fully shipped
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        Assert.AreEqual(SalesLine.Quantity, SalesLine."Quantity Shipped", ShipQtyErr);
     end;
 
     local procedure Initialize()
@@ -2912,10 +3002,9 @@ codeunit 137055 "SCM Warehouse Pick"
         Item.Modify(true);
     end;
 
-    local procedure SetStaticValues579500(var QtyPerUOM: Decimal; var QtyRoundingPrecision: Decimal; var OrderQuantity: Decimal)
+    local procedure SetStaticValues579500(var QtyPerUOM: Decimal; var OrderQuantity: Decimal)
     begin
         QtyPerUOM := 2.888;
-        QtyRoundingPrecision := 0.00001;
         OrderQuantity := 248;
     end;
 
@@ -3036,6 +3125,16 @@ codeunit 137055 "SCM Warehouse Pick"
         LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, QtyPerUOM);
         ItemUnitOfMeasure.Validate("Qty. Rounding Precision", QtyRoundingPrecision);
         ItemUnitOfMeasure.Modify(true);
+    end;
+
+    local procedure CreateItemUnitOfMeasureWithDefaultPrecision(
+        var ItemUnitOfMeasure: Record "Item Unit of Measure";
+        var UnitOfMeasure: Record "Unit of Measure";
+        Item: Record Item;
+        QtyPerUOM: Decimal)
+    begin
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, QtyPerUOM);
     end;
 
     local procedure CreateAndPostItemJournalLineWithLotNo(var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal; LotNo: Code[50])

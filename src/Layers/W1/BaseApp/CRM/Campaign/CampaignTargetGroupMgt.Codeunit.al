@@ -242,6 +242,8 @@ codeunit 7030 "Campaign Target Group Mgt"
     var
         CampaignTargetGr2: Record "Campaign Target Group";
     begin
+        OnBeforeConverttoContact(Cust, CampaignTargetGr, CampaignTargetGr2);
+
         CampaignTargetGr2.SetRange("No.", Cust."No.");
         if CampaignTargetGr2.Find('-') then
             repeat
@@ -292,6 +294,11 @@ codeunit 7030 "Campaign Target Group Mgt"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeActivateCampaign(var Campaign: Record Campaign; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeConverttoContact(var Customer: Record Customer; var CampaignTargetGroup: Record "Campaign Target Group"; var CampaignTargetGroup2: Record "Campaign Target Group")
     begin
     end;
 

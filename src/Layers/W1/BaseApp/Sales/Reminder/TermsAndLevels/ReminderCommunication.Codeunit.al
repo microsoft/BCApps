@@ -734,6 +734,7 @@ codeunit 1890 "Reminder Communication"
                                 ReminderAttachmentTextLine.Position := ReminderAttachmentTextLine.Position::"Beginning Line";
                                 ReminderAttachmentTextLine."Line No." := ReminderText."Line No.";
                                 ReminderAttachmentTextLine.Text := ReminderText.Text;
+                                OnTransferReminderTextOnBeforeInsertBeginningReminderAttachmentTextLine(ReminderText, ReminderAttachmentTextLine);
                                 ReminderAttachmentTextLine.Insert(true);
                             end;
                         Enum::"Reminder Text Position"::Ending:
@@ -744,6 +745,7 @@ codeunit 1890 "Reminder Communication"
                                 ReminderAttachmentTextLine.Position := ReminderAttachmentTextLine.Position::"Ending Line";
                                 ReminderAttachmentTextLine."Line No." := ReminderText."Line No.";
                                 ReminderAttachmentTextLine.Text := ReminderText.Text;
+                                OnTransferReminderTextOnBeforeInsertEndingReminderAttachmentTextLine(ReminderText, ReminderAttachmentTextLine);
                                 ReminderAttachmentTextLine.Insert(true);
                             end;
                         Enum::"Reminder Text Position"::"Email Body":
@@ -1127,6 +1129,16 @@ codeunit 1890 "Reminder Communication"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSubstituteRelatedValues(var BodyTxt: Text; var IssuedReminderHeader: Record "Issued Reminder Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnTransferReminderTextOnBeforeInsertBeginningReminderAttachmentTextLine(var ReminderText: Record "Reminder Text"; var ReminderAttachmentTextLine: Record "Reminder Attachment Text Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnTransferReminderTextOnBeforeInsertEndingReminderAttachmentTextLine(var ReminderText: Record "Reminder Text"; var ReminderAttachmentTextLine: Record "Reminder Attachment Text Line")
     begin
     end;
 }

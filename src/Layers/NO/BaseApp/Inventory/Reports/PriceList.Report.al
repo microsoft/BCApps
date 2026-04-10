@@ -22,12 +22,11 @@ using System.Utilities;
 
 report 715 "Price List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/PriceList.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Price List';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -137,9 +136,11 @@ report 715 "Price List"
             column(VATTextCaption; VATTextCaptionLbl)
             {
             }
+#if not CLEAN29
             column(EnterpriseRegister; CompanyInfo.GetEnterpriseClassification())
             {
             }
+#endif
             dataitem(SalesPrices; "Integer")
             {
                 DataItemTableView = sorting(Number) where(Number = filter(1 ..));
@@ -487,6 +488,16 @@ report 715 "Price List"
             if SalesPriceType = SalesPriceType::"All Customers" then
                 SalesCodeCtrlEnable := false;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/PriceList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

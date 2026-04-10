@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,23 +38,19 @@ page 495 "Currency Card"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a currency code that you can select. The code must comply with ISO 4217.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a text to describe the currency code.';
                 }
                 field("ISO Code"; Rec."ISO Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a three-letter currency code defined in ISO 4217.';
                 }
                 field("ISO Numeric Code"; Rec."ISO Numeric Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a three-digit code number defined in ISO 4217.';
                 }
                 field(Symbol; Rec.Symbol)
                 {
@@ -64,22 +60,18 @@ page 495 "Currency Card"
                 field("Unrealized Gains Acc."; Rec."Unrealized Gains Acc.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the general ledger account number to which unrealized exchange rate gains will be posted when the Adjust Exchange Rates batch job is run.';
                 }
                 field("Realized Gains Acc."; Rec."Realized Gains Acc.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the general ledger account number to which realized exchange rate gains will be posted.';
                 }
                 field("Unrealized Losses Acc."; Rec."Unrealized Losses Acc.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the general ledger account number to which unrealized exchange rate losses will be posted when the Adjust Exchange Rates batch job is run.';
                 }
                 field("Realized Losses Acc."; Rec."Realized Losses Acc.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the general ledger account number to which realized exchange rate losses will be posted.';
                 }
                 field("EMU Currency"; Rec."EMU Currency")
                 {
@@ -90,23 +82,19 @@ page 495 "Currency Card"
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the last date on which any information in the Currency table was modified.';
                 }
                 field("Last Date Adjusted"; Rec."Last Date Adjusted")
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies when the exchange rates were last adjusted, that is, the last date on which the Adjust Exchange Rates batch job was run.';
                 }
                 field("Payment Tolerance %"; Rec."Payment Tolerance %")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the percentage that the payment or refund is allowed to be, less than the amount on the invoice or credit memo.';
                 }
                 field("Max. Payment Tolerance Amount"; Rec."Max. Payment Tolerance Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the maximum allowed amount that the payment or refund can differ from the amount on the invoice or credit memo.';
                 }
             }
             group(Rounding)
@@ -116,60 +104,49 @@ page 495 "Currency Card"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the size of the interval to be used when rounding amounts in this currency. You can specify invoice rounding for each currency in the Currency table.';
                 }
                 field("Invoice Rounding Type"; Rec."Invoice Rounding Type")
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies whether an invoice amount will be rounded up or down. The program uses this information together with the interval for rounding that you have specified in the Invoice Rounding Precision field.';
                 }
                 field("Amount Rounding Precision"; Rec."Amount Rounding Precision")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the size of the interval to be used when rounding amounts in this currency.';
                 }
                 field("Amount Decimal Places"; Rec."Amount Decimal Places")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of decimal places the program will display for amounts in this currency.';
                 }
                 field("Unit-Amount Rounding Precision"; Rec."Unit-Amount Rounding Precision")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the size of the interval to be used when rounding unit amounts (that is, item prices per unit) in this currency.';
                 }
                 field("Unit-Amount Decimal Places"; Rec."Unit-Amount Decimal Places")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of decimal places the program will display for amounts in this currency.';
                 }
                 field("Appln. Rounding Precision"; Rec."Appln. Rounding Precision")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the size of the interval that will be allowed as a rounding difference when you apply entries in different currencies to one another.';
                 }
                 field("Conv. LCY Rndg. Debit Acc."; Rec."Conv. LCY Rndg. Debit Acc.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies conversion information that must also contain a debit account if you wish to insert correction lines for rounding differences in the general journals using the Insert Conv. LCY Rndg. Lines function.';
                 }
                 field("Conv. LCY Rndg. Credit Acc."; Rec."Conv. LCY Rndg. Credit Acc.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies conversion information that must also contain a credit account if you wish to insert correction lines for rounding differences in the general journals using the Insert Conv. LCY Rndg. Lines function.';
                 }
                 field("Max. VAT Difference Allowed"; Rec."Max. VAT Difference Allowed")
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the maximum VAT correction amount allowed for the currency.';
                 }
                 field("VAT Rounding Type"; Rec."VAT Rounding Type")
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies how the program will round VAT when calculated for this currency.';
                 }
             }
             group(Reporting)
@@ -179,7 +156,6 @@ page 495 "Currency Card"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the general ledger account to post exchange rate gains to, for currency adjustments between LCY and the additional reporting currency.';
                 }
                 field("Realized G/L Losses Account"; Rec."Realized G/L Losses Account")
                 {

@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.UOM;
@@ -23,6 +24,7 @@ using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Test;
 using System.IO;
+using System.Text;
 using System.Utilities;
 
 codeunit 13918 "XRechnung XML Document Tests"
@@ -666,6 +668,32 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document is created with company data as accounting supplier party
         VerifyAccountingSupplierParty(TempXMLBuffer, '/ubl:Invoice/cac:AccountingSupplierParty/cac:Party', ResponsibilityCenter);
+    end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInXRechnungFormatVerifyDocumentAttachments();
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CSVText1: Text;
+        CSVText2: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Export posted service invoice creates electronic document in XRechnung format with document attachments embedded
+        Initialize();
+
+        // [GIVEN] Create and Post Service Invoice
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocument());
+
+        // [GIVEN] Create two CSV document attachments
+        CSVText1 := CreateCSVDocumentAttachment(ServiceInvoiceHeader, 'attachment.csv');
+        CSVText2 := CreateCSVDocumentAttachment(ServiceInvoiceHeader, 'document.csv');
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] XRechnung Electronic Document contains 2 AdditionalDocumentReference nodes
+        VerifyCSVAttachments(TempXMLBuffer, 'attachment.csv', CSVText1, 'document.csv', CSVText2);
     end;
     #endregion
 
@@ -1363,6 +1391,95 @@ codeunit 13918 "XRechnung XML Document Tests"
         LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
 
         // [THEN] No error occurs
+    end;
+    #endregion
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatVerifyUnsupportedAttachmentIsSkipped();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        RecRef: RecordRef;
+        CSVText: Text;
+    begin
+        // [SCENARIO] Attachments with unsupported MIME types are not exported in XRechnung format
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, "Sales Line Type"::Item, false));
+        RecRef.GetTable(SalesInvoiceHeader);
+
+        // [GIVEN] Create one supported CSV attachment and one unsupported TXT attachment
+        CSVText := CreateCSVDocumentAttachment(RecRef, 'data.csv');
+        CreateDocumentAttachment(RecRef, 'report.txt', 'Some text content');
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Only the CSV attachment (supported) is present; TXT is skipped
+        VerifyAdditionalDocumentReferenceCount(TempXMLBuffer, 1);
+        VerifyCSVAttachmentInXML(TempXMLBuffer, 'data.csv', 'text/csv', CSVText);
+    end;
+
+    #region TwoDecimalPlaces
+    [Test]
+    procedure FormatDecimalWithTwoDecimalPlacesFlagReturnsTrailingZero();
+    begin
+        // [SCENARIO] FormatDecimal with IncludeDecimalPlaces = true always formats amount with exactly two decimal places
+        Initialize();
+
+        // [WHEN/THEN] A value with one significant decimal place gets the trailing zero
+        Assert.AreEqual('1.10', ExportXRechnungDocument.FormatDecimal(1.1, true), 'FormatDecimal(1.1, true) should return ''1.10''');
+        // [WHEN/THEN] A whole number gets two decimal zeros
+        Assert.AreEqual('1.00', ExportXRechnungDocument.FormatDecimal(1, true), 'FormatDecimal(1, true) should return ''1.00''');
+        // [WHEN/THEN] A value with two decimal places is unchanged
+        Assert.AreEqual('1.23', ExportXRechnungDocument.FormatDecimal(1.23, true), 'FormatDecimal(1.23, true) should return ''1.23''');
+    end;
+
+    [Test]
+    procedure FormatDecimalWithoutTwoDecimalPlacesFlagNoTrailingZero();
+    begin
+        // [SCENARIO] FormatDecimal with IncludeDecimalPlaces = false uses the default format without trailing zeros
+        Initialize();
+
+        // [WHEN/THEN] A value with one significant decimal place has no trailing zero
+        Assert.AreEqual('1.1', ExportXRechnungDocument.FormatDecimal(1.1, false), 'FormatDecimal(1.1, false) should return ''1.1''');
+        // [WHEN/THEN] A whole number has no decimal places
+        Assert.AreEqual('1', ExportXRechnungDocument.FormatDecimal(1, false), 'FormatDecimal(1, false) should return ''1''');
+        // [WHEN/THEN] A value with two decimal places is unchanged
+        Assert.AreEqual('1.23', ExportXRechnungDocument.FormatDecimal(1.23, false), 'FormatDecimal(1.23, false) should return ''1.23''');
+    end;
+
+    [Test]
+    procedure FormatDecimalUnlimitedWithMinTwoDecimalsReturnsTrailingZero();
+    begin
+        // [SCENARIO] FormatDecimalUnlimited with IncludeMinTwoDecimals = true ensures minimum two decimal places while preserving extended precision
+        Initialize();
+
+        // [WHEN/THEN] A value with one significant decimal place gets the trailing zero
+        Assert.AreEqual('1.10', ExportXRechnungDocument.FormatDecimalUnlimited(1.1, true), 'FormatDecimalUnlimited(1.1, true) should return ''1.10''');
+        // [WHEN/THEN] A whole number gets two decimal zeros
+        Assert.AreEqual('1.00', ExportXRechnungDocument.FormatDecimalUnlimited(1, true), 'FormatDecimalUnlimited(1, true) should return ''1.00''');
+        // [WHEN/THEN] A value with two decimal places is unchanged
+        Assert.AreEqual('1.23', ExportXRechnungDocument.FormatDecimalUnlimited(1.23, true), 'FormatDecimalUnlimited(1.23, true) should return ''1.23''');
+        // [WHEN/THEN] A value with extended decimal places preserves full precision
+        Assert.AreEqual('5.12345', ExportXRechnungDocument.FormatDecimalUnlimited(5.12345, true), 'FormatDecimalUnlimited(5.12345, true) should return ''5.12345''');
+    end;
+
+    [Test]
+    procedure FormatDecimalUnlimitedWithoutMinTwoDecimalsUnbounded();
+    begin
+        // [SCENARIO] FormatDecimalUnlimited with IncludeMinTwoDecimals = false uses unlimited precision without minimum decimal places
+        Initialize();
+
+        // [WHEN/THEN] A value with one significant decimal place has no trailing zero
+        Assert.AreEqual('1.1', ExportXRechnungDocument.FormatDecimalUnlimited(1.1, false), 'FormatDecimalUnlimited(1.1, false) should return ''1.1''');
+        // [WHEN/THEN] A whole number has no decimal places
+        Assert.AreEqual('1', ExportXRechnungDocument.FormatDecimalUnlimited(1, false), 'FormatDecimalUnlimited(1, false) should return ''1''');
+        // [WHEN/THEN] A value with two decimal places is unchanged
+        Assert.AreEqual('1.23', ExportXRechnungDocument.FormatDecimalUnlimited(1.23, false), 'FormatDecimalUnlimited(1.23, false) should return ''1.23''');
+        // [WHEN/THEN] A value with extended decimal places preserves full precision
+        Assert.AreEqual('5.12345', ExportXRechnungDocument.FormatDecimalUnlimited(5.12345, false), 'FormatDecimalUnlimited(5.12345, false) should return ''5.12345''');
     end;
     #endregion
 
@@ -2387,6 +2504,119 @@ codeunit 13918 "XRechnung XML Document Tests"
         Assert.RecordIsNotEmpty(TempXMLBuffer, '');
     end;
 
+    local procedure VerifyCSVAttachments(var TempXMLBuffer: Record "XML Buffer" temporary; FileName1: Text; CSVText1: Text; FileName2: Text; CSVText2: Text)
+    begin
+        // [THEN] XRechnung Electronic Document contains 2 AdditionalDocumentReference nodes
+        VerifyAdditionalDocumentReferenceCount(TempXMLBuffer, 2);
+
+        // [THEN] First attachment is verified in XML with correct ID, MIME type, and content
+        VerifyCSVAttachmentInXML(TempXMLBuffer, FileName1, 'text/csv', CSVText1);
+
+        // [THEN] Second attachment is verified in XML with correct ID, MIME type, and content
+        VerifyCSVAttachmentInXML(TempXMLBuffer, FileName2, 'text/csv', CSVText2);
+    end;
+
+
+    local procedure VerifyAdditionalDocumentReferenceCount(var TempXMLBuffer: Record "XML Buffer" temporary; ExpectedCount: Integer)
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, '/ubl:Invoice/cac:AdditionalDocumentReference');
+        Assert.AreEqual(ExpectedCount, TempXMLBuffer.Count, 'Incorrect number of AdditionalDocumentReference nodes');
+    end;
+
+    local procedure VerifyCSVAttachmentInXML(var TempXMLBuffer: Record "XML Buffer" temporary; AttachmentID: Text; ExpectedMIMEType: Text; ExpectedCSVText: Text)
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        Base64EncodedContent: Text;
+    begin
+        Base64EncodedContent := Base64Convert.ToBase64(ExpectedCSVText);
+        VerifyAttachmentInXML(TempXMLBuffer, AttachmentID, ExpectedMIMEType, Base64EncodedContent);
+    end;
+
+    local procedure VerifyAttachmentInXML(var TempXMLBuffer: Record "XML Buffer" temporary; AttachmentID: Text; ExpectedMIMEType: Text; ExpectedBase64Content: Text)
+    var
+        TempXMLBufferAttachment: Record "XML Buffer" temporary;
+        TempXMLBufferChild: Record "XML Buffer" temporary;
+        EncodedContent: Text;
+        ExpectedDescription: Text;
+        AttachmentEntryNo: Integer;
+        EmbeddedDocEntryNo: Integer;
+    begin
+        // Find the AdditionalDocumentReference node with matching ID
+        if not FindAttachmentByID(TempXMLBuffer, AttachmentID, TempXMLBufferAttachment) then
+            Error('AdditionalDocumentReference with ID %1 not found', AttachmentID);
+
+        // Extract file name without extension for DocumentDescription verification
+        ExpectedDescription := CopyStr(AttachmentID, 1, StrPos(AttachmentID, '.') - 1);
+
+        // Verify DocumentDescription (should match file name without extension)
+        TempXMLBufferChild.Copy(TempXMLBuffer, true);
+        TempXMLBufferChild.Reset();
+        TempXMLBufferChild.SetRange("Parent Entry No.", TempXMLBufferAttachment."Entry No.");
+        TempXMLBufferChild.SetRange(Type, TempXMLBufferChild.Type::Element);
+        TempXMLBufferChild.SetRange(Name, 'DocumentDescription');
+        if TempXMLBufferChild.FindFirst() then
+            Assert.AreEqual(ExpectedDescription, TempXMLBufferChild.Value, 'Incorrect DocumentDescription');
+
+        // Find the Attachment child node
+        TempXMLBufferChild.Reset();
+        TempXMLBufferChild.SetRange("Parent Entry No.", TempXMLBufferAttachment."Entry No.");
+        TempXMLBufferChild.SetRange(Type, TempXMLBufferChild.Type::Element);
+        TempXMLBufferChild.SetRange(Name, 'Attachment');
+        if TempXMLBufferChild.FindFirst() then begin
+            AttachmentEntryNo := TempXMLBufferChild."Entry No.";
+
+            // Find EmbeddedDocumentBinaryObject under Attachment
+            TempXMLBufferChild.Reset();
+            TempXMLBufferChild.SetRange("Parent Entry No.", AttachmentEntryNo);
+            TempXMLBufferChild.SetRange(Type, TempXMLBufferChild.Type::Element);
+            TempXMLBufferChild.SetRange(Name, 'EmbeddedDocumentBinaryObject');
+            if TempXMLBufferChild.FindFirst() then begin
+                EncodedContent := TempXMLBufferChild.GetValue();
+                EmbeddedDocEntryNo := TempXMLBufferChild."Entry No.";
+
+                // Get mimeCode attribute
+                TempXMLBufferChild.Reset();
+                TempXMLBufferChild.SetRange("Parent Entry No.", EmbeddedDocEntryNo);
+                TempXMLBufferChild.SetRange(Type, TempXMLBufferChild.Type::Attribute);
+                TempXMLBufferChild.SetRange(Name, 'mimeCode');
+                if TempXMLBufferChild.FindFirst() then
+                    Assert.AreEqual(ExpectedMIMEType, TempXMLBufferChild.Value, 'Incorrect MIME type');
+
+                if ExpectedBase64Content <> '' then
+                    Assert.AreEqual(ExpectedBase64Content, EncodedContent, 'Attachment content does not match original value');
+            end else
+                Error('EmbeddedDocumentBinaryObject not found for attachment %1', AttachmentID);
+        end else
+            Error('Attachment node not found for attachment %1', AttachmentID);
+    end;
+
+    local procedure FindAttachmentByID(var TempXMLBuffer: Record "XML Buffer" temporary; AttachmentID: Text; var TempXMLBufferResult: Record "XML Buffer" temporary): Boolean
+    var
+        TempXMLBufferID: Record "XML Buffer" temporary;
+    begin
+        // Find all AdditionalDocumentReference nodes
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, '/ubl:Invoice/cac:AdditionalDocumentReference');
+        if TempXMLBuffer.FindSet() then
+            repeat
+                // Check if this node has the matching ID child
+                TempXMLBufferID.Copy(TempXMLBuffer, true);
+                TempXMLBufferID.Reset();
+                TempXMLBufferID.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
+                TempXMLBufferID.SetRange(Type, TempXMLBufferID.Type::Element);
+                TempXMLBufferID.SetRange(Name, 'ID');
+                if TempXMLBufferID.FindFirst() then
+                    if TempXMLBufferID.Value = AttachmentID then begin
+                        TempXMLBufferResult := TempXMLBuffer;
+                        exit(true);
+                    end;
+            until TempXMLBuffer.Next() = 0;
+        exit(false);
+    end;
+
     local procedure GetCurrencyCode(CurrencyCode: Code[10]): Code[10];
     begin
         if CurrencyCode <> '' then
@@ -2599,6 +2829,50 @@ codeunit 13918 "XRechnung XML Document Tests"
         exit(ServiceCrMemoLine."Amount Including VAT" - ServiceCrMemoLine.Amount);
     end;
 
+
+
+    local procedure CreateCSVDocumentAttachment(ServiceInvoiceHeader: Record "Service Invoice Header"; FileName: Text): Text
+    var
+        RecRef: RecordRef;
+    begin
+        RecRef.GetTable(ServiceInvoiceHeader);
+        exit(CreateCSVDocumentAttachment(RecRef, FileName));
+    end;
+
+    local procedure CreateCSVDocumentAttachment(RecRef: RecordRef; FileName: Text): Text
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        TextBuilder: TextBuilder;
+        OutStream: OutStream;
+        CSVText: Text;
+    begin
+        // Build CSV content using TextBuilder
+        TextBuilder.AppendLine('Name,Value');
+        TextBuilder.Append('Item1,100');
+        CSVText := TextBuilder.ToText();
+
+        // Create blob with CSV content
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(CSVText);
+
+        // Save attachment to the document
+        DocumentAttachment.SaveAttachment(RecRef, FileName, TempBlob);
+
+        exit(CSVText);
+    end;
+
+    local procedure CreateDocumentAttachment(RecRef: RecordRef; FileName: Text; ContentText: Text)
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(ContentText);
+        DocumentAttachment.SaveAttachment(RecRef, FileName, TempBlob);
+    end;
+
     local procedure GetCurrencyCode(DocumentCurrencyCode: Code[10]; var Currency: Record Currency): Code[10]
     begin
         if DocumentCurrencyCode = '' then begin
@@ -2632,9 +2906,9 @@ codeunit 13918 "XRechnung XML Document Tests"
         CompanyInformation."SWIFT Code" := LibraryUtility.GenerateGUID();
         CompanyInformation."E-Mail" := LibraryUtility.GenerateRandomEmail();
         CompanyInformation.Modify();
-        
+
         GeneralLedgerSetup.Get();
-        
+
         EDocumentService.DeleteAll();
         EDocumentService.Get(LibraryEdocument.CreateService("E-Document Format"::XRechnung, "Service Integration"::"No Integration"));
         Commit();

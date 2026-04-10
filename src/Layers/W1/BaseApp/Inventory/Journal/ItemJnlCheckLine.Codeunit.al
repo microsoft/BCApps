@@ -503,58 +503,6 @@ codeunit 21 "Item Jnl.-Check Line"
         end;
     end;
 
-#if not CLEAN26
-    internal procedure RunOnAfterAssignInvtPickRequired(ItemJournalLine: Record "Item Journal Line"; Location2: Record Location; var InvtPickLocation: Boolean)
-    begin
-        OnAfterAssignInvtPickRequired(ItemJournalLine, Location2, InvtPickLocation);
-    end;
-
-    [Obsolete('Moved to codeunits Asm./Mfg. Item Jnl.-Check-Line', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterAssignInvtPickRequired(ItemJournalLine: Record "Item Journal Line"; Location: Record Location; var InvtPickLocation: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    internal procedure RunOnAfterAssignWhsePickRequired(ItemJournalLine: Record "Item Journal Line"; Location2: Record Location; var WhsePickLocation: Boolean)
-    begin
-        OnAfterAssignWhsePickRequired(ItemJournalLine, Location2, WhsePickLocation);
-    end;
-
-    [Obsolete('Moved to codeunits Asm./Mfg. Item Jnl.-Check-Line', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterAssignWhsePickRequired(ItemJournalLine: Record "Item Journal Line"; Location: Record Location; var WhsePickLocation: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    internal procedure RunOnAfterAssignInvtPutAwayRequired(ItemJournalLine: Record "Item Journal Line"; Location2: Record Location; var InvtPutAwayLocation: Boolean)
-    begin
-        OnAfterAssignInvtPutAwayRequired(ItemJournalLine, Location2, InvtPutAwayLocation);
-    end;
-
-    [Obsolete('Moved to codeunits Asm./Mfg. Item Jnl.-Check-Line', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterAssignInvtPutAwayRequired(ItemJournalLine: Record "Item Journal Line"; Location: Record Location; var InvtPutAwayLocation: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    internal procedure RunOnAfterCheckFindProdOrderLine(ItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        OnAfterCheckFindProdOrderLine(ItemJournalLine, ProdOrderLine);
-    end;
-
-    [Obsolete('Moved to codeunits Mfg. Item Jnl.-Check-Line', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCheckFindProdOrderLine(ItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetItem(Item: Record Item; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
@@ -579,45 +527,6 @@ codeunit 21 "Item Jnl.-Check Line"
     local procedure OnBeforeCheckLocation(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN26
-    internal procedure RunOnBeforeCheckSubcontracting(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeCheckSubcontracting(ItemJournalLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunits Mfg. Item Jnl.-Check-Line', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckSubcontracting(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    internal procedure RunOnBeforeCheckWarehouse(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeCheckWarehouse(ItemJournalLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunits Mfg. Item Jnl.-Check-Line', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckWarehouse(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    internal procedure RunOnBeforeCheckWarehouseLastOutputOperation(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeCheckWarehouseLastOutputOperation(ItemJournalLine, Result, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunits Mfg. Item Jnl.-Check-Line', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckWarehouseLastOutputOperation(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckOutputFields(var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
@@ -658,19 +567,6 @@ codeunit 21 "Item Jnl.-Check Line"
     local procedure OnCheckDimensionsOnAfterAssignDimTableIDs(var ItemJnlLine: Record "Item Journal Line"; var TableID: array[10] of Integer; var No: array[10] of Code[20])
     begin
     end;
-
-#if not CLEAN26
-    internal procedure RunOnRunCheckOnAfterCalcShouldCheckItemNo(ItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; CalledFromAdjustment2: Boolean; var ShouldCheckItemNo: Boolean)
-    begin
-        OnRunCheckOnAfterCalcShouldCheckItemNo(ItemJournalLine, ProdOrderLine, CalledFromAdjustment2, ShouldCheckItemNo);
-    end;
-
-    [Obsolete('Moved to codeunits Mfg. Item Jnl.-Check-Line', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnRunCheckOnAfterCalcShouldCheckItemNo(ItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; CalledFromAdjustment: Boolean; var ShouldCheckItemNo: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnRunCheckOnAfterCalcShouldCheckLocationCode(var ItemJournalLine: Record "Item Journal Line"; var ShouldCheckLocationCode: Boolean)

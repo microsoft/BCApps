@@ -12,11 +12,10 @@ using System.Utilities;
 report 1007 "Job - Transaction Detail"
 {
     AdditionalSearchTerms = 'Job - Transaction Detail';
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Project/Reports/JobTransactionDetail.rdlc';
     ApplicationArea = Jobs;
     Caption = 'Project Task - Transaction Detail';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -357,6 +356,16 @@ report 1007 "Job - Transaction Detail"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Project/Reports/JobTransactionDetail.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

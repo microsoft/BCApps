@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 1836 "Consolidation Log Entry"
             field("Entry No."; Rec."Entry No.")
             {
                 ApplicationArea = All;
-                ToolTip = 'The unique identifier of the log entry.';
             }
             field("Created at"; Rec.SystemCreatedAt)
             {
@@ -41,7 +40,6 @@ page 1836 "Consolidation Log Entry"
             field("Status Code"; Rec."Status Code")
             {
                 ApplicationArea = All;
-                ToolTip = 'The status code of the response that was received from the API for this request.';
             }
             field(Request; Rec.GetRequestAsText())
             {

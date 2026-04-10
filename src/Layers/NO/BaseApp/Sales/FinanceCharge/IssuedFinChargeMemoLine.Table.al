@@ -277,16 +277,28 @@ table 305 "Issued Fin. Charge Memo Line"
             Caption = 'System-Created Entry';
             Editable = false;
         }
+#if not CLEANSCHEMA32
         field(10601; "Account Code"; Text[30])
         {
             Caption = 'Account Code';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
 
+#if not CLEAN29
             trigger OnValidate()
             begin
                 if (Type = Type::" ") and ("Account Code" <> '') then
                     Error(Text10600, FieldCaption("Account Code"), FieldCaption(Type), Type);
             end;
+#endif
         }
+#endif
     }
 
     keys
@@ -315,7 +327,9 @@ table 305 "Issued Fin. Charge Memo Line"
     var
         IssuedFinChrgMemoHeader: Record "Issued Fin. Charge Memo Header";
         CustLedgEntry: Record "Cust. Ledger Entry";
+#if not CLEAN29
         Text10600: Label 'You cannot enter %1 if %2 is "%3".';
+#endif
 
     /// <summary>
     /// Retrieves the currency code from the parent issued finance charge memo header.

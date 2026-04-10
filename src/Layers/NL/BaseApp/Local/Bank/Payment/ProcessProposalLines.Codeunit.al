@@ -490,8 +490,8 @@ codeunit 11000000 "Process Proposal Lines"
         TranMode.TestField("Run No. Series");
 
         PaymentHistory."Our Bank" := ProposalLine."Our Bank No.";
-            PaymentHistory."No. Series" := TranMode."Run No. Series";
-            PaymentHistory."Run No." := NoSeries.GetNextNo(PaymentHistory."No. Series", Today());
+        PaymentHistory."No. Series" := TranMode."Run No. Series";
+        PaymentHistory."Run No." := NoSeries.GetNextNo(PaymentHistory."No. Series", Today());
 
 
         PaymentHistory.Init();
@@ -599,6 +599,7 @@ codeunit 11000000 "Process Proposal Lines"
             (PaymentHistoryLine."Account Type" = PaymentHistoryLine."Account Type"::Customer))
         then
             UpdateDirectDebitMandate(PaymentHistoryLine);
+        OnCreatePaymentHistoryLineOnBeforeInsert(ProposalLine, PaymentHistoryLine);
         PaymentHistoryLine.Insert(true);
 
         DetailLine.SetCurrentKey("Our Bank", Status, "Connect Batches", "Connect Lines");
@@ -686,6 +687,11 @@ codeunit 11000000 "Process Proposal Lines"
 
     [IntegrationEvent(false, false)]
     local procedure OnUpdateDirectDebitMandateOnBeforeModify(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; PaymentHistoryLine: Record "Payment History Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreatePaymentHistoryLineOnBeforeInsert(ProposalLine: Record "Proposal Line"; var PaymentHistoryLine: Record "Payment History Line")
     begin
     end;
 }

@@ -11,11 +11,10 @@ using Microsoft.Inventory.Location;
 
 report 716 "Inventory Cost and Price List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/InventoryCostandPriceList.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Cost and Price List';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -200,6 +199,16 @@ report 716 "Inventory Cost and Price List"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/InventoryCostandPriceList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

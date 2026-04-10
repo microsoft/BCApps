@@ -28,11 +28,10 @@ using System.Utilities;
 
 report 405 "Order"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Document/Order.rdlc';
     Caption = 'Order';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Purchase Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -1084,6 +1083,16 @@ report 405 "Order"
             LogInteractionEnable := LogInteraction;
             ArchiveDocument := PurchSetup."Archive Orders";
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Document/Order.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 183 "Copy Gen. Journal Parameters"
         field(2; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
+            ToolTip = 'Specifies journal template is used to copy posted journal lines.';
             TableRelation = "Gen. Journal Template";
         }
         /// <summary>
@@ -42,6 +43,7 @@ table 183 "Copy Gen. Journal Parameters"
         field(3; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
+            ToolTip = 'Specifies journal batch is used to copy posted journal lines.';
             TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("Journal Template Name"));
         }
         /// <summary>
@@ -50,6 +52,7 @@ table 183 "Copy Gen. Journal Parameters"
         field(4; "Replace Posting Date"; Date)
         {
             Caption = 'Replace Posting Date';
+            ToolTip = 'Specifies if the posting date will be validated with the value of current field while copy posted journal lines. If you leave this field blank original Posting Date will be used in Target Journal.';
         }
         /// <summary>
         /// Optional replacement document number to apply to copied journal lines.
@@ -57,6 +60,7 @@ table 183 "Copy Gen. Journal Parameters"
         field(5; "Replace Document No."; Code[20])
         {
             Caption = 'Replace Document No.';
+            ToolTip = 'Specifies if the document number will be replaced with the value of current field while copy posted journal lines. If you leave this field blank original Document No. will be used in Target Journal.';
         }
         /// <summary>
         /// Indicates whether to reverse the sign of amounts in copied journal lines.
@@ -64,6 +68,7 @@ table 183 "Copy Gen. Journal Parameters"
         field(6; "Reverse Sign"; Boolean)
         {
             Caption = 'Reverse Sign';
+            ToolTip = 'Specifies if the amount will be replaced with the opposite value while copy posted journal lines. If you leave this field disabled original amount will be used in Target Journal.';
         }
     }
 

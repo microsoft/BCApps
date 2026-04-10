@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -51,6 +51,7 @@ table 280 "Extended Text Line"
         field(6; Text; Text[100])
         {
             Caption = 'Text';
+            ToolTip = 'Specifies the text. You can use both numbers and letters. There are no restrictions as to the number of lines you can use.';
         }
     }
 

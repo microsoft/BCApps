@@ -1083,84 +1083,6 @@ codeunit 134397 "ERM Sales Cr. Memo Aggr. UT"
         VerifyBufferTableIsUpdatedForCrMemo(SalesHeader."No.");
     end;
 
-#if not CLEAN26
-    [Obsolete('The sales statistics action opens the page non-modally.', '26.0')]
-    [Test]
-    [Scope('OnPrem')]
-    [HandlerFunctions('OpenSalesStatisticsPage')]
-    procedure VerifyTotalTaxAmountSameonStats()
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-        SalesCreditMemo: TestPage "Sales Credit Memo";
-        SalesStatistics: TestPage "Sales Statistics";
-        UnitPrice: array[4] of Decimal;
-        Quantity: array[4] of Integer;
-        ExpectedTaxAmount: Decimal;
-        ActualTaxAmount: Decimal;
-    begin
-        // [SCENARIO 524113] Correct VAT in Statistics FactBox when "Price Including VAT" is activated.
-        Initialize();
-
-        // [GIVEN] Create VAT Posting Setup with VAT Percentage 20
-        CreateVATPostingSetup(VATPostingSetup, 20);
-
-        // [GIVEN] Create Static Unit Price to get the 0.01 difference
-        AssignStaticValues524113(UnitPrice, Quantity);
-
-        // [GIVEN] Create Four Sales Credit Memo Lines
-        CreateInvoiceWithMultipleLineThroughTestPageNoDiscount(SalesCreditMemo, VATPostingSetup, UnitPrice, Quantity);
-
-        // [GIVEN] Save Total Tax Amount on Page as actual result
-        ActualTaxAmount := SalesCreditMemo.SalesLines."Total VAT Amount".AsDecimal();
-
-        // [WHEN] Open Sales Statistics page to get the VAT Amount
-        SalesStatistics.Trap();
-        SalesCreditMemo.Statistics.Invoke();
-        ExpectedTaxAmount := LibraryVariableStorage.DequeueDecimal();
-
-        // [THEN] Verify the Total Tax Amount on Sales Credit Memo and Sales Statistics page.
-        Assert.AreEqual(ExpectedTaxAmount, ActualTaxAmount, StrSubstNo(TaxAmountErr, ExpectedTaxAmount));
-    end;
-
-    [Obsolete('The sales statistics action opens the page non-modally.', '26.0')]
-    [Test]
-    [Scope('OnPrem')]
-    [HandlerFunctions('OpenSalesStatisticsPage')]
-    procedure VerifyTotalTaxAmountSameonSalesCreditMemoAndSalesStatistics()
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-        SalesCreditMemo: TestPage "Sales Credit Memo";
-        SalesStatistics: TestPage "Sales Statistics";
-        UnitPrice: array[3] of Decimal;
-        Quantity: array[3] of Integer;
-        ExpectedTaxAmount: Decimal;
-        ActualTaxAmount: Decimal;
-    begin
-        // [SCENARIO 502847] Correct VAT in Statistics FactBox when "Price Including VAT" is activated.
-        Initialize();
-
-        // [GIVEN] Create VAT Posting Setup with VAT Percentage 7
-        CreateVATPostingSetup(VATPostingSetup, 7);
-
-        // [GIVEN] Create Static Unit Price to get the 0.01 difference
-        AssignStaticValues502847(UnitPrice, Quantity);
-
-        // [GIVEN] Create Four Sales Credit Memo Lines
-        CreateInvoiceWithMultipleLineThroughTestPageNoDiscount(SalesCreditMemo, VATPostingSetup, UnitPrice, Quantity);
-
-        // [GIVEN] Save Total Tax Amount on Page as actual result
-        ActualTaxAmount := SalesCreditMemo.SalesLines."Total VAT Amount".AsDecimal();
-
-        // [WHEN] Open Sales Statistics page to get the VAT Amount
-        SalesStatistics.Trap();
-        SalesCreditMemo.Statistics.Invoke();
-        ExpectedTaxAmount := LibraryVariableStorage.DequeueDecimal();
-
-        // [THEN] Verify the Total Tax Amount on Sales Credit Memo and Sales Statistics page.
-        Assert.AreEqual(ExpectedTaxAmount, ActualTaxAmount, StrSubstNo(TaxAmountErr, ExpectedTaxAmount));
-    end;
-#endif
-
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('SalesStatisticsPageHandler')]
@@ -2148,15 +2070,6 @@ codeunit 134397 "ERM Sales Cr. Memo Aggr. UT"
           DummySalesLine.FieldNo("Qty. to Ship"), DummySalesLine.FieldNo("Quantity Shipped"), DummySalesLine.FieldNo("Quantity Invoiced"));
     end;
 
-#if not CLEAN26
-    [Obsolete('The sales statistics action opens the page non-modally.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure OpenSalesStatisticsPage(var SalesStatistics: TestPage "Sales Statistics")
-    begin
-        LibraryVariableStorage.Enqueue(SalesStatistics.VATAmount.AsDecimal());
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesStatisticsPageHandler(var SalesStatistics: TestPage "Sales Statistics")

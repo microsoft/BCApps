@@ -24,7 +24,7 @@ codeunit 1080 "Feature - Fin. Report Default" implements "Feature Data Update"
     var
         FeatureMgtFacade: Codeunit "Feature Management Facade";
     begin
-        exit(FeatureMgtFacade.IsEnabled(GetFinancialReportDefaultsFeatureKey()));
+        exit(FeatureMgtFacade.IsEnabled(GetFinancialReportDefaultsFeatureKey(), false));
     end;
 
     procedure GetFinancialReportDefaultsFeatureKey(): Text[50]

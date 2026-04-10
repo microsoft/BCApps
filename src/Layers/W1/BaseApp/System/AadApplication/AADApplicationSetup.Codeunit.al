@@ -20,7 +20,7 @@ codeunit 8821 "AAD Application Setup"
         MicrosoftPowerPagesAnonymousUsersDesTok: Label 'Power Pages Anonymous External Users', MaxLength = 50;
         MicrosoftPowerPagesAnonymousUsersAppGuidTok: Label 'ea76fed3-daf0-4865-a0c5-8d40c168791a', Locked = true;
 
-        MicrosoftExpenseAgentDesTok: Label 'Microsoft Expense Agent', MaxLength = 50;
+        MicrosoftExpenseAgentDesTok: Label 'Dynamics 365 Business Central Expense Agent', MaxLength = 50;
         MicrosoftExpenseAgentAppGuidTok: Label 'ee1eb5fd-719b-44f2-97d0-0efd34bc4148', Locked = true;
 
     procedure CreateDynamics365BusinessCentralforVirtualEntitiesAAdApplication()

@@ -9,11 +9,10 @@ using Microsoft.Foundation.Address;
 
 report 5056 "Contact - Labels"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/ContactLabels.rdlc';
     ApplicationArea = RelationshipMgmt;
     Caption = 'Contact Labels';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -170,6 +169,16 @@ report 5056 "Contact - Labels"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/ContactLabels.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

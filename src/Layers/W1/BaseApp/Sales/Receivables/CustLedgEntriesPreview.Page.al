@@ -467,6 +467,7 @@ page 126 "Cust. Ledg. Entries Preview"
                 RemainingAmountFCY += TempDetailedCustLedgEntry.Amount;
                 RemainingAmountLCY += TempDetailedCustLedgEntry."Amount (LCY)";
             until TempDetailedCustLedgEntry.Next() = 0;
+        OnAfterCalcAmounts(Rec, TempDetailedCustLedgEntry, AmountFCY, AmountLCY, RemainingAmountFCY, RemainingAmountLCY, OriginalAmountFCY, OriginalAmountLCY);
     end;
 
     local procedure DrilldownAmounts(AmountType: Option Amount,"Remaining Amount","Original Amount")
@@ -485,6 +486,11 @@ page 126 "Cust. Ledg. Entries Preview"
         DetCustLedgEntrPreview.Set(TempDetailedCustLedgEntry);
         DetCustLedgEntrPreview.RunModal();
         Clear(DetCustLedgEntrPreview);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalcAmounts(CustLedgerEntry: Record "Cust. Ledger Entry"; var TempDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary; var AmountFCY: Decimal; var AmountLCY: Decimal; var RemainingAmountFCY: Decimal; var RemainingAmountLCY: Decimal; var OriginalAmountFCY: Decimal; var OriginalAmountLCY: Decimal)
+    begin
     end;
 }
 

@@ -17,6 +17,8 @@ codeunit 1503 "Workflow Record Management"
     var
         VariantArrayElem: Variant;
     begin
+        OnBeforeBackupRecord(Variant);
+
         if not Variant.IsRecord then
             Error(NotSupportedTypeErr);
 
@@ -35,6 +37,11 @@ codeunit 1503 "Workflow Record Management"
     begin
         Variant := VarArray[Index];
         Clear(VarArray[Index]);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeBackupRecord(Variant: Variant)
+    begin
     end;
 }
 

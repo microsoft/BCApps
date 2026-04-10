@@ -108,44 +108,6 @@ codeunit 144076 "ERM Payment Discount"
         RollBackGeneralLedgerSetup(GeneralLedgerSetup."Payment Discount Type", GeneralLedgerSetup."Discount Calculation");
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [Test]
-    [HandlerFunctions('ConfirmHandler,SalesStatisticsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure PaymentDiscountOnSalesInvoiceStatistics()
-    var
-        Customer: Record Customer;
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesLine2: Record "Sales Line";
-        PaymentDiscountAmount: Decimal;
-    begin
-        // Test to verify Payment Discount Amount on Sales Invoice Statistics Page.
-
-        // Setup: Create Customer,Update General Ledger Setup,Create Sales Order.
-        Initialize();
-        LibrarySales.CreateCustomer(Customer);
-        GeneralLedgerSetup.Get();
-        UpdateGeneralLedgerSetup(
-          GeneralLedgerSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines",
-          GeneralLedgerSetup."Discount Calculation"::"Line Disc. * Inv. Disc. * Payment Disc.");
-        CreateSalesDocument(SalesLine, SalesHeader."Document Type"::Invoice, Customer."No.", LibraryRandom.RandDec(10, 2));  // Random for Payment Discount %.
-        SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
-        CreateSalesLine(SalesLine2, SalesHeader);
-        PaymentDiscountAmount := (SalesLine.Amount + SalesLine2.Amount) * SalesHeader."Payment Discount %" / 100;
-        LibraryVariableStorage.Enqueue(PaymentDiscountAmount);  // Enqueue for SalesStatisticsModalPageHandler.
-
-        // Exercise.
-        OpenSalesInvoiceStatistics(SalesHeader."No.");
-
-        // Verify: verification done in SalesStatisticsModalPageHandler.
-
-        // TearDown.
-        RollBackGeneralLedgerSetup(GeneralLedgerSetup."Payment Discount Type", GeneralLedgerSetup."Discount Calculation");
-    end;
-#endif
     [Test]
     [HandlerFunctions('ConfirmHandler,SalesStatisticsPageHandler')]
     [Scope('OnPrem')]
@@ -1158,19 +1120,6 @@ codeunit 144076 "ERM Payment Discount"
         SalesCreditMemo.Close();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    local procedure OpenSalesInvoiceStatistics(No: Code[20])
-    var
-        SalesInvoice: TestPage "Sales Invoice";
-    begin
-        SalesInvoice.OpenEdit();
-        SalesInvoice.FILTER.SetFilter("No.", No);
-        SalesInvoice.CalculateInvoiceDiscount.Invoke();
-        SalesInvoice.Statistics.Invoke();  // Opens SalesStatisticsModalPageHandler.
-        SalesInvoice.Close();
-    end;
-#endif
     local procedure OpenSalesInvoiceSalesStatistics(No: Code[20])
     var
         SalesInvoice: TestPage "Sales Invoice";
@@ -1352,21 +1301,6 @@ codeunit 144076 "ERM Payment Discount"
         SalesDocumentTest.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesStatisticsModalPageHandler(var SalesStatistics: TestPage "Sales Statistics")
-    var
-        PmtDiscGivenAmount: Decimal;
-        ExpectedPmtDiscGivenAmount: Decimal;
-    begin
-        ExpectedPmtDiscGivenAmount := Round(LibraryVariableStorage.DequeueDecimal());
-        PmtDiscGivenAmount := SalesStatistics.PmtDiscGivenAmount.AsDecimal();
-        SalesStatistics.OK().Invoke();
-        Assert.AreEqual(ExpectedPmtDiscGivenAmount, PmtDiscGivenAmount, '');
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesStatisticsPageHandler(var SalesStatistics: TestPage "Sales Statistics")

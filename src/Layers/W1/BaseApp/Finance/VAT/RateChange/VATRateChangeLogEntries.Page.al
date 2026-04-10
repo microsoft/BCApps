@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,18 +33,15 @@ page 553 "VAT Rate Change Log Entries"
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
                 field("Table ID"; Rec."Table ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the table. This field is intended only for internal use.';
                     Visible = false;
                 }
                 field("Table Caption"; Rec."Table Caption")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the table. This field is intended only for internal use.';
                     Visible = false;
                 }
                 field("Record Identifier"; Format(Rec."Record ID"))
@@ -56,37 +53,30 @@ page 553 "VAT Rate Change Log Entries"
                 field("Old Gen. Prod. Posting Group"; Rec."Old Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the general product posting group before the VAT rate change conversion.';
                 }
                 field("New Gen. Prod. Posting Group"; Rec."New Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the new general product posting group after the VAT rate change conversion.';
                 }
                 field("Old VAT Prod. Posting Group"; Rec."Old VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT product posting group before the VAT rate change conversion.';
                 }
                 field("New VAT Prod. Posting Group"; Rec."New VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the new VAT product posting group after the VAT rate change conversion.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the description for the VAT rate change conversion.';
                 }
                 field(Converted; Rec.Converted)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the status of the VAT rate change conversion.';
                 }
                 field("Converted Date"; Rec."Converted Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the VAT rate change log entry was created.';
                 }
             }
         }

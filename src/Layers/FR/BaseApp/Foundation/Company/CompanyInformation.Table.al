@@ -35,6 +35,7 @@ table 79 "Company Information"
         field(2; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the company''s name and corporate form. For example, Inc. or Ltd.';
         }
         field(3; "Name 2"; Text[50])
         {
@@ -43,14 +44,17 @@ table 79 "Company Information"
         field(4; Address; Text[100])
         {
             Caption = 'Address';
+            ToolTip = 'Specifies the company''s address.';
         }
         field(5; "Address 2"; Text[50])
         {
             Caption = 'Address 2';
+            ToolTip = 'Specifies additional address information.';
         }
         field(6; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the company''s city.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".City
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Country/Region Code"));
@@ -74,6 +78,7 @@ table 79 "Company Information"
         field(7; "Phone No."; Text[30])
         {
             Caption = 'Phone No.';
+            ToolTip = 'Specifies the company''s telephone number.';
             ExtendedDatatype = PhoneNo;
         }
         field(8; "Phone No. 2"; Text[30])
@@ -88,26 +93,32 @@ table 79 "Company Information"
         field(10; "Fax No."; Text[30])
         {
             Caption = 'Fax No.';
+            ToolTip = 'Specifies the company''s fax number.';
         }
         field(11; "Giro No."; Text[20])
         {
             Caption = 'Giro No.';
+            ToolTip = 'Specifies the company''s giro number.';
         }
         field(12; "Bank Name"; Text[100])
         {
             Caption = 'Bank Name';
+            ToolTip = 'Specifies the name of the bank the company uses.';
         }
         field(13; "Bank Branch No."; Text[20])
         {
             Caption = 'Bank Branch No.';
+            ToolTip = 'Specifies the bank''s branch number.';
         }
         field(14; "Bank Account No."; Text[30])
         {
             Caption = 'Bank Account No.';
+            ToolTip = 'Specifies the company''s bank account number.';
         }
         field(15; "Payment Routing No."; Text[20])
         {
             Caption = 'Payment Routing No.';
+            ToolTip = 'Specifies the company''s payment routing number.';
         }
         field(17; "Customs Permit No."; Text[10])
         {
@@ -120,6 +131,7 @@ table 79 "Company Information"
         field(19; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
+            ToolTip = 'Specifies the company''s VAT registration number.';
 
             trigger OnValidate()
             var
@@ -147,6 +159,7 @@ table 79 "Company Information"
         field(20; "Registration No."; Text[20])
         {
             Caption = 'Registration No.';
+            ToolTip = 'Specifies the company''s registration number. You can enter a maximum of 20 characters, both numbers and letters.';
         }
         field(21; "Telex Answer Back"; Text[20])
         {
@@ -155,6 +168,7 @@ table 79 "Company Information"
         field(22; "Ship-to Name"; Text[100])
         {
             Caption = 'Ship-to Name';
+            ToolTip = 'Specifies the name of the location to which items for the company should be shipped.';
         }
         field(23; "Ship-to Name 2"; Text[50])
         {
@@ -163,14 +177,17 @@ table 79 "Company Information"
         field(24; "Ship-to Address"; Text[100])
         {
             Caption = 'Ship-to Address';
+            ToolTip = 'Specifies the address of the location to which items for the company should be shipped.';
         }
         field(25; "Ship-to Address 2"; Text[50])
         {
             Caption = 'Ship-to Address 2';
+            ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
         }
         field(26; "Ship-to City"; Text[30])
         {
             Caption = 'Ship-to City';
+            ToolTip = 'Specifies the city of the company''s ship-to address.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -190,15 +207,18 @@ table 79 "Company Information"
         field(27; "Ship-to Contact"; Text[100])
         {
             Caption = 'Ship-to Contact';
+            ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
         }
         field(28; "Location Code"; Code[10])
         {
             Caption = 'Location Code';
+            ToolTip = 'Specifies the location code that corresponds to the company''s ship-to address.';
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
         field(29; Picture; BLOB)
         {
             Caption = 'Picture';
+            ToolTip = 'Specifies the picture that has been set up for the company, such as a company logo.';
             SubType = Bitmap;
 
             trigger OnValidate()
@@ -209,6 +229,7 @@ table 79 "Company Information"
         field(30; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code".Code
             else
             if ("Country/Region Code" = filter(<> '')) "Post Code".Code where("Country/Region Code" = field("Country/Region Code"));
@@ -233,10 +254,12 @@ table 79 "Company Information"
         {
             CaptionClass = '5,1,' + "Country/Region Code";
             Caption = 'County';
+            ToolTip = 'Specifies the state, province or county of the company''s address.';
         }
         field(32; "Ship-to Post Code"; Code[20])
         {
             Caption = 'Ship-to Post Code';
+            ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
             TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".Code
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".Code where("Country/Region Code" = field("Ship-to Country/Region Code"));
@@ -262,10 +285,12 @@ table 79 "Company Information"
         {
             CaptionClass = '5,4,' + "Ship-to Country/Region Code";
             Caption = 'Ship-to County';
+            ToolTip = 'Specifies the county of the company''s shipping address.';
         }
         field(34; "E-Mail"; Text[80])
         {
             Caption = 'Email';
+            ToolTip = 'Specifies the company''s email address.';
             ExtendedDatatype = EMail;
 
             trigger OnValidate()
@@ -284,11 +309,13 @@ table 79 "Company Information"
 #endif
         {
             Caption = 'Home Page';
+            ToolTip = 'Specifies your company''s web site.';
             ExtendedDatatype = URL;
         }
         field(36; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
 
             trigger OnValidate()
@@ -299,11 +326,13 @@ table 79 "Company Information"
         field(37; "Ship-to Country/Region Code"; Code[10])
         {
             Caption = 'Ship-to Country/Region Code';
+            ToolTip = 'Specifies the country/region code of the address that the items are shipped to.';
             TableRelation = "Country/Region";
         }
         field(38; IBAN; Code[50])
         {
             Caption = 'IBAN';
+            ToolTip = 'Specifies the international bank account number of your primary bank account.';
 
             trigger OnValidate()
             begin
@@ -313,16 +342,19 @@ table 79 "Company Information"
         field(39; "SWIFT Code"; Code[20])
         {
             Caption = 'SWIFT Code';
+            ToolTip = 'Specifies the SWIFT code (international bank identifier code) of your primary bank.';
             TableRelation = "SWIFT Code";
             ValidateTableRelation = false;
         }
         field(40; "Industrial Classification"; Text[30])
         {
             Caption = 'Industrial Classification';
+            ToolTip = 'Specifies the company''s industrial classification code.';
         }
         field(46; "System Indicator"; Option)
         {
             Caption = 'System Indicator';
+            ToolTip = 'Specifies how you want to use the Company Badge when you are working with different companies of Business Central.';
             OptionCaption = 'None,Custom';
             OptionMembers = "None","Custom";
         }
@@ -333,25 +365,30 @@ table 79 "Company Information"
         field(48; "System Indicator Style"; Option)
         {
             Caption = 'System Indicator Style';
+            ToolTip = 'Specifies if you want to apply a certain style to the Company Badge. Having different styles on badges can make it easier to recognize the company that you are currently working with.';
             OptionCaption = 'Standard,Accent1,Accent2,Accent3,Accent4,Accent5,Accent6,Accent7,Accent8,Accent9';
             OptionMembers = Standard,Accent1,Accent2,Accent3,Accent4,Accent5,Accent6,Accent7,Accent8,Accent9;
         }
         field(50; "Allow Blank Payment Info."; Boolean)
         {
             Caption = 'Allow Blank Payment Info.';
+            ToolTip = 'Specifies if you are allowed to create a sales invoice without filling the setup fields on this FastTab.';
         }
         field(51; "Contact Person"; Text[50])
         {
             Caption = 'Contact Person';
+            ToolTip = 'Specifies the name of the contact person in your company.';
         }
         field(52; "Ship-to Phone No."; Text[30])
         {
             Caption = 'Ship-to Phone No.';
+            ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
         field(90; GLN; Code[13])
         {
             Caption = 'GLN';
+            ToolTip = 'Specifies your company in connection with electronic document exchange.';
             Numeric = true;
 
             trigger OnValidate()
@@ -366,10 +403,12 @@ table 79 "Company Information"
         field(92; "EORI Number"; Text[40])
         {
             Caption = 'EORI Number';
+            ToolTip = 'Specifies the Economic Operators Registration and Identification number that is used when you exchange information with the customs authorities due to trade into or out of the European Union.';
         }
         field(95; "Use GLN in Electronic Document"; Boolean)
         {
             Caption = 'Use GLN in Electronic Documents';
+            ToolTip = 'Specifies whether the GLN is used in electronic documents as a party identification number.';
         }
         field(96; "Picture - Last Mod. Date Time"; DateTime)
         {
@@ -427,6 +466,7 @@ table 79 "Company Information"
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
+            ToolTip = 'Specifies the code for the default responsibility center.';
             TableRelation = "Responsibility Center".Code;
             ValidateTableRelation = true;
         }
@@ -434,21 +474,25 @@ table 79 "Company Information"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Check-Avail. Period Calc.';
+            ToolTip = 'Specifies a date formula that defines the length of the period after the planned shipment date on demand lines in which the system checks availability for the demand line in question.';
         }
         field(5792; "Check-Avail. Time Bucket"; Enum "Analysis Period Type")
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Check-Avail. Time Bucket';
+            ToolTip = 'Specifies how frequently the system checks supply-demand events to discover if the item on the demand line is available on its shipment date.';
         }
         field(7600; "Base Calendar Code"; Code[10])
         {
             Caption = 'Base Calendar Code';
+            ToolTip = 'Specifies the code for the base calendar that you want to assign to your company.';
             TableRelation = "Base Calendar";
         }
         field(7601; "Cal. Convergence Time Frame"; DateFormula)
         {
             AccessByPermission = TableData "Base Calendar" = R;
             Caption = 'Cal. Convergence Time Frame';
+            ToolTip = 'Specifies how dates based on calendar and calendar-related documents are calculated.';
             InitValue = '1Y';
         }
         field(10801; "Trade Register"; Text[30])

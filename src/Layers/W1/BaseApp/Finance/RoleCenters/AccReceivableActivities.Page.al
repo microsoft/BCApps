@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,19 +27,16 @@ page 9034 "Acc. Receivable Activities"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Customer Ledger Entries";
-                    ToolTip = 'Specifies the number of sales invoices where the customer is late with payment.';
                 }
                 field("Sales Return Orders - All"; Rec."Sales Return Orders - All")
                 {
                     ApplicationArea = SalesReturnOrder;
                     DrillDownPageID = "Sales Return Order List";
-                    ToolTip = 'Specifies the number of sales return orders that are displayed in the Finance Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Customers - Blocked"; Rec."Customers - Blocked")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Customer List";
-                    ToolTip = 'Specifies the number of customer that are blocked from further sales.';
                 }
 
                 actions
@@ -68,13 +65,11 @@ page 9034 "Acc. Receivable Activities"
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Sales Order List";
-                    ToolTip = 'Specifies the number of sales orders that are pending approval.';
                 }
                 field("Approved Sales Orders"; Rec."Approved Sales Orders")
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Sales Order List";
-                    ToolTip = 'Specifies the number of approved sales orders.';
                 }
             }
         }

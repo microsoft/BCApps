@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ table 290 "VAT Amount Line"
         {
             AutoFormatType = 0;
             Caption = 'VAT %';
+            ToolTip = 'Specifies the VAT % that was used on the sales or purchase lines with this VAT Identifier.';
             DecimalPlaces = 0 : 5;
             Editable = false;
         }
@@ -48,6 +49,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'VAT Base';
+            ToolTip = 'Specifies the total net amount (amount excluding VAT) for sales or purchase lines with a specific VAT Identifier.';
             Editable = false;
         }
         /// <summary>
@@ -58,6 +60,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'VAT Amount';
+            ToolTip = 'Specifies the amount of VAT that is included in the total amount.';
 
             trigger OnValidate()
             begin
@@ -77,6 +80,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount Including VAT';
+            ToolTip = 'Specifies the net amount, including VAT, for this line.';
             Editable = false;
         }
         /// <summary>
@@ -85,6 +89,7 @@ table 290 "VAT Amount Line"
         field(5; "VAT Identifier"; Code[20])
         {
             Caption = 'VAT Identifier';
+            ToolTip = 'Specifies the VAT Identifier value.';
             Editable = false;
         }
         /// <summary>
@@ -95,6 +100,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Line Amount';
+            ToolTip = 'Specifies the total amount for sales or purchase lines with a specific VAT identifier.';
             Editable = false;
         }
         /// <summary>
@@ -105,6 +111,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Inv. Disc. Base Amount';
+            ToolTip = 'Specifies the invoice discount base amount.';
             Editable = false;
         }
         /// <summary>
@@ -115,6 +122,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Invoice Discount Amount';
+            ToolTip = 'Specifies the invoice discount amount for a specific VAT identifier.';
 
             trigger OnValidate()
             begin
@@ -132,6 +140,7 @@ table 290 "VAT Amount Line"
         field(9; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
+            ToolTip = 'Specifies how VAT will be calculated for purchases or sales of items with this particular combination of VAT business posting group and VAT product posting group.';
             Editable = false;
         }
         /// <summary>
@@ -175,6 +184,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Calculated VAT Amount';
+            ToolTip = 'Specifies the calculated VAT amount and is only used for reference when the user changes the VAT Amount manually.';
             Editable = false;
         }
         /// <summary>
@@ -185,6 +195,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'VAT Difference';
+            ToolTip = 'Specifies the difference between the calculated VAT amount and a VAT amount that you have entered manually.';
             Editable = false;
         }
         /// <summary>
@@ -244,6 +255,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Non-Deductible VAT Base';
+            ToolTip = 'Specifies the amount of the transaction for which VAT is not applied due to the type of goods or services purchased.';
             Editable = false;
         }
         /// <summary>
@@ -254,6 +266,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Non-Deductible VAT Amount';
+            ToolTip = 'Specifies the amount of VAT that is not deducted due to the type of goods or services purchased.';
 
             trigger OnValidate()
             begin
@@ -268,6 +281,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Calculated Non-Deductible VAT Amount';
+            ToolTip = 'Specifies the calculated Non-Deductible VAT amount and is only used for reference when the user changes the Non-Deductible VAT Amount manually.';
             Editable = false;
         }
         /// <summary>
@@ -278,6 +292,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Deductible VAT Base';
+            ToolTip = 'Specifies the amount of the transaction for which VAT is applied due to the type of goods or services purchased.';
             Editable = false;
         }
         /// <summary>
@@ -288,6 +303,7 @@ table 290 "VAT Amount Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Deductible VAT Amount';
+            ToolTip = 'Specifies the amount of VAT that is deducted due to the type of goods or services purchased.';
             Editable = false;
         }
         /// <summary>
@@ -494,36 +510,6 @@ table 290 "VAT Amount Line"
 
         exit(true);
     end;
-
-#if not CLEAN26
-    /// <summary>
-    /// Creates new VAT amount line with specified parameters. Obsolete - replaced by procedures using Source Record.
-    /// </summary>
-    /// <param name="VATIdentifier">VAT identifier for grouping</param>
-    /// <param name="VATCalcType">VAT calculation type</param>
-    /// <param name="TaxGroupCode">Tax group code for sales tax</param>
-    /// <param name="UseTax">Whether to use tax calculation</param>
-    /// <param name="TaxRate">VAT percentage rate</param>
-    /// <param name="IsPositive">Whether amounts are positive</param>
-    /// <param name="IsPrepayment">Whether line includes prepayment</param>
-    /// <param name="NonDeductibleVATPct">Non-deductible VAT percentage</param>
-    [Obsolete('Replaced by procedures using Source Record.', '26.0')]
-    procedure InsertNewLine(VATIdentifier: Code[20]; VATCalcType: Enum "Tax Calculation Type"; TaxGroupCode: Code[20]; UseTax: Boolean; TaxRate: Decimal; IsPositive: Boolean; IsPrepayment: Boolean; IsFullGST: Boolean; NonDeductibleVATPct: Decimal)
-    begin
-        Rec.Init();
-        Rec."VAT Identifier" := VATIdentifier;
-        Rec."VAT Calculation Type" := VATCalcType;
-        Rec."Tax Group Code" := TaxGroupCode;
-        Rec."Use Tax" := UseTax;
-        Rec."VAT %" := TaxRate;
-        Rec.Modified := true;
-        Rec.Positive := IsPositive;
-        Rec."Includes Prepayment" := IsPrepayment;
-        Rec."Non-Deductible VAT %" := NonDeductibleVATPct;
-        Rec."Full GST on Prepayment" := IsFullGST;
-        Rec.Insert();
-    end;
-#endif
 
     /// <summary>
     /// Retrieves VAT amount line by sequential number from the recordset.
@@ -1030,6 +1016,7 @@ table 290 "VAT Amount Line"
                                 OnUpdateLinesOnAfterCalcVATAmount(Rec, PrevVATAmountLine, Currency, VATBaseDiscountPerc, PricesIncludingVAT);
                                 "Amount Including VAT" := "VAT Base" + "VAT Amount";
                                 OnUpdateLinesOnAfterCalcAmountIncludingVATNormalVAT(Rec, PrevVATAmountLine, Currency, VATBaseDiscountPerc, PricesIncludingVAT);
+                                NonDeductibleVAT.UpdateNonDeductibleAmountsWithDiffInVATAmountLine(Rec, Currency);
                                 if Positive then
                                     PrevVATAmountLine.Init()
                                 else begin

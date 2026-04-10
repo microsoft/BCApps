@@ -19,11 +19,10 @@ using System.Utilities;
 /// </remarks>
 report 16 "G/L Consolidation Eliminations"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/Consolidation/GLConsolidationEliminations.rdlc';
     ApplicationArea = Suite;
     Caption = 'G/L Consolidation Eliminations';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -326,6 +325,16 @@ report 16 "G/L Consolidation Eliminations"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/Consolidation/GLConsolidationEliminations.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

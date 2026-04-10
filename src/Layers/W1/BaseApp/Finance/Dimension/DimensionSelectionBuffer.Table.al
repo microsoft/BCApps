@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ table 368 "Dimension Selection Buffer"
         field(1; "Code"; Text[30])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the dimension.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -41,6 +42,7 @@ table 368 "Dimension Selection Buffer"
         field(2; Description; Text[30])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the dimension.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -49,6 +51,7 @@ table 368 "Dimension Selection Buffer"
         field(3; Selected; Boolean)
         {
             Caption = 'Selected';
+            ToolTip = 'Specifies that this dimension will be included.';
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
@@ -64,6 +67,7 @@ table 368 "Dimension Selection Buffer"
         field(4; "New Dimension Value Code"; Code[20])
         {
             Caption = 'New Dimension Value Code';
+            ToolTip = 'Specifies the new dimension value to that you are changing to.';
             DataClassification = SystemMetadata;
             TableRelation = if (Code = const('G/L Account')) "G/L Account"."No."
             else
@@ -82,6 +86,7 @@ table 368 "Dimension Selection Buffer"
         field(5; "Dimension Value Filter"; Code[250])
         {
             Caption = 'Dimension Value Filter';
+            ToolTip = 'Specifies the dimension value that the analysis view is based on.';
             DataClassification = SystemMetadata;
             TableRelation = if ("Filter Lookup Table No." = const(15)) "G/L Account"."No."
             else
@@ -108,6 +113,7 @@ table 368 "Dimension Selection Buffer"
         field(6; Level; Option)
         {
             Caption = 'Level';
+            ToolTip = 'Specifies the level for the selected dimension.';
             DataClassification = SystemMetadata;
             OptionCaption = ' ,Level 1,Level 2,Level 3,Level 4';
             OptionMembers = " ","Level 1","Level 2","Level 3","Level 4";

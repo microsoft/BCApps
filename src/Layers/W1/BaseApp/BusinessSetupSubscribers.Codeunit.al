@@ -39,9 +39,12 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Projects.Project.Setup;
 using Microsoft.Purchases.Setup;
+using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
+using Microsoft.Service.Setup;
 using Microsoft.Warehouse.Setup;
 using System.DataAdministration;
 using System.Email;
@@ -309,6 +312,50 @@ codeunit 1876 "Business Setup Subscribers"
         UserSettingsShortTitleTxt: Label 'User settings';
         UserSettingsDescriptionTxt: Label 'Manage role, language, and regional settings for users.';
         UserSettingsKeywordsTxt: Label 'Role, Language, Regional Settings';
+        ReportSelSalesTitleTxt: Label 'Report selection for sales';
+        ReportSelSalesShortTitleTxt: Label 'Report Selection - Sales';
+        ReportSelSalesDescriptionTxt: Label 'Set up which reports to use for sales documents such as quotes, orders, invoices, and credit memos.';
+        ReportSelSalesKeywordsTxt: Label 'Report, Sales, Document, Print';
+        ReportSelPurchaseTitleTxt: Label 'Report selection for purchases';
+        ReportSelPurchaseShortTitleTxt: Label 'Report Selection - Purchase';
+        ReportSelPurchaseDescriptionTxt: Label 'Set up which reports to use for purchase documents such as orders, invoices, and credit memos.';
+        ReportSelPurchaseKeywordsTxt: Label 'Report, Purchase, Document, Print';
+        ReportSelReminderTitleTxt: Label 'Report selection for reminders';
+        ReportSelReminderShortTitleTxt: Label 'Report Selection - Reminder';
+        ReportSelReminderDescriptionTxt: Label 'Set up which reports to use for reminders and finance charge memos.';
+        ReportSelReminderKeywordsTxt: Label 'Report, Reminder, Finance Charge, Print';
+        ReportSelBankAccTitleTxt: Label 'Report selection for bank accounts';
+        ReportSelBankAccShortTitleTxt: Label 'Report Selection - Bank Account';
+        ReportSelBankAccDescriptionTxt: Label 'Set up which reports to use for bank account documents such as statements and checks.';
+        ReportSelBankAccKeywordsTxt: Label 'Report, Bank, Statement, Check, Print';
+        ReportSelVATTitleTxt: Label 'Report selection for VAT';
+        ReportSelVATShortTitleTxt: Label 'Report Selection - VAT';
+        ReportSelVATDescriptionTxt: Label 'Set up which reports to use for VAT statements.';
+        ReportSelVATKeywordsTxt: Label 'Report, VAT, Statement, Print';
+        ReportSelCashFlowTitleTxt: Label 'Report selection for cash flow';
+        ReportSelCashFlowShortTitleTxt: Label 'Report Selection - Cash Flow';
+        ReportSelCashFlowDescriptionTxt: Label 'Set up which reports to use for cash flow forecasts.';
+        ReportSelCashFlowKeywordsTxt: Label 'Report, Cash Flow, Forecast, Print';
+        ReportSelInventoryTitleTxt: Label 'Report selection for inventory';
+        ReportSelInventoryShortTitleTxt: Label 'Report Selection - Inventory';
+        ReportSelInventoryDescriptionTxt: Label 'Set up which reports to use for inventory documents such as transfer orders and assembly orders.';
+        ReportSelInventoryKeywordsTxt: Label 'Report, Inventory, Transfer, Assembly, Print';
+        ReportSelWarehouseTitleTxt: Label 'Report selection for warehouse';
+        ReportSelWarehouseShortTitleTxt: Label 'Report Selection - Warehouse';
+        ReportSelWarehouseDescriptionTxt: Label 'Set up which reports to use for warehouse documents.';
+        ReportSelWarehouseKeywordsTxt: Label 'Report, Warehouse, Document, Print';
+        ReportSelServiceTitleTxt: Label 'Report selection for service';
+        ReportSelServiceShortTitleTxt: Label 'Report Selection - Service';
+        ReportSelServiceDescriptionTxt: Label 'Set up which reports to use for service documents such as quotes, orders, and invoices.';
+        ReportSelServiceKeywordsTxt: Label 'Report, Service, Document, Print';
+        ReportSelProjectTitleTxt: Label 'Report selection for projects';
+        ReportSelProjectShortTitleTxt: Label 'Report Selection - Project';
+        ReportSelProjectDescriptionTxt: Label 'Set up which reports to use for project documents such as quotes.';
+        ReportSelProjectKeywordsTxt: Label 'Report, Project, Document, Print';
+        ReportSelProdOrderTitleTxt: Label 'Report selection for production orders';
+        ReportSelProdOrderShortTitleTxt: Label 'Report Selection - Production';
+        ReportSelProdOrderDescriptionTxt: Label 'Set up which reports to use for production order documents such as job cards and material requisitions.';
+        ReportSelProdOrderKeywordsTxt: Label 'Report, Production, Manufacturing, Print';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnRegisterManualSetup', '', false, false)]
     local procedure InsertSetupOnRegisterManualSetup(var Sender: Codeunit "Guided Experience")
@@ -343,6 +390,12 @@ codeunit 1876 "Business Setup Subscribers"
 
         // Finance
         if ApplicationAreaMgmtFacade.IsFoundationEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then begin
+            Sender.InsertManualSetup(ReportSelBankAccTitleTxt, ReportSelBankAccShortTitleTxt, ReportSelBankAccDescriptionTxt, 5, ObjectType::Page,
+              Page::"Report Selection - Bank Acc.", ManualSetupCategory::Finance, ReportSelBankAccKeywordsTxt);
+            Sender.InsertManualSetup(ReportSelVATTitleTxt, ReportSelVATShortTitleTxt, ReportSelVATDescriptionTxt, 5, ObjectType::Page,
+              Page::"Report Selection - VAT Stmt.", ManualSetupCategory::Finance, ReportSelVATKeywordsTxt);
+            Sender.InsertManualSetup(ReportSelCashFlowTitleTxt, ReportSelCashFlowShortTitleTxt, ReportSelCashFlowDescriptionTxt, 5, ObjectType::Page,
+              Page::"Report Selection - Cash Flow", ManualSetupCategory::Finance, ReportSelCashFlowKeywordsTxt);
             Sender.InsertManualSetup(GeneralLedgerSetupTitleTxt, GeneralLedgerSetupShortTitleTxt, GeneralLedgerSetupDescriptionTxt, 15, ObjectType::Page,
               Page::"General Ledger Setup", ManualSetupCategory::Finance, GeneralLedgerSetupKeywordsTxt);
             Sender.InsertManualSetup(AccountingPeriodsTitleTxt, AccountingPeriodsShortTitleTxt, AccountingPeriodsDescriptionTxt, 7, ObjectType::Page,
@@ -410,9 +463,12 @@ codeunit 1876 "Business Setup Subscribers"
         end;
 
         // Jobs
-        if ApplicationAreaMgmtFacade.IsJobsEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then
+        if ApplicationAreaMgmtFacade.IsJobsEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then begin
             Sender.InsertManualSetup(JobsSetupTitleTxt, JobsSetupShortTitleTxt, JobsSetupDescriptionTxt, 5, ObjectType::Page,
               Page::"Jobs Setup", ManualSetupCategory::Jobs, JobsSetupKeywordsTxt);
+            Sender.InsertManualSetup(ReportSelProjectTitleTxt, ReportSelProjectShortTitleTxt, ReportSelProjectDescriptionTxt, 5, ObjectType::Page,
+              Page::"Report Selection - Job", ManualSetupCategory::Jobs, ReportSelProjectKeywordsTxt);
+        end;
 
         // Fixed Assets
         if ApplicationAreaMgmtFacade.IsFixedAssetEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then
@@ -425,9 +481,14 @@ codeunit 1876 "Business Setup Subscribers"
               Page::"Human Resources Setup", ManualSetupCategory::HR, HumanResourcesSetupKeywordsTxt);
 
         // Inventory
-        if ApplicationAreaMgmtFacade.IsFoundationEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then
+        if ApplicationAreaMgmtFacade.IsFoundationEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then begin
             Sender.InsertManualSetup(InventorySetupTitleTxt, InventorySetupShortTitleTxt, InventorySetupDescriptionTxt, 5, ObjectType::Page,
               Page::"Inventory Setup", ManualSetupCategory::Inventory, InventorySetupKeywordsTxt);
+            Sender.InsertManualSetup(ReportSelInventoryTitleTxt, ReportSelInventoryShortTitleTxt, ReportSelInventoryDescriptionTxt, 5, ObjectType::Page,
+              Page::"Report Selection - Inventory", ManualSetupCategory::Inventory, ReportSelInventoryKeywordsTxt);
+            Sender.InsertManualSetup(ReportSelWarehouseTitleTxt, ReportSelWarehouseShortTitleTxt, ReportSelWarehouseDescriptionTxt, 5, ObjectType::Page,
+              Page::"Report Selection - Warehouse", ManualSetupCategory::Inventory, ReportSelWarehouseKeywordsTxt);
+        end;
 
         if ApplicationAreaMgmtFacade.IsSuiteEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then
             Sender.InsertManualSetup(WarehouseSetupTitleTxt, WarehouseSetupShortTitleTxt, WarehouseSetupDescriptionTxt, 10, ObjectType::Page,
@@ -500,15 +561,34 @@ codeunit 1876 "Business Setup Subscribers"
             Sender.InsertManualSetup(OnlineMapSetupTitleTxt, OnlineMapSetupShortTitleTxt, OnlineMapSetupDescriptionTxt, 2, ObjectType::Page,
               Page::"Online Map Setup", ManualSetupCategory::Service, OnlineMapSetupKeywordsTxt);
 
+        if ApplicationAreaMgmtFacade.IsServiceEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then
+            Sender.InsertManualSetup(ReportSelServiceTitleTxt, ReportSelServiceShortTitleTxt, ReportSelServiceDescriptionTxt, 5, ObjectType::Page,
+              Page::"Report Selection - Service", ManualSetupCategory::Service, ReportSelServiceKeywordsTxt);
+
         // Sales
-        if ApplicationAreaMgmtFacade.IsFoundationEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then
+        if ApplicationAreaMgmtFacade.IsFoundationEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then begin
             Sender.InsertManualSetup(SalesReceivablesSetupTitleTxt, SalesReceivablesSetupShortTitleTxt, SalesReceivablesSetupDescriptionTxt, 15, ObjectType::Page,
               Page::"Sales & Receivables Setup", ManualSetupCategory::Sales, SalesReceivablesSetupKeywordsTxt);
+            Sender.InsertManualSetup(ReportSelSalesTitleTxt, ReportSelSalesShortTitleTxt, ReportSelSalesDescriptionTxt, 5, ObjectType::Page,
+              Page::"Report Selection - Sales", ManualSetupCategory::Sales, ReportSelSalesKeywordsTxt);
+        end;
+
+        if ApplicationAreaMgmtFacade.IsSuiteEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then
+            Sender.InsertManualSetup(ReportSelReminderTitleTxt, ReportSelReminderShortTitleTxt, ReportSelReminderDescriptionTxt, 5, ObjectType::Page,
+              Page::"Report Selection - Reminder", ManualSetupCategory::Sales, ReportSelReminderKeywordsTxt);
 
         // Purchasing
-        if ApplicationAreaMgmtFacade.IsFoundationEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then
+        if ApplicationAreaMgmtFacade.IsFoundationEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then begin
             Sender.InsertManualSetup(PurchasePayablesSetupTitleTxt, PurchasePayablesSetupShortTitleTxt, PurchasePayablesSetupDescriptionTxt, 15, ObjectType::Page,
               Page::"Purchases & Payables Setup", ManualSetupCategory::Purchasing, PurchasePayablesSetupKeywordsTxt);
+            Sender.InsertManualSetup(ReportSelPurchaseTitleTxt, ReportSelPurchaseShortTitleTxt, ReportSelPurchaseDescriptionTxt, 5, ObjectType::Page,
+              Page::"Report Selection - Purchase", ManualSetupCategory::Purchasing, ReportSelPurchaseKeywordsTxt);
+        end;
+
+        // Manufacturing
+        if ApplicationAreaMgmtFacade.IsManufacturingEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then
+            Sender.InsertManualSetup(ReportSelProdOrderTitleTxt, ReportSelProdOrderShortTitleTxt, ReportSelProdOrderDescriptionTxt, 5, ObjectType::Page,
+              Page::"Report Selection - Prod. Order", ManualSetupCategory::General, ReportSelProdOrderKeywordsTxt);
 
         // Intercompany
         if ApplicationAreaMgmtFacade.IsIntercompanyEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled() then begin

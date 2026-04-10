@@ -24,10 +24,14 @@ codeunit 5265 "Audit Line Export Runner"
         FileContentInStream: InStream;
     begin
         Rec.LockTable();
+        Rec.Find();
+        if (Rec."Session ID" <> 0) and (Rec."Session ID" <> SessionId()) then
+            if Rec."Server Instance ID" = ServiceInstanceId() then
+                if Session.IsSessionActive(Rec."Session ID") then
+                    exit;
         Rec.Validate("Server Instance ID", ServiceInstanceId());
         Rec.Validate("Session ID", SessionId());
         Rec.Validate("Created Date/Time", 0DT);
-        Rec.Validate("No. Of Attempts", 3);
         Rec.Modify();
         Commit();
 

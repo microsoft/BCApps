@@ -8,10 +8,9 @@ using Microsoft.Inventory.Journal;
 
 report 7321 "Inventory Movement"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Warehouse/Reports/InventoryMovement.rdlc';
     Caption = 'Inventory Movement';
     WordMergeDataItem = "Item Journal Batch";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -221,6 +220,16 @@ report 7321 "Inventory Movement"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Warehouse/Reports/InventoryMovement.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

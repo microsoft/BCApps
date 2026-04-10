@@ -8,11 +8,10 @@ using Microsoft.Inventory.Tracking;
 
 report 99000765 "Prod. Order - Mat. Requisition"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Manufacturing/Document/ProdOrderMatRequisition.rdlc';
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Mat. Requisition';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -141,6 +140,16 @@ report 99000765 "Prod. Order - Mat. Requisition"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Manufacturing/Document/ProdOrderMatRequisition.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -547,6 +547,85 @@ codeunit 142070 "UT REP Sales Receivables"
         LibraryReportDataset.AssertElementWithValueExists('Cust__Ledger_Entry__Amount__LCY__', CustLedgerEntry."Amount (LCY)");
     end;
 
+    [Test]
+    [HandlerFunctions('CashAppliedRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CashAppliedThreePaymentsSameDocNoShowCorrectAmounts()
+    var
+        PaymentCustLedgerEntry: array[3] of Record "Cust. Ledger Entry";
+        InvoiceCustLedgerEntry: array[3] of Record "Cust. Ledger Entry";
+        CustomerNo: Code[20];
+        InvoiceAmount: array[3] of Decimal;
+        i: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 622797] Cash Applied report shows correct applied amount when three payments share the same Document No.
+        Initialize();
+
+        // [GIVEN] Create Customer with three invoices.
+        CustomerNo := CreateCustomer();
+        InvoiceAmount[1] := LibraryRandom.RandDec(100, 2);
+        InvoiceAmount[2] := InvoiceAmount[1] + LibraryRandom.RandDec(100, 2);
+        InvoiceAmount[3] := InvoiceAmount[2] + LibraryRandom.RandDec(100, 2);
+
+        // [GIVEN] Create three payments sharing same Document No., each applied to a different invoice.
+        for i := 1 to 3 do begin
+            CreateCustLedgerEntryForDocType(InvoiceCustLedgerEntry[i], CustomerNo, InvoiceCustLedgerEntry[i]."Document Type"::Invoice);
+            CreateCustLedgerEntryForDocType(PaymentCustLedgerEntry[i], CustomerNo, PaymentCustLedgerEntry[i]."Document Type"::Payment);
+            CreateDetailedCustLedgEntryForApplication(
+                PaymentCustLedgerEntry[i]."Entry No.", InvoiceAmount[i], InvoiceCustLedgerEntry[i]."Entry No.");
+            CreateDetailedCustLedgEntryForApplication(
+                InvoiceCustLedgerEntry[i]."Entry No.", -InvoiceAmount[i], InvoiceCustLedgerEntry[i]."Entry No.");
+        end;
+
+        // [WHEN] Cash Applied report is run for payment.
+        LibraryVariableStorage.Enqueue(PaymentCustLedgerEntry[1]."Entry No.");
+        REPORT.Run(REPORT::"Cash Applied");
+
+        // [THEN] Report shows only the applied amount for the invoice applied to the payment, not for other invoices.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('GetTotalApplied', InvoiceAmount[1]);
+    end;
+
+    [Test]
+    [HandlerFunctions('CashAppliedRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure CashAppliedPartialPaymentSameDocNoShowCorrectAmounts()
+    var
+        PaymentCustLedgerEntry: array[2] of Record "Cust. Ledger Entry";
+        InvoiceCustLedgerEntry: array[2] of Record "Cust. Ledger Entry";
+        CustomerNo: Code[20];
+        PaymentAmount: array[2] of Decimal;
+        i: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 622797] Cash Applied report shows correct applied amount for partial payments sharing same Document No.
+        Initialize();
+
+        // [GIVEN] Create Customer with two invoices.
+        CustomerNo := CreateCustomer();
+        PaymentAmount[1] := LibraryRandom.RandDec(100, 2);
+        PaymentAmount[2] := PaymentAmount[1] + LibraryRandom.RandDec(100, 2);
+
+        // [GIVEN] Create two partial payments sharing same Document No., each applied to a different invoice.
+        for i := 1 to 2 do begin
+            CreateCustLedgerEntryForDocType(InvoiceCustLedgerEntry[i], CustomerNo, InvoiceCustLedgerEntry[i]."Document Type"::Invoice);
+            CreateCustLedgerEntryForDocType(PaymentCustLedgerEntry[i], CustomerNo, PaymentCustLedgerEntry[i]."Document Type"::Payment);
+            CreateDetailedCustLedgEntryForApplication(
+                PaymentCustLedgerEntry[i]."Entry No.", PaymentAmount[i], InvoiceCustLedgerEntry[i]."Entry No.");
+            CreateDetailedCustLedgEntryForApplication(
+                InvoiceCustLedgerEntry[i]."Entry No.", -PaymentAmount[i], InvoiceCustLedgerEntry[i]."Entry No.");
+        end;
+
+        // [WHEN] Cash Applied report is run for payment.
+        LibraryVariableStorage.Enqueue(PaymentCustLedgerEntry[1]."Entry No.");
+        REPORT.Run(REPORT::"Cash Applied");
+
+        // [THEN] Report shows only the applied amount for the invoice applied to the payment, not for other invoices.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('GetTotalApplied', PaymentAmount[1]);
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
@@ -847,6 +926,28 @@ codeunit 142070 "UT REP Sales Receivables"
     begin
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists(ElementName, ExpectedValue);
+    end;
+
+    local procedure CreateCustLedgerEntryForDocType(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustomerNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
+    begin
+        CustLedgerEntry."Entry No." :=
+          LibraryUtility.GetNewRecNo(CustLedgerEntry, CustLedgerEntry.FieldNo("Entry No."));
+        CustLedgerEntry."Document Type" := DocumentType;
+        CustLedgerEntry."Customer No." := CustomerNo;
+        CustLedgerEntry.Insert();
+    end;
+
+    local procedure CreateDetailedCustLedgEntryForApplication(CustLedgerEntryNo: Integer; AmountLCY: Decimal; AppliedCustLedgerEntryNo: Integer)
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        DetailedCustLedgEntry."Entry No." :=
+          LibraryUtility.GetNewRecNo(DetailedCustLedgEntry, DetailedCustLedgEntry.FieldNo("Entry No."));
+        DetailedCustLedgEntry."Cust. Ledger Entry No." := CustLedgerEntryNo;
+        DetailedCustLedgEntry."Entry Type" := DetailedCustLedgEntry."Entry Type"::Application;
+        DetailedCustLedgEntry."Applied Cust. Ledger Entry No." := AppliedCustLedgerEntryNo;
+        DetailedCustLedgEntry."Amount (LCY)" := AmountLCY;
+        DetailedCustLedgEntry.Insert(true);
     end;
 
     [RequestPageHandler]

@@ -187,6 +187,152 @@ codeunit 134882 "ERM Exch. Rate Adjmt. Bank"
           StrSubstNo(GLEntryAmountErr, GLEntry.FieldCaption(Amount), -Amount2, GLEntry.TableCaption()));
     end;
 
+    [Test]
+    procedure BankAccountsDiffPostingGroupsGetSeparateRegisters()
+    var
+        BankAccount1: Record "Bank Account";
+        BankAccount2: Record "Bank Account";
+        BankAccountPostingGroup1: Record "Bank Account Posting Group";
+        BankAccountPostingGroup2: Record "Bank Account Posting Group";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        ExchRateAdjmtReg: Record "Exch. Rate Adjmt. Reg.";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 626336] Two bank accounts with different posting groups get separate registers with non-zero amounts
+        Initialize();
+
+        // [GIVEN] Currency "C" with exchange rate
+        CurrencyCode := CreateCurrency();
+
+        // [GIVEN] Bank Account "BA1" with Bank Posting Group "BPG1" and currency "C"
+        CreateBankAccountWithNewPostingGroup(BankAccount1, BankAccountPostingGroup1, CurrencyCode);
+
+        // [GIVEN] Bank Account "BA2" with Bank Posting Group "BPG2" and currency "C"
+        CreateBankAccountWithNewPostingGroup(BankAccount2, BankAccountPostingGroup2, CurrencyCode);
+
+        // [GIVEN] Posted journal entries for "BA1" and "BA2"
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"Bank Account",
+            BankAccount1."No.", LibraryRandom.RandIntInRange(500, 1000));
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"Bank Account",
+            BankAccount2."No.", LibraryRandom.RandIntInRange(500, 1000));
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Exchange rate is changed
+        ModifyExchangeRate(CurrencyCode, LibraryRandom.RandInt(50));
+
+        // [WHEN] Run Adjust Exchange Rates
+        RunAdjustExchRate(CurrencyCode, WorkDate());
+
+        // [THEN] Two register entries exist for Bank Account with different posting groups
+        ExchRateAdjmtReg.SetRange("Account Type", ExchRateAdjmtReg."Account Type"::"Bank Account");
+        ExchRateAdjmtReg.SetRange("Currency Code", CurrencyCode);
+        Assert.AreEqual(2, ExchRateAdjmtReg.Count(), 'Expected 2 bank registers for 2 posting groups.');
+
+        // [THEN] Register for BPG1 has non-zero adjusted amount
+        ExchRateAdjmtReg.SetRange("Posting Group", BankAccountPostingGroup1.Code);
+        ExchRateAdjmtReg.FindFirst();
+        Assert.AreNotEqual(0, ExchRateAdjmtReg."Adjusted Amt. (LCY)", 'Register for BPG1 must have non-zero amount.');
+
+        // [THEN] Register for BPG2 has non-zero adjusted amount
+        ExchRateAdjmtReg.SetRange("Posting Group", BankAccountPostingGroup2.Code);
+        ExchRateAdjmtReg.FindFirst();
+        Assert.AreNotEqual(0, ExchRateAdjmtReg."Adjusted Amt. (LCY)", 'Register for BPG2 must have non-zero amount.');
+    end;
+
+    [Test]
+    procedure BankRegisterAmtMatchesLinkedLedgerEntries()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        ExchRateAdjmtReg: Record "Exch. Rate Adjmt. Reg.";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 626336] Bank register "Adjusted Amt. (LCY)" equals sum of linked ledger entry amounts
+        Initialize();
+
+        // [GIVEN] Bank account "BA" with posted journal entry and changed exchange rate
+        CreateGenAndModifyExchRate(
+            GenJournalLine, GenJournalLine."Account Type"::"Bank Account", CreateBankAccount(CreateCurrency()),
+            GenJournalLine."Document Type"::Invoice, LibraryRandom.RandDec(100, 2), LibraryRandom.RandInt(50));
+
+        // [WHEN] Run Adjust Exchange Rates
+        RunAdjustExchRate(GenJournalLine."Currency Code", WorkDate());
+
+        // [THEN] Register "Adjusted Amt. (LCY)" equals CalcSums of linked ledger entries "Adjustment Amount"
+        ExchRateAdjmtReg.SetRange("Account Type", ExchRateAdjmtReg."Account Type"::"Bank Account");
+        ExchRateAdjmtReg.SetRange("Currency Code", GenJournalLine."Currency Code");
+        ExchRateAdjmtReg.FindFirst();
+        VerifyRegisterAmtMatchesLedgerEntries(ExchRateAdjmtReg);
+    end;
+
+    [Test]
+    procedure TwoBankAccountsSamePostingGroupSingleRegister()
+    var
+        BankAccount1: Record "Bank Account";
+        BankAccount2: Record "Bank Account";
+        BankAccountPostingGroup: Record "Bank Account Posting Group";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        ExchRateAdjmtReg: Record "Exch. Rate Adjmt. Reg.";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 626336] Two bank accounts with the same posting group produce one register with combined amount
+        Initialize();
+
+        // [GIVEN] Currency "C" with exchange rate
+        CurrencyCode := CreateCurrency();
+
+        // [GIVEN] Bank Account "BA1" with posting group "BPG" and currency "C"
+        BankAccountPostingGroup.SetFilter("G/L Account No.", '<>''''');
+        BankAccountPostingGroup.FindFirst();
+        LibraryERM.CreateBankAccount(BankAccount1);
+        BankAccount1.Validate("Currency Code", CurrencyCode);
+        BankAccount1.Validate("Bank Acc. Posting Group", BankAccountPostingGroup.Code);
+        BankAccount1.Modify(true);
+
+        // [GIVEN] Bank Account "BA2" with the same posting group "BPG" and currency "C"
+        LibraryERM.CreateBankAccount(BankAccount2);
+        BankAccount2.Validate("Currency Code", CurrencyCode);
+        BankAccount2.Validate("Bank Acc. Posting Group", BankAccountPostingGroup.Code);
+        BankAccount2.Modify(true);
+
+        // [GIVEN] Posted journal entries for "BA1" and "BA2"
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"Bank Account",
+            BankAccount1."No.", LibraryRandom.RandIntInRange(500, 1000));
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"Bank Account",
+            BankAccount2."No.", LibraryRandom.RandIntInRange(500, 1000));
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Exchange rate is changed
+        ModifyExchangeRate(CurrencyCode, LibraryRandom.RandInt(50));
+
+        // [WHEN] Run Adjust Exchange Rates
+        RunAdjustExchRate(CurrencyCode, WorkDate());
+
+        // [THEN] One register entry exists since both bank accounts share the same posting group
+        ExchRateAdjmtReg.SetRange("Account Type", ExchRateAdjmtReg."Account Type"::"Bank Account");
+        ExchRateAdjmtReg.SetRange("Currency Code", CurrencyCode);
+        Assert.AreEqual(1, ExchRateAdjmtReg.Count(), 'Expected 1 bank register for same posting group.');
+
+        // [THEN] Register amount matches linked ledger entries
+        ExchRateAdjmtReg.FindFirst();
+        VerifyRegisterAmtMatchesLedgerEntries(ExchRateAdjmtReg);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -476,6 +622,26 @@ codeunit 134882 "ERM Exch. Rate Adjmt. Bank"
                 Amount * VATPostingSetup."VAT %" / (100 + VATPostingSetup."VAT %"), Currency."Amount Rounding Precision",
                 Currency.VATRoundingDirection());
         exit(Round(Amount - VATAmount, Currency."Amount Rounding Precision"));
+    end;
+
+    local procedure CreateBankAccountWithNewPostingGroup(var BankAccount: Record "Bank Account"; var BankAccountPostingGroup: Record "Bank Account Posting Group"; CurrencyCode: Code[10])
+    begin
+        LibraryERM.CreateBankAccountPostingGroup(BankAccountPostingGroup);
+        BankAccountPostingGroup.Validate("G/L Account No.", LibraryERM.CreateGLAccountNo());
+        BankAccountPostingGroup.Modify(true);
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.Validate("Currency Code", CurrencyCode);
+        BankAccount.Validate("Bank Acc. Posting Group", BankAccountPostingGroup.Code);
+        BankAccount.Modify(true);
+    end;
+
+    local procedure VerifyRegisterAmtMatchesLedgerEntries(ExchRateAdjmtReg: Record "Exch. Rate Adjmt. Reg.")
+    begin
+        ExchRateAdjmtReg.CalcFields("Adjustment Amount");
+        Assert.AreNotEqual(0, ExchRateAdjmtReg."Adjustment Amount", 'Register adjustment amount must be non-zero.');
+        Assert.AreEqual(
+            ExchRateAdjmtReg."Adjusted Amt. (LCY)", ExchRateAdjmtReg."Adjustment Amount",
+            'Register Adjusted Amt. (LCY) must equal sum of linked ledger entry Adjustment Amount.');
     end;
 
     [ConfirmHandler]

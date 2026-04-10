@@ -2903,6 +2903,109 @@ codeunit 137159 "SCM Warehouse VII"
            QuantityMustBeSame);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ItemTrkingLinesPageHandler,CreateInvtPutAwayPickMvmtPageHandler,DummyMessageHandler')]
+    procedure InvtMovementForAssemblyOrderRespectsReservationWithLotTracking()
+    var
+        AssemblyHeader: array[2] of Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        Bin: array[3] of Record Bin;
+        Item: array[2] of Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        Location: Record Location;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        AssemblyOrder: TestPage "Assembly Order";
+        LotNo: Code[50];
+        TotalInventoryQty: Decimal;
+        AO1Qty: Decimal;
+        AO2Qty: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 622451] Invt. Movement for second Assembly Order respects reservation from first Assembly Order
+        Initialize();
+
+        // [GIVEN] Inventory of 10 units with Lot "L" in Location "LOC", Assembly Order "AO1" for 4 units, "AO2" for 6 units
+        AO1Qty := LibraryRandom.RandIntInRange(1, 4);
+        AO2Qty := LibraryRandom.RandIntInRange(5, 9);
+        TotalInventoryQty := AO1Qty + AO2Qty;
+
+        // [GIVEN] Location "LOC" with Require Put-away, Require Pick, Bin Mandatory
+        CreateLocation(Location);
+        Location.Validate("Require Receive", true);
+        Location.Modify(true);
+
+        // [GIVEN] Bins "B1" (RECEIVE), "B2" (To-Assembly), "B3" (From-Assembly) in Location "LOC"
+        LibraryWarehouse.CreateBin(Bin[1], Location.Code, 'RECEIVE', '', '');
+        LibraryWarehouse.CreateBin(Bin[2], Location.Code, 'TO-ASSEMBLY', '', '');
+        LibraryWarehouse.CreateBin(Bin[3], Location.Code, 'FROM-ASSEMBLY', '', '');
+        Location.Validate("To-Assembly Bin Code", Bin[2].Code);
+        Location.Validate("From-Assembly Bin Code", Bin[3].Code);
+        Location.Validate("Asm.-to-Order Shpt. Bin Code", Bin[3].Code);
+        Location.Modify(true);
+
+        // [GIVEN] Parent Item "I1" with Replenishment System = Assembly
+        LibraryInventory.CreateItem(Item[1]);
+        Item[1].Validate("Replenishment System", Item[1]."Replenishment System"::Assembly);
+        Item[1].Modify(true);
+
+        // [GIVEN] Component Item "I2" with Lot Warehouse Tracking
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", true);
+        ItemTrackingCode.Modify(true);
+        LibraryInventory.CreateItem(Item[2]);
+        Item[2].Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item[2].Modify(true);
+
+        // [GIVEN] Assembly BOM where Item "I1" uses 1 unit of Item "I2" per assembly
+        CreateAssemblyBomComponentWithQtyPer(Item[2], Item[1]."No.", 1);
+
+        // [GIVEN] TotalInventoryQty units of Item "I2" with Lot "L" posted to Bin "B1"
+        LotNo := LibraryUtility.GenerateGUID();
+        CreateAndPostItemJournalLineWithLotTracking(Item[2]."No.", Location.Code, Bin[1].Code, TotalInventoryQty, LotNo);
+
+        // [GIVEN] Assembly Order "AO1" for AO1Qty units of Item "I1" with Lot "L" on component line
+        LibraryAssembly.CreateAssemblyHeader(AssemblyHeader[1], WorkDate(), Item[1]."No.", Location.Code, AO1Qty, '');
+        FindAssemblyLineByItemNo(AssemblyLine, AssemblyHeader[1], Item[2]."No.");
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(AssemblyLine.Quantity);
+        AssemblyLine.OpenItemTrackingLines();
+
+        // [GIVEN] Inventory Movement for "AO1" created and registered (4 units moved to To-Assembly bin)
+        AssemblyOrder.OpenEdit();
+        AssemblyOrder.GoToRecord(AssemblyHeader[1]);
+        AssemblyOrder."Create Inventor&y Movement".Invoke();
+        WarehouseActivityHeader.SetRange("Location Code", Location.Code);
+        WarehouseActivityHeader.FindFirst();
+        LibraryWarehouse.AutoFillQtyInventoryActivity(WarehouseActivityHeader);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [GIVEN] Assembly Order "AO2" for 6 units of Item "I1" with Lot "L" on component line
+        LibraryAssembly.CreateAssemblyHeader(AssemblyHeader[2], WorkDate(), Item[1]."No.", Location.Code, AO2Qty, '');
+        FindAssemblyLineByItemNo(AssemblyLine, AssemblyHeader[2], Item[2]."No.");
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(AssemblyLine.Quantity);
+        AssemblyLine.OpenItemTrackingLines();
+
+        // [WHEN] Create Inventory Movement for Assembly Order "AO2"
+        AssemblyOrder.GoToRecord(AssemblyHeader[2]);
+        AssemblyOrder."Create Inventor&y Movement".Invoke();
+        AssemblyOrder.Close();
+
+        // [THEN] Inventory Movement for "AO2" is created for AO2Qty units (respecting AO1Qty units reserved by "AO1")
+        WarehouseActivityHeader.Reset();
+        WarehouseActivityHeader.SetRange("Location Code", Location.Code);
+        WarehouseActivityHeader.SetRange(Type, WarehouseActivityHeader.Type::"Invt. Movement");
+        WarehouseActivityHeader.FindLast();
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Movement");
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.SetRange("Item No.", Item[2]."No.");
+        WarehouseActivityLine.SetRange("Action Type", WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityLine.FindFirst();
+        Assert.AreEqual(AO2Qty, WarehouseActivityLine.Quantity, QuantityMustBeSame);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -5290,6 +5393,50 @@ codeunit 137159 "SCM Warehouse VII"
         ItemLedgerEntry.SetRange("Entry Type", EntryType);
         ItemLedgerEntry.CalcSums("Quantity");
         exit(Abs(ItemLedgerEntry."Quantity"));
+    end;
+
+    local procedure CreateAssemblyBomComponentWithQtyPer(var Item: Record Item; ParentItemNo: Code[20]; QtyPer: Decimal)
+    var
+        BomComponent: Record "BOM Component";
+        BomRecordRef: RecordRef;
+    begin
+        BomComponent.Init();
+        BomComponent.Validate(BomComponent."Parent Item No.", ParentItemNo);
+        BomRecordRef.GetTable(BomComponent);
+        BomComponent.Validate(BomComponent."Line No.", LibraryUtility.GetNewLineNo(BomRecordRef, BomComponent.FieldNo(BomComponent."Line No.")));
+        BomComponent.Validate(BomComponent.Type, BomComponent.Type::Item);
+        BomComponent.Validate(BomComponent."No.", Item."No.");
+        BomComponent.Validate(BomComponent."Quantity per", QtyPer);
+        BomComponent.Insert(true);
+    end;
+
+    local procedure CreateAndPostItemJournalLineWithLotTracking(ItemNo: Code[20]; LocationCode: Code[10]; BinCode: Code[20]; Quantity: Decimal; LotNo: Code[50])
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.CreateItemJournalTemplate(ItemJournalTemplate);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+            ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, Quantity);
+        ItemJournalLine.Validate("Location Code", LocationCode);
+        ItemJournalLine.Validate("Bin Code", BinCode);
+        ItemJournalLine.Modify(true);
+
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(Quantity);
+        ItemJournalLine.OpenItemTrackingLines(false);
+
+        LibraryInventory.PostItemJournalLine(ItemJournalTemplate.Name, ItemJournalBatch.Name);
+    end;
+
+    local procedure FindAssemblyLineByItemNo(var AssemblyLine: Record "Assembly Line"; AssemblyHeader: Record "Assembly Header"; ItemNo: Code[20])
+    begin
+        AssemblyLine.SetRange("Document Type", AssemblyHeader."Document Type");
+        AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
+        AssemblyLine.SetRange("No.", ItemNo);
+        AssemblyLine.FindFirst();
     end;
 
     [ModalPageHandler]

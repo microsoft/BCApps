@@ -28,9 +28,8 @@ using System.Utilities;
 
 report 212 "Sales Prepmt. Document Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/Reports/SalesPrepmtDocumentTest.rdlc';
     Caption = 'Sales Prepmt. Document Test';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -938,6 +937,16 @@ report 212 "Sales Prepmt. Document Test"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reports/SalesPrepmtDocumentTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

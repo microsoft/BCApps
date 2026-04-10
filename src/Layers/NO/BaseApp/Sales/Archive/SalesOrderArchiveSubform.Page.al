@@ -300,11 +300,16 @@ page 5160 "Sales Order Archive Subform"
                 {
                     ApplicationArea = Suite;
                 }
+#if not CLEAN29
                 field("Account Code"; Rec."Account Code")
                 {
                     ApplicationArea = Advanced;
                     ToolTip = 'Specifies the account code of the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;

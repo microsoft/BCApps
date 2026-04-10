@@ -549,30 +549,44 @@ page 134 "Posted Sales Credit Memo"
                         Caption = 'Contact';
                         Editable = false;
                     }
+#if not CLEAN29
                     field(GLN; Rec.GLN)
                     {
                         ApplicationArea = Basic, Suite;
                         Editable = false;
                         ToolTip = 'Specifies the global location number for the customer.';
+                        ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                     }
                     field("Account Code"; Rec."Account Code")
                     {
                         ApplicationArea = Basic, Suite;
                         Editable = false;
                         ToolTip = 'Specifies the account code of the customer who you will send the credit memo to.';
+                        ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                     }
                     field("E-Invoice"; Rec."E-Invoice")
                     {
                         ApplicationArea = Basic, Suite;
                         Editable = false;
                         ToolTip = 'Specifies whether the customer is part of the EHF system and requires an electronic sales credit memo.';
+                        ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                     }
                     field("E-Invoice Created"; Rec."E-Invoice Created")
                     {
                         ApplicationArea = Basic, Suite;
                         Editable = false;
                         ToolTip = 'Specifies whether an electronic sales credit memo has been created and copied to the location specified in Sales & Receivables Setup window.';
+                        ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                     }
+#endif
                 }
                 group("Shipment Method")
                 {

@@ -77,53 +77,6 @@ codeunit 144057 "Test CH Sales Quote Reports"
         VerifySalesQuoteReport(SalesHeader, true);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesStatisticsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure VariantsNotOnSalesQuoteStatistics()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesQuote: TestPage "Sales Quote";
-    begin
-        Initialize();
-
-        // Setup.
-        SetupSalesOrderWithSpecialLines(SalesHeader, SalesHeader."Document Type"::Quote);
-        CalcSalesStatistics(SalesHeader);
-
-        // Exercise.
-        SalesQuote.OpenEdit();
-        SalesQuote.GotoRecord(SalesHeader);
-        SalesQuote.Statistics.Invoke();
-
-        // Verify. In page handler.
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure VariantsNotOnSalesOrderStatistics()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesOrder: TestPage "Sales Order";
-    begin
-        Initialize();
-
-        // Setup.
-        SetupSalesOrderWithSpecialLines(SalesHeader, SalesHeader."Document Type"::Order);
-        CalcSalesStatistics(SalesHeader);
-
-        // Exercise.
-        SalesOrder.OpenEdit();
-        SalesOrder.GotoRecord(SalesHeader);
-        SalesOrder.Statistics.Invoke();
-
-        // Verify. In page handler.
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesStatisticsPageHandler')]
     [Scope('OnPrem')]
@@ -634,51 +587,6 @@ codeunit 144057 "Test CH Sales Quote Reports"
         SalesDocumentTest.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesOrderStatisticsModalPageHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        TotalAmount: Variant;
-        TotalQty: Variant;
-        TotalCost: Variant;
-    begin
-        GeneralLedgerSetup.Get();
-        LibraryVariableStorage.Dequeue(TotalAmount);
-        LibraryVariableStorage.Dequeue(TotalQty);
-        LibraryVariableStorage.Dequeue(TotalCost);
-
-        Assert.AreNearlyEqual(TotalAmount, SalesOrderStatistics.LineAmountGeneral.AsDecimal(),
-          GeneralLedgerSetup."Amount Rounding Precision", '');
-        Assert.AreNearlyEqual(TotalAmount, SalesOrderStatistics."TotalAmount1[1]".AsDecimal(), GeneralLedgerSetup."Amount Rounding Precision", '');
-        Assert.AreNearlyEqual(TotalQty, SalesOrderStatistics."TotalSalesLine[1].Quantity".AsDecimal(), GeneralLedgerSetup."Amount Rounding Precision", '');
-        Assert.AreNearlyEqual(TotalCost, SalesOrderStatistics."TotalAdjCostLCY[1]".AsDecimal(),
-          GeneralLedgerSetup."Amount Rounding Precision", '');
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesStatisticsModalPageHandler(var SalesStatistics: TestPage "Sales Statistics")
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        TotalAmount: Variant;
-        TotalQty: Variant;
-        TotalCost: Variant;
-    begin
-        GeneralLedgerSetup.Get();
-        LibraryVariableStorage.Dequeue(TotalAmount);
-        LibraryVariableStorage.Dequeue(TotalQty);
-        LibraryVariableStorage.Dequeue(TotalCost);
-
-        Assert.AreNearlyEqual(TotalAmount, SalesStatistics.Amount.AsDecimal(), GeneralLedgerSetup."Amount Rounding Precision", '');
-        Assert.AreNearlyEqual(TotalAmount, SalesStatistics.TotalAmount1.AsDecimal(), GeneralLedgerSetup."Amount Rounding Precision", '');
-        Assert.AreNearlyEqual(TotalQty, SalesStatistics."TotalSalesLine.Quantity".AsDecimal(), GeneralLedgerSetup."Amount Rounding Precision", '');
-        Assert.AreNearlyEqual(TotalCost, SalesStatistics.TotalAdjCostLCY.AsDecimal(), GeneralLedgerSetup."Amount Rounding Precision", '');
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesOrderStatisticsPageHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.Format;
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.EServices.EDocument.Processing;
@@ -30,6 +31,8 @@ using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Posting;
 using Microsoft.Utilities;
+using Microsoft.Warehouse.Activity;
+using System.AI;
 using System.Automation;
 using System.Reflection;
 using System.Telemetry;
@@ -47,6 +50,14 @@ codeunit 6103 "E-Document Subscribers"
         EDocumentProcessingPhase: Enum "E-Document Processing Phase";
         DeleteDocumentQst: Label 'This document is linked to E-Document %1. Do you want to continue?', Comment = '%1 - E-Document Entry No.';
 
+
+    [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", OnRegisterCopilotCapability, '', false, false)]
+    local procedure HandleOnRegisterCopilotCapability()
+    var
+        EDocumentMLLMHandler: Codeunit "E-Document MLLM Handler";
+    begin
+        EDocumentMLLMHandler.RegisterCopilotCapabilityIfNeeded();
+    end;
 
     #region Draft page user edits 
 
@@ -225,6 +236,10 @@ codeunit 6103 "E-Document Subscribers"
         SalesShipmentHeader: Record "Sales Shipment Header";
         DocumentSendingProfile: Record "Document Sending Profile";
     begin
+
+        if not AllowCreateEDocument(CommitIsSuppressed, InvtPickPutaway, PreviewMode, 'Sales-Post') then
+            exit;
+
         if (SalesInvHdrNo = '') and (SalesCrMemoHdrNo = '') and (SalesShptHdrNo = '') then
             exit;
         if not EDocumentProcessing.GetDocSendingProfileForCust(SalesHeader."Bill-to Customer No.", DocumentSendingProfile) then
@@ -260,10 +275,13 @@ codeunit 6103 "E-Document Subscribers"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Shipment", OnAfterTransferOrderPostShipment, '', false, false)]
-    local procedure CreateEDocumentFromPostedTransferShipment(var TransferHeader: Record "Transfer Header"; CommitIsSuppressed: Boolean; var TransferShipmentHeader: Record "Transfer Shipment Header"; InvtPickPutaway: Boolean)
+    local procedure CreateEDocumentFromPostedTransferShipment(var TransferHeader: Record "Transfer Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean; var TransferShipmentHeader: Record "Transfer Shipment Header"; InvtPickPutaway: Boolean)
     var
         DocumentSendingProfile: Record "Document Sending Profile";
     begin
+        if not AllowCreateEDocument(CommitIsSuppressed, InvtPickPutaway, PreviewMode, 'TransferOrder-Post Shipment') then
+            exit;
+
         if TransferShipmentHeader."No." = '' then
             exit;
 
@@ -274,6 +292,44 @@ codeunit 6103 "E-Document Subscribers"
     end;
     #endregion After posting events
 
+    #region Warehouse completion — deferred E-Document creation
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnAfterPostWhseActivityCompleted, '', false, false)]
+    local procedure OnAfterPostWhseActivityCompleted(WhseActivHeader: Record "Warehouse Activity Header"; var PurchaseHeader: Record "Purchase Header"; var SalesHeader: Record "Sales Header"; var TransferHeader: Record "Transfer Header"; SuppressCommit: Boolean; IsPreview: Boolean)
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        DocumentSendingProfile: Record "Document Sending Profile";
+    begin
+        // For Inventory Pick flows, E-Documents are created here instead of inline in the posting
+        // subscribers, because this event fires after all posting work completes (including
+        // PostRelatedInboundTransfer) — so the full transaction is already persisted.
+        // Other activity types (Put-away, Movement) are not affected.
+
+        if WhseActivHeader.Type <> WhseActivHeader.Type::"Invt. Pick" then
+            exit;
+        if not AllowCreateEDocument(SuppressCommit, false, IsPreview, 'Whse.-Activity-Post') then
+            exit;
+
+        // Sales Shipment
+        if SalesHeader."Last Shipping No." <> '' then
+            if SalesShipmentHeader.Get(SalesHeader."Last Shipping No.") then
+                if EDocumentProcessing.GetDocSendingProfileForCust(SalesHeader."Bill-to Customer No.", DocumentSendingProfile) then
+                    CreateEDocumentFromPostedDocument(SalesShipmentHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Sales Shipment");
+
+        // Sales Invoice (Ship+Invoice scenario)
+        if SalesHeader."Last Posting No." <> '' then
+            if SalesInvoiceHeader.Get(SalesHeader."Last Posting No.") then
+                if EDocumentProcessing.GetDocSendingProfileForCust(SalesHeader."Bill-to Customer No.", DocumentSendingProfile) then
+                    CreateEDocumentFromPostedDocument(SalesInvoiceHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Sales Invoice");
+
+        // Transfer Shipment
+        if TransferHeader."Last Shipment No." <> '' then
+            if TransferShipmentHeader.Get(TransferHeader."Last Shipment No.") then
+                if EDocumentProcessing.GetDocSendingProfileForTransferShipment(DocumentSendingProfile, TransferShipmentHeader."Transfer-to Code") then
+                    CreateEDocumentFromPostedDocument(TransferShipmentHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Transfer Shipment");
+    end;
+    #endregion Warehouse completion
 
     [EventSubscriber(ObjectType::Table, Database::"Purchases & Payables Setup", OnAfterShouldDocumentTotalAmountsBeChecked, '', false, false)]
     local procedure OnShouldDocumentTotalAmountsBeChecked(PurchaseHeader: Record "Purchase Header"; var ShouldDocumentTotalAmountsBeChecked: Boolean)
@@ -299,13 +355,16 @@ codeunit 6103 "E-Document Subscribers"
         CanDocumentTotalAmountsBeEdited := not EDocument.IsSourceDocumentStructured();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", 'OnAfterPostServiceDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", OnAfterPostServiceDoc, '', false, false)]
     local procedure OnAfterPostServiceDoc(var ServiceHeader: Record "Service Header"; ServShipmentNo: Code[20]; ServInvoiceNo: Code[20]; ServCrMemoNo: Code[20]; var ServDocumentsMgt: Codeunit "Serv-Documents Mgt."; CommitIsSuppressed: Boolean; PassedShip: Boolean; PassedConsume: Boolean; PassedInvoice: Boolean; WhseShip: Boolean)
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceCrMemoHdr: Record "Service Cr.Memo Header";
         DocumentSendingProfile: Record "Document Sending Profile";
     begin
+        if not AllowCreateEDocument(CommitIsSuppressed, false, false, 'Service-Post') then
+            exit;
+
         if (ServInvoiceNo = '') and (ServCrMemoNo = '') then
             exit;
 
@@ -379,7 +438,7 @@ codeunit 6103 "E-Document Subscribers"
     local procedure OnBeforeOnDeletePurchaseHeader(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         ConfirmDialogMgt: Codeunit "Confirm Management";
     begin
@@ -391,9 +450,9 @@ codeunit 6103 "E-Document Subscribers"
         if not ConfirmDialogMgt.GetResponseOrDefault(StrSubstNo(DeleteDocumentQst, EDocument."Entry No")) then
             Error('');
 
-        EDocImportParameters."Step to Run / Desired Status" := EDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
-        EDocImportParameters."Desired E-Document Status" := "Import E-Doc. Proc. Status"::"Draft Ready";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run / Desired Status" := TempEDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
+        TempEDocImportParameters."Desired E-Document Status" := "Import E-Doc. Proc. Status"::"Draft Ready";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
     end;
@@ -611,6 +670,28 @@ codeunit 6103 "E-Document Subscribers"
             UpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType);
             RemoveEDocumentLinkFromPurchaseDocument(OpenRecord);
         end;
+    end;
+
+    /// <summary>
+    /// Determine whether to allow creating E-Document based on the context of posting.
+    /// For Inventory Pick, we want to allow E-Document creation only in the OnAfterPostWhseActivityCompleted event, but not in the Sales-Post event, to avoid creating E-Document before the transaction is fully committed.
+    /// For other scenarios, we can create E-Document in the posting event.
+    /// </summary>
+    local procedure AllowCreateEDocument(CommitIsSuppressed: Boolean; InvtPickPutaway: Boolean; PreviewMode: Boolean; SourceEvent: Text): Boolean
+    var
+        Telemetry: Codeunit Telemetry;
+        TelemetryDimensions: Dictionary of [Text, Text];
+        DeferredCreationLbl: Label 'E-Document creation deferred', Locked = true;
+    begin
+        if not (CommitIsSuppressed or InvtPickPutaway or PreviewMode) then
+            exit(true);
+
+        TelemetryDimensions.Add('Source', SourceEvent);
+        TelemetryDimensions.Add('PreviewMode', Format(PreviewMode));
+        TelemetryDimensions.Add('InvtPickPutaway', Format(InvtPickPutaway));
+        TelemetryDimensions.Add('CommitIsSuppressed', Format(CommitIsSuppressed));
+        Telemetry.LogMessage('0000SIG', DeferredCreationLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+        exit(false);
     end;
 
     local procedure LogAfterValidate(EDocumentEntryNo: Integer; LineSystemId: Guid; FieldName: Text)

@@ -38,13 +38,20 @@ codeunit 99000818 "Mfg. Carry Out Action"
         ProductionExist := CarryOutActionsFromProdOrder(RequisitionLine, Enum::"Planning Create Prod. Order".FromInteger(TryChoice), TryWkshTempl, TryWkshName, TempDocumentEntry, sender);
     end;
 
-    procedure CarryOutActionsFromProdOrder(RequisitionLine: Record "Requisition Line"; ProdOrderChoice: Enum "Planning Create Prod. Order"; ProdWkshTempl: Code[10]; ProdWkshName: Code[10]; var TempDocumentEntry: Record "Document Entry" temporary; var sender: Codeunit "Carry Out Action"): Boolean
+    procedure CarryOutActionsFromProdOrder(RequisitionLine: Record "Requisition Line"; ProdOrderChoice: Enum "Planning Create Prod. Order"; ProdWkshTempl: Code[10]; ProdWkshName: Code[10]; var TempDocumentEntry: Record "Document Entry" temporary; var sender: Codeunit "Carry Out Action") Result: Boolean
+    var
+        IsHandled: Boolean;
     begin
         PrintOrder := ProdOrderChoice = ProdOrderChoice::"Firm Planned & Print";
         OnCarryOutActionsFromProdOrderOnAfterCalcPrintOrder(PrintOrder, ProdOrderChoice.AsInteger());
 #if not CLEAN27
         CarryOutAction.RunOnCarryOutActionsFromProdOrderOnAfterCalcPrintOrder(PrintOrder, ProdOrderChoice.AsInteger());
 #endif
+
+        IsHandled := false;
+        OnCarryOutActionsFromProdOrderOnBeforeCaseStatement(RequisitionLine, ProdOrderChoice, ProdWkshTempl, ProdWkshName, TempDocumentEntry, sender, IsHandled, Result);
+        if IsHandled then
+            exit(Result);
 
         case RequisitionLine."Action Message" of
             RequisitionLine."Action Message"::New:
@@ -763,7 +770,6 @@ codeunit 99000818 "Mfg. Carry Out Action"
             exit(false);
 
         if (Item."Replenishment System" = Item."Replenishment System"::"Prod. Order") and
-            (Item."Manufacturing Policy" = Item."Manufacturing Policy"::"Make-to-Order") and
             (Item."Reordering Policy" = Item."Reordering Policy"::Order) then
             exit(true);
     end;
@@ -838,6 +844,11 @@ codeunit 99000818 "Mfg. Carry Out Action"
 
     [IntegrationEvent(false, false)]
     local procedure OnCarryOutActionsFromProdOrderOnAfterCalcPrintOrder(var PrintOrder: Boolean; ProdOrderChoice: Option)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCarryOutActionsFromProdOrderOnBeforeCaseStatement(RequisitionLine: Record "Requisition Line"; ProdOrderChoice: Enum "Planning Create Prod. Order"; ProdWkshTempl: Code[10]; ProdWkshName: Code[10]; var TempDocumentEntry: Record "Document Entry" temporary; var sender: Codeunit "Carry Out Action"; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 

@@ -119,28 +119,6 @@ page 99000787 "Production BOM List"
                     RunPageLink = "Production BOM No." = field("No.");
                     ToolTip = 'View any alternate versions of the production BOM.';
                 }
-#if not CLEAN26
-                action("Ma&trix per Version")
-                {
-                    ApplicationArea = Manufacturing;
-                    Caption = 'Ma&trix per Version';
-                    Image = ProdBOMMatrixPerVersion;
-                    ObsoleteReason = 'Replaced by "Prod. BOM Version Comparison"';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    ToolTip = 'View a list of all versions and items and the used quantity per item of a production BOM. You can use the matrix to compare different production BOM versions concerning the used items per version.';
-
-                    trigger OnAction()
-                    var
-                        BOMMatrixForm: Page "Prod. BOM Matrix per Version";
-                    begin
-                        BOMMatrixForm.Set(Rec);
-
-                        BOMMatrixForm.Run();
-                    end;
-                }
-#endif
                 action("Prod. BOM Version Comparison")
                 {
                     ApplicationArea = Manufacturing;
@@ -276,15 +254,6 @@ page 99000787 "Production BOM List"
             {
                 Caption = 'Prod. BOM';
 
-#if not CLEAN26
-                actionref("Ma&trix per Version_Promoted"; "Ma&trix per Version")
-                {
-                    ObsoleteReason = 'Replaced by "Prod. BOM Version Comparison"';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                }
-#endif
                 actionref("Prod. BOM Version Comparison_Promoted"; "Prod. BOM Version Comparison")
                 {
                 }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,64 +37,53 @@ page 1170 "User Task List"
                 field(Title; Rec.Title)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the title of the task.';
                 }
                 field("Due DateTime"; Rec."Due DateTime")
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies when the task must be completed.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the priority of the task.';
                 }
                 field("Percent Complete"; Rec."Percent Complete")
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies the progress of the task.';
                 }
                 field("Assigned To User Name"; Rec."Assigned To User Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies who the task is assigned to.';
                 }
                 field("User Task Group Assigned To"; Rec."User Task Group Assigned To")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'User Task Group';
-                    ToolTip = 'Specifies the group if the task has been assigned to a group of people.';
                 }
                 field("Created DateTime"; Rec."Created DateTime")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the task was created.';
                     Visible = false;
                 }
                 field("Completed DateTime"; Rec."Completed DateTime")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the task was completed.';
                     Visible = false;
                 }
                 field("Start DateTime"; Rec."Start DateTime")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the task must start.';
                     Visible = false;
                 }
                 field("Created By User Name"; Rec."Created By User Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies who created the task.';
                     Visible = false;
                 }
                 field("Completed By User Name"; Rec."Completed By User Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies who completed the task.';
                     Visible = false;
                 }
             }

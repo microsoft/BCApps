@@ -34,8 +34,10 @@ codeunit 143002 "E-Invoice XML XSD Validation"
                     if TempVATEntry."VAT Calculation Type" = TempVATEntry."VAT Calculation Type"::"Reverse Charge VAT" then
                         exit('K');
                     VATProductPostingGroup.SetRange(Code, TempVATEntry."VAT Prod. Posting Group");
+#if not CLEAN29
                     if VATProductPostingGroup.FindFirst() and VATProductPostingGroup."Outside Tax Area" then
                         exit('Z');
+#endif
                     exit('E');
                 end;
             10:

@@ -13,11 +13,10 @@ using System.Utilities;
 
 report 1115 "Resource - Price List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Resources/Reports/ResourcePriceList.rdlc';
     ApplicationArea = Jobs;
     Caption = 'Resource - Price List';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -118,9 +117,11 @@ report 1115 "Resource - Price List"
             column(WorkTypeDescriptionCaption; WorkTypeDescriptionCaptionLbl)
             {
             }
+#if not CLEAN29
             column(EnterpriseClassification; CompanyInfo.GetEnterpriseClassification())
             {
             }
+#endif
             dataitem("Integer"; "Integer")
             {
                 DataItemTableView = sorting(Number) where(Number = filter(1 ..));
@@ -244,6 +245,16 @@ report 1115 "Resource - Price List"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Resources/Reports/ResourcePriceList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -6,10 +6,9 @@ namespace Microsoft.Assembly.Document;
 
 report 902 "Assembly Order"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Assembly/Document/AssemblyOrder.rdlc';
     Caption = 'Assembly Order';
     WordMergeDataItem = "Assembly Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -129,6 +128,16 @@ report 902 "Assembly Order"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Assembly/Document/AssemblyOrder.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

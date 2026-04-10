@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,13 +39,11 @@ page 258 "Cons. for Business Units"
                 {
                     ApplicationArea = All;
                     Caption = 'Consolidation Starting Date';
-                    ToolTip = 'Specifies the starting date of the consolidation.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = All;
                     Caption = 'Consolidation Ending Date';
-                    ToolTip = 'Specifies the ending date of the consolidation.';
                 }
                 field("Consolidation Run At"; Rec.SystemCreatedAt)
                 {

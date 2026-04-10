@@ -37,7 +37,6 @@ page 564 "Dimension Selection-Level"
                 field(Level; Rec.Level)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the level for the selected dimension.';
 
                     trigger OnValidate()
                     var
@@ -72,7 +71,6 @@ page 564 "Dimension Selection-Level"
                 field("Dimension Value Filter"; Rec."Dimension Value Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value that the analysis view is based on.';
                 }
             }
         }

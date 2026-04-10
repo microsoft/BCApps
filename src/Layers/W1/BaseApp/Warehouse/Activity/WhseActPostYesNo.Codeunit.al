@@ -33,6 +33,7 @@ codeunit 7323 "Whse.-Act.-Post (Yes/No)"
         DefaultOption: Integer;
         IsPreview: Boolean;
         SuppressCommit: Boolean;
+        PostOutboundAndInboundQst: Label 'Do you want to post the %1 for the %2 and the %3?', Comment = '%1=Activity Type, %2=Source Document, %3=Target Document';
 
     local procedure "Code"()
     var
@@ -146,6 +147,7 @@ codeunit 7323 "Whse.-Act.-Post (Yes/No)"
 
     local procedure SelectForOtherTypes() Result: Boolean
     var
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
         PostingSelectionManagement: Codeunit "Posting Selection Management";
         IsHandled: Boolean;
     begin
@@ -154,7 +156,11 @@ codeunit 7323 "Whse.-Act.-Post (Yes/No)"
         if IsHandled then
             exit(Result);
 
-        Result := PostingSelectionManagement.ConfirmPostWarehouseActivity(WhseActivLine, Selection, DefaultOption, false);
+        WarehouseActivityHeader.Get(WhseActivLine."Activity Type", WhseActivLine."No.");
+        if WarehouseActivityHeader.PostInboundTransferInOneStep() then
+            Result := Confirm(PostOutboundAndInboundQst, false, WhseActivLine."Activity Type", WhseActivLine."Source Document", "Warehouse Activity Source Document"::"Inbound Transfer")
+        else
+            Result := PostingSelectionManagement.ConfirmPostWarehouseActivity(WhseActivLine, Selection, DefaultOption, false);
 
         exit(Result);
     end;

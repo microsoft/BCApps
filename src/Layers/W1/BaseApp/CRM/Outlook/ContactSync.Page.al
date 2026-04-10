@@ -31,22 +31,21 @@ page 7100 "Contact Sync"
                     }
                 }
             }
+#if not CLEAN29
+            group(AuthGroup)
+            {
+                Caption = '';
+                InstructionalText = 'Click on Next to authenticate with Microsoft 365 and retrieve contact folders.';
+                ObsoleteReason = 'Removed due to Contact Sync redesign, will be deleted in future release.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
+                Visible = false;
+            }
+#endif
             group(Step2)
             {
                 Caption = 'Contact Filter';
                 Visible = Step = Step::ContactFilter;
-
-#if not CLEAN29
-                group(AuthGroup)
-                {
-                    Caption = '';
-                    InstructionalText = 'Click on Next to authenticate with Microsoft 365 and retrieve contact folders.';
-                    ObsoleteReason = 'Removed due to Contact Sync redesign, will be deleted in future release.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
-                }
-#endif
-
                 group(ContactFilterGroup)
                 {
                     Caption = '';
@@ -429,7 +428,7 @@ page 7100 "Contact Sync"
                                     Error(NoSyncMsg);
                                 end;
 
-                                if (SyncDirection = SyncDirection::"Full Sync") then
+                                if (SyncDirection = SyncDirection::"Full Sync") and not (BCcount = 0) then
                                     if Confirm(DisclaimerLbl) then
                                         Session.LogMessage('0000RRF', StrSubstNo(SyncAcknowledgementTelTxt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CategoryTok, CategoryLbl)
                                     else
@@ -601,6 +600,36 @@ page 7100 "Contact Sync"
         exit(SelectedFolderId);
     end;
 
+    local procedure GetContactsToAddOutlookLabel(): Text
+    begin
+        exit(StrSubstNo(ContactsToAddOutlookLbl, GetSyncToM365Count()));
+    end;
+
+    local procedure GetContactsToAddBCLabel(): Text
+    begin
+        exit(StrSubstNo(ContactsToAddBCLbl, GetSyncToBCCount()));
+    end;
+
+    local procedure GetSyncTimeLabel(): Text
+    begin
+        exit(StrSubstNo(SyncTimeLbl, SyncTimeText));
+    end;
+
+    local procedure GetContactsSentToM365Label(): Text
+    begin
+        exit(StrSubstNo(ContactsSentToM365Lbl, ContactsSentToM365Count));
+    end;
+
+    local procedure GetContactsSentToBCLabel(): Text
+    begin
+        exit(StrSubstNo(ContactsSentToBCLbl, ContactsSentToBCCount));
+    end;
+
+    local procedure GetContactsFailedLabel(): Text
+    begin
+        exit(StrSubstNo(ContactsFailedLbl, ContactsFailedCount));
+    end;
+
     var
         TempSyncContacts: Record "Contact Sync Queue" temporary;
         TempSyncFolder: Record "Contact Sync Folder" temporary;
@@ -657,34 +686,4 @@ page 7100 "Contact Sync"
         ReadyTextTxt: Text;
         DisclaimerLbl: Label 'Updating Business Central will copy all contacts from the selected Outlook or Teams folder and make them visible to other Business Central users. This may include any personal contacts stored in that folder. Do you want to continue?';
         SyncAcknowledgementTelTxt: Label 'User acknowledged disclaimer for sync direction: Full Sync', Locked = true;
-
-    local procedure GetContactsToAddOutlookLabel(): Text
-    begin
-        exit(StrSubstNo(ContactsToAddOutlookLbl, GetSyncToM365Count()));
-    end;
-
-    local procedure GetContactsToAddBCLabel(): Text
-    begin
-        exit(StrSubstNo(ContactsToAddBCLbl, GetSyncToBCCount()));
-    end;
-
-    local procedure GetSyncTimeLabel(): Text
-    begin
-        exit(StrSubstNo(SyncTimeLbl, SyncTimeText));
-    end;
-
-    local procedure GetContactsSentToM365Label(): Text
-    begin
-        exit(StrSubstNo(ContactsSentToM365Lbl, ContactsSentToM365Count));
-    end;
-
-    local procedure GetContactsSentToBCLabel(): Text
-    begin
-        exit(StrSubstNo(ContactsSentToBCLbl, ContactsSentToBCCount));
-    end;
-
-    local procedure GetContactsFailedLabel(): Text
-    begin
-        exit(StrSubstNo(ContactsFailedLbl, ContactsFailedCount));
-    end;
 }

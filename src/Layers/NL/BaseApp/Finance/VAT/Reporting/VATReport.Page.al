@@ -32,7 +32,6 @@ page 740 "VAT Report"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -46,7 +45,6 @@ page 740 "VAT Report"
                     Caption = 'Version';
                     Editable = not ReturnPeriodEnabled;
                     NotBlank = true;
-                    ToolTip = 'Specifies version of the report.';
 
                     trigger OnValidate()
                     begin
@@ -57,7 +55,6 @@ page 740 "VAT Report"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies whether the report is in progress, is completed, or contains errors.';
 
                     trigger OnValidate()
                     begin
@@ -68,19 +65,16 @@ page 740 "VAT Report"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether the amounts are in the additional reporting currency.';
                 }
                 field("Additional Information"; Rec."Additional Information")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the additional information must be added to VAT report.';
                 }
                 field("Created Date-Time"; Rec."Created Date-Time")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date when the VAT report lines were created.';
                 }
                 group(Control23)
                 {
@@ -90,7 +84,6 @@ page 740 "VAT Report"
                     {
                         ApplicationArea = Basic, Suite;
                         LookupPageID = "Date Lookup";
-                        ToolTip = 'Specifies the year of the reporting period.';
                     }
                     field("Period Type"; Rec."Period Type")
                     {
@@ -106,18 +99,15 @@ page 740 "VAT Report"
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the first date of the reporting period.';
                     }
                     field("End Date"; Rec."End Date")
                     {
                         ApplicationArea = Basic, Suite;
                         Importance = Additional;
-                        ToolTip = 'Specifies the last date of the reporting period.';
                     }
                     field("Country/Region Filter"; Rec."Country/Region Filter")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the country/region filter for the report.';
 
                     }
                 }

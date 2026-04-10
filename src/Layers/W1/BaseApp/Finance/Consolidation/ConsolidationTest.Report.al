@@ -21,9 +21,8 @@ using System.Utilities;
 /// </remarks>
 report 1826 "Consolidation - Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/Consolidation/ConsolidationTest.rdlc';
     Caption = 'Consolidation - Test';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -414,6 +413,16 @@ report 1826 "Consolidation - Test"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/Consolidation/ConsolidationTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

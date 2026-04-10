@@ -73,6 +73,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
 #pragma warning restore AA0074
         UseParm: Boolean;
         PlanningResiliency: Boolean;
+        PlanningSkippedForMissingSKUPolicy: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text002: Label 'The %1 from ''%2'' to ''%3'' does not exist.';
@@ -95,8 +96,8 @@ codeunit 99000854 "Inventory Profile Offsetting"
         NextStateTxt: Label 'StartOver,MatchDates,MatchQty,CreateSupply,ReduceSupply,CloseDemand,CloseSupply,CloseLoop';
         NextState: Option StartOver,MatchDates,MatchQty,CreateSupply,ReduceSupply,CloseDemand,CloseSupply,CloseLoop;
         LotAccumulationPeriodStartDate: Date;
-        PlanningParametersTakenFromItemCardTxt: Label 'Planning Parameters were take Item card becuase %1 is %2 but SKU does not exist for Item %3 at Location %4', Comment = '%1: FieldCaption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
-        SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned because SKU does not exist and %3 at Location is %4', Comment = '%1: Item No., %2: Location Code, %3: FieldCaption, %4: Missing SKU Policy';
+        PlanningParametersTakenFromItemCardTxt: Label 'Planning Parameters were taken from Item card because %1 is %2 but SKU does not exist for Item %3 at Location %4', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
+        SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned because SKU does not exist and %3 at Location is %4', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
 
 #if not CLEAN27
     [Obsolete('Replaced by same procedure without parameter Manufacturing Setup', '27.0')]
@@ -535,6 +536,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
                             DemandInvtProfile.SetRange("Item No.", ForecastEntry."Item No.");
                             DemandInvtProfile.SetRange(
                               "Due Date", ForecastEntry."Forecast Date", NextForecast."Forecast Date" - 1);
+                            DemandInvtProfile.SetRange("Source Type");
                             if ComponentForecast then begin
                                 DemandInvtProfile.SetSourceTypeFilter(5407); // Database::"Prod. Order Component"
                                 DemandInvtProfile.SetSourceTypeFilter(Database::"Planning Component");
@@ -4255,9 +4257,30 @@ codeunit 99000854 "Inventory Profile Offsetting"
         PlanningResiliency := true;
     end;
 
+    /// <summary>
+    /// Gets the policy whether planning should be skipped for missing SKU policy.
+    /// </summary>
+    /// <returns>true if planning should be skipped for missing SKU policy otherwise, false.</returns>
+    procedure GetPlanningSkippedForMissingSKUPolicy(): Boolean
+    begin
+        exit(PlanningSkippedForMissingSKUPolicy);
+    end;
+
     procedure GetResiliencyError(var PlanningErrorLog: Record "Planning Error Log"): Boolean
     begin
         if ReqLine.GetResiliencyError(PlanningErrorLog) then
+            exit(true);
+        exit(PlanningLineManagement.GetResiliencyError(PlanningErrorLog));
+    end;
+
+    /// <summary>
+    /// Gets all resiliency errors from the planning error log.
+    /// </summary>
+    /// <param name="PlanningErrorLog">The planning error log record to populate with errors.</param>
+    /// <returns>true if there are resiliency errors; otherwise, false.</returns>
+    procedure GetResiliencyErrors(var PlanningErrorLog: Record "Planning Error Log"): Boolean
+    begin
+        if ReqLine.GetResiliencyErrors(PlanningErrorLog) then
             exit(true);
         exit(PlanningLineManagement.GetResiliencyError(PlanningErrorLog));
     end;
@@ -4479,12 +4502,12 @@ codeunit 99000854 "Inventory Profile Offsetting"
                         Enum::"Missing SKU Planning Policy"::"Item Card":
                             begin
                                 ReqLine.SetResiliencyError(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location.FieldCaption("Missing SKU Planning Policy"), Location."Missing SKU Planning Policy", SKU."Item No.", SKU."Location Code"), Database::Item, Item.GetPosition());
-                                Error('');
+                                PlanningSkippedForMissingSKUPolicy := true;
                             end;
                         Enum::"Missing SKU Planning Policy"::"Dont Plan":
                             begin
                                 ReqLine.SetResiliencyError(StrSubstNo(SKUNotPlannedTxt, SKU."Item No.", SKU."Location Code", Location.FieldCaption("Missing SKU Planning Policy"), Location."Missing SKU Planning Policy"), Database::Item, Item.GetPosition());
-                                Error('');
+                                PlanningSkippedForMissingSKUPolicy := true;
                             end;
                     end;
                 end;
@@ -5310,7 +5333,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPlanItemOnBeforePlanThisSKULoopIteration(var StockkeepingUnit: Record "Stockkeeping Unit"; NextState: Option; var DemandInventoryProfile: Record "Inventory Profile"; var SupplyInventoryProfile: Record "Inventory Profile"; var SupplyExists: Boolean; var DemandExists: Boolean; var LotAccumulationPeriodStartDate: Date)
+    local procedure OnPlanItemOnBeforePlanThisSKULoopIteration(var StockkeepingUnit: Record "Stockkeeping Unit"; var NextState: Option; var DemandInventoryProfile: Record "Inventory Profile"; var SupplyInventoryProfile: Record "Inventory Profile"; var SupplyExists: Boolean; var DemandExists: Boolean; var LotAccumulationPeriodStartDate: Date)
     begin
     end;
 

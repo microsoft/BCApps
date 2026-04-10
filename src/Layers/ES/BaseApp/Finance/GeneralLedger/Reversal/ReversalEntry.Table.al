@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -69,6 +69,7 @@ table 179 "Reversal Entry"
         field(3; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the entry number of the original ledger entry that is being reversed.';
             TableRelation = if ("Entry Type" = const("G/L Account")) "G/L Entry"
             else
             if ("Entry Type" = const(Customer)) "Cust. Ledger Entry"
@@ -91,6 +92,7 @@ table 179 "Reversal Entry"
         field(4; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
+            ToolTip = 'Specifies the number of the general ledger register, where the general ledger entry in this record was posted.';
             TableRelation = "G/L Register";
         }
         /// <summary>
@@ -99,6 +101,7 @@ table 179 "Reversal Entry"
         field(5; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
         /// <summary>
@@ -107,6 +110,7 @@ table 179 "Reversal Entry"
         field(6; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
+            ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the entries were posted from.';
         }
         /// <summary>
         /// Transaction number linking related entries within the same posting transaction.
@@ -114,6 +118,7 @@ table 179 "Reversal Entry"
         field(7; "Transaction No."; Integer)
         {
             Caption = 'Transaction No.';
+            ToolTip = 'Specifies the number of the transaction that was reversed.';
         }
         /// <summary>
         /// Source type indicating the master table type for the source number (Customer, Vendor, Bank Account, Fixed Asset, Employee).
@@ -121,6 +126,7 @@ table 179 "Reversal Entry"
         field(8; "Source Type"; Enum "Gen. Journal Source Type")
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the source type that applies to the source number that is shown in the Source No. field.';
         }
         /// <summary>
         /// Source number referencing the specific master record based on Source Type, with table relation validation.
@@ -128,6 +134,7 @@ table 179 "Reversal Entry"
         field(9; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies where the entry originated.';
             TableRelation = if ("Source Type" = const(Customer)) Customer
             else
             if ("Source Type" = const(Vendor)) Vendor
@@ -144,6 +151,7 @@ table 179 "Reversal Entry"
         field(10; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code for the amount on the line.';
             TableRelation = Currency;
         }
         /// <summary>
@@ -152,6 +160,7 @@ table 179 "Reversal Entry"
         field(11; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the record.';
         }
         /// <summary>
         /// Entry amount in the original currency from the entry being reversed.
@@ -161,6 +170,7 @@ table 179 "Reversal Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount on the entry to be reversed.';
         }
         /// <summary>
         /// Debit amount from the original entry, showing only positive amounts for debit transactions.
@@ -170,6 +180,7 @@ table 179 "Reversal Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent debits.';
         }
         /// <summary>
         /// Credit amount from the original entry, showing only positive amounts for credit transactions.
@@ -179,6 +190,7 @@ table 179 "Reversal Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent credits.';
         }
         /// <summary>
         /// Entry amount in local currency (LCY) from the original entry being reversed.
@@ -215,6 +227,7 @@ table 179 "Reversal Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'VAT Amount';
+            ToolTip = 'Specifies the amount of VAT that is included in the total amount.';
         }
         /// <summary>
         /// Posting date from the original entry when the transaction was recorded.
@@ -222,6 +235,7 @@ table 179 "Reversal Entry"
         field(19; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date for the entry.';
         }
         /// <summary>
         /// Document type from the original entry (Invoice, Credit Memo, Payment, etc.).
@@ -229,6 +243,7 @@ table 179 "Reversal Entry"
         field(20; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type that the entry belongs to.';
         }
         /// <summary>
         /// Document number from the original entry identifying the source document.
@@ -236,6 +251,7 @@ table 179 "Reversal Entry"
         field(21; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number of the transaction that created the entry.';
         }
         /// <summary>
         /// Account number from the original entry being reversed.
@@ -243,6 +259,7 @@ table 179 "Reversal Entry"
         field(22; "Account No."; Code[20])
         {
             Caption = 'Account No.';
+            ToolTip = 'Specifies the account number that the reversal was posted to.';
         }
         /// <summary>
         /// Account name from the original entry for display and reference purposes.
@@ -250,6 +267,7 @@ table 179 "Reversal Entry"
         field(23; "Account Name"; Text[100])
         {
             Caption = 'Account Name';
+            ToolTip = 'Specifies erroneous postings that you want to undo by using the Reverse function.';
         }
         /// <summary>
         /// Balance account type from the original entry specifying the type of balance account used.
@@ -257,6 +275,7 @@ table 179 "Reversal Entry"
         field(25; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
         }
         /// <summary>
         /// Balance account number from the original entry for paired account posting validation.
@@ -264,6 +283,7 @@ table 179 "Reversal Entry"
         field(26; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
@@ -281,6 +301,7 @@ table 179 "Reversal Entry"
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'FA Posting Category';
+            ToolTip = 'Specifies the posting category that is used for fixed assets.';
         }
         /// <summary>
         /// Fixed Asset posting type from the original entry specifying the FA posting classification.
@@ -289,6 +310,7 @@ table 179 "Reversal Entry"
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'FA Posting Type';
+            ToolTip = 'Specifies the posting type, if Account Type field contains Fixed Asset.';
         }
         /// <summary>
         /// Type of reversal operation being performed (Transaction or Register-based reversal).

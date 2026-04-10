@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,11 +18,13 @@ table 265 "Document Entry"
         field(1; "Table ID"; Integer)
         {
             Caption = 'Table ID';
+            ToolTip = 'Specifies the ID. This field is intended only for internal use.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
         }
         field(2; "No. of Records"; Integer)
         {
             Caption = 'No. of Records';
+            ToolTip = 'Specifies the number of documents that the Navigate facility has found in the table with the selected entries.';
         }
         field(3; "Document No."; Code[20])
         {
@@ -37,10 +39,12 @@ table 265 "Document Entry"
         field(5; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         field(6; "Table Name"; Text[100])
         {
             Caption = 'Table Name';
+            ToolTip = 'Specifies the name of the table where the Navigate facility has found entries with the selected document number and/or posting date.';
         }
         field(7; "No. of Records 2"; Integer)
         {

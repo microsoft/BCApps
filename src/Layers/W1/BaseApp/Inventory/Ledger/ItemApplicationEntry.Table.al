@@ -187,6 +187,7 @@ table 339 "Item Application Entry"
 #endif
         TrackChain: Boolean;
         MaxValuationDate: Date;
+        CheckCyclicalLoopDepth: Integer;
         AppliedFromEntryToAdjustErr: Label 'You have to run the %1 batch job, before you can revalue %2 %3.', Comment = '%1 = Report::"Adjust Cost - Item Entries", %2 = Item Ledger Entry table caption, %3 = Inbound Item Ledger Entry No.';
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Item Application Entry", 'r')]
@@ -438,27 +439,36 @@ table 339 "Item Application Entry"
     begin
         if CheckItemLedgEntry."Entry No." = FromItemLedgEntry."Entry No." then
             exit(true);
-        TempVisitedItemApplicationEntry.DeleteAll();
-        TempItemLedgerEntryInChainNo.DeleteAll();
+
+        // Only reset visited tracking on the outermost (non-reentrant) call.
+        // A reentrant call (e.g. via an event subscriber that triggers ApplyItemLedgEntry)
+        // must NOT clear this state, otherwise the outer traversal loses its cycle-detection
+        // guard and recurses infinitely.
+        if CheckCyclicalLoopDepth = 0 then begin
+            TempVisitedItemApplicationEntry.DeleteAll();
+            TempItemLedgerEntryInChainNo.DeleteAll();
+        end;
+        CheckCyclicalLoopDepth += 1;
 
         if FromItemLedgEntry.Positive then begin
-            if CheckCyclicFwdToAppliedOutbnds(CheckItemLedgEntry, FromItemLedgEntry."Entry No.") then
-                exit(true);
-            exit(CheckCyclicFwdToInbndTransfers(CheckItemLedgEntry, FromItemLedgEntry."Entry No."));
+            IsCyclicalLoop := CheckCyclicFwdToAppliedOutbnds(CheckItemLedgEntry, FromItemLedgEntry."Entry No.");
+            if not IsCyclicalLoop then
+                IsCyclicalLoop := CheckCyclicFwdToInbndTransfers(CheckItemLedgEntry, FromItemLedgEntry."Entry No.");
+        end else begin
+            if FromItemLedgEntry."Entry Type" = FromItemLedgEntry."Entry Type"::Consumption then
+                IsCyclicalLoop := CheckCyclicProdCyclicalLoop(CheckItemLedgEntry, FromItemLedgEntry);
+            if not IsCyclicalLoop then
+                if FromItemLedgEntry."Entry Type" = FromItemLedgEntry."Entry Type"::"Assembly Consumption" then
+                    IsCyclicalLoop := CheckCyclicAsmCyclicalLoop(CheckItemLedgEntry, FromItemLedgEntry);
+            if not IsCyclicalLoop then begin
+                OnCheckIsCyclicalLoopOnBeforeCheckCyclicForwardToAppliedInbounds(CheckItemLedgEntry, FromItemLedgEntry, MaxValuationDate, IsCyclicalLoop);
+                if not IsCyclicalLoop then
+                    IsCyclicalLoop := CheckCyclicFwdToAppliedInbnds(CheckItemLedgEntry, FromItemLedgEntry."Entry No.");
+            end;
         end;
-        if FromItemLedgEntry."Entry Type" = FromItemLedgEntry."Entry Type"::Consumption then
-            if CheckCyclicProdCyclicalLoop(CheckItemLedgEntry, FromItemLedgEntry) then
-                exit(true);
-        if FromItemLedgEntry."Entry Type" = FromItemLedgEntry."Entry Type"::"Assembly Consumption" then
-            if CheckCyclicAsmCyclicalLoop(CheckItemLedgEntry, FromItemLedgEntry) then
-                exit(true);
 
-        IsCyclicalLoop := false;
-        OnCheckIsCyclicalLoopOnBeforeCheckCyclicForwardToAppliedInbounds(CheckItemLedgEntry, FromItemLedgEntry, MaxValuationDate, IsCyclicalLoop);
-        if IsCyclicalLoop then
-            exit(true);
-
-        exit(CheckCyclicFwdToAppliedInbnds(CheckItemLedgEntry, FromItemLedgEntry."Entry No."));
+        CheckCyclicalLoopDepth -= 1;
+        exit(IsCyclicalLoop);
     end;
 
     local procedure CheckCyclicProdCyclicalLoop(CheckItemLedgerEntry: Record "Item Ledger Entry"; ItemLedgerEntry: Record "Item Ledger Entry"): Boolean

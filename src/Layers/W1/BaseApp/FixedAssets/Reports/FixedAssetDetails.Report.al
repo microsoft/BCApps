@@ -12,8 +12,6 @@ using Microsoft.FixedAssets.Setup;
 
 report 5604 "Fixed Asset - Details"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Reports/FixedAssetDetails.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Details (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
@@ -21,6 +19,7 @@ report 5604 "Fixed Asset - Details"
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been replaced by the report Fixed Asset Details (Excel). This report will be removed in a future release.';
     ObsoleteTag = '28.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -206,6 +205,16 @@ report 5604 "Fixed Asset - Details"
                 DeprBookCode := FASetup."Default Depr. Book";
             end;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Reports/FixedAssetDetails.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

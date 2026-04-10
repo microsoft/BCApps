@@ -40,7 +40,7 @@ codeunit 30107 "Shpfy Sync Countries"
         ShopCustomerTemplate.SetFilter("Country/Region Code", '%1|%2', '', '*');
         ShopCustomerTemplate.DeleteAll(true);
 
-        GraphQLType := GraphQLType::GetShipToCountries;
+        GraphQLType := GraphQLType::Shipping_GetShipToCountries;
         JResponse := ShopifyCommunicationMgt.ExecuteGraphQL(GraphQLType);
         if JsonHelper.GetJsonArray(JResponse, JShipToCountries, 'data.shop.shipsToCountries') then
             foreach JShipToCountry in JShipToCountries do
@@ -55,7 +55,10 @@ codeunit 30107 "Shpfy Sync Countries"
         ShopifyCustomerTemplate."Shop Code" := ShopifyShop.Code;
         ShopifyCustomerTemplate."Country/Region Code" := CopyStr(CountryCode.AsCode(), 1, MaxStrLen(ShopifyCustomerTemplate."Country/Region Code"));
         if (ShopifyCustomerTemplate."Country/Region Code" <> '') and (ShopifyCustomerTemplate."Country/Region Code" <> '*') then begin
-            if ShopifyCustomerTemplate.Insert() then;
+            ShopifyCustomerTemplate.SetRange("Shop Code", ShopifyShop.Code);
+            ShopifyCustomerTemplate.SetRange("Country/Region Code", ShopifyCustomerTemplate."Country/Region Code");
+            if ShopifyCustomerTemplate.IsEmpty() then
+                ShopifyCustomerTemplate.Insert();
             ImportProvince(CountryCode);
         end;
     end;
@@ -75,7 +78,10 @@ codeunit 30107 "Shpfy Sync Countries"
                         ShopifyTaxArea."Country/Region Code" := CopyStr(CountryCode.AsCode(), 1, MaxStrLen(ShopifyTaxArea."Country/Region Code"));
                         ShopifyTaxArea.County := CopyStr(JsonHelper.GetValueAsText(JProvince, 'name'), 1, MaxStrLen(ShopifyTaxArea.County));
                         ShopifyTaxArea."County Code" := CopyStr(JsonHelper.GetValueAsText(JProvince, 'code'), 1, MaxStrLen(ShopifyTaxArea."County Code"));
-                        if ShopifyTaxArea.Insert() then;
+                        ShopifyTaxArea.SetRange("Country/Region Code", ShopifyTaxArea."Country/Region Code");
+                        ShopifyTaxArea.SetRange(County, ShopifyTaxArea.County);
+                        if ShopifyTaxArea.IsEmpty() then
+                            ShopifyTaxArea.Insert();
                     end;
                 exit;
             end;

@@ -484,6 +484,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
         DateCheckDone: Boolean;
         IsHandled: Boolean;
     begin
+        OnBeforeCheckDates(GenJnlLine);
         GenJnlLine.TestField("Posting Date", ErrorInfo.Create());
         if GenJnlLine."Posting Date" <> NormalDate(GenJnlLine."Posting Date") then begin
             if (GenJnlLine."Account Type" <> GenJnlLine."Account Type"::"G/L Account") or
@@ -1562,6 +1563,16 @@ codeunit 11 "Gen. Jnl.-Check Line"
     /// <param name="IsHandled">Set to true to skip standard fiscal year validation logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckPostingDateInFiscalYear(GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised at the beginning of the CheckDates procedure before any date validation is performed.
+    /// Enables custom validation logic on journal line fields as part of the initial validation phase.
+    /// </summary>
+    /// <param name="GenJnlLine">Journal line record being validated.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckDates(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
 

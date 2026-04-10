@@ -24,15 +24,18 @@ table 5790 "Shipping Agent Services"
         field(2; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the shipping agent.';
             NotBlank = true;
         }
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the shipping agent.';
         }
         field(4; "Shipping Time"; DateFormula)
         {
             Caption = 'Shipping Time';
+            ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
 
             trigger OnValidate()
             var
@@ -46,6 +49,7 @@ table 5790 "Shipping Agent Services"
         field(7600; "Base Calendar Code"; Code[10])
         {
             Caption = 'Base Calendar Code';
+            ToolTip = 'Specifies a customizable calendar for shipment planning that holds the shipping agent''s working days and holidays.';
             TableRelation = "Base Calendar";
         }
     }

@@ -3134,6 +3134,8 @@ table 5050 Contact
     var
         PurchaseHeader: Record "Purchase Header";
     begin
+        OnBeforeCreatePurchaseQuoteFromContact(Rec);
+
         CheckIfPrivacyBlockedGeneric();
 
         PurchaseHeader.Init();
@@ -3154,6 +3156,16 @@ table 5050 Contact
         ContBusRel.SetRange("Contact No.", "No.");
         ContBusRel.SetRange("Link to Table", ContBusRel."Link to Table"::Customer);
         exit(ContBusRel.FindFirst())
+    end;
+
+    procedure ContactToVendBusinessRelationExist(): Boolean
+    var
+        ContactBusinessRelation: Record "Contact Business Relation";
+    begin
+        ContactBusinessRelation.Reset();
+        ContactBusinessRelation.SetRange("Contact No.", "No.");
+        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Vendor);
+        exit(ContactBusinessRelation.FindFirst())
     end;
 
     procedure CheckIfMinorForProfiles()
@@ -3892,6 +3904,11 @@ table 5050 Contact
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateSalesQuoteFromContact(var Contact: Record Contact; var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreatePurchaseQuoteFromContact(var Contact: Record Contact)
     begin
     end;
 

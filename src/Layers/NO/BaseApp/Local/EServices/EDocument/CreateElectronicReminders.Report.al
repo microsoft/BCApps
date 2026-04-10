@@ -22,13 +22,17 @@ report 10642 "Create Electronic Reminders"
             RequestFilterFields = "No.", "Customer No.";
 
             trigger OnAfterGetRecord()
+#if not CLEAN29
             var
                 EInvoiceExportIssReminder: Codeunit "E-Invoice Export Iss. Reminder";
+#endif
             begin
+#if not CLEAN29
                 EInvoiceExportIssReminder.Run("Issued Reminder Header");
                 EInvoiceExportIssReminder.GetExportedFileInfo(TempEInvoiceTransferFile);
                 TempEInvoiceTransferFile."Line No." := Counter + 1;
                 TempEInvoiceTransferFile.Insert();
+#endif
 
                 if LogInteraction then
                     SegManagement.LogDocument(
@@ -39,10 +43,14 @@ report 10642 "Create Electronic Reminders"
             end;
 
             trigger OnPostDataItem()
+#if not CLEAN29
             var
                 EInvoiceExportCommon: Codeunit "E-Invoice Export Common";
+#endif
             begin
+#if not CLEAN29
                 EInvoiceExportCommon.DownloadEInvoiceFile(TempEInvoiceTransferFile);
+#endif
                 Message(Text002, Counter);
             end;
 
@@ -55,24 +63,34 @@ report 10642 "Create Electronic Reminders"
                 // Any electronic reminders?
                 IssuedReminderHeader.Copy("Issued Reminder Header");
                 IssuedReminderHeader.FilterGroup(6);
+#if not CLEAN29
                 IssuedReminderHeader.SetRange("E-Invoice", true);
+#endif
                 if not IssuedReminderHeader.FindFirst() then
                     Error(Text003);
 
                 // All electronic reminders?
+#if not CLEAN29
                 IssuedReminderHeader.SetRange("E-Invoice", false);
+#endif
                 if IssuedReminderHeader.FindFirst() then
                     if not Confirm(Text000, true) then
                         CurrReport.Quit();
+#if not CLEAN29
                 IssuedReminderHeader.SetRange("E-Invoice");
+#endif
 
                 // Some already sent?
+#if not CLEAN29
                 IssuedReminderHeader.SetRange("E-Invoice Created", true);
+#endif
                 if IssuedReminderHeader.FindFirst() then
                     if not Confirm(Text001, true) then
                         CurrReport.Quit();
 
+#if not CLEAN29
                 SetRange("E-Invoice", true);
+#endif
             end;
         }
     }
@@ -125,7 +143,9 @@ report 10642 "Create Electronic Reminders"
     end;
 
     var
+#if not CLEAN29
         TempEInvoiceTransferFile: Record "E-Invoice Transfer File" temporary;
+#endif
         SegManagement: Codeunit SegManagement;
         Counter: Integer;
         LogInteraction: Boolean;

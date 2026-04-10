@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -48,6 +48,7 @@ table 232 "Gen. Journal Batch"
         field(2; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the journal you are creating.';
             NotBlank = true;
         }
         /// <summary>
@@ -56,6 +57,7 @@ table 232 "Gen. Journal Batch"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a brief description of the journal batch you are creating.';
         }
         /// <summary>
         /// Reason code applied to all journal lines in this batch for audit and reporting purposes.
@@ -63,6 +65,7 @@ table 232 "Gen. Journal Batch"
         field(4; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
 
             trigger OnValidate()
@@ -79,6 +82,7 @@ table 232 "Gen. Journal Batch"
         field(5; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
 
             trigger OnValidate()
             begin
@@ -94,6 +98,7 @@ table 232 "Gen. Journal Batch"
         field(6; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
@@ -121,6 +126,7 @@ table 232 "Gen. Journal Batch"
         field(7; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -149,6 +155,7 @@ table 232 "Gen. Journal Batch"
         field(8; "Posting No. Series"; Code[20])
         {
             Caption = 'Posting No. Series';
+            ToolTip = 'Specifies the code for the number series that will be used to assign document numbers to ledger entries that are posted from this journal batch.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -165,6 +172,7 @@ table 232 "Gen. Journal Batch"
         field(9; "Copy VAT Setup to Jnl. Lines"; Boolean)
         {
             Caption = 'Copy VAT Setup to Jnl. Lines';
+            ToolTip = 'Specifies whether the program to calculate VAT for accounts and balancing accounts on the journal line of the selected journal batch.';
             InitValue = true;
         }
         /// <summary>
@@ -173,6 +181,7 @@ table 232 "Gen. Journal Batch"
         field(10; "Allow VAT Difference"; Boolean)
         {
             Caption = 'Allow VAT Difference';
+            ToolTip = 'Specifies whether to allow the manual adjustment of VAT amounts in journal templates.';
 
             trigger OnValidate()
             begin
@@ -188,6 +197,7 @@ table 232 "Gen. Journal Batch"
         field(11; "Allow Payment Export"; Boolean)
         {
             Caption = 'Allow Payment Export';
+            ToolTip = 'Specifies if you can export bank payment files from payment journal lines using this general journal batch.';
         }
         /// <summary>
         /// Specifies the import format used for processing bank statements related to this journal batch.
@@ -195,6 +205,7 @@ table 232 "Gen. Journal Batch"
         field(12; "Bank Statement Import Format"; Code[20])
         {
             Caption = 'Bank Statement Import Format';
+            ToolTip = 'Specifies the format of the bank statement file that can be imported into this general journal batch.';
             TableRelation = "Bank Export/Import Setup".Code where(Direction = const(Import));
 
             trigger OnValidate()
@@ -229,6 +240,7 @@ table 232 "Gen. Journal Batch"
         field(23; "Suggest Balancing Amount"; Boolean)
         {
             Caption = 'Suggest Balancing Amount';
+            ToolTip = 'Specifies if the Amount field on journal lines for the same document number is automatically prefilled with the value that is required to balance the document.';
         }
         /// <summary>
         /// Indicates whether this journal batch is currently pending approval in the approval workflow system.
@@ -244,6 +256,7 @@ table 232 "Gen. Journal Batch"
         field(31; "Copy to Posted Jnl. Lines"; Boolean)
         {
             Caption = 'Copy to Posted Jnl. Lines';
+            ToolTip = 'Specifies whether the journal lines to be copied to posted journal lines of the selected journal batch.';
 
             trigger OnValidate()
             begin

@@ -4746,7 +4746,9 @@ codeunit 134976 "ERM Sales Report"
         Customer: Record Customer;
     begin
         LibraryVariableStorage.Enqueue(ShowAmountInLCY);
+#if not CLEAN28
         LibraryVariableStorage.Enqueue(false);
+#endif
         Customer.SetRange("No.", SellToCustomerNo);
         Commit();  // Due to limitation in page testability, commit is needed in this test case.
         REPORT.Run(REPORT::"Customer - Order Detail", true, false, Customer);
@@ -5151,12 +5153,18 @@ codeunit 134976 "ERM Sales Report"
     procedure CustomerOrderDetailRequestPageHandler(var CustomerOrderDetail: TestRequestPage "Customer - Order Detail")
     var
         ShowAmountInLCY: Variant;
+#if not CLEAN28
         PrintOnlyPerPage: Variant;
+#endif
     begin
         LibraryVariableStorage.Dequeue(ShowAmountInLCY);
+#if not CLEAN28
         LibraryVariableStorage.Dequeue(PrintOnlyPerPage);
+#endif
         CustomerOrderDetail.ShowAmountsInLCY.SetValue(ShowAmountInLCY);
+#if not CLEAN28
         CustomerOrderDetail.NewPagePerCustomer.SetValue(PrintOnlyPerPage);
+#endif
         CustomerOrderDetail.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 

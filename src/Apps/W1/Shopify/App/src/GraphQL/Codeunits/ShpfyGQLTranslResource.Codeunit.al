@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,16 +6,27 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30340 "Shpfy GQL TranslResource" implements "Shpfy IGraphQL"
+codeunit 30340 "Shpfy GQL TranslResource"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by .graphql resource files. Use "Shpfy GraphQL Queries".GetQueryWithCost() instead.';
+    ObsoleteTag = '29.0';
 
-    internal procedure GetGraphQL(): Text
+    procedure GetGraphQL(): Text
+    var
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
     begin
-        exit('{"query":"{ translatableResource(resourceId: \"gid://shopify/{{ResourceType}}/{{ResourceId}}\") { resourceId translatableContent {key value digest locale} }}"}');
+        exit(GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Base_GetTranslResource, ExpectedCost));
     end;
 
-    internal procedure GetExpectedCost(): Integer
+    procedure GetExpectedCost(): Integer
+    var
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
     begin
-        exit(2);
+        GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Base_GetTranslResource, ExpectedCost);
+        exit(ExpectedCost);
     end;
 }
+#endif

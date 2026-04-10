@@ -607,6 +607,7 @@ codeunit 18 "Financial Report Mgt."
     begin
         CalcAccScheduleLineDateFilter(FinancialReport, AccScheduleLine);
         AccountSchedule.SetFinancialReportName(FinancialReport.Name);
+        AccountSchedule.SetDimPerspectiveName(FinancialReport.DimPerspective);
         AccountSchedule.SetFilters(
             AccScheduleLine.GetFilter("Date Filter"),
             FinancialReport.GLBudgetFilter,

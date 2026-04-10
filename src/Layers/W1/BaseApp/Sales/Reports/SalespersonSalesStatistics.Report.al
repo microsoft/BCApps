@@ -17,7 +17,7 @@ report 114 "Salesperson - Sales Statistics"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Salesperson - Sales Statistics';
-    DefaultRenderingLayout = Word;
+    DefaultRenderingLayout = Excel;
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
 
@@ -250,12 +250,14 @@ report 114 "Salesperson - Sales Statistics"
             Caption = 'Salesperson Sales Statistics Excel';
             Type = Excel;
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.xlsx';
+            Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
         layout(Word)
         {
             Caption = 'Salesperson Sales Statistics Word';
             Type = Word;
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
 #if not CLEAN27
         layout(RDLC)
@@ -266,6 +268,7 @@ report 114 "Salesperson - Sales Statistics"
             ObsoleteState = Pending;
             ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
             ObsoleteTag = '27.0';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
     }

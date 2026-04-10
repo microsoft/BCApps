@@ -69,6 +69,10 @@ codeunit 5600 "FA Insert Ledger Entry"
         Text007: Label '%1 = %2 already exists for %5 (%3 = %4).';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
+        NotEligibleForBonusDepreciationErr: Label 'Fixed asset %1 in depreciation book %2 is not eligible for bonus depreciation, but has a line with bonus depreciation posting type.', Comment = '%1 - fixed asset code; %2 - depreciation book code';
+        DepreciationAlreadyAppliedErr: Label 'Depreciation ledger entries have already been posted for fixed asset %1 in depreciation book %2. You must first reverse them in order to post bonus depreciation.', Comment = '%1 - fixed asset code; %2 - depreciation book code';
+        FASetupBonusDepreciationErr: Label 'Fixed Asset Setup is not correctly configured for bonus depreciation. You must make sure that bonus depreciation percentage and effective date are set up correctly.';
+        BonusDepreciationExceedsAllowedValueErr: Label 'The amount of bonus depreciation must not exceed the allowed value calculated based on acquisition cost and bonus depreciation percentage set up in Fixed Asset Setup.';
 
     procedure InsertFA(var FALedgEntry3: Record "FA Ledger Entry")
     var
@@ -92,6 +96,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         FA.Get(FALedgEntry."FA No.");
         DeprBookCode := FALedgEntry."Depreciation Book Code";
         CheckMainAsset();
+        CheckBonusDepreciation();
         ErrorEntryNo := FALedgEntry."Entry No.";
         FALedgEntry."Entry No." := NextEntryNo;
         SetFAPostingType(FALedgEntry);
@@ -229,10 +234,13 @@ codeunit 5600 "FA Insert Ledger Entry"
                 "FA Ledger Entry FA Posting Type"::"Custom 1",
                 "FA Ledger Entry FA Posting Type"::"Custom 2":
                     FALedgerEntry."Part of Depreciable Basis" := FAPostingTypeSetup."Part of Depreciable Basis";
+                "FA Ledger Entry FA Posting Type"::"Bonus Depreciation":
+                    FALedgerEntry."Part of Depreciable Basis" := false;
             end;
             case FALedgerEntry."FA Posting Type" of
                 "FA Ledger Entry FA Posting Type"::"Acquisition Cost",
-                "FA Ledger Entry FA Posting Type"::Depreciation:
+                "FA Ledger Entry FA Posting Type"::Depreciation,
+                "FA Ledger Entry FA Posting Type"::"Bonus Depreciation":
                     FALedgerEntry."Part of Book Value" := true;
                 "FA Ledger Entry FA Posting Type"::"Write-Down",
                 "FA Ledger Entry FA Posting Type"::Appreciation,
@@ -276,6 +284,33 @@ codeunit 5600 "FA Insert Ledger Entry"
             exit(false);
 
         exit(true);
+    end;
+
+    local procedure CheckBonusDepreciation()
+    var
+        ExistingFALedgerEntry: Record "FA Ledger Entry";
+    begin
+        if FALedgEntry."FA Posting Type" <> FALedgEntry."FA Posting Type"::"Bonus Depreciation" then
+            exit;
+
+        if not FASetup.BonusDepreciationCorrectlySetup() then
+            Error(FASetupBonusDepreciationErr);
+
+        FADeprBook.Get(FALedgEntry."FA No.", FALedgEntry."Depreciation Book Code");
+        if not FADeprBook.EligibleForBonusDepreciation(FASetup) then
+            Error(NotEligibleForBonusDepreciationErr, FADeprBook."FA No.", FADeprBook."Depreciation Book Code");
+
+        if Abs(FALedgEntry.Amount) > Abs(FADeprBook.BonusDepreciationAmount(FASetup)) then
+            Error(BonusDepreciationExceedsAllowedValueErr);
+
+        ExistingFALedgerEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type");
+        ExistingFALedgerEntry.SetRange("FA No.", FALedgEntry."FA No.");
+        ExistingFALedgerEntry.SetRange("Depreciation Book Code", FALedgEntry."Depreciation Book Code");
+        ExistingFALedgerEntry.SetRange("FA Posting Category", FALedgEntry."FA Posting Category"::" ");
+        ExistingFALedgerEntry.SetFilter("FA Posting Type", '%1|%2', FALedgEntry."FA Posting Type"::"Depreciation", FALedgEntry."FA Posting Type"::"Bonus Depreciation");
+
+        if not ExistingFALedgerEntry.IsEmpty() then
+            Error(DepreciationAlreadyAppliedErr, FADeprBook."FA No.", FADeprBook."Depreciation Book Code");
     end;
 
     procedure InsertBalAcc(var FALedgEntry: Record "FA Ledger Entry")

@@ -3618,113 +3618,6 @@
         Assert.AreEqual(248158881, SalesLine.GetLineAmountToHandle(37), SalesLineGetLineAmountToHandleErr);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsUpdateInvDiscontAndTotalVATHandler,VATAmountLinesHandler')]
-    [Scope('OnPrem')]
-    procedure PostSalesOrderWithChangedVATAmountAndInvoiceDiscount()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        CustLedgerEntry: Record "Cust. Ledger Entry";
-        VATEntry: Record "VAT Entry";
-        VATDiffAmount: Decimal;
-        InvDiscAmount: Decimal;
-        ExpectedVATAmount: Decimal;
-        AmountToPost: Decimal;
-        DocumentNo: Code[20];
-    begin
-        // [FEATURE] [Statistics] [VAT Difference] [Invoice Discount]
-        // [SCENARIO 215643] Cassie can adjust Invoice Discount at invoice tab of Sales Order statistics page and can update Total VAT amount on VAT Amount lines.
-        // [SCENARIO 215643] Changed amounts are reflected on totals subform of sales order and are reflected at posted VAT, Customer Ledger Entries.
-        Initialize();
-
-        // [GIVEN] System setup allows Invoice Discount and Max. VAT Difference = 10
-        VATDiffAmount := EnableVATDiffAmount();
-        LibrarySales.SetCalcInvDiscount(true);
-
-        // [GIVEN] Sales Order with Amount = 100 and VAT % = 10
-        CreateSalesDocument(
-          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo(), LibraryInventory.CreateItemNo());
-        AmountToPost := Round(SalesLine.Amount / 10, 1);
-        InvDiscAmount := SalesLine.Amount - AmountToPost;
-        ExpectedVATAmount := Round(AmountToPost * SalesLine."VAT %" / 100, LibraryERM.GetAmountRoundingPrecision()) + VATDiffAmount;
-
-        // [GIVEN] Cassie changed Invoice Discount to 90 => calculated VAT amount = 1 ((100 - 90) * VAT%)  at statistics page
-        // [GIVEN] Cassie updated Total VAT = 4 => "VAT Difference" = 3
-        LibraryVariableStorage.Enqueue(InvDiscAmount);
-        LibraryVariableStorage.Enqueue(VATDiffAmount);
-
-        SalesHeader.SetRecFilter();
-        UpdateInvoiceDiscountAndVATAmountOnSalesOrderStatistics(
-          SalesHeader, SalesLine, AmountToPost, ExpectedVATAmount, VATDiffAmount);
-
-        // [WHEN] Post sales order
-        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-
-        // [THEN] Two VAT Entries posted
-        // [THEN] "VAT Entry"[1].Base = 90 and "VAT Entry"[1].Amount = 9
-        // [THEN] "VAT Entry"[2].Base = -100 and "VAT Entry"[2].Amount = -13 = -(100 * 10 % + 3)
-        VATEntry.SetRange("Document No.", DocumentNo);
-        VATEntry.FindSet();
-        VerifyVATEntryAmounts(
-          VATEntry,
-          InvDiscAmount,
-          Round(InvDiscAmount * SalesLine."VAT %" / 100, LibraryERM.GetAmountRoundingPrecision()));
-        VATEntry.Next();
-        VerifyVATEntryAmounts(
-          VATEntry,
-          -(InvDiscAmount + AmountToPost),
-          -(Round((InvDiscAmount + AmountToPost) * SalesLine."VAT %" / 100, LibraryERM.GetAmountRoundingPrecision()) + VATDiffAmount));
-        Assert.RecordCount(VATEntry, 2);
-
-        // [THEN] Customer Ledger Entry with Amount = 14 = 100 - 90 + 4, "Purchase (LCY)" = 10 and "Inv. Discount (LCY)" = 90 posted
-        FindCustLedgerEntry(CustLedgerEntry, SalesHeader."Sell-to Customer No.", DocumentNo);
-
-        CustLedgerEntry.CalcFields(Amount);
-        CustLedgerEntry.TestField(Amount, SalesLine."Amount Including VAT");
-        CustLedgerEntry.TestField("Sales (LCY)", AmountToPost);
-        CustLedgerEntry.TestField("Inv. Discount (LCY)", InvDiscAmount);
-    end;
-
-    [Obsolete('The sales statisticss action opens the page non-modally.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesStatisticsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure TotalAmountIncVATOnSalesInvoiceSubformWithVATDifference()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        MaxVATDifference: Decimal;
-        Amount: Decimal;
-        VATAmount: Decimal;
-        VATDifference: Decimal;
-    begin
-        // [FEATURE] [Statistics] [VAT Difference]
-        // [SCENARIO 224140] Totals on sales invoice page has correct values in invoice with VAT Difference
-        Initialize();
-
-        // [GIVEN] VAT Difference is allowed
-        MaxVATDifference := EnableVATDiffAmount();
-        VATDifference := LibraryRandom.RandDecInDecimalRange(0.01, MaxVATDifference, 2);
-        LibraryVariableStorage.Enqueue(VATDifference);
-
-        // [GIVEN] Sales Invoice with Amount = 4000, Amount Incl. VAT = 5000
-        CreateSalesDocument(
-          SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, LibrarySales.CreateCustomerNo(), LibraryInventory.CreateItemNo());
-        LibraryVariableStorage.Enqueue(SalesHeader."No.");
-        Amount := SalesLine.Amount;
-        VATAmount := SalesLine."Amount Including VAT" - SalesLine.Amount;
-
-        // [WHEN] Add "VAT Difference" = 1 in SalesStatisticHandler
-        // [THEN] Page total contains right values of "Total Amount Excl. VAT", "Total VAT", "Total Incl. VAT" on lines subpage before and after Release document
-        // [THEN] "Total Amount Excl. VAT" = 4000 in "Sales Line"
-        // [THEN] "Total VAT" = 1001 in "Sales Line"
-        // [THEN] "Total Incl. VAT" = 5001 in "Sales Line"
-        UpdateInvoiceDiscountAndVATAmountOnStatistics(SalesHeader, SalesLine, Amount, VATAmount + VATDifference, VATDifference);
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesOrderStatisticsUpdateInvDiscontAndTotalVATHandlerNM,VATAmountLinesHandler')]
     [Scope('OnPrem')]
@@ -3826,45 +3719,6 @@
         UpdateInvoiceDiscountAndVATAmountOnSalesStatisticsNM(SalesHeader, SalesLine, Amount, VATAmount + VATDifference, VATDifference);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsUpdateTotalVATHandler,VATAmountLinesHandler')]
-    [Scope('OnPrem')]
-    procedure AmountInclVATContainsVATDifferenceInOpenSalesOrder()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesOrder: TestPage "Sales Order";
-        MaxVATDifference: Decimal;
-        VATDifference: Decimal;
-        AmountInclVATBefore: Decimal;
-    begin
-        // [FEATURE] [Statistics] [VAT Difference]
-        // [SCENARIO 224140] "Amount Incl. VAT" contains VAT Difference in open Sales Order
-        Initialize();
-
-        // [GIVEN] VAT Difference is allowed
-        MaxVATDifference := EnableVATDiffAmount();
-        VATDifference := LibraryRandom.RandDecInDecimalRange(0.01, MaxVATDifference, 2);
-        LibraryVariableStorage.Enqueue(VATDifference);
-
-        // [GIVEN] Sales Order with Amount = 4000, Amount Incl. VAT = 5000
-        CreateSalesDocument(
-          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo(), LibraryInventory.CreateItemNo());
-        AmountInclVATBefore := SalesLine."Amount Including VAT";
-
-        // [WHEN] Add "VAT Difference" = 1 in SalesStatisticHandler
-        UpdateVATAmountOnSalesOrderStatistics(SalesHeader, SalesOrder);
-
-        // [THEN] "VAT Difference" and "Amount Including VAT" fields contain VAT difference amount in "Sales Line"
-        // [THEN] "VAT Difference" = 1 in "Sales Line"
-        // [THEN] "Amount Including VAT" = 5001 in "Sales Line"
-        SalesLine.Find();
-        SalesLine.TestField("VAT Difference", VATDifference);
-        SalesLine.TestField("Amount Including VAT", AmountInclVATBefore + VATDifference);
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesOrderStatisticsNMUpdateTotalVATHandler,VATAmountLinesHandler')]
     [Scope('OnPrem')]
@@ -5031,59 +4885,6 @@
         LibrarySales.PostSalesDocument(SalesHeaderOrder, true, true);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsModalHandler')]
-    procedure VerifyAdjustedCostLCYOnSalesOrderStatusticAfterCorrectSalesInvoiceAndPostShipmentLine()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesInvHeader: Record "Sales Invoice Header";
-        Items: array[2] of Record Item;
-        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
-        AdjustedCostLCY: Decimal;
-        DocumentNo: Code[20];
-    begin
-        // [SCENARIO 455409] Verify Adjusted Cost (LCY) is correct, after Sales Order is posted, corrected, and one line post again
-        Initialize();
-
-        // [GIVEN] Create two Items with Unit Price and Unit Cost
-        CreateItemsWithUnitPriceAndUnitCost(Items);
-
-        // [GIVEN] Create Sales Order
-        CreateSalesOrder(SalesHeader, SalesLine, Items);
-
-        // [GIVEN] Open Sales Order Statistics page
-        OpenSalesOrderStatistics(SalesHeader."No.");
-
-        // [GIVEN] Return Adjusted Cost (LCY) from Sales Order Statistics
-        AdjustedCostLCY := LibraryVariableStorage.DequeueDecimal();
-
-        // [GIVEN] Update Qty. to Ship and Invocie on both Lines
-        UpdateQtyToShipAndInvoiceOnSalesLine(SalesHeader, SalesLine);
-
-        // [GIVEN] Post Sales Order
-        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-
-        // [GIVEN] Correct Posted Sales Invoice
-        SalesInvHeader.Get(DocumentNo);
-        CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvHeader);
-
-        // [GIVEN] Update Qty. to Ship and Invocie on first Line
-        SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", 10000);
-        UpdateQtyToShipAndInvoiceOnSalesLine(SalesLine, 10, 10);
-
-        // [GIVEN] Post Sales Order
-        LibrarySales.PostSalesDocument(SalesHeader, true, false);
-
-        // [WHEN] Open Sales Order Statistics page
-        OpenSalesOrderStatistics(SalesHeader."No.");
-
-        // [THEN] Verify Adjusted Cost is not changed
-        Assert.IsTrue(AdjustedCostLCY = LibraryVariableStorage.DequeueDecimal(), AdjustedCostChangedMsg);
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesOrderStatisticsHandler')]
     procedure VerifyAdjustedCostLCYOnSalesOrderStatusticAfterCorrectSalesInvoiceAndPostShipmentLineNM()
@@ -7233,73 +7034,6 @@
         SalesReceivablesSetup.Modify();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure UpdateInvoiceDiscountAndVATAmountOnSalesOrderStatistics(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; AmountToPost: Decimal; VATAmount: Decimal; VATDiffAmount: Decimal)
-    var
-        SalesOrder: TestPage "Sales Order";
-    begin
-        UpdateVATAmountOnSalesOrderStatistics(SalesHeader, SalesOrder);
-
-        SalesLine.Find();
-        SalesLine.TestField("VAT Difference", VATDiffAmount);
-
-        SalesOrder.SalesLines."Total Amount Excl. VAT".AssertEquals(AmountToPost);
-        SalesOrder.SalesLines."Total VAT Amount".AssertEquals(VATAmount);
-        SalesOrder.SalesLines."Total Amount Incl. VAT".AssertEquals(AmountToPost + VATAmount);
-        SalesOrder.Close();
-
-        SalesHeader.Find();
-        LibrarySales.ReleaseSalesDocument(SalesHeader);
-        SalesOrder.OpenView();
-        SalesOrder.FILTER.SetFilter("No.", SalesHeader."No.");
-
-        SalesLine.TestField("VAT Difference", VATDiffAmount);
-
-        SalesOrder.SalesLines."Total Amount Excl. VAT".AssertEquals(AmountToPost);
-        SalesOrder.SalesLines."Total VAT Amount".AssertEquals(VATAmount);
-        SalesOrder.SalesLines."Total Amount Incl. VAT".AssertEquals(AmountToPost + VATAmount);
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure UpdateVATAmountOnSalesOrderStatistics(var SalesHeader: Record "Sales Header"; var SalesOrder: TestPage "Sales Order")
-    begin
-        SalesOrder.OpenView();
-        SalesOrder.FILTER.SetFilter("No.", SalesHeader."No.");
-        SalesOrder.Statistics.Invoke();
-        SalesOrder.GotoRecord(SalesHeader);
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    local procedure UpdateInvoiceDiscountAndVATAmountOnStatistics(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; AmountToPost: Decimal; VATAmount: Decimal; VATDiffAmount: Decimal)
-    var
-        SalesInvoice: TestPage "Sales Invoice";
-    begin
-        SalesInvoice.OpenView();
-        SalesInvoice.FILTER.SetFilter("No.", SalesHeader."No.");
-        SalesInvoice.Statistics.Invoke();
-        SalesInvoice.GotoRecord(SalesHeader);
-
-        SalesLine.Find();
-        SalesLine.TestField("VAT Difference", VATDiffAmount);
-
-        SalesInvoice.SalesLines."Total Amount Excl. VAT".AssertEquals(AmountToPost);
-        SalesInvoice.SalesLines."Total VAT Amount".AssertEquals(VATAmount);
-        SalesInvoice.SalesLines."Total Amount Incl. VAT".AssertEquals(AmountToPost + VATAmount);
-        SalesInvoice.Close();
-
-        SalesHeader.Find();
-        LibrarySales.ReleaseSalesDocument(SalesHeader);
-        SalesInvoice.OpenView();
-        SalesInvoice.FILTER.SetFilter("No.", SalesHeader."No.");
-
-        SalesLine.TestField("VAT Difference", VATDiffAmount);
-
-        SalesInvoice.SalesLines."Total Amount Excl. VAT".AssertEquals(AmountToPost);
-        SalesInvoice.SalesLines."Total VAT Amount".AssertEquals(VATAmount);
-        SalesInvoice.SalesLines."Total Amount Incl. VAT".AssertEquals(AmountToPost + VATAmount);
-    end;
-#endif
     local procedure UpdateInvoiceDiscountAndVATAmountOnSalesOrderStatisticsNM(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; AmountToPost: Decimal; VATAmount: Decimal; VATDiffAmount: Decimal)
     var
         SalesOrder: TestPage "Sales Order";
@@ -8089,17 +7823,6 @@
         CopySalesDocument.OK().Invoke();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    procedure SalesOrderStatisticsModalHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    var
-        AdjustedCostLCY: Decimal;
-    begin
-        Evaluate(AdjustedCostLCY, SalesOrderStatistics."TotalAdjCostLCY[1]".Value);
-        LibraryVariableStorage.Enqueue(AdjustedCostLCY);
-    end;
-#endif
     [PageHandler]
     procedure SalesOrderStatisticsHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
     var
@@ -8221,17 +7944,6 @@
         SalesLineItemCharge.Modify(true);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure OpenSalesOrderStatistics(No: Code[20])
-    var
-        SalesOrder: TestPage "Sales Order";
-    begin
-        SalesOrder.OpenView();
-        SalesOrder.FILTER.SetFilter("No.", No);
-        SalesOrder.Statistics.Invoke();
-    end;
-#endif
     local procedure OpenSalesOrderStatisticsNM(No: Code[20])
     var
         SalesOrder: TestPage "Sales Order";
@@ -8498,26 +8210,6 @@
             LibraryVariableStorage.Enqueue(ItemChargeAssignmentSales."Qty. to Assign".Value);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesOrderStatisticsUpdateInvDiscontAndTotalVATHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    begin
-        SalesOrderStatistics.InvDiscountAmount_Invoicing.SetValue(LibraryVariableStorage.DequeueDecimal());
-        SalesOrderStatistics.NoOfVATLines_Invoicing.DrillDown();
-        SalesOrderStatistics.OK().Invoke();
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesOrderStatisticsUpdateTotalVATHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    begin
-        SalesOrderStatistics.NoOfVATLines_Invoicing.DrillDown();
-        SalesOrderStatistics.OK().Invoke();
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesOrderStatisticsUpdateInvDiscontAndTotalVATHandlerNM(var SalesOrderStatistics: TestPage "Sales Order Statistics")

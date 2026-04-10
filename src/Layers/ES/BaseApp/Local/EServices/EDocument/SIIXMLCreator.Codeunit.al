@@ -2468,11 +2468,14 @@ codeunit 10750 "SII XML Creator"
     end;
 
     local procedure UpdateAmountBufferWithOneStopShop(var HasEntries: array[2] of Boolean; var Amount: array[2] of Decimal; var TempVATEntry: Record "VAT Entry" temporary)
+    var
+        HasOneStopShopEntries: Boolean;
     begin
         TempVATEntry.SetRange("One Stop Shop Reporting", true);
+        HasOneStopShopEntries := not TempVATEntry.IsEmpty();
         TempVATEntry.CalcSums(Base);
         TempVATEntry.SetRange("One Stop Shop Reporting");
-        if TempVATEntry.Base = 0 then
+        if not HasOneStopShopEntries then
             exit;
         HasEntries[2] := true;
         Amount[2] += Abs(TempVATEntry.Base);

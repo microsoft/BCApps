@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,40 +29,33 @@ page 468 "Tax Details"
                 field("Tax Jurisdiction Code"; Rec."Tax Jurisdiction Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax jurisdiction code for the tax-detail entry.';
                 }
                 field("Tax Group Code"; Rec."Tax Group Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax group code for the tax-detail entry.';
                 }
                 field("Tax Type"; Rec."Tax Type")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the type of tax (Sales Tax or Excise Tax) that applies to the tax-detail entry.';
                 }
                 field("Effective Date"; Rec."Effective Date")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies a date on which the tax-detail entry will go into effect. This allows you to set up tax details in advance.';
                 }
                 field("Tax Below Maximum"; Rec."Tax Below Maximum")
                 {
                     ApplicationArea = SalesTax;
                     MinValue = 0;
-                    ToolTip = 'Specifies the percentage that will be used to calculate tax for all amounts or quantities below the maximum amount quantity in the Maximum Amount/Qty. field.';
                 }
                 field("Maximum Amount/Qty."; Rec."Maximum Amount/Qty.")
                 {
                     ApplicationArea = SalesTax;
                     MinValue = 0;
-                    ToolTip = 'Specifies a maximum amount or quantity. The program finds the appropriate tax percentage in either the Tax Below Maximum or the Tax Above Maximum field.';
                 }
                 field("Tax Above Maximum"; Rec."Tax Above Maximum")
                 {
                     ApplicationArea = SalesTax;
                     MinValue = 0;
-                    ToolTip = 'Specifies the percentage that will be used to calculate tax for all amounts or quantities above the maximum amount quantity in the Maximum Amount/Qty. field.';
                 }
             }
         }

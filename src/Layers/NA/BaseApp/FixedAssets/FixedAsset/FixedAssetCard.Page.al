@@ -284,6 +284,37 @@ page 5600 "Fixed Asset Card"
                         FADepreciationBook.DrillDownOnBookValue();
                     end;
                 }
+                field(AcquisitionCost; AcquisitionCost)
+                {
+                    ApplicationArea = FixedAssets;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    Caption = 'Acquisition Cost';
+                    DrillDown = true;
+                    Editable = false;
+                    Visible = AcquisitionCostFieldVisible;
+                    ToolTip = 'Specifies the acquisition cost for the fixed asset.';
+
+                    trigger OnDrillDown()
+                    begin
+                        FADepreciationBook.DrillDownOnAcquisitionCost();
+                    end;
+                }
+                field(BonusDeprAppliedAmount; BonusDeprAppliedAmount)
+                {
+                    ApplicationArea = FixedAssets;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    Caption = 'Bonus Depreciation Applied Amount';
+                    DrillDown = true;
+                    Editable = false;
+                    Visible = BonusDepreciationAppliedAmountFieldVisible;
+                    ToolTip = 'Specifies the bonus depreciation applied amount for the fixed asset.';
+                    trigger OnDrillDown()
+                    begin
+                        FADepreciationBook.DrillDownOnBonusDeprAppliedAmount();
+                    end;
+                }
                 field(DepreciationTableCode; FADepreciationBook."Depreciation Table Code")
                 {
                     ApplicationArea = FixedAssets;
@@ -296,6 +327,20 @@ page 5600 "Fixed Asset Card"
                     begin
                         LoadFADepreciationBooks();
                         FADepreciationBook.Validate("Depreciation Table Code");
+                        SaveSimpleDepreciationBook(xRec."No.");
+                    end;
+                }
+                field(UseBonusDepreciation; FADepreciationBook."Use Bonus Depreciation")
+                {
+                    ApplicationArea = FixedAssets;
+                    Caption = 'Use Bonus Depreciation';
+                    Importance = Additional;
+                    ToolTip = 'Specifies if the Bonus Depreciation is to be used for this depreciation book.';
+
+                    trigger OnValidate()
+                    begin
+                        LoadFADepreciationBooks();
+                        FADepreciationBook.Validate("Use Bonus Depreciation");
                         SaveSimpleDepreciationBook(xRec."No.");
                     end;
                 }
@@ -790,6 +835,8 @@ page 5600 "Fixed Asset Card"
         FADepreciationBook.Copy(FADepreciationBookOld);
         ShowAcquisitionNotification();
         BookValue := GetBookValue();
+        AcquisitionCost := GetAcquisitionCost();
+        BonusDeprAppliedAmount := GetBonusDepreciationAppliedAmount();
     end;
 
     trigger OnOpenPage()
@@ -797,6 +844,8 @@ page 5600 "Fixed Asset Card"
         Simple := true;
         AllowEditDepBookCode := true;
         SetNoFieldVisible();
+        SetAcquisitionCostFieldVisible();
+        SetBonusDepreciationAppliedAmountFieldVisible();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -806,11 +855,11 @@ page 5600 "Fixed Asset Card"
 
     var
         FAAcquireWizardNotificationId: Guid;
-        NoFieldVisible: Boolean;
+        NoFieldVisible, AcquisitionCostFieldVisible, BonusDepreciationAppliedAmountFieldVisible: Boolean;
         AddMoreDeprBooksLbl: Label 'Add More Depreciation Books';
         Acquirable: Boolean;
         ShowAddMoreDeprBooksLbl: Boolean;
-        BookValue: Decimal;
+        BookValue, AcquisitionCost, BonusDeprAppliedAmount: Decimal;
         FAPostingGroupChangeDeniedMsg: Label 'The current FA posting group is %1 but the FA subclass %2 has the default FA posting group %3. \Because there are posted FA ledger entries we will not change the FA posting group.', Comment = '%1 = FA Posting Group Code, %2 = FA Subclass Code, %3 = Default FA Posting Group. Example: The current FA posting group is MACHINERY but the FA subclass TANGIBLE has the default FA posting group CAR. \Because there are posted FA ledger entries we will not change the FA posting group.';
         FAPostingGroupChangeConfirmTxt: Label 'The current FA posting group is %1, but the FA subclass %2 has the default FA posting group %3. \Do you want to update the FA posting group?', Comment = '%1 = FA Posting Group Code, %2 = FA Subclass Code, %3 = Default FA Posting Group. The current FA posting group is MACHINERY, but the FA subclass TANGIBLE has the default FA posting group CAR. \Do you want to update the FA posting group?';
         AllowEditDepBookCode: Boolean;
@@ -968,6 +1017,7 @@ page 5600 "Fixed Asset Card"
         if FADepreciationBookOld.Count <= 1 then begin
             if FADepreciationBookOld.FindFirst() then begin
                 FADepreciationBookOld.CalcFields("Book Value");
+                FADepreciationBookOld.CalcFields("Acquisition Cost");
                 ShowAddMoreDeprBooksLbl := true
             end;
             Simple := true;
@@ -985,11 +1035,36 @@ page 5600 "Fixed Asset Card"
         NoFieldVisible := DocumentNoVisibility.FixedAssetNoIsVisible();
     end;
 
+    local procedure SetAcquisitionCostFieldVisible()
+    begin
+        Rec.CalcFields("Acquired");
+        AcquisitionCostFieldVisible := Rec.Acquired;
+    end;
+
+    local procedure SetBonusDepreciationAppliedAmountFieldVisible()
+    var
+        FASetup: Record "FA Setup";
+    begin
+        FASetup.Get();
+        BonusDepreciationAppliedAmountFieldVisible := FASetup.BonusDepreciationCorrectlySetup();
+    end;
+
     local procedure GetBookValue(): Decimal
     begin
         if FADepreciationBook."Disposal Date" > 0D then
             exit(0);
         exit(FADepreciationBook."Book Value");
+    end;
+
+    local procedure GetAcquisitionCost(): Decimal
+    begin
+        exit(FADepreciationBook."Acquisition Cost");
+    end;
+
+    local procedure GetBonusDepreciationAppliedAmount(): Decimal
+    begin
+        FADepreciationBook.CalcFields("Bonus Depr. Applied Amount");
+        exit(FADepreciationBook."Bonus Depr. Applied Amount");
     end;
 
     [IntegrationEvent(false, false)]

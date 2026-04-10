@@ -17,12 +17,14 @@ table 7601 "Base Calendar Change"
         field(1; "Base Calendar Code"; Code[10])
         {
             Caption = 'Base Calendar Code';
+            ToolTip = 'Specifies the code of the base calendar in the entry.';
             Editable = false;
             TableRelation = "Base Calendar";
         }
         field(2; "Recurring System"; Option)
         {
             Caption = 'Recurring System';
+            ToolTip = 'Specifies a date or day as a recurring nonworking day.';
             OptionCaption = ' ,Annual Recurring,Weekly Recurring';
             OptionMembers = " ","Annual Recurring","Weekly Recurring";
 
@@ -40,6 +42,7 @@ table 7601 "Base Calendar Change"
         field(3; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date to change associated with the base calendar in this entry.';
 
             trigger OnValidate()
             begin
@@ -55,6 +58,7 @@ table 7601 "Base Calendar Change"
         field(4; Day; Option)
         {
             Caption = 'Day';
+            ToolTip = 'Specifies the day of the week associated with this change entry.';
             OptionCaption = ' ,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
             OptionMembers = " ",Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday;
 
@@ -68,10 +72,12 @@ table 7601 "Base Calendar Change"
         field(5; Description; Text[30])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the change in this entry.';
         }
         field(6; Nonworking; Boolean)
         {
             Caption = 'Nonworking';
+            ToolTip = 'Specifies that the day is not a working day.';
             InitValue = true;
         }
     }

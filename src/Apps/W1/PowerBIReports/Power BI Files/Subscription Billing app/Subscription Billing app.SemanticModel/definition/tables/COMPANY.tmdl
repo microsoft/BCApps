@@ -16,7 +16,7 @@ table COMPANY
 	partition COMPANY = m
 		mode: import
 		queryGroup: 'Parameters and Functions\Connection Parameters'
-		source = "CRONUS USA, Inc." meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+		source = "Cronus" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 
 	changedProperty = IsHidden
 

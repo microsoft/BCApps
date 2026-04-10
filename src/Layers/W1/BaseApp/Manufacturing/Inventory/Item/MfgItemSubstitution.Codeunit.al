@@ -39,9 +39,6 @@ codeunit 99000898 "Mfg. Item Substitution"
             ItemSubst.ErrorMessage(ProdOrderComp."Item No.", ProdOrderComp."Variant Code");
 
         OnGetCompSubstOnAfterCheckPrepareSubstList(ProdOrderComp, TempItemSubstitutions, Item, GrossReq, SchedRcpt);
-#if not CLEAN26
-        ItemSubst.RunOnGetCompSubstOnAfterCheckPrepareSubstList(ProdOrderComp, TempItemSubstitutions, Item, GrossReq, SchedRcpt);
-#endif
 
         TempItemSubstitutions.Reset();
         TempItemSubstitutions.SetRange("Variant Code", ProdOrderComp."Variant Code");
@@ -51,9 +48,6 @@ codeunit 99000898 "Mfg. Item Substitution"
             UpdateProdOrderComp(ProdOrderComp, TempItemSubstitutions."Substitute No.", TempItemSubstitutions."Substitute Variant Code");
 
         OnAfterGetCompSubst(ProdOrderComp, TempItemSubstitutions);
-#if not CLEAN26
-        ItemSubst.RunOnAfterGetCompSubst(ProdOrderComp, TempItemSubstitutions);
-#endif
     end;
 
     procedure UpdateProdOrderComp(var ProdOrderComp: Record "Prod. Order Component"; SubstItemNo: Code[20]; SubstVariantCode: Code[10])
@@ -65,9 +59,6 @@ codeunit 99000898 "Mfg. Item Substitution"
     begin
         IsHandled := false;
         OnBeforeUpdateComponent(ProdOrderComp, SubstItemNo, SubstVariantCode, IsHandled);
-#if not CLEAN26
-        ItemSubst.RunOnBeforeUpdateComponent(ProdOrderComp, SubstItemNo, SubstVariantCode, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -99,9 +90,6 @@ codeunit 99000898 "Mfg. Item Substitution"
         TempProdOrderComp.Validate("Quantity per", SaveQty);
 
         OnAfterUpdateComponentBeforeAssign(ProdOrderComp, TempProdOrderComp);
-#if not CLEAN26
-        ItemSubst.RunOnAfterUpdateComponentBeforeAssign(ProdOrderComp, TempProdOrderComp);
-#endif
         ProdOrderComp := TempProdOrderComp;
     end;
 

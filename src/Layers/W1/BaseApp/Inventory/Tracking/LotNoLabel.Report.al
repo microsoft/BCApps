@@ -79,6 +79,7 @@ report 6628 "Lot No Label"
         {
             Type = Word;
             LayoutFile = './Inventory/Tracking/LotNoLabel.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
     }
 

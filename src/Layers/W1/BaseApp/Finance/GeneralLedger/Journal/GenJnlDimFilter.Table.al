@@ -54,6 +54,7 @@ table 357 "Gen. Jnl. Dim. Filter"
         field(4; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
+            ToolTip = 'Specifies the code for the dimension.';
             TableRelation = Dimension;
         }
         /// <summary>
@@ -62,6 +63,7 @@ table 357 "Gen. Jnl. Dim. Filter"
         field(5; "Dimension Value Filter"; Text[250])
         {
             Caption = 'Dimension Value Filter';
+            ToolTip = 'Specifies the filter for the dimension values.';
         }
     }
 

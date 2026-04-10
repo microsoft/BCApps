@@ -21,6 +21,7 @@ table 322 "Tax Detail"
         field(1; "Tax Jurisdiction Code"; Code[10])
         {
             Caption = 'Tax Jurisdiction Code';
+            ToolTip = 'Specifies the tax jurisdiction code for the tax-detail entry.';
             NotBlank = true;
             TableRelation = "Tax Jurisdiction";
         }
@@ -30,6 +31,7 @@ table 322 "Tax Detail"
         field(2; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
+            ToolTip = 'Specifies the tax group code for the tax-detail entry.';
             TableRelation = "Tax Group";
         }
         /// <summary>
@@ -38,6 +40,7 @@ table 322 "Tax Detail"
         field(3; "Tax Type"; Option)
         {
             Caption = 'Tax Type';
+            ToolTip = 'Specifies the type of tax (Sales Tax or Excise Tax) that applies to the tax-detail entry.';
             NotBlank = false;
             OptionCaption = 'Sales and Use Tax,Excise Tax,Sales Tax Only,Use Tax Only';
             OptionMembers = "Sales and Use Tax","Excise Tax","Sales Tax Only","Use Tax Only";
@@ -48,6 +51,7 @@ table 322 "Tax Detail"
         field(4; "Maximum Amount/Qty."; Decimal)
         {
             Caption = 'Maximum Amount/Qty.';
+            ToolTip = 'Specifies a maximum amount or quantity. The program finds the appropriate tax percentage in either the Tax Below Maximum or the Tax Above Maximum field.';
             DecimalPlaces = 2 : 2;
             MinValue = 0;
             AutoFormatType = 1;
@@ -59,6 +63,7 @@ table 322 "Tax Detail"
         field(5; "Tax Below Maximum"; Decimal)
         {
             Caption = 'Tax Below Maximum';
+            ToolTip = 'Specifies the percentage that will be used to calculate tax for all amounts or quantities below the maximum amount quantity in the Maximum Amount/Qty. field.';
             DecimalPlaces = 1 : 4;
             MinValue = 0;
             AutoFormatType = 0;
@@ -69,6 +74,7 @@ table 322 "Tax Detail"
         field(6; "Tax Above Maximum"; Decimal)
         {
             Caption = 'Tax Above Maximum';
+            ToolTip = 'Specifies the percentage that will be used to calculate tax for all amounts or quantities above the maximum amount quantity in the Maximum Amount/Qty. field.';
             DecimalPlaces = 1 : 4;
             MinValue = 0;
             AutoFormatType = 0;
@@ -79,6 +85,7 @@ table 322 "Tax Detail"
         field(7; "Effective Date"; Date)
         {
             Caption = 'Effective Date';
+            ToolTip = 'Specifies a date on which the tax-detail entry will go into effect. This allows you to set up tax details in advance.';
         }
         /// <summary>
         /// Indicates whether tax is calculated on previously calculated taxes (compound taxation).

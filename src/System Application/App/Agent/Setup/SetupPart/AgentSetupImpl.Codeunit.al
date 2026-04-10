@@ -138,12 +138,12 @@ codeunit 4325 "Agent Setup Impl."
     local procedure UpdateFields(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80])
     var
         Agent: Record Agent;
-        UserSettings: Record "User Settings";
+        TempUserSettings: Record "User Settings";
         Language: Codeunit Language;
         AgentMetadata: Interface IAgentMetadata;
     begin
-        AgentSetupBuffer.GetUserSettings(UserSettings);
-        AgentSetupBuffer."Language Used" := CopyStr(Language.GetWindowsLanguageName(UserSettings."Language ID"), 1, MaxStrLen(AgentSetupBuffer."Language Used"));
+        AgentSetupBuffer.GetUserSettings(TempUserSettings);
+        AgentSetupBuffer."Language Used" := CopyStr(Language.GetWindowsLanguageName(TempUserSettings."Language ID"), 1, MaxStrLen(AgentSetupBuffer."Language Used"));
 
         if not IsNullGuid(UserSecurityID) then
             if Agent.Get(UserSecurityID) then begin
@@ -166,19 +166,19 @@ codeunit 4325 "Agent Setup Impl."
     [Scope('OnPrem')]
     procedure OpenLanguageAndRegionPage(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     var
-        UserSettings: Record "User Settings";
+        TempUserSettings: Record "User Settings";
         Language: Codeunit Language;
         AgentUserSettings: Page "Agent User Settings";
     begin
-        AgentSetupBuffer.GetUserSettings(UserSettings);
-        AgentUserSettings.InitializeTemp(UserSettings);
+        AgentSetupBuffer.GetUserSettings(TempUserSettings);
+        AgentUserSettings.InitializeTemp(TempUserSettings);
         if AgentUserSettings.RunModal() in [Action::LookupOK, Action::OK] then begin
-            AgentUserSettings.GetRecord(UserSettings);
+            AgentUserSettings.GetRecord(TempUserSettings);
             AgentSetupBuffer."User Settings Updated" := true;
 #pragma warning disable AA0139
-            AgentSetupBuffer."Language Used" := Language.GetWindowsLanguageName(UserSettings."Language ID");
+            AgentSetupBuffer."Language Used" := Language.GetWindowsLanguageName(TempUserSettings."Language ID");
 #pragma warning restore AA0139
-            AgentSetupBuffer.SetUserSettings(UserSettings);
+            AgentSetupBuffer.SetUserSettings(TempUserSettings);
             AgentSetupBuffer.Modify();
             exit(true);
         end;
@@ -209,7 +209,7 @@ codeunit 4325 "Agent Setup Impl."
 
     internal procedure AppendAgentSummary(var AgentSetupBuffer: Record "Agent Setup Buffer"; SummaryText: Text): Text
     var
-        UserSettings: Record "User Settings";
+        TempUserSettings: Record "User Settings";
         Language: Codeunit Language;
         NewSummaryText: Text;
     begin
@@ -218,8 +218,8 @@ codeunit 4325 "Agent Setup Impl."
             NewSummaryText := StrSubstNo(AppendTextToEndTxt, NewSummaryText, ReviewForAccuracyAgentUsesAILbl);
 
         if not SummaryText.Contains(LanguageUsedLbl) then begin
-            AgentSetupBuffer.GetUserSettings(UserSettings);
-            NewSummaryText := StrSubstNo(AppendTextToEndTxt, NewSummaryText, StrSubstNo(LanguageUsedLbl, Language.GetWindowsLanguageName(UserSettings."Language ID")));
+            AgentSetupBuffer.GetUserSettings(TempUserSettings);
+            NewSummaryText := StrSubstNo(AppendTextToEndTxt, NewSummaryText, StrSubstNo(LanguageUsedLbl, Language.GetWindowsLanguageName(TempUserSettings."Language ID")));
         end;
 
         exit(NewSummaryText);
@@ -240,15 +240,15 @@ codeunit 4325 "Agent Setup Impl."
     local procedure CreateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"): Guid
     var
         AgentRecord: Record Agent;
-        NewUserSettings: Record "User Settings";
+        TempNewUserSettings: Record "User Settings";
         TemporaryAgentAccessControl: Record "Agent Access Control" temporary;
         Agent: Codeunit Agent;
     begin
         AgentSetupBuffer.GetTempAgentAccessControl(TemporaryAgentAccessControl);
         AgentSetupBuffer."User Security ID" := Agent.Create(AgentSetupBuffer."Agent Metadata Provider", AgentSetupBuffer."User Name", AgentSetupBuffer."Display Name", TemporaryAgentAccessControl);
         AgentRecord.Get(AgentSetupBuffer."User Security ID");
-        AgentSetupBuffer.GetUserSettings(NewUserSettings);
-        Agent.UpdateLocalizationSettings(AgentRecord."User Security ID", NewUserSettings);
+        AgentSetupBuffer.GetUserSettings(TempNewUserSettings);
+        Agent.UpdateLocalizationSettings(AgentRecord."User Security ID", TempNewUserSettings);
         UpdateAgentState(AgentSetupBuffer);
 
         exit(AgentRecord."User Security ID");
@@ -257,7 +257,7 @@ codeunit 4325 "Agent Setup Impl."
     local procedure UpdateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer")
     var
         AgentRecord: Record Agent;
-        NewUserSettings: Record "User Settings";
+        TempNewUserSettings: Record "User Settings";
         TemporaryAgentAccessControl: Record "Agent Access Control" temporary;
         Agent: Codeunit Agent;
     begin
@@ -267,8 +267,8 @@ codeunit 4325 "Agent Setup Impl."
             Agent.SetDisplayName(AgentSetupBuffer."User Security ID", AgentSetupBuffer."Display Name");
 
         if AgentSetupBuffer."User Settings Updated" then begin
-            AgentSetupBuffer.GetUserSettings(NewUserSettings);
-            Agent.UpdateLocalizationSettings(AgentSetupBuffer."User Security ID", NewUserSettings);
+            AgentSetupBuffer.GetUserSettings(TempNewUserSettings);
+            Agent.UpdateLocalizationSettings(AgentSetupBuffer."User Security ID", TempNewUserSettings);
         end;
 
         if AgentSetupBuffer."Access Updated" then begin

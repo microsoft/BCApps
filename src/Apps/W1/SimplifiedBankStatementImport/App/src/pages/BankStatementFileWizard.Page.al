@@ -263,7 +263,7 @@ page 8850 "Bank Statement File Wizard"
 
                     trigger OnValidate()
                     var
-                        Matches: Record Matches;
+                        TempMatches: Record Matches;
                         Regex: Codeunit Regex;
                         FileLine: Text;
                     begin
@@ -273,11 +273,11 @@ page 8850 "Bank Statement File Wizard"
                             FileLine := FileLinesList.Get(HeaderLines + 1);
                             case ColumnSeperator of
                                 ColumnSeperator::Comma:
-                                    Regex.Match(FileLine, CommaSeperatorRegexLbl, Matches);
+                                    Regex.Match(FileLine, CommaSeperatorRegexLbl, TempMatches);
                                 ColumnSeperator::Semicolon:
-                                    Regex.Match(FileLine, SemicolonSeperatorRegexLbl, Matches);
+                                    Regex.Match(FileLine, SemicolonSeperatorRegexLbl, TempMatches);
                             end;
-                            ColumnCount := Matches.Count();
+                            ColumnCount := TempMatches.Count();
                         end;
                         CurrPage.Update(false);
                     end;
@@ -524,7 +524,7 @@ page 8850 "Bank Statement File Wizard"
 
                     trigger OnDrillDown()
                     var
-                        BankStatementImportPreview: Record "Bank Statement Import Preview";
+                        TempBankStatementImportPreview: Record "Bank Statement Import Preview";
                         BankStatementFileWizard: Codeunit "Bank Statement File Wizard";
                         FileUploaded2: Boolean;
                     begin
@@ -541,8 +541,8 @@ page 8850 "Bank Statement File Wizard"
                         end;
 
                         if FileUploaded or FileUploaded2 then begin
-                            GeneratePreviewData(BankStatementImportPreview);
-                            Page.RunModal(Page::"Bank Statement Import Preview", BankStatementImportPreview);
+                            GeneratePreviewData(TempBankStatementImportPreview);
+                            Page.RunModal(Page::"Bank Statement Import Preview", TempBankStatementImportPreview);
                         end;
                     end;
                 }
@@ -1001,9 +1001,9 @@ page 8850 "Bank Statement File Wizard"
 
     local procedure ReadBankFile()
     var
-        Matches: Record Matches;
-        CommaMatches: Record Matches;
-        SemicolonMatches: Record Matches;
+        TempMatches: Record Matches;
+        TempCommaMatches: Record Matches;
+        TempSemicolonMatches: Record Matches;
         TypeHelper: Codeunit "Type Helper";
         Regex: Codeunit Regex;
         FileInStream: InStream;
@@ -1032,13 +1032,13 @@ page 8850 "Bank Statement File Wizard"
         end;
 
         FileLine := FileLinesList.Get(Round(FileLinesList.Count() / 2, 1, '>'));
-        Regex.Match(FileLine, CommaSeperatorRegexLbl, CommaMatches);
-        Regex.Match(FileLine, SemicolonSeperatorRegexLbl, SemicolonMatches);
+        Regex.Match(FileLine, CommaSeperatorRegexLbl, TempCommaMatches);
+        Regex.Match(FileLine, SemicolonSeperatorRegexLbl, TempSemicolonMatches);
 
-        if CommaMatches.Count() > 2 then
+        if TempCommaMatches.Count() > 2 then
             Seperator := CommaSeperatorRegexLbl;
 
-        if SemicolonMatches.Count() > 2 then
+        if TempSemicolonMatches.Count() > 2 then
             Seperator := SemicolonSeperatorRegexLbl;
 
         if Seperator = '' then begin
@@ -1048,8 +1048,8 @@ page 8850 "Bank Statement File Wizard"
 
         for LineCount := 1 to FileLinesList.Count() do begin
             FileLine := FileLinesList.Get(LineCount);
-            Regex.Match(FileLine, Seperator, Matches);
-            if (Matches.Count() > 2) and not HeaderLinesFound then begin
+            Regex.Match(FileLine, Seperator, TempMatches);
+            if (TempMatches.Count() > 2) and not HeaderLinesFound then begin
                 HeaderLines := LineCount;
                 HeaderLinesFound := true;
             end;
@@ -1099,10 +1099,10 @@ page 8850 "Bank Statement File Wizard"
 
     local procedure RetrieveInformationFromBankFile()
     var
-        CommaMatches: Record Matches;
-        SemicolonMatches: Record Matches;
-        CurrentCommaMatches: Record Matches;
-        CurrentSemicolonMatches: Record Matches;
+        TempCommaMatches: Record Matches;
+        TempSemicolonMatches: Record Matches;
+        TempCurrentCommaMatches: Record Matches;
+        TempCurrentSemicolonMatches: Record Matches;
         Regex: Codeunit Regex;
         FileLine: Text;
         i: Integer;
@@ -1111,26 +1111,26 @@ page 8850 "Bank Statement File Wizard"
     begin
         NewFileToRetrieve := false;
         FileLine := FileLinesList.Get(HeaderLines + 1);
-        Regex.Match(FileLine, CommaSeperatorRegexLbl, CommaMatches);
-        Regex.Match(FileLine, SemicolonSeperatorRegexLbl, SemicolonMatches);
+        Regex.Match(FileLine, CommaSeperatorRegexLbl, TempCommaMatches);
+        Regex.Match(FileLine, SemicolonSeperatorRegexLbl, TempSemicolonMatches);
 
-        if CommaMatches.Count() > 2 then
+        if TempCommaMatches.Count() > 2 then
             IsComma := true;
 
-        if SemicolonMatches.Count() > 2 then
+        if TempSemicolonMatches.Count() > 2 then
             IsSemicolon := true;
 
         for i := HeaderLines + 2 to FileLinesList.Count() do begin
             FileLine := FileLinesList.Get(i);
             if IsComma then begin
-                Regex.Match(FileLine, CommaSeperatorRegexLbl, CurrentCommaMatches);
-                if CurrentCommaMatches.Count() <> CommaMatches.Count() then
+                Regex.Match(FileLine, CommaSeperatorRegexLbl, TempCurrentCommaMatches);
+                if TempCurrentCommaMatches.Count() <> TempCommaMatches.Count() then
                     IsComma := false;
             end;
 
             if IsSemicolon then begin
-                Regex.Match(FileLine, SemicolonSeperatorRegexLbl, CurrentSemicolonMatches);
-                if CurrentSemicolonMatches.Count() <> SemicolonMatches.Count() then
+                Regex.Match(FileLine, SemicolonSeperatorRegexLbl, TempCurrentSemicolonMatches);
+                if TempCurrentSemicolonMatches.Count() <> TempSemicolonMatches.Count() then
                     IsSemicolon := false;
             end;
 
@@ -1140,14 +1140,14 @@ page 8850 "Bank Statement File Wizard"
 
         if IsSemicolon then begin
             ColumnSeperator := ColumnSeperator::Semicolon;
-            ColumnCount := SemicolonMatches.Count();
+            ColumnCount := TempSemicolonMatches.Count();
             FillPreviewColumns();
             exit;
         end;
 
         if IsComma then begin
             ColumnSeperator := ColumnSeperator::Comma;
-            ColumnCount := CommaMatches.Count();
+            ColumnCount := TempCommaMatches.Count();
             FillPreviewColumns();
             exit;
         end;
@@ -1176,7 +1176,7 @@ page 8850 "Bank Statement File Wizard"
 
     local procedure GetFormatsFromBankFile()
     var
-        Matches: Record Matches;
+        TempMatches: Record Matches;
         Regex: Codeunit Regex;
         FileLine: Text;
         CurrValue: Text;
@@ -1190,19 +1190,19 @@ page 8850 "Bank Statement File Wizard"
         case ColumnSeperator of
             ColumnSeperator::Comma:
                 begin
-                    Regex.Match(FileLine, CommaSeperatorRegexLbl, Matches);
+                    Regex.Match(FileLine, CommaSeperatorRegexLbl, TempMatches);
                     SeperatorChar := ',';
                 end;
             ColumnSeperator::Semicolon:
                 begin
-                    Regex.Match(FileLine, SemicolonSeperatorRegexLbl, Matches);
+                    Regex.Match(FileLine, SemicolonSeperatorRegexLbl, TempMatches);
                     SeperatorChar := ';';
                 end;
         end;
 
         if TransactionAmountColumnNo <> 0 then begin
-            Matches.Get(TransactionAmountColumnNo - 1);
-            CurrValue := Matches.ReadValue().TrimStart(SeperatorChar).TrimStart('-');
+            TempMatches.Get(TransactionAmountColumnNo - 1);
+            CurrValue := TempMatches.ReadValue().TrimStart(SeperatorChar).TrimStart('-');
             if Regex.IsMatch(CurrValue, AmountWithDotRegexLbl) and CurrValue.Contains('.') then
                 DecimalSeperator := DecimalSeperator::Dot
             else
@@ -1211,8 +1211,8 @@ page 8850 "Bank Statement File Wizard"
         end;
 
         if TransactionDateColumnNo <> 0 then begin
-            Matches.Get(TransactionDateColumnNo - 1);
-            CurrValue := Matches.ReadValue().TrimStart(SeperatorChar);
+            TempMatches.Get(TransactionDateColumnNo - 1);
+            CurrValue := TempMatches.ReadValue().TrimStart(SeperatorChar);
             if Regex.IsMatch(CurrValue, ddMMyyyyDashRegexLbl) then
                 DateFormat := 'dd-MM-yyyy';
             if Regex.IsMatch(CurrValue, ddMMyyyyDotRegexLbl) then
@@ -1244,7 +1244,7 @@ page 8850 "Bank Statement File Wizard"
 
     local procedure GetColumnsFromBankFile()
     var
-        Matches: Record Matches;
+        TempMatches: Record Matches;
         Regex: Codeunit Regex;
         DateColumnNoFound: Boolean;
         AmountColumnNoFound: Boolean;
@@ -1275,19 +1275,19 @@ page 8850 "Bank Statement File Wizard"
 
         if HeaderLines <> 0 then begin
             FileLine := FileLinesList.Get(HeaderLines);
-            Regex.Match(FileLine, SeperatorRegex, Matches);
+            Regex.Match(FileLine, SeperatorRegex, TempMatches);
 
-            for i := 0 to Matches.Count() - 1 do begin
-                Matches.Get(i);
-                if Matches.ReadValue().ToLower().Contains(Format(DateLbl).ToLower()) then begin
+            for i := 0 to TempMatches.Count() - 1 do begin
+                TempMatches.Get(i);
+                if TempMatches.ReadValue().ToLower().Contains(Format(DateLbl).ToLower()) then begin
                     TransactionDateColumnNo := i + 1;
                     DateColumnNoFound := true;
                 end;
-                if Matches.ReadValue().ToLower().Contains(Format(AmountLbl).ToLower()) then begin
+                if TempMatches.ReadValue().ToLower().Contains(Format(AmountLbl).ToLower()) then begin
                     TransactionAmountColumnNo := i + 1;
                     AmountColumnNoFound := true;
                 end;
-                if Matches.ReadValue().ToLower().Contains(Format(DescriptionLbl).ToLower()) or Matches.ReadValue().ToLower().Contains(Format(DetailLbl).ToLower()) then begin
+                if TempMatches.ReadValue().ToLower().Contains(Format(DescriptionLbl).ToLower()) or TempMatches.ReadValue().ToLower().Contains(Format(DetailLbl).ToLower()) then begin
                     DescriptionColumnNo := i + 1;
                     DescriptionColumnNoFound := true;
                 end;
@@ -1300,10 +1300,10 @@ page 8850 "Bank Statement File Wizard"
         if not DateColumnNoFound or not AmountColumnNoFound then
             for i := HeaderLines + 1 to FileLinesList.Count() do begin
                 FileLine := FileLinesList.Get(i);
-                Regex.Match(FileLine, SeperatorRegex, Matches);
-                for j := 0 to Matches.Count() - 1 do begin
-                    Matches.Get(j);
-                    CurrValue := Matches.ReadValue().TrimStart(SeperatorChar);
+                Regex.Match(FileLine, SeperatorRegex, TempMatches);
+                for j := 0 to TempMatches.Count() - 1 do begin
+                    TempMatches.Get(j);
+                    CurrValue := TempMatches.ReadValue().TrimStart(SeperatorChar);
 
                     if not DateColumnNoFound then
                         if Regex.IsMatch(CurrValue, DateRegexLbl) or Regex.IsMatch(CurrValue, DateWithMonthNameRegexLbl) then begin
@@ -1335,7 +1335,7 @@ page 8850 "Bank Statement File Wizard"
 
     local procedure FillColumnPreviews()
     var
-        Matches: Record Matches;
+        TempMatches: Record Matches;
         Regex: Codeunit Regex;
         TypeHelper: Codeunit "Type Helper";
         FileLine: Text;
@@ -1352,27 +1352,27 @@ page 8850 "Bank Statement File Wizard"
             case ColumnSeperator of
                 ColumnSeperator::Comma:
                     begin
-                        Regex.Match(FileLine, CommaSeperatorRegexLbl, Matches);
+                        Regex.Match(FileLine, CommaSeperatorRegexLbl, TempMatches);
                         SeperatorChar := ',';
                     end;
                 ColumnSeperator::Semicolon:
                     begin
-                        Regex.Match(FileLine, SemicolonSeperatorRegexLbl, Matches);
+                        Regex.Match(FileLine, SemicolonSeperatorRegexLbl, TempMatches);
                         SeperatorChar := ';';
                     end;
             end;
 
             if TransactionDateColumnNo <> 0 then begin
-                Matches.Get(TransactionDateColumnNo - 1);
-                FilePreviewDateColumnTxt += Matches.ReadValue().TrimStart(SeperatorChar) + CRLF;
+                TempMatches.Get(TransactionDateColumnNo - 1);
+                FilePreviewDateColumnTxt += TempMatches.ReadValue().TrimStart(SeperatorChar) + CRLF;
             end;
             if TransactionAmountColumnNo <> 0 then begin
-                Matches.Get(TransactionAmountColumnNo - 1);
-                FilePreviewAmountColumnTxt += Matches.ReadValue().TrimStart(SeperatorChar) + CRLF;
+                TempMatches.Get(TransactionAmountColumnNo - 1);
+                FilePreviewAmountColumnTxt += TempMatches.ReadValue().TrimStart(SeperatorChar) + CRLF;
             end;
             if DescriptionColumnNo <> 0 then begin
-                Matches.Get(DescriptionColumnNo - 1);
-                FilePreviewDescriptionColumnTxt += Matches.ReadValue().TrimStart(SeperatorChar) + CRLF;
+                TempMatches.Get(DescriptionColumnNo - 1);
+                FilePreviewDescriptionColumnTxt += TempMatches.ReadValue().TrimStart(SeperatorChar) + CRLF;
             end;
 
             if i = HeaderLines + 5 then
@@ -1382,7 +1382,7 @@ page 8850 "Bank Statement File Wizard"
 
     local procedure GeneratePreviewData(var BankStatementImportPreview: Record "Bank Statement Import Preview")
     var
-        Matches: Record Matches;
+        TempMatches: Record Matches;
         Regex: Codeunit Regex;
         FileLine: Text;
         AmountFormat: Text;
@@ -1394,24 +1394,24 @@ page 8850 "Bank Statement File Wizard"
             case ColumnSeperator of
                 ColumnSeperator::Comma:
                     begin
-                        Regex.Match(FileLine, CommaSeperatorRegexLbl, Matches);
+                        Regex.Match(FileLine, CommaSeperatorRegexLbl, TempMatches);
                         SeperatorChar := ',';
                     end;
                 ColumnSeperator::Semicolon:
                     begin
-                        Regex.Match(FileLine, SemicolonSeperatorRegexLbl, Matches);
+                        Regex.Match(FileLine, SemicolonSeperatorRegexLbl, TempMatches);
                         SeperatorChar := ';';
                     end;
             end;
 
             BankStatementImportPreview.Init();
             BankStatementImportPreview."Primary Key" := i;
-            Matches.Get(TransactionAmountColumnNo - 1);
-            BankStatementImportPreview.Amount := CopyStr(Matches.ReadValue().TrimStart(SeperatorChar), 1, 1024);
-            Matches.Get(TransactionDateColumnNo - 1);
-            BankStatementImportPreview."Date" := CopyStr(Matches.ReadValue().TrimStart(SeperatorChar), 1, 1024);
-            Matches.Get(DescriptionColumnNo - 1);
-            BankStatementImportPreview.Description := CopyStr(Matches.ReadValue().TrimStart(SeperatorChar), 1, 1024);
+            TempMatches.Get(TransactionAmountColumnNo - 1);
+            BankStatementImportPreview.Amount := CopyStr(TempMatches.ReadValue().TrimStart(SeperatorChar), 1, 1024);
+            TempMatches.Get(TransactionDateColumnNo - 1);
+            BankStatementImportPreview."Date" := CopyStr(TempMatches.ReadValue().TrimStart(SeperatorChar), 1, 1024);
+            TempMatches.Get(DescriptionColumnNo - 1);
+            BankStatementImportPreview.Description := CopyStr(TempMatches.ReadValue().TrimStart(SeperatorChar), 1, 1024);
             case DecimalSeperator of
                 DecimalSeperator::Dot:
                     AmountFormat := 'en-US';

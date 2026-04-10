@@ -19,11 +19,10 @@ using System.Utilities;
 
 report 1003 "Post Invt. Cost to G/L - Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Costing/PostInvtCosttoGLTest.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Post Invt. Cost to G/L - Test';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -419,6 +418,16 @@ report 1003 "Post Invt. Cost to G/L - Test"
             GLSetup.GetRecordOnce();
             IsJournalTemplNameVisible := GLSetup."Journal Templ. Name Mandatory";
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Costing/PostInvtCosttoGLTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

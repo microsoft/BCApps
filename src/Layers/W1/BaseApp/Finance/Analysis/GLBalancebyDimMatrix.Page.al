@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -43,7 +43,6 @@ page 9233 "G/L Balance by Dim. Matrix"
                     ApplicationArea = Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the code of the record.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -55,7 +54,6 @@ page 9233 "G/L Balance by Dim. Matrix"
                     ApplicationArea = Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the name of the record.';
                 }
                 field(TotalAmount; Rec.Amount)
                 {
@@ -66,7 +64,6 @@ page 9233 "G/L Balance by Dim. Matrix"
                     Caption = 'Total Amount';
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the total value for the amount type that you select in the Show field.';
 
                     trigger OnDrillDown()
                     begin

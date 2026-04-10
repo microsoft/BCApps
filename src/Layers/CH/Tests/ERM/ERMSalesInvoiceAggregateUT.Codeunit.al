@@ -1411,45 +1411,6 @@ codeunit 134396 "ERM Sales Invoice Aggregate UT"
         asserterror SalesInvoiceAggregator.PropagateOnModify(SalesInvoiceEntityAggregate, TempFieldBuffer);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [Scope('OnPrem')]
-    [HandlerFunctions('OpenSalesStatisticsPage')]
-    procedure VerifyTotalTaxAmountSameonStats()
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-        SalesInvoice: TestPage "Sales Invoice";
-        SalesStatistics: TestPage "Sales Statistics";
-        UnitPrice: array[4] of Decimal;
-        Quantity: array[4] of Integer;
-        ExpectedTaxAmount: Decimal;
-        ActualTaxAmount: Decimal;
-    begin
-        // [SCENARIO 524113] Correct VAT in Statistics FactBox when "Price Including VAT" is activated.
-        Initialize();
-
-        // [GIVEN] Create VAT Posting Setup with VAT Percentage 20
-        CreateVATPostingSetup(VATPostingSetup, 20);
-
-        // [GIVEN] Create Static Unit Price to get the 0.01 difference
-        AssignStaticValues524113(UnitPrice, Quantity);
-
-        // [GIVEN] Create Four Sales Invoice Lines
-        CreateInvoiceWithMultipleLineThroughTestPageNoDiscount(SalesInvoice, VATPostingSetup, UnitPrice, Quantity);
-
-        // [GIVEN] Save Total Tax Amount on Page as actual result
-        ActualTaxAmount := SalesInvoice.SalesLines."Total VAT Amount".AsDecimal();
-
-        // [WHEN] Open Sales Statistics page to get the VAT Amount
-        SalesStatistics.Trap();
-        SalesInvoice.Statistics.Invoke();
-        ExpectedTaxAmount := LibraryVariableStorage.DequeueDecimal();
-
-        // [THEN] Verify the Total Tax Amount on Sales Invoice and Sales Statistics page.
-        Assert.AreEqual(ExpectedTaxAmount, ActualTaxAmount, StrSubstNo(TaxAmountErr, ExpectedTaxAmount));
-    end;
-#endif
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('SalesStatisticsPageHandler')]
@@ -1484,46 +1445,6 @@ codeunit 134396 "ERM Sales Invoice Aggregate UT"
         // [THEN] Verify the Total Tax Amount on Sales Invoice and Sales Statistics page.
         Assert.AreEqual(ExpectedTaxAmount, ActualTaxAmount, StrSubstNo(TaxAmountErr, ExpectedTaxAmount));
     end;
-
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [Scope('OnPrem')]
-    [HandlerFunctions('OpenSalesStatisticsPage')]
-    procedure VerifyTotalTaxAmountSameonSalesInvoiceAndStatistics()
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-        SalesInvoice: TestPage "Sales Invoice";
-        SalesStatistics: TestPage "Sales Statistics";
-        UnitPrice: array[3] of Decimal;
-        Quantity: array[3] of Integer;
-        ExpectedTaxAmount: Decimal;
-        ActualTaxAmount: Decimal;
-    begin
-        // [SCENARIO 502847] Correct VAT in Statistics FactBox when "Price Including VAT" is activated.
-        Initialize();
-
-        // [GIVEN] Create VAT Posting Setup with VAT Percentage 7
-        CreateVATPostingSetup(VATPostingSetup, 7);
-
-        // [GIVEN] Create Static Unit Price to get the 0.01 difference
-        AssignStaticValues502847(UnitPrice, Quantity);
-
-        // [GIVEN] Create Four Sales Invoice Lines
-        CreateInvoiceWithMultipleLineThroughTestPageNoDiscount(SalesInvoice, VATPostingSetup, UnitPrice, Quantity);
-
-        // [GIVEN] Save Total Tax Amount on Page as actual result
-        ActualTaxAmount := SalesInvoice.SalesLines."Total VAT Amount".AsDecimal();
-
-        // [WHEN] Open Sales Statistics page to get the VAT Amount
-        SalesStatistics.Trap();
-        SalesInvoice.Statistics.Invoke();
-        ExpectedTaxAmount := LibraryVariableStorage.DequeueDecimal();
-
-        // [THEN] Verify the Total Tax Amount on Sales Invoice and Sales Statistics page.
-        Assert.AreEqual(ExpectedTaxAmount, ActualTaxAmount, StrSubstNo(TaxAmountErr, ExpectedTaxAmount));
-    end;
-#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -1692,6 +1613,44 @@ codeunit 134396 "ERM Sales Invoice Aggregate UT"
         Assert.AreEqual(1,
             SalesStatistics."TotalSalesLine.Quantity".AsDecimal(),
             StrSubstNo(SalesStatisticsQtyErr, 1));
+    end;
+
+    [Test]
+    procedure SalesInvoiceStatisticShowsCorrectQuantityWithSalesLineInvoiceRoundingGL()
+    var
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoice: TestPage "Sales Invoice";
+        SalesStatistics: TestPage "Sales Statistics";
+    begin
+        // [SCENARIO 580156] Sales Invoice Statistic shows wrong quantity when invoice rounding G/L is used in sales invoice line.
+        Initialize();
+
+        // [GIVEN] Create SalesHeader.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, LibrarySales.CreateCustomerNo());
+
+        // [GIVEN] Create Sales Line with Invoice Posting Group G/L Account and Quantity.
+        CustomerPostingGroup.Get(SalesHeader."Customer Posting Group");
+        GLAccount.Get(CustomerPostingGroup."Invoice Rounding Account");
+        GLAccount.Validate("Direct Posting", true);
+        GLAccount.Modify(true);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", CustomerPostingGroup."Invoice Rounding Account", LibraryRandom.RandIntInRange(1, 1));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+
+        // [WHEN] Open Sales Statistics page from Sales Invoice page.
+        SalesInvoice.OpenEdit();
+        SalesInvoice.FILTER.SetFilter("No.", SalesHeader."No.");
+        SalesStatistics.Trap();
+        SalesInvoice.SalesStatistics.Invoke();
+
+        // [THEN] Verify Sales Invoice Statistics show Quantity as sales line.
+        Assert.AreEqual(SalesLine.Quantity,
+            SalesStatistics."TotalSalesLine.Quantity".AsDecimal(),
+            StrSubstNo(SalesStatisticsQtyErr, SalesLine.Quantity));
     end;
 
     local procedure CreateCustomerWithDiscount(var Customer: Record Customer; DiscPct: Decimal; minAmount: Decimal)
@@ -2670,15 +2629,6 @@ codeunit 134396 "ERM Sales Invoice Aggregate UT"
         LibraryVariableStorage.Enqueue(Notification.Message);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure OpenSalesStatisticsPage(var SalesStatistics: TestPage "Sales Statistics")
-    begin
-        LibraryVariableStorage.Enqueue(SalesStatistics.VATAmount.AsDecimal());
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesStatisticsPageHandler(var SalesStatistics: TestPage "Sales Statistics")

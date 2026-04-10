@@ -12,13 +12,12 @@ using System.Utilities;
 
 report 5872 "BOM Cost Share Distribution"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/BOMCostShareDistribution.rdlc';
     AdditionalSearchTerms = 'cost breakdown,rolled-up cost';
     ApplicationArea = Assembly;
     Caption = 'BOM Cost Share Distribution';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -177,6 +176,16 @@ report 5872 "BOM Cost Share Distribution"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/BOMCostShareDistribution.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

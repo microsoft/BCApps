@@ -237,9 +237,11 @@ report 5912 "Service - Credit Memo"
                     column(PricesInclVAT_ServiceCrMemoHeaderCaption; "Service Cr.Memo Header".FieldCaption("Prices Including VAT"))
                     {
                     }
+#if not CLEAN29
                     column(EnterpriseRegister; CompanyInfo.GetEnterpriseClassification())
                     {
                     }
+#endif
                     dataitem(DimensionLoop1; "Integer")
                     {
                         DataItemLinkReference = "Service Cr.Memo Header";

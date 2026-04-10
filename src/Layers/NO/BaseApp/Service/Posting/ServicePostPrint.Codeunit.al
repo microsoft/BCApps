@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Posting;
 
+#if not CLEAN29
 using Microsoft.EServices.EDocument;
+#endif
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 
@@ -66,8 +68,10 @@ codeunit 5982 "Service-Post+Print"
 
     procedure GetReport(var ServiceHeader: Record "Service Header")
     var
+#if not CLEAN29
         EInvoiceExportServiceInvoice: Codeunit "E-Invoice Export Serv. Invoice";
         EInvoiceExportServiceCrMemo: Codeunit "E-Invoice Exp. Serv. Cr. Memo";
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -89,10 +93,12 @@ codeunit 5982 "Service-Post+Print"
                     if Invoice then begin
                         ServInvHeader."No." := ServiceHeader."Last Posting No.";
                         ServInvHeader.SetRecFilter();
+#if not CLEAN29
                         ServInvHeader.PrintRecords(false);
                         if ServiceHeader."E-Invoice" then
                             if ServInvHeader.Find('=') then
                                 EInvoiceExportServiceInvoice.Run(ServInvHeader);
+#endif
                         IsHandled := false;
                         OnBeforeServiceInvoiceHeaderPrintRecords(ServInvHeader, IsHandled);
                         if not IsHandled then
@@ -106,10 +112,12 @@ codeunit 5982 "Service-Post+Print"
                     else
                         ServInvHeader."No." := ServiceHeader."Last Posting No.";
                     ServInvHeader.SetRecFilter();
+#if not CLEAN29
                     ServInvHeader.PrintRecords(false);
                     if ServiceHeader."E-Invoice" then
                         if ServInvHeader.Find('=') then
                             EInvoiceExportServiceInvoice.Run(ServInvHeader);
+#endif
                     IsHandled := false;
                     OnBeforeServiceInvoiceHeaderPrintRecords(ServInvHeader, IsHandled);
                     if not IsHandled then
@@ -122,10 +130,12 @@ codeunit 5982 "Service-Post+Print"
                     else
                         ServCrMemoHeader."No." := ServiceHeader."Last Posting No.";
                     ServCrMemoHeader.SetRecFilter();
+#if not CLEAN29
                     ServCrMemoHeader.PrintRecords(false);
                     if ServiceHeader."E-Invoice" then
                         if ServCrMemoHeader.Find('=') then
                             EInvoiceExportServiceCrMemo.Run(ServCrMemoHeader);
+#endif
                     IsHandled := false;
                     OnBeforeServiceCrMemoHeaderPrintRecords(ServCrMemoHeader, IsHandled);
                     if not IsHandled then

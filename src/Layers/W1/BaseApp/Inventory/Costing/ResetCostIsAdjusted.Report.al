@@ -65,13 +65,7 @@ report 5803 "Reset Cost Is Adjusted"
                     if ItemLedgerEntry.FindSet() then
                         repeat
                             ItemLedgerEntry.SetAppliedEntryToAdjust(true);
-                            if ItemApplicationEntry.AppliedOutbndEntryExists(ItemLedgerEntry."Entry No.", false, false) then
-                                repeat
-                                    if ItemApplicationEntry."Outbound Entry is Updated" then begin
-                                        ItemApplicationEntry."Outbound Entry is Updated" := false;
-                                        ItemApplicationEntry.Modify();
-                                    end;
-                                until ItemApplicationEntry.Next() = 0;
+                            ItemApplicationEntry.SetOutboundsNotUpdated(ItemLedgerEntry);
                         until ItemLedgerEntry.Next() = 0;
                 end;
             end;

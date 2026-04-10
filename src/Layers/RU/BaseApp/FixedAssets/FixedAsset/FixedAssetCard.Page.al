@@ -798,7 +798,7 @@ page 5600 "Fixed Asset Card"
         }
     }
 
-
     protected var
         FixedAsset: Record "Fixed Asset";
+
 }

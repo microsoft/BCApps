@@ -14,12 +14,11 @@ using Microsoft.Finance.VAT.Ledger;
 /// </summary>
 report 13 "VAT Register"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/VAT/Reporting/VATRegister.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'VAT Register';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -186,6 +185,16 @@ report 13 "VAT Register"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/VAT/Reporting/VATRegister.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

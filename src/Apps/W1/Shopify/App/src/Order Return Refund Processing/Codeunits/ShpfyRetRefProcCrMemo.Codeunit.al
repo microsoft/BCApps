@@ -62,8 +62,10 @@ codeunit 30243 "Shpfy RetRefProc Cr.Memo" implements "Shpfy IReturnRefund Proces
 
     procedure CreateSalesDocument(SourceDocumentType: Enum "Shpfy Source Document Type"; SourceDocumentId: BigInteger) SalesHeader: Record "Sales Header"
     var
+        RefundHeader: Record "Shpfy Refund Header";
         RefundLine: Record "Shpfy Refund Line";
-        CreateSalesDocRefund: codeunit "Shpfy Create Sales Doc. Refund";
+        Shop: Record "Shpfy Shop";
+        CreateSalesDocRefund: Codeunit "Shpfy Create Sales Doc. Refund";
         IDocumentSource: Interface "Shpfy IDocument Source";
         ErrorInfo: ErrorInfo;
         TextBuilder: TextBuilder;
@@ -82,8 +84,11 @@ codeunit 30243 "Shpfy RetRefProc Cr.Memo" implements "Shpfy IReturnRefund Proces
         if not RefundLine.IsEmpty() then
             exit;
 
+        RefundHeader.Get(SourceDocumentId);
+        Shop.Get(RefundHeader."Shop Code");
+        
         CreateSalesDocRefund.SetSource(SourceDocumentId);
-        CreateSalesDocRefund.SetTargetDocumentType(SalesHeader."Document Type"::"Credit Memo");
+        CreateSalesDocRefund.SetTargetDocumentType(Shop."Process Returns As");
         Commit();
         if CreateSalesDocRefund.Run() then begin
             SalesHeader := CreateSalesDocRefund.GetSalesHeader();

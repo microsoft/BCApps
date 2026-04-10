@@ -15,7 +15,7 @@ permissionset 6219 "D365 Agent"
 {
     Caption = 'Dynamics 365 Agent';
     Assignable = false;
-    Permissions = tabledata Agent = Rimd,
+    Permissions = tabledata Agent = RIMd,
                   tabledata "Agent Task" = RIMd,
                   tabledata "Agent Task File" = RIMd,
                   tabledata "Agent Task Log Entry" = RIMd,
@@ -26,5 +26,6 @@ permissionset 6219 "D365 Agent"
                   tabledata "Agent Task Timeline" = Rimd,
                   tabledata "Agent Task Timeline Step" = Rimd,
                   tabledata "Agent Task Timeline Step Det." = Rimd,
+                  system "Create Extension Agent" = X,
                   system "Manage Agent Tasks" = X;
 }

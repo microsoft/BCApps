@@ -342,6 +342,73 @@ codeunit 132522 "Sales-Calc. Discount Test"
         Assert.AreEqual(InvoiceDiscPer, SalesHeader."Invoice Discount Value", InvDscPctErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure InvDiscRecalcOnSellToCustChangeExistingRecord()
+    var
+        Customer: array[2] of Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO] Changing "Sell-to Customer No." on an existing Sales Header applies default invoice discount without error.
+        Initialize();
+
+        // [GIVEN] Enable invoice discount calculation on "Sales & Receivables Setup".
+        LibrarySales.SetCalcInvDiscount(true);
+
+        // [GIVEN] Create two customers with invoice discount setup.
+        LibrarySales.CreateCustomer(Customer[1]);
+        CreateCustomerInvDiscount(Customer[1]."No.");
+        LibrarySales.CreateCustomer(Customer[2]);
+        CreateCustomerInvDiscount(Customer[2]."No.");
+
+        // [GIVEN] Create Sales Order for Customer[1] with a sales line.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer[1]."No.");
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+
+        // [GIVEN] Calculate discount so "Recalculate Invoice Disc." is set.
+        LibrarySales.CalcSalesDiscount(SalesHeader);
+
+        // [WHEN] Change "Sell-to Customer No." to Customer[2].
+        SalesHeader.Validate("Sell-to Customer No.", Customer[2]."No.");
+
+        // [THEN] No error occurs and the sales header is updated.
+        SalesHeader.Find();
+        Assert.AreEqual(Customer[2]."No.", SalesHeader."Sell-to Customer No.", 'Sell-to Customer No. should be updated.');
+    end;
+
+    [Test]
+    procedure InvDiscOnSellToCustValidateNewRecord()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO] Validating "Sell-to Customer No." on a Sales Header that hasn't been inserted yet does not cause a runtime error.
+        Initialize();
+
+        // [GIVEN] Enable invoice discount calculation on "Sales & Receivables Setup".
+        LibrarySales.SetCalcInvDiscount(true);
+
+        // [GIVEN] Create a customer with invoice discount setup.
+        LibrarySales.CreateCustomer(Customer);
+        CreateCustomerInvDiscount(Customer."No.");
+
+        // [GIVEN] Initialize a new Sales Header without inserting it into the database.
+        SalesHeader.Init();
+        SalesHeader."Document Type" := SalesHeader."Document Type"::Order;
+
+        // [WHEN] Validate "Sell-to Customer No." on the non-inserted record.
+        SalesHeader.Validate("Sell-to Customer No.", Customer."No.");
+
+        // [THEN] No error occurs and the record can be inserted successfully.
+        SalesHeader.Insert(true);
+        SalesHeader.Find();
+        Assert.AreEqual(Customer."No.", SalesHeader."Sell-to Customer No.", 'Sell-to Customer No. should be set on new record.');
+    end;
+
     local procedure DiscountTest(DiscCurrencyCode: Code[10]; SOCurrencyCode: Code[10]; QuantityDelta: Integer)
     var
         CustInvoiceDisc: Record "Cust. Invoice Disc.";
@@ -562,6 +629,12 @@ codeunit 132522 "Sales-Calc. Discount Test"
         FieldRef.Validate(Val);
         RecRef.SetTable(SalesLine);
         SalesLine.Modify(true);
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerYes(Question: Text; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 }
 

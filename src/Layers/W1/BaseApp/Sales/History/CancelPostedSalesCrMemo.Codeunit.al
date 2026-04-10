@@ -318,7 +318,13 @@ codeunit 1339 "Cancel Posted Sales Cr. Memo"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
         PostingDate: Date;
         PostingNoSeries: Code[20];
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeTestIfAnyFreeNumberSeries(SalesCrMemoHeader, IsHandled);
+        if IsHandled then
+            exit;
+
         PostingDate := WorkDate();
         SalesReceivablesSetup.Get();
 
@@ -592,6 +598,11 @@ codeunit 1339 "Cancel Posted Sales Cr. Memo"
 
     [IntegrationEvent(false, false)]
     local procedure OnTestIfAppliedCorrectlyOnAfterCalcAmounts(var CustLedgerEntry: Record "Cust. Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestIfAnyFreeNumberSeries(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsHandled: Boolean)
     begin
     end;
 }

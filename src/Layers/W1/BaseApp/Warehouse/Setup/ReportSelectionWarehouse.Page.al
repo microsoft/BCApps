@@ -8,6 +8,8 @@ using System.Reflection;
 
 page 7401 "Report Selection - Warehouse"
 {
+    AboutTitle = 'About report selection for warehouse';
+    AboutText = 'On this page, you set up the default reports that are used when printing warehouse documents such as picks, put-aways, and shipments. Use the Usage field to select the type of document, then specify which reports to use in the list below.';
     ApplicationArea = Basic, Suite;
     Caption = 'Report Selection - Warehouse';
     PageType = Worksheet;
@@ -37,17 +39,20 @@ page 7401 "Report Selection - Warehouse"
                 field(Sequence; Rec.Sequence)
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies a number that indicates where this report is in the printing order.';
                 }
                 field("Report ID"; Rec."Report ID")
                 {
                     ApplicationArea = Basic, Suite;
                     LookupPageID = Objects;
+                    ToolTip = 'Specifies the object ID of the report.';
                 }
                 field("Report Caption"; Rec."Report Caption")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
                     LookupPageID = Objects;
+                    ToolTip = 'Specifies the display name of the report.';
                 }
             }
         }

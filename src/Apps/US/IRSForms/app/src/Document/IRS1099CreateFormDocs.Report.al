@@ -12,7 +12,7 @@ report 10035 "IRS 1099 Create Form Docs"
 {
     Caption = 'IRS 1099 Create Form Documents';
     ProcessingOnly = true;
-    ApplicationArea = BasicUS;
+    ApplicationArea = BasicCA, BasicUS;
 
     requestpage
     {
@@ -25,7 +25,7 @@ report 10035 "IRS 1099 Create Form Docs"
                     Caption = 'Options';
                     field(Period; PeriodNo)
                     {
-                        ApplicationArea = BasicUS;
+                        ApplicationArea = BasicCA, BasicUS;
                         Caption = 'Period';
                         ToolTip = 'Specifies the period to create a form document for';
                         TableRelation = "IRS Reporting Period";
@@ -37,14 +37,14 @@ report 10035 "IRS 1099 Create Form Docs"
                     }
                     field(Vendor; VendorNo)
                     {
-                        ApplicationArea = BasicUS;
+                        ApplicationArea = BasicCA, BasicUS;
                         Caption = 'Vendor No.';
                         ToolTip = 'Specifies the vendor to create a form document for. If this field is empty then forms will be created for all vendors.';
                         TableRelation = Vendor;
                     }
                     field(Form; FormNo)
                     {
-                        ApplicationArea = BasicUS;
+                        ApplicationArea = BasicCA, BasicUS;
                         Caption = 'Form No.';
                         ToolTip = 'Specifies the form to create a form document for. If this field is empty then forms will be created for all forms.';
                         TableRelation = "IRS 1099 Form"."No.";
@@ -77,7 +77,7 @@ report 10035 "IRS 1099 Create Form Docs"
                     }
                     field(ReplaceControl; Replace)
                     {
-                        ApplicationArea = BasicUS;
+                        ApplicationArea = BasicCA, BasicUS;
                         Caption = 'Replace';
                         ToolTip = 'Specifies whether the newly created forms will replace the existing ones. If this option is not selected then only new forms will be created and the existing ones remain the same.';
                     }
@@ -113,7 +113,7 @@ report 10035 "IRS 1099 Create Form Docs"
 
     trigger OnPostReport()
     var
-        IRS1099CalcParameters: Record "IRS 1099 Calc. Params";
+        TempIRS1099CalcParameters: Record "IRS 1099 Calc. Params";
         CurrReportingPeriod: Record "IRS Reporting Period";
         IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
         IRSReportingPeriod: Codeunit "IRS Reporting Period";
@@ -124,8 +124,8 @@ report 10035 "IRS 1099 Create Form Docs"
         if PrevPeriodNo <> '' then
             IRSReportingPeriod.UpdateDataForNewTaxYear(PrevPeriodNo, PeriodNo, true);
 
-        BuildCalcParams(IRS1099CalcParameters);
-        IRS1099FormDocument.CreateFormDocs(IRS1099CalcParameters);
+        BuildCalcParams(TempIRS1099CalcParameters);
+        IRS1099FormDocument.CreateFormDocs(TempIRS1099CalcParameters);
         FeatureTelemetry.LogUptake('0000MJN', IRSFormsTok, Enum::"Feature Uptake Status"::Used);
     end;
 

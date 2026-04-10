@@ -244,7 +244,7 @@ codeunit 1034 "Job Planning Line - Calendar"
     local procedure GetOrganizer(): Text
     var
         ProjectManagerUser: Record User;
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         EmailScenario: Codeunit "Email Scenario";
     begin
         ProjectManagerUser.SetRange("User Name", ProjectManagerResource."Time Sheet Owner User ID");
@@ -252,8 +252,8 @@ codeunit 1034 "Job Planning Line - Calendar"
             if ProjectManagerUser."Authentication Email" <> '' then
                 exit(ProjectManagerUser."Authentication Email");
 
-        EmailScenario.GetEmailAccount(Enum::"Email Scenario"::Default, EmailAccount);
-        exit(EmailAccount."Email Address");
+        EmailScenario.GetEmailAccount(Enum::"Email Scenario"::Default, TempEmailAccount);
+        exit(TempEmailAccount."Email Address");
 
     end;
 

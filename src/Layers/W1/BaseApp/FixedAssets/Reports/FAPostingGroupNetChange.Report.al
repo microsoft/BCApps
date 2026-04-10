@@ -13,12 +13,11 @@ using System.Utilities;
 
 report 5611 "FA Posting Group - Net Change"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Reports/FAPostingGroupNetChange.rdlc';
     AdditionalSearchTerms = 'fixed asset posting group net change';
     ApplicationArea = FixedAssets;
     Caption = 'FA Posting Group - Net Change';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -222,6 +221,16 @@ report 5611 "FA Posting Group - Net Change"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Reports/FAPostingGroupNetChange.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

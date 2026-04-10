@@ -303,7 +303,12 @@ page 5833 "Item Statistics 2"
         CreateDateFilters();
 
         if not Rec.Get(Item."No.") then
-            Rec.InitAndInsert(Item."No.");
+            Rec.InitAndInsert(Item."No.", Item.Description)
+        else
+            if Rec.Description <> Item.Description then begin
+                Rec.Description := Item.Description;
+                Rec.Modify();
+            end;
 
         Commit();
 
@@ -321,6 +326,9 @@ page 5833 "Item Statistics 2"
         CurrentDate: Date;
         PlaceHolderLbl: Label 'Placeholder';
         TaskId: Integer;
+        PBTTelemetryMsg: Label 'Page Background Task failed with error code %1', Comment = '%1 = error code', Locked = true;
+        PBTTelemetryCategoryLbl: Label 'Page Background Task', Locked = true;
+        PBTErrorNotificationLbl: Label 'An error occurred while updating the item statistics. You can trigger a new update by closing and reopening the page.';
 
     local procedure CreateDateFilters()
     var
@@ -374,5 +382,17 @@ page 5833 "Item Statistics 2"
         Evaluate(Rec.GrossMarginLifetime, Results.Get('GrossMarginLifetime'));
 
         Rec.Modify();
+    end;
+
+    trigger OnPageBackgroundTaskError(TaskId: Integer; ErrorCode: Text; ErrorText: Text; ErrorCallStack: Text; var IsHandled: Boolean)
+    var
+        ErrorNotification: Notification;
+    begin
+        Session.LogMessage('0000R2I', StrSubstNo(PBTTelemetryMsg, ErrorCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PBTTelemetryCategoryLbl);
+
+        ErrorNotification.Message(PBTErrorNotificationLbl);
+        ErrorNotification.Scope := NotificationScope::LocalScope;
+        ErrorNotification.Send();
+        IsHandled := true;
     end;
 }

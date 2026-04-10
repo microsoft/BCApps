@@ -8,9 +8,8 @@ using Microsoft.Warehouse.Structure;
 
 report 7311 "Bin Creation Wksh. Report"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Warehouse/Reports/BinCreationWkshReport.rdlc';
     Caption = 'Bin Creation Wksh. Report';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -94,6 +93,16 @@ report 7311 "Bin Creation Wksh. Report"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Warehouse/Reports/BinCreationWkshReport.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

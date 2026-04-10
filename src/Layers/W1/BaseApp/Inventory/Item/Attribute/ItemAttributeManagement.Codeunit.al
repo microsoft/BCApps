@@ -289,7 +289,7 @@ codeunit 7500 "Item Attribute Management"
         end;
     end;
 
-    local procedure InsertItemAttributeValueMapping(Item: Record Item; var TempItemAttributeValueToInsert: Record "Item Attribute Value" temporary)
+    procedure InsertItemAttributeValueMapping(Item: Record Item; var TempItemAttributeValueToInsert: Record "Item Attribute Value" temporary)
     var
         ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
     begin

@@ -1826,7 +1826,7 @@ Comment = '|%1 = Transfer Order No.';
         ProdOrderComp: Record "Prod. Order Component";
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
-#pragma warning disable AA0210        
+#pragma warning disable AA0210
         ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
@@ -1842,9 +1842,9 @@ Comment = '|%1 = Transfer Order No.';
         ProdOrderComp: Record "Prod. Order Component";
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
-#pragma warning disable AA0210        
+#pragma warning disable AA0210
         ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
-#pragma warning restore AA0210  
+#pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Location."Bin Mandatory" := true;
@@ -2079,7 +2079,9 @@ Comment = '|%1 = Transfer Order No.';
 
         LibraryInventory.NoSeriesSetup(InventorySetup);
         InventorySetup."Inventory Put-away Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+#pragma warning disable AL0432
         InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
+#pragma warning restore AL0432
         InventorySetup.Modify();
         LibraryInventory.UpdateInventoryPostingSetup(Location);
     end;
@@ -2187,6 +2189,7 @@ Comment = '|%1 = Transfer Order No.';
         WorkCenter2: Record "Work Center";
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPlanning: Codeunit "Library - Planning";
@@ -2199,7 +2202,6 @@ Comment = '|%1 = Transfer Order No.';
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         IsInitialized: Boolean;
         Subcontracting: Boolean;
         UnitCostCalculation: Option Time,Units;

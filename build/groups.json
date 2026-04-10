@@ -95,8 +95,7 @@
         "name": "Base"
       },
       {
-        "name": "Financials",
-        "doNotInstall": true
+        "name": "Financials"
       },
       {
         "name": "OnPrem",
@@ -114,8 +113,7 @@
         "name": "Base"
       },
       {
-        "name": "Financials",
-        "doNotInstall": true
+        "name": "Financials"
       },
       {
         "name": "OnPrem",
@@ -133,8 +131,7 @@
         "name": "Base"
       },
       {
-        "name": "Financials",
-        "doNotInstall": true
+        "name": "Financials"
       },
       {
         "name": "OnPrem",
@@ -169,12 +166,10 @@
         "name": "Base"
       },
       {
-        "name": "AllExtensions",
-        "doNotInstall": true
+        "name": "AllExtensions"
       },
       {
-        "name": "Financials",
-        "doNotInstall": true
+        "name": "Financials"
       },
       {
         "name": "OnPrem"
@@ -197,12 +192,10 @@
         "name": "OnPrem"
       },
       {
-        "name": "AllExtensions",
-        "doNotInstall": true
+        "name": "AllExtensions"
       },
       {
-        "name": "Financials",
-        "doNotInstall": true
+        "name": "Financials"
       },
       {
         "name": "TestLibraries"
@@ -825,16 +818,14 @@
     "name": "Test Runner",
     "groups": [
       {
-        "name": "AllExtensions",
-        "doNotInstall": true
+        "name": "AllExtensions"
       },
       {
         "name": "Base",
         "doNotInstall": true
       },
       {
-        "name": "Financials",
-        "doNotInstall": true
+        "name": "Financials"
       },
       {
         "name": "OnPrem",
@@ -922,16 +913,14 @@
     "name": "AI Test Toolkit",
     "groups": [
       {
-        "name": "AllExtensions",
-        "doNotInstall": true
+        "name": "AllExtensions"
       },
       {
         "name": "Base",
         "doNotInstall": true
       },
       {
-        "name": "Financials",
-        "doNotInstall": true
+        "name": "Financials"
       },
       {
         "name": "OnPrem",
@@ -2780,46 +2769,6 @@
     ]
   },
   {
-    "name": "GetAddress.io UK Postcodes",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "OnPrem"
-      },
-      {
-        "name": "OnPremExtensions"
-      }
-    ]
-  },
-  {
-    "name": "GetAddress.io UK Postcodes Tests",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "OnPrem"
-      },
-      {
-        "name": "OnPremExtensions"
-      }
-    ]
-  },
-  {
     "name": "IdealPostcodes",
     "groups": [
       {
@@ -2904,6 +2853,46 @@
   },
   {
     "name": "Quality Management-Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Subcontracting",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Subcontracting-Tests",
     "groups": [
       {
         "name": "AllExtensions"
@@ -3448,6 +3437,26 @@
   },
   {
     "name": "External File Storage - SFTP Connector",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "External Storage - Document Attachments",
     "groups": [
       {
         "name": "AllExtensions"
@@ -5243,7 +5252,7 @@
         "name": "Internal"
       },
       {
-        "name":"TestLibraries"
+        "name": "TestLibraries"
       }
     ]
   },
@@ -7022,7 +7031,8 @@
       {
         "name": "OnPremExtensions",
         "doNotInstall": true
-      }    ]
+      }
+    ]
   },
   {
     "name": "Service Management",
@@ -7071,7 +7081,8 @@
       {
         "name": "OnPremExtensions",
         "doNotInstall": true
-      }    ]
+      }
+    ]
   },
   {
     "name": "Statistical Accounts",
@@ -8689,7 +8700,7 @@
     ]
   },
   {
-    "name": "Expense Agent",
+    "name": "Expense Agent (Preview)",
     "groups": [
       {
         "name": "AllExtensions"
@@ -8932,24 +8943,7 @@
     ]
   },
   {
-    "name": "AI Development Toolkit",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "Internal"
-      }
-    ]
-  },
-  {
-    "name": "Agent Developer Toolkit",
+    "name": "Agent Developer Internal Toolkit",
     "groups": [
       {
         "name": "AllExtensions",
@@ -8975,9 +8969,41 @@
     ]
   },
   {
+    "name": "Sales Validation Agent Sample",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Internal"
+      }
+    ]
+  },
+  {
     "name": "Agent Test Library",
     "groups": [
       {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "TestLibraries"
+      },
+      {
+        "name": "Internal"
+      }
+    ]
+  },
+  {
+    "name": "Agent Test Internal Library",
+    "groups": [
+        {
         "name": "AllExtensions",
         "doNotInstall": true
       },
@@ -8991,6 +9017,60 @@
       },
       {
         "name": "TestLibraries"
+      },
+      {
+        "name": "Internal"
+      }
+    ]
+  },
+  {
+    "name": "AI Development Toolkit - Design",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "Internal"
+      }
+    ]
+  },
+  {
+    "name": "AI Development Toolkit - Evaluation",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "TestLibraries"
+      },
+      {
+        "name": "Internal"
+      }
+    ]
+  },
+    {
+    "name": "AI Development Toolkit",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
       },
       {
         "name": "Internal"

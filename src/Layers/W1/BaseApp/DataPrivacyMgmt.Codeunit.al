@@ -484,12 +484,22 @@ codeunit 1180 "Data Privacy Mgmt"
     procedure CreateDataForChangeLogEntries(PackageCode: Code[20]; EntityNo: Code[50]; EntityTableID: Integer)
     var
         ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
         ChangeLogEntry: Record "Change Log Entry";
     begin
         if ConfigPackage.Get(PackageCode) then begin
             // Create package table for Change Log table (405) and fire the insert trigger
             // as it will create the ConfigPackageField
             InsertPackageTable(PackageCode, DATABASE::"Change Log Entry", true);
+
+            // Change Log Entry filters must be AND'd together, not OR'd (Cross-Column Filter).
+            // With Cross-Column Filter enabled, the query becomes: "Table No." = X OR "Primary Key Field 1 Value" = Y
+            // which returns almost all records in tables with millions of entries, causing timeouts.
+            // Disabling Cross-Column Filter ensures the query is: "Table No." = X AND "Primary Key Field 1 Value" = Y
+            if ConfigPackageTable.Get(PackageCode, DATABASE::"Change Log Entry") then begin
+                ConfigPackageTable."Cross-Column Filter" := false;
+                ConfigPackageTable.Modify();
+            end;
 
             // Create package filter for Table No = Change Log table (405) AND Primary key Field 1 value = Entity No
             InsertPackageFilter(PackageCode, DATABASE::"Change Log Entry",

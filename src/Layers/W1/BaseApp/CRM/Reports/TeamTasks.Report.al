@@ -8,11 +8,10 @@ using Microsoft.CRM.Task;
 
 report 5059 "Team - Tasks"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/TeamTasks.rdlc';
     ApplicationArea = RelationshipMgmt;
     Caption = 'Team Tasks';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -122,6 +121,16 @@ report 5059 "Team - Tasks"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/TeamTasks.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

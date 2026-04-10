@@ -31,11 +31,10 @@ using System.Utilities;
 /// </summary>
 report 210 "Blanket Sales Order"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/Document/BlanketSalesOrder.rdlc';
     Caption = 'Blanket Sales Order';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Sales Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -278,9 +277,11 @@ report 210 "Blanket Sales Order"
                     column(PricesIncVAT_SalesHeaderCaption; "Sales Header".FieldCaption("Prices Including VAT"))
                     {
                     }
+#if not CLEAN29
                     column(EnterpriseRegister; CompanyInfo.GetEnterpriseClassification())
                     {
                     }
+#endif
                     dataitem(DimensionLoop1; "Integer")
                     {
                         DataItemLinkReference = "Sales Header";
@@ -838,6 +839,16 @@ report 210 "Blanket Sales Order"
             LogInteractionEnable := LogInteraction;
             ArchiveDocument := SalesSetup."Archive Blanket Orders";
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Document/BlanketSalesOrder.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

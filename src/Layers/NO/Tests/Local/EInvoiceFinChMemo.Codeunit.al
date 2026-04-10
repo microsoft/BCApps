@@ -15,8 +15,10 @@ codeunit 144116 "E-Invoice Fin. Ch. Memo"
         EInvoiceXMLXSDValidation: Codeunit "E-Invoice XML XSD Validation";
         NOXMLReadHelper: Codeunit "NO XML Read Helper";
         LibraryRandom: Codeunit "Library - Random";
+#if not CLEAN29
         LibraryERM: Codeunit "Library - ERM";
         EInvoiceExportCommon: Codeunit "E-Invoice Export Common";
+#endif
         isInitialized: Boolean;
         SuccessfullyCreatedMsg: Label 'Successfully created ';
         NoTaxRate: Decimal;
@@ -88,6 +90,8 @@ codeunit 144116 "E-Invoice Fin. Ch. Memo"
         ValidateBillingReferenceChild(XmlFileName);
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
     [Scope('OnPrem')]
@@ -116,6 +120,7 @@ codeunit 144116 "E-Invoice Fin. Ch. Memo"
           EInvoiceExportCommon.WriteCompanyID(CompanyInfo."VAT Registration No."), true); // entRegister = TRUE
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
     [Scope('OnPrem')]
@@ -143,6 +148,7 @@ codeunit 144116 "E-Invoice Fin. Ch. Memo"
         EInvoiceXMLXSDValidation.VerifyEntRegElements(XmlFileName, FinChHdr.Name,
           EInvoiceExportCommon.WriteCompanyID(CompanyInfo."VAT Registration No."), false); // entRegister = FALSE;
     end;
+#endif
 
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
@@ -264,7 +270,9 @@ codeunit 144116 "E-Invoice Fin. Ch. Memo"
         Path: Text[250];
     begin
         Path := EInvoiceHelper.GetTempPath();
+#if not CLEAN29
         EInvoiceHelper.SetupEInvoiceForSales(Path);
+#endif
 
         IssuedFinChargeMemoHeader.SetRange("No.", IssuedFinChargeMemoNo);
         REPORT.Run(REPORT::"Create Elec. Fin. Chrg. Memos", false, true, IssuedFinChargeMemoHeader);

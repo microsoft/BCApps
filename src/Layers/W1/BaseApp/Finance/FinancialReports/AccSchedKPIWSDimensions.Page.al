@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,13 +38,11 @@ page 198 "Acc. Sched. KPI WS Dimensions"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     Visible = false;
                 }
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the date on which the KPI figures are calculated.';
                 }
                 field("Closed Period"; Rec."Closed Period")
                 {
@@ -54,7 +52,6 @@ page 198 "Acc. Sched. KPI WS Dimensions"
                 field("Account Schedule Name"; Rec."Account Schedule Name")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the name of the account schedule that the KPI web service is based on.';
                 }
                 field("KPI Code"; Rec."KPI Code")
                 {
@@ -64,62 +61,50 @@ page 198 "Acc. Sched. KPI WS Dimensions"
                 field("KPI Name"; Rec."KPI Name")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a name of the account-schedule KPI web service.';
                 }
                 field("Net Change Actual"; Rec."Net Change Actual")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies changes in the actual general ledger amount, for closed accounting periods, up until the date in the Date field.';
                 }
                 field("Balance at Date Actual"; Rec."Balance at Date Actual")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the actual general ledger balance, based on closed accounting periods, on the date in the Date field.';
                 }
                 field("Net Change Budget"; Rec."Net Change Budget")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies changes in the budgeted general ledger amount, based on the general ledger budget, up until the date in the Date field.';
                 }
                 field("Balance at Date Budget"; Rec."Balance at Date Budget")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the budgeted general ledger balance, based on the general ledger budget, on the date in the Date field.';
                 }
                 field("Net Change Actual Last Year"; Rec."Net Change Actual Last Year")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies actual changes in the general ledger amount, based on closed accounting periods, up until the date in the Date field in the previous accounting year.';
                 }
                 field("Balance at Date Actual Last Year"; Rec."Balance at Date Act. Last Year")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the actual general ledger balance, based on closed accounting periods, on the date in the Date field in the previous accounting year.';
                 }
                 field("Net Change Budget Last Year"; Rec."Net Change Budget Last Year")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies budgeted changes in the general ledger amount, based on the general ledger budget, up until the date in the Date field in the previous year.';
                 }
                 field("Balance at Date Budget Last Year"; Rec."Balance at Date Bud. Last Year")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the budgeted general ledger balance, based on the general ledger budget, on the date in the Date field in the previous accounting year.';
                 }
                 field("Net Change Forecast"; Rec."Net Change Forecast")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies forecasted changes in the general ledger amount, based on open accounting periods, up until the date in the Date field.';
                 }
                 field("Balance at Date Forecast"; Rec."Balance at Date Forecast")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the forecasted general ledger balance, based on open accounting periods, on the date in the Date field.';
                 }
                 field("Dimension Set ID"; Rec."Dimension Set ID")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
                 }
             }
         }

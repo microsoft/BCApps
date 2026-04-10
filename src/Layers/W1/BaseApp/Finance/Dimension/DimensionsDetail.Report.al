@@ -24,11 +24,10 @@ using System.Utilities;
 /// </remarks>
 report 28 "Dimensions - Detail"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/Dimension/DimensionsDetail.rdlc';
     ApplicationArea = Dimensions;
     Caption = 'Dimensions - Detail';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -550,6 +549,16 @@ report 28 "Dimensions - Detail"
                 UseAmtsInAddCurr := false;
             UpdateColumnDim();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/Dimension/DimensionsDetail.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

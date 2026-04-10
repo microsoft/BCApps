@@ -14,11 +14,10 @@ using Microsoft.Sales.Receivables;
 
 report 103 "Customer Register"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/Reports/CustomerRegister.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Customer Register';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -227,6 +226,16 @@ report 103 "Customer Register"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reports/CustomerRegister.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

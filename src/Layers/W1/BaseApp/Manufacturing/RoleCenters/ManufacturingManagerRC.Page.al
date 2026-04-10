@@ -750,26 +750,6 @@ page 8903 "Manufacturing Manager RC"
                         ObsoleteReason = 'This report will be removed in a future release.';
                         ObsoleteTag = '27.0';
                     }
-#if not CLEAN26
-                    action("Work Center List")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Work Center List';
-                        RunObject = report "Work Center List";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the page Work Center List and will be removed in a future release.';
-                        ObsoleteTag = '26.0';
-                    }
-                    action("Machine Center List")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Machine Center List';
-                        RunObject = report "Machine Center List";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the page Machine Center List and will be removed in a future release.';
-                        ObsoleteTag = '26.0';
-                    }
-#endif
                     action("Work Center Load1")
                     {
                         ApplicationArea = Manufacturing;

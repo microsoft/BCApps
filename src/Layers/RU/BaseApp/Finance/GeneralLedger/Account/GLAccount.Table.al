@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -86,6 +86,7 @@ table 15 "G/L Account"
         field(3; "Search Name"; Code[100])
         {
             Caption = 'Search Name';
+            ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
             OptimizeForTextSearch = true;
         }
         /// <summary>
@@ -218,6 +219,7 @@ table 15 "G/L Account"
         field(10; "Debit/Credit"; Option)
         {
             Caption = 'Debit/Credit';
+            ToolTip = 'Specifies the type of entries that will normally be posted to this general ledger account.';
             OptionCaption = 'Both,Debit,Credit';
             OptionMembers = Both,Debit,Credit;
         }
@@ -227,6 +229,7 @@ table 15 "G/L Account"
         field(11; "No. 2"; Code[20])
         {
             Caption = 'No. 2';
+            ToolTip = 'Specifies an alternative account number which can be used internally in the company.';
         }
         /// <summary>
         /// Indicates whether comment lines exist for this general ledger account.
@@ -245,6 +248,7 @@ table 15 "G/L Account"
         field(13; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         /// <summary>
         /// Enables direct posting of transactions to this account when true, required for posting-type accounts.
@@ -270,6 +274,7 @@ table 15 "G/L Account"
         field(17; "New Page"; Boolean)
         {
             Caption = 'New Page';
+            ToolTip = 'Specifies whether you want a new page to start immediately after this general ledger account when you print the chart of accounts. Select this field to start a new page after this general ledger account.';
         }
         /// <summary>
         /// Number of blank lines to insert before this account in printed financial reports.
@@ -277,6 +282,7 @@ table 15 "G/L Account"
         field(18; "No. of Blank Lines"; Integer)
         {
             Caption = 'No. of Blank Lines';
+            ToolTip = 'Specifies the number of blank lines that you want inserted before this account in the chart of accounts.';
             MinValue = 0;
         }
         /// <summary>
@@ -299,6 +305,7 @@ table 15 "G/L Account"
         field(20; "Source Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the allowed source currency code if Source Currency Posting value is Same Currency.';
             TableRelation = Currency;
             DataClassification = SystemMetadata;
 
@@ -332,6 +339,7 @@ table 15 "G/L Account"
         field(21; "Source Currency Posting"; Enum "G/L Source Currency Posting")
         {
             Caption = 'Source Currency Posting';
+            ToolTip = 'Specifies how the system will validate posting of entries containing currencies. Blank will allow all currencies to be posted to the account. Same Code will only allow the currency specified in Source Currency Code. Multiple currencies will allow only posting of currencies selected in Source currency code. Local currency only allow posting without a Currency code.';
         }
         /// <summary>
         /// Enables currency revaluation calculations for this source currency account.
@@ -339,6 +347,7 @@ table 15 "G/L Account"
         field(22; "Source Currency Revaluation"; Boolean)
         {
             Caption = 'Source Currency Revaluation';
+            ToolTip = 'Specifies if source currency revaluation should be done for this account.';
         }
         /// <summary>
         /// Indicates whether this account supports unrealized currency revaluation adjustments.
@@ -346,6 +355,7 @@ table 15 "G/L Account"
         field(23; "Unrealized Revaluation"; Boolean)
         {
             Caption = 'Unrealized Revaluation';
+            ToolTip = 'Specifies if revaluation should be posted to currency realized or unrealized gains and losses accounts.';
         }
         /// <summary>
         /// Timestamp of the last modification to this general ledger account record.
@@ -361,6 +371,7 @@ table 15 "G/L Account"
         field(26; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies when the G/L account was last modified.';
             Editable = false;
         }
         /// <summary>
@@ -409,6 +420,7 @@ table 15 "G/L Account"
                                                         "Source Type" = field("Source Type Filter"),
                                                         "Source No." = field("Source No. Filter")));
             Caption = 'Balance at Date';
+            ToolTip = 'Specifies the G/L account balance on the last date included in the Date Filter field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -430,6 +442,7 @@ table 15 "G/L Account"
                                                         "Source Type" = field("Source Type Filter"),
                                                         "Source No." = field("Source No. Filter")));
             Caption = 'Net Change';
+            ToolTip = 'Specifies the net change in the account balance during the time period in the Date Filter field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -449,6 +462,7 @@ table 15 "G/L Account"
                                                                "Budget Name" = field("Budget Filter"),
                                                                "Dimension Set ID" = field("Dimension Set ID Filter")));
             Caption = 'Budgeted Amount';
+            ToolTip = 'Specifies either the G/L account''s total budget or, if you have specified a name in the Budget Name field, a specific budget.';
             FieldClass = FlowField;
         }
         /// <summary>
@@ -457,6 +471,7 @@ table 15 "G/L Account"
         field(34; Totaling; Text[250])
         {
             Caption = 'Totaling';
+            ToolTip = 'Specifies an account interval or a list of account numbers. The entries of the account will be totaled to give a total balance. How entries are totaled depends on the value in the Account Type field.';
 
             trigger OnValidate()
             begin
@@ -492,6 +507,7 @@ table 15 "G/L Account"
                                                         "Source Type" = field("Source Type Filter"),
                                                         "Source No." = field("Source No. Filter")));
             Caption = 'Balance';
+            ToolTip = 'Specifies the balance on this account.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -521,6 +537,7 @@ table 15 "G/L Account"
         {
             AccessByPermission = TableData "Business Unit" = R;
             Caption = 'Consol. Translation Method';
+            ToolTip = 'Specifies the consolidation translation method that will be used for the account.';
             OptionCaption = 'Average Rate (Manual),Closing Rate,Historical Rate,Composite Rate,Equity Rate';
             OptionMembers = "Average Rate (Manual)","Closing Rate","Historical Rate","Composite Rate","Equity Rate";
 
@@ -546,6 +563,7 @@ table 15 "G/L Account"
         {
             AccessByPermission = TableData "Business Unit" = R;
             Caption = 'Consol. Debit Acc.';
+            ToolTip = 'Specifies the account number in a consolidated company to transfer credit balances.';
 
             trigger OnValidate()
             var
@@ -564,6 +582,7 @@ table 15 "G/L Account"
         {
             AccessByPermission = TableData "Business Unit" = R;
             Caption = 'Consol. Credit Acc.';
+            ToolTip = 'Specifies if amounts without any payment tolerance amount from the customer and vendor ledger entries are used.';
 
             trigger OnValidate()
             var
@@ -656,6 +675,7 @@ table 15 "G/L Account"
                                                                 "Source Type" = field("Source Type Filter"),
                                                                 "Source No." = field("Source No. Filter")));
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent debits.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -678,6 +698,7 @@ table 15 "G/L Account"
                                                                  "Source Type" = field("Source Type Filter"),
                                                                  "Source No." = field("Source No. Filter")));
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent credits.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -687,6 +708,7 @@ table 15 "G/L Account"
         field(49; "Automatic Ext. Texts"; Boolean)
         {
             Caption = 'Automatic Ext. Texts';
+            ToolTip = 'Specifies that an extended text will be added automatically to the account.';
         }
         /// <summary>
         /// Positive budget amounts for the account within the specified date and budget filters.
@@ -705,6 +727,7 @@ table 15 "G/L Account"
                                                                "Budget Name" = field("Budget Filter"),
                                                                "Dimension Set ID" = field("Dimension Set ID Filter")));
             Caption = 'Budgeted Debit Amount';
+            ToolTip = 'Specifies the Budgeted Debit Amount for the account.';
             FieldClass = FlowField;
         }
         /// <summary>
@@ -724,6 +747,7 @@ table 15 "G/L Account"
                                                                 "Budget Name" = field("Budget Filter"),
                                                                 "Dimension Set ID" = field("Dimension Set ID Filter")));
             Caption = 'Budgeted Credit Amount';
+            ToolTip = 'Specifies the Budgeted Credit Amount for the account.';
             FieldClass = FlowField;
         }
         /// <summary>
@@ -747,6 +771,7 @@ table 15 "G/L Account"
         field(56; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
+            ToolTip = 'Specifies the tax group that is used to calculate and post sales tax.';
             TableRelation = "Tax Group";
         }
         /// <summary>
@@ -807,6 +832,7 @@ table 15 "G/L Account"
                                                                               "Source Type" = field("Source Type Filter"),
                                                                               "Source No." = field("Source No. Filter")));
             Caption = 'Additional-Currency Net Change';
+            ToolTip = 'Specifies the net change in the account balance.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -827,6 +853,7 @@ table 15 "G/L Account"
                                                                               "Source Type" = field("Source Type Filter"),
                                                                               "Source No." = field("Source No. Filter")));
             Caption = 'Add.-Currency Balance at Date';
+            ToolTip = 'Specifies the G/L account balance, in the additional reporting currency, on the last date included in the Date Filter field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -845,6 +872,7 @@ table 15 "G/L Account"
                                                                               "Source Type" = field("Source Type Filter"),
                                                                               "Source No." = field("Source No. Filter")));
             Caption = 'Additional-Currency Balance';
+            ToolTip = 'Specifies the balance on this account, in the additional reporting currency.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -855,6 +883,7 @@ table 15 "G/L Account"
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Exchange Rate Adjustment';
+            ToolTip = 'Specifies how general ledger accounts will be adjusted for exchange rate fluctuations between LCY and the additional reporting currency.';
         }
         /// <summary>
         /// Total debit amount in additional reporting currency for the account within the specified filters.
@@ -902,6 +931,7 @@ table 15 "G/L Account"
         field(66; "Default IC Partner G/L Acc. No"; Code[20])
         {
             Caption = 'Default IC Partner G/L Acc. No';
+            ToolTip = 'Specifies accounts that you often enter in the Bal. Account No. field on intercompany journal or document lines.';
             TableRelation = "IC G/L Account"."No.";
         }
         /// <summary>
@@ -910,6 +940,7 @@ table 15 "G/L Account"
         field(70; "Omit Default Descr. in Jnl."; Boolean)
         {
             Caption = 'Omit Default Descr. in Jnl.';
+            ToolTip = 'Specifies if the default description is automatically inserted in the Description field on journal lines created for this general ledger account.';
         }
         /// <summary>
         /// Net change amount in source currency for the account within the specified date filters.
@@ -944,6 +975,7 @@ table 15 "G/L Account"
                                                                           "VAT Reporting Date" = field(upperlimit("VAT Reporting Date Filter")),
                                                                           "Posting Date" = field(upperlimit("Date Filter"))));
             Caption = 'Source Curr. Balance at Date';
+            ToolTip = 'Specifies the G/L account foreign currency balance on the last date included in the Date Filter field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -960,6 +992,7 @@ table 15 "G/L Account"
                                                                           "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                           "Global Dimension 2 Code" = field("Global Dimension 2 Filter")));
             Caption = 'Source Currency Balance';
+            ToolTip = 'Specifies the foreign currency balance on the G/L account.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -989,6 +1022,7 @@ table 15 "G/L Account"
         {
             CalcFormula = lookup("G/L Account Category".Description where("Entry No." = field("Account Subcategory Entry No.")));
             Caption = 'Account Subcategory Descript.';
+            ToolTip = 'Specifies the subcategory of the account category of the G/L account.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1006,6 +1040,7 @@ table 15 "G/L Account"
         field(83; "Exclude From Consolidation"; Boolean)
         {
             Caption = 'Exclude from Consolidation';
+            ToolTip = 'Specifies whether the account is excluded from consolidation.';
             DataClassification = CustomerContent;
         }
         /// <summary>
@@ -1022,6 +1057,7 @@ table 15 "G/L Account"
         field(1100; "Cost Type No."; Code[20])
         {
             Caption = 'Cost Type No.';
+            ToolTip = 'Specifies a cost type number to establish which cost type a general ledger account belongs to.';
             Editable = false;
             TableRelation = "Cost Type";
             ValidateTableRelation = false;

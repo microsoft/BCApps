@@ -217,19 +217,6 @@ page 99000761 "Machine Center List"
         }
         area(reporting)
         {
-#if not CLEAN26
-            action("Machine Center List")
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Machine Center List';
-                Image = "Report";
-                RunObject = Report "Machine Center List";
-                ToolTip = 'View the list of machine centers.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'This report has been replaced by the page Machine Center List and will be removed in a future release.';
-                ObsoleteTag = '26.0';
-            }
-#endif
 #if not CLEAN27
             action("Machine Center Load")
             {
@@ -290,14 +277,6 @@ page 99000761 "Machine Center List"
             group(Category_Report)
             {
                 Caption = 'Reports';
-#if not CLEAN26
-                actionref("Machine Center List_Promoted"; "Machine Center List")
-                {
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This report has been replaced by the page Machine Center List and will be removed in a future release.';
-                    ObsoleteTag = '26.0';
-                }
-#endif
 #if not CLEAN27
                 actionref("Machine Center Load_Promoted"; "Machine Center Load")
                 {

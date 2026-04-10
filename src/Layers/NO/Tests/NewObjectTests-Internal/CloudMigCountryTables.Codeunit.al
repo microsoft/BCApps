@@ -4,9 +4,11 @@ codeunit 135161 "Cloud Mig Country Tables"
     begin
         ListOfTablesToMigrate.Add(160801); // Database::"Acc. Schedules Conversion"
         ListOfTablesToMigrate.Add(160802); // Database::"Analysis Conversion"
+#if not CLEAN29
         ListOfTablesToMigrate.Add(Database::"E-Invoice Export Header");
         ListOfTablesToMigrate.Add(Database::"E-Invoice Export Line");
         ListOfTablesToMigrate.Add(Database::"E-Invoice Transfer File");
+#endif
         ListOfTablesToMigrate.Add(Database::"Gen. Jnl. Line Reg. Rep. Code");
         ListOfTablesToMigrate.Add(160800); // Database::"GL Accounts Conversion"
         ListOfTablesToMigrate.Add(Database::"OCR Setup");

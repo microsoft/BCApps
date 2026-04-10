@@ -363,7 +363,7 @@ codeunit 80 "Sales-Post"
         FillTempLines(SalesHeader, TempSalesLineGlobal);
 
         // Check that the invoice amount is zero or greater
-        OnRunOnBeforeCheckTotalInvoiceAmount(SalesHeader);
+        OnRunOnBeforeCheckTotalInvoiceAmount(SalesHeader, TempSalesLineGlobal);
         if SalesHeader.Invoice then
             CheckTotalInvoiceAmount(SalesHeader);
 
@@ -387,6 +387,14 @@ codeunit 80 "Sales-Post"
         SalesHeader2 := SalesHeader;
 
         OnRunWithCheckOnAfterFinalize(SalesHeader);
+
+        // Date-ordered No. Series require that number allocation and the posted document are in the same
+        // transaction to prevent gaps. At this point FinalizePosting has completed, so both the allocated
+        // number and the posted document exist in the current transaction — committing is safe.
+        // Restore SuppressCommit to the caller's original value so that the date-order guard
+        // no longer blocks the final commit.
+        if DateOrderSeriesUsed and SuppressCommit and CommitAllowed and (not IndirectCall) then
+            SuppressCommit := SavedSuppressCommit;
 
         if not (InvtPickPutaway or SuppressCommit or PreviewMode) and CommitAllowed and (not IndirectCall) then begin
             Commit();
@@ -2608,7 +2616,7 @@ codeunit 80 "Sales-Post"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeCheckItemTrackingQuantity(SalesLine, IsHandled);
+        OnBeforeCheckItemTrackingQuantity(SalesLine, IsHandled, SalesHeader);
         if IsHandled then
             exit;
         SyncSurPlusItemTracking(SalesHeader, SalesLine);
@@ -4085,7 +4093,7 @@ codeunit 80 "Sales-Post"
     var
         IsHandled: Boolean;
     begin
-        if CalledFromStatistics and IsInvoiceRoundingLine(SalesHeader, SalesLine) then
+        if (CalledFromStatistics) and (IsInvoiceRoundingLine(SalesHeader, SalesLine)) and (SalesLine."System-Created Entry") then
             exit;
 
         IsHandled := false;
@@ -9684,8 +9692,9 @@ codeunit 80 "Sales-Post"
     /// </summary>
     /// <param name="SalesLine">The sales line to check.</param>
     /// <param name="IsHandled">Set to true to skip the default quantity check.</param>
+    /// <param name="SalesHeader">The sales header of the document being posted.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckItemTrackingQuantity(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    local procedure OnBeforeCheckItemTrackingQuantity(SalesLine: Record "Sales Line"; var IsHandled: Boolean; SalesHeader: Record "Sales Header")
     begin
     end;
 
@@ -12645,6 +12654,7 @@ codeunit 80 "Sales-Post"
         WarehouseAvailabilityMgt: Codeunit "Warehouse Availability Mgt.";
         QtyReservedForCurrLine: Decimal;
         SurplusQtyToHandle: Decimal;
+        IsHandled: Boolean;
     begin
         if not SalesHeader.Ship then
             exit;
@@ -12676,6 +12686,11 @@ codeunit 80 "Sales-Post"
         ReservEntry.CalcSums("Qty. to Handle (Base)");
         SurplusQtyToHandle := Abs(ReservEntry."Qty. to Handle (Base)");
         if (QtyReservedForCurrLine + SurplusQtyToHandle) < SalesLine."Qty. to Ship (Base)" then
+            exit;
+
+        IsHandled := false;
+        OnSyncSurPlusItemTrackingOnBeforeModifyQtyToHandleInvoice(SalesLine, SalesHeader, IsHandled, ReservEntry);
+        if IsHandled then
             exit;
 
         ReservEntry.ModifyAll("Qty. to Handle (Base)", 0);
@@ -13744,7 +13759,7 @@ codeunit 80 "Sales-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnRunOnBeforeCheckTotalInvoiceAmount(var SalesHeader: Record "Sales Header")
+    local procedure OnRunOnBeforeCheckTotalInvoiceAmount(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
@@ -14662,6 +14677,11 @@ codeunit 80 "Sales-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeArchiveRelatedJob(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSyncSurPlusItemTrackingOnBeforeModifyQtyToHandleInvoice(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var ReservationEntry: Record "Reservation Entry")
     begin
     end;
 }

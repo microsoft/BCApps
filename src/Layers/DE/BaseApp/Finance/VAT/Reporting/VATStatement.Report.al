@@ -15,11 +15,10 @@ using Microsoft.Foundation.Address;
 /// </summary>
 report 12 "VAT Statement"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/VAT/Reporting/VATStatement.rdlc';
     Caption = 'VAT Statement';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "VAT Statement Name";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -258,6 +257,16 @@ report 12 "VAT Statement"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/VAT/Reporting/VATStatement.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

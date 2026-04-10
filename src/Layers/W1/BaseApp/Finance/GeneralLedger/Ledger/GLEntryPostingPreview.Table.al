@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -55,6 +55,7 @@ table 1570 "G/L Entry Posting Preview"
         field(3; "G/L Account No."; Code[20])
         {
             Caption = 'G/L Account No.';
+            ToolTip = 'Specifies the number of the account that the entry has been posted to.';
             TableRelation = "G/L Account";
         }
         /// <summary>
@@ -63,6 +64,7 @@ table 1570 "G/L Entry Posting Preview"
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
             ClosingDates = true;
         }
         /// <summary>
@@ -71,6 +73,7 @@ table 1570 "G/L Entry Posting Preview"
         field(5; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the Document Type that the entry belongs to.';
         }
         /// <summary>
         /// Document number that would originate this preview G/L entry.
@@ -78,6 +81,7 @@ table 1570 "G/L Entry Posting Preview"
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the entry''s Document No.';
         }
         /// <summary>
         /// Description text for the preview G/L entry transaction.
@@ -85,6 +89,7 @@ table 1570 "G/L Entry Posting Preview"
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the entry or record.';
         }
         /// <summary>
         /// Balancing account number for the preview G/L entry when using balanced journal entries.
@@ -92,6 +97,7 @@ table 1570 "G/L Entry Posting Preview"
         field(10; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
@@ -114,6 +120,7 @@ table 1570 "G/L Entry Posting Preview"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the Amount of the entry.';
         }
         /// <summary>
         /// First global dimension code for the preview G/L entry.
@@ -122,6 +129,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         /// <summary>
@@ -131,6 +139,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         /// <summary>
@@ -139,6 +148,7 @@ table 1570 "G/L Entry Posting Preview"
         field(27; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
         }
         /// <summary>
@@ -147,6 +157,7 @@ table 1570 "G/L Entry Posting Preview"
         field(28; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
         /// <summary>
@@ -188,6 +199,7 @@ table 1570 "G/L Entry Posting Preview"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'VAT Amount';
+            ToolTip = 'Specifies the amount of VAT that is included in the total amount.';
         }
         /// <summary>
         /// Business unit code for this preview G/L entry for consolidation purposes.
@@ -210,6 +222,7 @@ table 1570 "G/L Entry Posting Preview"
         field(47; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         /// <summary>
@@ -218,6 +231,7 @@ table 1570 "G/L Entry Posting Preview"
         field(48; "Gen. Posting Type"; Enum "General Posting Type")
         {
             Caption = 'Gen. Posting Type';
+            ToolTip = 'Specifies the type of transaction.';
         }
         /// <summary>
         /// General business posting group for this preview G/L entry.
@@ -225,6 +239,7 @@ table 1570 "G/L Entry Posting Preview"
         field(49; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         /// <summary>
@@ -233,6 +248,7 @@ table 1570 "G/L Entry Posting Preview"
         field(50; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         /// <summary>
@@ -241,6 +257,7 @@ table 1570 "G/L Entry Posting Preview"
         field(51; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
         }
         /// <summary>
         /// Transaction number grouping related preview G/L entries.
@@ -258,6 +275,7 @@ table 1570 "G/L Entry Posting Preview"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent debits.';
         }
         /// <summary>
         /// Credit amount for this preview G/L entry (positive amounts on credit side).
@@ -268,6 +286,7 @@ table 1570 "G/L Entry Posting Preview"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent credits.';
         }
         /// <summary>
         /// Document date for this preview G/L entry transaction.
@@ -370,6 +389,7 @@ table 1570 "G/L Entry Posting Preview"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Additional-Currency Amount';
+            ToolTip = 'Specifies the general ledger entry that is posted if you post in an additional reporting currency.';
         }
         /// <summary>
         /// Debit amount in additional reporting currency for this preview G/L entry.
@@ -410,6 +430,7 @@ table 1570 "G/L Entry Posting Preview"
         field(73; Reversed; Boolean)
         {
             Caption = 'Reversed';
+            ToolTip = 'Specifies if the entry has been part of a reverse transaction (correction) made by the Reverse function.';
         }
         /// <summary>
         /// Entry number of the reversing entry for this preview G/L entry.
@@ -418,6 +439,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
+            ToolTip = 'Specifies the number of the correcting entry. If the field Specifies a number, the entry cannot be reversed again.';
             TableRelation = "G/L Entry";
         }
         /// <summary>
@@ -427,6 +449,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
+            ToolTip = 'Specifies the number of the original entry that was undone by the reverse transaction.';
             TableRelation = "G/L Entry";
         }
         /// <summary>
@@ -436,6 +459,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             CalcFormula = lookup("G/L Account".Name where("No." = field("G/L Account No.")));
             Caption = 'G/L Account Name';
+            ToolTip = 'Specifies the name of the account that the entry has been posted to.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -445,6 +469,7 @@ table 1570 "G/L Entry Posting Preview"
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
+            ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
             Editable = false;
             TableRelation = "Dimension Set Entry";
         }
@@ -455,6 +480,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             CaptionClass = '1,2,3';
             Caption = 'Shortcut Dimension 3 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -467,6 +493,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             CaptionClass = '1,2,4';
             Caption = 'Shortcut Dimension 4 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -479,6 +506,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             CaptionClass = '1,2,5';
             Caption = 'Shortcut Dimension 5 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -491,6 +519,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             CaptionClass = '1,2,6';
             Caption = 'Shortcut Dimension 6 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -503,6 +532,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             CaptionClass = '1,2,7';
             Caption = 'Shortcut Dimension 7 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -515,6 +545,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             CaptionClass = '1,2,8';
             Caption = 'Shortcut Dimension 8 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -577,6 +608,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'FA Entry Type';
+            ToolTip = 'Specifies the number of the fixed asset entry.';
             OptionCaption = ' ,Fixed Asset,Maintenance';
             OptionMembers = " ","Fixed Asset",Maintenance;
         }
@@ -587,6 +619,7 @@ table 1570 "G/L Entry Posting Preview"
         {
             BlankZero = true;
             Caption = 'FA Entry No.';
+            ToolTip = 'Specifies the number of the fixed asset entry.';
             TableRelation = if ("FA Entry Type" = const("Fixed Asset")) "FA Ledger Entry"
             else
             if ("FA Entry Type" = const(Maintenance)) "Maintenance Ledger Entry";

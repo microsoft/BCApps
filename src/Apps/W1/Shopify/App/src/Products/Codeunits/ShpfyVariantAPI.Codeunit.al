@@ -382,7 +382,7 @@ codeunit 30189 "Shpfy Variant API"
             exit(false);
 
         Parameters.Add('Barcode', ShopifyVariant.Barcode.Replace('.', '\\\\.'));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::FindVariantByBarcode, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_FindVariantByBarcode, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JArray, 'data.productVariants.edges') then
             if JArray.Count = 1 then
                 if JArray.Get(0, JItem) then begin
@@ -409,7 +409,7 @@ codeunit 30189 "Shpfy Variant API"
             exit(false);
 
         Parameters.Add('SKU', ShopifyVariant.SKU.Replace('.', '\\\\.'));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::FindVariantBySKU, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_FindVariantBySKU, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JArray, 'data.productVariants.edges') then
             if JArray.Count = 1 then
                 if JArray.Get(0, JItem) then begin
@@ -451,7 +451,7 @@ codeunit 30189 "Shpfy Variant API"
         Cursor: Text;
     begin
         Clear(ProductVariantImages);
-        GraphQLType := GraphQLType::GetProductVariantImages;
+        GraphQLType := GraphQLType::Products_GetProductVariantImages;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             if JsonHelper.GetJsonArray(JResponse, JProductVariants, 'data.productVariants.edges') then begin
@@ -473,7 +473,7 @@ codeunit 30189 "Shpfy Variant API"
                 else
                     Parameters.Add('After', Cursor);
             end;
-            GraphQLType := GraphQLType::GetNextProductVariantImages;
+            GraphQLType := GraphQLType::Products_GetNextProductVariantImages;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.productVariants.pageInfo.hasNextPage');
     end;
 
@@ -495,7 +495,7 @@ codeunit 30189 "Shpfy Variant API"
         Cursor: Text;
     begin
         Clear(ProductVariantIds);
-        GraphQLType := GraphQLType::GetProductVariantIds;
+        GraphQLType := GraphQLType::Products_GetProductVariantIds;
         Parameters.Add('ProductId', Format(ShopifyProduct.Id));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -508,7 +508,7 @@ codeunit 30189 "Shpfy Variant API"
                         ProductVariantIds.Add(Id, UpdatedAt);
                     end;
                 end;
-                GraphQLType := GraphQLType::GetNextProductVariantIds;
+                GraphQLType := GraphQLType::Products_GetNextProductVariantIds;
                 if Parameters.ContainsKey('After') then
                     Parameters.Set('After', Cursor)
                 else
@@ -532,7 +532,7 @@ codeunit 30189 "Shpfy Variant API"
         JResponse: JsonToken;
     begin
         Parameters.Add('VariantId', Format(ShopifyVariant.Id));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetVariantById, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_GetVariantById, Parameters);
         if JsonHelper.GetJsonObject(JResponse.AsObject(), JData, 'data.productVariant') then
             exit(UpdateShopifyVariantFields(ShopifyProduct, ShopifyVariant, ShopifyInventoryItem, JData));
     end;
@@ -854,7 +854,7 @@ codeunit 30189 "Shpfy Variant API"
         JResponse: JsonToken;
     begin
         Parameters.Add('VariantId', Format(VariantId));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetVariantImage, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_GetVariantImage, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JMedias, 'data.productVariant.media.edges') then
             if JMedias.Count() = 1 then
                 exit(true);
@@ -869,7 +869,7 @@ codeunit 30189 "Shpfy Variant API"
         Parameters.Add('ProductId', Format(ShopifyVariant."Product Id"));
         Parameters.Add('VariantId', Format(ShopifyVariant.Id));
         Parameters.Add('ResourceUrl', ResourceUrl);
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::AddVariantImage, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Products_AddVariantImage, Parameters);
 
         if not JsonHelper.GetJsonArray(JResponse, JArray, 'data.productVariantsBulkUpdate.productVariants') then
             exit;
@@ -894,7 +894,7 @@ codeunit 30189 "Shpfy Variant API"
         Parameters.Add('ProductId', Format(ProductId));
         Parameters.Add('VariantId', Format(VariantId));
         Parameters.Add('ImageId', Format(ImageId));
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::SetVariantImage, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Products_SetVariantImage, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JErrors, 'data.productVariantsBulkUpdate.userErrors') then
             exit((JErrors.Count() = 0));
     end;

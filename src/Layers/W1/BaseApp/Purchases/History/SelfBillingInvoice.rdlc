@@ -134,7 +134,8 @@ Cstr(Fields!CompanyInfoBankBranchNo.Value) + Chr(177) +
 Cstr(Fields!CompanyIBAN_Lbl.Value) + Chr(177) + 
 Cstr(Fields!CompanyInfoIBAN.Value) + Chr(177) + 
 Cstr(Fields!SwiftCodeCaption.Value) + Chr(177) + 
-Cstr(Fields!CompanyInfoSwiftCode.Value)
+Cstr(Fields!CompanyInfoSwiftCode.Value) + Chr(177) + 
+Cstr(Fields!VendorInvoiceNo_PurchInvHeader.Value)
 , 1)</Hidden>
                                             </Visibility>
                                             <Style />
@@ -6192,7 +6193,7 @@ Cstr(Fields!CompanyInfoSwiftCode.Value)
                       </Style>
                     </TextRun>
                     <TextRun>
-                      <Value>=Code.GetData(22,1)</Value>
+                      <Value>=Code.GetData(63,1)</Value>
                       <Style>
                         <FontFamily>Segoe UI</FontFamily>
                         <FontSize>14pt</FontSize>
@@ -7835,6 +7836,9 @@ End Function
       <Fields>
         <Field Name="No_PurchInvHeader">
           <DataField>No_PurchInvHeader</DataField>
+        </Field>
+        <Field Name="VendorInvoiceNo_PurchInvHeader">
+          <DataField>VendorInvoiceNo_PurchInvHeader</DataField>
         </Field>
         <Field Name="InvDiscAmtCaption">
           <DataField>InvDiscAmtCaption</DataField>

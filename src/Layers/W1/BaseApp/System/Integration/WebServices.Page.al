@@ -174,10 +174,6 @@ page 810 "Web Services"
         if MyNotification.IsEnabled(WebserviceNotificationMgt.WebServiceAPINotificationId()) then
             WebserviceNotificationMgt.WebServiceAPINotificationShow(WebServcieAPINotification);
 
-#if not CLEAN26
-        WebserviceNotificationMgt.ShowDisableSoapWebServiceNotification();
-#endif
-
         Reload();
     end;
 

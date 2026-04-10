@@ -115,16 +115,6 @@ codeunit 99000769 "Production BOM-Check"
         end;
     end;
 
-#if not CLEAN26
-    [Obsolete('Replaced by CheckBOMStructure(var FirstLevelItem: Record Item; BOMHeaderNo: Code[20]; VersionCode: Code[20]; Level: Integer)', '26.0')]
-    procedure CheckBOMStructure(BOMHeaderNo: Code[20]; VersionCode: Code[20]; Level: Integer)
-    var
-        Item: Record Item;
-    begin
-        CheckBOMStructure(Item, BOMHeaderNo, VersionCode, Level);
-    end;
-#endif
-
     procedure CheckBOMStructure(var FirstLevelItem: Record Item; BOMHeaderNo: Code[20]; VersionCode: Code[20]; Level: Integer)
     var
         ProductionBOMHeader: Record "Production BOM Header";

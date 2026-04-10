@@ -467,14 +467,6 @@ table 7320 "Warehouse Shipment Header"
         end;
     end;
 
-#if not CLEAN26
-    [Obsolete('Replaced by procedure GetShipmentStatus()', '26.0')]
-    procedure GetDocumentStatus(SkipLineNo: Integer): Integer
-    begin
-        exit(GetShipmentStatus(SkipLineNo).AsInteger());
-    end;
-#endif
-
     procedure GetShipmentStatus(SkipLineNo: Integer): Enum "Warehouse Shipment Status"
     var
         WarehouseShipmentLine: Record "Warehouse Shipment Line";

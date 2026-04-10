@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -120,21 +120,18 @@ page 414 "G/L Balance"
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the name of the general ledger account.';
                 }
                 field("Income/Balance"; Rec."Income/Balance")
                 {
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies whether a general ledger account is an income statement account or a balance sheet account.';
                 }
                 field("Debit Amount"; Rec."Debit Amount")
                 {
@@ -142,7 +139,6 @@ page 414 "G/L Balance"
                     BlankNumbers = BlankZero;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                 }
                 field("Credit Amount"; Rec."Credit Amount")
                 {
@@ -150,7 +146,6 @@ page 414 "G/L Balance"
                     BlankNumbers = BlankZero;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                 }
                 field("Net Change"; Rec."Net Change")
                 {
@@ -158,7 +153,6 @@ page 414 "G/L Balance"
                     BlankZero = true;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the net change in the account balance during the time period in the Date Filter field.';
                     Visible = false;
                 }
             }

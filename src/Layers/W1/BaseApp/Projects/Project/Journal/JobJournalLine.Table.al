@@ -2089,7 +2089,7 @@ table 210 "Job Journal Line"
 
         if ("Cost Factor" <> 0) and
            ((("Unit Cost" <> xRec."Unit Cost") or ("Cost Factor" <> xRec."Cost Factor")) or
-            ((Quantity <> xRec.Quantity) or ("Location Code" <> xRec."Location Code")))
+            ((Quantity <> xRec.Quantity) or ("Location Code" <> xRec."Location Code") or ("Variant Code" <> xRec."Variant Code")))
         then
             "Unit Price" := Round("Unit Cost" * "Cost Factor", UnitAmountRoundingPrecisionFCY)
         else

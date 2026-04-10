@@ -13,7 +13,7 @@ report 5802 "Inventory Valuation - WIP"
     ApplicationArea = Manufacturing;
     Caption = 'Production Order - WIP';
     UsageCategory = ReportsAndAnalysis;
-    DefaultRenderingLayout = Word;
+    DefaultRenderingLayout = Excel;
 
     dataset
     {
@@ -483,7 +483,7 @@ report 5802 "Inventory Valuation - WIP"
             Caption = 'Production Order - WIP RDLC (Obsolete)';
             Type = RDLC;
             LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.rdlc';
-ObsoleteState = Pending;
+            ObsoleteState = Pending;
             ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
             ObsoleteTag = '28.0';
             Summary = 'Built in layout for the Production Order - WIP RDLC (Obsolete) report.';

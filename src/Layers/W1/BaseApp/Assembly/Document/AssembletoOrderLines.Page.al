@@ -447,7 +447,7 @@ page 914 "Assemble-to-Order Lines"
     var
         Item: Record "Item";
     begin
-        Rec.UpdateAvailWarning();
+        Rec.UpdateAndPersistAvailWarning();
         if Rec."Variant Code" = '' then
             VariantCodeMandatory := Item.IsVariantMandatory(Rec.Type = Rec.Type::Item, Rec."No.");
     end;

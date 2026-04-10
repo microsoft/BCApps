@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,14 +37,12 @@ page 416 "G/L Account Balance Lines"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Start';
                     Editable = false;
-                    ToolTip = 'Specifies the start date of the period defined on the line for the bank account balance.';
                 }
                 field("Period Name"; Rec."Period Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Period Name';
                     Editable = false;
-                    ToolTip = 'Specifies the name of the period shown in the line.';
                 }
                 field(DebitAmount; Rec."Debit Amount")
                 {
@@ -54,7 +52,6 @@ page 416 "G/L Account Balance Lines"
                     Caption = 'Debit Amount';
                     DrillDown = true;
                     Editable = false;
-                    ToolTip = 'Specifies the debit amount for the period on the line.';
 
                     trigger OnDrillDown()
                     begin
@@ -69,7 +66,6 @@ page 416 "G/L Account Balance Lines"
                     Caption = 'Credit Amount';
                     DrillDown = true;
                     Editable = false;
-                    ToolTip = 'Specifies the credit amount for the period on the line.';
 
                     trigger OnDrillDown()
                     begin
@@ -84,7 +80,6 @@ page 416 "G/L Account Balance Lines"
                     Caption = 'Net Change';
                     DrillDown = true;
                     Editable = false;
-                    ToolTip = 'Specifies changes in the actual general ledger amount.';
                     Visible = false;
 
                     trigger OnDrillDown()

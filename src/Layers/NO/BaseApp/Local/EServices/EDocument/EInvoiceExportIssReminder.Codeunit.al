@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN29
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,6 +13,9 @@ codeunit 10622 "E-Invoice Export Iss. Reminder"
 {
     Permissions = TableData "Issued Reminder Header" = rm;
     TableNo = "Issued Reminder Header";
+    ObsoleteReason = 'This codeunit is deprecated and will be removed in a future release.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     var
@@ -179,4 +183,4 @@ codeunit 10622 "E-Invoice Export Iss. Reminder"
         IssuedReminderHeader2.Modify();
     end;
 }
-
+#endif

@@ -6,7 +6,9 @@ namespace Microsoft.Sales.FinanceCharge;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+#if not CLEAN29
 using Microsoft.Sales.Peppol;
+#endif
 using Microsoft.Sales.Setup;
 using System.Utilities;
 
@@ -20,6 +22,7 @@ report 193 "Issue Finance Charge Memos"
 
     dataset
     {
+#if not CLEAN29
         dataitem("Check Fin Charge Memo Header"; "Finance Charge Memo Header")
         {
             DataItemTableView = sorting("No.");
@@ -32,6 +35,7 @@ report 193 "Issue Finance Charge Memos"
                     PEPPOLValidation.CheckFinChargeMemo("No.");
             end;
         }
+#endif
         dataitem("Finance Charge Memo Header"; "Finance Charge Memo Header")
         {
             DataItemTableView = sorting("No.");
@@ -99,8 +103,10 @@ report 193 "Issue Finance Charge Memos"
 
             trigger OnPreDataItem()
             begin
+#if not CLEAN29
                 SetView("Check Fin Charge Memo Header".GetView());
                 CopyFilters("Check Fin Charge Memo Header");
+#endif
                 if ReplacePostingDate and (PostingDateReq = 0D) then
                     Error(EnterPostingDateErr);
                 NoOfRecords := Count;
@@ -221,7 +227,9 @@ report 193 "Issue Finance Charge Memos"
         TempIssuedFinChrgMemoHeader: Record "Issued Fin. Charge Memo Header" temporary;
         FinChrgMemoIssue: Codeunit "FinChrgMemo-Issue";
         ConfirmManagement: Codeunit "Confirm Management";
+#if not CLEAN29
         PEPPOLValidation: Codeunit "PEPPOL Validation";
+#endif
         Window: Dialog;
         NoOfRecords: Integer;
         RecordNo: Integer;

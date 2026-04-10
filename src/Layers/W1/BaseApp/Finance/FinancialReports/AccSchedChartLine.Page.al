@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,37 +30,31 @@ page 765 "Acc. Sched. Chart Line"
                 field("Account Schedule Name"; Rec."Account Schedule Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the account schedule name.';
                     Visible = false;
                 }
                 field("Account Schedule Line No."; Rec."Account Schedule Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the account schedule line that the chart is based on.';
                     Visible = false;
                 }
                 field("Column Layout Name"; Rec."Column Layout Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name. This field is intended only for internal use.';
                     Visible = false;
                 }
                 field("Column Layout Line No."; Rec."Column Layout Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the line number. This field is intended only for internal use.';
                     Visible = false;
                 }
                 field("Original Measure Name"; Rec."Original Measure Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the account schedule columns or lines that you select to include in the Account Schedules Chart Setup window.';
                 }
                 field("Chart Type"; Rec."Chart Type")
                 {
                     ApplicationArea = All;
                     Editable = IsMeasure;
-                    ToolTip = 'Specifies how the account schedule values are represented graphically in the chart.';
                     Visible = IsMeasure;
                 }
                 field(Show; Show)

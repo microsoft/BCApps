@@ -408,12 +408,16 @@ page 459 "Sales & Receivables Setup"
                 group("Output Paths")
                 {
                     Caption = 'Output Paths';
+#if not CLEAN29
                     field("E-Invoice Sales Invoice Path"; Rec."E-Invoice Sales Invoice Path")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Invoice Path';
                         ShowMandatory = true;
                         ToolTip = 'Specifies the path and name of the folder where you want to store the files for electronic invoices.';
+                        ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                     }
                     field("E-Invoice Sales Cr. Memo Path"; Rec."E-Invoice Sales Cr. Memo Path")
                     {
@@ -421,6 +425,9 @@ page 459 "Sales & Receivables Setup"
                         Caption = 'Cr. Memo Path';
                         ShowMandatory = true;
                         ToolTip = 'Specifies the path and name of the folder where you want to store the files for electronic credit memos.';
+                        ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                     }
                     field("E-Invoice Reminder Path"; Rec."E-Invoice Reminder Path")
                     {
@@ -428,6 +435,9 @@ page 459 "Sales & Receivables Setup"
                         Caption = 'Reminder Path';
                         ShowMandatory = true;
                         ToolTip = 'Specifies the path and name of the folder where you want to store the files for electronic reminders.';
+                        ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                     }
                     field("E-Invoice Fin. Charge Path"; Rec."E-Invoice Fin. Charge Path")
                     {
@@ -435,7 +445,11 @@ page 459 "Sales & Receivables Setup"
                         Caption = 'Fin. Charge Path';
                         ShowMandatory = true;
                         ToolTip = 'Specifies the path and name of the folder where you want to store the files for electronic finance charge memos.';
+                        ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                     }
+#endif
                 }
             }
             group(Archiving)

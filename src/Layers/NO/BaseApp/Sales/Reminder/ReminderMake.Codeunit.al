@@ -245,7 +245,9 @@ codeunit 392 "Reminder-Make"
                                   GlobalReminderHeader."No.", ReminderLine."Line Type"::"Reminder Line", '', NextLineNo);
                             InitReminderLine(
                               ReminderLine, GlobalReminderHeader."No.", ReminderLine."Line Type"::"Reminder Line", '', NextLineNo);
+#if not CLEAN29
                             ReminderLine."Account Code" := GlobalReminderHeader."Account Code";
+#endif
                             ReminderLine.Type := ReminderLine.Type::"Customer Ledger Entry";
                             ReminderLine.Validate("Entry No.", GlobalCustLedgEntry."Entry No.");
                             SetReminderLevel(GlobalReminderHeader, ReminderLine, ReminderLevel."No.");

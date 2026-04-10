@@ -13,12 +13,17 @@ codeunit 5887 "Phys. Invt.-Calc. Qty. All"
         PhysInvtOrderHeader: Record "Phys. Invt. Order Header";
         PhysInvtOrderLine: Record "Phys. Invt. Order Line";
         Selection: Integer;
+        IsHandled: Boolean;
     begin
         PhysInvtOrderHeader.Copy(Rec);
 
-        Selection := StrMenu(SelectionQst, 1);
-        if Selection = 0 then
-            exit;
+        IsHandled := false;
+        OnRunOnBeforeSelectSelection(PhysInvtOrderHeader, Selection, IsHandled);
+        if not IsHandled then begin
+            Selection := StrMenu(SelectionQst, 1);
+            if Selection = 0 then
+                exit;
+        end;
 
         PhysInvtOrderLine.Reset();
         PhysInvtOrderLine.SetRange("Document No.", PhysInvtOrderHeader."No.");
@@ -39,5 +44,10 @@ codeunit 5887 "Phys. Invt.-Calc. Qty. All"
 
     var
         SelectionQst: Label 'All Order Lines,Only Not Calculated Lines';
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRunOnBeforeSelectSelection(var PhysInvtOrderHeader: Record "Phys. Invt. Order Header"; var Selection: Integer; var IsHandled: Boolean)
+    begin
+    end;
 }
 

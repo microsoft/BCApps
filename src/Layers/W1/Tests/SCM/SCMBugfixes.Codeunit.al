@@ -1410,6 +1410,67 @@ codeunit 137045 "SCM Bugfixes"
         VerifyPlanningComponentBinEmpty(ComponentItem1."No.", Location.Code);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TrackingReservationEntriesDeletedWhenRequisitionLineDeleted()
+    var
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        ItemNo: array[2] of Code[20];
+        i: Integer;
+        FirstLineNo: Integer;
+    begin
+        // [SCENARIO 622959] Tracking Reservation Entries are deleted when Requisition Line is deleted
+        Initialize();
+
+        // [GIVEN] Locations "L1", "L2" and Transfer Routes configured
+        CreateUpdateLocations();
+        CreateTransferRoutes();
+
+        // [GIVEN] Planning worksheet "PW" is selected and cleared
+        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::Planning);
+        ClearRequisitionWorksheet(RequisitionWkshName);
+
+        // [GIVEN] Items 2 Item with Stock Keeping Units configured for Transfer replenishment
+        for i := 1 to ArrayLen(ItemNo) do begin
+            ItemNo[i] := LibraryInventory.CreateItemNo();
+            CreateUpdateStockKeepUnit(StockkeepingUnit, ItemNo[i]);
+        end;
+
+        // [GIVEN] Requisition line "RL1" for Item "I1" with Transfer replenishment
+        CreateRequisitionPlanningLine(RequisitionLine, RequisitionWkshName, ItemNo[1]);
+        FirstLineNo := RequisitionLine."Line No.";
+
+        // [GIVEN] Another requisition line "RL2" for Item "I1"
+        CreateRequisitionPlanningLine(RequisitionLine, RequisitionWkshName, ItemNo[1]);
+
+        // [WHEN] Requisition line "RL1" is deleted
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Line No.", FirstLineNo);
+        RequisitionLine.FindFirst();
+        RequisitionLine.Delete(true);
+
+        // [THEN] No Tracking Reservation Entries remain for deleted line "RL1"
+        VerifyNoTrackingReservationEntries(RequisitionWkshName, FirstLineNo);
+
+        // [GIVEN] New requisition line "RL3" for Item "I2"
+        CreateRequisitionPlanningLine(RequisitionLine, RequisitionWkshName, ItemNo[2]);
+
+        // [WHEN] Carry out action message for all lines
+        RequisitionLine.Reset();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Accept Action Message", true);
+        RequisitionLine.FindSet();
+        LibraryPlanning.CarryOutPlanWksh(
+            RequisitionLine, 0, 0, 1,
+            0, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, '', '');
+
+        // [THEN] Transfer orders are created without Item No. mismatch error
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2222,6 +2283,52 @@ codeunit 137045 "SCM Bugfixes"
         LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJnlTemplateType);
         LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJnlTemplateType, ItemJournalTemplate.Name);
         LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+    end;
+
+    local procedure ClearRequisitionWorksheet(RequisitionWkshName: Record "Requisition Wksh. Name")
+    var
+        RequisitionLine: Record "Requisition Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.DeleteAll();
+
+        ReservationEntry.SetRange("Source Type", Database::"Requisition Line");
+        ReservationEntry.SetRange("Source Subtype", 0);
+        ReservationEntry.SetRange("Source ID", RequisitionWkshName."Worksheet Template Name");
+        ReservationEntry.SetRange("Source Batch Name", RequisitionWkshName.Name);
+        ReservationEntry.DeleteAll();
+    end;
+
+    local procedure CreateRequisitionPlanningLine(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name"; ItemNo: Code[20])
+    begin
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name);
+        RequisitionLine.Validate("Order Date", WorkDate());
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine."No." := ItemNo;
+        RequisitionLine."Location Code" := LocationCodesArr[1];
+        RequisitionLine.Validate("No.", ItemNo);
+        RequisitionLine.Validate("Location Code", LocationCodesArr[1]);
+        RequisitionLine.Validate("Transfer Shipment Date", WorkDate());
+        RequisitionLine.Validate("Due Date", CalcDate('<+1W>', WorkDate()));
+        RequisitionLine.Validate("Accept Action Message", true);
+        RequisitionLine.Validate(Quantity, LibraryRandom.RandInt(10));
+        RequisitionLine.Modify(true);
+        RequisitionLine.Testfield("Ref. Order Type", RequisitionLine."Ref. Order Type"::"Transfer");
+        RequisitionLine.Testfield("Supply From", LocationCodesArr[2]);
+    end;
+
+    local procedure VerifyNoTrackingReservationEntries(RequisitionWkshName: Record "Requisition Wksh. Name"; LineNo: Integer)
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetRange("Source Type", Database::"Requisition Line");
+        ReservationEntry.SetRange("Source ID", RequisitionWkshName."Worksheet Template Name");
+        ReservationEntry.SetRange("Source Batch Name", RequisitionWkshName.Name);
+        ReservationEntry.SetRange("Source Ref. No.", LineNo);
+        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Tracking);
+        Assert.RecordIsEmpty(ReservationEntry);
     end;
 
     [ModalPageHandler]

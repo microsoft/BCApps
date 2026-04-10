@@ -8,11 +8,10 @@ using Microsoft.CRM.Profiling;
 
 report 5066 "Questionnaire - Handouts"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/QuestionnaireHandouts.rdlc';
     ApplicationArea = RelationshipMgmt;
     Caption = 'Questionnaire - Handouts';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -124,6 +123,16 @@ report 5066 "Questionnaire - Handouts"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/QuestionnaireHandouts.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -204,7 +204,9 @@ codeunit 143010 "E-Invoice Service Helper"
     [Scope('OnPrem')]
     procedure CreateServiceDocWithZeroVAT(var ServHeader: Record "Service Header"; IsReverseCharge: Boolean; IsOutsideTaxArea: Boolean): Code[20]
     var
+#if not CLEAN29
         VATProductPostingGroup: Record "VAT Product Posting Group";
+#endif
         VATProdPostingGroupCode: Code[20];
         NoOfLines: Integer;
     begin
@@ -213,9 +215,11 @@ codeunit 143010 "E-Invoice Service Helper"
         NoOfLines := 2;
         VATProdPostingGroupCode := EInvoiceSalesHelper.NewVATPostingSetup(0, ServHeader."VAT Bus. Posting Group", IsReverseCharge);
 
+#if not CLEAN29
         VATProductPostingGroup.Get(VATProdPostingGroupCode);
         VATProductPostingGroup.Validate("Outside Tax Area", IsOutsideTaxArea);
         VATProductPostingGroup.Modify(true);
+#endif
 
         CreateServiceLines(ServHeader, NoOfLines, VATProdPostingGroupCode);
 

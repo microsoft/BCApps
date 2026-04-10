@@ -2948,6 +2948,16 @@ table 246 "Requisition Line"
         exit(TempPlanningErrorLog.GetError(PlanningErrorLog));
     end;
 
+    /// <summary>
+    /// Gets all resiliency errors from the planning error log.
+    /// </summary>
+    /// <param name="PlanningErrorLog">The planning error log record to populate with errors.</param>
+    /// <returns>True if there are errors, otherwise false.</returns>
+    procedure GetResiliencyErrors(var PlanningErrorLog: Record "Planning Error Log"): Boolean
+    begin
+        exit(TempPlanningErrorLog.GetErrors(PlanningErrorLog));
+    end;
+
     procedure SetResiliencyError(TheError: Text[250]; TheTableID: Integer; TheTablePosition: Text[250])
     begin
         TempPlanningErrorLog.SetError(TheError, TheTableID, TheTablePosition);
@@ -3318,7 +3328,13 @@ table 246 "Requisition Line"
     local procedure UpdateReplenishmentSystem()
     var
         StockkeepingUnit: Record "Stockkeeping Unit";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeUpdateReplenishmentSystem(Rec, IsHandled);
+        if IsHandled then
+            exit;
+
         GetItem();
         StockkeepingUnit := Item.GetSKU("Location Code", "Variant Code");
         if Subcontracting then
@@ -3750,6 +3766,11 @@ table 246 "Requisition Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateUnitCost(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateReplenishmentSystem(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
     begin
     end;
 

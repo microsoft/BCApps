@@ -344,6 +344,35 @@ codeunit 144097 "ERM Reports"
         LibraryReportDataset.AssertElementTagWithValueExists('PaymentMethodDesc', PaymentMethodTranslation.Description);
     end;
 
+    [Test]
+    [HandlerFunctions('RHCustomerAnnualDeclarationWithMinAmount')]
+    procedure CustomerAnnualDeclarationWithNegativeAmount()
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Customer: Record Customer;
+        CustomerNo: Code[20];
+        CrMemoAmountLCY: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 621785] Customer Annual Declaration report should include customers with negative amounts
+        // when the absolute value exceeds MinAmount, consistent with Make 347 Declaration
+
+        // [GIVEN] Posted sales credit memo with negative Amount (LCY)
+        Initialize();
+        CustomerNo := LibrarySales.CreateCustomerNo();
+        CrMemoAmountLCY := MockCustCreditMemoLedgerEntry(CustLedgerEntry, CustomerNo, WorkDate());
+
+        // [WHEN] Run "Customer Annual Declaration" report with MinAmount < Abs(Amount)
+        Commit();
+        LibraryVariableStorage.Enqueue(Abs(CrMemoAmountLCY) / 2);
+        Customer.SetRange("No.", CustomerNo);
+        Customer.SetRange("Date Filter", CalcDate('<CM+1D-1M>', WorkDate()), CalcDate('<CM>', WorkDate()));
+        Report.Run(Report::"Customer - Annual Declaration", true, false, Customer);
+
+        // [THEN] Customer is included in the report with the negative SalesAmt
+        VerifyCustomerAnnualDeclaration(CustomerNo, CrMemoAmountLCY);
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
@@ -700,6 +729,32 @@ codeunit 144097 "ERM Reports"
         LibraryReportDataset.AssertCurrentRowValueEquals('PurchaseAmt', AmountLCY);
     end;
 
+    local procedure MockCustCreditMemoLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustomerNo: Code[20]; PostingDate: Date): Decimal
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        CustLedgerEntry.Init();
+        CustLedgerEntry."Entry No." := LibraryUtility.GetNewRecNo(CustLedgerEntry, CustLedgerEntry.FieldNo("Entry No."));
+        CustLedgerEntry."Customer No." := CustomerNo;
+        CustLedgerEntry."Document Type" := CustLedgerEntry."Document Type"::"Credit Memo";
+        CustLedgerEntry."Document No." := LibraryUtility.GenerateRandomCode(CustLedgerEntry.FieldNo("Document No."), DATABASE::"Cust. Ledger Entry");
+        CustLedgerEntry."Posting Date" := PostingDate;
+        CustLedgerEntry."Document Date" := PostingDate;
+        CustLedgerEntry.Insert();
+
+        DetailedCustLedgEntry.Init();
+        DetailedCustLedgEntry."Entry No." := LibraryUtility.GetNewRecNo(DetailedCustLedgEntry, DetailedCustLedgEntry.FieldNo("Entry No."));
+        DetailedCustLedgEntry."Cust. Ledger Entry No." := CustLedgerEntry."Entry No.";
+        DetailedCustLedgEntry."Customer No." := CustomerNo;
+        DetailedCustLedgEntry."Posting Date" := PostingDate;
+        DetailedCustLedgEntry."Entry Type" := DetailedCustLedgEntry."Entry Type"::"Initial Entry";
+        DetailedCustLedgEntry."Amount (LCY)" := -LibraryRandom.RandDecInRange(100, 1000, 2);
+        DetailedCustLedgEntry."Ledger Entry Amount" := true;
+        DetailedCustLedgEntry.Insert();
+
+        exit(DetailedCustLedgEntry."Amount (LCY)");
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure CustomerSummaryAgingRequestPageHandler(var CustomerSummaryAging: TestRequestPage "Customer - Summary Aging")
@@ -779,6 +834,26 @@ codeunit 144097 "ERM Reports"
     procedure ServiceInvoiceRequestPageHandler(var ServiceInvoice: TestRequestPage "Service - Invoice")
     begin
         ServiceInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    procedure RHCustomerAnnualDeclarationWithMinAmount(var CustomerAnnualDeclaration: TestRequestPage "Customer - Annual Declaration")
+    var
+        MinAmountValue: Variant;
+    begin
+        LibraryVariableStorage.Dequeue(MinAmountValue);
+        CustomerAnnualDeclaration.MinAmount.SetValue(MinAmountValue);
+        CustomerAnnualDeclaration.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [RequestPageHandler]
+    procedure RHVendorAnnualDeclarationWithMinAmount(var VendorAnnualDeclaration: TestRequestPage "Vendor - Annual Declaration")
+    var
+        MinAmountValue: Variant;
+    begin
+        LibraryVariableStorage.Dequeue(MinAmountValue);
+        VendorAnnualDeclaration.MinAmount.SetValue(MinAmountValue);
+        VendorAnnualDeclaration.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
 

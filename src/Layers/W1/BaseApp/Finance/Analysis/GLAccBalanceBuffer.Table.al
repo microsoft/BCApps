@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ table 926 "G/L Acc. Balance Buffer"
         field(6; "Period Name"; Text[50])
         {
             Caption = 'Period Name';
+            ToolTip = 'Specifies the name of the period shown in the line.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -41,6 +42,7 @@ table 926 "G/L Acc. Balance Buffer"
         field(7; "Period Start"; Date)
         {
             Caption = 'Period Start';
+            ToolTip = 'Specifies the start date of the period defined on the line for the bank account balance.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -57,6 +59,7 @@ table 926 "G/L Acc. Balance Buffer"
         field(10; "Debit Amount"; Decimal)
         {
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the debit amount for the period on the line.';
             DataClassification = SystemMetadata;
             AutoFormatType = 1;
             AutoFormatExpression = '';
@@ -67,6 +70,7 @@ table 926 "G/L Acc. Balance Buffer"
         field(11; "Credit Amount"; Decimal)
         {
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the credit amount for the period on the line.';
             DataClassification = SystemMetadata;
             AutoFormatType = 1;
             AutoFormatExpression = '';
@@ -77,6 +81,7 @@ table 926 "G/L Acc. Balance Buffer"
         field(12; "Net Change"; Decimal)
         {
             Caption = 'Net Change';
+            ToolTip = 'Specifies changes in the actual general ledger amount.';
             DataClassification = SystemMetadata;
             AutoFormatType = 1;
             AutoFormatExpression = '';

@@ -251,6 +251,7 @@ report 99000786 "Machine Center Load/Bar"
             Caption = 'Machine Center Load/Bar (obsolete)';
             Type = RDLC;
             LayoutFile = './Manufacturing/Reports/MachineCenterLoadBar.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

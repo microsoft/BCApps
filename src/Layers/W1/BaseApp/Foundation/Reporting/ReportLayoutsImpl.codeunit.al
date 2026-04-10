@@ -46,6 +46,56 @@ codeunit 9660 "Report Layouts Impl."
         SelectedCompany := CopyStr(NewCompanyName, 1, MaxStrLen(SelectedCompany));
     end;
 
+    /// <summary>
+    /// Sets the status for a user-defined layout.
+    /// Only user-defined layouts have entries in "Tenant Report Layout" (table 2000000232).
+    /// Extension-defined layouts reside in the read-only App database and cannot be modified.
+    /// </summary>
+    /// <param name="ReportLayoutList">The layout record from the virtual table</param>
+    /// <param name="NewStatus">The new status to set</param>
+    /// <returns>True if the status was updated, false if the layout is not user-defined or not found</returns>
+    internal procedure SetLayoutStatus(ReportLayoutList: Record "Report Layout List"; NewStatus: Enum "Report Layout Status"): Boolean
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+    begin
+        if not ReportLayoutList."User Defined" then
+            exit(false);
+
+        if TenantReportLayout.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", EmptyGuid) then begin
+            TenantReportLayout."Layout Status" := NewStatus;
+            TenantReportLayout.Modify(true);
+            exit(true);
+        end;
+        exit(false);
+    end;
+
+    /// <summary>
+    /// Sets the status for multiple selected layouts.
+    /// Use this from page actions when user selects multiple layouts.
+    /// </summary>
+    /// <param name="ReportLayoutList">Record set with selected layouts (filtered/marked)</param>
+    /// <param name="NewStatus">The new status to set</param>
+    /// <returns>Number of layouts updated (excludes extension-defined layouts)</returns>
+    internal procedure SetLayoutStatusBatch(var ReportLayoutList: Record "Report Layout List"; NewStatus: Enum "Report Layout Status"): Integer
+    var
+        CustomDimensions: Dictionary of [Text, Text];
+        UpdateCount: Integer;
+    begin
+        if not ReportLayoutList.FindSet() then
+            exit(0);
+        repeat
+            if SetLayoutStatus(ReportLayoutList, NewStatus) then
+                UpdateCount += 1;
+        until ReportLayoutList.Next() = 0;
+
+        if UpdateCount > 0 then begin
+            CustomDimensions.Add('NewStatus', Format(NewStatus));
+            CustomDimensions.Add('UpdateCount', Format(UpdateCount));
+            Log('0000RTN', 'Report layout status changed by user', CustomDimensions);
+        end;
+        exit(UpdateCount);
+    end;
+
     internal procedure RunCustomReport(SelectedReportLayoutList: Record "Report Layout List")
     var
         DesignTimeReportSelection: codeunit "Design-time Report Selection";
@@ -261,6 +311,7 @@ codeunit 9660 "Report Layouts Impl."
         TenantReportLayout."Layout Format" := LayoutFormat;
         TenantReportLayout."Description" := LayoutDescription;
         TenantReportLayout.ExcelLayoutMultipleDataSheets := ExcelSheetConfiguration;
+        TenantReportLayout."Layout Status" := Enum::"Report Layout Status"::Draft;
 
         if CreateEmptyLayout then begin
             EmptyLayoutCreated := false;
@@ -492,6 +543,7 @@ codeunit 9660 "Report Layouts Impl."
                 TenantReportLayout."MIME Type" := SelectedReportLayoutList."MIME Type";
                 TenantReportLayout.IsObsolete := SelectedReportLayoutList.IsObsolete;
                 TenantReportLayout.ExcelLayoutMultipleDataSheets := SelectedReportLayoutList.ExcelLayoutMultipleDataSheets;
+                TenantReportLayout."Layout Status" := Enum::"Report Layout Status"::Draft;
                 TenantReportLayout.Insert(true);
             end else begin
                 TenantReportLayout.Get(SelectedReportLayoutList."Report ID", SelectedReportLayoutList."Name", EmptyGuid);
@@ -505,7 +557,7 @@ codeunit 9660 "Report Layouts Impl."
             NewEditedLayoutName := NewLayoutName;
 
             // If the layout name was updated, we check if this layout is the default layout
-            // and update its reference in the tenant report layout selection table. 
+            // and update its reference in the tenant report layout selection table.
             if not CreateCopy then
                 if (SelectedReportLayoutList.Name <> NewLayoutName) then
                     UpdateDefaultLayoutSelectionName(SelectedReportLayoutList, NewLayoutName);

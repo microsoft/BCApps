@@ -22,7 +22,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
         CommunicationMgt.SetShop(Shop);
         Parameters.Add('Name', SyncShopLocations.GetFulfillmentServiceName());
         Parameters.Add('CallbackUrl', SyncShopLocations.GetFulfillmentServiceCallbackUrl());
-        GraphQLType := "Shpfy GraphQL Type"::CreateFulfillmentService;
+        GraphQLType := "Shpfy GraphQL Type"::Fulfillments_CreateFulfillmentService;
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
 
         Shop."Fulfillment Service Activated" := true;
@@ -39,7 +39,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
 
         Parameters.Add('FulfillmentOrderId', format(FulfillmentOrderHeader."Shopify Fulfillment Order Id"));
 
-        GraphQLType := "Shpfy GraphQL Type"::GetOpenFulfillmentOrderLines;
+        GraphQLType := "Shpfy GraphQL Type"::Fulfillments_GetOpenFulfillmentOrderLines;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             if JResponse.IsObject() then
@@ -48,7 +48,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := "Shpfy GraphQL Type"::GetNextOpenFulfillmentOrderLines;
+                    GraphQLType := "Shpfy GraphQL Type"::Fulfillments_GetNextOpenFulfillmentOrderLines;
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.fulfillmentOrder.lineItems.pageInfo.hasNextPage');
@@ -193,7 +193,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
             if not Shop."Fulfillment Service Activated" then
                 RegisterFulfillmentService(Shop);
 
-        GraphQLType := "Shpfy GraphQL Type"::GetFulfillmentOrdersFromOrder;
+        GraphQLType := "Shpfy GraphQL Type"::Fulfillments_GetFulfillmentOrdersFromOrder;
         repeat
             if Parameters.ContainsKey('OrderId') then
                 Parameters.Set('OrderId', Format(OrderId))
@@ -206,7 +206,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := "Shpfy GraphQL Type"::GetNextFulfillmentOrdersFromOrder;
+                    GraphQLType := "Shpfy GraphQL Type"::Fulfillments_GetNextFulfillmentOrdersFromOrder;
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.order.fulfillmentOrders.pageInfo.hasNextPage');
@@ -229,7 +229,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
             exit;
         end;
 
-        GraphQLType := "Shpfy GraphQL Type"::GetAssignedFulfillmentOrders;
+        GraphQLType := "Shpfy GraphQL Type"::Fulfillments_GetAssignedFulfillmentOrders;
 
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -239,7 +239,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := "Shpfy GraphQL Type"::GetNextAssignedFulfillmentOrders;
+                    GraphQLType := "Shpfy GraphQL Type"::Fulfillments_GetNextAssignedFulfillmentOrders;
                 end else
                     break;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.assignedFulfillmentOrders.pageInfo.hasNextPage');
@@ -252,7 +252,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
         JResponse: JsonToken;
         JLocations: JsonArray;
     begin
-        GraphQLType := "Shpfy GraphQL Type"::HasFulfillmentService;
+        GraphQLType := "Shpfy GraphQL Type"::Fulfillments_HasFulfillmentService;
         Parameters.Add('Name', SyncShopLocations.GetFulfillmentServiceName());
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if not JResponse.IsObject() then
@@ -294,7 +294,7 @@ codeunit 30238 "Shpfy Fulfillment Orders API"
         CommunicationMgt.SetShop(Shop);
         Parameters.Add('FulfillmentOrderId', Format(FulfillmentOrderHeader."Shopify Fulfillment Order Id"));
 
-        GraphQLType := "Shpfy GraphQL Type"::AcceptFulfillmentRequest;
+        GraphQLType := "Shpfy GraphQL Type"::Fulfillments_AcceptFulfillmentRequest;
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
 
         if JResponse.IsObject() then begin

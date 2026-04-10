@@ -5,15 +5,9 @@
 namespace Microsoft.Utilities;
 
 using Microsoft.CashFlow.Forecast;
-#if not CLEAN26
-using Microsoft.Finance.FinancialReports;
-#endif
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.RoleCenters;
 using Microsoft.Foundation.Task;
-#if not CLEAN26
-using Microsoft.Integration.Entity;
-#endif
 using Microsoft.Purchases.Document;
 using Microsoft.RoleCenters;
 using Microsoft.Sales.Receivables;
@@ -316,61 +310,6 @@ page 1156 "Company Detail"
                 {
                     Caption = 'Excel Reports';
                     Image = Excel;
-#if not CLEAN26
-                    group(Legacy)
-                    {
-                        Caption = 'Legacy reports (will be removed)';
-                        Image = Excel;
-                        ObsoleteReason = 'These reports have been deprecated and will be removed in a future release.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '26.0';
-
-                        action(ExcelTemplatesBalanceSheet)
-                        {
-                            ApplicationArea = All;
-                            Caption = 'Balance Sheet';
-                            Image = Excel;
-                            RunObject = Codeunit "Run Template Balance Sheet";
-                            ToolTip = 'Open a spreadsheet that shows your company''s assets, liabilities, and equity. This report is deprecated and will be removed in a future release.';
-                            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '26.0';
-                        }
-                        action(ExcelTemplateIncomeStmt)
-                        {
-                            ApplicationArea = All;
-                            Caption = 'Income Statement';
-                            Image = Excel;
-                            RunObject = Codeunit "Run Template Income Stmt.";
-                            ToolTip = 'Open a spreadsheet that shows your company''s income and expenses. This report is deprecated and will be removed in a future release.';
-                            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '26.0';
-                        }
-                        action(ExcelTemplateCashFlowStmt)
-                        {
-                            ApplicationArea = All;
-                            Caption = 'Cash Flow Statement';
-                            Image = Excel;
-                            RunObject = Codeunit "Run Template CashFlow Stmt.";
-                            ToolTip = 'Open a spreadsheet that shows how changes in balance sheet accounts and income affect the company''s cash holdings. This report is deprecated and will be removed in a future release.';
-                            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '26.0';
-                        }
-                        action(ExcelTemplateRetainedEarn)
-                        {
-                            ApplicationArea = All;
-                            Caption = 'Retained Earnings Statement';
-                            Image = Excel;
-                            RunObject = Codeunit "Run Template Retained Earn.";
-                            ToolTip = 'Open a spreadsheet that shows your company''s changes in retained earnings based on net income from the other financial statements. This report is deprecated and will be removed in a future release.';
-                            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '26.0';
-                        }
-                    }
-#endif
                 }
             }
             group(Link)
@@ -401,37 +340,6 @@ page 1156 "Company Detail"
                 {
                 }
             }
-#if not CLEAN26
-            group(Category_Report)
-            {
-                Caption = 'Reports';
-
-                actionref(ExcelTemplatesBalanceSheet_Promoted; ExcelTemplatesBalanceSheet)
-                {
-                    ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                }
-                actionref(ExcelTemplateIncomeStmt_Promoted; ExcelTemplateIncomeStmt)
-                {
-                    ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                }
-                actionref(ExcelTemplateCashFlowStmt_Promoted; ExcelTemplateCashFlowStmt)
-                {
-                    ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                }
-                actionref(ExcelTemplateRetainedEarn_Promoted; ExcelTemplateRetainedEarn)
-                {
-                    ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                }
-            }
-#endif
         }
     }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,54 +26,65 @@ table 60 "Document Sending Profile"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code to identify the document sending method in the system.';
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the document sending format.';
         }
         field(10; Printer; Option)
         {
             Caption = 'Printer';
+            ToolTip = 'Specifies if and how the document is printed when you choose the Post and Send button. If you choose the Yes (Prompt for Settings) option, the document is printed according to settings that you must make on the printer setup dialog.';
             OptionCaption = 'No,Yes (Prompt for Settings),Yes (Use Default Settings)';
             OptionMembers = No,"Yes (Prompt for Settings)","Yes (Use Default Settings)";
         }
         field(11; "E-Mail"; Option)
         {
             Caption = 'Email';
+            ToolTip = 'Specifies if and how the document is attached as a PDF file to an email to the involved customer when you choose the Post and Send button. If you choose the Yes (Prompt for Settings) option, the document is attached to an email according to settings that you must make in the Send Email window.';
             OptionCaption = 'No,Yes (Prompt for Settings),Yes (Use Default Settings)';
             OptionMembers = No,"Yes (Prompt for Settings)","Yes (Use Default Settings)";
         }
         field(12; "E-Mail Attachment"; Enum "Document Sending Profile Attachment Type")
         {
             Caption = 'Email Attachment';
+            ToolTip = 'Specifies the type of file to attach.';
         }
         field(13; "E-Mail Format"; Code[20])
         {
             Caption = 'Email Format';
+            ToolTip = 'Specifies how customers are set up with their preferred method of sending sales documents.';
             TableRelation = "Electronic Document Format".Code;
         }
         field(15; Disk; Enum "Doc. Sending Profile Disk")
         {
             Caption = 'Disk';
+            ToolTip = 'Specify if the document is saved as a PDF file when you choose the Post and Send button.';
         }
         field(16; "Disk Format"; Code[20])
         {
             Caption = 'Disk Format';
+            ToolTip = 'Specifies the format of the electronic document.';
             TableRelation = "Electronic Document Format".Code;
         }
         field(20; "Electronic Document"; Enum "Doc. Sending Profile Elec.Doc.")
         {
             Caption = 'Electronic Document';
+            ToolTip = 'Specifies if the document is sent as an electronic document that the customer can import into their system when you choose the Post and Send button. To use this option, you must also fill the Electronic Format field. Alternatively, the file can be saved to disk.';
         }
         field(21; "Electronic Format"; Code[20])
         {
             Caption = 'Electronic Format';
+            ToolTip = 'Specifies which format to use for electronic document sending. You must fill this field if you selected the Silent option in the Electronic Document field.';
             TableRelation = "Electronic Document Format".Code;
         }
         field(30; Default; Boolean)
         {
             Caption = 'Default';
+            ToolTip = 'Specifies if this document sending method will be used as the default method for all customers.';
 
             trigger OnValidate()
             var
@@ -110,6 +121,7 @@ table 60 "Document Sending Profile"
         field(60; "Combine Email Documents"; Boolean)
         {
             Caption = 'Combine Email Documents';
+            ToolTip = 'Merge selected documents into a single PDF file when you send the documents by email or print them. For example, this reduces the number of documents the recipient must process.';
             InitValue = false;
         }
     }
@@ -553,7 +565,7 @@ table 60 "Document Sending Profile"
         IsCustomer: Boolean;
     begin
         IsCustomer := true;
-        OnBeforeTrySendToEMail(ReportUsage, RecordVariant, DocumentNoFieldNo, DocName, CustomerFieldNo, ShowDialog, Handled, IsCustomer);
+        OnBeforeTrySendToEMail(ReportUsage, RecordVariant, DocumentNoFieldNo, DocName, CustomerFieldNo, ShowDialog, Handled, IsCustomer, Rec);
         if Handled then
             exit;
 
@@ -680,7 +692,7 @@ table 60 "Document Sending Profile"
     begin
         SendWithReportDistributionManagement := true;
         OnSendWithReportDistributionManagement(Rec, SendWithReportDistributionManagement);
-        
+
         if (not SendWithReportDistributionManagement) or ("Electronic Document" = "Electronic Document"::No) then
             exit;
 
@@ -1096,7 +1108,7 @@ table 60 "Document Sending Profile"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTrySendToEMail(ReportUsage: Integer; RecordVariant: Variant; DocumentNoFieldNo: Integer; DocName: Text[150]; CustomerFieldNo: Integer; var ShowDialog: Boolean; var Handled: Boolean; var IsCustomer: Boolean)
+    local procedure OnBeforeTrySendToEMail(ReportUsage: Integer; RecordVariant: Variant; DocumentNoFieldNo: Integer; DocName: Text[150]; CustomerFieldNo: Integer; var ShowDialog: Boolean; var Handled: Boolean; var IsCustomer: Boolean; var DocumentSendingProfile: Record "Document Sending Profile")
     begin
     end;
 

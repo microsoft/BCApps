@@ -1524,10 +1524,20 @@ table 5108 "Sales Line Archive"
             Caption = 'Customer Disc. Group';
             TableRelation = "Customer Discount Group";
         }
+#if not CLEANSCHEMA32
         field(10605; "Account Code"; Text[30])
         {
             Caption = 'Account Code';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
     }
 
     keys

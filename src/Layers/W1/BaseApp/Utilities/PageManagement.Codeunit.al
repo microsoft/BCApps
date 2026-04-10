@@ -286,11 +286,7 @@ codeunit 700 "Page Management"
         exit(0);
     end;
 
-#if not CLEAN26
-    local procedure GetSalesHeaderPageID(RecRef: RecordRef) Result: Integer
-#else
     local procedure GetSalesHeaderPageID(RecRef: RecordRef): Integer
-#endif
     var
         SalesHeader: Record "Sales Header";
         DocumentType: Enum "Sales Document Type";
@@ -316,41 +312,8 @@ codeunit 700 "Page Management"
             SalesHeader."Document Type"::"Return Order":
                 exit(PAGE::"Sales Return Order");
         end;
-#if not CLEAN26
-        OnAfterGetSalesHeaderPageID(RecRef, SalesHeader, Result);
-#endif
     end;
 
-#if not CLEAN26
-    local procedure GetPurchaseHeaderPageID(RecRef: RecordRef) Result: Integer
-    var
-        PurchaseHeader: Record "Purchase Header";
-        DocumentType: Enum "Purchase Document Type";
-    begin
-        RecRef.SetTable(PurchaseHeader);
-        if IsNullGuid(PurchaseHeader.SystemId) then begin
-            if not Evaluate(DocumentType, PurchaseHeader.GetFilter("Document Type")) then
-                exit(0);
-        end else
-            DocumentType := PurchaseHeader."Document Type";
-
-        case DocumentType of
-            PurchaseHeader."Document Type"::Quote:
-                Result := PAGE::"Purchase Quote";
-            PurchaseHeader."Document Type"::Order:
-                Result := PAGE::"Purchase Order";
-            PurchaseHeader."Document Type"::Invoice:
-                Result := PAGE::"Purchase Invoice";
-            PurchaseHeader."Document Type"::"Credit Memo":
-                Result := PAGE::"Purchase Credit Memo";
-            PurchaseHeader."Document Type"::"Blanket Order":
-                Result := PAGE::"Blanket Purchase Order";
-            PurchaseHeader."Document Type"::"Return Order":
-                Result := PAGE::"Purchase Return Order";
-        end;
-        OnAfterGetPurchaseHeaderPageID(RecRef, PurchaseHeader, Result);
-    end;
-#else
     local procedure GetPurchaseHeaderPageID(RecRef: RecordRef): Integer
     var
         PurchaseHeader: Record "Purchase Header";
@@ -379,7 +342,6 @@ codeunit 700 "Page Management"
                 exit(PAGE::"Purchase Return Order");
         end;
     end;
-#endif
 
     local procedure GetGenJournalBatchPageID(RecRef: RecordRef): Integer
     var
@@ -710,20 +672,6 @@ codeunit 700 "Page Management"
     local procedure OnAfterGetPageID(var RecordRef: RecordRef; var PageID: Integer; ForceListPage: Boolean)
     begin
     end;
-#if not CLEAN26
-
-    [IntegrationEvent(false, false)]
-    [Obsolete('Use OnBeforeGetConditionalCardPageID instead and check the RecRef points to "Sales Header".', '26.0')]
-    local procedure OnAfterGetSalesHeaderPageID(RecRef: RecordRef; SalesHeader: Record "Sales Header"; var Result: Integer)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    [Obsolete('Use OnBeforeGetConditionalCardPageID instead and check the RecRef points to "Purchase Header".', '26.0')]
-    local procedure OnAfterGetPurchaseHeaderPageID(RecRef: RecordRef; PurchaseHeader: Record "Purchase Header"; var Result: Integer)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetDefaultLookupPageID(TableID: Integer; var PageID: Integer)

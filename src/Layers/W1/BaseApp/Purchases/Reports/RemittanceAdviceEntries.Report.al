@@ -14,10 +14,9 @@ using System.Utilities;
 
 report 400 "Remittance Advice - Entries"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/RemittanceAdviceEntries.rdlc';
     Caption = 'Remittance Advice - Entries';
     WordMergeDataItem = "Vendor Ledger Entry";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -334,6 +333,16 @@ report 400 "Remittance Advice - Entries"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/RemittanceAdviceEntries.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

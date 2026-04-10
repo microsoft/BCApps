@@ -9,14 +9,13 @@ using Microsoft.Manufacturing.Document;
 
 report 99000767 "Prod. Order - Calculation"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Manufacturing/Reports/ProdOrderCalculation.rdlc';
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Calculation (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been replaced by the "Production Order Statistics" report and will be removed in a future release.';
     ObsoleteTag = '27.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -135,6 +134,16 @@ report 99000767 "Prod. Order - Calculation"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Manufacturing/Reports/ProdOrderCalculation.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

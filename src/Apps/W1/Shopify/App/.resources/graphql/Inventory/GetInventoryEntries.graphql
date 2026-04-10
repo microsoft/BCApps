@@ -1,0 +1,2 @@
+# cost: 48
+{"query":"{location(id:\"gid://shopify/Location/{{LocationId}}\"){inventoryLevels(first:100){pageInfo{hasNextPage} edges{cursor node{id quantities(names: \"available\") {quantity} item{id variant{id product{id}}}}}}}}"}

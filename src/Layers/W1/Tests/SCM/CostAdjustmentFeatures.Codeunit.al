@@ -42,7 +42,7 @@ codeunit 137085 "Cost Adjustment Features"
     // TEST CASES:
 
     // 1. Adjusting cost until valuation date:
-    // 1.1. FIFO item - the date is ignored, all periods are adjusted
+    // 1.1. FIFO item - error
     // 1.2. Average cost item - select last period, all periods are adjusted
     // 1.3. Average cost item - select first period, check cost and item setup
     // 1.4. Average cost item - adjust cost in two iterations
@@ -118,16 +118,11 @@ codeunit 137085 "Cost Adjustment Features"
 
         // [WHEN] Adjust cost until "Date 2".
         AvgCostAdjmtEntryPoint.Get(Item."No.", '', '', Dates.Get(2));
-        AvgCostAdjmtEntryPoint.RunCostAdjustmentUntilValuationDate();
+        asserterror AvgCostAdjmtEntryPoint.RunCostAdjustmentUntilValuationDate();
 
-        // [THEN] Check that all periods are adjusted and the item is adjusted.
-        Item.Find();
-        Item.TestField("Cost is Adjusted");
-        VerifyItemCostAmountZero(Item."No.");
-
-        AvgCostAdjmtEntryPoint.SetRange("Item No.", Item."No.");
-        AvgCostAdjmtEntryPoint.SetRange("Cost Is Adjusted", false);
-        Assert.RecordIsEmpty(AvgCostAdjmtEntryPoint);
+        // [THEN] Error is thrown because the costing method of the item is FIFO, and only Average cost items can be adjusted until valuation date.
+        Assert.ExpectedError('Costing Method must be equal to ''Average''');
+        Assert.ExpectedErrorCode('TestField');
     end;
 
     [Test]

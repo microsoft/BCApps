@@ -81,10 +81,10 @@ report 5405 "Calc. Consumption"
                     NextConsumpJnlLineNo := 10000;
 
                 Window.Open(
-                    Text000 +
-                    Text001 +
-                    Text002 +
-                    Text003);
+                  Text000 +
+                  Text001 +
+                  Text002 +
+                  Text003);
             end;
         }
     }
@@ -199,13 +199,13 @@ report 5405 "Calc. Consumption"
     procedure CreateConsumpJnlLine(LocationCode: Code[10]; BinCode: Code[20]; OriginalQtyToPost: Decimal)
     var
         Location: Record Location;
+#if not CLEAN26
+        ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
+#endif
 #if not CLEAN27
         SubcontractingMgt: Codeunit SubcontractingManagement;
         WorkCenter: Record "Work Center";
         ProdOrdRoutLine: Record "Prod. Order Routing Line";
-#endif
-#if not CLEAN26
-        ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
 #endif
         QtyToPost: Decimal;
         ShouldModifyItemJnlLine: Boolean;

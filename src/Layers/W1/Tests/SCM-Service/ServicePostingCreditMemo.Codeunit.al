@@ -1324,9 +1324,6 @@ codeunit 136104 "Service Posting - Credit Memo"
         SalesCreditMemo.OpenNew();
 
         // [THEN] All controls related to customer (and on SaaS) are disabled
-#if not CLEAN26
-        Assert.IsFalse(SalesCreditMemo.Statistics.Enabled(), ControlShouldBeDisabledErr);
-#endif
         Assert.IsFalse(SalesCreditMemo.SalesStatistics.Enabled(), ControlShouldBeDisabledErr);
         Assert.IsFalse(SalesCreditMemo.CalculateInvoiceDiscount.Enabled(), ControlShouldBeDisabledErr);
         Assert.IsFalse(SalesCreditMemo.ApplyEntries.Enabled(), ControlShouldBeDisabledErr);
@@ -1365,9 +1362,6 @@ codeunit 136104 "Service Posting - Credit Memo"
         SalesCreditMemo.GotoRecord(SalesHeader);
 
         // [THEN] All controls related to customer (and on SaaS) are enabled
-#if not CLEAN26
-        Assert.IsTrue(SalesCreditMemo.Statistics.Enabled(), ControlShouldBeEnabledErr);
-#endif
         Assert.IsTrue(SalesCreditMemo.SalesStatistics.Enabled(), ControlShouldBeEnabledErr);
         Assert.IsTrue(SalesCreditMemo.CalculateInvoiceDiscount.Enabled(), ControlShouldBeEnabledErr);
         Assert.IsTrue(SalesCreditMemo.ApplyEntries.Enabled(), ControlShouldBeEnabledErr);

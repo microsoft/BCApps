@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -80,6 +80,7 @@ table 1701 "Deferral Header"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount to Defer';
+            ToolTip = 'Specifies the amount to defer per period.';
 
             trigger OnValidate()
             begin
@@ -116,6 +117,7 @@ table 1701 "Deferral Header"
         field(10; "Calc. Method"; Enum "Deferral Calculation Method")
         {
             Caption = 'Calc. Method';
+            ToolTip = 'Specifies how the Amount field for each period is calculated. Straight-Line: Calculated per the number of periods, distributed by period length. Equal Per Period: Calculated per the number of periods, distributed evenly on periods. Days Per Period: Calculated per the number of days in the period. User-Defined: Not calculated. You must manually fill the Amount field for each period.';
         }
         /// <summary>
         /// Start date for the deferral schedule, determining when the first deferral entry will be posted.
@@ -124,6 +126,7 @@ table 1701 "Deferral Header"
         field(11; "Start Date"; Date)
         {
             Caption = 'Start Date';
+            ToolTip = 'Specifies when to start calculating deferral amounts.';
 
             trigger OnValidate()
             var
@@ -154,6 +157,7 @@ table 1701 "Deferral Header"
         {
             BlankZero = true;
             Caption = 'No. of Periods';
+            ToolTip = 'Specifies how many accounting periods the total amounts will be deferred to.';
             NotBlank = true;
 
             trigger OnValidate()

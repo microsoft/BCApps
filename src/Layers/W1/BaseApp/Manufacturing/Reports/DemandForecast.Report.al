@@ -12,14 +12,13 @@ using System.Utilities;
 
 report 99003804 "Demand Forecast"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Manufacturing/Reports/DemandForecast.rdlc';
     ApplicationArea = Manufacturing;
     Caption = 'Demand Forecast (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been deprecated and will be removed in a future release.';
     ObsoleteTag = '27.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -178,6 +177,16 @@ report 99003804 "Demand Forecast"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Manufacturing/Reports/DemandForecast.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

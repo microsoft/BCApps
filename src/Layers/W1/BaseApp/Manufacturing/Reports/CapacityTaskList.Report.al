@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.WorkCenter;
 
 report 99000780 "Capacity Task List"
 {
-    DefaultRenderingLayout = WordLayout;
+    DefaultRenderingLayout = ExcelLayout;
     ApplicationArea = Manufacturing;
     Caption = 'Capacity Task List';
     UsageCategory = ReportsAndAnalysis;
@@ -229,11 +229,13 @@ report 99000780 "Capacity Task List"
         {
             Type = Word;
             LayoutFile = './Manufacturing/Reports/CapacityTaskList.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
         layout(ExcelLayout)
         {
             Type = Excel;
             LayoutFile = './Manufacturing/Reports/CapacityTaskList.xlsx';
+            Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
 #if not CLEAN27
         layout(RDLCLayout)
@@ -243,6 +245,7 @@ report 99000780 "Capacity Task List"
             ObsoleteState = Pending;
             ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
             ObsoleteTag = '27.0';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
     }

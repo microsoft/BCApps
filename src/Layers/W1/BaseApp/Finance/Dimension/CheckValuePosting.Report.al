@@ -22,11 +22,10 @@ using System.Utilities;
 /// </remarks>
 report 30 "Check Value Posting"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/Dimension/CheckValuePosting.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Dimension Check Value Posting';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -445,6 +444,16 @@ report 30 "Check Value Posting"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/Dimension/CheckValuePosting.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

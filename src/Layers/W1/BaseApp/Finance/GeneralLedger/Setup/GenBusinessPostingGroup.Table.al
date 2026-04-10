@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 250 "Gen. Business Posting Group"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the business group.';
             NotBlank = true;
         }
         /// <summary>
@@ -42,6 +43,7 @@ table 250 "Gen. Business Posting Group"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the general business posting group.';
         }
         /// <summary>
         /// Default VAT business posting group automatically assigned to customers, vendors, and G/L accounts using this general business posting group.
@@ -49,6 +51,7 @@ table 250 "Gen. Business Posting Group"
         field(3; "Def. VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'Def. VAT Bus. Posting Group';
+            ToolTip = 'Specifies a default VAT business group code.';
             TableRelation = "VAT Business Posting Group";
 
             trigger OnValidate()
@@ -93,6 +96,7 @@ table 250 "Gen. Business Posting Group"
         field(4; "Auto Insert Default"; Boolean)
         {
             Caption = 'Auto Insert Default';
+            ToolTip = 'Specifies whether to automatically insert the Def. VAT Bus. Posting Group when the corresponding Code is inserted on new customer and vendor cards.';
             InitValue = true;
         }
     }

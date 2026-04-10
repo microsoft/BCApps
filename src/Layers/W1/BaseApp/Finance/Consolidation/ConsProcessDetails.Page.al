@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -56,37 +56,30 @@ page 252 "Cons. Process Details"
                 field("Business Unit Code"; Rec."Business Unit Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code of the business unit.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the status of the business unit in the consolidation process.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the currency code of the business unit.';
                 }
                 field("Currency Exchange Rate Table"; Rec."Currency Exchange Rate Table")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the currency exchange rate table of the business unit.';
                 }
                 field("Closing Exchange Rate"; Rec."Closing Exchange Rate")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the closing exchange rate of the business unit.';
                 }
                 field("Average Exchange Rate"; Rec."Average Exchange Rate")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the average exchange rate of the business unit.';
                 }
                 field("Last Closing Exchange Rate"; Rec."Last Closing Exchange Rate")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the last closing exchange rate considered when adjusting balances in re-runs for this business unit.';
                 }
             }
         }

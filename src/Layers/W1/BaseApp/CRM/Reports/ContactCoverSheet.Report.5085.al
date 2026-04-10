@@ -15,12 +15,10 @@ using System.Email;
 report 5085 "Contact Cover Sheet"
 #pragma warning restore AA0215
 {
-    RDLCLayout = './CRM/Reports/ContactCoverSheet.5085.rdlc';
-    WordLayout = './CRM/Reports/ContactCoverSheet.docx';
     Caption = 'Contact Cover Sheet';
-    DefaultLayout = Word;
     PreviewMode = PrintLayout;
     WordMergeDataItem = TempSegmentLine;
+    DefaultRenderingLayout = WordLayout;
 
     dataset
     {
@@ -222,6 +220,22 @@ report 5085 "Contact Cover Sheet"
             LogInteraction := SegManagement.FindInteractionTemplateCode(Enum::"Interaction Log Entry Document Type"::"Cover Sheet") <> '';
             LogInteractionEnable := LogInteraction;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/ContactCoverSheet.5085.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
+        layout(WordLayout)
+        {
+            Type = Word;
+            LayoutFile = './CRM/Reports/ContactCoverSheet.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     labels

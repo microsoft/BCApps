@@ -70,13 +70,8 @@ table 263 "Intrastat Jnl. Line"
         field(11; "Source Type"; Enum "Intrastat Source Type")
         {
             Caption = 'Source Type';
-#if CLEAN26
             ObsoleteState = Removed;
             ObsoleteTag = '29.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#endif
             ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions.';
         }
 #pragma warning restore AS0105
@@ -269,11 +264,6 @@ table 263 "Intrastat Jnl. Line"
         {
             Clustered = true;
         }
-#if not CLEAN26
-        key(Key2; "Source Type", "Source Entry No.")
-        {
-        }
-#endif
         key(Key4; "Internal Ref. No.")
         {
         }

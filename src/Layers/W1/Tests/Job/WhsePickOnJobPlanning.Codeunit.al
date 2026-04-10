@@ -37,6 +37,8 @@ codeunit 136318 "Whse. Pick On Job Planning"
         OneWhsePickHeaderCreatedErr: Label 'Only one warehouse activity header created.';
         WarehousePickActionTypeTotalErr: Label 'Total number of %1 %2 for warehouse pick lines should be equal to %3', Comment = '%1 = Warehouse Activity Type, %2 = Pick, %3 = 100';
         WarehouseEntryTotalErr: Label 'Warehouse Entry for the warehouse pick should have %1 entries for %2', Comment = '%1 = 10, %2 = Bin Code';
+        JobJnlLineNotFoundErr: Label 'Related Job Journal Line not found', Comment = 'Error message when job journal line cannot be found';
+        ProjectPlanningLineErr: Label 'Project Planning Line No. must have a value in Project Journal Line: Journal Template Name=%1, Journal Batch Name=%2, Line No.=%3. It cannot be zero or empty.', Comment = '%1 = Journal Template Name, %2 = Journal Batch Name, %3 = Line No.';
         IsInitialized: Boolean;
 
     [Test]
@@ -3948,6 +3950,71 @@ codeunit 136318 "Whse. Pick On Job Planning"
         JobCardPage."Create Warehouse Pick".Invoke();
     end;
 
+
+    [Test]
+    [HandlerFunctions('MessageHandler,WhseSrcCreateDocReqHandler,ConfirmHandlerTrue,JobTransferFromJobPlanLineHandler')]
+    [Scope('OnPrem')]
+    procedure ProjectJournalPostingBlockedIfNotFullyPicked()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        Job: Record Job;
+        JobJournalLine: Record "Job Journal Line";
+        JobPlanningLine: Record "Job Planning Line";
+        JobTask: Record "Job Task";
+        Zone: Record Zone;
+        JobJnlPostLine: Codeunit "Job Jnl.-Post Line";
+        QtyInventory: Integer;
+    begin
+        // [SCENARIO 542897] User can remove project planning line from Project Journal linked to Directed Put-away and Pick.
+        Initialize();
+
+        // [GIVEN] Create a zone with Directed Put-away and Pick and Bin.
+        LibraryWarehouse.CreateZone(Zone, '', LocationWithDirectedPutawayAndPick.Code, LibraryWarehouse.SelectBinType(false, false, false, false), '', '', 0, false);
+        LibraryWarehouse.CreateBin(Bin, LocationWithDirectedPutawayAndPick.Code, '', Zone.Code, Zone."Bin Type Code");
+
+        // [GIVEN] Set Warehouse Employee for the location with "Directed Put-away and Pick".
+        CreateDefaultWarehouseEmployee(LocationWithDirectedPutawayAndPick);
+
+        // [GIVEN] Ensure empty Bin in Pick zone
+        CreateEmptyPickBin();
+
+        // [GIVEN] Create an Item with enough inventory on location with "Directed Put-away and Pick".
+        LibraryInventory.CreateItem(Item);
+        QtyInventory := LibraryRandom.RandIntInRange(20, 30);
+        CreateAndRegisterPutAwayFromWarehouseReceiptUsingPurchaseOrder(Item."No.", QtyInventory, LocationWithDirectedPutawayAndPick.Code, false);
+
+        // [GIVEN] Create a job, task, and planning line with the location, item and bin.
+        CreateJobWithJobTask(JobTask);
+        CreateJobPlanningLineWithData(JobPlanningLine, JobTask, "Job Planning Line Line Type"::Budget, JobPlanningLine.Type::Item, Item."No.",
+            LocationWithDirectedPutawayAndPick.Code, Bin.code, LibraryRandom.RandIntInRange(1, 2));
+
+        // [GIVEN] 'Create Warehouse Pick' action is invoked from the job card
+        Job.Get(JobPlanningLine."Job No.");
+        OpenJobAndCreateWarehousePick(Job);
+
+        // [GIVEN] Autofill quantity and Register related warehouse pick.
+        AutoFillAndRegisterWhsePickFromPage(JobPlanningLine);
+
+        // [WHEN] Transfer to Project Journal (Job Journal) and attempt to update quantity to more than picked quantity
+        JobPlanningLine.Get(JobPlanningLine."Job No.", JobPlanningLine."Job Task No.", JobPlanningLine."Line No."); //Refresh the job planning lines to have the latest information.
+        TransferToJobJournalFromJobPlanningLine(JobPlanningLine);
+        OpenRelatedJournal(JobPlanningLine, JobJournalLine);
+        JobJournalLine.Get(JobJournalLine."Journal Template Name", JobJournalLine."Journal Batch Name", JobJournalLine."Line No."); //Refresh the job journal line to have the latest information.
+        asserterror JobJournalLine.Validate(Quantity, LibraryRandom.RandIntInRange(5, 7));
+
+        JobJournalLine.Validate("Job Planning Line No.", 0);
+        JobJournalLine.Validate(Quantity, LibraryRandom.RandIntInRange(5, 7));
+
+        // [THEN] Verify posting must be blocked with error as Job Planning Line No. is 0.
+        asserterror JobJnlPostLine.RunWithCheck(JobJournalLine);
+        Assert.ExpectedError(
+            StrSubstNo(ProjectPlanningLineErr,
+                JobJournalLine."Journal Template Name",
+                JobJournalLine."Journal Batch Name",
+                JobJournalLine."Line No."));
+    end;
+
     procedure AssignSNWhsePickLines(JobPlanningLine: Record "Job Planning Line")
     var
         WarehouseActivityLinePick: Record "Warehouse Activity Line";
@@ -4570,6 +4637,15 @@ codeunit 136318 "Whse. Pick On Job Planning"
         WarehouseReceiptLine.SetRange("Source No.", SourceNo);
         WarehouseReceiptLine.SetRange("Item No.", ItemNo);
         WarehouseReceiptLine.FindFirst();
+    end;
+
+    local procedure OpenRelatedJournal(JobPlanningLine: Record "Job Planning Line"; var JobJournalLine: Record "Job Journal Line")
+    begin
+        // Find the related job journal line for the planning line
+        JobJournalLine.Reset();
+        JobJournalLine.SetRange("Job No.", JobPlanningLine."Job No.");
+        if not JobJournalLine.FindFirst() then
+            Error(JobJnlLineNotFoundErr);
     end;
 
     [ConfirmHandler]

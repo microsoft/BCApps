@@ -11,11 +11,10 @@ using Microsoft.FixedAssets.Setup;
 
 report 5610 "Fixed Asset - G/L Analysis"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Reports/FixedAssetGLAnalysis.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset G/L Analysis';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -336,6 +335,16 @@ report 5610 "Fixed Asset - G/L Analysis"
         begin
             GetFASetup();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Reports/FixedAssetGLAnalysis.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

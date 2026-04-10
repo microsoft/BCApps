@@ -8,6 +8,7 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
 using Microsoft.FixedAssets.Posting;
+using Microsoft.FixedAssets.Setup;
 
 codeunit 5616 "Depreciation Calculation"
 {
@@ -58,9 +59,6 @@ codeunit 5616 "Depreciation Calculation"
             StartingDay := 30;
         if Date2DMY(EndingDate + 1, 1) = 1 then
             EndingDay := 30;
-
-        if UseAccountingPeriod then
-            exit(EndingDate - StartingDate + 1);
 
         NumbefOfDeprDays := 1 + EndingDay - StartingDay + 30 * (EndingMonth - StartingMonth) +
           360 * (EndingYear - StartingYear);
@@ -263,6 +261,26 @@ codeunit 5616 "Depreciation Calculation"
         exit(Amount);
     end;
 
+    internal procedure GetUnpostedBonusDepreciationForCalc(var FADepreciationBook: Record "FA Depreciation Book"; StartingDate: Date; EndingDate: Date): Decimal
+    var
+        FASetup: Record "FA Setup";
+    begin
+        if (EndingDate <> 0D) and (EndingDate < FADepreciationBook."Depreciation Starting Date") then
+            exit(0);
+
+        if not FADepreciationBook."Use Bonus Depreciation" then
+            exit(0);
+
+        FASetup.Get();
+        if not FADepreciationBook.EligibleForBonusDepreciation(FASetup) then
+            exit(0);
+
+        if FADepreciationBook.BonusDepreciationApplied() then
+            exit(0);
+
+        exit(FADepreciationBook.BonusDepreciationAmount(FASetup));
+    end;
+
     local procedure CalcMaxDepr(BookValue: Decimal; SalvageValue: Decimal; EndingBookValue: Decimal): Decimal
     var
         MaxDepr: Decimal;
@@ -409,6 +427,7 @@ codeunit 5616 "Depreciation Calculation"
     procedure CalculateDeprInPeriod(FANo: Code[20]; DeprBookCode: Code[10]; EndingDate: Date; CalculatedDepr: Decimal; Sign: Integer; var NewBookValue: Decimal; var DeprBasis: Decimal; var SalvageValue: Decimal; var MinusBookValue: Decimal)
     var
         FALedgEntry: Record "FA Ledger Entry";
+        FADepreciationBook: Record "FA Depreciation Book";
     begin
         FALedgEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "Part of Book Value", "FA Posting Date");
         FALedgEntry.SetRange("Depreciation Book Code", DeprBookCode);
@@ -430,7 +449,8 @@ codeunit 5616 "Depreciation Calculation"
         FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Salvage Value");
         FALedgEntry.CalcSums(Amount);
         SalvageValue := Sign * FALedgEntry.Amount;
-        MinusBookValue := Sign * GetMinusBookValue(FANo, DeprBookCode, 0D, EndingDate);
+        FADepreciationBook.Get(FANo, DeprBookCode);
+        MinusBookValue := Sign * (GetMinusBookValue(FANo, DeprBookCode, 0D, EndingDate) + GetUnpostedBonusDepreciationForCalc(FADepreciationBook, 0D, EndingDate));
     end;
 
     procedure GetDeprPeriod(FANo: Code[20]; DeprBookCode: Code[10]; UntilDate: Date; var StartingDate: Date; var EndingDate: Date; var NumberOfDays: Integer; Year365Days: Boolean)

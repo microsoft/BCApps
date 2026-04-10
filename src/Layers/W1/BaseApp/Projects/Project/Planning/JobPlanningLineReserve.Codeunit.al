@@ -380,10 +380,8 @@ codeunit 1032 "Job Planning Line-Reserve"
                     // Set the tracking for the item journal inside the loop as it is cleared within TransferReservEntry
                     CreateReservEntry.SetNewTrackingFromItemJnlLine(NewItemJournalLine);
 
-                TransferQty :=
-                  CreateReservEntry.TransferReservEntry(Database::"Item Journal Line",
-                    NewItemJournalLine."Entry Type".AsInteger(), NewItemJournalLine."Journal Template Name", NewItemJournalLine."Journal Batch Name", 0,
-                    NewItemJournalLine."Line No.", NewItemJournalLine."Qty. per Unit of Measure", OldReservationEntry, TransferQty);
+                TransferJobPlanningLineToItemJournalLineReservationEntry(
+                    JobPlanningLine, NewItemJournalLine, OldReservationEntry, TransferQty);
 
                 EndLoop := TransferQty = 0;
                 if not EndLoop then
@@ -406,6 +404,23 @@ codeunit 1032 "Job Planning Line-Reserve"
             end;
         end;
         exit(TransferQty);
+    end;
+
+    local procedure TransferJobPlanningLineToItemJournalLineReservationEntry(var JobPlanningLine: Record "Job Planning Line"; var ItemJournalLine: Record "Item Journal Line"; var OldReservationEntry: Record "Reservation Entry"; var TransferQty: Decimal)
+    var
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeTransferJobPlanningLineToItemJournalLineReservationEntry(JobPlanningLine, ItemJournalLine, OldReservationEntry, TransferQty, IsHandled);
+        if IsHandled then
+            exit;
+
+        TransferQty :=
+            CreateReservEntry.TransferReservEntry(
+                Database::"Item Journal Line",
+                ItemJournalLine."Entry Type".AsInteger(), ItemJournalLine."Journal Template Name",
+                ItemJournalLine."Journal Batch Name", 0, ItemJournalLine."Line No.",
+                ItemJournalLine."Qty. per Unit of Measure", OldReservationEntry, TransferQty);
     end;
 
     local procedure UpdateReservationsWhenPostingJobPlaningLineNegativeAdjFromPO(var JobPlanningLine: Record "Job Planning Line"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
@@ -1005,5 +1020,10 @@ codeunit 1032 "Job Planning Line-Reserve"
             JobPlanningLine.FindFirst();
             ShipmentDate := JobPlanningLine."Planning Date";
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTransferJobPlanningLineToItemJournalLineReservationEntry(var JobPlanningLine: Record "Job Planning Line"; var ItemJournalLine: Record "Item Journal Line"; var OldReservationEntry: Record "Reservation Entry"; var TransferQty: Decimal; var IsHandled: Boolean)
+    begin
     end;
 }

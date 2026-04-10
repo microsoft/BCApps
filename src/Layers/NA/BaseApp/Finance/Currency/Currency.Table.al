@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,6 +42,7 @@ table 4 Currency
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a currency code that you can select. The code must comply with ISO 4217.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -62,6 +63,7 @@ table 4 Currency
         field(2; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
+            ToolTip = 'Specifies the last date on which any information in the Currency table was modified.';
             Editable = false;
         }
         /// <summary>
@@ -71,6 +73,7 @@ table 4 Currency
         field(3; "Last Date Adjusted"; Date)
         {
             Caption = 'Last Date Adjusted';
+            ToolTip = 'Specifies when the exchange rates were last adjusted, that is, the last date on which the Adjust Exchange Rates batch job was run.';
             Editable = false;
         }
         /// <summary>
@@ -80,6 +83,7 @@ table 4 Currency
         field(4; "ISO Code"; Code[3])
         {
             Caption = 'ISO Code';
+            ToolTip = 'Specifies a three-letter currency code defined in ISO 4217.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -101,6 +105,7 @@ table 4 Currency
         field(5; "ISO Numeric Code"; Code[3])
         {
             Caption = 'ISO Numeric Code';
+            ToolTip = 'Specifies a three-digit code number defined in ISO 4217.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -120,6 +125,7 @@ table 4 Currency
         field(6; "Unrealized Gains Acc."; Code[20])
         {
             Caption = 'Unrealized Gains Acc.';
+            ToolTip = 'Specifies the general ledger account number to which unrealized exchange rate gains will be posted when the Adjust Exchange Rates batch job is run.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -134,6 +140,7 @@ table 4 Currency
         field(7; "Realized Gains Acc."; Code[20])
         {
             Caption = 'Realized Gains Acc.';
+            ToolTip = 'Specifies the general ledger account number to which realized exchange rate gains will be posted.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -148,6 +155,7 @@ table 4 Currency
         field(8; "Unrealized Losses Acc."; Code[20])
         {
             Caption = 'Unrealized Losses Acc.';
+            ToolTip = 'Specifies the general ledger account number to which unrealized exchange rate losses will be posted when the Adjust Exchange Rates batch job is run.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -162,6 +170,7 @@ table 4 Currency
         field(9; "Realized Losses Acc."; Code[20])
         {
             Caption = 'Realized Losses Acc.';
+            ToolTip = 'Specifies the general ledger account number to which realized exchange rate losses will be posted.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -180,6 +189,7 @@ table 4 Currency
             AutoFormatType = 1;
             DecimalPlaces = 2 : 5;
             Caption = 'Invoice Rounding Precision';
+            ToolTip = 'Specifies the size of the interval to be used when rounding amounts in this currency. You can specify invoice rounding for each currency in the Currency table.';
             InitValue = 0.01;
 
             trigger OnValidate()
@@ -198,6 +208,7 @@ table 4 Currency
         field(12; "Invoice Rounding Type"; Option)
         {
             Caption = 'Invoice Rounding Type';
+            ToolTip = 'Specifies whether an invoice amount will be rounded up or down. The program uses this information together with the interval for rounding that you have specified in the Invoice Rounding Precision field.';
             OptionCaption = 'Nearest,Up,Down';
             OptionMembers = Nearest,Up,Down;
         }
@@ -208,6 +219,7 @@ table 4 Currency
         field(13; "Amount Rounding Precision"; Decimal)
         {
             Caption = 'Amount Rounding Precision';
+            ToolTip = 'Specifies the size of the interval to be used when rounding amounts in this currency.';
             DecimalPlaces = 2 : 5;
             InitValue = 0.01;
             MinValue = 0;
@@ -230,6 +242,7 @@ table 4 Currency
         field(14; "Unit-Amount Rounding Precision"; Decimal)
         {
             Caption = 'Unit-Amount Rounding Precision';
+            ToolTip = 'Specifies the size of the interval to be used when rounding unit amounts (that is, item prices per unit) in this currency.';
             DecimalPlaces = 0 : 9;
             InitValue = 0.00001;
             MinValue = 0;
@@ -242,6 +255,7 @@ table 4 Currency
         field(15; Description; Text[30])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a text to describe the currency code.';
         }
         /// <summary>
         /// Format specification for displaying amounts in this currency.
@@ -250,6 +264,7 @@ table 4 Currency
         field(17; "Amount Decimal Places"; Text[5])
         {
             Caption = 'Amount Decimal Places';
+            ToolTip = 'Specifies the number of decimal places the program will display for amounts in this currency.';
             InitValue = '2:2';
             NotBlank = true;
 
@@ -265,6 +280,7 @@ table 4 Currency
         field(18; "Unit-Amount Decimal Places"; Text[5])
         {
             Caption = 'Unit-Amount Decimal Places';
+            ToolTip = 'Specifies the number of decimal places the program will display for amounts in this currency.';
             InitValue = '2:5';
             NotBlank = true;
 
@@ -350,6 +366,7 @@ table 4 Currency
                                                                          "Posting Date" = field("Date Filter"),
                                                                          "Currency Code" = field(Code)));
             Caption = 'Customer Balance';
+            ToolTip = 'Specifies the payment amount that the customer owes for completed sales.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -368,6 +385,7 @@ table 4 Currency
                                                                        "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                        "Shortcut Dimension 2 Code" = field("Global Dimension 2 Filter")));
             Caption = 'Customer Outstanding Orders';
+            ToolTip = 'Specifies the number of orders for which payment has not been made.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -386,6 +404,7 @@ table 4 Currency
                                                                          "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                          "Shortcut Dimension 2 Code" = field("Global Dimension 2 Filter")));
             Caption = 'Customer Shipped Not Invoiced';
+            ToolTip = 'Specifies the number of orders that are shipped but not invoiced.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -404,6 +423,7 @@ table 4 Currency
                                                                          "Posting Date" = field(upperlimit("Date Filter")),
                                                                          "Currency Code" = field(Code)));
             Caption = 'Customer Balance Due';
+            ToolTip = 'Specifies the payment amount that the customer owes you for completed sales where the payment date is exceeded.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -434,6 +454,7 @@ table 4 Currency
                                                                            "Posting Date" = field("Date Filter"),
                                                                            "Currency Code" = field(Code)));
             Caption = 'Vendor Balance';
+            ToolTip = 'Specifies the payment amount that you owe the vendor for completed purchases.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -452,6 +473,7 @@ table 4 Currency
                                                                           "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                           "Shortcut Dimension 2 Code" = field("Global Dimension 2 Filter")));
             Caption = 'Vendor Outstanding Orders';
+            ToolTip = 'Specifies the number of orders for which payment has not been made.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -470,6 +492,7 @@ table 4 Currency
                                                                               "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                               "Shortcut Dimension 2 Code" = field("Global Dimension 2 Filter")));
             Caption = 'Vendor Amt. Rcd. Not Invoiced';
+            ToolTip = 'Specifies the number of orders that are shipped but not invoiced.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -489,6 +512,7 @@ table 4 Currency
                                                                            "Posting Date" = field(upperlimit("Date Filter")),
                                                                            "Currency Code" = field(Code)));
             Caption = 'Vendor Balance Due';
+            ToolTip = 'Specifies the payment amount that you owe the vendor for completed purchases where the payment date is exceeded.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -534,6 +558,7 @@ table 4 Currency
         field(40; "Realized G/L Gains Account"; Code[20])
         {
             Caption = 'Realized G/L Gains Account';
+            ToolTip = 'Specifies the general ledger account to post exchange rate gains to, for currency adjustments between LCY and the additional reporting currency.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -548,6 +573,7 @@ table 4 Currency
         field(41; "Realized G/L Losses Account"; Code[20])
         {
             Caption = 'Realized G/L Losses Account';
+            ToolTip = 'Specifies the general ledger account to post exchange rate gains to for currency adjustments between LCY and the additional reporting currency.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -564,6 +590,7 @@ table 4 Currency
             AutoFormatExpression = Code;
             AutoFormatType = 1;
             Caption = 'Appln. Rounding Precision';
+            ToolTip = 'Specifies the size of the interval that will be allowed as a rounding difference when you apply entries in different currencies to one another.';
             MinValue = 0;
         }
         /// <summary>
@@ -573,6 +600,7 @@ table 4 Currency
         field(45; "EMU Currency"; Boolean)
         {
             Caption = 'EMU Currency';
+            ToolTip = 'Specifies whether the currency is an EMU currency, for example DEM or EUR.';
         }
         /// <summary>
         /// System-calculated factor used in currency conversion calculations.
@@ -592,6 +620,7 @@ table 4 Currency
         field(47; "Residual Gains Account"; Code[20])
         {
             Caption = 'Residual Gains Account';
+            ToolTip = 'Specifies the general ledger account to post residual amount gains to, if you post in the general ledger application area in both LCY and an additional reporting currency.';
             TableRelation = "G/L Account";
         }
         /// <summary>
@@ -601,6 +630,7 @@ table 4 Currency
         field(48; "Residual Losses Account"; Code[20])
         {
             Caption = 'Residual Losses Account';
+            ToolTip = 'Specifies the general ledger account to post residual amount losses to, if you post in the general ledger application area in both LCY and an additional reporting currency.';
             TableRelation = "G/L Account";
         }
         /// <summary>
@@ -610,6 +640,7 @@ table 4 Currency
         field(50; "Conv. LCY Rndg. Debit Acc."; Code[20])
         {
             Caption = 'Conv. LCY Rndg. Debit Acc.';
+            ToolTip = 'Specifies conversion information that must also contain a debit account if you wish to insert correction lines for rounding differences in the general journals using the Insert Conv. LCY Rndg. Lines function.';
             TableRelation = "G/L Account";
         }
         /// <summary>
@@ -619,6 +650,7 @@ table 4 Currency
         field(51; "Conv. LCY Rndg. Credit Acc."; Code[20])
         {
             Caption = 'Conv. LCY Rndg. Credit Acc.';
+            ToolTip = 'Specifies conversion information that must also contain a credit account if you wish to insert correction lines for rounding differences in the general journals using the Insert Conv. LCY Rndg. Lines function.';
             TableRelation = "G/L Account";
         }
         /// <summary>
@@ -631,6 +663,7 @@ table 4 Currency
             AutoFormatExpression = Code;
             AutoFormatType = 1;
             Caption = 'Max. VAT Difference Allowed';
+            ToolTip = 'Specifies the maximum VAT correction amount allowed for the currency.';
 
             trigger OnValidate()
             begin
@@ -649,6 +682,7 @@ table 4 Currency
         field(53; "VAT Rounding Type"; Option)
         {
             Caption = 'VAT Rounding Type';
+            ToolTip = 'Specifies how the program will round VAT when calculated for this currency.';
             OptionCaption = 'Nearest,Up,Down';
             OptionMembers = Nearest,Up,Down;
         }
@@ -659,6 +693,7 @@ table 4 Currency
         field(54; "Payment Tolerance %"; Decimal)
         {
             Caption = 'Payment Tolerance %';
+            ToolTip = 'Specifies the percentage that the payment or refund is allowed to be, less than the amount on the invoice or credit memo.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             MaxValue = 100;
@@ -674,6 +709,7 @@ table 4 Currency
             AutoFormatExpression = Code;
             AutoFormatType = 1;
             Caption = 'Max. Payment Tolerance Amount';
+            ToolTip = 'Specifies the maximum allowed amount that the payment or refund can differ from the amount on the invoice or credit memo.';
             Editable = false;
             MinValue = 0;
         }
@@ -684,6 +720,7 @@ table 4 Currency
         field(56; Symbol; Text[10])
         {
             Caption = 'Symbol';
+            ToolTip = 'Specifies the symbol for the currency, for example, $ for US dollars.';
 
             trigger OnValidate()
             begin
@@ -725,6 +762,7 @@ table 4 Currency
         {
             FieldClass = FlowField;
             Caption = 'Coupled to Dataverse';
+            ToolTip = 'Specifies that the currency is coupled to a currency in Dataverse.';
             Editable = false;
             CalcFormula = exist("CRM Integration Record" where("Integration ID" = field(SystemId), "Table ID" = const(Database::Currency)));
         }

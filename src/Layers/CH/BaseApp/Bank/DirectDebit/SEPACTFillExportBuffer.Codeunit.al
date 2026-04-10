@@ -96,10 +96,7 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
         CreditTransferRegister.CreateNew(MessageID, BankAccount."No.");
         OnFillExportBufferOnAfterCreateNewRegister(CreditTransferRegister, BankExportImportSetup);
         SwissExport := CHMgt.IsSwissSEPACTExport(TempGenJnlLine);
-        if SwissExport then
-            BatchBooking := TempGenJnlLine.Count >= CHMgt.NoOfPaymentsForBatchBooking()
-        else
-            BatchBooking := false;
+        BatchBooking := GetBatchBooking(SwissExport, BankExportImportSetup, TempGenJnlLine.Count);
 
         PaymentExportData.Reset();
         if PaymentExportData.FindLast() then;
@@ -200,6 +197,19 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
             TempGenJnlLine."Recipient Bank Account", TempGenJnlLine."Message to Recipient");
 
         OnAfterCreateNewCreditTransferEntry(PaymentExportData, CreditTransferEntry, TempGenJnlLine);
+    end;
+
+    local procedure GetBatchBooking(SwissExport: Boolean; BankExportImportSetup: Record "Bank Export/Import Setup"; LineCount: Integer): Boolean
+    begin
+        if not SwissExport then
+            exit(false);
+
+        case BankExportImportSetup."SEPA CT Batch Booking" of
+            BankExportImportSetup."SEPA CT Batch Booking"::Always:
+                exit(true);
+            BankExportImportSetup."SEPA CT Batch Booking"::Auto:
+                exit(LineCount >= 50);
+        end;
     end;
 
     internal procedure GetAppliesToDocEntryNumbers(GenJournalLine: Record "Gen. Journal Line"; var TempInteger: Record "Integer" temporary)

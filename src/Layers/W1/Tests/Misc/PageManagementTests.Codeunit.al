@@ -574,5 +574,379 @@ codeunit 135001 "Page Management Tests"
         // [THEN] "Purchase List" page id is returned
         Assert.AreEqual(Page::"Purchase List", PageID, '');
     end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForProductionOrderFilterSimulated()
+    var
+        ProductionOrder: Record "Production Order";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Production Order with filter applied on Status = Simulated
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::Simulated);
+
+        // [WHEN] The GetListPageID function is called for Production Order with filter applied on Status = Simulated
+        PageID := PageManagement.GetListPageID(ProductionOrder);
+
+        // [THEN] "Simulated Production Orders" page id is returned
+        Assert.AreEqual(Page::"Simulated Production Orders", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForProductionOrderFilterPlanned()
+    var
+        ProductionOrder: Record "Production Order";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Production Order with filter applied on Status = Planned
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::Planned);
+
+        // [WHEN] The GetListPageID function is called for Production Order with filter applied on Status = Planned
+        PageID := PageManagement.GetListPageID(ProductionOrder);
+
+        // [THEN] "Planned Production Orders" page id is returned
+        Assert.AreEqual(Page::"Planned Production Orders", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForProductionOrderFilterFirmPlanned()
+    var
+        ProductionOrder: Record "Production Order";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Production Order with filter applied on Status = Firm Planned
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::"Firm Planned");
+
+        // [WHEN] The GetListPageID function is called for Production Order with filter applied on Status = Firm Planned
+        PageID := PageManagement.GetListPageID(ProductionOrder);
+
+        // [THEN] "Firm Planned Prod. Orders" page id is returned
+        Assert.AreEqual(Page::"Firm Planned Prod. Orders", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForProductionOrderFilterReleased()
+    var
+        ProductionOrder: Record "Production Order";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Production Order with filter applied on Status = Released
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
+
+        // [WHEN] The GetListPageID function is called for Production Order with filter applied on Status = Released
+        PageID := PageManagement.GetListPageID(ProductionOrder);
+
+        // [THEN] "Released Production Orders" page id is returned
+        Assert.AreEqual(Page::"Released Production Orders", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForProductionOrderFilterFinished()
+    var
+        ProductionOrder: Record "Production Order";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Production Order with filter applied on Status = Finished
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::Finished);
+
+        // [WHEN] The GetListPageID function is called for Production Order with filter applied on Status = Finished
+        PageID := PageManagement.GetListPageID(ProductionOrder);
+
+        // [THEN] "Finished Production Orders" page id is returned
+        Assert.AreEqual(Page::"Finished Production Orders", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceHeaderFilterQuote()
+    var
+        ServiceHeader: Record "Service Header";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Header with filter applied on "Document Type" = Quote
+        ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::Quote);
+
+        // [WHEN] The GetListPageID function is called for Service Header with filter applied on "Document Type" = Quote
+        PageID := PageManagement.GetListPageID(ServiceHeader);
+
+        // [THEN] "Service Quotes" page id is returned
+        Assert.AreEqual(Page::"Service Quotes", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForProductionOrderFilterMoreStatuses()
+    var
+        ProductionOrder: Record "Production Order";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Production Order with filter applied on Status = Planned OR Released
+        ProductionOrder.SetFilter(Status, '%1|%2', ProductionOrder.Status::Planned, ProductionOrder.Status::Released);
+
+        // [WHEN] The GetListPageID function is called for Production Order with filter applied on Status = Planned OR Released
+        PageID := PageManagement.GetListPageID(ProductionOrder);
+
+        // [THEN] "Production Order List" page id is returned
+        Assert.AreEqual(Page::"Production Order List", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForProductionOrderFilterUnknownStatuses()
+    var
+        ProductionOrder: Record "Production Order";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Production Order with filter applied on "No." <> '' without any filter on Status
+        ProductionOrder.SetFilter("No.", '<>''''');
+
+        // [WHEN] The GetListPageID function is called for Production Order with filter applied on "No." <> '' without any filter on Status
+        PageID := PageManagement.GetListPageID(ProductionOrder);
+
+        // [THEN] "Production Order List" page id is returned
+        Assert.AreEqual(Page::"Production Order List", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceHeaderFilterOrder()
+    var
+        ServiceHeader: Record "Service Header";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Header with filter applied on "Document Type" = Order
+        ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::Order);
+
+        // [WHEN] The GetListPageID function is called for Service Header with filter applied on "Document Type" = Order
+        PageID := PageManagement.GetListPageID(ServiceHeader);
+
+        // [THEN] "Service Orders" page id is returned
+        Assert.AreEqual(Page::"Service Orders", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceHeaderFilterInvoice()
+    var
+        ServiceHeader: Record "Service Header";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Header with filter applied on "Document Type" = Invoice
+        ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::Invoice);
+
+        // [WHEN] The GetListPageID function is called for Service Header with filter applied on "Document Type" = Invoice
+        PageID := PageManagement.GetListPageID(ServiceHeader);
+
+        // [THEN] "Service Invoices" page id is returned
+        Assert.AreEqual(Page::"Service Invoices", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceHeaderFilterCreditMemo()
+    var
+        ServiceHeader: Record "Service Header";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Header with filter applied on "Document Type" = Credit Memo
+        ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::"Credit Memo");
+
+        // [WHEN] The GetListPageID function is called for Service Header with filter applied on "Document Type" = Credit Memo
+        PageID := PageManagement.GetListPageID(ServiceHeader);
+
+        // [THEN] "Service Credit Memos" page id is returned
+        Assert.AreEqual(Page::"Service Credit Memos", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceContractHeaderFilterContract()
+    var
+        ServiceContractHeader: Record "Service Contract Header";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Contract Header with filter applied on "Contract Type" = Contract
+        ServiceContractHeader.SetRange("Contract Type", ServiceContractHeader."Contract Type"::Contract);
+
+        // [WHEN] The GetListPageID function is called for Service Contract Header with filter applied on "Contract Type" = Contract
+        PageID := PageManagement.GetListPageID(ServiceContractHeader);
+
+        // [THEN] "Service Contracts" page id is returned
+        Assert.AreEqual(Page::"Service Contracts", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceContractHeaderFilterQuote()
+    var
+        ServiceContractHeader: Record "Service Contract Header";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Contract Header with filter applied on "Contract Type" = Quote
+        ServiceContractHeader.SetRange("Contract Type", ServiceContractHeader."Contract Type"::Quote);
+
+        // [WHEN] The GetListPageID function is called for Service Contract Header with filter applied on "Contract Type" = Quote
+        PageID := PageManagement.GetListPageID(ServiceContractHeader);
+
+        // [THEN] "Service Contract Quotes" page id is returned
+        Assert.AreEqual(Page::"Service Contract Quotes", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceContractHeaderFilterTemplate()
+    var
+        ServiceContractHeader: Record "Service Contract Header";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Contract Header with filter applied on "Contract Type" = Template
+        ServiceContractHeader.SetRange("Contract Type", ServiceContractHeader."Contract Type"::Template);
+
+        // [WHEN] The GetListPageID function is called for Service Contract Header with filter applied on "Contract Type" = Template
+        PageID := PageManagement.GetListPageID(ServiceContractHeader);
+
+        // [THEN] "Service Contract Template List" page id is returned
+        Assert.AreEqual(Page::"Service Contract Template List", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceHeaderArchiveFilterQuote()
+    var
+        ServiceHeaderArchive: Record "Service Header Archive";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Header Archive with filter applied on "Document Type" = Quote
+        ServiceHeaderArchive.SetRange("Document Type", ServiceHeaderArchive."Document Type"::Quote);
+
+        // [WHEN] The GetListPageID function is called for Service Header Archive with filter applied on "Document Type" = Quote
+        PageID := PageManagement.GetListPageID(ServiceHeaderArchive);
+
+        // [THEN] "Service Quote Archives" page id is returned
+        Assert.AreEqual(Page::"Service Quote Archives", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceHeaderArchiveFilterOrder()
+    var
+        ServiceHeaderArchive: Record "Service Header Archive";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Header Archive with filter applied on "Document Type" = Order
+        ServiceHeaderArchive.SetRange("Document Type", ServiceHeaderArchive."Document Type"::Order);
+
+        // [WHEN] The GetListPageID function is called for Service Header Archive with filter applied on "Document Type" = Order
+        PageID := PageManagement.GetListPageID(ServiceHeaderArchive);
+
+        // [THEN] "Service Order Archives" page id is returned
+        Assert.AreEqual(Page::"Service Order Archives", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceHeaderFilterMoreDocumentTypes()
+    var
+        ServiceHeader: Record "Service Header";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Header with filter applied on "Document Type" = Quote OR Order
+        ServiceHeader.SetFilter("Document Type", '%1|%2', ServiceHeader."Document Type"::Quote, ServiceHeader."Document Type"::Order);
+
+        // [WHEN] The GetListPageID function is called for Service Header with filter applied on "Document Type" = Quote OR Order
+        PageID := PageManagement.GetListPageID(ServiceHeader);
+
+        // [THEN] "Service List" page id is returned
+        Assert.AreEqual(Page::"Service List", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceHeaderFilterUnknownDocumentTypes()
+    var
+        ServiceHeader: Record "Service Header";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Header with filter applied on "No." <> '' without any filter on "Document Type"
+        ServiceHeader.SetFilter("No.", '<>''''');
+
+        // [WHEN] The GetListPageID function is called for Service Header with filter applied on "No." <> '' without any filter on "Document Type"
+        PageID := PageManagement.GetListPageID(ServiceHeader);
+
+        // [THEN] "Service List" page id is returned
+        Assert.AreEqual(Page::"Service List", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceContractHeaderFilterMoreContractTypes()
+    var
+        ServiceContractHeader: Record "Service Contract Header";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Contract Header with filter applied on "Contract Type" = Contract OR Quote
+        ServiceContractHeader.SetFilter("Contract Type", '%1|%2', ServiceContractHeader."Contract Type"::Contract, ServiceContractHeader."Contract Type"::Quote);
+
+        // [WHEN] The GetListPageID function is called for Service Contract Header with filter applied on "Contract Type" = Contract OR Quote
+        PageID := PageManagement.GetListPageID(ServiceContractHeader);
+
+        // [THEN] "Service Contract List" page id is returned
+        Assert.AreEqual(Page::"Service Contract List", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceContractHeaderFilterUnknownContractTypes()
+    var
+        ServiceContractHeader: Record "Service Contract Header";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Contract Header with filter applied on "Contract No." <> '' without any filter on "Contract Type"
+        ServiceContractHeader.SetFilter("Contract No.", '<>''''');
+
+        // [WHEN] The GetListPageID function is called for Service Contract Header with filter applied on "Contract No." <> '' without any filter on "Contract Type"
+        PageID := PageManagement.GetListPageID(ServiceContractHeader);
+
+        // [THEN] "Service Contract List" page id is returned
+        Assert.AreEqual(Page::"Service Contract List", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceHeaderArchiveFilterMoreDocumentTypes()
+    var
+        ServiceHeaderArchive: Record "Service Header Archive";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Header Archive with filter applied on "Document Type" = Quote OR Order
+        ServiceHeaderArchive.SetFilter("Document Type", '%1|%2', ServiceHeaderArchive."Document Type"::Quote, ServiceHeaderArchive."Document Type"::Order);
+
+        // [WHEN] The GetListPageID function is called for Service Header Archive with filter applied on "Document Type" = Quote OR Order
+        PageID := PageManagement.GetListPageID(ServiceHeaderArchive);
+
+        // [THEN] "Service List Archive" page id is returned
+        Assert.AreEqual(Page::"Service List Archive", PageID, '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestGetListPageIDForServiceHeaderArchiveFilterUnknownDocumentTypes()
+    var
+        ServiceHeaderArchive: Record "Service Header Archive";
+        PageID: Integer;
+    begin
+        // [SCENARIO] The correct page ID is returned for Service Header Archive with filter applied on "No." <> '' without any filter on "Document Type"
+        ServiceHeaderArchive.SetFilter("No.", '<>''''');
+
+        // [WHEN] The GetListPageID function is called for Service Header Archive with filter applied on "No." <> '' without any filter on "Document Type"
+        PageID := PageManagement.GetListPageID(ServiceHeaderArchive);
+
+        // [THEN] "Service List Archive" page id is returned
+        Assert.AreEqual(Page::"Service List Archive", PageID, '');
+    end;
 }
 

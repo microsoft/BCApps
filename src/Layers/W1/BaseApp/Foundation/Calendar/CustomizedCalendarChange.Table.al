@@ -21,26 +21,31 @@ table 7602 "Customized Calendar Change"
         field(1; "Source Type"; Enum "Calendar Source Type")
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the source type for the calendar entry.';
             Editable = false;
         }
         field(2; "Source Code"; Code[20])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code for the calendar entry.';
             Editable = false;
         }
         field(3; "Additional Source Code"; Code[20])
         {
             Caption = 'Additional Source Code';
+            ToolTip = 'Specifies the calendar entry.';
         }
         field(4; "Base Calendar Code"; Code[10])
         {
             Caption = 'Base Calendar Code';
+            ToolTip = 'Specifies which base calendar was used as the basis.';
             Editable = false;
             TableRelation = "Base Calendar";
         }
         field(5; "Recurring System"; Option)
         {
             Caption = 'Recurring System';
+            ToolTip = 'Specifies a date or day as a recurring nonworking or working day.';
             OptionCaption = ' ,Annual Recurring,Weekly Recurring';
             OptionMembers = " ","Annual Recurring","Weekly Recurring";
 
@@ -58,6 +63,7 @@ table 7602 "Customized Calendar Change"
         field(6; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date.';
 
             trigger OnValidate()
             begin
@@ -73,6 +79,7 @@ table 7602 "Customized Calendar Change"
         field(7; Day; Option)
         {
             Caption = 'Day';
+            ToolTip = 'Specifies the day of the week.';
             OptionCaption = ' ,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday';
             OptionMembers = " ",Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday;
 
@@ -86,10 +93,12 @@ table 7602 "Customized Calendar Change"
         field(8; Description; Text[30])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the entry to be applied.';
         }
         field(9; Nonworking; Boolean)
         {
             Caption = 'Nonworking';
+            ToolTip = 'Specifies the date entry as a nonworking day. You can also remove the check mark to return the status to working day.';
             InitValue = true;
         }
         field(10; "Entry No."; Integer)

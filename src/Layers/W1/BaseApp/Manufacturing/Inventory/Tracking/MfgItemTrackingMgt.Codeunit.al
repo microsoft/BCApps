@@ -102,9 +102,6 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         ReservEntry.SetFilter("Qty. to Handle (Base)", '<>0');
         ReservEntry.SetTrackingFilterFromItemJnlLine(ItemJnlLine);
         OnRetrieveConsumpItemTrackingOnAfterSetFilters(ReservEntry, ItemJnlLine);
-#if not CLEAN26
-        ItemTrackingManagement.RunOnRetrieveConsumpItemTrackingOnAfterSetFilters(ReservEntry, ItemJnlLine);
-#endif
 
         // Sum up in a temporary table per component line:
         exit(ItemTrackingManagement.SumUpItemTracking(ReservEntry, TempHandlingSpecification, true, true));
@@ -119,9 +116,6 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
     begin
         IsHandled := false;
         OnBeforeRetrieveSubcontrItemTracking(ItemJnlLine, TempHandlingSpecification, Result, IsHandled);
-#if not CLEAN26
-        ItemTrackingManagement.RunOnBeforeRetrieveSubcontrItemTracking(ItemJnlLine, TempHandlingSpecification, Result, IsHandled);
-#endif
         if IsHandled then
             exit(Result);
 
@@ -141,9 +135,6 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
 
         IsLastOperation := ProdOrderRoutingLine."Next Operation No." = '';
         OnRetrieveSubcontrItemTrackingOnBeforeCheckLastOperation(ProdOrderRoutingLine, IsLastOperation);
-#if not CLEAN26
-        ItemTrackingManagement.RunOnRetrieveSubcontrItemTrackingOnBeforeCheckLastOperation(ProdOrderRoutingLine, IsLastOperation);
-#endif
         if not IsLastOperation then
             exit(false);
 
@@ -155,9 +146,6 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
             if not ReservEntry.IsEmpty() then
                 ReservEntry.DeleteAll();
             OnRetrieveSubcontrItemTrackingOnAfterDeleteReservEntries(TempHandlingSpecification, ReservEntry);
-#if not CLEAN26
-            ItemTrackingManagement.RunOnRetrieveSubcontrItemTrackingOnAfterDeleteReservEntries(TempHandlingSpecification, ReservEntry);
-#endif
             exit(true);
         end;
         exit(false);
@@ -638,9 +626,6 @@ codeunit 99000891 "Mfg. Item Tracking Mgt."
         end;
 
         OnAfterCollectPostedOutputEntries(ItemLedgerEntry, TempTrackingSpecification);
-#if not CLEAN26
-        ItemTrackingLines.RunOnAfterCollectPostedOutputEntries(ItemLedgerEntry, TempTrackingSpecification);
-#endif
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Item Tracking Lines", 'OnCheckItemTrackingLineIsBoundForBarcodeScanning', '', true, false)]

@@ -231,7 +231,6 @@ codeunit 12132 "Withholding Tax Export"
             repeat
                 TempContributions.Get(TempWithholdingTax."Entry No.");
                 FindWithholdingTaxEntry(TempWithholdingTaxPrevYears, TempWithholdingTax."Vendor No.", TempWithholdingTax.Reason);
-                EntryNumber += 1;
                 if TempWithholdingTax."Vendor No." = LastVendorNo then
                     VendorEntryNumber += 1
                 else
@@ -239,6 +238,7 @@ codeunit 12132 "Withholding Tax Export"
                 if (TempWithholdingTax."Vendor No." <> LastVendorNo) or (TempWithholdingTax.Reason <> LastReason) then begin
                     TempWithholdingTax.SetRange("Vendor No.", TempWithholdingTax."Vendor No.");
                     TempWithholdingTax.SetRange(Reason, TempWithholdingTax.Reason);
+                    EntryNumber += 1;
                     CreateRecordD(TempWithholdingTax, EntryNumber);
                     LastVendorNo := TempWithholdingTax."Vendor No.";
                     LastReason := TempWithholdingTax.Reason;

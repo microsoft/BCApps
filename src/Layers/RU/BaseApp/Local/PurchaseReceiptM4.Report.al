@@ -66,7 +66,7 @@ report 12475 "Purchase Receipt M-4"
 
             trigger OnAfterGetRecord()
             begin
-                GLAccountNetChange.DeleteAll();
+                TempGLAccountNetChange.DeleteAll();
                 AccNo := '';
                 CompanyInfo.Get();
 
@@ -76,28 +76,28 @@ report 12475 "Purchase Receipt M-4"
                     repeat
                         case PurchLine.Type of
                             PurchLine.Type::"G/L Account":
-                                InventoryReportsHelper.InsertGLAccount(GLAccountNetChange, PurchLine."No.", AccNo);
+                                InventoryReportsHelper.InsertGLAccount(TempGLAccountNetChange, PurchLine."No.", AccNo);
                             PurchLine.Type::Item:
                                 begin
                                     InvPostingSetup.Get("Location Code", PurchLine."Posting Group");
-                                    InventoryReportsHelper.InsertGLAccount(GLAccountNetChange, InvPostingSetup."Inventory Account (Interim)", AccNo);
+                                    InventoryReportsHelper.InsertGLAccount(TempGLAccountNetChange, InvPostingSetup."Inventory Account (Interim)", AccNo);
                                 end;
                             PurchLine.Type::"Charge (Item)":
                                 begin
                                     GeneralPostingSetup.Get("Gen. Bus. Posting Group", PurchLine."Gen. Prod. Posting Group");
-                                    InventoryReportsHelper.InsertGLAccount(GLAccountNetChange, GeneralPostingSetup."Purch. Account", AccNo);
+                                    InventoryReportsHelper.InsertGLAccount(TempGLAccountNetChange, GeneralPostingSetup."Purch. Account", AccNo);
                                 end;
                             PurchLine.Type::"Fixed Asset":
                                 begin
                                     PurchLine.TestField("Depreciation Book Code");
                                     FADepreciationBook.Get(PurchLine."No.", PurchLine."Depreciation Book Code");
                                     FAPostingGroup.Get(FADepreciationBook."FA Posting Group");
-                                    InventoryReportsHelper.InsertGLAccount(GLAccountNetChange, FAPostingGroup."Acquisition Cost Account", AccNo);
+                                    InventoryReportsHelper.InsertGLAccount(TempGLAccountNetChange, FAPostingGroup."Acquisition Cost Account", AccNo);
                                 end;
                             PurchLine.Type::"Empl. Purchase":
                                 begin
                                     VendPostingGroup.Get("Vendor Posting Group");
-                                    InventoryReportsHelper.InsertGLAccount(GLAccountNetChange, VendPostingGroup."Payables Account", AccNo);
+                                    InventoryReportsHelper.InsertGLAccount(TempGLAccountNetChange, VendPostingGroup."Payables Account", AccNo);
                                 end;
                         end;
                     until PurchLine.Next() = 0;
@@ -146,7 +146,7 @@ report 12475 "Purchase Receipt M-4"
         GeneralPostingSetup: Record "General Posting Setup";
         InvPostingSetup: Record "Inventory Posting Setup";
         PurchLine: Record "Purchase Line";
-        GLAccountNetChange: Record "G/L Account Net Change";
+        TempGLAccountNetChange: Record "G/L Account Net Change";
         FADepreciationBook: Record "FA Depreciation Book";
         FAPostingGroup: Record "FA Posting Group";
         VendPostingGroup: Record "Vendor Posting Group";

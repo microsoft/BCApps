@@ -28,12 +28,10 @@ page 318 "VAT Statement Templates"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the VAT statement template you are about to create.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the VAT statement template.';
                 }
                 field("VAT Statement Report ID"; Rec."VAT Statement Report ID")
                 {

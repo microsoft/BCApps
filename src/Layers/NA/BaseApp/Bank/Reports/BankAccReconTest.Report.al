@@ -26,10 +26,9 @@ using System.Utilities;
 /// </remarks>
 report 1408 "Bank Acc. Recon. - Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Bank/Reports/BankAccReconTest.rdlc';
     Caption = 'Bank Acc. Recon. - Test';
     EnableHyperlinks = true;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -579,6 +578,16 @@ report 1408 "Bank Acc. Recon. - Test"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Bank/Reports/BankAccReconTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -58,6 +58,7 @@ codeunit 113 "Vend. Entry-Edit"
         VendLedgEntry.Description := Rec.Description;
         VendLedgEntry.Validate("Exported to Payment File", Rec."Exported to Payment File");
         VendLedgEntry.Validate("Creditor No.", Rec."Creditor No.");
+        VendLedgEntry.Validate("Dispute Status", Rec."Dispute Status");
         OnBeforeVendLedgEntryModify(VendLedgEntry, Rec);
         VendLedgEntry.TestField("Entry No.", Rec."Entry No.");
         VendLedgEntry.Modify();

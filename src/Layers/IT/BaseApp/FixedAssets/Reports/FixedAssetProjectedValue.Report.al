@@ -15,8 +15,6 @@ using System.Utilities;
 
 report 5607 "Fixed Asset - Projected Value"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Reports/FixedAssetProjectedValue.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Projected Value (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
@@ -24,6 +22,7 @@ report 5607 "Fixed Asset - Projected Value"
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been replaced by the report Fixed Asset Projected Value (Excel). This report will be removed in a future release.';
     ObsoleteTag = '28.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -674,6 +673,16 @@ report 5607 "Fixed Asset - Projected Value"
         begin
             GetFASetup();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Reports/FixedAssetProjectedValue.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

@@ -9,11 +9,10 @@ using Microsoft.Inventory.Ledger;
 
 report 721 "Inventory - Cost Variance"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/InventoryCostVariance.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory - Cost Variance';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -164,6 +163,16 @@ report 721 "Inventory - Cost Variance"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/InventoryCostVariance.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

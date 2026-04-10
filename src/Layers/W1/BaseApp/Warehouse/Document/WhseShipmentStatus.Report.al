@@ -8,12 +8,11 @@ using Microsoft.Inventory.Location;
 
 report 7313 "Whse. Shipment Status"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Warehouse/Document/WhseShipmentStatus.rdlc';
     ApplicationArea = Warehouse;
     Caption = 'Warehouse Shipment Status';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Warehouse Shipment Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -136,6 +135,16 @@ report 7313 "Whse. Shipment Status"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Warehouse/Document/WhseShipmentStatus.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

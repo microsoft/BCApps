@@ -588,5 +588,85 @@
     "codeunitId": 139883,
     "codeunitName": "E-Doc Process Test",
     "method": "FinishDraftCanBeUndone"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnSendSyncLoggedErrorFailure26"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "CalculatePOMatchWarningsGeneratesBothWarningsWhenExceedingBothRemainingAndInvoiceable"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnSendAsyncLoggedErrorFailure26"
+  },
+  {
+    "codeunitId": 139617,
+    "codeunitName": "E-Doc. Mapping Test",
+    "method": "MappingTableRuleSuccess"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceSyncSendingSuccess26"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "CalculatePOMatchWarningsNoWarningsWhenInvoiceWithinOrderAndReceipts"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnSendAsyncRuntimeFailure26"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "CalculatePOMatchWarningsGeneratesExceedsRemainingToInvoiceWarning"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnGetResponseReturnTrueSuccess26"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnGetResponseReturnFalseThenTrueSuccess26"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceOnSendSyncRuntimeFailure26"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "ImportPEPPOLInvoiceWithTextOnlyDocumentReferences"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "ImportPEPPOLInvoiceWithHierarchicalLineIds"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "CalculatePOMatchWarningsGeneratesExceedsInvoiceableQtyWarning"
+  },
+  {
+    "codeunitId": 139624,
+    "codeunitName": "E-Doc E2E Test",
+    "method": "InterfaceAsyncSendingSuccess26"
+  },
+  {
+    "codeunitId": 133508,
+    "codeunitName": "E-Doc. PO Matching Unit Tests",
+    "method": "CalculatePOMatchWarningsGeneratesOverReceiptWarning"
   }
 ]

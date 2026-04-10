@@ -620,6 +620,8 @@ table 5621 "FA Journal Line"
                 FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::"Salvage Value";
             FAJnlLine."FA Posting Type"::Transfer:
                 FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::Transfer;
+            FAJnlLine."FA Posting Type"::"Bonus Depreciation":
+                FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::"Bonus Depreciation";
             else
                 OnConvertToLedgEntryCase(FALedgEntry, FAJnlLine);
         end;

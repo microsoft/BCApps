@@ -1348,7 +1348,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure DownloadLargeFile(ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     var
-        GraphDriveItem: Record "SharePoint Graph Drive Item";
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         ChunkTempBlob: Codeunit "Temp Blob";
         ChunkInStream: InStream;
@@ -1374,14 +1374,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
         end;
 
         // First, get the file size
-        if not GetDriveItem(ItemId, GraphDriveItem).IsSuccessful() then begin
+        if not GetDriveItem(ItemId, TempGraphDriveItem).IsSuccessful() then begin
             ErrorMessage := StrSubstNo(FailedToGetFileSizeErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
             Session.LogMessage('0000RM3', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
-        FileSize := GraphDriveItem.Size;
+        FileSize := TempGraphDriveItem.Size;
         if FileSize <= 0 then begin
             SharePointGraphResponse.SetError(InvalidFileSizeErr);
             Session.LogMessage('0000RM4', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
@@ -1431,7 +1431,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure DownloadLargeFileByPath(FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     var
-        GraphDriveItem: Record "SharePoint Graph Drive Item";
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         ChunkTempBlob: Codeunit "Temp Blob";
         ChunkInStream: InStream;
@@ -1460,14 +1460,14 @@ codeunit 9120 "SharePoint Graph Client Impl."
         FilePath := FilePath.TrimStart('/');
 
         // First, get the file size
-        if not GetDriveItemByPath(FilePath, GraphDriveItem).IsSuccessful() then begin
+        if not GetDriveItemByPath(FilePath, TempGraphDriveItem).IsSuccessful() then begin
             ErrorMessage := StrSubstNo(FailedToGetFileSizeErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
             Session.LogMessage('0000RM8', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 
-        FileSize := GraphDriveItem.Size;
+        FileSize := TempGraphDriveItem.Size;
         if FileSize <= 0 then begin
             SharePointGraphResponse.SetError(InvalidFileSizeErr);
             Session.LogMessage('0000RM9', InvalidFileSizeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
@@ -1901,8 +1901,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure CopyItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     var
-        GraphDriveItem: Record "SharePoint Graph Drive Item";
-        TargetFolderItem: Record "SharePoint Graph Drive Item";
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
+        TempTargetFolderItem: Record "SharePoint Graph Drive Item";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
         EnsureInitialized();
@@ -1925,17 +1925,17 @@ codeunit 9120 "SharePoint Graph Client Impl."
         end;
 
         // Get the target folder ID first
-        SharePointGraphResponse := GetDriveItemByPath(TargetFolderPath, TargetFolderItem);
+        SharePointGraphResponse := GetDriveItemByPath(TargetFolderPath, TempTargetFolderItem);
         if not SharePointGraphResponse.IsSuccessful() then
             exit(SharePointGraphResponse);
 
         // Get the source item ID
-        SharePointGraphResponse := GetDriveItemByPath(ItemPath, GraphDriveItem);
+        SharePointGraphResponse := GetDriveItemByPath(ItemPath, TempGraphDriveItem);
         if not SharePointGraphResponse.IsSuccessful() then
             exit(SharePointGraphResponse);
 
         // Now call CopyItem with IDs
-        exit(CopyItem(GraphDriveItem.Id, TargetFolderItem.Id, NewName));
+        exit(CopyItem(TempGraphDriveItem.Id, TempTargetFolderItem.Id, NewName));
     end;
 
     /// <summary>
@@ -2005,8 +2005,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure MoveItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     var
-        GraphDriveItem: Record "SharePoint Graph Drive Item";
-        TargetFolderItem: Record "SharePoint Graph Drive Item";
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
+        TempTargetFolderItem: Record "SharePoint Graph Drive Item";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         TargetFolderId: Text;
     begin
@@ -2031,20 +2031,20 @@ codeunit 9120 "SharePoint Graph Client Impl."
         end;
 
         // Get the source item ID
-        SharePointGraphResponse := GetDriveItemByPath(ItemPath, GraphDriveItem);
+        SharePointGraphResponse := GetDriveItemByPath(ItemPath, TempGraphDriveItem);
         if not SharePointGraphResponse.IsSuccessful() then
             exit(SharePointGraphResponse);
 
         // Get the target folder ID if provided
         if TargetFolderPath <> '' then begin
-            SharePointGraphResponse := GetDriveItemByPath(TargetFolderPath, TargetFolderItem);
+            SharePointGraphResponse := GetDriveItemByPath(TargetFolderPath, TempTargetFolderItem);
             if not SharePointGraphResponse.IsSuccessful() then
                 exit(SharePointGraphResponse);
-            TargetFolderId := TargetFolderItem.Id;
+            TargetFolderId := TempTargetFolderItem.Id;
         end;
 
         // Now call MoveItem with IDs
-        exit(MoveItem(GraphDriveItem.Id, TargetFolderId, NewName));
+        exit(MoveItem(TempGraphDriveItem.Id, TargetFolderId, NewName));
     end;
 
     #endregion

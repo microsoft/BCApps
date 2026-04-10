@@ -25,18 +25,15 @@ page 7601 "Base Calendar List"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Code';
-                    ToolTip = 'Specifies the code for the base calendar you have set up.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the base calendar in the entry.';
                 }
                 field("Customized Changes Exist"; Rec."Customized Changes Exist")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Customized Changes Exist';
-                    ToolTip = 'Specifies that the base calendar has been used to create customized calendars.';
                 }
             }
         }

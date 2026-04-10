@@ -10,11 +10,10 @@ using Microsoft.FixedAssets.Setup;
 
 report 5626 "Insurance - Uninsured FAs"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Insurance/InsuranceUninsuredFAs.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Uninsured Fixed Assets';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -111,6 +110,16 @@ report 5626 "Insurance - Uninsured FAs"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Insurance/InsuranceUninsuredFAs.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

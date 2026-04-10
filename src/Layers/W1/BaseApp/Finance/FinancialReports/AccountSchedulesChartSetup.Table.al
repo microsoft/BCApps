@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 762 "Account Schedules Chart Setup"
         field(1; "User ID"; Text[132])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
         }
@@ -38,6 +39,7 @@ table 762 "Account Schedules Chart Setup"
         field(2; Name; Text[30])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the specific chart.';
         }
         /// <summary>
         /// Detailed description of the chart setup purpose and configuration.
@@ -45,6 +47,7 @@ table 762 "Account Schedules Chart Setup"
         field(3; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the specific chart.';
         }
         /// <summary>
         /// Account schedule name used as the row definition for the chart.
@@ -52,6 +55,7 @@ table 762 "Account Schedules Chart Setup"
         field(10; "Account Schedule Name"; Code[10])
         {
             Caption = 'Account Schedule Name';
+            ToolTip = 'Specifies the name of the row definition that is used to generate the chart that is shown in the Finance Performance window.';
             TableRelation = "Acc. Schedule Name".Name;
 
             trigger OnValidate()
@@ -68,6 +72,7 @@ table 762 "Account Schedules Chart Setup"
         field(20; "Column Layout Name"; Code[10])
         {
             Caption = 'Column Layout Name';
+            ToolTip = 'Specifies the name of the column layout in the account schedule that is used to generate the advanced chart that is shown in the Finance Performance window.';
             TableRelation = "Column Layout Name".Name;
 
             trigger OnValidate()
@@ -84,6 +89,7 @@ table 762 "Account Schedules Chart Setup"
         field(30; "Base X-Axis on"; Option)
         {
             Caption = 'Base X-Axis on';
+            ToolTip = 'Specifies how the values from the selected account schedule are displayed in the specific chart.';
             OptionCaption = 'Period,Acc. Sched. Line,Acc. Sched. Column';
             OptionMembers = Period,"Acc. Sched. Line","Acc. Sched. Column";
 
@@ -100,6 +106,7 @@ table 762 "Account Schedules Chart Setup"
         field(31; "Start Date"; Date)
         {
             Caption = 'Start Date';
+            ToolTip = 'Specifies the first date on which account schedule values are included in the chart.';
 
             trigger OnValidate()
             begin
@@ -112,6 +119,7 @@ table 762 "Account Schedules Chart Setup"
         field(32; "End Date"; Date)
         {
             Caption = 'End Date';
+            ToolTip = 'Specifies the last date on which financial report values are included in the chart.';
 
             trigger OnValidate()
             begin
@@ -124,6 +132,7 @@ table 762 "Account Schedules Chart Setup"
         field(41; "Period Length"; Option)
         {
             Caption = 'Period Length';
+            ToolTip = 'Specifies the length of periods in the chart.';
             OptionCaption = 'Day,Week,Month,Quarter,Year';
             OptionMembers = Day,Week,Month,Quarter,Year;
         }
@@ -133,6 +142,7 @@ table 762 "Account Schedules Chart Setup"
         field(42; "No. of Periods"; Integer)
         {
             Caption = 'No. of Periods';
+            ToolTip = 'Specifies how many periods are shown in the chart.';
             InitValue = 12;
 
             trigger OnValidate()

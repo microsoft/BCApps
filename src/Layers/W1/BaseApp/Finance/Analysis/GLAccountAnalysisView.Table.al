@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ table 376 "G/L Account (Analysis View)"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             NotBlank = true;
             TableRelation = if ("Account Source" = const("G/L Account")) "G/L Account"
             else
@@ -50,6 +51,7 @@ table 376 "G/L Account (Analysis View)"
         field(2; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the general ledger account.';
         }
         /// <summary>
         /// Alternative search name for quick lookup and filtering operations.
@@ -64,6 +66,7 @@ table 376 "G/L Account (Analysis View)"
         field(4; "Account Type"; Enum "G/L Account Type")
         {
             Caption = 'Account Type';
+            ToolTip = 'Specifies the purpose of the account. Total: Used to total a series of balances on accounts from many different account groupings. To use Total, leave this field blank. Begin-Total: A marker for the beginning of a series of accounts to be totaled that ends with an End-Total account. End-Total: A total of a series of accounts that starts with the preceding Begin-Total account. The total is defined in the Totaling field.';
         }
         /// <summary>
         /// Source of the account data (G/L Account or Cash Flow Forecast).
@@ -96,6 +99,7 @@ table 376 "G/L Account (Analysis View)"
         field(9; "Income/Balance"; Enum "G/L Account Report Type")
         {
             Caption = 'Income/Balance';
+            ToolTip = 'Specifies whether a general ledger account is an income statement account or a balance sheet account.';
         }
         /// <summary>
         /// Restricts posting to either Both, Debit only, or Credit only transactions.
@@ -137,6 +141,7 @@ table 376 "G/L Account (Analysis View)"
         field(14; "Direct Posting"; Boolean)
         {
             Caption = 'Direct Posting';
+            ToolTip = 'Specifies whether you will be able to post directly or only indirectly to this general ledger account.';
             InitValue = true;
         }
         /// <summary>
@@ -234,6 +239,7 @@ table 376 "G/L Account (Analysis View)"
                                                                   "Posting Date" = field(upperlimit("Date Filter")),
                                                                   "Cash Flow Forecast No." = field("Cash Flow Forecast Filter")));
             Caption = 'Balance at Date';
+            ToolTip = 'Specifies the G/L account balance on the last date included in the Date Filter field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -257,6 +263,7 @@ table 376 "G/L Account (Analysis View)"
                                                                   "Posting Date" = field("Date Filter"),
                                                                    "Cash Flow Forecast No." = field("Cash Flow Forecast Filter")));
             Caption = 'Net Change';
+            ToolTip = 'Specifies the net change in the account balance during the time period in the Date Filter field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -279,6 +286,7 @@ table 376 "G/L Account (Analysis View)"
                                                                          "Dimension 4 Value Code" = field("Dimension 4 Filter"),
                                                                          "Posting Date" = field("Date Filter")));
             Caption = 'Budgeted Amount';
+            ToolTip = 'Specifies either the G/L account''s total budget or, if you have specified a name in the Budget Name field, a specific budget.';
             FieldClass = FlowField;
         }
         /// <summary>
@@ -287,6 +295,7 @@ table 376 "G/L Account (Analysis View)"
         field(34; Totaling; Text[250])
         {
             Caption = 'Totaling';
+            ToolTip = 'Specifies an account interval or a list of account numbers. The entries of the account will be totaled to give a total balance. How entries are totaled depends on the value in the Account Type field.';
             TableRelation = if ("Account Source" = const("G/L Account")) "G/L Account"
             else
             if ("Account Source" = const("Cash Flow Account")) "Cash Flow Account";
@@ -321,6 +330,7 @@ table 376 "G/L Account (Analysis View)"
                                                                   "Posting Date" = field("Date Filter"),
                                                                    "Cash Flow Forecast No." = field("Cash Flow Forecast Filter")));
             Caption = 'Balance';
+            ToolTip = 'Specifies the balance on this account.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -352,6 +362,7 @@ table 376 "G/L Account (Analysis View)"
         {
             AccessByPermission = TableData "Business Unit" = R;
             Caption = 'Consol. Debit Acc.';
+            ToolTip = 'Specifies the account number in a consolidated company to transfer credit balances.';
         }
         /// <summary>
         /// Consolidation credit account for consolidation processes.
@@ -360,6 +371,7 @@ table 376 "G/L Account (Analysis View)"
         {
             AccessByPermission = TableData "Business Unit" = R;
             Caption = 'Consol. Credit Acc.';
+            ToolTip = 'Specifies the account number in a consolidated company to transfer credit balances.';
         }
         /// <summary>
         /// Business unit filter for multi-company analysis.
@@ -376,6 +388,7 @@ table 376 "G/L Account (Analysis View)"
         field(43; "Gen. Posting Type"; Option)
         {
             Caption = 'Gen. Posting Type';
+            ToolTip = 'Specifies the type of transaction.';
             OptionCaption = ' ,Purchase,Sale';
             OptionMembers = " ",Purchase,Sale;
         }
@@ -385,6 +398,7 @@ table 376 "G/L Account (Analysis View)"
         field(44; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         /// <summary>
@@ -393,6 +407,7 @@ table 376 "G/L Account (Analysis View)"
         field(45; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         /// <summary>
@@ -523,6 +538,7 @@ table 376 "G/L Account (Analysis View)"
         field(57; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
         }
         /// <summary>
@@ -531,6 +547,7 @@ table 376 "G/L Account (Analysis View)"
         field(58; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Product Posting Group";
         }
         /// <summary>
@@ -553,6 +570,7 @@ table 376 "G/L Account (Analysis View)"
                                                                                "Posting Date" = field("Date Filter"),
                                                                                "Cash Flow Forecast No." = field("Cash Flow Forecast Filter")));
             Caption = 'Additional-Currency Net Change';
+            ToolTip = 'Specifies the net change in the account balance.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -576,6 +594,7 @@ table 376 "G/L Account (Analysis View)"
                                                                                "Posting Date" = field(upperlimit("Date Filter")),
                                                                                "Cash Flow Forecast No." = field("Cash Flow Forecast Filter")));
             Caption = 'Add.-Currency Balance at Date';
+            ToolTip = 'Specifies the G/L account balance, in the additional reporting currency, on the last date included in the Date Filter field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -599,6 +618,7 @@ table 376 "G/L Account (Analysis View)"
                                                                                "Posting Date" = field("Date Filter"),
                                                                                "Cash Flow Forecast No." = field("Cash Flow Forecast Filter")));
             Caption = 'Additional-Currency Balance';
+            ToolTip = 'Specifies the balance on this account, in the additional reporting currency.';
             Editable = false;
             FieldClass = FlowField;
         }

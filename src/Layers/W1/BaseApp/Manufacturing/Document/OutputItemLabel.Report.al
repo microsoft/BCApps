@@ -107,6 +107,7 @@ report 99000769 "Output Item Label"
         {
             Type = Word;
             LayoutFile = './Manufacturing/Document/OutputItemLabel.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
     }
 

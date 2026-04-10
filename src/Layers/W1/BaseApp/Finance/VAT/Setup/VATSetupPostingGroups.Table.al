@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 1877 "VAT Setup Posting Groups"
         field(2; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             NotBlank = true;
         }
         /// <summary>
@@ -38,6 +39,7 @@ table 1877 "VAT Setup Posting Groups"
         {
             AutoFormatType = 0;
             Caption = 'VAT %';
+            ToolTip = 'Specifies the VAT percentage used.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -48,6 +50,7 @@ table 1877 "VAT Setup Posting Groups"
         field(7; "Sales VAT Account"; Code[20])
         {
             Caption = 'Sales VAT Account';
+            ToolTip = 'Specifies the general ledger account number to which to post sales VAT, for the particular combination of VAT business posting group and VAT product posting group.';
             TableRelation = "G/L Account";
         }
         /// <summary>
@@ -56,6 +59,7 @@ table 1877 "VAT Setup Posting Groups"
         field(9; "Purchase VAT Account"; Code[20])
         {
             Caption = 'Purchase VAT Account';
+            ToolTip = 'Specifies the general ledger account number to which to post purchase VAT.';
             TableRelation = "G/L Account";
         }
         /// <summary>
@@ -64,6 +68,7 @@ table 1877 "VAT Setup Posting Groups"
         field(11; "Reverse Chrg. VAT Acc."; Code[20])
         {
             Caption = 'Reverse Chrg. VAT Acc.';
+            ToolTip = 'Specifies the general ledger account number to which you want to post reverse charge VAT (purchase VAT) for this combination of VAT business posting group and VAT product posting group, if you have selected the Reverse Charge VAT option in the VAT Calculation Type field.';
             TableRelation = "G/L Account";
         }
         /// <summary>
@@ -72,6 +77,7 @@ table 1877 "VAT Setup Posting Groups"
         field(18; "VAT Prod. Posting Grp Desc."; Text[100])
         {
             Caption = 'VAT Prod. Posting Grp Desc.';
+            ToolTip = 'Specifies a description of the VAT product posting group.';
         }
         /// <summary>
         /// VAT clause description text providing additional information about VAT treatment.
@@ -79,6 +85,7 @@ table 1877 "VAT Setup Posting Groups"
         field(19; "VAT Clause Desc"; Text[250])
         {
             Caption = 'VAT Clause Desc';
+            ToolTip = 'Specifies a description of the VAT clause.';
         }
         /// <summary>
         /// Indicates whether this posting group template is selected for use during VAT setup.
@@ -86,6 +93,7 @@ table 1877 "VAT Setup Posting Groups"
         field(22; Selected; Boolean)
         {
             Caption = 'Selected';
+            ToolTip = 'Specifies whether to include the VAT product posting group on the line.';
             FieldClass = Normal;
         }
         /// <summary>
@@ -94,6 +102,7 @@ table 1877 "VAT Setup Posting Groups"
         field(23; "Application Type"; Option)
         {
             Caption = 'Application Type';
+            ToolTip = 'Specifies how a cost recipient is linked to its cost source to provide cost forwarding according to the costing method.';
             OptionCaption = ',Items,Services';
             OptionMembers = ,Items,Services;
         }

@@ -328,7 +328,7 @@ table 91 "User Setup"
         }
         field(5991; "Allow Posting From DateFormula"; DateFormula)
         {
-            Caption = 'Allow Posting From DateFormula';
+            Caption = 'Allow Posting From Date Formula';
 
             trigger OnValidate()
             begin
@@ -339,7 +339,7 @@ table 91 "User Setup"
         }
         field(5992; "Allow Posting To DateFormula"; DateFormula)
         {
-            Caption = 'Allow Posting To DateFormula';
+            Caption = 'Allow Posting To Date Formula';
 
             trigger OnValidate()
             begin

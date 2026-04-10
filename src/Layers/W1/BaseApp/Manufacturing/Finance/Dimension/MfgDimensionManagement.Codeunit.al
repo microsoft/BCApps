@@ -23,9 +23,6 @@ codeunit 99000780 "Mfg. Dimension Management"
     local procedure UpdateWorkCenterGlobalDimCode(GlobalDimCodeNo: Integer; WorkCenterNo: Code[20]; NewDimValue: Code[20])
     var
         WorkCenter: Record "Work Center";
-#if not CLEAN26
-        DefaultDimension: Record "Default Dimension";
-#endif
     begin
         if WorkCenter.Get(WorkCenterNo) then begin
             case GlobalDimCodeNo of
@@ -34,14 +31,7 @@ codeunit 99000780 "Mfg. Dimension Management"
                 2:
                     WorkCenter."Global Dimension 2 Code" := NewDimValue;
                 else
-#if CLEAN26
                     OnUpdateWorkCenterGlobalDimCodeCaseElse(GlobalDimCodeNo, WorkCenterNo, NewDimValue);
-#else
-                    begin
-                    DefaultDimension.RunOnUpdateWorkCenterGlobalDimCodeCaseElse(GlobalDimCodeNo, WorkCenterNo, NewDimValue);
-                    OnUpdateWorkCenterGlobalDimCodeCaseElse(GlobalDimCodeNo, WorkCenterNo, NewDimValue);
-                end;
-#endif
             end;
             WorkCenter.Modify(true);
         end;

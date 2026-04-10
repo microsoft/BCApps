@@ -13,10 +13,9 @@ using System.Utilities;
 /// </summary>
 report 752 "Work Order"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/Document/WorkOrder.rdlc';
     Caption = 'Work Order';
     WordMergeDataItem = "Sales Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -174,6 +173,16 @@ report 752 "Work Order"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Document/WorkOrder.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

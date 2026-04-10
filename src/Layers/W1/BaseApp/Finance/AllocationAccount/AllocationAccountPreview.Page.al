@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -53,47 +53,40 @@ page 2674 "Allocation Account Preview"
                 {
                     Caption = 'Destination Account No.';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the number of the Destination Account.';
                 }
                 field(DestinationAccountName; Rec."Destination Account Name")
                 {
                     Caption = 'Destination Account Name';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the name of the Destination Account.';
                     Editable = false;
                 }
                 field(Amount; Rec.Amount)
                 {
                     Caption = 'Amount';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the amount to be allocated to the Destination Account.';
                 }
                 field(BreakdownAccountNumber; Rec."Breakdown Account Number")
                 {
                     Caption = 'Breakdown Account No.';
                     ApplicationArea = All;
                     Visible = not FixedAllocation;
-                    ToolTip = 'Specifies the number of the Breakdown Account that is used to calculate the amount to be distributed to the destination account.';
                 }
                 field("Breakdown Account Name"; Rec."Breakdown Account Name")
                 {
                     Caption = 'Breakdown Account Name';
                     ApplicationArea = All;
                     Visible = not FixedAllocation;
-                    ToolTip = 'Specifies the name of the Breakdown Account that is used to calculate the amount to be distributed to the destination account.';
                 }
                 field(BreakdownAccountBalance; Rec."Breakdown Account Balance")
                 {
                     Caption = 'Breakdown Account Balance';
                     ApplicationArea = All;
                     Visible = not FixedAllocation;
-                    ToolTip = 'Specifies the balance of the Breakdown Account that is used to calculate the amount to be distributed to the destination account.';
                 }
                 field(Percentage; Rec.Percentage)
                 {
                     Caption = 'Percentage';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the percentage that is used to calculate the amount to be assinged to the destination account.';
                 }
             }
         }

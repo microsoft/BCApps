@@ -25,7 +25,6 @@ page 364 "Select Sending Options"
                     field(Printer; Rec.Printer)
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies if and how the document is printed when you choose the Post and Send button. If you choose the Yes (Prompt for Settings) option, the document is printed according to settings that you must make on the printer setup dialog.';
 
                         trigger OnValidate()
                         begin
@@ -35,7 +34,6 @@ page 364 "Select Sending Options"
                     field("E-Mail"; Rec."E-Mail")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies if and how the document is attached as a PDF file to an email to the involved customer when you choose the Post and Send button. If you choose the Yes (Prompt for Settings) option, the document is attached to an email according to settings that you must make in the Send Email window.';
 
                         trigger OnValidate()
                         begin
@@ -111,7 +109,6 @@ page 364 "Select Sending Options"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Format';
-                            ToolTip = 'Specifies the format of the electronic document.';
 
                             trigger OnLookup(var Text: Text): Boolean
                             begin
@@ -133,7 +130,6 @@ page 364 "Select Sending Options"
                     field("Electronic Document"; Rec."Electronic Document")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies if the document is sent as an electronic document that the customer can import into their system when you choose the Post and Send button. To use this option, you must also fill the Electronic Format field. Alternatively, the file can be saved to disk.';
 
                         trigger OnValidate()
                         begin
@@ -150,7 +146,6 @@ page 364 "Select Sending Options"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Format';
-                            ToolTip = 'Specifies which format to use for electronic document sending. You must fill this field if you selected the Silent option in the Electronic Document field.';
 
                             trigger OnLookup(var Text: Text): Boolean
                             begin

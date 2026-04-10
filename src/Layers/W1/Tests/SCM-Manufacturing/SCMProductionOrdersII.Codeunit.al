@@ -7680,7 +7680,83 @@ codeunit 137072 "SCM Production Orders II"
         // [THEN] Verify that the Bin Code on the Place line is empty (not randomly assigned).
         WarehouseActivityLine.TestField("Bin Code", '');
     end;
-    
+
+    [Test]
+    procedure VerifyProdOrderWithItemCardDifferentManufacturingPolicy()
+    var
+        ComponentItem: Record Item;
+        ItemVariant: Record "Item Variant";
+        ItemVariant2: Record "Item Variant";
+        MainItem: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        ReqLine: Record "Requisition Line";
+        SalesHeader: Record "Sales Header";
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        StockkeepingUnit2: Record "Stockkeeping Unit";
+        NewProdOrderChoice: Option " ",Planned,"Firm Planned","Firm Planned & Print","Copy to Req. Wksh";
+    begin
+        // [SCENARIO 622069] When creating a production Order with the planning worksheet it is not correct created when in the item card a different Manufacturing Policy is set
+        Initialize();
+
+        // [GIVEN] Create component item with Lot-for-Lot reordering policy
+        LibraryInventory.CreateItem(ComponentItem);
+        ComponentItem.Validate("Reordering Policy", ComponentItem."Reordering Policy"::"Lot-for-Lot");
+        ComponentItem.Validate("Replenishment System", ComponentItem."Replenishment System"::"Purchase");
+        ComponentItem.Validate("Flushing Method", ComponentItem."Flushing Method"::Manual);
+        ComponentItem.Modify(true);
+
+        // [GIVEN] Create main item with Make-to-stock manufacturing policy
+        LibraryInventory.CreateItem(MainItem);
+        MainItem.Validate("Manufacturing Policy", MainItem."Manufacturing Policy"::"Make-to-Stock");
+        MainItem.Validate("Replenishment System", MainItem."Replenishment System"::"Prod. Order");
+        MainItem.Validate("Reordering Policy", MainItem."Reordering Policy"::Order);
+        MainItem.Validate("Flushing Method", MainItem."Flushing Method"::Manual);
+        MainItem.Modify(true);
+
+        // [GIVEN] Create PINK and VIOLET variants for main item
+        LibraryInventory.CreateItemVariant(ItemVariant, MainItem."No.");
+        ItemVariant.Validate(Description, 'PINK');
+        ItemVariant.Modify(true);
+        LibraryInventory.CreateItemVariant(ItemVariant2, MainItem."No.");
+        ItemVariant2.Validate(Description, 'VIOLET');
+        ItemVariant2.Modify(true);
+
+        // [GIVEN] Create Stockkeeping Units for both variants
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, '', MainItem."No.", ItemVariant.Code);
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit2, '', MainItem."No.", ItemVariant2.Code);
+
+        // [GIVEN] Create Production BOM for PINK variant with component item
+        CreateProductionBOMAndCertify(
+            ProductionBOMHeader, MainItem."Base Unit of Measure", ProductionBOMLine.Type::Item, ComponentItem."No.", 1, 'PINK', '');
+        StockkeepingUnit.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        StockkeepingUnit.Validate("Manufacturing Policy", StockkeepingUnit."Manufacturing Policy"::"Make-to-Order");
+        StockkeepingUnit.Modify(true);
+
+        // [GIVEN] Create Production BOM for VIOLET variant with main item and PINK variant
+        CreateProductionBOMAndCertify(
+            ProductionBOMHeader, MainItem."Base Unit of Measure", ProductionBOMLine.Type::Item, MainItem."No.", 1, 'VIOLET', ItemVariant.Code);
+        StockkeepingUnit2.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        StockkeepingUnit2.Validate("Manufacturing Policy", StockkeepingUnit2."Manufacturing Policy"::"Make-to-Order");
+        StockkeepingUnit2.Modify(true);
+
+        // [GIVEN] Create Sales Order with VIOLET variant
+        CreateSalesOrder(SalesHeader, MainItem."No.", 1, ItemVariant2.Code);
+
+        // [GIVEN] Calculate regenerative plan in planning worksheet update Planning Worksheet.
+        CalculatePlanOnPlanningWorksheet(MainItem, WorkDate(), CalcDate('<1Y>', WorkDate()), false, false);
+
+        // [GIVEN] Set "Accept Action Message" on all Requisition lines.
+        UpdatePlanningWorkSheetwithVendor(ReqLine, MainItem."No.", ItemVariant2.Code);
+
+        // [WHEN] Running Carry Out Action Message For Requisition lines "Action Message"::Cancel.
+        ReqLine.SetRange("Action Message", ReqLine."Action Message"::New);
+        LibraryPlanning.CarryOutPlanWksh(ReqLine, NewProdOrderChoice::"Firm Planned", 0, 0, 0, '', '', '', '');
+
+        // [THEN] Verify Firm Planned Production Order has two lines
+        VerifyProductionOrderLines(MainItem."No.");
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

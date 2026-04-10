@@ -9,7 +9,7 @@ using Microsoft.Manufacturing.Document;
 
 report 99000788 "Prod. Order - Shortage List"
 {
-    DefaultRenderingLayout = Word;
+    DefaultRenderingLayout = Excel;
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Shortage List';
     UsageCategory = ReportsAndAnalysis;
@@ -358,12 +358,14 @@ report 99000788 "Prod. Order - Shortage List"
             Caption = 'Prod. Order - Shortage List Word';
             Type = Word;
             LayoutFile = './Manufacturing/Reports/ProdOrderShortageList.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
         layout(Excel)
         {
             Caption = 'Prod. Order - Shortage List Excel';
             Type = Excel;
             LayoutFile = './Manufacturing/Reports/ProdOrderShortageList.xlsx';
+            Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
 #if not CLEAN27
         layout(RDLC)
@@ -374,6 +376,7 @@ report 99000788 "Prod. Order - Shortage List"
             ObsoleteState = Pending;
             ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
             ObsoleteTag = '27.0';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
     }

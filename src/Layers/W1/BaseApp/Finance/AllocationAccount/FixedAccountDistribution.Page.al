@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,7 +32,6 @@ page 2672 "Fixed Account Distribution"
                 {
                     ApplicationArea = All;
                     Caption = 'Destination Account Number';
-                    ToolTip = 'Specifies the account number that the amount will be posted to. You can select Destination Account Number if Destination Account Type field is G/L Account or Bank Account. If Destination Account Type field is Inherit from Parent, Destination Account Number and Destination Account Type will be taken from the line when the Allocation Account No. field is set.';
                 }
                 field("Destination Account Name"; Rec.LookupDistributionAccountName())
                 {
@@ -45,13 +44,11 @@ page 2672 "Fixed Account Distribution"
                 {
                     Caption = 'Share';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the Share that is used for the variable account distributions.';
                 }
                 field(Percent; Rec.Percent)
                 {
                     Caption = 'Percent';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the Percent that is used for the variable account distributions.';
                     BlankZero = true;
                 }
             }

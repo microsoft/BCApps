@@ -23,11 +23,10 @@ using System.Utilities;
 
 report 407 "Purchase - Credit Memo"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/History/PurchaseCreditMemo.rdlc';
     Caption = 'Purchase - Credit Memo';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Purch. Cr. Memo Hdr.";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -850,6 +849,16 @@ report 407 "Purchase - Credit Memo"
             InitLogInteraction();
             LogInteractionEnable := LogInteraction;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/History/PurchaseCreditMemo.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

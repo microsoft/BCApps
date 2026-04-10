@@ -30,21 +30,18 @@ page 7605 "Customized Cal. Entries Subfm"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Current Source Type';
-                    ToolTip = 'Specifies the source type for the calendar entry.';
                     Visible = false;
                 }
                 field(CurrSourceCode; Rec."Source Code")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Current Source Code';
-                    ToolTip = 'Specifies the source code for the calendar entry.';
                     Visible = false;
                 }
                 field(CurrAdditionalSourceCode; Rec."Additional Source Code")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Current Additional Source Code';
-                    ToolTip = 'Specifies the calendar entry.';
                     Visible = false;
                 }
                 field(CurrCalendarCode; Rec."Base Calendar Code")
@@ -60,14 +57,12 @@ page 7605 "Customized Cal. Entries Subfm"
                     ApplicationArea = Suite;
                     Caption = 'Date';
                     Editable = false;
-                    ToolTip = 'Specifies the date.';
                 }
                 field("Period Name"; Rec.Day)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Day';
                     Editable = false;
-                    ToolTip = 'Specifies the day of the week.';
                 }
                 field(WeekNo; Date2DWY(Rec.Date, 2))
                 {
@@ -82,7 +77,6 @@ page 7605 "Customized Cal. Entries Subfm"
                     ApplicationArea = Suite;
                     Caption = 'Nonworking';
                     Editable = true;
-                    ToolTip = 'Specifies the date entry as a nonworking day. You can also remove the check mark to return the status to working day.';
 
                     trigger OnValidate()
                     begin
@@ -93,7 +87,6 @@ page 7605 "Customized Cal. Entries Subfm"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Description';
-                    ToolTip = 'Specifies the description of the entry to be applied.';
 
                     trigger OnValidate()
                     begin

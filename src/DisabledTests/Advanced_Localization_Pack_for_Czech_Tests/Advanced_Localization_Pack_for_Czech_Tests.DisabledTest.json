@@ -123,5 +123,15 @@
     "codeunitId": 148094,
     "codeunitName": "Posting Groups CZA",
     "method": "AddingDefGenBusPostGroupsForTransferOrder"
+  },
+  {
+    "codeunitId": 148094,
+    "codeunitName": "Posting Groups CZA",
+    "method": "ChangePostingGroupOnVendorWithOpenEntries"
+  },
+  {
+    "codeunitId": 148094,
+    "codeunitName": "Posting Groups CZA",
+    "method": "ChangePostingGroupOnCustomerWithOpenEntries"
   }
 ]

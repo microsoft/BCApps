@@ -271,7 +271,6 @@ page 344 Navigate
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                     Visible = false;
                 }
                 field("Table ID"; Rec."Table ID")
@@ -284,7 +283,6 @@ page 344 Navigate
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Related Entries';
-                    ToolTip = 'Specifies the name of the table where the Navigate facility has found entries with the selected document number and/or posting date.';
 
                     trigger OnDrillDown()
                     begin
@@ -296,7 +294,6 @@ page 344 Navigate
                     ApplicationArea = Basic, Suite;
                     Caption = 'No. of Entries';
                     DrillDown = true;
-                    ToolTip = 'Specifies the number of documents that the Navigate facility has found in the table with the selected entries.';
 
                     trigger OnDrillDown()
                     begin

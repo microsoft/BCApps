@@ -1,4 +1,4 @@
-namespace Microsoft.API.Upgrade;
+﻿namespace Microsoft.API.Upgrade;
 
 table 9994 "API Data Upgrade"
 {
@@ -8,11 +8,13 @@ table 9994 "API Data Upgrade"
     {
         field(1; "Upgrade Tag"; Text[250])
         {
+            ToolTip = 'Specifies the name of the entity.';
             DataClassification = SystemMetadata;
             // This will be used for entity name
         }
         field(2; Description; Text[250])
         {
+            ToolTip = 'Specifies the API endpoints of the entity.';
             DataClassification = SystemMetadata;
         }
         field(3; Status; Option)
@@ -20,6 +22,7 @@ table 9994 "API Data Upgrade"
             DataClassification = SystemMetadata;
             OptionMembers = " ",Scheduled,"In Progress",Completed;
             OptionCaption = ' ,Scheduled,In Progress,Completed';
+            ToolTip = 'Specifies the status of the API data upgrade.';
         }
     }
 

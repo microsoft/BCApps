@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ table 330 "Currency Exchange Rate"
         field(1; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the code of the currency on this line.';
             Editable = false;
             NotBlank = true;
             TableRelation = Currency;
@@ -33,11 +34,13 @@ table 330 "Currency Exchange Rate"
         field(2; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date on which the exchange rate on this line comes into effect.';
             NotBlank = true;
         }
         field(3; "Exchange Rate Amount"; Decimal)
         {
             Caption = 'Exchange Rate Amount';
+            ToolTip = 'Specifies the amounts that are used to calculate exchange rates for the currency on this line.';
             DecimalPlaces = 1 : 6;
             MinValue = 0;
             AutoFormatType = 0;
@@ -51,6 +54,7 @@ table 330 "Currency Exchange Rate"
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Adjustment Exch. Rate Amount';
+            ToolTip = 'Specifies the amounts that are used to calculate exchange rates that will be used by the Adjust Exchange Rates batch job.';
             DecimalPlaces = 1 : 6;
             MinValue = 0;
             AutoFormatType = 0;
@@ -63,6 +67,7 @@ table 330 "Currency Exchange Rate"
         field(5; "Relational Currency Code"; Code[10])
         {
             Caption = 'Relational Currency Code';
+            ToolTip = 'Specifies how you want to set up the two currencies, one of the currencies can be LCY, for which you want to register exchange rates.';
             TableRelation = Currency;
 
             trigger OnValidate()
@@ -76,6 +81,7 @@ table 330 "Currency Exchange Rate"
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Relational Exch. Rate Amount';
+            ToolTip = 'Specifies the amounts that are used to calculate exchange rates for the foreign currency on this line.';
             DecimalPlaces = 1 : 6;
             MinValue = 0;
             AutoFormatType = 0;
@@ -88,11 +94,13 @@ table 330 "Currency Exchange Rate"
         field(7; "Fix Exchange Rate Amount"; Enum "Fix Exch. Rate Amount Type")
         {
             Caption = 'Fix Exchange Rate Amount';
+            ToolTip = 'Specifies if the currency''s exchange rate can be changed on invoices and journal lines.';
         }
         field(8; "Relational Adjmt Exch Rate Amt"; Decimal)
         {
             AccessByPermission = TableData Currency = R;
             Caption = 'Relational Adjmt Exch Rate Amt';
+            ToolTip = 'Specifies the amounts that are used to calculate exchange rates that will be used by the Adjust Exchange Rates batch job.';
             DecimalPlaces = 1 : 6;
             MinValue = 0;
             AutoFormatType = 0;

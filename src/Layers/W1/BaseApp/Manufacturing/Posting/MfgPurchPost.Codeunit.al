@@ -61,8 +61,8 @@ codeunit 99000890 "Mfg. Purch.-Post"
             ItemJnlLine.Finished := PurchLine.Finished;
 
         OnAfterPostItemJnlLineCopyProdOrder(ItemJnlLine, PurchLine, PurchRcptHeader, QtyToBeReceived, SuppressCommit, QtyToBeInvoiced);
-#if not CLEAN27
-        OnAfterPostItemJnlLineCopyProdOrder(ItemJnlLine, PurchLine, PurchRcptHeader, QtyToBeReceived, SuppressCommit, QtyToBeInvoiced);
+#if not CLEAN27        
+        PurchPost.RunOnAfterPostItemJnlLineCopyProdOrder(ItemJnlLine, PurchLine, PurchRcptHeader, QtyToBeReceived, SuppressCommit, QtyToBeInvoiced);
 #endif
     end;
 

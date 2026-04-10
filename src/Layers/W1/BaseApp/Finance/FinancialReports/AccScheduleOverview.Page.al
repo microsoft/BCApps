@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -45,21 +45,6 @@ page 490 "Acc. Schedule Overview"
     {
         area(content)
         {
-#if not CLEAN26
-            field(Title; FinancialReportSummaryTxt)
-            {
-                ApplicationArea = Basic, Suite;
-                Visible = false;
-                Caption = 'Financial Report';
-                Editable = false;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'This field is no longer required and will be removed in a future release.';
-                ObsoleteTag = '26.0';
-                ShowCaption = false;
-                Style = Strong;
-                Tooltip = 'Financial report details.';
-            }
-#endif
             group(General)
             {
                 Caption = 'Options';
@@ -693,7 +678,6 @@ page 490 "Acc. Schedule Overview"
                 field("Row No."; Rec."Row No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a number that identifies the line.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
@@ -1280,49 +1264,6 @@ page 490 "Acc. Schedule Overview"
                             FinReportExcelTemplates.Run();
                         end;
                     }
-#if not CLEAN26
-                    action("Create New Document")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Create New Excel template';
-                        Image = ExportToExcel;
-                        ToolTip = 'Open the financial report in a new Excel workbook. This creates an Excel workbook on your device that you can use as a template for an Excel version of the report. This feature has been replaced by Excel Layouts and will be removed in a future release.';
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'Replaced by Export to Excel and the Financial Report Excel Layout feature.';
-                        ObsoleteTag = '26.0';
-
-                        trigger OnAction()
-                        var
-                            ExportAccSchedToExcel: Report "Export Acc. Sched. to Excel";
-                        begin
-                            ExportAccSchedToExcel.SetOptions(
-                                Rec, TempFinancialReport."Financial Report Column Group", TempFinancialReport.UseAmountsInAddCurrency,
-                                TempFinancialReport.Name, TempFinancialReport.DimPerspective);
-                            ExportAccSchedToExcel.Run();
-                        end;
-                    }
-                    action("Update Existing Document")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Update Excel template with data';
-                        Image = ExportToExcel;
-                        ToolTip = 'Upload an Excel template workbook and get an updated Excel workbook downloaded it to your device. You must specify the template workbook that you want to update. This feature has been replaced by Excel Layouts and will be removed in a future release.';
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'Replaced by Excel Templates and the Financial Report Excel Layout feature.';
-                        ObsoleteTag = '26.0';
-
-                        trigger OnAction()
-                        var
-                            ExportAccSchedToExcel: Report "Export Acc. Sched. to Excel";
-                        begin
-                            ExportAccSchedToExcel.SetOptions(
-                                Rec, TempFinancialReport."Financial Report Column Group", TempFinancialReport.UseAmountsInAddCurrency,
-                                TempFinancialReport.Name, TempFinancialReport.DimPerspective);
-                            ExportAccSchedToExcel.SetUpdateExistingWorksheet(true);
-                            ExportAccSchedToExcel.Run();
-                        end;
-                    }
-#endif
                 }
             }
 
@@ -1381,22 +1322,6 @@ page 490 "Acc. Schedule Overview"
                 actionref(ExportToExcel_Promoted; ExportToExcel)
                 {
                 }
-#if not CLEAN26
-#pragma warning disable AL0432
-                actionref("Create New Document_Promoted"; "Create New Document")
-                {
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Replaced by Export to Excel and the Financial Report Excel Layout feature.';
-                    ObsoleteTag = '26.0';
-                }
-                actionref("Update Existing Document_Promoted"; "Update Existing Document")
-                {
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Replaced by Export to Excel and the Financial Report Excel Layout feature.';
-                    ObsoleteTag = '26.0';
-                }
-#pragma warning restore AL0432
-#endif
                 actionref(Print_Promoted; Print)
                 {
                 }
@@ -1491,9 +1416,6 @@ page 490 "Acc. Schedule Overview"
         // Helper page state variables
         ViewLayout: Enum "Financial Report View Layout";
         ViewOnlyModeSet: Boolean;
-#if not CLEAN26
-        FinancialReportSummaryTxt: Text;
-#endif
         ColumnLayoutArr: array[15] of Record "Column Layout";
         ColumnValues: array[15] of Decimal;
         ColumnCaptions: array[15] of Text;
@@ -1881,17 +1803,6 @@ page 490 "Acc. Schedule Overview"
         LoadPageState();
     end;
 
-#if not CLEAN26
-    local procedure AddSummaryPart(var SummaryTxt: Text; PartTxt: Text)
-    begin
-        if PartTxt = '' then
-            exit;
-        if SummaryTxt <> '' then
-            SummaryTxt += ' - ';
-        SummaryTxt += PartTxt;
-    end;
-#endif
-
     local procedure SetFinancialReportTxt()
     var
         CurrentPageCaption: Text;
@@ -1901,13 +1812,6 @@ page 490 "Acc. Schedule Overview"
         else
             CurrentPageCaption := TempFinancialReport.Name;
         CurrPage.Caption(CurrentPageCaption);
-#if not CLEAN26
-        FinancialReportSummaryTxt := '';
-        AddSummaryPart(FinancialReportSummaryTxt, TempFinancialReport.Name);
-        AddSummaryPart(FinancialReportSummaryTxt, TempFinancialReport.Description);
-        AddSummaryPart(FinancialReportSummaryTxt, TempFinancialReport."Financial Report Row Group");
-        AddSummaryPart(FinancialReportSummaryTxt, TempFinancialReport."Financial Report Column Group");
-#endif
     end;
 
     [TryFunction]

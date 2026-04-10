@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,10 +18,12 @@ table 9651 "Report Layout Selection"
         field(1; "Report ID"; Integer)
         {
             Caption = 'Report ID';
+            ToolTip = 'Specifies the object ID of the report.';
         }
         field(2; "Report Name"; Text[80])
         {
             Caption = 'Report Name';
+            ToolTip = 'Specifies the name of the report.';
             Editable = false;
         }
         field(3; "Company Name"; Text[30])
@@ -32,6 +34,7 @@ table 9651 "Report Layout Selection"
         field(4; Type; Option)
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the report layout that is currently used on the report.';
             OptionCaption = 'RDLC,Word,Custom Layout,Excel,External';
             OptionMembers = "RDLC (built-in)","Word (built-in)","Custom Layout","Excel Layout","External Layout";
 
@@ -71,6 +74,7 @@ table 9651 "Report Layout Selection"
         field(6; "Custom Report Layout Code"; Code[20])
         {
             Caption = 'Custom Report Layout Code';
+            ToolTip = 'Specifies the custom report layout.';
             TableRelation = "Custom Report Layout" where("Report ID" = field("Report ID"));
 
             trigger OnValidate()

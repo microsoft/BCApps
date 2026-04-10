@@ -106,7 +106,8 @@ report 99001043 "Exchange Production BOM Item"
                                         until ProductionBOMLine3.Next() = 0
                                     else
                                         FirstVersion := false;
-                                end;
+                                end else
+                                    FirstVersion := false;
 
                             if (ToProductionBOMNo <> '') and FirstVersion then
                                 if CreateNewVersion then begin

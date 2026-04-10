@@ -36,11 +36,14 @@ table 7000 "Price List Header"
             trigger OnValidate()
             var
                 NoSeries: Codeunit "No. Series";
+                NoSeriesCode: Code[20];
             begin
                 if Code <> xRec.Code then begin
                     if xRec.Code <> '' then
                         Error(CanotRenameErr, Rec.TableCaption());
-                    NoSeries.TestManual(GetNoSeries());
+                    NoSeriesCode := GetNoSeries();
+                    if NoSeriesCode <> '' then
+                        NoSeries.TestManual(NoSeriesCode);
                     "No. Series" := '';
                 end;
             end;
@@ -363,14 +366,18 @@ table 7000 "Price List Header"
     trigger OnInsert()
     var
         NoSeries: Codeunit "No. Series";
+        NoSeriesCode: Code[20];
     begin
         if "Source Group" = "Source Group"::All then
             TestField(Code);
         if Code = '' then begin
-            "No. Series" := GetNoSeries();
-            if NoSeries.AreRelated("No. Series", xRec."No. Series") then
-                "No. Series" := xRec."No. Series";
-            Code := NoSeries.GetNextNo("No. Series");
+            NoSeriesCode := GetNoSeries();
+            if NoSeriesCode <> '' then begin
+                "No. Series" := NoSeriesCode;
+                if NoSeries.AreRelated("No. Series", xRec."No. Series") then
+                    "No. Series" := xRec."No. Series";
+                Code := NoSeries.GetNextNo("No. Series");
+            end;
         end;
         if "Amount Type" = "Amount Type"::Any then begin
             CopyTo(PriceSource);

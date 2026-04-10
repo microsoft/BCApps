@@ -10,13 +10,12 @@ using System.Utilities;
 
 report 99000762 "Prod. Order - Job Card"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Manufacturing/Document/ProdOrderJobCard.rdlc';
     AdditionalSearchTerms = 'production order - job card,work order job card';
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Job Card';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Production Order";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -203,6 +202,16 @@ report 99000762 "Prod. Order - Job Card"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Manufacturing/Document/ProdOrderJobCard.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

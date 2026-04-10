@@ -23,6 +23,7 @@ codeunit 1405 "Purch. Inv. Header - Edit"
         PurchInvHeader."Creditor No." := Rec."Creditor No.";
         PurchInvHeader."Ship-to Code" := Rec."Ship-to Code";
         PurchInvHeader."Posting Description" := Rec."Posting Description";
+        PurchInvHeader."Dispute Status" := Rec."Dispute Status";
         OnBeforePurchInvHeaderModify(PurchInvHeader, Rec);
         PurchInvHeader.TestField("No.", Rec."No.");
         PurchInvHeader.Modify();
@@ -43,6 +44,7 @@ codeunit 1405 "Purch. Inv. Header - Edit"
         VendorLedgerEntry."Payment Reference" := PurchInvHeader."Payment Reference";
         VendorLedgerEntry."Creditor No." := PurchInvHeader."Creditor No.";
         VendorLedgerEntry.Description := PurchInvHeader."Posting Description";
+        VendorLedgerEntry."Dispute Status" := PurchInvHeader."Dispute Status";
         OnBeforeUpdateVendorLedgerEntryAfterSetValues(VendorLedgerEntry, PurchInvHeader);
         Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
     end;

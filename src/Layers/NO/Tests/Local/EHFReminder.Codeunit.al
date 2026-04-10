@@ -1,7 +1,11 @@
+#if not CLEAN29
 codeunit 144005 "EHF Reminder"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteReason = 'This codeunit is deprecated and will be removed in a future release.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     begin
@@ -18,6 +22,7 @@ codeunit 144005 "EHF Reminder"
         CustomizationIDTxt: Label 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0#conformant#urn:fdc:anskaffelser.no:2019:ehf:reminder:3.0', Locked = true;
         ProfileIDTxt: Label 'urn:fdc:anskaffelser.no:2019:ehf:postaward:g3:06:1.0', Locked = true;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure ErrorOnIssuedReminderWithYourReferenceBlankAndEInvoiceYes()
@@ -39,6 +44,7 @@ codeunit 144005 "EHF Reminder"
         IssuedReminderHeader.TestField("Your Reference", '');
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure ErrorOnIssuedFinChargeMemoWithYourReferenceBlankAndEInvoiceYes()
@@ -60,6 +66,7 @@ codeunit 144005 "EHF Reminder"
         IssuedFinChargeMemoHeader.TestField("Your Reference", '');
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure NoErrorOnIssuedReminderWithYourReferenceBlankAndEInvoiceNo()
@@ -81,6 +88,7 @@ codeunit 144005 "EHF Reminder"
         IssuedReminderHeader.TestField("Your Reference", '');
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure NoErrorOnIssuedFinChargeMemoWithYourReferenceBlankAndEInvoiceNo()
@@ -415,6 +423,7 @@ codeunit 144005 "EHF Reminder"
         SalesReceivablesSetup.Modify(true);
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     local procedure UpdateReminderEInvoiceFields(var ReminderHeader: Record "Reminder Header"; YourReference: Text[35]; Einvoice: Boolean)
     begin
         ReminderHeader."Your Reference" := YourReference;
@@ -422,6 +431,7 @@ codeunit 144005 "EHF Reminder"
         ReminderHeader.Modify();
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     local procedure UpdateFinChargeMemoEInvoiceFields(var FinanceChargeMemoHeader: Record "Finance Charge Memo Header"; YourReference: Text[35]; Einvoice: Boolean)
     begin
         FinanceChargeMemoHeader."Your Reference" := YourReference;
@@ -478,4 +488,4 @@ codeunit 144005 "EHF Reminder"
         Reply := true;
     end;
 }
-
+#endif

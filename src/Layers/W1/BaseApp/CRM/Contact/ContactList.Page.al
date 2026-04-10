@@ -950,7 +950,7 @@ page 5052 "Contact List"
             action(SynchronizeWithOutlookAndTeams)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Synchronize with Outlook and Teams';
+                Caption = 'Synchronize with Outlook';
                 Image = Refresh;
                 Ellipsis = true;
                 ToolTip = 'Synchronize this list with your contacts stored in Microsoft 365, so that you can get to them easily from your Outlook or Teams apps. You will be able to choose which specific contacts are synchronized.';

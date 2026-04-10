@@ -5393,6 +5393,99 @@ codeunit 137054 "SCM Supply Planning"
         ItemAvailabilityByLocation.Close();
     end;
 
+    [Test]
+    [HandlerFunctions('CalculatePlanPlanWkshRequestPageHandler')]
+    procedure ForecastConsumptionWithSalesAndComponentForecasts()
+    var
+        ComponentForecastEntry: Record "Production Forecast Entry";
+        ComponentItem: Record Item;
+        InventorySetup: Record "Inventory Setup";
+        ParentItem: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionForecastName: Record "Production Forecast Name";
+        ProductionOrder: Record "Production Order";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        SalesForecastEntry: Record "Production Forecast Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PlanningWorksheet: TestPage "Planning Worksheet";
+        ForecastDate: Date;
+        ComponentForecastQty: Decimal;
+        ProductionOrderQty: Decimal;
+        SalesForecastQty: Decimal;
+        SalesOrderQty: Decimal;
+    begin
+        // [SCENARIO 623279] Planning Worksheet calculates supply requirement correctly when Demand Forecast Type is 'Both'
+        Initialize();
+
+        // [GIVEN] Get Inventory Setup and set Location Mandatory as false
+        InventorySetup.Get();
+        InventorySetup.Validate("Location Mandatory", false);
+        InventorySetup.Modify(true);
+        ForecastDate := WorkDate();
+        SalesForecastQty := LibraryRandom.RandIntInRange(100, 100);
+        ComponentForecastQty := LibraryRandom.RandIntInRange(100, 100);
+        SalesOrderQty := LibraryRandom.RandIntInRange(30, 40);
+        ProductionOrderQty := LibraryRandom.RandIntInRange(10, 12);
+
+        // [GIVEN] Create component item
+        CreateLFLItem(ComponentItem, ComponentItem."Replenishment System"::Purchase, '<0D>', '<0D>', false, 0, 0);
+        GlobalItemNo := ComponentItem."No.";
+
+        // [GIVEN] Create parent item with BOM containing component
+        CreateLFLItem(ParentItem, ParentItem."Replenishment System"::"Prod. Order", '<0D>', '<0D>', false, 0, 0);
+        CreateAndCertifyProductionBOM(ProductionBOMHeader, ComponentItem."Base Unit of Measure", ComponentItem."No.");
+        UpdateItem(ParentItem, ParentItem.FieldNo("Production BOM No."), ProductionBOMHeader."No.");
+
+        // [GIVEN] Create Sales Forecast for component (Component Forecast = false)
+        LibraryManufacturing.CreateProductionForecastName(ProductionForecastName);
+        UpdateForecastOnInventorySetup(ProductionForecastName.Name, false);
+        LibraryManufacturing.CreateProductionForecastEntry(
+            SalesForecastEntry, ProductionForecastName.Name, ComponentItem."No.", '', ForecastDate, false);
+        SalesForecastEntry.Validate("Forecast Quantity (Base)", SalesForecastQty);
+        SalesForecastEntry.Modify(true);
+
+        // [GIVEN] Create Component Forecast for component (Component Forecast = true)
+        LibraryManufacturing.CreateProductionForecastEntry(
+            ComponentForecastEntry, ProductionForecastName.Name, ComponentItem."No.", '', ForecastDate, true);
+        ComponentForecastEntry.Validate("Forecast Quantity (Base)", ComponentForecastQty);
+        ComponentForecastEntry.Modify(true);
+
+        // [GIVEN] Create Sales Order for component
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ComponentItem."No.", SalesOrderQty);
+        SalesLine.Validate("Shipment Date", ForecastDate);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Create Production Order for parent item (which requires component)
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item,
+            ParentItem."No.", ProductionOrderQty);
+        ProductionOrder.Validate("Due Date", ForecastDate);
+        ProductionOrder.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [WHEN] Calculate Regenerative Plan
+        ReqWkshTemplate.SetRange("Page ID", Page::"Planning Worksheet");
+        if ReqWkshTemplate.FindFirst() then begin
+            ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Planning);
+            ReqWkshTemplate.Modify();
+        end;
+        RequisitionWkshName.SetRange("Worksheet Template Name", ReqWkshTemplate.Name);
+        RequisitionWkshName.FindFirst();
+        CalcRegenPlanForPlanWkshPage(PlanningWorksheet, RequisitionWkshName.Name);
+
+        // [THEN] Verify total requirement should be (Sales Forecast - Sales Order) + Component Forecast - Prod Component + Sales Order + Prod Component
+        VerifyRequisitionLine(
+            ComponentItem."No.", RequisitionLine."Action Message"::New, ForecastDate, 0,
+            (SalesForecastQty - SalesOrderQty) + (ComponentForecastQty - ProductionOrderQty) + SalesOrderQty + ProductionOrderQty, 0D, '', '');
+
+        // Tear Down
+        UpdateForecastOnInventorySetup(
+            InventorySetup."Current Demand Forecast", InventorySetup."Use Forecast on Locations");
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

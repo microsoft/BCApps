@@ -20,10 +20,9 @@ using Microsoft.Bank.Statement;
 /// </remarks>
 report 1407 "Bank Account Statement"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Bank/Reports/BankAccountStatement.rdlc';
     Caption = 'Bank Account Statement';
     WordMergeDataItem = "Bank Account Statement";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -306,6 +305,16 @@ report 1407 "Bank Account Statement"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Bank/Reports/BankAccountStatement.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

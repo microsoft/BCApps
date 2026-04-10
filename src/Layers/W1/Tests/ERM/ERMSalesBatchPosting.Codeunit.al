@@ -1115,105 +1115,6 @@ codeunit 134391 "ERM Sales Batch Posting"
             Error('Analysis View is not updated after 10 waits.');
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesStaticsUpdateVATAmountModalPageHandler,RequestPageHandlerBatchPostSalesInvoices')]
-    procedure BatchPostSalesInvoiceWithVATDifference()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesInvoicePage: TestPage "Sales Invoice";
-        MaxAllowedVATDifference: Decimal;
-        VATModifier: Decimal;
-    begin
-        // [FEATURE] [Invoice]
-        // [SCENARIO 385771] Stan can preview and run batch posting with invoice having VAT Difference
-        Initialize();
-
-        MaxAllowedVATDifference := LibraryRandom.RandIntInRange(2, 10);
-        VATModifier := Round(-MaxAllowedVATDifference / 2);
-
-        LibrarySales.SetAllowVATDifference(true);
-        LibraryERM.SetMaxVATDifferenceAllowed(MaxAllowedVATDifference);
-
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, LibrarySales.CreateCustomerNo());
-
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
-        SalesLine.Validate("VAT %", LibraryRandom.RandIntInRange(10, 20));
-        SalesLine.Validate("Unit Price", LibraryRandom.RandIntInRange(10, 100));
-        SalesLine.Modify(true);
-
-        LibraryVariableStorage.Enqueue(VATModifier);
-        LibraryVariableStorage.Enqueue(SalesHeader."No.");
-
-        SalesInvoicePage.OpenEdit();
-        SalesInvoicePage.FILTER.SetFilter("No.", SalesHeader."No.");
-        SalesInvoicePage.Statistics.Invoke();
-
-        SalesInvoicePage.Next();
-        SalesInvoicePage.SalesLines."Total Amount Incl. VAT".AssertEquals(
-          SalesLine."Amount Including VAT" + VATModifier);
-
-        SalesInvoicePage.Close();
-
-        RunBatchPostSales(SalesHeader."Document Type", SalesHeader."No.", 0D, false);
-
-        SalesHeader.SetRecFilter();
-
-        Assert.RecordIsEmpty(SalesHeader);
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesStaticsUpdateVATAmountModalPageHandler,RequestPageHandlerBatchPostSalesInvoices')]
-    procedure BatchPostSalesInvoiceWithVATDifferenceAndPriceInclVAT()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesInvoicePage: TestPage "Sales Invoice";
-        MaxAllowedVATDifference: Decimal;
-        VATModifier: Decimal;
-    begin
-        // [FEATURE] [Invoice] [Price Including VAT]
-        // [SCENARIO 385771] Stan can preview and run batch posting with invoice having VAT Difference and "Price Including VAT" = TRUE
-        Initialize();
-
-        MaxAllowedVATDifference := LibraryRandom.RandIntInRange(2, 10);
-        VATModifier := Round(-MaxAllowedVATDifference / 2);
-
-        LibrarySales.SetAllowVATDifference(true);
-        LibraryERM.SetMaxVATDifferenceAllowed(MaxAllowedVATDifference);
-
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, LibrarySales.CreateCustomerNo());
-        SalesHeader.Validate("Prices Including VAT", true);
-        SalesHeader.Modify(true);
-
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
-        SalesLine.Validate("VAT %", LibraryRandom.RandIntInRange(10, 20));
-        SalesLine.Validate("Unit Price", LibraryRandom.RandIntInRange(10, 100));
-        SalesLine.Modify(true);
-
-        LibraryVariableStorage.Enqueue(VATModifier);
-        LibraryVariableStorage.Enqueue(SalesHeader."No.");
-
-        SalesInvoicePage.OpenEdit();
-        SalesInvoicePage.FILTER.SetFilter("No.", SalesHeader."No.");
-        SalesInvoicePage.Statistics.Invoke();
-        SalesInvoicePage.Close();
-
-        SalesLine.Find();
-        SalesLine.TestField(Amount, Round(SalesLine."Unit Price" / (1 + SalesLine."VAT %" / 100)) - VATModifier);
-
-
-        RunBatchPostSales(SalesHeader."Document Type", SalesHeader."No.", 0D, false);
-
-        SalesHeader.SetRecFilter();
-
-        Assert.RecordIsEmpty(SalesHeader);
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('SalesStaticsUpdateVATAmountPageHandler,RequestPageHandlerBatchPostSalesInvoices')]
     procedure BatchPostSalesInvoiceWithVATDifferenceNonModal()
@@ -2337,19 +2238,6 @@ codeunit 134391 "ERM Sales Batch Posting"
         LibraryVariableStorage.Enqueue(LibraryVariableStorage.DequeueInteger() + 1);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [ModalPageHandler]
-    procedure SalesStaticsUpdateVATAmountModalPageHandler(var SalesStatistics: TestPage "Sales Statistics")
-    var
-        SalesHeader: Record "Sales Header";
-    begin
-        SalesStatistics.SubForm."VAT Amount".SetValue(
-          SalesStatistics.SubForm."VAT Amount".AsDecimal() + LibraryVariableStorage.DequeueDecimal());
-        SalesHeader.Get(SalesHeader."Document Type"::Invoice, LibraryVariableStorage.DequeueText());
-        SalesStatistics.GotoRecord(SalesHeader);
-    end;
-#endif
     [PageHandler]
     procedure SalesStaticsUpdateVATAmountPageHandler(var SalesStatistics: TestPage "Sales Statistics")
     var

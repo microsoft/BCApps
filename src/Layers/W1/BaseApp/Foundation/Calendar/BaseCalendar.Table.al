@@ -16,16 +16,19 @@ table 7600 "Base Calendar"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the base calendar you have set up.';
             NotBlank = true;
         }
         field(2; Name; Text[30])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the base calendar in the entry.';
         }
         field(3; "Customized Changes Exist"; Boolean)
         {
             CalcFormula = exist("Customized Calendar Change" where("Base Calendar Code" = field(Code)));
             Caption = 'Customized Changes Exist';
+            ToolTip = 'Specifies that the base calendar has been used to create customized calendars.';
             Editable = false;
             FieldClass = FlowField;
         }

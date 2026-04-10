@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -51,7 +51,6 @@ page 116 "G/L Registers"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the general ledger register.';
                 }
                 /// <summary>
                 /// The Creation Date field has been replaced with the SystemCreateAt field but needs to be kept for historical audit purposes.
@@ -59,7 +58,6 @@ page 116 "G/L Registers"
                 field("Creation Date"; Rec."Creation Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the entries in the register were posted.';
                     Visible = false;
                 }
                 /// <summary>
@@ -68,7 +66,6 @@ page 116 "G/L Registers"
                 field("Creation Time"; Rec."Creation Time")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the time when the entries in the register were posted.';
                     Visible = false;
                 }
                 field(SystemCreatedAt; Rec.SystemCreatedAt)
@@ -84,7 +81,6 @@ page 116 "G/L Registers"
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
 
                     trigger OnDrillDown()
                     var
@@ -96,38 +92,31 @@ page 116 "G/L Registers"
                 field("Source Code"; Rec."Source Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the source code for the entries in the register.';
                 }
                 field("Journal Batch Name"; Rec."Journal Batch Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the batch name of the general journal that the entries were posted from.';
                 }
                 field(Reversed; Rec.Reversed)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the register has been reversed (undone) from the Reverse Entries window.';
                     Visible = false;
                 }
                 field("From Entry No."; Rec."From Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the first general ledger entry number in the register.';
                 }
                 field("To Entry No."; Rec."To Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the last general ledger entry number in the register.';
                 }
                 field("From VAT Entry No."; Rec."From VAT Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the first VAT entry number in the register.';
                 }
                 field("To VAT Entry No."; Rec."To VAT Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the last entry number in the register.';
                 }
             }
         }
@@ -439,6 +428,16 @@ page 116 "G/L Registers"
                 {
                 }
             }
+        }
+    }
+
+    analysisviews
+    {
+        analysisview("GL Entries By Source")
+        {
+            Caption = 'GL entries by source';
+            DefinitionFile = './Finance/GeneralLedger/Ledger/GLEntriesBySource.analysis.json';
+            ToolTip = 'Get an overview of the types of transactions that happen to your general ledger and the types of sources for them.';
         }
     }
 

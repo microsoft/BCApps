@@ -247,7 +247,6 @@ page 10052 "Service Order Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text002, false);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalServLine[2].""Inv. Discount Amount"""; TotalServLine[2]."Inv. Discount Amount")
                 {
@@ -270,7 +269,6 @@ page 10052 "Service Order Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text001, false);
                     Editable = false;
-                    ShowCaption = false;
 
                     trigger OnValidate()
                     begin
@@ -284,7 +282,6 @@ page 10052 "Service Order Stats."
                     AutoFormatType = 1;
                     CaptionClass = Format(VATAmountText[2]);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalAmount2[2]"; TotalAmount2[2])
                 {
@@ -293,7 +290,6 @@ page 10052 "Service Order Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text001, true);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalServLineLCY[2].Amount"; TotalServLineLCY[2].Amount)
                 {
@@ -391,7 +387,6 @@ page 10052 "Service Order Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text002, false);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("Inv. Discount Amount"; TotalServLine[2]."Inv. Discount Amount")
                 {
@@ -414,7 +409,6 @@ page 10052 "Service Order Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text001, false);
                     Editable = false;
-                    ShowCaption = false;
 
                     trigger OnValidate()
                     begin
@@ -428,7 +422,6 @@ page 10052 "Service Order Stats."
                     AutoFormatType = 1;
                     CaptionClass = Format(VATAmountText[2]);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field(Control1480096; TotalAmount2[2])
                 {
@@ -437,7 +430,6 @@ page 10052 "Service Order Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text001, true);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("Amount (LCY)"; TotalServLineLCY[2].Amount)
                 {

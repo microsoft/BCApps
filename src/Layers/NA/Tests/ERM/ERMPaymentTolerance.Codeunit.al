@@ -1,7 +1,9 @@
 ﻿codeunit 134022 "ERM Payment Tolerance"
 {
     Permissions = TableData "Cust. Ledger Entry" = rimd,
-                  TableData "Vendor Ledger Entry" = rimd;
+                  TableData "Vendor Ledger Entry" = rimd,
+                  TableData "Detailed Cust. Ledg. Entry" = rimd,
+                  TableData "Detailed Vendor Ledg. Entry" = rimd;
     Subtype = Test;
     TestPermissions = Disabled;
 
@@ -3555,6 +3557,160 @@
         VendLedgerEntry.TestField("Remaining Amount", 0);
     end;
 
+    [Test]
+    procedure DelPmtTolApllnDocNoResetsManyCustEntries()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        CustomerNo: Code[20];
+        DocumentNo: Code[20];
+        EntryCount: Integer;
+        i: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624229] DelPmtTolApllnDocNo resets tolerance fields on many open CLE with the same document number
+        Initialize();
+
+        // [GIVEN] 5 open customer ledger entries "CLE" with document no. "D" and non-zero tolerance values
+        EntryCount := 5;
+        CustomerNo := LibraryUtility.GenerateGUID();
+        DocumentNo := LibraryUtility.GenerateGUID();
+        for i := 1 to EntryCount do
+            MockCustLedgEntryWithTolerance(CustomerNo, DocumentNo);
+
+        // [GIVEN] General journal line "GJL" with Account Type = Customer
+        CreateGenJnlLineForCustomer(GenJournalLine, CustomerNo);
+        PaymentToleranceMgt.SetSuppressCommit(true);
+
+        // [WHEN] DelPmtTolApllnDocNo is called with "GJL" and "D"
+        PaymentToleranceMgt.DelPmtTolApllnDocNo(GenJournalLine, DocumentNo);
+
+        // [THEN] All 5 "CLE" have Accepted Payment Tolerance = 0 and Accepted Pmt. Disc. Tolerance = false
+        VerifyCustLedgEntryToleranceReset(CustomerNo, DocumentNo, EntryCount);
+    end;
+
+    [Test]
+    procedure DelPmtTolApllnDocNoOnlyResetsMatchingCustEntries()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        CustomerNo: Code[20];
+        TargetDocNo: Code[20];
+        OtherDocNo: Code[20];
+        TargetCount: Integer;
+        OtherCount: Integer;
+        OriginalTolAmount: Decimal;
+        i: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624229] DelPmtTolApllnDocNo only resets tolerance on CLE matching the document number, others are preserved
+        Initialize();
+
+        // [GIVEN] 3 open customer ledger entries "CLE1" with document no. "D1" and non-zero tolerance
+        TargetCount := 3;
+        OtherCount := 2;
+        CustomerNo := LibraryUtility.GenerateGUID();
+        TargetDocNo := LibraryUtility.GenerateGUID();
+        OtherDocNo := LibraryUtility.GenerateGUID();
+        OriginalTolAmount := LibraryRandom.RandDecInRange(10, 100, 2);
+        for i := 1 to TargetCount do
+            MockCustLedgEntryWithTolerance(CustomerNo, TargetDocNo);
+
+        // [GIVEN] 2 open customer ledger entries "CLE2" with document no. "D2" and tolerance amount "A"
+        for i := 1 to OtherCount do
+            MockCustLedgEntryWithSpecificTolerance(CustomerNo, OtherDocNo, OriginalTolAmount);
+
+        // [GIVEN] General journal line "GJL" with Account Type = Customer
+        CreateGenJnlLineForCustomer(GenJournalLine, CustomerNo);
+        PaymentToleranceMgt.SetSuppressCommit(true);
+
+        // [WHEN] DelPmtTolApllnDocNo is called with "GJL" and "D1"
+        PaymentToleranceMgt.DelPmtTolApllnDocNo(GenJournalLine, TargetDocNo);
+
+        // [THEN] All 3 "CLE1" have tolerance reset to 0/false
+        VerifyCustLedgEntryToleranceReset(CustomerNo, TargetDocNo, TargetCount);
+
+        // [THEN] All 2 "CLE2" preserve original tolerance amount "A"
+        VerifyCustLedgEntryTolerancePreserved(CustomerNo, OtherDocNo, OriginalTolAmount, OtherCount);
+    end;
+
+    [Test]
+    procedure DelPmtTolApllnDocNoResetsManyVendEntries()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        VendorNo: Code[20];
+        DocumentNo: Code[20];
+        EntryCount: Integer;
+        i: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624229] DelPmtTolApllnDocNo resets tolerance fields on many open VLE with the same document number
+        Initialize();
+
+        // [GIVEN] 5 open vendor ledger entries "VLE" with document no. "D" and non-zero tolerance values
+        EntryCount := 5;
+        VendorNo := LibraryUtility.GenerateGUID();
+        DocumentNo := LibraryUtility.GenerateGUID();
+        for i := 1 to EntryCount do
+            MockVendLedgEntryWithTolerance(VendorNo, DocumentNo);
+
+        // [GIVEN] General journal line "GJL" with Account Type = Vendor
+        CreateGenJnlLineForVendor(GenJournalLine, VendorNo);
+        PaymentToleranceMgt.SetSuppressCommit(true);
+
+        // [WHEN] DelPmtTolApllnDocNo is called with "GJL" and "D"
+        PaymentToleranceMgt.DelPmtTolApllnDocNo(GenJournalLine, DocumentNo);
+
+        // [THEN] All 5 "VLE" have Accepted Payment Tolerance = 0 and Accepted Pmt. Disc. Tolerance = false
+        VerifyVendLedgEntryToleranceReset(VendorNo, DocumentNo, EntryCount);
+    end;
+
+    [Test]
+    procedure DelPmtTolApllnDocNoOnlyResetsMatchingVendEntries()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        VendorNo: Code[20];
+        TargetDocNo: Code[20];
+        OtherDocNo: Code[20];
+        TargetCount: Integer;
+        OtherCount: Integer;
+        OriginalTolAmount: Decimal;
+        i: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624229] DelPmtTolApllnDocNo only resets tolerance on VLE matching the document number, others are preserved
+        Initialize();
+
+        // [GIVEN] 3 open vendor ledger entries "VLE1" with document no. "D1" and non-zero tolerance
+        TargetCount := 3;
+        OtherCount := 2;
+        VendorNo := LibraryUtility.GenerateGUID();
+        TargetDocNo := LibraryUtility.GenerateGUID();
+        OtherDocNo := LibraryUtility.GenerateGUID();
+        OriginalTolAmount := LibraryRandom.RandDecInRange(10, 100, 2);
+        for i := 1 to TargetCount do
+            MockVendLedgEntryWithTolerance(VendorNo, TargetDocNo);
+
+        // [GIVEN] 2 open vendor ledger entries "VLE2" with document no. "D2" and tolerance amount "A"
+        for i := 1 to OtherCount do
+            MockVendLedgEntryWithSpecificTolerance(VendorNo, OtherDocNo, OriginalTolAmount);
+
+        // [GIVEN] General journal line "GJL" with Account Type = Vendor
+        CreateGenJnlLineForVendor(GenJournalLine, VendorNo);
+        PaymentToleranceMgt.SetSuppressCommit(true);
+
+        // [WHEN] DelPmtTolApllnDocNo is called with "GJL" and "D1"
+        PaymentToleranceMgt.DelPmtTolApllnDocNo(GenJournalLine, TargetDocNo);
+
+        // [THEN] All 3 "VLE1" have tolerance reset to 0/false
+        VerifyVendLedgEntryToleranceReset(VendorNo, TargetDocNo, TargetCount);
+
+        // [THEN] All 2 "VLE2" preserve original tolerance amount "A"
+        VerifyVendLedgEntryTolerancePreserved(VendorNo, OtherDocNo, OriginalTolAmount, OtherCount);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4922,6 +5078,184 @@
     begin
         BankAccRecon.Validate("Statement Ending Balance", NewStmEndingBalance);
         BankAccRecon.Modify();
+    end;
+
+    local procedure MockCustLedgEntryWithTolerance(CustomerNo: Code[20]; DocumentNo: Code[20])
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CustLedgerEntry.Init();
+        CustLedgerEntry."Entry No." :=
+            LibraryUtility.GetNewRecNo(CustLedgerEntry, CustLedgerEntry.FieldNo("Entry No."));
+        CustLedgerEntry."Customer No." := CustomerNo;
+        CustLedgerEntry."Document No." := DocumentNo;
+        CustLedgerEntry.Open := true;
+        CustLedgerEntry.Positive := true;
+        CustLedgerEntry."Accepted Payment Tolerance" := LibraryRandom.RandDecInRange(10, 100, 2);
+        CustLedgerEntry."Accepted Pmt. Disc. Tolerance" := true;
+        CustLedgerEntry.Insert();
+        MockDetailedCustLedgEntry(CustLedgerEntry."Entry No.");
+    end;
+
+    local procedure MockCustLedgEntryWithSpecificTolerance(CustomerNo: Code[20]; DocumentNo: Code[20]; TolAmount: Decimal)
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CustLedgerEntry.Init();
+        CustLedgerEntry."Entry No." :=
+            LibraryUtility.GetNewRecNo(CustLedgerEntry, CustLedgerEntry.FieldNo("Entry No."));
+        CustLedgerEntry."Customer No." := CustomerNo;
+        CustLedgerEntry."Document No." := DocumentNo;
+        CustLedgerEntry.Open := true;
+        CustLedgerEntry.Positive := true;
+        CustLedgerEntry."Accepted Payment Tolerance" := TolAmount;
+        CustLedgerEntry."Accepted Pmt. Disc. Tolerance" := true;
+        CustLedgerEntry.Insert();
+        MockDetailedCustLedgEntry(CustLedgerEntry."Entry No.");
+    end;
+
+    local procedure MockDetailedCustLedgEntry(CustLedgEntryNo: Integer)
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        DetailedCustLedgEntry.Init();
+        DetailedCustLedgEntry."Entry No." :=
+            LibraryUtility.GetNewRecNo(DetailedCustLedgEntry, DetailedCustLedgEntry.FieldNo("Entry No."));
+        DetailedCustLedgEntry."Cust. Ledger Entry No." := CustLedgEntryNo;
+        DetailedCustLedgEntry."Entry Type" := DetailedCustLedgEntry."Entry Type"::"Initial Entry";
+        DetailedCustLedgEntry.Amount := LibraryRandom.RandDec(100, 2);
+        DetailedCustLedgEntry.Insert();
+    end;
+
+    local procedure MockVendLedgEntryWithTolerance(VendorNo: Code[20]; DocumentNo: Code[20])
+    var
+        VendLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        VendLedgerEntry.Init();
+        VendLedgerEntry."Entry No." :=
+            LibraryUtility.GetNewRecNo(VendLedgerEntry, VendLedgerEntry.FieldNo("Entry No."));
+        VendLedgerEntry."Vendor No." := VendorNo;
+        VendLedgerEntry."Document No." := DocumentNo;
+        VendLedgerEntry.Open := true;
+        VendLedgerEntry.Positive := false;
+        VendLedgerEntry."Accepted Payment Tolerance" := LibraryRandom.RandDecInRange(10, 100, 2);
+        VendLedgerEntry."Accepted Pmt. Disc. Tolerance" := true;
+        VendLedgerEntry.Insert();
+        MockDetailedVendLedgEntry(VendLedgerEntry."Entry No.");
+    end;
+
+    local procedure MockVendLedgEntryWithSpecificTolerance(VendorNo: Code[20]; DocumentNo: Code[20]; TolAmount: Decimal)
+    var
+        VendLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        VendLedgerEntry.Init();
+        VendLedgerEntry."Entry No." :=
+            LibraryUtility.GetNewRecNo(VendLedgerEntry, VendLedgerEntry.FieldNo("Entry No."));
+        VendLedgerEntry."Vendor No." := VendorNo;
+        VendLedgerEntry."Document No." := DocumentNo;
+        VendLedgerEntry.Open := true;
+        VendLedgerEntry.Positive := false;
+        VendLedgerEntry."Accepted Payment Tolerance" := TolAmount;
+        VendLedgerEntry."Accepted Pmt. Disc. Tolerance" := true;
+        VendLedgerEntry.Insert();
+        MockDetailedVendLedgEntry(VendLedgerEntry."Entry No.");
+    end;
+
+    local procedure MockDetailedVendLedgEntry(VendLedgEntryNo: Integer)
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        DetailedVendorLedgEntry.Init();
+        DetailedVendorLedgEntry."Entry No." :=
+            LibraryUtility.GetNewRecNo(DetailedVendorLedgEntry, DetailedVendorLedgEntry.FieldNo("Entry No."));
+        DetailedVendorLedgEntry."Vendor Ledger Entry No." := VendLedgEntryNo;
+        DetailedVendorLedgEntry."Entry Type" := DetailedVendorLedgEntry."Entry Type"::"Initial Entry";
+        DetailedVendorLedgEntry.Amount := LibraryRandom.RandDec(100, 2);
+        DetailedVendorLedgEntry.Insert();
+    end;
+
+    local procedure CreateGenJnlLineForCustomer(var GenJournalLine: Record "Gen. Journal Line"; CustomerNo: Code[20])
+    begin
+        GenJournalLine.Init();
+        GenJournalLine."Account Type" := GenJournalLine."Account Type"::Customer;
+        GenJournalLine."Account No." := CustomerNo;
+        GenJournalLine."Bal. Account Type" := GenJournalLine."Bal. Account Type"::"G/L Account";
+    end;
+
+    local procedure CreateGenJnlLineForVendor(var GenJournalLine: Record "Gen. Journal Line"; VendorNo: Code[20])
+    begin
+        GenJournalLine.Init();
+        GenJournalLine."Account Type" := GenJournalLine."Account Type"::Vendor;
+        GenJournalLine."Account No." := VendorNo;
+        GenJournalLine."Bal. Account Type" := GenJournalLine."Bal. Account Type"::"G/L Account";
+    end;
+
+    local procedure VerifyCustLedgEntryToleranceReset(CustomerNo: Code[20]; DocumentNo: Code[20]; ExpectedCount: Integer)
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        CustLedgerEntry.SetRange("Document No.", DocumentNo);
+        CustLedgerEntry.SetRange(Open, true);
+        Assert.AreEqual(ExpectedCount, CustLedgerEntry.Count(), 'Expected number of customer ledger entries');
+        CustLedgerEntry.FindSet();
+        repeat
+            Assert.AreEqual(0, CustLedgerEntry."Accepted Payment Tolerance",
+                'Accepted Payment Tolerance should be 0 for entry ' + Format(CustLedgerEntry."Entry No."));
+            Assert.AreEqual(false, CustLedgerEntry."Accepted Pmt. Disc. Tolerance",
+                'Accepted Pmt. Disc. Tolerance should be false for entry ' + Format(CustLedgerEntry."Entry No."));
+        until CustLedgerEntry.Next() = 0;
+    end;
+
+    local procedure VerifyCustLedgEntryTolerancePreserved(CustomerNo: Code[20]; DocumentNo: Code[20]; ExpectedTolAmount: Decimal; ExpectedCount: Integer)
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        CustLedgerEntry.SetRange("Document No.", DocumentNo);
+        CustLedgerEntry.SetRange(Open, true);
+        Assert.AreEqual(ExpectedCount, CustLedgerEntry.Count(), 'Expected number of customer ledger entries');
+        CustLedgerEntry.FindSet();
+        repeat
+            Assert.AreEqual(ExpectedTolAmount, CustLedgerEntry."Accepted Payment Tolerance",
+                'Accepted Payment Tolerance should be preserved for entry ' + Format(CustLedgerEntry."Entry No."));
+            Assert.AreEqual(true, CustLedgerEntry."Accepted Pmt. Disc. Tolerance",
+                'Accepted Pmt. Disc. Tolerance should be preserved for entry ' + Format(CustLedgerEntry."Entry No."));
+        until CustLedgerEntry.Next() = 0;
+    end;
+
+    local procedure VerifyVendLedgEntryToleranceReset(VendorNo: Code[20]; DocumentNo: Code[20]; ExpectedCount: Integer)
+    var
+        VendLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        VendLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendLedgerEntry.SetRange("Document No.", DocumentNo);
+        VendLedgerEntry.SetRange(Open, true);
+        Assert.AreEqual(ExpectedCount, VendLedgerEntry.Count(), 'Expected number of vendor ledger entries');
+        VendLedgerEntry.FindSet();
+        repeat
+            Assert.AreEqual(0, VendLedgerEntry."Accepted Payment Tolerance",
+                'Accepted Payment Tolerance should be 0 for entry ' + Format(VendLedgerEntry."Entry No."));
+            Assert.AreEqual(false, VendLedgerEntry."Accepted Pmt. Disc. Tolerance",
+                'Accepted Pmt. Disc. Tolerance should be false for entry ' + Format(VendLedgerEntry."Entry No."));
+        until VendLedgerEntry.Next() = 0;
+    end;
+
+    local procedure VerifyVendLedgEntryTolerancePreserved(VendorNo: Code[20]; DocumentNo: Code[20]; ExpectedTolAmount: Decimal; ExpectedCount: Integer)
+    var
+        VendLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        VendLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendLedgerEntry.SetRange("Document No.", DocumentNo);
+        VendLedgerEntry.SetRange(Open, true);
+        Assert.AreEqual(ExpectedCount, VendLedgerEntry.Count(), 'Expected number of vendor ledger entries');
+        VendLedgerEntry.FindSet();
+        repeat
+            Assert.AreEqual(ExpectedTolAmount, VendLedgerEntry."Accepted Payment Tolerance",
+                'Accepted Payment Tolerance should be preserved for entry ' + Format(VendLedgerEntry."Entry No."));
+            Assert.AreEqual(true, VendLedgerEntry."Accepted Pmt. Disc. Tolerance",
+                'Accepted Pmt. Disc. Tolerance should be preserved for entry ' + Format(VendLedgerEntry."Entry No."));
+        until VendLedgerEntry.Next() = 0;
     end;
 
     [ModalPageHandler]

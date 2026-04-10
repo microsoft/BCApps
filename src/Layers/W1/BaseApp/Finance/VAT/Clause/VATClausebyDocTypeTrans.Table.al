@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -45,6 +45,7 @@ table 563 "VAT Clause by Doc. Type Trans."
         field(3; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
             TableRelation = Language;
             DataClassification = CustomerContent;
         }
@@ -54,6 +55,7 @@ table 563 "VAT Clause by Doc. Type Trans."
         field(4; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the translation of the VAT clause description. The translated version of the description is displayed as the VAT clause, based on the Language Code setting on the customer card.';
             DataClassification = CustomerContent;
         }
         /// <summary>
@@ -62,6 +64,7 @@ table 563 "VAT Clause by Doc. Type Trans."
         field(5; "Description 2"; Text[250])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies the translation of the additional VAT clause description.';
             DataClassification = CustomerContent;
         }
     }

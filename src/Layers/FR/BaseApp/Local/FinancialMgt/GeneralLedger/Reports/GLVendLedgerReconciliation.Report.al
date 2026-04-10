@@ -163,9 +163,9 @@ report 10863 "GL/Vend. Ledger Reconciliation"
                             CurrReport.Skip();
                         TotalDebit := TotalDebit + "Debit Amount";
                         TotalCredit := TotalCredit + "Credit Amount";
-                        GLAccountNetChange.Get("G/L Account No.");
-                        GLAccountNetChange."Net Change in Jnl." += Amount;
-                        GLAccountNetChange.Modify();
+                        TempGLAccountNetChange.Get("G/L Account No.");
+                        TempGLAccountNetChange."Net Change in Jnl." += Amount;
+                        TempGLAccountNetChange.Modify();
                         HavingDetail := true;
                     end;
 
@@ -184,9 +184,9 @@ report 10863 "GL/Vend. Ledger Reconciliation"
                     PostingBuffer."Account No." := "Payables Account";
                     if not PostingBuffer.Insert() then
                         CurrReport.Skip();
-                    Clear(GLAccountNetChange);
-                    GLAccountNetChange."No." := "Payables Account";
-                    if not GLAccountNetChange.Insert() then;
+                    Clear(TempGLAccountNetChange);
+                    TempGLAccountNetChange."No." := "Payables Account";
+                    if not TempGLAccountNetChange.Insert() then;
                 end;
 
                 trigger OnPostDataItem()
@@ -247,12 +247,12 @@ report 10863 "GL/Vend. Ledger Reconciliation"
 
     trigger OnPostReport()
     begin
-        GLAccountNetChange.DeleteAll();
+        TempGLAccountNetChange.DeleteAll();
     end;
 
     var
         PostingBuffer: Record "Payment Post. Buffer" temporary;
-        GLAccountNetChange: Record "G/L Account Net Change";
+        TempGLAccountNetChange: Record "G/L Account Net Change";
         TotalDebit: Decimal;
         TotalCredit: Decimal;
         FirstNo: Code[20];

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,49 +34,40 @@ page 9241 "G/L Entries Dim. Overv. Matrix"
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the entry''s posting date.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the document type that the entry belongs to.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the entry''s Document No.';
                 }
                 field("G/L Account No."; Rec."G/L Account No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the account that the entry has been posted to.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the entry.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the Amount of the entry.';
                 }
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                     Visible = false;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
                 field(Field1; MATRIX_CellData[1])
                 {

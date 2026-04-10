@@ -358,7 +358,7 @@ table 'Value Entries'
 			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
 			VAR TenantID = VALUES('Date Table Setup'[tenantID])
 			VAR Environment = VALUES(ENVIRONMENT[ENVIRONMENT])
-			VAR Company = "?company=" & VALUES(COMPANY[COMPANY])
+			VAR Company = "?company=" & VALUES('Company Encoding'[Encoded Company Name])
 			RETURN BusinessCentral & TenantID & "/" & Environment & "/" & Company
 		isHidden
 		displayFolder: _Inventory Value Entry Measures\Back Links

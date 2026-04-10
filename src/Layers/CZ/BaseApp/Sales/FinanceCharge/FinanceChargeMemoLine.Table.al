@@ -632,6 +632,8 @@ table 303 "Finance Charge Memo Line"
                             CumulateDetailedEntries(Amount, UseDueDate, UseCalcDate,
                               UseInterestRate, FinanceChargeInterestRate."Interest Period (Days)", BaseAmount);
                     NrOfDays := UseCalcDate - UseDueDate;
+                    if (CustLedgEntry."Closed at Date" <> 0D) and (CustLedgEntry."Closed at Date" < UseCalcDate) then
+                        NrOfDays := CustLedgEntry."Closed at Date" - UseDueDate;
 
                     OnCalcFinChrgOnBeforeCheckNrOfLinesToInsert(FinChrgMemoLine, NrOfDays);
                     if (NrOfLinesToInsert > 0) and

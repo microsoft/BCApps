@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN29
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,6 +13,9 @@ codeunit 10621 "E-Invoice Exp. Iss. Fin. Chrg."
 {
     Permissions = TableData "Issued Fin. Charge Memo Header" = rm;
     TableNo = "Issued Fin. Charge Memo Header";
+    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     var
@@ -179,4 +183,4 @@ codeunit 10621 "E-Invoice Exp. Iss. Fin. Chrg."
         IssuedFinChargeMemoHeader2.Modify();
     end;
 }
-
+#endif

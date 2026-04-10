@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,12 +30,10 @@ page 556 "Analysis View List"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code for this entry.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name.';
                 }
                 field("Account Source"; Rec."Account Source")
                 {
@@ -45,34 +43,28 @@ page 556 "Analysis View List"
                 field("Include Budgets"; Rec."Include Budgets")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies whether to include an update of analysis view budget entries, when updating an analysis view.';
                     Visible = IncludeBudgets;
                 }
                 field("Last Date Updated"; Rec."Last Date Updated")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the date on which the analysis view was last updated.';
                 }
                 field("Dimension 1 Code"; Rec."Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
                 }
                 field("Dimension 2 Code"; Rec."Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
                 }
                 field("Dimension 3 Code"; Rec."Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
                 }
                 field("Dimension 4 Code"; Rec."Dimension 4 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
                 }
             }
         }

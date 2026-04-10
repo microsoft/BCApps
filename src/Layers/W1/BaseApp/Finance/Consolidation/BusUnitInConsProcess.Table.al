@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 1831 "Bus. Unit In Cons. Process"
         /// </summary>
         field(2; "Business Unit Code"; Code[20])
         {
+            ToolTip = 'Specifies the code of the business unit.';
             TableRelation = "Business Unit";
             DataClassification = CustomerContent;
         }
@@ -53,6 +54,7 @@ table 1831 "Bus. Unit In Cons. Process"
         field(4; "Status"; Option)
         {
             OptionCaption = 'Not started,Importing data,Consolidating,Finished,Error';
+            ToolTip = 'Specifies the status of the business unit in the consolidation process.';
             OptionMembers = NotStarted,ImportingData,Consolidating,Finished,Error;
             DataClassification = SystemMetadata;
         }
@@ -61,6 +63,7 @@ table 1831 "Bus. Unit In Cons. Process"
         /// </summary>
         field(5; "Average Exchange Rate"; Decimal)
         {
+            ToolTip = 'Specifies the average exchange rate of the business unit.';
             AutoFormatType = 0;
             DataClassification = CustomerContent;
         }
@@ -69,6 +72,7 @@ table 1831 "Bus. Unit In Cons. Process"
         /// </summary>
         field(6; "Closing Exchange Rate"; Decimal)
         {
+            ToolTip = 'Specifies the closing exchange rate of the business unit.';
             AutoFormatType = 0;
             DataClassification = CustomerContent;
         }
@@ -77,6 +81,7 @@ table 1831 "Bus. Unit In Cons. Process"
         /// </summary>
         field(7; "Last Closing Exchange Rate"; Decimal)
         {
+            ToolTip = 'Specifies the last closing exchange rate considered when adjusting balances in re-runs for this business unit.';
             AutoFormatType = 0;
             DataClassification = CustomerContent;
         }
@@ -88,12 +93,14 @@ table 1831 "Bus. Unit In Cons. Process"
             DataClassification = CustomerContent;
             OptionMembers = "Local","Business Unit";
             OptionCaption = 'Local,Business Unit';
+            ToolTip = 'Specifies the currency exchange rate table of the business unit.';
         }
         /// <summary>
         /// Starting date for the consolidation period being processed.
         /// </summary>
         field(9; "Starting Date"; Date)
         {
+            ToolTip = 'Specifies the starting date of the consolidation.';
             FieldClass = FlowField;
             CalcFormula = lookup("Consolidation Process"."Starting Date" where(Id = field("Consolidation Process Id")));
         }
@@ -102,6 +109,7 @@ table 1831 "Bus. Unit In Cons. Process"
         /// </summary>
         field(10; "Ending Date"; Date)
         {
+            ToolTip = 'Specifies the ending date of the consolidation.';
             FieldClass = FlowField;
             CalcFormula = lookup("Consolidation Process"."Ending Date" where(Id = field("Consolidation Process Id")));
         }
@@ -110,6 +118,7 @@ table 1831 "Bus. Unit In Cons. Process"
         /// </summary>
         field(11; "Currency Code"; Code[10])
         {
+            ToolTip = 'Specifies the currency code of the business unit.';
             DataClassification = CustomerContent;
         }
     }

@@ -956,52 +956,6 @@ codeunit 134763 "Test Sales Post Preview"
         GLPostingPreview.Close();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsModalPageHandler,VATAmountLinesModalPageHandler')]
-    procedure PostSalesOrderAfterUpdatingVATAmtonVATAmtLine()
-    var
-        Customer: Record Customer;
-        SalesHeader: Record "Sales Header";
-        SalesLine: array[2] of Record "Sales Line";
-        VATPostingSetup: Record "VAT Posting Setup";
-        DocumentNo: Code[20];
-        VATAmount: Decimal;
-    begin
-        // [FEATURE] [VAT Difference] [UI] [Statistics] [Order]
-        // [SCENARIO] System can post Sales Order with zero amount line and with the specified VAT difference.
-
-        // [GIVEN]
-        Initialize();
-        LibrarySales.SetAllowVATDifference(true);
-        LibraryERM.SetMaxVATDifferenceAllowed(LibraryRandom.RandDecInRange(5, 10, 2));
-        LibrarySales.CreateCustomer(Customer);
-
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
-        LibrarySales.CreateSalesLine(
-          SalesLine[1], SalesHeader, SalesLine[1].Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandDecInRange(10, 20, 2));
-        SalesLine[1].Validate("Unit Price", LibraryRandom.RandDecInRange(10, 20, 2));
-        SalesLine[1].Validate("VAT %", LibraryRandom.RandIntInRange(10, 20));
-        SalesLine[1].Modify(true);
-
-        LibrarySales.CreateSalesLine(
-          SalesLine[2], SalesHeader, SalesLine[2].Type::Item, SalesLine[1]."No.", -(SalesLine[1].Quantity + 1));
-        SalesLine[2].Validate("Unit Price", SalesLine[1]."Unit Price");
-        SalesLine[1].Validate("VAT %", SalesLine[1]."VAT %");
-        SalesLine[2].Validate("Qty. to Ship", 0);
-        SalesLine[2].Modify(true);
-
-        VATAmount := Round((SalesLine[1].Amount * SalesLine[1]."VAT %" / 100) + LibraryRandom.RandDecInRange(2, 4, 2), 2);
-        LibraryVariableStorage.Enqueue(VATAmount);
-        OpenSalesOrderStatisticsPage(SalesHeader."No.");
-
-        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-
-        VATPostingSetup.Get(SalesLine[1]."VAT Bus. Posting Group", SalesLine[1]."VAT Prod. Posting Group");
-        VerifyAmountOnGLEntry(DocumentNo, VATPostingSetup."Sales VAT Account", -VATAmount);
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesOrderStatisticsPageHandler,VATAmountLinesPageHandler')]
     procedure PostSalesOrderAfterUpdatingVATAmtonVATAmtLineNM()
@@ -1594,18 +1548,6 @@ codeunit 134763 "Test Sales Post Preview"
         LibraryERM.SetAppliestoIdCustomer(CustLedgerEntry);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure OpenSalesOrderStatisticsPage(OrderNo: Code[20])
-    var
-        SalesOrder: TestPage "Sales Order";
-    begin
-        SalesOrder.OpenEdit();
-        SalesOrder.FILTER.SetFilter("No.", OrderNo);
-        SalesOrder.Statistics.Invoke();
-        SalesOrder.Close();
-    end;
-#endif
     local procedure OpenSalesOrderStatisticsPageNM(OrderNo: Code[20])
     var
         SalesOrder: TestPage "Sales Order";
@@ -1801,22 +1743,6 @@ codeunit 134763 "Test Sales Post Preview"
           DetCustLedgEntrPreview.Amount.AsDecimal() <> 0, 'Application does not exist');
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    procedure SalesOrderStatisticsModalPageHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    begin
-        SalesOrderStatistics.NoOfVATLines_Invoicing.DrillDown();
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    procedure VATAmountLinesModalPageHandler(var VATAmountLines: TestPage "VAT Amount Lines")
-    begin
-        VATAmountLines."VAT Amount".SetValue(LibraryVariableStorage.DequeueDecimal());
-        VATAmountLines.OK().Invoke();
-    end;
-#endif
     [PageHandler]
     procedure SalesOrderStatisticsPageHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
     begin

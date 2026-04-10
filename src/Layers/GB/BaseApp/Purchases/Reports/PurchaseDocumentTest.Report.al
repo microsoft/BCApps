@@ -35,14 +35,9 @@ using System.Utilities;
 
 report 402 "Purchase Document - Test"
 {
-    DefaultLayout = RDLC;
-#if not CLEAN27
-    RDLCLayout = './Purchases/Reports/PurchaseDocumentTestGB.rdlc';
-#else
-    RDLCLayout = './Purchases/Reports/PurchaseDocumentTest.rdlc';
-#endif
     Caption = 'Purchase Document - Test';
     WordMergeDataItem = "Purchase Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -1783,6 +1778,25 @@ report 402 "Purchase Document - Test"
                 InvOnNextPostReq := true;
             end;
         end;
+    }
+
+    rendering
+    {
+#if not CLEAN27
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/PurchaseDocumentTestGB.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
+#else
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/PurchaseDocumentTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
+#endif
     }
 
     labels

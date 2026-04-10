@@ -712,6 +712,13 @@ table 25 "Vendor Ledger Entry"
             ToolTip = 'Specifies the address for the remit-to code.';
             TableRelation = "Remit Address".Code where("Vendor No." = field("Vendor No."));
         }
+        field(1340; "Dispute Status"; Code[10])
+        {
+            Caption = 'Dispute Status';
+            TableRelation = "Dispute Status";
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies if there is an ongoing dispute for this document.';
+        }
     }
 
     keys

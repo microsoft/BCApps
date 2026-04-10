@@ -52,10 +52,10 @@ page 36963 "Power BI Selection Lookup"
 
     trigger OnOpenPage()
     var
-        PowerBISelectionElement: Record "Power BI Selection Element";
+        TempPowerBISelectionElement: Record "Power BI Selection Element";
         SelectTxt: Label 'Select Power BI %1', Comment = '%1 = Type';
     begin
-        if Evaluate(PowerBISelectionElement.Type, Rec.GetFilter(Type)) then
-            CurrPage.Caption := StrSubstNo(SelectTxt, PowerBISelectionElement.Type);
+        if Evaluate(TempPowerBISelectionElement.Type, Rec.GetFilter(Type)) then
+            CurrPage.Caption := StrSubstNo(SelectTxt, TempPowerBISelectionElement.Type);
     end;
 }

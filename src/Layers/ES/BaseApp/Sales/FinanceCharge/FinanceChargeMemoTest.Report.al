@@ -20,10 +20,9 @@ using System.Utilities;
 /// </summary>
 report 123 "Finance Charge Memo - Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/FinanceCharge/FinanceChargeMemoTest.rdlc';
     Caption = 'Finance Charge Memo - Test';
     WordMergeDataItem = "Finance Charge Memo Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -759,6 +758,16 @@ report 123 "Finance Charge Memo - Test"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/FinanceCharge/FinanceChargeMemoTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -3127,7 +3127,7 @@ codeunit 134820 "ERM Cost Accounting - Codeunit"
         asserterror GeneralLedgerSetup.Validate("Allow Posting To DateFormula", AllowPostingToDateFormula);
 
         // [THEN] Expected error occurs
-        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', WorkDate()), CalcDate('<-2M>', WorkDate()), Format(GeneralLedgerSetup.RecordID(), 0, 1)));
+        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', Today()), CalcDate('<-2M>', Today()), Format(GeneralLedgerSetup.RecordID(), 0, 1)));
     end;
 
     [Test]
@@ -3152,7 +3152,7 @@ codeunit 134820 "ERM Cost Accounting - Codeunit"
         asserterror UserSetup.Validate("Allow Posting To DateFormula", AllowPostingToDateFormula);
 
         // [THEN] Expected error occurs
-        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', WorkDate()), CalcDate('<-2M>', WorkDate()), Format(UserSetup.RecordID(), 0, 1)));
+        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', Today()), CalcDate('<-2M>', Today()), Format(UserSetup.RecordID(), 0, 1)));
     end;
 
     [Test]
@@ -3177,7 +3177,7 @@ codeunit 134820 "ERM Cost Accounting - Codeunit"
         asserterror GenJournalTemplate.Validate("Allow Posting To DateFormula", AllowPostingToDateFormula);
 
         // [THEN] Expected error occurs
-        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', WorkDate()), CalcDate('<-2M>', WorkDate()), Format(GenJournalTemplate.RecordID(), 0, 1)));
+        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', Today()), CalcDate('<-2M>', Today()), Format(GenJournalTemplate.RecordID(), 0, 1)));
     end;
 
     local procedure Initialize()

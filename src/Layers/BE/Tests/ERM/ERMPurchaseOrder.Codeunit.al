@@ -4487,45 +4487,6 @@
         Assert.AreEqual(248158881, PurchLine.GetLineAmountToHandle(37), PurchLineGetLineAmountToHandleErr);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseOrderStatisticsUpdateTotalVATHandler,VATAmountLinesHandler')]
-    [Scope('OnPrem')]
-    procedure AmountInclVATContainsVATDifferenceInOpenSalesOrder()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        PurchaseOrder: TestPage "Purchase Order";
-        MaxVATDifference: Decimal;
-        VATDifference: Decimal;
-        AmountInclVATBefore: Decimal;
-    begin
-        // [FEATURE] [Statistics] [VAT Difference]
-        // [SCENARIO 224140] "Amount Incl. VAT" contains VAT Difference in open Purchase Order
-        Initialize();
-
-        // [GIVEN] VAT Difference is allowed
-        MaxVATDifference := EnableVATDiffAmount();
-        VATDifference := LibraryRandom.RandDecInDecimalRange(0.01, MaxVATDifference, 2);
-        LibraryVariableStorage.Enqueue(VATDifference);
-
-        // [GIVEN] Purchase Order with Amount = 4000, Amount Incl. VAT = 5000
-        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, LibraryPurchase.CreateVendorNo(), PurchaseHeader."Document Type"::Order);
-        AmountInclVATBefore := PurchaseLine."Amount Including VAT";
-
-        // [WHEN] Add "VAT Difference" = 1 in SalesStatisticHandler
-        UpdateVATAmountOnPurchaseOrderStatistics(PurchaseHeader, PurchaseOrder);
-
-        // [THEN] "VAT Difference" and "Amount Including VAT" fields contain VAT difference amount in purchase line
-        // [THEN] "VAT Difference" = 1 in purchase line
-        // [THEN] "Amount Including VAT" = 5001 in purchase line
-        PurchaseLine.Find();
-        PurchaseLine.TestField("VAT Difference", VATDifference);
-        PurchaseLine.TestField("Amount Including VAT", AmountInclVATBefore + VATDifference);
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('PurchaseOrderStatisticsUpdateTotalVATPageHandler,VATAmountLinesHandler')]
     [Scope('OnPrem')]
@@ -10901,17 +10862,6 @@
         VendorLedgerEntries.OK().Invoke();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure UpdateVATAmountOnPurchaseOrderStatistics(var PurchaseHeader: Record "Purchase Header"; var PurchaseOrder: TestPage "Purchase Order")
-    begin
-        PurchaseOrder.OpenView();
-        PurchaseOrder.FILTER.SetFilter("No.", PurchaseHeader."No.");
-        PurchaseOrder.Statistics.Invoke();
-        PurchaseOrder.GotoRecord(PurchaseHeader);
-    end;
-#endif
-
     local procedure UpdateVATAmountOnPurchaseOrderStats(var PurchaseHeader: Record "Purchase Header"; var PurchaseOrder: TestPage "Purchase Order")
     begin
         PurchaseOrder.OpenView();
@@ -13020,17 +12970,6 @@
     procedure StandardPurchaseOrderReportDataHandler(var StandardPurchaseOrder: Report "Standard Purchase - Order")
     begin
     end;
-
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseOrderStatisticsUpdateTotalVATHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
-    begin
-        PurchaseOrderStatistics.NoOfVATLines_Invoicing.DrillDown();
-        PurchaseOrderStatistics.OK().Invoke();
-    end;
-#endif
 
     [PageHandler]
     [Scope('OnPrem')]

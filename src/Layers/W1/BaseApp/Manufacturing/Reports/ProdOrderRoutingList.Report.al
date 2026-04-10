@@ -9,11 +9,10 @@ using System.Utilities;
 
 report 99000761 "Prod. Order - Routing List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Manufacturing/Reports/ProdOrderRoutingList.rdlc';
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Routing List';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -151,6 +150,16 @@ report 99000761 "Prod. Order - Routing List"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Manufacturing/Reports/ProdOrderRoutingList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

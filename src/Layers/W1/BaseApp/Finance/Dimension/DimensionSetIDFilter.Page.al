@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,7 +36,6 @@ page 481 "Dimension Set ID Filter"
                 {
                     ApplicationArea = Dimensions;
                     TableRelation = Dimension.Code;
-                    ToolTip = 'Specifies the code for the dimension.';
 
                     trigger OnValidate()
                     var

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,6 +15,7 @@ table 53 "Accounting Period Buffer"
         field(1; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the starting date of the accounting period.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -25,6 +26,7 @@ table 53 "Accounting Period Buffer"
         field(2; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the ending date of the accounting period.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -35,6 +37,7 @@ table 53 "Accounting Period Buffer"
         field(3; Name; Text[30])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the accounting period.';
         }
         field(5; "Customer No. Filter"; Text[20])
         {

@@ -239,7 +239,7 @@ table 36 "Sales Header"
                     Rec.RecallModifyAddressNotification(GetModifyCustomerAddressNotificationId());
 
                 if xRec."Sell-to Customer No." <> "Sell-to Customer No." then
-                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
+                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, not IsNullGuid(Rec.SystemId));
             end;
         }
         /// <summary>
@@ -346,7 +346,7 @@ table 36 "Sales Header"
                     Rec.RecallModifyAddressNotification(Rec.GetModifyBillToCustomerAddressNotificationId());
 
                 if xRec."Bill-to Customer No." <> "Bill-to Customer No." then
-                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
+                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, not IsNullGuid(Rec.SystemId));
             end;
         }
         /// <summary>
@@ -952,7 +952,7 @@ table 36 "Sales Header"
                     StandardCodesMgt.CheckShowSalesRecurringLinesNotification(Rec);
 
                 if "Currency Code" <> xRec."Currency Code" then
-                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
+                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, not IsNullGuid(Rec.SystemId));
 
                 if Status = Status::Open then
                     SetCompanyBankAccount();
@@ -2248,7 +2248,7 @@ table 36 "Sales Header"
                 TestStatusOpen();
                 if xRec."VAT Bus. Posting Group" <> "VAT Bus. Posting Group" then begin
                     RecreateSalesLines(FieldCaption("VAT Bus. Posting Group"));
-                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
+                    SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, not IsNullGuid(Rec.SystemId));
                 end;
             end;
         }
@@ -3103,7 +3103,7 @@ table 36 "Sales Header"
                 end;
 
                 if ("Sell-to Customer No." <> '') and ("Sell-to Contact No." <> '') then
-                    CheckContactRelatedToCustomerCompany("Sell-to Contact No.", "Sell-to Customer No.", CurrFieldNo);
+                    CheckContactRelatedToCustomerCompany("Sell-to Contact No.", "Sell-to Customer No.");
 
                 IsHandled := false;
                 OnValidateSelltoContactNoOnBeforeValidateSalespersonCode(Rec, Cont, IsHandled);
@@ -3188,7 +3188,7 @@ table 36 "Sales Header"
                 end;
 
                 if ("Bill-to Customer No." <> '') and ("Bill-to Contact No." <> '') then
-                    CheckContactRelatedToCustomerCompany("Bill-to Contact No.", "Bill-to Customer No.", CurrFieldNo);
+                    CheckContactRelatedToCustomerCompany("Bill-to Contact No.", "Bill-to Customer No.");
 
                 UpdateBillToCust("Bill-to Contact No.");
             end;
@@ -3993,9 +3993,6 @@ table 36 "Sales Header"
         CompressPrepaymentCannotBeUsedWithApplyInvRoundAmtToVATErr: Label 'You cannot use %1 for %2 %3 when %4 is enabled in %5.', Comment = '%1 - Compress Prepayment field caption, %2 - Document Type field value, %3 - No. field value, %4 - Apply Inv. Round. Amt. To VAT field caption, %5 - Sales & Receivables Setup table caption.';
         CalledFromWhseDoc: Boolean;
         DocumentNotOpenErr: Label 'The document''s status must be Open. To change the status, use the Reopen action.';
-#if not CLEAN26
-        SkipStatsPrep: Boolean;
-#endif
 
     protected var
         Customer: Record Customer;
@@ -6965,6 +6962,7 @@ table 36 "Sales Header"
         MinValue: Code[20];
         MaxValue: Code[20];
     begin
+        OnBeforeGetFilterCustNo(Rec);
         if GetFilter("Sell-to Customer No.") <> '' then
             if TryGetFilterCustNoRange(MinValue, MaxValue) then
                 if MinValue = MaxValue then
@@ -7117,38 +7115,6 @@ table 36 "Sales Header"
         TempSalesLine.Insert();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    /// <summary>
-    /// Open statistics page for sales document.
-    /// </summary>
-    /// <remarks>
-    /// Commit is executed before opening the statistics page.
-    /// </remarks>
-    procedure OpenSalesOrderStatistics()
-    var
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeOpenSalesOrderStatistics(Rec, IsHandled);
-        if IsHandled then
-            exit;
-
-        OpenDocumentStatisticsInternal();
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    /// <summary>
-    /// Open statistics page for sales documents.
-    /// </summary>
-    /// <remarks>
-    /// Commit is executed before opening the statistics page.
-    /// </remarks>
-    procedure OpenDocumentStatistics()
-    begin
-        OpenDocumentStatisticsInternal();
-    end;
-#endif
     /// <summary>
     /// Runs checks and prepares data needed to open the document statistics page.
     /// </summary>
@@ -7176,73 +7142,12 @@ table 36 "Sales Header"
         Commit();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    /// <summary>
-    /// Opens a sales document statistics page based on the document type.
-    /// After the page is closed, the recalculate invoice discount field is set to false on all sales document lines.
-    /// </summary>
-    procedure ShowDocumentStatisticsPage() StatisticsPageId: Integer
-    begin
-        StatisticsPageId := GetStatisticsPageID();
 
-        OnGetStatisticsPageID(StatisticsPageId, Rec);
-
-        SkipStatsPrep := true;
-        PAGE.RunModal(StatisticsPageId, Rec);
-        ResetSkipStatisticsPreparationFlag();
-
-        SalesCalcDiscountByType.ResetRecalculateInvoiceDisc(Rec);
-    end;
-
-    /// <summary>
-    /// Returns whether the statistics preparation step should be skipped.
-    /// </summary>
-    /// <returns>True if statistics preparation should be skipped.</returns>
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    procedure SkipStatisticsPreparation(): Boolean
-    begin
-        exit(SkipStatsPrep)
-    end;
-
-    /// <summary>
-    /// Resets the skip statistics preparation flag to false.
-    /// </summary>
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    procedure ResetSkipStatisticsPreparationFlag()
-    begin
-        SkipStatsPrep := false;
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure OpenDocumentStatisticsInternal()
-    var
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeOpenDocumentStatistics(Rec, IsHandled);
-        if IsHandled then
-            exit;
-
-        PrepareOpeningDocumentStatistics();
-        ShowDocumentStatisticsPage();
-    end;
-#endif
     local procedure IsOrderDocument(): Boolean
     begin
         exit("Document Type" in ["Document Type"::Order, "Document Type"::"Blanket Order", "Document Type"::"Return Order"])
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure GetStatisticsPageID(): Integer
-    begin
-        if IsOrderDocument() then
-            exit(PAGE::"Sales Order Statistics");
-
-        exit(PAGE::"Sales Statistics");
-    end;
-#endif
     /// <summary>
     /// Determines the available credit limit for the customer associated with the sales header.
     /// </summary>
@@ -8346,6 +8251,11 @@ table 36 "Sales Header"
         InstructionMgt: Codeunit "Instruction Mgt.";
         IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeConfirmCloseUnposted(Rec, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         if SalesLinesExist() then begin
             IsHandled := false;
             OnConfirmCloseUnpostedOnSalesLinesExist(Rec, Result, IsHandled);
@@ -9037,52 +8947,6 @@ table 36 "Sales Header"
         exit("Currency Code");
     end;
 
-#if not CLEAN26
-    /// <summary>
-    /// Updates the salesperson code from either the ship-to addresses or bill-to customer's salesperson.
-    /// </summary>
-    /// <remarks>
-    /// If neither are set, it uses the default salesperson from the user setup.
-    /// If salesperson is blocked, it doesn't get assigned.
-    /// </remarks>
-    [Obsolete('Use UpdateShipToSalespersonCode(FieldNo: Integer) instead.', '26.0')]
-    procedure UpdateShipToSalespersonCode()
-    var
-        ShipToAddress: Record "Ship-to Address";
-        SalespersonCode: Code[20];
-        IsHandled: Boolean;
-        IsSalesPersonCodeAssigned: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeUpdateShipToSalespersonCode(Rec, IsHandled);
-        if IsHandled then
-            exit;
-
-        if "Ship-to Code" <> '' then begin
-            ShipToAddress.SetLoadFields("Salesperson Code");
-            ShipToAddress.Get("Sell-to Customer No.", "Ship-to Code");
-            if ShipToAddress."Salesperson Code" <> '' then begin
-                SetSalespersonCode(ShipToAddress."Salesperson Code", SalespersonCode);
-                Validate("Salesperson Code", SalespersonCode);
-                IsSalesPersonCodeAssigned := true;
-            end;
-        end;
-
-        if not IsSalesPersonCodeAssigned then begin
-            IsHandled := false;
-            OnUpdateShiptoSalespersonCodeNotAssigned(Rec, IsHandled);
-            if not IsHandled then
-                if ("Bill-to Customer No." <> '') then begin
-                    GetCust("Bill-to Customer No.");
-                    SetSalespersonCode(Customer."Salesperson Code", SalespersonCode);
-                    Validate("Salesperson Code", SalespersonCode);
-                    if Rec."Sell-to Customer No." <> '' then
-                        GetCust(Rec."Sell-to Customer No.");
-                end else
-                    SetDefaultSalesperson();
-        end;
-    end;
-#endif
     /// <summary>
     /// Updates the salesperson code from either the ship-to addresses or bill-to customer's salesperson.
     /// </summary>
@@ -9415,7 +9279,7 @@ table 36 "Sales Header"
         CopySalesDocument.RunModal();
     end;
 
-    local procedure CheckContactRelatedToCustomerCompany(ContactNo: Code[20]; CustomerNo: Code[20]; CurrFieldNo: Integer);
+    local procedure CheckContactRelatedToCustomerCompany(ContactNo: Code[20]; CustomerNo: Code[20])
     var
         Contact: Record Contact;
         ContBusRel: Record "Contact Business Relation";
@@ -11379,18 +11243,6 @@ table 36 "Sales Header"
     begin
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    /// <summary>
-    /// Raised before opening the sales order statistics page.
-    /// </summary>
-    /// <param name="SalesHeader">The sales header record.</param>
-    /// <param name="IsHandled">Set to true to skip the default statistics page.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeOpenSalesOrderStatistics(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
     /// <summary>
     /// Raised before checking if the quantity to ship is zero.
     /// </summary>
@@ -12265,18 +12117,6 @@ table 36 "Sales Header"
     begin
     end;
 
-#if not CLEAN26
-    /// <summary>
-    /// Raised before opening document statistics.
-    /// </summary>
-    /// <param name="SalesHeader">The sales header record.</param>
-    /// <param name="IsHandled">Set to true to skip the default statistics opening logic.</param>
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeOpenDocumentStatistics(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
     /// <summary>
     /// Raised after preparing to open document statistics.
     /// </summary>
@@ -12286,18 +12126,6 @@ table 36 "Sales Header"
     begin
     end;
 
-#if not CLEAN26
-    /// <summary>
-    /// Raised to get the statistics page ID for a sales header.
-    /// </summary>
-    /// <param name="PageID">The page ID to use for statistics.</param>
-    /// <param name="SalesHeader">The sales header record.</param>
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetStatisticsPageID(var PageID: Integer; SalesHeader: Record "Sales Header")
-    begin
-    end;
-#endif
     /// <summary>
     /// Raised before testing if the status is open.
     /// </summary>
@@ -13027,18 +12855,6 @@ table 36 "Sales Header"
     begin
     end;
 
-#if not CLEAN26
-    /// <summary>
-    /// Raised when the ship-to salesperson code is not assigned.
-    /// </summary>
-    /// <param name="SalesHeader">The sales header record.</param>
-    /// <param name="IsHandled">Set to true to skip the default logic.</param>
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is obsolete. Use OnBeforeUpdateShipToSalespersonCode instead.', '26.0')]
-    local procedure OnUpdateShiptoSalespersonCodeNotAssigned(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
     /// <summary>
     /// Raised after updating the ship-to address from the sell-to address.
     /// </summary>
@@ -13795,6 +13611,26 @@ table 36 "Sales Header"
     /// <param name="TempSalesLine">The temporary sales line record used as source.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRecreateSalesLinesHandleSupplementTypesOnAfterCreateSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before confirming close unposted.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    /// <param name="Result">The result indicating whether to proceed with closing.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation logic.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeConfirmCloseUnposted(var SalesHeader: Record "Sales Header"; var Result: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before getting filter customer number.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetFilterCustNo(var SalesHeader: Record "Sales Header")
     begin
     end;
 

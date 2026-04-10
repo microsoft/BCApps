@@ -32,51 +32,42 @@ page 106 "Exchange Rate Adjmt. Register"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("Creation Date"; Rec."Creation Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the posting date for the exchange rate adjustment register.';
                 }
                 field("Account Type"; Rec."Account Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the account type that was adjusted for exchange rate fluctuations when you ran the Adjust Exchange Rates batch job.';
                 }
                 field("Posting Group"; Rec."Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the posting group of the exchange rate adjustment register on this line.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
                     AssistEdit = true;
-                    ToolTip = 'Specifies the code for the currency whose exchange rate was adjusted.';
                 }
                 field("Adjusted Customers"; Rec."Adjusted Customers")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of customer ledger entries with remaining amount that was adjusted.';
                     Visible = false;
                 }
                 field("Adjusted Vendors"; Rec."Adjusted Vendors")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of vendor ledger entries with remaining amount that was adjusted.';
                     Visible = false;
                 }
                 field("Adjusted Employees"; Rec."Adjusted Employees")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of emplooyee ledger entries with remaining amount that was adjusted.';
                     Visible = false;
                 }
                 field("Adjusted Base"; Rec."Adjusted Base")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the amount that was adjusted by the batch job for customer, vendor and/or bank ledger entries.';
                 }
                 field("Adjusted Base (LCY)"; Rec."Adjusted Base (LCY)")
                 {
@@ -91,7 +82,6 @@ page 106 "Exchange Rate Adjmt. Register"
                 field("Adjustment Amount"; Rec."Adjustment Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the total adjustment amount of exchange rate adjustment ledger entries.';
                     Visible = false;
                 }
                 field("Adjusted Base (Add.-Curr.)"; Rec."Adjusted Base (Add.-Curr.)")

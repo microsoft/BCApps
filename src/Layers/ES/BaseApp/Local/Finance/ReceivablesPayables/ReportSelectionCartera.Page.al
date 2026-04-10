@@ -9,8 +9,11 @@ using System.Reflection;
 
 page 7000045 "Report Selection - Cartera"
 {
+    AboutTitle = 'About report selection for cartera';
+    AboutText = 'On this page, you set up the default reports that are used when printing cartera documents such as bill groups, payment orders, and bills. Use the Usage field to select the type of document, then specify which reports to use in the list below.';
+    AdditionalSearchTerms = 'Cartera Report Selections';
     ApplicationArea = Basic, Suite;
-    Caption = 'Cartera Report Selections';
+    Caption = 'Report Selection - Cartera';
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Cartera Report Selections";

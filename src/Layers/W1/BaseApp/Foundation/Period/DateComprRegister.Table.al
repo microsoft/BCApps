@@ -34,61 +34,73 @@ table 87 "Date Compr. Register"
         field(1; "No."; Integer)
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(2; "Creation Date"; Date)
         {
             Caption = 'Creation Date';
+            ToolTip = 'Specifies the date that the date compression took place.';
         }
         field(3; "Table Caption"; Text[250])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
                                                                            "Object ID" = field("Table ID")));
             Caption = 'Table Caption';
+            ToolTip = 'Specifies the name of the table that was compressed.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(4; "Period Length"; Option)
         {
             Caption = 'Period Length';
+            ToolTip = 'Specifies the time interval of entries combined into one for the period defined in the Starting Date and Ending Date fields in the batch job.';
             OptionCaption = 'Day,Week,Month,Quarter,Year,Period';
             OptionMembers = Day,Week,Month,Quarter,Year,Period;
         }
         field(5; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies the last date in the period for which entries were compressed.';
             ClosingDates = true;
         }
         field(6; "No. of New Records"; Integer)
         {
             Caption = 'No. of New Records';
+            ToolTip = 'Specifies the number of new entries that were created by the date compression.';
         }
         field(7; "No. Records Deleted"; Integer)
         {
             Caption = 'No. Records Deleted';
+            ToolTip = 'Specifies the number of entries that were deleted during the date compression.';
         }
         field(8; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
         field(9; "Filter"; Text[250])
         {
             Caption = 'Filter';
+            ToolTip = 'Specifies the filters that were placed on the date compression.';
         }
         field(10; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the first date in the period for which entries were compressed.';
             ClosingDates = true;
         }
         field(11; "Table ID"; Integer)
         {
             Caption = 'Table ID';
+            ToolTip = 'Specifies the number of the table that was compressed.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
         }
         field(12; "Register No."; Integer)
         {
             Caption = 'Register No.';
+            ToolTip = 'Specifies the number of the register that was created by the date compression and that contains the compressed entries.';
             TableRelation = if ("Table ID" = const(17)) "G/L Register"
             else
             if ("Table ID" = const(21)) "G/L Register"
@@ -114,15 +126,18 @@ table 87 "Date Compr. Register"
         field(13; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
         field(14; "Retain Field Contents"; Text[80])
         {
             Caption = 'Retain Field Contents';
+            ToolTip = 'Specifies a list of the fields whose contents the user chose to retain in the date compression.';
         }
         field(15; "Retain Totals"; Text[80])
         {
             Caption = 'Retain Totals';
+            ToolTip = 'Specifies a list of the quantity fields that the user chose to retain when they ran the date compression batch job.';
         }
     }
 

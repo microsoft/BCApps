@@ -323,5 +323,10 @@
     "codeunitId": 148157,
     "codeunitName": "Service Object Test",
     "method": "UT_UpdateServiceDatesDoesNotCalculateCancellationPossibleUntilAndTermUntilWhenNoticePeriodIsEmpty"
+  },
+  {
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "VerifyVendSubContrDefAccountBalancedForCreditMemoWithDiscount"
   }
 ]

@@ -5,6 +5,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Posting;
+using System.Globalization;
 using System.IO;
 using System.Utilities;
 
@@ -390,8 +391,10 @@ codeunit 8060 "Create Billing Documents"
         if TransferExtendedText.PurchCheckIfAnyExtText(PurchaseLine, false) then
             TransferExtendedText.InsertPurchExtText(PurchaseLine);
 
+        Language.SetOverrideFormatRegion(Language.GetFormatRegionOrDefault(PurchaseHeader."Format Region"), false);
         InsertDescriptionPurchaseLine(
              StrSubstNo(GetBillingPeriodDescriptionTxt(PurchaseHeader."Language Code"), PurchaseLine."Recurring Billing from", PurchaseLine."Recurring Billing to"), PurchaseLine."Line No.");
+        Language.SetOverrideFormatRegion('', false);
 
         if CreateContractInvoice then
             BillingLine.SetRange("Billing Template Code", '');
@@ -1182,10 +1185,14 @@ codeunit 8060 "Create Billing Documents"
                 if ServiceObject."Serial No." <> '' then
                     DescriptionText := ServiceObject.GetSerialNoDescription();
             ContractInvoiceTextType::"Billing Period":
-                DescriptionText := StrSubstNo(
-                                                GetBillingPeriodDescriptionTxt(),
-                                                ParentSalesLine."Recurring Billing from",
-                                                ParentSalesLine."Recurring Billing to");
+                begin
+                    Language.SetOverrideFormatRegion(Language.GetFormatRegionOrDefault(SalesHeader."Format Region"), false);
+                    DescriptionText := StrSubstNo(
+                                                    GetBillingPeriodDescriptionTxt(),
+                                                    ParentSalesLine."Recurring Billing from",
+                                                    ParentSalesLine."Recurring Billing to");
+                    Language.SetOverrideFormatRegion('', false);
+                end;
             ContractInvoiceTextType::"Primary attribute":
                 DescriptionText := ServiceObject.GetPrimaryAttributeValue();
             else begin
@@ -1384,6 +1391,7 @@ codeunit 8060 "Create Billing Documents"
         ServiceContractSetup: Record "Subscription Contract Setup";
         TranslationHelper: Codeunit "Translation Helper";
         DocumentChangeManagement: Codeunit "Document Change Management";
+        Language: Codeunit Language;
         DocumentDate: Date;
         PostingDate: Date;
         CustomerRecurringBillingGrouping: Enum "Customer Rec. Billing Grouping";

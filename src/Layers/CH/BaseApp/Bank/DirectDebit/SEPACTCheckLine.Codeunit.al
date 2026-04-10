@@ -46,8 +46,8 @@ codeunit 1223 "SEPA CT-Check Line"
         SwissExport: Boolean;
         UnknownSwissPaymentTypeErr: Label 'Unknown Swiss SEPA CT export payment type.';
         IBANTypeErr: Label 'The IBAN type on the recipient bank account must match the payment reference type.';
-        QRIBANErr: Label 'The recipient bank account has an IBAN that is of type QR-IBAN. This type requires that the recipient bank account has a SEPA CT export payment type that is type 3.';
-        QRRefErr: Label 'The payment reference is a QR reference. This type requires that the recipient bank account has a SEPA CT export payment type that is type 3.';
+        QRIBANErr: Label 'The recipient bank account has an IBAN that is of type QR-IBAN. This type requires that the recipient bank account has a SEPA CT export payment type that is type 2.2 or 3.';
+        QRRefErr: Label 'The payment reference is a QR reference. This type requires that the recipient bank account has a SEPA CT export payment type that is type 2.2 or 3.';
         IBANTypeHelpLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2210475', Locked = true;
         QRIBANHelpLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2210564', Locked = true;
         QRRefHelpLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2210811', Locked = true;
@@ -233,7 +233,7 @@ codeunit 1223 "SEPA CT-Check Line"
                 IsQRReference := BankMgt.IsQRReference(GenJnlLine."Payment Reference");
                 IsReferenceAndIBANTypeMatched := not (IsQRReference xor IsQRIBAN);
 
-                if SwissPaymentType = DummyPaymentExportData."Swiss Payment Type"::"3" then begin
+                if SwissPaymentType in [DummyPaymentExportData."Swiss Payment Type"::"2.2", DummyPaymentExportData."Swiss Payment Type"::"3"] then begin
                     if not IsReferenceAndIBANTypeMatched then
                         GenJnlLine.InsertPaymentFileErrorWithDetails(IBANTypeErr, '', IBANTypeHelpLinkTxt);
                 end else begin

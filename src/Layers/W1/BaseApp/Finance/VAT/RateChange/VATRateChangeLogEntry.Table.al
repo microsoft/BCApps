@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 552 "VAT Rate Change Log Entry"
         field(1; "Converted Date"; Date)
         {
             Caption = 'Converted Date';
+            ToolTip = 'Specifies the date when the VAT rate change log entry was created.';
         }
         /// <summary>
         /// Unique sequential number identifying the log entry.
@@ -32,6 +33,7 @@ table 552 "VAT Rate Change Log Entry"
         {
             AutoIncrement = true;
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         /// <summary>
         /// Table ID of the record that was modified during conversion.
@@ -39,6 +41,7 @@ table 552 "VAT Rate Change Log Entry"
         field(10; "Table ID"; Integer)
         {
             Caption = 'Table ID';
+            ToolTip = 'Specifies the table. This field is intended only for internal use.';
         }
         /// <summary>
         /// Caption of the table containing the modified record.
@@ -48,6 +51,7 @@ table 552 "VAT Rate Change Log Entry"
             CalcFormula = lookup(AllObj."Object Name" where("Object Type" = const(Table),
                                                              "Object ID" = field("Table ID")));
             Caption = 'Table Caption';
+            ToolTip = 'Specifies the table. This field is intended only for internal use.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -65,6 +69,7 @@ table 552 "VAT Rate Change Log Entry"
         field(30; "Old Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Old Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the general product posting group before the VAT rate change conversion.';
         }
         /// <summary>
         /// General product posting group value after the conversion.
@@ -72,6 +77,7 @@ table 552 "VAT Rate Change Log Entry"
         field(31; "New Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'New Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the new general product posting group after the VAT rate change conversion.';
         }
         /// <summary>
         /// VAT product posting group value before the conversion.
@@ -79,6 +85,7 @@ table 552 "VAT Rate Change Log Entry"
         field(32; "Old VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'Old VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT product posting group before the VAT rate change conversion.';
         }
         /// <summary>
         /// VAT product posting group value after the conversion.
@@ -86,6 +93,7 @@ table 552 "VAT Rate Change Log Entry"
         field(33; "New VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'New VAT Prod. Posting Group';
+            ToolTip = 'Specifies the new VAT product posting group after the VAT rate change conversion.';
         }
         /// <summary>
         /// Indicates whether the conversion was actually performed or logged for preview only.
@@ -93,6 +101,7 @@ table 552 "VAT Rate Change Log Entry"
         field(40; Converted; Boolean)
         {
             Caption = 'Converted';
+            ToolTip = 'Specifies the status of the VAT rate change conversion.';
         }
         /// <summary>
         /// Additional information about the conversion, including any errors or special conditions encountered.
@@ -100,6 +109,7 @@ table 552 "VAT Rate Change Log Entry"
         field(50; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description for the VAT rate change conversion.';
         }
     }
 

@@ -9,12 +9,11 @@ using Microsoft.CRM.Task;
 
 report 5068 "Opportunity - Details"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/OpportunityDetails.rdlc';
     ApplicationArea = RelationshipMgmt;
     Caption = 'Opportunity - Details';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = Opportunity;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -272,6 +271,16 @@ report 5068 "Opportunity - Details"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/OpportunityDetails.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

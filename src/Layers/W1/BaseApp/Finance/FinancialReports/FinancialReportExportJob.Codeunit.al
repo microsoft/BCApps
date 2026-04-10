@@ -168,7 +168,9 @@ codeunit 8361 "Financial Report Export Job"
             AccScheduleLine.SetRange("Schedule Name", FinancialReport."Financial Report Row Group");
         end;
         FinReportMgt.CalcAccScheduleLineDateFilter(FinancialReport, AccScheduleLine);
-        ExportAccSchedToExcel.SetOptions(AccScheduleLine, FinancialReport."Financial Report Column Group", FinancialReport.UseAmountsInAddCurrency, FinancialReportSchedule."Financial Report Name");
+        ExportAccSchedToExcel.SetOptions(
+            AccScheduleLine, FinancialReport."Financial Report Column Group", FinancialReport.UseAmountsInAddCurrency,
+            FinancialReportSchedule."Financial Report Name", FinancialReport.DimPerspective);
 
         // Get excel template if any
         ExcelTemplateCode :=

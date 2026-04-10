@@ -37,6 +37,7 @@ table 484 "Change Global Dim. Header"
         field(2; "Old Global Dimension 1 Code"; Code[20])
         {
             Caption = 'Old Global Dimension 1 Code';
+            ToolTip = 'Specifies the dimension that is currently defined as Global Dimension 1.';
             DataClassification = SystemMetadata;
             TableRelation = Dimension;
         }
@@ -46,6 +47,7 @@ table 484 "Change Global Dim. Header"
         field(3; "Old Global Dimension 2 Code"; Code[20])
         {
             Caption = 'Old Global Dimension 2 Code';
+            ToolTip = 'Specifies the dimension that is currently defined as Global Dimension 2.';
             DataClassification = SystemMetadata;
             TableRelation = Dimension;
         }
@@ -55,6 +57,7 @@ table 484 "Change Global Dim. Header"
         field(4; "Global Dimension 1 Code"; Code[20])
         {
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies another global dimension that you want to use. The second field on the row will show the current global dimension.';
             DataClassification = SystemMetadata;
             TableRelation = Dimension;
 
@@ -74,6 +77,7 @@ table 484 "Change Global Dim. Header"
         field(5; "Global Dimension 2 Code"; Code[20])
         {
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies another global dimension that you want to use. The second field on the row will show the current global dimension.';
             DataClassification = SystemMetadata;
             TableRelation = Dimension;
 
@@ -93,6 +97,7 @@ table 484 "Change Global Dim. Header"
         field(6; "Parallel Processing"; Boolean)
         {
             Caption = 'Parallel Processing';
+            ToolTip = 'Specifies if the change will be processed by parallel background jobs.';
             DataClassification = SystemMetadata;
         }
         /// <summary>

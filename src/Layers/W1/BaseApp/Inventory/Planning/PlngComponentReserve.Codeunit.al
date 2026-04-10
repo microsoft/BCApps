@@ -217,27 +217,6 @@ codeunit 99000840 "Plng. Component-Reserve"
         AssignForPlanning(NewPlanningComponent);
     end;
 
-#if not CLEAN26
-    [Obsolete('Moved to codeunit ProdOrderCompReserve', '26.0')]
-    procedure TransferPlanningCompToPOComp(var OldPlanningComponent: Record "Planning Component"; var NewProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; TransferQty: Decimal; TransferAll: Boolean)
-    var
-        ProdOrderCompReserve: Codeunit Microsoft.Manufacturing.Document."Prod. Order Comp.-Reserve";
-    begin
-        ProdOrderCompReserve.TransferPlanningCompToPOComp(OldPlanningComponent, NewProdOrderComponent, TransferQty, TransferAll);
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('Moved to codeunit AssemblyLineReserve', '26.0')]
-    procedure TransferPlanningCompToAsmLine(var OldPlanningComponent: Record "Planning Component"; var NewAssemblyLine: Record "Assembly Line"; TransferQty: Decimal; TransferAll: Boolean)
-    var
-        OldReservationEntry: Record "Reservation Entry";
-        AssemblyLineReserve: Codeunit "Assembly Line-Reserve";
-    begin
-        AssemblyLineReserve.TransferPlanningCompToAsmLine(OldPlanningComponent, NewAssemblyLine, TransferQty, TransferAll);
-    end;
-#endif
-
     procedure TransferReservations(var OldPlanningComponent: Record "Planning Component"; var OldReservationEntry: Record "Reservation Entry"; TransferAll: Boolean; TransferQty: Decimal; QtyPerUOM: Decimal; SrcType: Integer; SrcSubtype: Option; SrcID: Code[20]; SrcBatchName: Code[10]; SrcProdOrderLine: Integer; SrcRefNo: Integer)
     var
         NewReservationEntry: Record "Reservation Entry";

@@ -16,12 +16,12 @@ codeunit 8895 "Email Feature"
     [EventSubscriber(ObjectType::Table, Database::"Service Connection", 'OnRegisterServiceConnection', '', false, false)]
     local procedure AddEmailAccountsToServiceConnections(var ServiceConnection: Record "Service Connection")
     var
-        EmailAccounts: Record "Email Account";
+        TempEmailAccounts: Record "Email Account";
         EmailAccount: Codeunit "Email Account";
         EmailAccountsPage: Page "Email Accounts";
         RecRef: RecordRef;
     begin
-        RecRef.GetTable(EmailAccounts); // So that it's not empty RecordId
+        RecRef.GetTable(TempEmailAccounts); // So that it's not empty RecordId
 
         ServiceConnection.Status := ServiceConnection.Status::Enabled;
         if not EmailAccount.IsAnyAccountRegistered() then

@@ -16,13 +16,12 @@ using System.Utilities;
 
 report 105 "Customer - Summary Aging"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/Reports/CustomerSummaryAging.rdlc';
     AdditionalSearchTerms = 'customer balance,payment due';
     ApplicationArea = Basic, Suite;
     Caption = 'Customer - Summary Aging';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -350,6 +349,16 @@ report 105 "Customer - Summary Aging"
             if Format(PeriodLengthReq) = '' then
                 Evaluate(PeriodLengthReq, '<1M>');
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reports/CustomerSummaryAging.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

@@ -24,11 +24,10 @@ using System.Utilities;
 
 report 6641 "Return Order"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Document/ReturnOrder.rdlc';
     Caption = 'Return Order';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Purchase Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -787,6 +786,16 @@ report 6641 "Return Order"
             InitLogInteraction();
             LogInteractionEnable := LogInteraction;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Document/ReturnOrder.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

@@ -19,33 +19,6 @@ codeunit 141080 "VAT On Document Statistics II"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseOrderStatisticsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure BlnktPurchOrderStatsWithAddReportingCurrSetup()
-    var
-        PurchaseLine: Record "Purchase Line";
-        BlanketPurchaseOrder: TestPage "Blanket Purchase Order";
-    begin
-        // [FEATURE] [Purchase] [Blanket Order]
-        // [SCENARIO] values on Statistics page for Blanket Purchase Order with Additional Reporting Currency setup.
-
-        // [GIVEN] Run Additional Reporting Currency job and Create Blanket Purchase Order.
-        Initialize();
-        RunAddReportingCurrAndCreatePurchaseDocument(PurchaseLine, PurchaseLine."Document Type"::"Blanket Order");
-        EnqueueValuesForHandler(PurchaseLine."Amount Including VAT", PurchaseLine.Amount * PurchaseLine."VAT %" / 100);  // Enqueue values for PurchaseOrderStatisticsModalPageHandler.
-        BlanketPurchaseOrder.OpenEdit();
-        BlanketPurchaseOrder.FILTER.SetFilter("No.", PurchaseLine."Document No.");
-
-        // Exercise.
-        BlanketPurchaseOrder.Statistics.Invoke();  // Opens PurchaseOrderStatisticsModalPageHandler.
-
-        // Verify: Verification is done in PurchaseOrderStatisticsModalPageHandler.
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('PurchaseOrderStatisticsPageHandler')]
     [Scope('OnPrem')]
@@ -70,32 +43,6 @@ codeunit 141080 "VAT On Document Statistics II"
         // Verify: Verification is done in PurchaseOrderStatisticsPageHandler.
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure BlnktSalesOrderStatsWithAddReportingCurrSetup()
-    var
-        SalesLine: Record "Sales Line";
-        BlanketSalesOrder: TestPage "Blanket Sales Order";
-    begin
-        // [FEATURE] [Sales] [Blanket Order]
-        // [SCENARIO] values on Statistics page for Blanket Sales Order with Additional Reporting Currency setup.
-
-        // [GIVEN] Run Additional Reporting Currency job and Create Blanket Sales Order.
-        Initialize();
-        RunAddReportingCurrAndCreateSalesDocument(SalesLine, SalesLine."Document Type"::"Blanket Order");
-        EnqueueValuesForHandler(SalesLine."Amount Including VAT", SalesLine.Amount * SalesLine."VAT %" / 100);  // Enqueue values for SalesOrderStatisticsModalPageHandler.
-        BlanketSalesOrder.OpenEdit();
-        BlanketSalesOrder.FILTER.SetFilter("No.", SalesLine."Document No.");
-
-        // Exercise.
-        BlanketSalesOrder.Statistics.Invoke();  // Opens SalesOrderStatisticsModalPageHandler.
-
-        // Verify: Verification is done in SalesOrderStatisticsModalPageHandler.
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesOrderStatisticsPageHandler')]
     [Scope('OnPrem')]
@@ -119,132 +66,6 @@ codeunit 141080 "VAT On Document Statistics II"
 
         // Verify: Verification is done in SalesOrderStatisticsPageHandler.
     end;
-
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseStatisticsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure PurchQuoteStatisticsWithAddReportingCurrSetup()
-    var
-        PurchaseLine: Record "Purchase Line";
-        PurchaseQuote: TestPage "Purchase Quote";
-    begin
-        // [FEATURE] [Purchase] [Quote]
-        // [SCENARIO] values on Statistics page for Purchase Quote with Additional Reporting Currency setup.
-
-        // [GIVEN] Run Additional Reporting Currency job and Create Purchase Quote.
-        Initialize();
-        RunAddReportingCurrAndCreatePurchaseDocument(PurchaseLine, PurchaseLine."Document Type"::Quote);
-        EnqueueValuesForHandler(PurchaseLine."Amount Including VAT", PurchaseLine.Amount * PurchaseLine."VAT %" / 100);  // Enqueue values for PurchaseStatisticsModalPageHandler.
-        PurchaseQuote.OpenEdit();
-        PurchaseQuote.FILTER.SetFilter("No.", PurchaseLine."Document No.");
-
-        // Exercise.
-        PurchaseQuote.Statistics.Invoke();  // Opens PurchaseStatisticsModalPageHandler.
-
-        // Verify: Verification is done in PurchaseStatisticsModalPageHandler.
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseStatisticsPageHandler')]
-    [Scope('OnPrem')]
-    procedure PurchQuotePageStatisticsWithAddReportingCurrSetup()
-    var
-        PurchaseLine: Record "Purchase Line";
-        PurchaseQuote: TestPage "Purchase Quote";
-    begin
-        // [FEATURE] [Purchase] [Quote]
-        // [SCENARIO] values on Statistics page for Purchase Quote with Additional Reporting Currency setup.
-
-        // [GIVEN] Run Additional Reporting Currency job and Create Purchase Quote.
-        Initialize();
-        RunAddReportingCurrAndCreatePurchaseDocument(PurchaseLine, PurchaseLine."Document Type"::Quote);
-        EnqueueValuesForHandler(PurchaseLine."Amount Including VAT", PurchaseLine.Amount * PurchaseLine."VAT %" / 100);  // Enqueue values for PurchaseStatisticsPageHandler.
-        PurchaseQuote.OpenEdit();
-        PurchaseQuote.FILTER.SetFilter("No.", PurchaseLine."Document No.");
-
-        // Exercise.
-        PurchaseQuote.PurchaseStatistics.Invoke();  // Opens PurchaseStatisticsPageHandler.
-
-        // Verify: Verification is done in PurchaseStatisticsPageHandler.
-    end;
-
-
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesStatisticsModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure SalesQuoteStatisticsWithAddReportingCurrSetup()
-    var
-        SalesLine: Record "Sales Line";
-        SalesQuote: TestPage "Sales Quote";
-    begin
-        // [FEATURE] [Sales] [Quote]
-        // [SCENARIO] values on Statistics page for Sales Quote with Additional Reporting Currency setup.
-
-        // [GIVEN] Run Additional Reporting Currency job and Create Sales Quote.
-        Initialize();
-        RunAddReportingCurrAndCreateSalesDocument(SalesLine, SalesLine."Document Type"::Quote);
-        EnqueueValuesForHandler(SalesLine."Amount Including VAT", SalesLine.Amount * SalesLine."VAT %" / 100);  // Enqueue values for SalesStatisticsModalPageHandler.
-        SalesQuote.OpenEdit();
-        SalesQuote.FILTER.SetFilter("No.", SalesLine."Document No.");
-
-        // Exercise.
-        SalesQuote.Statistics.Invoke();  // Opens SalesStatisticsModalPageHandler.
-
-        // Verify: Verification is done in SalesStatisticsModalPageHandler.
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [Test]
-    [HandlerFunctions('StatisticsVerifyUpdateHandler')]
-    [Scope('OnPrem')]
-    procedure SalesInvoiceStatisticsGSTAmountRounding()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        VATPostingSetup: Record "VAT Posting Setup";
-        VATAmount: Decimal;
-        TotalAmount: Decimal;
-    begin
-        // [FEATURE] [Sales] [Invoice]
-        // [SCENARIO] VAT Amount is correct when it is changed in Invoice Statistics Page and recalculated after statistics page been reopened.
-        // [SCENARIO] Certain amounts cause a rounding issue
-
-        // Setup
-        LibraryERM.SetMaxVATDifferenceAllowed(LibraryRandom.RandIntInRange(5, 10) * LibraryERM.GetAmountRoundingPrecision());
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        LibraryERM.UpdateVATPostingSetup(VATPostingSetup, 10);
-        LibrarySales.SetAllowVATDifference(true);
-
-        // Excercise
-        LibrarySales.CreateSalesHeader(
-          SalesHeader, SalesHeader."Document Type"::Invoice,
-          LibrarySales.CreateCustomerWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
-        CreateSalesLineWithCustomAmounts(SalesLine, SalesHeader, VATPostingSetup, 1, 220, 0);
-        CreateSalesLineWithCustomAmounts(SalesLine, SalesHeader, VATPostingSetup, 1, 119.55, 0);
-
-        // [THEN] Verify VAT Amount field on VAT Amount Lines page.
-        CalcSalesLinesAmounts(SalesHeader, VATAmount, TotalAmount);
-        VATAmount -= LibraryERM.GetAmountRoundingPrecision();
-
-        // FALSE means update VAT Amount to get some VAT Difference
-        LibraryVariableStorage.Enqueue(TotalAmount);
-        LibraryVariableStorage.Enqueue(false);
-        LibraryVariableStorage.Enqueue(VATAmount);
-        OpenSalesInvoiceStatistics(SalesHeader."No.");
-
-        // TRUE means verify VAT Amount after Statistic page reopened.
-        LibraryVariableStorage.Enqueue(TotalAmount);
-        LibraryVariableStorage.Enqueue(true);
-        LibraryVariableStorage.Enqueue(VATAmount);
-        OpenSalesInvoiceStatistics(SalesHeader."No.");
-    end;
-#endif
 
     [Test]
     [HandlerFunctions('SalesStatisticsPageHandler')]
@@ -315,54 +136,6 @@ codeunit 141080 "VAT On Document Statistics II"
         OpenSalesInvoiceSalesStatistics(SalesHeader."No.");
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseStatisticsVerifyUpdateHandler')]
-    [Scope('OnPrem')]
-    procedure PurchaseInvoiceStatisticsGSTAmountRounding()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        VATPostingSetup: Record "VAT Posting Setup";
-        VATAmount: Decimal;
-        TotalAmount: Decimal;
-    begin
-        // [FEATURE] [Purchase] [Invoice]
-        // [SCENARIO] VAT Amount is correct when it is changed in Invoice Statistics Page and recalculated after statistics page been reopened.
-        // [SCENARIO] Certain amounts cause a rounding issue
-
-        // Setup.
-        LibraryERM.SetMaxVATDifferenceAllowed(LibraryRandom.RandIntInRange(5, 10) * LibraryERM.GetAmountRoundingPrecision());
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        LibraryERM.UpdateVATPostingSetup(VATPostingSetup, 10);
-        LibraryPurchase.SetAllowVATDifference(true);
-
-        // Excercise
-        LibraryPurchase.CreatePurchHeader(
-          PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
-          LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
-        CreatePurchaseLineWithCustomAmounts(PurchaseLine, PurchaseHeader, VATPostingSetup, 1, 220, 0);
-        CreatePurchaseLineWithCustomAmounts(PurchaseLine, PurchaseHeader, VATPostingSetup, 1, 119.55, 0);
-
-        // Verify: Verify VAT Amount field on VAT Amount Lines page.
-        CalcPurchaseLineAmounts(PurchaseHeader, VATAmount, TotalAmount);
-        VATAmount -= LibraryERM.GetAmountRoundingPrecision();
-
-        // FALSE means update VAT Amount to get some VAT Difference
-        LibraryVariableStorage.Enqueue(TotalAmount);
-        LibraryVariableStorage.Enqueue(false);
-        LibraryVariableStorage.Enqueue(VATAmount);
-        OpenPurchaseInvoiceStatistics(PurchaseHeader."No.");
-
-        // TRUE means verify VAT Amount after Statistic page reopened.
-        LibraryVariableStorage.Enqueue(TotalAmount);
-        LibraryVariableStorage.Enqueue(true);
-        LibraryVariableStorage.Enqueue(VATAmount);
-        OpenPurchaseInvoiceStatistics(PurchaseHeader."No.");
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('PurchStatisticsVerifyUpdateHandler')]
     [Scope('OnPrem')]
@@ -407,54 +180,6 @@ codeunit 141080 "VAT On Document Statistics II"
         LibraryVariableStorage.Enqueue(VATAmount);
         OpenPurchInvoiceStatistics(PurchaseHeader."No.");
     end;
-
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseStatisticsVerifyUpdateHandler,MessageHandler')]
-    [Scope('OnPrem')]
-    procedure VerifyVatAmountShouldNotChangeWhenChangingPostingDate()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        VATPostingSetup: Record "VAT Posting Setup";
-        VATAmount: Decimal;
-        TotalAmount: Decimal;
-        VatDifference: Decimal;
-    begin
-        // [SCENARIO 493308] VAT Amount changes when change the posting date causing VAT amount difference
-
-        // [GIVEN] Setup
-        LibraryERM.SetMaxVATDifferenceAllowed(LibraryRandom.RandIntInRange(1, 1));
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        LibraryERM.UpdateVATPostingSetup(VATPostingSetup, 10);
-        LibraryPurchase.SetAllowVATDifference(true);
-
-        // [THEN] Create Purchase Invoice
-        LibraryPurchase.CreatePurchHeader(
-            PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
-            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
-        CreatePurchaseLineWithCustomAmounts(PurchaseLine, PurchaseHeader, VATPostingSetup, 1, 220, 0);
-
-        // [VERIFY] Verify: Verify VAT Amount field on VAT Amount Lines page.
-        CalcPurchaseLineAmounts(PurchaseHeader, VATAmount, TotalAmount);
-        VatDifference := LibraryRandom.RandDecInRange(0, 1, 2);
-        VATAmount += VatDifference;
-
-        // [THEN] FALSE means update VAT Amount to get some VAT Difference
-        LibraryVariableStorage.Enqueue(TotalAmount);
-        LibraryVariableStorage.Enqueue(false);
-        LibraryVariableStorage.Enqueue(VATAmount);
-        OpenPurchaseInvoiceStatistics(PurchaseHeader."No.");
-
-        // [WHEN] Change posting date in purchase header to 02.01.2021
-        PurchaseHeader.Validate("Posting Date", PurchaseHeader."Posting Date" + LibraryRandom.RandIntInRange(10, 20));// WorkDate() + 1);
-        PurchaseHeader.Modify(true);
-
-        // [VERIFY] Verify: Vat Difference not set to Zero on Purchase Line
-        VerifyVatDifferenceOnPurchaseLine(PurchaseHeader."No.", VatDifference);
-    end;
-#endif
 
     [Test]
     [HandlerFunctions('PurchStatisticsVerifyUpdateHandler,MessageHandler')]
@@ -636,17 +361,6 @@ codeunit 141080 "VAT On Document Statistics II"
         TotalAmount := PurchaseLine.Amount;
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    local procedure OpenSalesInvoiceStatistics(DocumentNo: Code[20])
-    var
-        SalesInvoice: TestPage "Sales Invoice";
-    begin
-        SalesInvoice.OpenEdit();
-        SalesInvoice.FILTER.SetFilter("No.", DocumentNo);
-        SalesInvoice.Statistics.Invoke();
-    end;
-#endif
     local procedure OpenSalesInvoiceSalesStatistics(DocumentNo: Code[20])
     var
         SalesInvoice: TestPage "Sales Invoice";
@@ -656,17 +370,6 @@ codeunit 141080 "VAT On Document Statistics II"
         SalesInvoice.SalesStatistics.Invoke();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    local procedure OpenPurchaseInvoiceStatistics(DocumentNo: Code[20])
-    var
-        PurchaseInvoice: TestPage "Purchase Invoice";
-    begin
-        PurchaseInvoice.OpenEdit();
-        PurchaseInvoice.FILTER.SetFilter("No.", DocumentNo);
-        PurchaseInvoice.Statistics.Invoke();
-    end;
-#endif
     local procedure OpenPurchInvoiceStatistics(DocumentNo: Code[20])
     var
         PurchaseInvoice: TestPage "Purchase Invoice";
@@ -731,24 +434,6 @@ codeunit 141080 "VAT On Document Statistics II"
     begin
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseOrderStatisticsModalPageHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
-    var
-        AmountInclVAT: Variant;
-        VATAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(AmountInclVAT);
-        LibraryVariableStorage.Dequeue(VATAmount);
-        VerifyStatisticsPage(
-          PurchaseOrderStatistics.TotalInclVAT_General.AsDecimal(), AmountInclVAT, PurchaseOrderStatistics.TotalInclVAT_General.Caption,
-          PurchaseOrderStatistics."VATAmount[1]".AsDecimal(), VATAmount, PurchaseOrderStatistics."VATAmount[1]".Caption,
-          PurchaseOrderStatistics.Caption);
-    end;
-#endif
-
     [PageHandler]
     [Scope('OnPrem')]
     procedure PurchaseOrderStatisticsPageHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
@@ -764,23 +449,6 @@ codeunit 141080 "VAT On Document Statistics II"
           PurchaseOrderStatistics.Caption);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseStatisticsModalPageHandler(var PurchaseStatistics: TestPage "Purchase Statistics")
-    var
-        AmountInclVAT: Variant;
-        VATAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(AmountInclVAT);
-        LibraryVariableStorage.Dequeue(VATAmount);
-        VerifyStatisticsPage(
-          PurchaseStatistics.TotalAmount2.AsDecimal(), AmountInclVAT, PurchaseStatistics.TotalAmount2.Caption,
-          PurchaseStatistics.VATAmount.AsDecimal(), VATAmount, PurchaseStatistics.VATAmount.Caption, PurchaseStatistics.Caption);
-    end;
-#endif
-
     [PageHandler]
     [Scope('OnPrem')]
     procedure PurchaseStatisticsPageHandler(var PurchaseStatistics: TestPage "Purchase Statistics")
@@ -795,37 +463,6 @@ codeunit 141080 "VAT On Document Statistics II"
           PurchaseStatistics.VATAmount.AsDecimal(), VATAmount, PurchaseStatistics.VATAmount.Caption, PurchaseStatistics.Caption);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesOrderStatisticsModalPageHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    var
-        AmountInclVAT: Variant;
-        VATAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(AmountInclVAT);
-        LibraryVariableStorage.Dequeue(VATAmount);
-        VerifyStatisticsPage(
-          SalesOrderStatistics."TotalAmount2[1]".AsDecimal(), AmountInclVAT, SalesOrderStatistics."TotalAmount2[1]".Caption,
-          SalesOrderStatistics.VATAmount.AsDecimal(), VATAmount, SalesOrderStatistics.VATAmount.Caption, SalesOrderStatistics.Caption);
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesStatisticsModalPageHandler(var SalesStatistics: TestPage "Sales Statistics")
-    var
-        AmountInclVAT: Variant;
-        VATAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(AmountInclVAT);
-        LibraryVariableStorage.Dequeue(VATAmount);
-        VerifyStatisticsPage(
-          SalesStatistics.TotalAmount2.AsDecimal(), AmountInclVAT, SalesStatistics.TotalAmount2.Caption,
-          SalesStatistics.VATAmount.AsDecimal(), VATAmount, SalesStatistics.VATAmount.Caption, SalesStatistics.Caption);
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesOrderStatisticsPageHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
@@ -852,25 +489,6 @@ codeunit 141080 "VAT On Document Statistics II"
         VerifyStatisticsPage(SalesStatistics.TotalAmount2.AsDecimal(), AmountInclVAT, SalesStatistics.TotalAmount2.Caption, SalesStatistics.VATAmount.AsDecimal(), VATAmount, SalesStatistics.VATAmount.Caption, SalesStatistics.Caption);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseStatisticsVerifyUpdateHandler(var PurchaseStatistics: TestPage "Purchase Statistics")
-    var
-        CheckVATAmount: Boolean;
-    begin
-        // Modal Page 161 Handler.
-        PurchaseStatistics.TotalAmount1.AssertEquals(LibraryVariableStorage.DequeueDecimal());
-        CheckVATAmount := LibraryVariableStorage.DequeueBoolean();
-        if CheckVATAmount then
-            PurchaseStatistics.VATAmount.AssertEquals(LibraryVariableStorage.DequeueDecimal())
-        else
-            PurchaseStatistics.SubForm."VAT Amount".SetValue(LibraryVariableStorage.DequeueDecimal());
-        PurchaseStatistics.OK().Invoke();
-    end;
-#endif
-
     [PageHandler]
     [Scope('OnPrem')]
     procedure PurchStatisticsVerifyUpdateHandler(var PurchaseStatistics: TestPage "Purchase Statistics")
@@ -887,24 +505,6 @@ codeunit 141080 "VAT On Document Statistics II"
         PurchaseStatistics.OK().Invoke();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure StatisticsVerifyUpdateHandler(var SalesStatistics: TestPage "Sales Statistics")
-    var
-        CheckVATAmount: Boolean;
-    begin
-        // Modal Page 160 Handler.
-        SalesStatistics.TotalAmount1.AssertEquals(LibraryVariableStorage.DequeueDecimal());
-        CheckVATAmount := LibraryVariableStorage.DequeueBoolean();
-        if CheckVATAmount then
-            SalesStatistics.VATAmount.AssertEquals(LibraryVariableStorage.DequeueDecimal())
-        else
-            SalesStatistics.SubForm."VAT Amount".SetValue(LibraryVariableStorage.DequeueDecimal());
-        SalesStatistics.OK().Invoke();
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesStatisticsVerifyUpdateHandler(var SalesStatistics: TestPage "Sales Statistics")

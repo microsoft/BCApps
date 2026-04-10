@@ -1126,9 +1126,6 @@ codeunit 99000842 "Service Line-Reserve"
         SourceRecRef.SetTable(ServiceLine);
         ServiceLine.SetReservationEntry(CalcReservEntry);
         OnSetServLineOnBeforeUpdateReservation(CalcReservEntry, ServiceLine);
-#if not CLEAN26
-        ReservationManagement.RunOnSetServLineOnBeforeUpdateReservation(CalcReservEntry, ServiceLine);
-#endif
         EntryIsPositive := (CreateReservEntry.SignFactor(CalcReservEntry) * ServiceLine."Outstanding Qty. (Base)") <= 0;
     end;
 

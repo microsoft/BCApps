@@ -37,10 +37,17 @@ codeunit 6321 "Power BI Rest Service Provider" implements "Power BI Service Prov
         OperationResult := PowerBiRestServiceWrapper.GetImport(ImportID, ImportState, ReturnedReport);
     end;
 
-    procedure UpdateDatasetParameters(DatasetId: Text; EnvironmentName: Text; CompanyNameInput: Text; var OperationResult: DotNet OperationResult)
+    procedure UpdateDatasetParameters(DatasetId: Text; Parameters: Dictionary of [Text, Text]; var OperationResult: DotNet OperationResult)
+    var
+        ParamsDictionary: Dotnet GenericDictionary2;
+        ParamKey: Text;
     begin
         EnsureServiceWrapper();
-        OperationResult := PowerBiRestServiceWrapper.UpdateDatasetParameters(DatasetId, CompanyNameInput, EnvironmentName);
+        ParamsDictionary := ParamsDictionary.Dictionary();
+        foreach ParamKey in Parameters.Keys() do
+            ParamsDictionary.Add(ParamKey, Parameters.Get(ParamKey));
+
+        OperationResult := PowerBiRestServiceWrapper.UpdateDatasetParameters(DatasetId, ParamsDictionary);
     end;
 
     procedure GetDatasource(DatasetId: Text; var DataSourceId: Guid; var GatewayId: Guid; var OperationResult: DotNet OperationResult)

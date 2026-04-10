@@ -10,6 +10,7 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
 using Microsoft.FixedAssets.Posting;
+using Microsoft.FixedAssets.Setup;
 
 page 5619 "FA Depreciation Books"
 {
@@ -18,9 +19,11 @@ page 5619 "FA Depreciation Books"
     PageType = List;
     RefreshOnActivate = true;
     SourceTable = "FA Depreciation Book";
-    AnalysisModeEnabled = false;
+    AnalysisModeEnabled = true;
     AboutTitle = 'About FA Depreciation Books';
     AboutText = 'The **FA Depreciation Books** help us to maintain multiple depreciation books for a fixed asset with different Depreciation percentages.';
+    UsageCategory = Lists;
+    ApplicationArea = FixedAssets;
 
     layout
     {
@@ -205,6 +208,27 @@ page 5619 "FA Depreciation Books"
                 {
                     ApplicationArea = FixedAssets;
                 }
+                field("Use Bonus Depreciation"; Rec."Use Bonus Depreciation")
+                {
+                    ApplicationArea = FixedAssets;
+                    Visible = BonusDepreciationControlsVisible;
+                }
+                field("Acquisition Cost"; Rec."Acquisition Cost")
+                {
+                    ApplicationArea = FixedAssets;
+                    Visible = true;
+                }
+                field("Bonus Depreciation Applied Amount"; Rec."Bonus Depr. Applied Amount")
+                {
+                    ApplicationArea = FixedAssets;
+                    Visible = BonusDepreciationControlsVisible;
+                }
+                field(Depreciation; Rec.Depreciation)
+                {
+                    Caption = 'Accumulated Depreciation';
+                    ApplicationArea = FixedAssets;
+                    Visible = true;
+                }
             }
         }
         area(factboxes)
@@ -310,10 +334,24 @@ page 5619 "FA Depreciation Books"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        SetControlVisibility()
+    end;
+
     var
         GLSetup: Record "General Ledger Setup";
         ChangeExchangeRate: Page "Change Exchange Rate";
         AddCurrCodeIsFound: Boolean;
+        BonusDepreciationControlsVisible: Boolean;
+
+    local procedure SetControlVisibility()
+    var
+        FASetup: Record "FA Setup";
+    begin
+        if FASetup.Get() then
+            BonusDepreciationControlsVisible := FASetup.BonusDepreciationCorrectlySetup();
+    end;
 
     local procedure GetACYCode(): Code[10]
     begin

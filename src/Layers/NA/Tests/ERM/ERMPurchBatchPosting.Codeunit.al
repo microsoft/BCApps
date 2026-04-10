@@ -655,7 +655,7 @@
         // [WHEN] Set "Report Output Type" = Print
         asserterror PurchasesPayablesSetup.Validate("Report Output Type", PurchasesPayablesSetup."Report Output Type"::Print);
         // [THEN] Error, "Report Output Type" must be PDF
-        Assert.ExpectedTestFieldError(PurchasesPayablesSetup.FieldCaption("Report Output Type"),Format(PurchasesPayablesSetup."Report Output Type"::PDF));
+        Assert.ExpectedTestFieldError(PurchasesPayablesSetup.FieldCaption("Report Output Type"), Format(PurchasesPayablesSetup."Report Output Type"::PDF));
     end;
 
     [Test]

@@ -199,34 +199,6 @@ codeunit 134102 "ERM Prepayment III"
         UpdateSalesPrepmtAccount(SalesPrepmtAccount, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesStatisticsPrepmtTotalAmountHandler')]
-    [TestPermissions(TestPermissions::Disabled)]
-    [Scope('OnPrem')]
-    procedure EqualPrepmtValuesOnSalesLine()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesPrepmtAccount: Code[20];
-    begin
-        // Check Prepayment Amount has been divided equally in All Sales Line after modifying on Statistics page.
-
-        // Setup: Create Sales Header with Random Prepayment %.
-        Initialize();
-        SalesPrepmtAccount := CreateSalesDocumentWithPremtSetup(SalesHeader, SalesLine);
-        PrepaymentAmount := LibraryRandom.RandDec(10, 2);
-
-        // Verify: Assign Random Values in Global Variables for Verification through SalesStatisticsPrepmtTotalAmountHandler.
-        // Verify Sales Line for Equally assigned Prepayment Amount.
-        OpenSalesOrderStatistics(SalesLine."Document No.");
-        VerifySalesLine(SalesHeader."Document Type", SalesLine."Document No.", PrepaymentAmount);
-
-        // Tear Down.
-        UpdateSalesPrepmtAccount(SalesPrepmtAccount, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesStatisticsPrepmtTotalAmountHandlerNM')]
     [TestPermissions(TestPermissions::Disabled)]
@@ -562,80 +534,6 @@ codeunit 134102 "ERM Prepayment III"
         UpdateSalesPrepmtAccount(SalesPrepmtAccount, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [HandlerFunctions('SalesStatisticsPrepmtTotalAmountHandler')]
-    [TestPermissions(TestPermissions::Disabled)]
-    [Scope('OnPrem')]
-    procedure PrepmtAmountErrorOnStatistics()
-    var
-        GLAccount: Record "G/L Account";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesPrepmtAccount: Code[20];
-    begin
-        // Check Prepayment Amount Error on Statistics page when Prepayment % not assigned on Sales Order.
-
-        // Setup: Create Sales Header with Zero Prepayment % and Create Sales Line with G/L Account and Random values.
-        Initialize();
-        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
-        CreateAndModifySalesHeader(SalesHeader, CreateCustomer(), 0);
-        CreateAndModifySalesLine(
-          SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", LibraryRandom.RandDec(100, 2),
-          LibraryRandom.RandDec(10, 2));
-        SalesPrepmtAccount :=
-          UpdateSalesPrepmtAccount(GLAccount."No.", SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
-
-        // Exercise: Assign Random values in Global Variables for Verification through SalesStatisticsPrepmtTotalAmountHandler.
-        PrepaymentAmount := LibraryRandom.RandDec(10, 2);
-        asserterror OpenSalesOrderStatistics(SalesLine."Document No.");
-
-        // Verify: Verify Error on Prepayment Amount field with Statistics page.
-        Assert.ExpectedError(StrSubstNo(PrepaymentError2, SalesLine.FieldCaption("Prepayment %")));
-
-        // Tear Down.
-        UpdateSalesPrepmtAccount(SalesPrepmtAccount, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [HandlerFunctions('SalesStatisticsPrepmtTotalAmountHandler')]
-    [TestPermissions(TestPermissions::Disabled)]
-    [Scope('OnPrem')]
-    procedure PrepmtAmountErrorWithMoreInvoiceAmount()
-    var
-        GLAccount: Record "G/L Account";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesPrepmtAccount: Code[20];
-        Amount1: Decimal;
-        Amount2: Decimal;
-    begin
-        // Check Prepayment Amount Error on Statistics Page when Prepayment Amount is more than the Sales Line Amount.
-
-        // Setup: Create Sales Header with Zero Prepayment %.
-        Initialize();
-        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
-        CreateAndModifySalesHeader(SalesHeader, CreateCustomer(), 0);
-        CreateAndModifySalesLine(
-          SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", LibraryRandom.RandDec(100, 2),
-          LibraryRandom.RandDec(10, 2));
-        ModifySalesLinePrepaymentPct(SalesLine, LibraryRandom.RandDec(10, 2));
-        SalesPrepmtAccount :=
-          UpdateSalesPrepmtAccount(GLAccount."No.", SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
-
-        // Exercise: Assign Calculation in Global Variables for Verification through SalesStatisticsPrepmtTotalAmountHandler morethan Sales Line Amount.
-        PrepaymentAmount := SalesLine."Line Amount" + LibraryRandom.RandDec(10, 2);
-        asserterror OpenSalesOrderStatistics(SalesLine."Document No.");
-
-        // Verify: Verify Error on Prepayment Amount field with Statistics page.
-        Amount1 := SalesLine."Prepmt. Amt. Inv.";
-        Amount2 := SalesLine."Line Amount";
-        Assert.ExpectedError(StrSubstNo(PrepaymentError, Amount1, Amount2));
-
-        // Tear Down.
-        UpdateSalesPrepmtAccount(SalesPrepmtAccount, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
-    end;
-#endif
     [HandlerFunctions('SalesStatisticsPrepmtTotalAmountHandlerNM')]
     [TestPermissions(TestPermissions::Disabled)]
     [Scope('OnPrem')]
@@ -843,49 +741,6 @@ codeunit 134102 "ERM Prepayment III"
         UpdateSalesPrepmtAccount(SalesPrepmtAccount, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesPrepmtFieldsStatisticsHandler')]
-    [Scope('OnPrem')]
-    procedure PrepmtValuesOnSalesLine()
-    var
-        GLAccount: Record "G/L Account";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesPrepmtAccount: Code[20];
-    begin
-        // Check modified Prepayment %, Prepayment VAT Amount and Prepayment Total Amount on Statistics Page and Sales Line.
-
-        // Setup: Create Sales Header with Random Prepayment %.
-        Initialize();
-        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
-        CreateAndModifySalesHeader(SalesHeader, CreateCustomer(), LibraryRandom.RandDec(10, 2));
-
-        // Exercise: Create Sales Line with G/L Account and Random Values.
-        LibraryLowerPermissions.SetSalesDocsCreate();
-        CreateAndModifySalesLine(
-          SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", LibraryRandom.RandDec(100, 2),
-          LibraryRandom.RandDec(10, 2));
-
-        LibraryLowerPermissions.SetO365Setup();
-        SalesPrepmtAccount :=
-          UpdateSalesPrepmtAccount(GLAccount."No.", SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
-
-        // Verify: Open Sales Order Statistics Page and Assign Calculation in Global Variables for Verification through SalesPrepmtFieldsStatisticsHandler.
-        PrepaymentAmount := Round(SalesLine."Prepmt. Line Amount" + LibraryRandom.RandDec(10, 2));
-        PrepaymentVATAmount := Round(PrepaymentAmount * SalesLine."VAT %" / 100);
-        PrepaymentTotalAmount := PrepaymentVATAmount + PrepaymentAmount;
-        LibraryLowerPermissions.SetOutsideO365Scope();
-        OpenSalesOrderStatistics(SalesLine."Document No.");
-
-        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
-        SalesLine.TestField("Prepmt. Line Amount", PrepaymentAmount);
-
-        // Tear Down.
-        UpdateSalesPrepmtAccount(SalesPrepmtAccount, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesPrepmtFieldsStatisticsHandlerNM')]
     [Scope('OnPrem')]
@@ -1054,46 +909,6 @@ codeunit 134102 "ERM Prepayment III"
         SalesLine.TestField("Prepayment %", SalesPrepaymentPct."Prepayment %");
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesStatisticsPrepmtInvPctHandler')]
-    [Scope('OnPrem')]
-    procedure SalesOrderPrepmtPctStatistics()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesPostPrepayments: Codeunit "Sales-Post Prepayments";
-        SalesPrepmtAccount: Code[20];
-    begin
-        // Check Prepayment % BAR on Sales Order Statistics Page after Posting Prepayment Invoice on Sales Order.
-
-        // Setup: Create Setup for Sales Prepayment %.
-        Initialize();
-        LibraryLowerPermissions.SetO365Setup();
-        LibraryLowerPermissions.AddSalesDocsPost();
-        SalesPrepmtAccount := SetupForSalesPrepayment(SalesLine);
-
-        // Post Prepayment Invoice and Change Status with Open.
-        SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
-        SalesPostPrepayments.Invoice(SalesHeader);
-        LibrarySales.ReopenSalesDocument(SalesHeader);
-
-        // Exercise: Modify and Calculate Prepayment % BAR Value with Random Values. Custom Formula taken by Sales Order Statistics Page.
-        // Assign Calculation in Global Variable for Page Handler.
-        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
-        SalesLine.Validate("Prepmt. Line Amount", SalesLine."Prepmt. Line Amount" + LibraryRandom.RandDec(10, 2));
-        SalesLine.Modify(true);
-        PrepmtAmountPct := Round(SalesLine."Prepmt. Amt. Inv." / SalesLine."Prepmt. Line Amount" * 100, 1);
-
-        // Verify: Verify Statistics Page on Sales Order with Prepayment % BAR field(SalesOrderStatisticsHandler).
-        LibraryLowerPermissions.SetOutsideO365Scope();
-        OpenSalesOrderStatistics(SalesLine."Document No.");
-
-        // Tear Down.
-        UpdateSalesPrepmtAccount(SalesPrepmtAccount, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesStatisticsPrepmtInvPctHandlerNM')]
     [Scope('OnPrem')]
@@ -1162,59 +977,6 @@ codeunit 134102 "ERM Prepayment III"
         Assert.ExpectedError(StrSubstNo(PrepaymentInvoicesNotPaidErr, SalesLine."Document Type", SalesLine."Document No."));
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsHandler')]
-    [Scope('OnPrem')]
-    procedure SalesOrderPrepmtStatistics()
-    var
-        SalesPrepaymentPct: Record "Sales Prepayment %";
-        SalesLine: Record "Sales Line";
-    begin
-        // Check Prepayment Amount field on Sales Order Statistics page.
-
-        // Setup: Create Item with Sales Prepayment %.
-        Initialize();
-        LibraryLowerPermissions.SetO365Setup();
-        LibraryLowerPermissions.AddSalesDocsPost();
-        CreateSalesPrepaymentPct(SalesPrepaymentPct, CreateCustomer());
-
-        // Exercise: Take Random Value for Quantity on Sales Order.
-        CreateSalesOrder(SalesLine, SalesPrepaymentPct."Sales Code", SalesPrepaymentPct."Item No.", LibraryRandom.RandDec(10, 2));
-
-        // Verify: Verify Prepayment VAT Amount field's editable property on Statistics Page through page Handler(SalesOrderStatisticsHandler).
-        LibraryLowerPermissions.SetOutsideO365Scope();
-        OpenSalesOrderStatistics(SalesLine."Document No.");
-    end;
-
-    [Test]
-    [HandlerFunctions('VATSalesOrderStatisticsHandler')]
-    [Scope('OnPrem')]
-    procedure SalesOrderVATAmtStatistics()
-    var
-        SalesLine: Record "Sales Line";
-        SalesPrepmtAccount: Code[20];
-    begin
-        // Check VAT Amount on Prepayment Tab with Sales Order Statistics Page after Create Sales Order.
-
-        // Setup: Create Setup for Sales Prepayment %.
-        Initialize();
-        LibraryLowerPermissions.SetO365Setup();
-        LibraryLowerPermissions.AddSalesDocsPost();
-        SalesPrepmtAccount := SetupForSalesPrepayment(SalesLine);
-
-        // Exercise: Calculate VAT Amount and Assign in Global Variable.
-        VATAmount := SalesLine."Line Amount" * SalesLine."VAT %" / 100;
-
-        // Verify: Open Sales Order Statistics Page and Verify VAT Amount field through Page Handler(VATSalesOrderStatisticsHandler).
-        LibraryLowerPermissions.SetOutsideO365Scope();
-        OpenSalesOrderStatistics(SalesLine."Document No.");
-
-        // Tear Down.
-        UpdateSalesPrepmtAccount(SalesPrepmtAccount, SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesOrderStatisticsHandlerNM')]
     [Scope('OnPrem')]
@@ -2324,17 +2086,6 @@ codeunit 134102 "ERM Prepayment III"
         SalesLine.Modify(true);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure OpenSalesOrderStatistics(No: Code[20])
-    var
-        SalesOrder: TestPage "Sales Order";
-    begin
-        SalesOrder.OpenEdit();
-        SalesOrder.FILTER.SetFilter("No.", No);
-        SalesOrder.Statistics.Invoke();
-    end;
-#endif
     local procedure OpenSalesOrderStatisticsNM(No: Code[20])
     var
         SalesOrder: TestPage "Sales Order";
@@ -2545,44 +2296,6 @@ codeunit 134102 "ERM Prepayment III"
         Choice := 1;
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesOrderStatisticsHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    begin
-        Assert.IsTrue(SalesOrderStatistics.PrepmtTotalAmount.Editable(), 'Prepayment Total Amount field must be editable.');
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesPrepmtFieldsStatisticsHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    begin
-        // Format Precision taken to convert Decimal value in Text.
-        SalesOrderStatistics.PrepmtTotalAmount.SetValue(PrepaymentAmount);
-        SalesOrderStatistics.PrepmtVATAmount.AssertEquals(PrepaymentVATAmount);
-        SalesOrderStatistics.PrepmtTotalAmount2.AssertEquals(Format(PrepaymentTotalAmount, 0, '<Precision,2><Standard Format,0>'));
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesStatisticsPrepmtInvPctHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    begin
-        // Format Precision taken to convert Decimal value in Text.
-        SalesOrderStatistics.PrepmtInvPct.AssertEquals(Format(PrepmtAmountPct, 0, 1) + '%');
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesStatisticsPrepmtTotalAmountHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    begin
-        // Format Precision taken to convert Decimal value in Text.
-        SalesOrderStatistics.PrepmtTotalAmount.SetValue(PrepaymentAmount);
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesOrderStatisticsHandlerNM(var SalesOrderStatistics: TestPage "Sales Order Statistics")
@@ -2623,15 +2336,6 @@ codeunit 134102 "ERM Prepayment III"
         Response := true;
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure VATSalesOrderStatisticsHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    begin
-        SalesOrderStatistics.VATAmount.AssertEquals(VATAmount);
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure VATSalesOrderStatisticsHandlerNM(var SalesOrderStatistics: TestPage "Sales Order Statistics")

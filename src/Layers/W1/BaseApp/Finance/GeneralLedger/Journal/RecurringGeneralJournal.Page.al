@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -74,7 +74,6 @@ page 283 "Recurring General Journal"
                 field("Recurring Method"; Rec."Recurring Method")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a recurring method if the Recurring field of the General Journal Template table indicates the journal is recurring.';
 
                     trigger OnValidate()
                     begin
@@ -84,12 +83,10 @@ page 283 "Recurring General Journal"
                 field("Recurring Frequency"; Rec."Recurring Frequency")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a recurring frequency if the Recurring field of the General Journal Template table indicates the journal is recurring.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the posting date for the entry.';
                 }
                 field("VAT Reporting Date"; Rec."VAT Reporting Date")
                 {
@@ -101,23 +98,19 @@ page 283 "Recurring General Journal"
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the type of document that the entry on the journal line is.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a document number for the journal line.';
                 }
                 field("Account Type"; Rec."Account Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the type of account that the entry on the journal line will be posted to.';
 
                     trigger OnValidate()
                     var
@@ -131,7 +124,6 @@ page 283 "Recurring General Journal"
                 field("Account No."; Rec."Account No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the account number that the entry on the journal line will be posted to.';
 
                     trigger OnValidate()
                     begin
@@ -143,43 +135,36 @@ page 283 "Recurring General Journal"
                 field("Depreciation Book Code"; Rec."Depreciation Book Code")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the code for the depreciation book to which the line will be posted if you have selected Fixed Asset in the Type field for this line.';
                     Visible = false;
                 }
                 field("FA Posting Type"; Rec."FA Posting Type")
                 {
                     ApplicationArea = FixedAssets;
-                    ToolTip = 'Specifies the posting type, if Account Type field contains Fixed Asset.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the entry.';
                 }
                 field("Business Unit Code"; Rec."Business Unit Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code of the business unit that the entry derives from in a consolidated company.';
                     Visible = false;
                 }
                 field("Salespers./Purch. Code"; Rec."Salespers./Purch. Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the salesperson or purchaser who is linked to the journal line.';
                     Visible = false;
                 }
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign that the journal line is linked to.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
                     AssistEdit = true;
-                    ToolTip = 'Specifies the code of the currency for the amounts on the journal line.';
                     Visible = false;
 
                     trigger OnAssistEdit()
@@ -194,7 +179,6 @@ page 283 "Recurring General Journal"
                 field("Gen. Posting Type"; Rec."Gen. Posting Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the type of transaction.';
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
@@ -204,24 +188,20 @@ page 283 "Recurring General Journal"
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the total amount (including VAT) that the journal line consists of.';
                     Visible = AmountVisible;
                 }
                 field("Amount (LCY)"; Rec."Amount (LCY)")
@@ -233,67 +213,56 @@ page 283 "Recurring General Journal"
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                     Visible = DebitCreditVisible;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                     Visible = DebitCreditVisible;
                 }
                 field("VAT Amount"; Rec."VAT Amount")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the amount of VAT that is included in the total amount.';
                     Visible = false;
                 }
                 field("VAT Difference"; Rec."VAT Difference")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the difference between the calculated VAT amount and a VAT amount that you have entered manually.';
                     Visible = false;
                 }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
                     Visible = false;
                 }
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                     Visible = false;
                 }
                 field("Applies-to Doc. No."; Rec."Applies-to Doc. No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                     Visible = false;
                 }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
                     Visible = false;
                 }
                 field("On Hold"; Rec."On Hold")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the related entry represents an unpaid invoice for which either a payment suggestion, a reminder, or a finance charge memo exists.';
                     Visible = false;
                 }
                 field("Bank Payment Type"; Rec."Bank Payment Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for the payment type to be used for the entry on the journal line.';
                     Visible = false;
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                     Visible = false;
                 }
                 field("Allocated Amt. (LCY)"; Rec."Allocated Amt. (LCY)")
@@ -316,31 +285,26 @@ page 283 "Recurring General Journal"
                 field("Bill-to/Pay-to No."; Rec."Bill-to/Pay-to No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the number of the bill-to customer or pay-to vendor that the entry is linked to.';
                     Visible = false;
                 }
                 field("Ship-to/Order Address Code"; Rec."Ship-to/Order Address Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the address code of the ship-to customer or order-from vendor that the entry is linked to.';
                     Visible = false;
                 }
                 field("Expiration Date"; Rec."Expiration Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the last date the recurring journal will be posted, if you have indicated in the journal is recurring.';
                 }
                 field(Comment; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies a comment about the activity on the journal line. Note that the comment is not carried forward to posted entries.';
                     Visible = false;
                 }
                 field("Job Queue Status"; Rec."Job Queue Status")
                 {
                     ApplicationArea = All;
                     Importance = Additional;
-                    ToolTip = 'Specifies the status of a job queue entry or task that handles the posting of general journals.';
                     Visible = JobQueuesUsed;
 
                     trigger OnDrillDown()
@@ -355,7 +319,6 @@ page 283 "Recurring General Journal"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
 
                     trigger OnValidate()
@@ -366,7 +329,6 @@ page 283 "Recurring General Journal"
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
 
                     trigger OnValidate()
@@ -479,13 +441,11 @@ page 283 "Recurring General Journal"
                 field("Reverse Date Calculation"; Rec."Reverse Date Calculation")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies posting date calculation formula for reverse recurring methods.';
                     Visible = false;
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                     Visible = false;
                 }
             }

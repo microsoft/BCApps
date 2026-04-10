@@ -127,15 +127,15 @@ codeunit 6755 "Send Reminder Action" implements "Reminder Action"
     /// </summary>
     procedure ValidateSetup()
     var
-        EmailAccountRecord: Record "Email Account";
+        TempEmailAccountRecord: Record "Email Account";
         EmailAccount: Codeunit "Email Account";
     begin
         if not GuiAllowed then
             exit;
 
-        EmailAccount.GetAllAccounts(false, EmailAccountRecord);
+        EmailAccount.GetAllAccounts(false, TempEmailAccountRecord);
         if SendReminderSetup."Send by Email" or SendReminderSetup."Use Document Sending Profile" then
-            if EmailAccountRecord.IsEmpty() then
+            if TempEmailAccountRecord.IsEmpty() then
                 if not Confirm(NoEmailAccountSetupErrorLbl) then
                     Error('');
     end;

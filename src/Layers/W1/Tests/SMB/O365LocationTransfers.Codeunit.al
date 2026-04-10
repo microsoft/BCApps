@@ -24,6 +24,8 @@ codeunit 137281 "O365 Location Transfers"
         isInitialized: Boolean;
         WrongInventoryErr: Label 'The amount of inventory transfered is incorrect.';
         DirectTransferMustBeEditableErr: Label 'Direct Transfer must be editable.';
+        ItemNotInInventoryErr: Label 'Item %1 is not in inventory.', Comment = '%1 = item no.';
+        NothingToReleaseErr: Label 'There is nothing to release for transfer order %1.', Comment = '%1 = transfer order no.';
 
     [Test]
     [Scope('OnPrem')]
@@ -231,14 +233,14 @@ codeunit 137281 "O365 Location Transfers"
 
     [Test]
     [Scope('OnPrem')]
-    procedure DirectTransferErrorWhenTransferFromLocationRequiresShipment()
+    procedure DirectTransferNoErrorWhenTransferFromLocationRequiresShipment()
     var
         TransferHeader: Record "Transfer Header";
         FromLocation: Record Location;
         ToLocation: Record Location;
     begin
         // [FEATURE] [Direct Transfer]
-        // [SCENARIO 253751] Location with "Require Shipment" enabled should not be accepted in the "Transfer-from Code" of a direct transfer order
+        // [SCENARIO 253751] Location with "Require Shipment" enabled should be accepted in the "Transfer-from Code" of a direct transfer order
 
         Initialize();
 
@@ -251,10 +253,10 @@ codeunit 137281 "O365 Location Transfers"
 
         // [GIVEN] Create transfer order from location "L1" to location "L2"
         // [WHEN] Enable "Direct Transfer" on the transfer order
-        asserterror CreateDirectTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code);
+        CreateDirectTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code);
 
-        // [THEN] Error: "Require Shipment" must equal to 'No' in location
-        Assert.ExpectedTestFieldError(FromLocation.FieldCaption("Require Shipment"), Format(false));
+        // [THEN] No Error: "Require Shipment" as 'Yes' in location is accepted
+        // No error expected
     end;
 
     [Test]
@@ -287,14 +289,14 @@ codeunit 137281 "O365 Location Transfers"
 
     [Test]
     [Scope('OnPrem')]
-    procedure DirectTransferErrorWhenTransferFromLocationRequiresPick()
+    procedure DirectTransferNoErrorWhenTransferFromLocationRequiresPick()
     var
         TransferHeader: Record "Transfer Header";
         FromLocation: Record Location;
         ToLocation: Record Location;
     begin
         // [FEATURE] [Direct Transfer]
-        // [SCENARIO 253751] Location with "Require Pick" enabled should not be accepted in the "Transfer-from Code" of a direct transfer order
+        // [SCENARIO 253751] Location with "Require Pick" enabled should be accepted in the "Transfer-from Code" of a direct transfer order
 
         Initialize();
 
@@ -307,10 +309,10 @@ codeunit 137281 "O365 Location Transfers"
 
         // [GIVEN] Create transfer order from location "L1" to location "L2"
         // [WHEN] Enable "Direct Transfer" on the transfer order
-        asserterror CreateDirectTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code);
+        CreateDirectTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code);
 
-        // [THEN] Error: "Require Pick" must equal to 'No' in location
-        Assert.ExpectedTestFieldError(FromLocation.FieldCaption("Require Pick"), Format(false));
+        // [THEN] No Error: "Require Pick" as 'Yes' in location is accepted
+        // No error expected
     end;
 
     [Test]
@@ -342,14 +344,15 @@ codeunit 137281 "O365 Location Transfers"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     [Scope('OnPrem')]
-    procedure DirectTransferErrorWhenChangeTransferFromSimpleLocationToWhse()
+    procedure DirectTransferNoErrorWhenChangeTransferFromSimpleLocationToWhse()
     var
         Location: array[3] of Record Location;
         TransferHeader: Record "Transfer Header";
     begin
         // [FEATURE] [Direct Transfer]
-        // [SCENARIO 253751] It should not be allowed to change transfer-from location to a location that requires outbound warehouse handling in a direct transfer order
+        // [SCENARIO 253751] It should be allowed to change transfer-from location to a location that requires outbound warehouse handling in a direct transfer order
 
         Initialize();
 
@@ -364,10 +367,10 @@ codeunit 137281 "O365 Location Transfers"
         CreateDirectTransferHeader(TransferHeader, Location[1].Code, Location[2].Code);
 
         // [WHEN] Change "Transfer-to Code" from "L1" to "L3"
-        asserterror TransferHeader.Validate("Transfer-from Code", Location[3].Code);
+        TransferHeader.Validate("Transfer-from Code", Location[3].Code);
 
-        // [THEN] Error: "Require Shipment" must equal to 'No' in location
-        Assert.ExpectedTestFieldError(Location[3].FieldCaption("Require Shipment"), Format(false));
+        // [THEN] No Error: "Require Shipment" as 'Yes' in location is accepted
+        // No error expected
     end;
 
     [Test]
@@ -401,14 +404,14 @@ codeunit 137281 "O365 Location Transfers"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ReleaseDirectTransferErrorTransferFromLocationRequiresShipment()
+    procedure ReleaseDirectTransferNoErrorTransferFromLocationRequiresShipment()
     var
         FromLocation: Record Location;
         ToLocation: Record Location;
         TransferHeader: Record "Transfer Header";
     begin
         // [FEATURE] [Direct Transfer]
-        // [SCENARIO 253751] It should not be allowed to post a direct transfer order if outbound warehouse handling was enabled on location after creating the order
+        // [SCENARIO 253751] It should be allowed to post a direct transfer order if outbound warehouse handling was enabled on location after creating the order
 
         Initialize();
 
@@ -429,8 +432,8 @@ codeunit 137281 "O365 Location Transfers"
         // [WHEN] Post the transfer order
         asserterror LibraryInventory.ReleaseTransferOrder(TransferHeader);
 
-        // [THEN] Error: "Require Shipment" must equal to 'No' in location
-        Assert.ExpectedTestFieldError(FromLocation.FieldCaption("Require Shipment"), Format(false));
+        // [THEN] Error: "Require Shipment" being 'Yes' does not throw an error but no lines to post will
+        Assert.ExpectedError(StrSubstNo(NothingToReleaseErr, TransferHeader."No."));
     end;
 
     [Test]
@@ -469,7 +472,7 @@ codeunit 137281 "O365 Location Transfers"
 
     [Test]
     [Scope('OnPrem')]
-    procedure PostDirectTransferErrorTransferFromLocationChangedAfterRelease()
+    procedure PostDirectTransferNoErrorTransferFromLocationChangedAfterRelease()
     var
         FromLocation: Record Location;
         ToLocation: Record Location;
@@ -503,7 +506,7 @@ codeunit 137281 "O365 Location Transfers"
         asserterror LibraryInventory.PostDirectTransferOrder(TransferHeader);
 
         // [THEN] Error: "Require Shipment" must equal to 'No' in location
-        Assert.ExpectedTestFieldError(FromLocation.FieldCaption("Require Shipment"), Format(false));
+        Assert.ExpectedError(StrSubstNo(ItemNotInInventoryErr, Item."No."));
     end;
 
     [Test]
@@ -1026,5 +1029,12 @@ codeunit 137281 "O365 Location Transfers"
     [Scope('OnPrem')]
     procedure ItemPageModalPageHandler(var ItemCard: TestPage "Item Card")
     begin
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmHandlerYes(Message: Text[1024]; var UserResponse: Boolean)
+    begin
+        UserResponse := true;
     end;
 }

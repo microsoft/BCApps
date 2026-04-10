@@ -14,11 +14,10 @@ using System.Utilities;
 /// </summary>
 report 24 "Sales Taxes Collected"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/SalesTax/SalesTaxesCollected.rdlc';
     ApplicationArea = SalesTax;
     Caption = 'Sales Taxes Collected';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -338,6 +337,16 @@ report 24 "Sales Taxes Collected"
             if not IncludeSales and not IncludePurchases and not IncludeUseTax then
                 IncludeSales := true;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/SalesTax/SalesTaxesCollected.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

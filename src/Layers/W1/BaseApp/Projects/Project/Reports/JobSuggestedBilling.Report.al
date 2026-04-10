@@ -13,11 +13,10 @@ using System.Utilities;
 report 1011 "Job Suggested Billing"
 {
     AdditionalSearchTerms = 'Job Suggested Billing';
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Project/Reports/JobSuggestedBilling.rdlc';
     ApplicationArea = Jobs;
     Caption = 'Project Suggested Billing';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -300,6 +299,16 @@ report 1011 "Job Suggested Billing"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Project/Reports/JobSuggestedBilling.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -652,7 +652,7 @@ codeunit 139685 "Contract Test Library"
     var
         Item: Record Item;
     begin
-        if (InvoicingVia = InvoicingVia::Contract) and (ItemNo = '') then begin
+        if (InvoicingVia = InvoicingVia::Contract) and (ItemNo = '') and not CreateDiscountLine then begin
             CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Invoicing Item");
             ItemNo := Item."No.";
         end;
@@ -780,11 +780,12 @@ codeunit 139685 "Contract Test Library"
 
         CreateServiceCommitmentTemplate(ServiceCommitmentTemplate, '', LibraryRandom.RandDec(100, 2), NewInvoicingVia, Enum::"Calculation Base Type"::"Item Price", false);
 
-        if ServiceCommitmentTemplate."Invoicing via" = ServiceCommitmentTemplate."Invoicing via"::Contract then begin
-            CreateItemWithServiceCommitmentOption(Item2, Enum::"Item Service Commitment Type"::"Invoicing Item");
-            ServiceCommitmentTemplate.Validate("Invoicing Item No.", Item2."No.");
-            ServiceCommitmentTemplate.Modify(false);
-        end;
+        if ServiceCommitmentTemplate."Invoicing via" = ServiceCommitmentTemplate."Invoicing via"::Contract then
+            if not Item.IsServiceCommitmentItem() then begin
+                CreateItemWithServiceCommitmentOption(Item2, Enum::"Item Service Commitment Type"::"Invoicing Item");
+                ServiceCommitmentTemplate.Validate("Invoicing Item No.", Item2."No.");
+                ServiceCommitmentTemplate.Modify(false);
+            end;
 
         CreateServiceCommitmentPackage(ServiceCommitmentPackage);
 

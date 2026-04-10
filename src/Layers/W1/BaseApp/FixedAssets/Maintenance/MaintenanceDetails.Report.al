@@ -10,11 +10,10 @@ using Microsoft.FixedAssets.Setup;
 
 report 5634 "Maintenance - Details"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Maintenance/MaintenanceDetails.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Maintenance Details';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -183,6 +182,16 @@ report 5634 "Maintenance - Details"
                 DeprBookCode := FASetup."Default Depr. Book";
             end;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Maintenance/MaintenanceDetails.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

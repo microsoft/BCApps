@@ -58,7 +58,7 @@ codeunit 137153 "SCM Warehouse - Journal"
         ReservationExistMsg: Label 'One or more reservation entries exist for the item';
         ExcessiveItemTrackingErr: Label 'More than one Item Tracking Line exists for the Item Journal Line.';
         AssignTracking: Option SerialNo,SelectTrackingEntries;
-        TrackingAction: Option " ",VerifyTracking,AssignLotNo,AssistEdit,AssignSerialNo,AssitEditNewSerialNoExpDate,AssignMultipleLotNo,MultipleExpirationDate,SelectEntries,AssitEditSerialNoAndRemoveExpDate,EditSerialNo,AssitEditLotNo,AssitEditNewLotNoExpDate,AssignSerialAndLot,AssignNewSerialAndLotNo,SelectEntriesWithLot,SelectEntriesWithNewSerialNo,SetNewLotNoWithQty;
+        TrackingAction: Option " ",VerifyTracking,AssignLotNo,AssistEdit,AssignSerialNo,AssitEditNewSerialNoExpDate,AssignMultipleLotNo,MultipleExpirationDate,SelectEntries,AssitEditSerialNoAndRemoveExpDate,EditSerialNo,AssitEditLotNo,AssitEditNewLotNoExpDate,AssignSerialAndLot,AssignNewSerialAndLotNo,SelectEntriesWithLot,SelectEntriesWithNewSerialNo,SetNewLotNoWithQty,SelectEntriesBlankNewExpDate;
         UserIsNotWhseEmployeeErr: Label 'You must first set up user %1 as a warehouse employee.';
         UserIsNotWhseEmployeeAtWMSLocationErr: Label 'You must first set up user %1 as a warehouse employee at a location with the Bin Mandatory setting.';
         DefaultLocationNotDirectedPutawayPickErr: Label 'You must set up a default location with the Directed Put-away and Pick setting and assign it to user %1.';
@@ -4170,6 +4170,77 @@ codeunit 137153 "SCM Warehouse - Journal"
         CreateWarehouseShipmentAndPickWithRegister(SalesHeader, WarehouseShipmentHeader, WhseActivityLine, SerialNo);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesPageHandler,ItemTrackingSummaryHandler')]
+    [Scope('OnPrem')]
+    procedure ReclassJournalClearsExpirationDateWhenNewExpDateIsBlank()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        WarehouseEntry: Record "Warehouse Entry";
+        Bin: Record Bin;
+        LotNo: Code[50];
+        ExpirationDate: Date;
+        Quantity: Decimal;
+        LastWhseEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Warehouse entries clear expiration date when item is reclassified with blank New Expiration Date
+        Initialize();
+
+        // [GIVEN] Item "I" with Lot Tracking, Lot Warehouse Tracking, and Use Expiration Dates
+        CreateItemWithTrackingCode(Item, false, true);
+        Quantity := LibraryRandom.RandInt(10);
+        ExpirationDate := CalcDate('<+2M>', WorkDate());
+        LibraryWarehouse.FindBin(Bin, LocationSilver.Code, '', 1);
+
+        // [GIVEN] Post positive adjustment for "I" at Silver location with Lot "L" and Expiration Date "ED"
+        CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Type::Item, false);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Quantity);
+        ItemJournalLine.Validate("Location Code", LocationSilver.Code);
+        ItemJournalLine.Validate("Bin Code", Bin.Code);
+        ItemJournalLine.Modify(true);
+        LibraryVariableStorage.Enqueue(TrackingAction::AssignLotNo);
+        ItemJournalLine.OpenItemTrackingLines(false);
+        UpdateReservationEntry(Item."No.", LocationSilver.Code, ExpirationDate);
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Location Code", LocationSilver.Code);
+        ItemLedgerEntry.FindFirst();
+        LotNo := ItemLedgerEntry."Lot No.";
+
+        // [GIVEN] Record last warehouse entry no.
+        WarehouseEntry.FindLast();
+        LastWhseEntryNo := WarehouseEntry."Entry No.";
+
+        // [WHEN] Create and post Item Reclassification Journal with Lot "L", same bin, and blank New Expiration Date
+        CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Type::Transfer, true);
+        LibraryVariableStorage.Enqueue(TrackingAction::SelectEntriesBlankNewExpDate);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::Transfer, Item."No.", Quantity);
+        ItemJournalLine.Validate("Location Code", LocationSilver.Code);
+        ItemJournalLine.Validate("New Location Code", LocationSilver.Code);
+        ItemJournalLine.Validate("Bin Code", Bin.Code);
+        ItemJournalLine.Validate("New Bin Code", Bin.Code);
+        ItemJournalLine.Modify(true);
+        ItemJournalLine.OpenItemTrackingLines(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+
+        // [THEN] Warehouse Entry with negative qty has original Expiration Date "ED"
+        VerifyWhseEntryExpirationDate(LastWhseEntryNo, Item."No.", LocationSilver.Code, LotNo, -Quantity, ExpirationDate);
+
+        // [THEN] Warehouse Entry with positive qty has blank Expiration Date
+        VerifyWhseEntryExpirationDate(LastWhseEntryNo, Item."No.", LocationSilver.Code, LotNo, Quantity, 0D);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -6908,6 +6979,19 @@ codeunit 137153 "SCM Warehouse - Journal"
         Assert.IsTrue((WarehouseJournalLine."Expiration Date" = ExpDate), '');
     end;
 
+    local procedure VerifyWhseEntryExpirationDate(LastWhseEntryNo: Integer; ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; Quantity: Decimal; ExpectedExpirationDate: Date)
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+    begin
+        WarehouseEntry.SetFilter("Entry No.", '>%1', LastWhseEntryNo);
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Lot No.", LotNo);
+        WarehouseEntry.SetRange(Quantity, Quantity);
+        WarehouseEntry.FindFirst();
+        Assert.AreEqual(ExpectedExpirationDate, WarehouseEntry."Expiration Date", 'Expiration Date on Warehouse Entry is incorrect');
+    end;
+
     local procedure CreatePurchaseItemwithTracking(var Item: Record Item; var ItemTrackingCode: Record "Item Tracking Code")
     begin
         LibraryInventory.CreateItemTrackingCode(ItemTrackingCode);
@@ -7241,6 +7325,11 @@ codeunit 137153 "SCM Warehouse - Journal"
                 begin
                     ItemTrackingLines."Select Entries".Invoke();
                     ItemTrackingLines."New Serial No.".SetValue(LibraryUtility.GenerateGUID());
+                end;
+            TrackingAction::SelectEntriesBlankNewExpDate:
+                begin
+                    ItemTrackingLines."Select Entries".Invoke();
+                    ItemTrackingLines."New Expiration Date".SetValue(0D);
                 end;
         end;
         ItemTrackingLines.OK().Invoke();

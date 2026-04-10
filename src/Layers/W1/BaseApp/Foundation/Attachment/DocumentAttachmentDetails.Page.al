@@ -28,7 +28,6 @@ page 1173 "Document Attachment Details"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the filename of the attachment.';
 
                     trigger OnDrillDown()
                     var
@@ -58,31 +57,26 @@ page 1173 "Document Attachment Details"
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the file extension of the attachment.';
                 }
                 field("File Type"; Rec."File Type")
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the type of document that the attachment is.';
                 }
                 field(User; Rec.User)
                 {
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the user who attached the document.';
                 }
                 field("Attached Date"; Rec."Attached Date")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date when the document was attached.';
                 }
                 field("Document Flow Purchase"; Rec."Document Flow Purchase")
                 {
                     ApplicationArea = All;
                     CaptionClass = GetCaptionClass(9);
                     Editable = FlowFieldsEditable;
-                    ToolTip = 'Specifies if the attachment must flow to transactions.';
                     Visible = PurchaseDocumentFlow;
                 }
                 field("Document Flow Sales"; Rec."Document Flow Sales")
@@ -90,7 +84,6 @@ page 1173 "Document Attachment Details"
                     ApplicationArea = All;
                     CaptionClass = GetCaptionClass(11);
                     Editable = FlowFieldsEditable;
-                    ToolTip = 'Specifies if the attachment must flow to transactions.';
                     Visible = SalesDocumentFlow;
                 }
                 field("Document Flow Service"; Rec."Document Flow Service")
@@ -98,7 +91,6 @@ page 1173 "Document Attachment Details"
                     ApplicationArea = Service;
                     CaptionClass = GetCaptionClass(13);
                     Editable = FlowFieldsEditable;
-                    ToolTip = 'Specifies if the attachment must flow to transactions.';
                     Visible = ServiceDocumentFlow;
                 }
                 field("Document Flow Production"; Rec."Document Flow Production")
@@ -106,7 +98,6 @@ page 1173 "Document Attachment Details"
                     ApplicationArea = All;
                     CaptionClass = GetCaptionClass(21);
                     Editable = FlowFieldsEditable;
-                    ToolTip = 'Specifies if the attachment must flow to transactions.';
                     Visible = ProductionDocumentFlow;
                 }
             }

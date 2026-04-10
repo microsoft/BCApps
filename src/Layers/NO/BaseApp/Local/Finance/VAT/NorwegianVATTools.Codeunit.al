@@ -28,7 +28,9 @@ codeunit 10600 "Norwegian VAT Tools"
         Text005: Label 'is in a settled and closed VAT period (%1 period %2)';
         Text006: Label '=%1 can only be used with Sale';
         Text007: Label '=%1 can only be used when posting without Tax';
+#if not CLEAN29
         Text008: Label 'must be zero when posting outside tax area';
+#endif
         Text009: Label 'must be zero when %1 in %2 is True';
         AdjustmentTok: Label 'justering', Locked = true;
         AdjustmentDescriptionTxt: Label 'Justering av merverdiavgift for kapitalvarer', Locked = true;
@@ -140,11 +142,14 @@ codeunit 10600 "Norwegian VAT Tools"
 
     procedure VATEntrySetVATInformation(var VATEntry: Record "VAT Entry"; GenJournalLine: Record "Gen. Journal Line")
     var
+#if not CLEAN29
         VATProductPostingGroup: Record "VAT Product Posting Group";
+#endif
         VATReportingCode: Record "VAT Reporting Code";
     begin
         case GenJournalLine."VAT Base Amount Type" of
             GenJournalLine."VAT Base Amount Type"::Automatic:
+#if not CLEAN29
                 if VATEntry.Amount = 0 then begin
                     VATProductPostingGroup.Get(GenJournalLine."VAT Prod. Posting Group");
                     if VATProductPostingGroup."Outside Tax Area" then
@@ -152,6 +157,9 @@ codeunit 10600 "Norwegian VAT Tools"
                     else
                         VATEntry."Base Amount Type" := VATEntry."Base Amount Type"::"Without VAT";
                 end else
+#else
+                if VATEntry.Amount <> 0 then
+#endif
                     VATEntry."Base Amount Type" := VATEntry."Base Amount Type"::"With VAT";
             GenJournalLine."VAT Base Amount Type"::"With VAT":
                 VATEntry."Base Amount Type" := VATEntry."Base Amount Type"::"With VAT";
@@ -366,7 +374,9 @@ codeunit 10600 "Norwegian VAT Tools"
     procedure RunCheckNorwegianVAT(GenJnlLine: Record "Gen. Journal Line"; var AllowPostingInClosedVATPeriod: Boolean)
     var
         SettledVATPeriod: Record "Settled VAT Period";
+#if not CLEAN29
         VATProdPostGrp: Record "VAT Product Posting Group";
+#endif
         GLSetup: Record "General Ledger Setup";
     begin
         if AllowPostingInClosedVATPeriod then
@@ -384,6 +394,7 @@ codeunit 10600 "Norwegian VAT Tools"
             if (GenJnlLine."VAT Amount" <> 0) or (GenJnlLine."Bal. VAT Amount" <> 0) then
                 GenJnlLine.FieldError("VAT Base Amount Type", StrSubstNo(Text007, GenJnlLine."VAT Base Amount Type"));
         end;
+#if not CLEAN29
         // VAT not possible Outside Tax Area
         if GenJnlLine."VAT Prod. Posting Group" <> '' then begin
             VATProdPostGrp.Get(GenJnlLine."VAT Prod. Posting Group");
@@ -395,6 +406,7 @@ codeunit 10600 "Norwegian VAT Tools"
             if VATProdPostGrp."Outside Tax Area" and (GenJnlLine."Bal. VAT Amount" <> 0) then
                 GenJnlLine.FieldError("Bal. VAT Amount", Text008);
         end;
+#endif
         // VAT other than Reverse Charge is not possible if the company is Not VAT xxx
         GLSetup.Get();
         if GLSetup."Non-Taxable" then begin

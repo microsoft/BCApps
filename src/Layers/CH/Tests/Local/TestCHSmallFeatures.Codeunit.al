@@ -115,51 +115,6 @@ codeunit 144058 "Test CH Small Features"
         // Verify: No errors.
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsPageHandler')]
-    [Scope('OnPrem')]
-    procedure SalesInvDiscAppliedToVAT()
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        SalesReceivablesSetup: Record "Sales & Receivables Setup";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesOrder: TestPage "Sales Order";
-        AmtInclVAT: Decimal;
-    begin
-        Initialize();
-
-        GeneralLedgerSetup.Get();
-        GeneralLedgerSetup."Inv. Rounding Precision (LCY)" := LibraryRandom.RandDecInRange(0, 1, 2);
-        GeneralLedgerSetup.Modify(true);
-
-        SalesReceivablesSetup.Get();
-        SalesReceivablesSetup."Apply Inv. Round. Amt. To VAT" := true;
-        SalesReceivablesSetup.Modify(true);
-
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
-        SalesHeader.Validate("Prices Including VAT", true);
-        SalesHeader.Modify(true);
-        LibrarySales.CreateSalesLine(
-          SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandDec(10, 2));
-        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
-        SalesLine.Validate("Line Discount %", LibraryRandom.RandDec(10, 2));
-        SalesLine.Modify(true);
-
-        // Exercise.
-        AmtInclVAT :=
-          Round(SalesLine."Unit Price" * SalesLine.Quantity * (100 - SalesLine."Line Discount %") / 100,
-            GeneralLedgerSetup."Inv. Rounding Precision (LCY)");
-        LibraryVariableStorage.Enqueue(AmtInclVAT);
-        SalesOrder.OpenEdit();
-        SalesOrder.GotoRecord(SalesHeader);
-        SalesOrder.Statistics.Invoke();
-
-        // Verify: in the handler.
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesOrderStatisticsPageHandlerNM')]
     [Scope('OnPrem')]
@@ -896,18 +851,6 @@ codeunit 144058 "Test CH Small Features"
     begin
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesOrderStatisticsPageHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    var
-        AmtInclVAT: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(AmtInclVAT);
-        SalesOrderStatistics.TotalInclVAT_Invoicing.AssertEquals(AmtInclVAT);
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesOrderStatisticsPageHandlerNM(var SalesOrderStatistics: TestPage "Sales Order Statistics")

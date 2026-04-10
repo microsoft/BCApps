@@ -979,6 +979,7 @@ codeunit 137415 "SCM Item Variant Attributes"
         ItemAttributeValue: Record "Item Attribute Value";
         ItemVariantAttributeValueMapping: Record "Item Var. Attr. Value Mapping";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 619522] Cannot rename variant with item attributes: The Item Variant Attribute Value Mapping does not exist.
         Initialize();
 
@@ -1020,6 +1021,7 @@ codeunit 137415 "SCM Item Variant Attributes"
         CopyItemBuffer: Record "Copy Item Buffer";
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 619488] Copy item actions doesn't copy Item Variant Attributes
         Initialize();
 
@@ -1063,6 +1065,7 @@ codeunit 137415 "SCM Item Variant Attributes"
         ItemVariant: Record "Item Variant";
         ItemVariants: TestPage "Item Variants";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 614482] Verify factbox is empty when opening variants page and clicking on first line.
         Initialize();
 
@@ -1104,6 +1107,7 @@ codeunit 137415 "SCM Item Variant Attributes"
         ItemVariants: TestPage "Item Variants";
         ChangedValue: Text;
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 619461] Verify Missing "Edit" action in the Item Attribute factbox in the Item Variant list
         Initialize();
 
@@ -1123,6 +1127,43 @@ codeunit 137415 "SCM Item Variant Attributes"
         // [THEN] Verify factbox should now show the changed attributes value.
         ItemVariants.ItemAttributesFactbox.Attribute.AssertEquals(ItemAttribute.Name);
         ItemVariants.ItemAttributesFactbox.Value.AssertEquals(ChangedValue);
+        ItemVariants.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('NewItemAttributeValueListHandler')]
+    procedure AddNewBooleanAttributeOnItemVariantAttributeFactbox()
+    var
+        Item: Record Item;
+        ItemAttribute, ItemAttributeBoolean : Record "Item Attribute";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemAttributeBooleanValue: Record "Item Attribute Value";
+        ItemVariant: Record "Item Variant";
+        ItemVariants: TestPage "Item Variants";
+    begin
+        // [SCENARIO 624049] The Item Attribute Value Selection does not exist. Identification fields and values: Attribute Name='Assembly required'
+        Initialize();
+
+        // [GIVEN] Create an Item with attributes.
+        CreateItemWithTextAttribute(Item, ItemAttribute, ItemAttributeValue, LibraryUtility.GenerateGUID());
+
+        // [GIVEN] Create a new Attribute with Option as Yes, No
+        LibraryInventory.CreateItemAttribute(ItemAttributeBoolean, ItemAttributeBoolean.Type::Option, '');
+        LibraryInventory.CreateItemAttributeValue(ItemAttributeBooleanValue, ItemAttributeBoolean.ID, 'Yes');
+        LibraryInventory.CreateItemAttributeValue(ItemAttributeBooleanValue, ItemAttributeBoolean.ID, 'No');
+
+        // [GIVEN] Create a new variant using library function.
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+
+        // [WHEN] Open the Item Variant page and create new Item variant Attribute value.
+        ItemVariants.OpenEdit();
+        ItemVariants.GoToRecord(ItemVariant);
+        LibraryVariableStorage.Enqueue(ItemAttributeBoolean.Name);
+        LibraryVariableStorage.Enqueue(ItemAttributeBooleanValue.Value);
+        ItemVariants.Attributes.Invoke();
+
+        // [THEN] Verify No error should occcur
+        // Hanlded in NewItemAttributeValueListHandler Page Handler
         ItemVariants.Close();
     end;
 
@@ -1238,6 +1279,23 @@ codeunit 137415 "SCM Item Variant Attributes"
     begin
         LibraryVariableStorage.Dequeue(ItemAttributeValueVar);
         ItemAttributeValue := ItemAttributeValueVar;
+        ItemVariantAttributeValueEditor.ItemVariantAttributeValueList.Value.SetValue(ItemAttributeValue);
+        ItemVariantAttributeValueEditor.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure NewItemAttributeValueListHandler(var ItemVariantAttributeValueEditor: TestPage "Item Variant Attribute Editor")
+    var
+        ItemAttributeNameVar, ItemAttributeValueVar : Variant;
+        ItemAttributeName, ItemAttributeValue : Text;
+    begin
+        LibraryVariableStorage.Dequeue(ItemAttributeNameVar);
+        ItemAttributeName := ItemAttributeNameVar;
+        LibraryVariableStorage.Dequeue(ItemAttributeValueVar);
+        ItemAttributeValue := ItemAttributeValueVar;
+
+        ItemVariantAttributeValueEditor.ItemVariantAttributeValueList.New();
+        ItemVariantAttributeValueEditor.ItemVariantAttributeValueList."Attribute Name".SetValue(ItemAttributeName);
         ItemVariantAttributeValueEditor.ItemVariantAttributeValueList.Value.SetValue(ItemAttributeValue);
         ItemVariantAttributeValueEditor.OK().Invoke();
     end;

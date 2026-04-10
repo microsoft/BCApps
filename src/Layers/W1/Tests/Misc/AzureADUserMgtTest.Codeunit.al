@@ -695,6 +695,7 @@ codeunit 132907 AzureADUserMgtTest
         AADApplication: Record "AAD Application";
         AADApplicationCard: TestPage "AAD Application Card";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 615864] When AAD Application has no User initialized, Permission Sets subform should be disabled
         // [GIVEN] A new AAD Application record with State=Disabled and no User ID
         CreateAADApplicationRecord(AADApplication, CreateGuid(), 'Test App', '');
@@ -718,6 +719,7 @@ codeunit 132907 AzureADUserMgtTest
         User: Record User;
         AADApplicationCard: TestPage "AAD Application Card";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 615864] When AAD Application State is Enabled, Permission Sets subform should be disabled
         // [GIVEN] An AAD Application record with State=Enabled and User initialized
         CreateAADApplicationWithUser(AADApplication, User);
@@ -743,6 +745,7 @@ codeunit 132907 AzureADUserMgtTest
         User: Record User;
         AADApplicationCard: TestPage "AAD Application Card";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 615864] When AAD Application State is Disabled and User exists, Permission Sets subform should be enabled
         // [GIVEN] An AAD Application record with State=Disabled and User initialized
         CreateAADApplicationWithUser(AADApplication, User);
@@ -767,6 +770,7 @@ codeunit 132907 AzureADUserMgtTest
         AADApplication: Record "AAD Application";
         AADApplicationCard: TestPage "AAD Application Card";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 615864] When AAD Application has no User initialized, Initialize User warning should be shown
         // [GIVEN] A new AAD Application record with State=Disabled, Description filled, and no User ID
         CreateAADApplicationRecord(AADApplication, CreateGuid(), 'Test App', '');
@@ -791,6 +795,7 @@ codeunit 132907 AzureADUserMgtTest
         User: Record User;
         AADApplicationCard: TestPage "AAD Application Card";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 615864] When AAD Application has User initialized, Initialize User warning should be hidden
         // [GIVEN] An AAD Application record with State=Disabled and User initialized
         CreateAADApplicationWithUser(AADApplication, User);
@@ -814,6 +819,7 @@ codeunit 132907 AzureADUserMgtTest
         AADApplication: Record "AAD Application";
         AADApplicationCard: TestPage "AAD Application Card";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 615864] When AAD Application has Description but no User, Initialize User warning DrillDown should be enabled
         // [GIVEN] A new AAD Application record with State=Disabled, Description filled, and no User ID
         CreateAADApplicationRecord(AADApplication, CreateGuid(), 'Test App', '');
@@ -838,6 +844,7 @@ codeunit 132907 AzureADUserMgtTest
         User: Record User;
         AADApplicationCard: TestPage "AAD Application Card";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 615864] When AAD Application State is Enabled, Enable warning should be shown
         // [GIVEN] An AAD Application record with State=Enabled and User initialized
         CreateAADApplicationWithUser(AADApplication, User);

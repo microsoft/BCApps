@@ -23,11 +23,10 @@ using System.Utilities;
 
 report 410 "Blanket Purchase Order"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Document/BlanketPurchaseOrder.rdlc';
     Caption = 'Blanket Purchase Order';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Purchase Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -612,6 +611,16 @@ report 410 "Blanket Purchase Order"
             LogInteractionEnable := LogInteraction;
             ArchiveDocument := PurchSetup."Archive Blanket Orders";
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Document/BlanketPurchaseOrder.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

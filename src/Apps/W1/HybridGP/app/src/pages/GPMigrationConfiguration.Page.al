@@ -442,6 +442,21 @@ page 4050 "GP Migration Configuration"
                             until GPCompanyAdditionalSettings.Next() = 0;
                     end;
                 }
+                field("Item Desc 2 Source"; Rec."Item Desc. 2 Source")
+                {
+                    Caption = 'Item Desc. 2 Source';
+                    ToolTip = 'Specifies whether Short Description or Generic Description populates Item Description 2 field.';
+                    ApplicationArea = All;
+
+                    trigger OnValidate()
+                    begin
+                        if PrepSettingsForFieldUpdate() then
+                            repeat
+                                GPCompanyAdditionalSettings.Validate("Item Desc. 2 Source", Rec."Item Desc. 2 Source");
+                                GPCompanyAdditionalSettings.Modify();
+                            until GPCompanyAdditionalSettings.Next() = 0;
+                    end;
+                }
             }
 
             group(RecurringLines)
@@ -747,6 +762,10 @@ page 4050 "GP Migration Configuration"
     end;
 
     trigger OnOpenPage()
+    var
+        IntelligentCloudSetup: Record "Intelligent Cloud Setup";
+        HybridGPWizard: Codeunit "Hybrid GP Wizard";
+        MigrationValidation: Codeunit "Migration Validation";
     begin
         if not Rec.Get() then
             Rec.Insert(true);
@@ -759,6 +778,10 @@ page 4050 "GP Migration Configuration"
                                                         Rec."Migrate Hist. AP Trx." and
                                                         Rec."Migrate Hist. Inv. Trx." and
                                                         Rec."Migrate Hist. Purch. Trx.";
+
+        if IntelligentCloudSetup.Get() then
+            if IntelligentCloudSetup."Product ID" = HybridGPWizard.ProductId() then
+                MigrationValidation.PrepareValidation();
     end;
 
     local procedure EnsureSettingsForAllCompanies()
@@ -777,6 +800,7 @@ page 4050 "GP Migration Configuration"
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Inactive Checkbooks", Rec."Migrate Inactive Checkbooks");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Inactive Items", Rec."Migrate Inactive Items");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Kit Items", Rec."Migrate Kit Items");
+                    GPCompanyAdditionalSettingsEachCompany.Validate("Item Desc. 2 Source", Rec."Item Desc. 2 Source");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Vendor Classes", Rec."Migrate Vendor Classes");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Customer Classes", Rec."Migrate Customer Classes");
                     GPCompanyAdditionalSettingsEachCompany.Validate("Migrate Item Classes", Rec."Migrate Item Classes");
@@ -847,6 +871,7 @@ page 4050 "GP Migration Configuration"
         Rec.Validate("Migrate Inactive Checkbooks", GPCompanyAdditionalSettingsInit."Migrate Inactive Checkbooks");
         Rec.Validate("Migrate Inactive Items", GPCompanyAdditionalSettingsInit."Migrate Inactive Items");
         Rec.Validate("Migrate Kit Items", GPCompanyAdditionalSettingsInit."Migrate Kit Items");
+        Rec.Validate("Item Desc. 2 Source", GPCompanyAdditionalSettingsInit."Item Desc. 2 Source");
         Rec.Validate("Migrate Vendor Classes", GPCompanyAdditionalSettingsInit."Migrate Vendor Classes");
         Rec.Validate("Migrate Customer Classes", GPCompanyAdditionalSettingsInit."Migrate Customer Classes");
         Rec.Validate("Migrate Item Classes", GPCompanyAdditionalSettingsInit."Migrate Item Classes");

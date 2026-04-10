@@ -1,0 +1,2 @@
+# cost: 10
+{"query":"mutation { fulfillmentOrderAcceptFulfillmentRequest(id: \"gid://shopify/FulfillmentOrder/{{FulfillmentOrderId}}\") { fulfillmentOrder { id requestStatus } userErrors { field message }}}"}

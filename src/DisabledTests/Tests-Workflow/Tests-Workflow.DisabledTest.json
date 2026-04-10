@@ -590,6 +590,11 @@
     "method": "SendOverdueNotificationsTest"
   },
   {
+    "codeunitId": 134190,
+    "codeunitName": "WF Demo Cust Cred Lmt Approval",
+    "method": "TestPaymentTermsApprovalRemainsCreatedAfterCreditLimitApproval"
+  },
+  {
     "codeunitId": 134205,
     "codeunitName": "WF Demo Customer Approval",
     "method": "ApproveCustomerApprovalAllowsUsageTest"

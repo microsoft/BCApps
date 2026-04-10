@@ -426,6 +426,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         FA2: Record "Fixed Asset";
         FAPostingType2: Enum "FA Ledger Entry FA Posting Type";
         IsHandled: Boolean;
+        SkipTestFieldsBlockedAndInactive: Boolean;
     begin
         IsHandled := false;
         OnBeforePostBudgetAsset(FALedgEntry, BudgetNo, IsHandled);
@@ -433,8 +434,12 @@ codeunit 5632 "FA Jnl.-Post Line"
             exit;
 
         FA2.Get(BudgetNo);
-        FA2.TestField(Blocked, false);
-        FA2.TestField(Inactive, false);
+        SkipTestFieldsBlockedAndInactive := false;
+        OnPostBudgetAssetOnBeforeFixedAssetTestField(FALedgEntry, BudgetNo, SkipTestFieldsBlockedAndInactive);
+        if not SkipTestFieldsBlockedAndInactive then begin
+            FA2.TestField(Blocked, false);
+            FA2.TestField(Inactive, false);
+        end;
         if FAPostingType = FAPostingType::Maintenance then begin
             MaintenanceLedgEntry."Automatic Entry" := true;
             MaintenanceLedgEntry."G/L Entry No." := 0;
@@ -705,6 +710,11 @@ codeunit 5632 "FA Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnPostMaintenanceOnBeforeInsertEntry(var MaintenanceLedgEntry: Record "Maintenance Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostBudgetAssetOnBeforeFixedAssetTestField(var FALedgEntry: Record "FA Ledger Entry"; BudgetNo: Code[20]; var SkipTestFieldsBlockedAndInactive: Boolean)
     begin
     end;
 

@@ -13,10 +13,14 @@ permissionset 1002 "LOCAL READ"
     Assignable = true;
     Caption = 'Country/region-specific read only access.';
 
+#if not CLEAN29
     Permissions = tabledata "E-Invoice Export Header" = R,
                   tabledata "E-Invoice Export Line" = R,
                   tabledata "E-Invoice Transfer File" = R,
                   tabledata "Gen. Jnl. Line Reg. Rep. Code" = R,
+#else
+    Permissions = tabledata "Gen. Jnl. Line Reg. Rep. Code" = R,
+#endif
                   tabledata "OCR Setup" = R,
                   tabledata "Payment Order Data" = R,
                   tabledata "Payment Type Code Abroad" = R,

@@ -61,6 +61,8 @@ codeunit 30174 "Shpfy Create Product"
             exit;
 
         CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempShopifyTag);
+        if TempShopifyProduct.IsEmpty() then
+            exit;
         if not VariantApi.FindShopifyProductVariant(TempShopifyProduct, TempShopifyVariant) then
             ProductId := ProductApi.CreateProduct(TempShopifyProduct, TempShopifyVariant, TempShopifyTag)
         else
@@ -84,6 +86,8 @@ codeunit 30174 "Shpfy Create Product"
         ProductExport.FillInProductFields(Item, TempShopifyProduct);
         ICreateProductStatus := Shop."Status for Created Products";
         TempShopifyProduct.Status := ICreateProductStatus.GetStatus(Item);
+        if not ProductExport.CheckItemVariantCount(Item) then
+            exit;
         ItemVariant.SetRange("Item No.", Item."No.");
         if ItemVariant.FindSet(false) then
             repeat

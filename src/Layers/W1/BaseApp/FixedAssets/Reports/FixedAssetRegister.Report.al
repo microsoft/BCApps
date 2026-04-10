@@ -9,11 +9,10 @@ using Microsoft.FixedAssets.Ledger;
 
 report 5603 "Fixed Asset Register"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Reports/FixedAssetRegister.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Register';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -168,6 +167,16 @@ report 5603 "Fixed Asset Register"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Reports/FixedAssetRegister.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

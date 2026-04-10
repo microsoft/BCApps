@@ -135,15 +135,25 @@ codeunit 605 "Data Archive Provider" implements "Data Archive Provider"
             if RecRef.FindSet() then
                 repeat
                     TableJson.Add(GetRecordJsonFromRecRef(RecRef, FieldList));
+                    if TableJson.Count() >= 1000 then begin
+                        AddToCachedDataRecords(TableJson, TableIndex);
+                        SaveTable(TableIndex, RecRef.Number);
+                        Clear(TableJson);
+                    end;
                 until RecRef.Next() = 0;
         end else
             TableJson.Add(GetRecordJsonFromRecRef(RecRef, FieldList));
+        AddToCachedDataRecords(TableJson, TableIndex);
+        if TableJson.Count() >= 1000 then
+            SaveTable(TableIndex, RecRef.Number);
+    end;
+
+    local procedure AddToCachedDataRecords(var TableJson: JsonArray; TableIndex: Integer)
+    begin
         if CachedDataRecords.Count >= TableIndex then
             CachedDataRecords.Set(TableIndex, TableJson)
         else
             CachedDataRecords.Add(TableIndex, TableJson);
-        if TableJson.Count() >= 10000 then
-            SaveTable(TableIndex, RecRef.Number);
     end;
 
     procedure StartSubscriptionToDelete()

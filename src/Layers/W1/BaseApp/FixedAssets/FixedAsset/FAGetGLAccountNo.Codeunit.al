@@ -32,7 +32,8 @@ codeunit 5602 "FA Get G/L Account No."
             case FALedgEntry."FA Posting Type" of
                 FALedgEntry."FA Posting Type"::"Acquisition Cost":
                     GLAccNo := FAPostingGr.GetAcquisitionCostAccount();
-                FALedgEntry."FA Posting Type"::Depreciation:
+                FALedgEntry."FA Posting Type"::Depreciation,
+                FALedgEntry."FA Posting Type"::"Bonus Depreciation":
                     GLAccNo := FAPostingGr.GetAccumDepreciationAccount();
                 FALedgEntry."FA Posting Type"::"Write-Down":
                     GLAccNo := FAPostingGr.GetWriteDownAccount();
@@ -57,7 +58,8 @@ codeunit 5602 "FA Get G/L Account No."
             case FALedgEntry."FA Posting Type" of
                 FALedgEntry."FA Posting Type"::"Acquisition Cost":
                     GLAccNo := FAPostingGr.GetAcquisitionCostAccountOnDisposal();
-                FALedgEntry."FA Posting Type"::Depreciation:
+                FALedgEntry."FA Posting Type"::Depreciation,
+                FALedgEntry."FA Posting Type"::"Bonus Depreciation":
                     GLAccNo := FAPostingGr.GetAccumDepreciationAccountOnDisposal();
                 FALedgEntry."FA Posting Type"::"Write-Down":
                     GLAccNo := FAPostingGr.GetWriteDownAccountOnDisposal();

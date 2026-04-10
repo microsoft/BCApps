@@ -201,8 +201,21 @@ codeunit 5748 "Transfer Whse. Post Shipment"
                     end;
 
                     OnAfterTransferPostShipment(WhseShptLine, TransHeader, WhsePostParameters);
+                    if TransHeader.Find() then
+                        if TransHeader.ShouldPostReceiptWithShipment() then
+                            TransHeader.PostRelatedInboundTransfer(WhsePostParameters."Preview Posting");
                 end;
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Shipment", 'OnBeforeCheckWhseShptLines', '', false, false)]
+    local procedure OnBeforeCheckWhseShptLines(var WarehouseShipmentLine: Record "Warehouse Shipment Line"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; Invoice: Boolean; var SuppressCommit: Boolean; var IsHandled: Boolean; PreviewPosting: Boolean)
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        if (not SuppressCommit) and (WarehouseShipmentLine."Source Document" = WarehouseShipmentLine."Source Document"::"Outbound Transfer") then
+            if TransferHeader.Get(WarehouseShipmentLine."Source No.") then
+                SuppressCommit := TransferHeader.ShouldPostReceiptWithShipment();
     end;
 
     local procedure InsertDocumentEntryToPrint(var DocumentEntry: Record "Document Entry"; TableID: Integer; DocumentNo: Code[20])
@@ -222,20 +235,28 @@ codeunit 5748 "Transfer Whse. Post Shipment"
         Clear(TransferOrderPostShipment);
         IsHandled := false;
         OnBeforeTryPostSourceTransferDocument(TransferOrderPostShipment, TransHeader, IsHandled);
-        if not IsHandled then begin
-            Result := false;
-            InventorySetup.Get();
-            if TransHeader."Direct Transfer" then
-                Result := TryPostDirectTransferDocument(TransHeader, WhseShptHeader, WhsePostParameters, CounterSourceDocOK)
-            else begin
+        if not IsHandled then
+            if TransHeader.ShouldPostReceiptWithShipment() then begin
                 TransferOrderPostShipment.SetWhseShptHeader(WhseShptHeader);
                 TransferOrderPostShipment.SetSuppressCommit(WhsePostParameters."Suppress Commit" or WhsePostParameters."Preview Posting");
-                if TransferOrderPostShipment.Run(TransHeader) then begin
-                    CounterSourceDocOK := CounterSourceDocOK + 1;
-                    Result := true;
+                TransferOrderPostShipment.Run(TransHeader);
+                CounterSourceDocOK := CounterSourceDocOK + 1;
+                Result := true;
+            end else begin
+                Result := false;
+                InventorySetup.Get();
+                if TransHeader."Direct Transfer" then
+                    Result := TryPostDirectTransferDocument(TransHeader, WhseShptHeader, WhsePostParameters, CounterSourceDocOK)
+                else begin
+                    TransferOrderPostShipment.SetWhseShptHeader(WhseShptHeader);
+                    TransferOrderPostShipment.SetSuppressCommit(WhsePostParameters."Suppress Commit");
+                    TransferOrderPostShipment.SetPreviewMode(WhsePostParameters."Preview Posting");
+                    if TransferOrderPostShipment.Run(TransHeader) then begin
+                        CounterSourceDocOK := CounterSourceDocOK + 1;
+                        Result := true;
+                    end;
                 end;
             end;
-        end;
 
         OnAfterTryPostSourceTransferDocument(CounterSourceDocOK, TransferOrderPostShipment, TransHeader, Result);
     end;
@@ -286,7 +307,7 @@ codeunit 5748 "Transfer Whse. Post Shipment"
             PostSourceDirectTransferDocument(TransHeader, WhseShptHeader, WhsePostParameters, CounterSourceDocOK)
         else begin
             TransferOrderPostShipment.SetWhseShptHeader(WhseShptHeader);
-            TransferOrderPostShipment.SetSuppressCommit(WhsePostParameters."Suppress Commit" or WhsePostParameters."Preview Posting");
+            TransferOrderPostShipment.SetSuppressCommit(WhsePostParameters."Suppress Commit");
             TransferOrderPostShipment.SetPreviewMode(WhsePostParameters."Preview Posting");
             TransferOrderPostShipment.RunWithCheck(TransHeader);
             CounterSourceDocOK := CounterSourceDocOK + 1;
@@ -312,9 +333,11 @@ codeunit 5748 "Transfer Whse. Post Shipment"
                     TransferOrderPostShipment.SetWhseShptHeader(WhseShptHeader);
                     TransferOrderPostShipment.SetSuppressCommit(WhsePostParameters."Suppress Commit" or WhsePostParameters."Preview Posting");
                     TransferOrderPostShipment.RunWithCheck(TransHeader);
-                    Clear(TransferOrderPostReceipt);
-                    TransferOrderPostReceipt.SetSuppressCommit(WhsePostParameters."Suppress Commit" or WhsePostParameters."Preview Posting");
-                    TransferOrderPostReceipt.Run(TransHeader);
+                    if not TransHeader.ShouldPostReceiptWithShipment() then begin
+                        Clear(TransferOrderPostReceipt);
+                        TransferOrderPostReceipt.SetSuppressCommit(WhsePostParameters."Suppress Commit" or WhsePostParameters."Preview Posting");
+                        TransferOrderPostReceipt.Run(TransHeader);
+                    end;
                     CounterSourceDocOK := CounterSourceDocOK + 1;
                 end;
         end;

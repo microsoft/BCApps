@@ -938,9 +938,6 @@ codeunit 926 "Assembly Line-Reserve"
         SourceRecRef.SetTable(AssemblyLine);
         AssemblyLine.SetReservationEntry(CalcReservEntry);
         OnSetAssemblyLineOnBeforeUpdateReservation(CalcReservEntry, AssemblyLine);
-#if not CLEAN26
-        ReservationManagement.RunOnSetAssemblyLineOnBeforeUpdateReservation(CalcReservEntry, AssemblyLine);
-#endif
         EntryIsPositive := ((CreateReservEntry.SignFactor(CalcReservEntry) * AssemblyLine."Remaining Quantity (Base)") <= 0);
     end;
 

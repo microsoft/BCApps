@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -57,6 +57,7 @@ table 5128 "Deferral Line Archive"
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date for the entry.';
         }
         /// <summary>
         /// Description of the archived deferral line.
@@ -64,6 +65,7 @@ table 5128 "Deferral Line Archive"
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the record.';
         }
         /// <summary>
         /// Amount that was scheduled to be recognized in the archived document currency.
@@ -73,6 +75,7 @@ table 5128 "Deferral Line Archive"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the line''s net amount.';
         }
         /// <summary>
         /// Amount that was scheduled to be recognized in local currency (LCY) at the time of archiving.

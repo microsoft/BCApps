@@ -361,6 +361,7 @@ codeunit 5920 ServItemManagement
         OnCreateServItemOnSalesLineShpt(ServItem, SalesHeader, SalesLine);
 
         ServItem.Modify();
+        OnAfterModifyServiceItem(ServItem, SalesHeader, SalesLine, SalesShipmentLine);
     end;
 
     local procedure AddServiceItemComponents(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; SalesShipmentLine: Record "Sales Shipment Line")
@@ -786,6 +787,11 @@ codeunit 5920 ServItemManagement
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReplaceSIComponent(var ServiceLine: Record "Service Line"; ServiceHeader: Record "Service Header"; ServShptDocNo: Code[20]; ServShptLineNo: Integer; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterModifyServiceItem(var ServiceItem: Record "Service Item"; var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesShipmentLine: Record "Sales Shipment Line")
     begin
     end;
 

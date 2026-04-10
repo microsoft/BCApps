@@ -92,30 +92,6 @@ codeunit 131902 "Library - Service"
         ContractServiceDiscount.Insert(true);
     end;
 
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Library Inventory', '26.0')]
-    procedure CreateExtendedTextForItem(ItemNo: Code[20]): Text
-    begin
-        exit(LibraryInventory.CreateExtendedTextForItem(ItemNo));
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Library Inventory', '26.0')]
-    procedure CreateExtendedTextHeaderItem(var ExtendedTextHeader: Record Microsoft.Foundation.ExtendedText."Extended Text Header"; ItemNo: Code[20])
-    begin
-        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, ItemNo);
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Library Inventory', '26.0')]
-    procedure CreateExtendedTextLineItem(var ExtendedTextLine: Record Microsoft.Foundation.ExtendedText."Extended Text Line"; ExtendedTextHeader: Record Microsoft.Foundation.ExtendedText."Extended Text Header")
-    begin
-        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine, ExtendedTextHeader);
-    end;
-#endif
-
     procedure CreateFaultArea(var FaultArea: Record "Fault Area")
     begin
         FaultArea.Init();

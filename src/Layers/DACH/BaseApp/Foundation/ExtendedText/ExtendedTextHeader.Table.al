@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -46,6 +46,7 @@ table 279 "Extended Text Header"
         field(3; "Language Code"; Code[10])
         {
             Caption = 'Language Code';
+            ToolTip = 'Specifies the language that is used when translating specified text on documents to foreign business partner, such as an item description on an order confirmation.';
             TableRelation = Language;
 
             trigger OnValidate()
@@ -62,14 +63,17 @@ table 279 "Extended Text Header"
         field(5; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies a date from which the text will be used on the item, account, resource or standard text.';
         }
         field(6; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Specifies a date on which the text will no longer be used on the item, account, resource or standard text.';
         }
         field(7; "All Language Codes"; Boolean)
         {
             Caption = 'All Language Codes';
+            ToolTip = 'Specifies whether the text should be used for all language codes. If a language code has been chosen in the Language Code field, it will be overruled by this function.';
             InitValue = true;
 
             trigger OnValidate()
@@ -81,119 +85,139 @@ table 279 "Extended Text Header"
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the content of the extended item description.';
         }
         field(11; "Sales Quote"; Boolean)
         {
             AccessByPermission = TableData "Sales Header" = R;
             Caption = 'Sales Quote';
+            ToolTip = 'Specifies whether the text will be available on sales quotes.';
             InitValue = true;
         }
         field(12; "Sales Invoice"; Boolean)
         {
             AccessByPermission = TableData "Sales Header" = R;
             Caption = 'Sales Invoice';
+            ToolTip = 'Specifies whether the text will be available on sales invoices.';
             InitValue = true;
         }
         field(13; "Sales Order"; Boolean)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             Caption = 'Sales Order';
+            ToolTip = 'Specifies whether the text will be available on sales orders.';
             InitValue = true;
         }
         field(14; "Sales Credit Memo"; Boolean)
         {
             AccessByPermission = TableData "Sales Header" = R;
             Caption = 'Sales Credit Memo';
+            ToolTip = 'Specifies whether the text will be available on sales credit memos.';
             InitValue = true;
         }
         field(15; "Purchase Quote"; Boolean)
         {
             AccessByPermission = TableData "Purchase Header" = R;
             Caption = 'Purchase Quote';
+            ToolTip = 'Specifies whether the text will be available on purchase quotes.';
             InitValue = true;
         }
         field(16; "Purchase Invoice"; Boolean)
         {
             AccessByPermission = TableData "Purchase Header" = R;
             Caption = 'Purchase Invoice';
+            ToolTip = 'Specifies whether the text will be available on purchase invoices.';
             InitValue = true;
         }
         field(17; "Purchase Order"; Boolean)
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Purchase Order';
+            ToolTip = 'Specifies whether the text will be available on purchase orders.';
             InitValue = true;
         }
         field(18; "Purchase Credit Memo"; Boolean)
         {
             AccessByPermission = TableData "Purchase Header" = R;
             Caption = 'Purchase Credit Memo';
+            ToolTip = 'Specifies whether the text will be available on purchase credit memos.';
             InitValue = true;
         }
         field(19; Reminder; Boolean)
         {
             AccessByPermission = TableData Customer = R;
             Caption = 'Reminder';
+            ToolTip = 'Specifies whether the extended text will be available on reminders.';
             InitValue = true;
         }
         field(20; "Finance Charge Memo"; Boolean)
         {
             AccessByPermission = TableData Customer = R;
             Caption = 'Finance Charge Memo';
+            ToolTip = 'Specifies whether the extended text will be available on finance charge memos.';
             InitValue = true;
         }
         field(21; "Sales Blanket Order"; Boolean)
         {
             AccessByPermission = TableData "Sales Shipment Header" = R;
             Caption = 'Sales Blanket Order';
+            ToolTip = 'Specifies whether the text will be available on sales blanket orders.';
             InitValue = true;
         }
         field(22; "Purchase Blanket Order"; Boolean)
         {
             AccessByPermission = TableData "Purch. Rcpt. Header" = R;
             Caption = 'Purchase Blanket Order';
+            ToolTip = 'Specifies whether the text will be available on purchase blanket orders.';
             InitValue = true;
         }
         field(23; "Prepmt. Sales Invoice"; Boolean)
         {
             AccessByPermission = TableData "Sales Header" = R;
             Caption = 'Prepmt. Sales Invoice';
+            ToolTip = 'Specifies whether the text will be available on prepayment sales invoices.';
             InitValue = true;
         }
         field(24; "Prepmt. Sales Credit Memo"; Boolean)
         {
             AccessByPermission = TableData "Sales Header" = R;
             Caption = 'Prepmt. Sales Credit Memo';
+            ToolTip = 'Specifies whether the text will be available on prepayment sales credit memos.';
             InitValue = true;
         }
         field(25; "Prepmt. Purchase Invoice"; Boolean)
         {
             AccessByPermission = TableData "Purchase Header" = R;
             Caption = 'Prepmt. Purchase Invoice';
+            ToolTip = 'Specifies whether the text will be available on prepayment purchase invoices.';
             InitValue = true;
         }
         field(26; "Prepmt. Purchase Credit Memo"; Boolean)
         {
             AccessByPermission = TableData "Purchase Header" = R;
             Caption = 'Prepmt. Purchase Credit Memo';
+            ToolTip = 'Specifies whether the text will be available on prepayment purchase credit memos.';
             InitValue = true;
         }
         field(167; "Job"; Boolean)
         {
             AccessByPermission = TableData Job = R;
             Caption = 'Project';
+            ToolTip = 'Specifies whether the text will be available on projects.';
             InitValue = true;
         }
         field(6600; "Sales Return Order"; Boolean)
         {
             AccessByPermission = TableData "Return Receipt Header" = R;
             Caption = 'Sales Return Order';
+            ToolTip = 'Specifies whether the text will be available on sales return orders.';
             InitValue = true;
         }
         field(6605; "Purchase Return Order"; Boolean)
         {
             AccessByPermission = TableData "Return Shipment Header" = R;
             Caption = 'Purchase Return Order';
+            ToolTip = 'Specifies whether the text will be available on purchase return orders.';
             InitValue = true;
         }
         field(5005270; "Delivery Reminder"; Boolean)

@@ -3855,19 +3855,6 @@ page 6510 "Item Tracking Lines"
     begin
     end;
 
-#if not CLEAN26
-    internal procedure RunOnAfterCollectPostedOutputEntries(ItemLedgerEntry: Record "Item Ledger Entry"; var TempTrackingSpecification: Record "Tracking Specification" temporary)
-    begin
-        OnAfterCollectPostedOutputEntries(ItemLedgerEntry, TempTrackingSpecification);
-    end;
-
-    [Obsolete('Moved to codeunit Mfg. Item Tracking Mgt.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCollectPostedOutputEntries(ItemLedgerEntry: Record "Item Ledger Entry"; var TempTrackingSpecification: Record "Tracking Specification" temporary)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterClearTrackingSpec(var OldTrkgSpec: Record "Tracking Specification")
     begin

@@ -2404,6 +2404,54 @@ codeunit 134118 "Price List Header UT"
         Assert.AreEqual(JobJournalLine."Unit Cost", PriceListLine."Direct Unit Cost", UnitCostErr);
     end;
 
+    [Test]
+    procedure ImportPriceListHeaderViaConfigPackageWithSourceGroupAll()
+    var
+        PriceListHeader: Record "Price List Header";
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigPackageError: Record "Config. Package Error";
+        LibraryRapidStart: Codeunit "Library - Rapid Start";
+        PriceListCode: Code[20];
+        PriceListDescription: Text[250];
+        StartingDate: Date;
+        EndingDate: Date;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 608772] Import Price List Header via configuration package with Source Group = All succeeds when No Series is empty
+        Initialize();
+
+        // [GIVEN] A configuration package with Price List Header "PLH" data where Source Group = All and Code is set
+        PriceListCode := LibraryUtility.GenerateRandomCode20(PriceListHeader.FieldNo(Code), Database::"Price List Header");
+
+        // [GIVEN] The Description, Starting Date and Ending Date fields are populated with valid values
+        PriceListDescription := CopyStr(LibraryUtility.GenerateRandomText(LibraryRandom.RandIntInRange(10, 50)), 1, MaxStrLen(PriceListDescription));
+        StartingDate := LibraryRandom.RandDate(50);
+        EndingDate := StartingDate + LibraryRandom.RandIntInRange(10, 30);
+        LibraryRapidStart.CreatePackageDataForField(
+            ConfigPackage, ConfigPackageTable, Database::"Price List Header",
+            PriceListHeader.FieldNo(Code), PriceListCode, 1);
+        LibraryRapidStart.CreatePackageDataForField(
+            ConfigPackage, ConfigPackageTable, Database::"Price List Header",
+            PriceListHeader.FieldNo(Description), CopyStr(PriceListDescription, 1, 250), 1);
+        LibraryRapidStart.CreatePackageDataForField(
+            ConfigPackage, ConfigPackageTable, Database::"Price List Header",
+            PriceListHeader.FieldNo("Source Group"), Format(PriceListHeader."Source Group"::All, 0, 9), 1);
+        LibraryRapidStart.CreatePackageDataForField(
+            ConfigPackage, ConfigPackageTable, Database::"Price List Header",
+            PriceListHeader.FieldNo("Starting Date"), Format(StartingDate, 0, 9), 1);
+        LibraryRapidStart.CreatePackageDataForField(
+            ConfigPackage, ConfigPackageTable, Database::"Price List Header",
+            PriceListHeader.FieldNo("Ending Date"), Format(EndingDate, 0, 9), 1);
+
+        // [WHEN] Apply the configuration package.
+        LibraryRapidStart.ApplyPackage(ConfigPackage, false);
+
+        // [THEN] No Configuration Package Error errors exist.
+        ConfigPackageError.SetRange("Package Code", ConfigPackage.Code);
+        Assert.RecordIsEmpty(ConfigPackageError);
+    end;
+
     local procedure Initialize()
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";

@@ -11,13 +11,12 @@ using System.Utilities;
 
 report 7320 "Whse. Adjustment Bin"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Warehouse/Reports/WhseAdjustmentBin.rdlc';
     AccessByPermission = TableData Bin = R;
     AdditionalSearchTerms = 'synchronize inventory';
     ApplicationArea = Warehouse;
     Caption = 'Warehouse Adjustment Bin';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -250,6 +249,16 @@ report 7320 "Whse. Adjustment Bin"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Warehouse/Reports/WhseAdjustmentBin.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

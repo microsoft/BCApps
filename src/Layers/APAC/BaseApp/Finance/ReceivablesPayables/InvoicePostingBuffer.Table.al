@@ -843,14 +843,6 @@ table 55 "Invoice Posting Buffer"
             "Entry Description" := HeaderDescription;
     end;
 
-#if not CLEAN26
-    [Obsolete('Replaced by earlier implementation without parameter SetLineNo', '26.0')]
-    procedure UpdateEntryDescription(CopyLineDescrToGLEntry: Boolean; LineNo: Integer; LineDescription: text[100]; HeaderDescription: Text[100]; SetLineNo: Boolean)
-    begin
-        UpdateEntryDescription(CopyLineDescrToGLEntry, LineNo, LineDescription, HeaderDescription);
-    end;
-#endif
-
     local procedure AdjustRoundingForUpdate()
     begin
         AdjustRoundingFieldsPair(TempInvoicePostingBufferRounding.Amount, Amount, "Amount (ACY)");

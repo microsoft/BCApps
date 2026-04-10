@@ -7,13 +7,7 @@ namespace Microsoft.Inventory.Intrastat;
 
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Shipping;
-#if not CLEAN26
-using Microsoft.Inventory.Ledger;
-#endif
 using Microsoft.Inventory.Location;
-#if not CLEAN26
-using Microsoft.Projects.Project.Ledger;
-#endif
 table 263 "Intrastat Jnl. Line"
 {
     Caption = 'Intrastat Jnl. Line';
@@ -76,13 +70,8 @@ table 263 "Intrastat Jnl. Line"
         {
             BlankZero = true;
             Caption = 'Source Type';
-#if CLEAN26
             ObsoleteState = Removed;
             ObsoleteTag = '29.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#endif
             ObsoleteReason = 'Intrastat related functionalities are moved to Intrastat extensions.';
         }
 #pragma warning restore AS0105        
@@ -91,11 +80,6 @@ table 263 "Intrastat Jnl. Line"
         {
             Caption = 'Source Entry No.';
             Editable = false;
-#if not CLEAN26
-            TableRelation = if ("Source Type" = const("Item Entry")) "Item Ledger Entry"
-            else
-            if ("Source Type" = const("Job Entry")) "Job Ledger Entry";
-#endif
         }
         field(13; "Net Weight"; Decimal)
         {
@@ -260,11 +244,6 @@ table 263 "Intrastat Jnl. Line"
         {
             Clustered = true;
         }
-#if not CLEAN26
-        key(Key2; "Source Type", "Source Entry No.")
-        {
-        }
-#endif
         key(Key3; Type, "Country/Region Code", "Tariff No.", "Transaction Type", "Transport Method", "Transaction Specification", "Area", "Country/Region of Origin Code", "Partner VAT ID")
         {
         }

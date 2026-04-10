@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
+using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.Finance.Currency;
@@ -145,7 +146,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DescriptionLbl: Label 'This is the e-invoicing xml document';
     begin
         PDFDocument.Initialize();
-        Name := 'factur-x.xml';
+        Name := 'xrechnung.xml';
         DataType := Enum::"PDF Attach. Data Relationship"::Alternative;
         MimeType := 'text/xml';
         Description := DescriptionLbl;
@@ -349,6 +350,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         GetSetups();
         FindEDocumentService();
         PEPPOLMgt.TransferHeaderToSalesInvoiceHeader(ServiceInvoiceHeader, SalesInvoiceHeader);
+        SalesInvoiceHeader."Company Bank Account Code" := ServiceInvoiceHeader."Company Bank Account Code";
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
         if ServiceInvoiceLine.FindSet() then
             repeat
@@ -391,6 +393,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         GetSetups();
         FindEDocumentService();
         PEPPOLMgt.TransferHeaderToSalesCrMemoHeader(ServiceCrMemoHeader, SalesCrMemoHeader);
+        SalesCrMemoHeader."Company Bank Account Code" := ServiceCrMemoHeader."Company Bank Account Code";
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         if ServiceCrMemoLine.FindSet() then
             repeat
@@ -634,17 +637,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         BuyerTradePartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, CustomerName));
 
         // Buyer Contact
-        if PhoneNumber <> '' then begin
-            ContactElement := XmlElement.Create('DefinedTradeContact', XmlNamespaceRAM);
-            ContactElement.Add(XmlElement.Create('PersonName', XmlNamespaceRAM, Contact));
-            ContactElement.Add(XmlElement.Create('TelephoneUniversalCommunication', XmlNamespaceRAM,
-                XmlElement.Create('CompleteNumber', XmlNamespaceRAM, PhoneNumber)));
-            if CustomerEmail <> '' then
-                ContactElement.Add(XmlElement.Create('EmailURIUniversalCommunication', XmlNamespaceRAM,
-                    XmlElement.Create('URIID', XmlNamespaceRAM, CustomerEmail)));
-            BuyerTradePartyElement.Add(ContactElement);
-        end;
-
+        InsertBuyerContact(BuyerTradePartyElement, Contact, PhoneNumber, CustomerEmail);
 
         // Buyer Address
         PostalTradeAddressElement := XmlElement.Create('PostalTradeAddress', XmlNamespaceRAM);
@@ -733,7 +726,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         SettlementElement := XmlElement.Create('ApplicableHeaderTradeSettlement', XmlNamespaceRAM);
 
         SettlementElement.Add(XmlElement.Create('InvoiceCurrencyCode', XmlNamespaceRAM, CurrencyCode));
-        InsertPaymentMethod(SettlementElement);
+        InsertPaymentMethod(SettlementElement, SalesInvHeader."Company Bank Account Code");
         InsertTradeTax(SettlementElement, SalesInvLine, LineAmount, LineVATAmount);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesInvLine, LineDiscAmount, LineAmounts);
 
@@ -758,7 +751,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         SettlementElement := XmlElement.Create('ApplicableHeaderTradeSettlement', XmlNamespaceRAM);
 
         SettlementElement.Add(XmlElement.Create('InvoiceCurrencyCode', XmlNamespaceRAM, CurrencyCode));
-        InsertPaymentMethod(SettlementElement);
+        InsertPaymentMethod(SettlementElement, SalesCrMemoHeader."Company Bank Account Code");
         InsertTradeTax(SettlementElement, SalesCrMemoLine, LineAmount, LineVATAmount);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesCrMemoLine, LineDiscAmount, LineAmounts);
 
@@ -774,6 +767,29 @@ codeunit 13917 "Export ZUGFeRD Document"
 
         SettlementElement.Add(MonetarySummationElement);
         RootXMLNode.Add(SettlementElement);
+    end;
+
+    local procedure InsertBuyerContact(var BuyerTradePartyElement: XmlElement; ContactName: Text; PhoneNumber: Text; EmailAddress: Text)
+    var
+        ContactElement: XmlElement;
+    begin
+        if (ContactName = '') and (PhoneNumber = '') and (EmailAddress = '') then
+            exit;
+
+        ContactElement := XmlElement.Create('DefinedTradeContact', XmlNamespaceRAM);
+
+        if ContactName <> '' then
+            ContactElement.Add(XmlElement.Create('PersonName', XmlNamespaceRAM, ContactName));
+
+        if PhoneNumber <> '' then
+            ContactElement.Add(XmlElement.Create('TelephoneUniversalCommunication', XmlNamespaceRAM,
+                XmlElement.Create('CompleteNumber', XmlNamespaceRAM, PhoneNumber)));
+
+        if EmailAddress <> '' then
+            ContactElement.Add(XmlElement.Create('EmailURIUniversalCommunication', XmlNamespaceRAM,
+                XmlElement.Create('URIID', XmlNamespaceRAM, EmailAddress)));
+
+        BuyerTradePartyElement.Add(ContactElement);
     end;
 
     local procedure InsertTradeTax(var SettlementElement: XmlElement; var SalesInvLine: Record "Sales Invoice Line"; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal])
@@ -1042,23 +1058,26 @@ codeunit 13917 "Export ZUGFeRD Document"
         RootXMLNode.Add(PaymentTermsElement);
     end;
 
-    local procedure InsertPaymentMethod(var RootXMLNode: XmlElement)
+    local procedure InsertPaymentMethod(var RootXMLNode: XmlElement; CompanyBankAccountCode: Code[20])
     var
         PaymentMethodElement, PaymentMethodTypeCodeElement, PaymentMethodIBANElement, PaymentMethodBICElement : XmlElement;
+        IBAN: Text[50];
+        SWIFTCode: Code[20];
     begin
+        GetBankAccountPaymentDetails(CompanyBankAccountCode, IBAN, SWIFTCode);
         PaymentMethodElement := XmlElement.Create('SpecifiedTradeSettlementPaymentMeans', XmlNamespaceRAM);
         PaymentMethodTypeCodeElement := XmlElement.Create('TypeCode', XmlNamespaceRAM, '58'); //generic for Credit transfer
         PaymentMethodElement.Add(PaymentMethodTypeCodeElement);
 
-        if CompanyInformation.IBAN <> '' then begin
+        if IBAN <> '' then begin
             PaymentMethodIBANElement := XmlElement.Create('PayeePartyCreditorFinancialAccount', XmlNamespaceRAM);
-            PaymentMethodIBANElement.Add(XmlElement.Create('IBANID', XmlNamespaceRAM, GetIBAN(CompanyInformation.IBAN)));
+            PaymentMethodIBANElement.Add(XmlElement.Create('IBANID', XmlNamespaceRAM, GetIBAN(IBAN)));
             PaymentMethodElement.Add(PaymentMethodIBANElement);
         end;
 
-        if CompanyInformation."SWIFT Code" <> '' then begin
+        if SWIFTCode <> '' then begin
             PaymentMethodBICElement := XmlElement.Create('PayeeSpecifiedCreditorFinancialInstitution', XmlNamespaceRAM);
-            PaymentMethodBICElement.Add(XmlElement.Create('BICID', XmlNamespaceRAM, GetIBAN(CompanyInformation."SWIFT Code")));
+            PaymentMethodBICElement.Add(XmlElement.Create('BICID', XmlNamespaceRAM, GetIBAN(SWIFTCode)));
             PaymentMethodElement.Add(PaymentMethodBICElement);
         end;
         RootXMLNode.Add(PaymentMethodElement);
@@ -1388,6 +1407,21 @@ codeunit 13917 "Export ZUGFeRD Document"
         EDocumentService.SetRange("Document Format", EDocumentService."Document Format"::ZUGFeRD);
         if EDocumentService.FindLast() then;
         OnAfterFindEDocumentService(EDocumentService);
+    end;
+
+    local procedure GetBankAccountPaymentDetails(BankAccountCode: Code[20]; var IBAN: Text[50]; var SWIFTCode: Code[20])
+    var
+        BankAccount: Record "Bank Account";
+    begin
+        if BankAccountCode <> '' then
+            if BankAccount.Get(BankAccountCode) then begin
+                IBAN := BankAccount.IBAN;
+                SWIFTCode := BankAccount."SWIFT Code";
+                exit;
+            end;
+
+        IBAN := CompanyInformation.IBAN;
+        SWIFTCode := CompanyInformation."SWIFT Code";
     end;
     #endregion
 

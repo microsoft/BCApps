@@ -25,41 +25,6 @@ codeunit 147309 "VAT on Change Log Statistics"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseOrderStatisticsHandler,VATAmountLinesHandler')]
-    [Scope('OnPrem')]
-    procedure TestVATAmountOnPostedPurchaseInvoiceStatistics()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        AllowVATDifference: Boolean;
-        OldVATDifferenceAllowed: Decimal;
-        PostedDocumentNo: Code[20];
-    begin
-        // Check VAT Amount on Purchase Invoice Statistics After Changing VAT Amount.
-
-        // Setup: Modify GeneralLedger And PurchasesPayables Setup, Create Purchase Order, VAT Amount Modified Using Handler.
-        Initialize();
-        OldVATDifferenceAllowed := UpdateGeneralLedgerSetup(LibraryRandom.RandDec(0, 1));
-        AllowVATDifference := UpdatePurchasesPayablesSetup(true);
-        UpdateVendorPostingGroup();
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendor());
-        CreateMultiplePurchaseLines(PurchaseHeader);
-        OpenPurchaseOrderStatisticsPage(PurchaseHeader."No.");  // Open Purchase Order Statistics Page to Change VAT Amount on VAT Amount Lines using VATAmountLinesHandler.
-
-        // Exercise.
-        PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        // Verify: Verify VAT Amount on Statistics of Purchase Invoice.
-        VerifyVATAmountOnPostPurchaseInvStatistics(PostedDocumentNo);
-
-        // Tear Down: Set Default Value in General Ledger Setup, PurchasesPayables Setup for VAT Difference.
-        UpdateGeneralLedgerSetup(OldVATDifferenceAllowed);
-        UpdatePurchasesPayablesSetup(AllowVATDifference);
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('PurchOrderStatisticsHandler,VATAmountLinesHandler')]
     [Scope('OnPrem')]
@@ -92,40 +57,6 @@ codeunit 147309 "VAT on Change Log Statistics"
         UpdatePurchasesPayablesSetup(AllowVATDifference);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsHandler,VATAmountLinesHandler')]
-    [Scope('OnPrem')]
-    procedure TestVATAmountOnPostedSalesInvoiceStatistics()
-    var
-        SalesHeader: Record "Sales Header";
-        AllowVATDifference: Boolean;
-        OldVATDifferenceAllowed: Decimal;
-        PostedDocumentNo: Code[20];
-    begin
-        // Check VAT Amount on Sales Invoice Statistics After Changing VAT Amount.
-
-        // Setup: Modify General Ledger Setup And Purchases Payables Setup, Create Sales Order, VAT Amount Modified Using Handler.
-        Initialize();
-        OldVATDifferenceAllowed := UpdateGeneralLedgerSetup(LibraryRandom.RandDec(0, 1));
-        AllowVATDifference := UpdateSalesReceivableSetup(true);
-        UpdateCustomerPostingGroup();
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CreateCustomer());
-        CreateMultipleSalesLines(SalesHeader);
-        OpenSalesOrderStatisticsPage(SalesHeader."No.");  // Open Sales Order Statistics Page to Change VAT Amount on VAT Amount Lines using VATAmountLinesHandler.
-
-        // Exercise.
-        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-
-        // Verify: Verify VAT Amount on Statistics of Sales Invoice.
-        VerifyVATAmountOnPostSalesInvStatistics(PostedDocumentNo);
-
-        // Tear Down: Set Default Value in General Ledger Setup, SalesAndReceivable Setup for VAT Difference.
-        UpdateGeneralLedgerSetup(OldVATDifferenceAllowed);
-        UpdateSalesReceivableSetup(AllowVATDifference);
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesOrderStatisticsHandlerNM,VATAmountLinesHandler')]
     [Scope('OnPrem')]
@@ -260,18 +191,6 @@ codeunit 147309 "VAT on Change Log Statistics"
         VATPostingSetup.Next(LibraryRandom.RandInt(VATPostingSetup.Count));
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure OpenPurchaseOrderStatisticsPage(No: Code[20])
-    var
-        PurchaseOrder: TestPage "Purchase Order";
-    begin
-        PurchaseOrder.OpenView();
-        PurchaseOrder.FILTER.SetFilter("No.", No);
-        PurchaseOrder.Statistics.Invoke();
-    end;
-#endif
-
     local procedure OpenPurchOrderStatisticsPage(No: Code[20])
     var
         PurchaseOrder: TestPage "Purchase Order";
@@ -281,17 +200,6 @@ codeunit 147309 "VAT on Change Log Statistics"
         PurchaseOrder.PurchaseOrderStatistics.Invoke();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    local procedure OpenSalesOrderStatisticsPage(No: Code[20])
-    var
-        SalesOrder: TestPage "Sales Order";
-    begin
-        SalesOrder.OpenView();
-        SalesOrder.FILTER.SetFilter("No.", No);
-        SalesOrder.Statistics.Invoke();
-    end;
-#endif
     local procedure OpenSalesOrderStatisticsPageNM(No: Code[20])
     var
         SalesOrder: TestPage "Sales Order";
@@ -398,17 +306,6 @@ codeunit 147309 "VAT on Change Log Statistics"
         SalesInvoiceStatistics.Subform."VAT Amount".AssertEquals(VATAmount);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseOrderStatisticsHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
-    begin
-        // Modal Page Handler used to open VAT Amount Lines Page.
-        PurchaseOrderStatistics.NoOfVATLines_Invoicing.DrillDown();
-    end;
-#endif
-
     [PageHandler]
     [Scope('OnPrem')]
     procedure PurchOrderStatisticsHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
@@ -417,16 +314,6 @@ codeunit 147309 "VAT on Change Log Statistics"
         PurchaseOrderStatistics.NoOfVATLines_Invoicing.DrillDown();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesOrderStatisticsHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    begin
-        // Modal Page Handler used to open VAT Amount Lines Page.
-        SalesOrderStatistics.NoOfVATLines_Invoicing.DrillDown();
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesOrderStatisticsHandlerNM(var SalesOrderStatistics: TestPage "Sales Order Statistics")

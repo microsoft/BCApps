@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ table 197 "Acc. Sched. KPI Buffer"
         field(1; "No."; Integer)
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -35,6 +36,7 @@ table 197 "Acc. Sched. KPI Buffer"
         field(2; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date on which the KPI figures are calculated.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -43,6 +45,7 @@ table 197 "Acc. Sched. KPI Buffer"
         field(3; "Closed Period"; Boolean)
         {
             Caption = 'Closed Period';
+            ToolTip = 'Specifies whether the fiscal year is closed.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -51,6 +54,7 @@ table 197 "Acc. Sched. KPI Buffer"
         field(4; "Account Schedule Name"; Code[10])
         {
             Caption = 'Row Definition Name';
+            ToolTip = 'Specifies the name of the account schedule that the KPI web service is based on.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -59,6 +63,7 @@ table 197 "Acc. Sched. KPI Buffer"
         field(5; "KPI Code"; Code[10])
         {
             Caption = 'KPI Code';
+            ToolTip = 'Specifies a code for the financial report KPI web service.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -67,6 +72,7 @@ table 197 "Acc. Sched. KPI Buffer"
         field(6; "KPI Name"; Text[50])
         {
             Caption = 'KPI Name';
+            ToolTip = 'Specifies a name of the account-schedule KPI web service.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -77,6 +83,7 @@ table 197 "Acc. Sched. KPI Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Net Change Actual';
+            ToolTip = 'Specifies changes in the actual general ledger amount, for closed accounting periods, up until the date in the Date field.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -87,6 +94,7 @@ table 197 "Acc. Sched. KPI Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Balance at Date Actual';
+            ToolTip = 'Specifies the actual general ledger balance, based on closed accounting periods, on the date in the Date field.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -97,6 +105,7 @@ table 197 "Acc. Sched. KPI Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Net Change Budget';
+            ToolTip = 'Specifies changes in the budgeted general ledger amount, based on the general ledger budget, up until the date in the Date field.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -107,6 +116,7 @@ table 197 "Acc. Sched. KPI Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Balance at Date Budget';
+            ToolTip = 'Specifies the budgeted general ledger balance, based on the general ledger budget, on the date in the Date field.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -117,6 +127,7 @@ table 197 "Acc. Sched. KPI Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Net Change Actual Last Year';
+            ToolTip = 'Specifies actual changes in the general ledger amount, based on closed accounting periods, up until the date in the Date field in the previous accounting year.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -127,6 +138,7 @@ table 197 "Acc. Sched. KPI Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Balance at Date Act. Last Year';
+            ToolTip = 'Specifies the actual general ledger balance, based on closed accounting periods, on the date in the Date field in the previous accounting year.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -137,6 +149,7 @@ table 197 "Acc. Sched. KPI Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Net Change Budget Last Year';
+            ToolTip = 'Specifies budgeted changes in the general ledger amount, based on the general ledger budget, up until the date in the Date field in the previous year.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -147,6 +160,7 @@ table 197 "Acc. Sched. KPI Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Balance at Date Bud. Last Year';
+            ToolTip = 'Specifies the budgeted general ledger balance, based on the general ledger budget, on the date in the Date field in the previous accounting year.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -157,6 +171,7 @@ table 197 "Acc. Sched. KPI Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Net Change Forecast';
+            ToolTip = 'Specifies forecasted changes in the general ledger amount, based on open accounting periods, up until the date in the Date field.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -167,6 +182,7 @@ table 197 "Acc. Sched. KPI Buffer"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Balance at Date Forecast';
+            ToolTip = 'Specifies the forecasted general ledger balance, based on open accounting periods, on the date in the Date field.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -175,6 +191,7 @@ table 197 "Acc. Sched. KPI Buffer"
         field(17; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
+            ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
             DataClassification = SystemMetadata;
         }
     }

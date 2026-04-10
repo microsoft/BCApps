@@ -72,9 +72,6 @@ table 5740 "Transfer Header"
                 if "Transfer-from Code" <> '' then
                     CheckTransferFromAndToCodesNotTheSame();
 
-                if "Direct Transfer" then
-                    VerifyNoOutboundWhseHandlingOnLocation("Transfer-from Code");
-
                 if xRec."Transfer-from Code" <> "Transfer-from Code" then begin
                     if HideValidationDialog or
                        (xRec."Transfer-from Code" = '')
@@ -591,7 +588,6 @@ table 5740 "Transfer Header"
                 IsHandled: Boolean;
             begin
                 if "Direct Transfer" then begin
-                    VerifyNoOutboundWhseHandlingOnLocation("Transfer-from Code");
                     VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
                     OnValidateDirectTransferOnBeforeValidateInTransitCode(Rec, IsHandled);
                     if not IsHandled then
@@ -1359,10 +1355,8 @@ table 5740 "Transfer Header"
 
         if not "Direct Transfer" then
             TestField("In-Transit Code")
-        else begin
-            VerifyNoOutboundWhseHandlingOnLocation("Transfer-from Code");
+        else
             VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
-        end;
         TestField(Status, Status::Released);
         TestField("Posting Date");
 
@@ -1705,6 +1699,48 @@ table 5740 "Transfer Header"
         PurchRcptHeader.Get(PurchRcptLine."Document No.");
         PurchRcptHeader.Mark(true);
         DocumentNo := PurchRcptLine."Document No.";
+    end;
+
+    /// <summary>
+    /// Posts the related inbound transfer receipt for the current transfer header.
+    /// </summary>
+    internal procedure PostRelatedInboundTransfer(PreviewMode: Boolean)
+    var
+        TransferPostReceipt: Codeunit "TransferOrder-Post Receipt";
+    begin
+        TransferPostReceipt.SetSuppressCommit(true);
+        TransferPostReceipt.SetHideValidationDialog(PreviewMode);
+        TransferPostReceipt.SetPreviewMode(PreviewMode);
+        TransferPostReceipt.Run(Rec);
+    end;
+
+    /// <summary>
+    /// Determines whether the shipment and receipt should be posted together for direct transfers.
+    /// </summary>
+    /// <returns>True if direct transfer with "Receipt and Shipment" mode and no inbound warehouse handling; otherwise, false.</returns>
+    internal procedure ShouldPostReceiptWithShipment(): Boolean
+    var
+        InventorySetup: Record "Inventory Setup";
+    begin
+        if not Rec."Direct Transfer" then
+            exit(false);
+        if InboundWhseHandlingOnLocation(Rec."Transfer-to Code") then
+            exit(false);
+
+        InventorySetup.SetLoadFields("Direct Transfer Posting");
+        InventorySetup.Get();
+        if InventorySetup."Direct Transfer Posting" = InventorySetup."Direct Transfer Posting"::"Direct Transfer" then
+            exit(false);
+        exit(true); // Return true ONLY when "Direct Transfer is TRUE and "Receipt and Shipment" is TRUE
+    end;
+
+    local procedure InboundWhseHandlingOnLocation(LocationCode: Code[10]): Boolean
+    var
+        Location: Record Location;
+    begin
+        Location.SetLoadFields("Require Put-away", "Require Receive");
+        if Location.Get(LocationCode) then
+            exit(Location."Require Put-away" or Location."Require Receive");
     end;
 
     [IntegrationEvent(false, false)]

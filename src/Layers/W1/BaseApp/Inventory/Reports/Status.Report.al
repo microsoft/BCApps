@@ -9,11 +9,10 @@ using Microsoft.Inventory.Ledger;
 
 report 706 Status
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/Status.rdlc';
     ApplicationArea = Basic, Suite, Advanced;
     Caption = 'Status';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -204,6 +203,16 @@ report 706 Status
             if StatusDate = 0D then
                 StatusDate := WorkDate();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/Status.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

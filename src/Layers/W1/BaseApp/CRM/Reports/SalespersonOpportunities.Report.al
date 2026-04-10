@@ -8,11 +8,10 @@ using Microsoft.CRM.Opportunity;
 
 report 5058 "Salesperson - Opportunities"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/SalespersonOpportunities.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Salesperson Opportunities';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -127,6 +126,16 @@ report 5058 "Salesperson - Opportunities"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/SalespersonOpportunities.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

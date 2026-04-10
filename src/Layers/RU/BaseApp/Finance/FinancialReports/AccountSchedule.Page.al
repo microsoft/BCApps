@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -133,14 +133,12 @@ page 104 "Account Schedule"
                 field("Row No."; Rec."Row No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a number that identifies the line.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = Rec.Bold;
-                    ToolTip = 'Specifies text that will appear on the financial report line.';
                 }
                 field("Totaling Type"; Rec."Totaling Type")
                 {
@@ -244,12 +242,10 @@ page 104 "Account Schedule"
                 field("Row Type"; Rec."Row Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the row type for the row definition. The type determines how the amounts in the row are calculated.';
                 }
                 field("Amount Type"; Rec."Amount Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of entries that will be included in the amounts in the row definition.';
                 }
                 field("Corr. Totaling"; Rec."Corr. Totaling")
                 {
@@ -259,12 +255,10 @@ page 104 "Account Schedule"
                 field("Show Opposite Sign"; Rec."Show Opposite Sign")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to show debits in reports as negative amounts with a minus sign and credits as positive amounts.';
                 }
                 field("Dimension 1 Totaling"; Rec."Dimension 1 Totaling")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies which dimension value amounts will be totaled on this line.';
                     Visible = false;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -275,7 +269,6 @@ page 104 "Account Schedule"
                 field("Dimension 2 Totaling"; Rec."Dimension 2 Totaling")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies which dimension value amounts will be totaled on this line.';
                     Visible = false;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -286,7 +279,6 @@ page 104 "Account Schedule"
                 field("Dimension 3 Totaling"; Rec."Dimension 3 Totaling")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies which dimension value amounts will be totaled on this line.';
                     Visible = false;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -297,7 +289,6 @@ page 104 "Account Schedule"
                 field("Dimension 4 Totaling"; Rec."Dimension 4 Totaling")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies which dimension value amounts will be totaled on this line.';
                     Visible = false;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -328,37 +319,30 @@ page 104 "Account Schedule"
                 field(Show; Rec.Show)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the line will be printed on the report.';
                 }
                 field(Bold; Rec.Bold)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to print the amounts in this row in bold.';
                 }
                 field(Italic; Rec.Italic)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to print the amounts in this row in italics.';
                 }
                 field(Underline; Rec.Underline)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to underline the amounts in this row.';
                 }
                 field("Double Underline"; Rec."Double Underline")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to double underline the amounts in this row.';
                 }
                 field("New Page"; Rec."New Page")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether there will be a page break after the current line when the financial report is exported to PDF or printed.';
                 }
                 field(HideCurrencySymbol; Rec."Hide Currency Symbol")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to hide currency symbols when a calculated result is not a currency.';
                     Visible = false;
                 }
                 field("Internal Description"; Rec."Internal Description")

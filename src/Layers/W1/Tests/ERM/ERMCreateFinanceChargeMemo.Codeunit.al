@@ -10,15 +10,15 @@ codeunit 134911 "ERM Create Finance Charge Memo"
     end;
 
     var
-        Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryERM: Codeunit "Library - ERM";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryReportDataset: Codeunit "Library - Report Dataset";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryRandom: Codeunit "Library - Random";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         ActiveDirectoryMockEvents: Codeunit "Active Directory Mock Events";
+        Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibrarySales: Codeunit "Library - Sales";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         MIRHelperFunctions: Codeunit "MIR - Helper Functions";
         IsInitialized: Boolean;
         AmountErr: Label 'Amount must be %1 for Finance Charge Header No: %2.';
@@ -29,6 +29,7 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         EmailTxt: Label 'abc@microsoft.com', Locked = true;
         ProceedOnIssuingWithInvRoundingQst: Label 'The invoice rounding amount will be added to the finance charge memo when it is posted according to invoice rounding setup.\Do you want to continue?';
         GLEntryMustNotBeEmpty: Label 'GL Entry must not be empty.';
+        NrOfDaysUseClosedAtDateForClosedEntriesLbl: Label 'NrOfDays should use Closed at Date for closed entries paid before Document Date.';
 
     [Test]
     [Scope('OnPrem')]
@@ -531,6 +532,51 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         Assert.IsFalse(GLEntry.IsEmpty(), GLEntryMustNotBeEmpty);
     end;
 
+    [Test]
+    procedure FinChrgMemoClosedEntryNrOfDaysUsesClosedAtDate()
+    var
+        Customer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        FinanceChargeMemoHeader: Record "Finance Charge Memo Header";
+        FinanceChargeMemoLine: Record "Finance Charge Memo Line";
+        FinanceChargeTerms: Record "Finance Charge Terms";
+        PostedInvoiceNo: Code[20];
+        ClosedAtDate, DocumentDate, DueDate, PaymentDate : Date;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624077] NrOfDays uses Closed at Date for closed entry "CLE" paid before FC memo Document Date.
+        Initialize();
+
+        // [GIVEN] Finance charge terms with Average Daily Balance, Closed Entries, Line Description = 'NrDays=%9'
+        WorkDate := CalcDate('<-1M>', WorkDate());
+        DocumentDate := WorkDate();
+        DueDate := CalcDate('<+10D>', DocumentDate);
+        PaymentDate := CalcDate('<+3D>', DueDate);
+        CreateFinChrgTermsForDaysPastDue(FinanceChargeTerms, FinanceChargeTerms."Interest Calculation"::"Closed Entries");
+
+        // [GIVEN] Create a new Customer with the finance charge terms.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Fin. Charge Terms Code", FinanceChargeTerms.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Posted sales invoice due on Due Date.
+        PostedInvoiceNo := CreatePostSalesInvWithDueDate(Customer."No.", DocumentDate, DueDate);
+
+        // [GIVEN] Payment is made after due date.
+        WorkDate := CalcDate('<+1M>', WorkDate());
+        PostPaymentAndApply(Customer."No.", PostedInvoiceNo, PaymentDate);
+        SetCalcInterestOnCustLedgEntry(PostedInvoiceNo);
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, PostedInvoiceNo);
+        ClosedAtDate := CustLedgerEntry."Closed at Date";
+
+        // [WHEN] Finance charge memo is created with WorkDate.
+        CreateSuggestFinanceChargeMemo(FinanceChargeMemoHeader, Customer."No.", WorkDate());
+
+        // [THEN] NrOfDays = Closed at Date - Due Date (not Document Date - Due Date)
+        FindFinChrgMemoLineOfCustLedgEntryType(FinanceChargeMemoLine, FinanceChargeMemoHeader."No.");
+        Assert.AreEqual('NrDays=' + Format(ClosedAtDate - DueDate), FinanceChargeMemoLine.Description, NrOfDaysUseClosedAtDateForClosedEntriesLbl);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -774,6 +820,80 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         SuggestFinChargeMemoLines.SetTableView(FinanceChargeMemoHeader);
         SuggestFinChargeMemoLines.UseRequestPage(false);
         SuggestFinChargeMemoLines.Run();
+    end;
+
+    local procedure CreateFinChrgTermsForDaysPastDue(var FinanceChargeTerms: Record "Finance Charge Terms"; InterestCalc: Option)
+    begin
+        LibraryERM.CreateFinanceChargeTerms(FinanceChargeTerms);
+        FinanceChargeTerms.Validate("Interest Calculation Method", FinanceChargeTerms."Interest Calculation Method"::"Average Daily Balance");
+        FinanceChargeTerms.Validate("Interest Calculation", InterestCalc);
+        FinanceChargeTerms.Validate("Interest Rate", LibraryRandom.RandDecInRange(1, 5, 2));
+        FinanceChargeTerms.Validate("Interest Period (Days)", LibraryRandom.RandIntInRange(1, 1));
+        FinanceChargeTerms.Validate("Line Description", 'NrDays=%9');
+        FinanceChargeTerms.Validate("Post Interest", true);
+        FinanceChargeTerms.Validate("Post Additional Fee", true);
+        FinanceChargeTerms.Modify(true);
+    end;
+
+    local procedure CreatePostSalesInvWithDueDate(CustomerNo: Code[20]; DocumentDate: Date; var DueDate: Date): Code[20]
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        DocumentNo: Code[20];
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Document Date", DocumentDate);
+        SalesHeader.Validate("Posting Date", DocumentDate);
+        SalesHeader.Validate("Due Date", DueDate);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(), LibraryRandom.RandIntInRange(1, 10));
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        Commit();
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, DocumentNo);
+
+        DueDate := CustLedgerEntry."Due Date";
+        exit(DocumentNo);
+    end;
+
+    local procedure PostPaymentAndApply(CustomerNo: Code[20]; InvoiceDocNo: Code[20]; PaymentDate: Date)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, InvoiceDocNo);
+        CustLedgerEntry.CalcFields("Remaining Amount");
+
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer,
+            CustomerNo, -CustLedgerEntry."Remaining Amount");
+        GenJournalLine.Validate("Posting Date", PaymentDate);
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", InvoiceDocNo);
+        GenJournalLine.Modify(true);
+
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure SetCalcInterestOnCustLedgEntry(InvoiceDocNo: Code[20])
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, InvoiceDocNo);
+        CustLedgerEntry.Validate("Calculate Interest", true);
+        CustLedgerEntry.Modify(true);
+    end;
+
+    local procedure FindFinChrgMemoLineOfCustLedgEntryType(var FinanceChargeMemoLine: Record "Finance Charge Memo Line"; FinanceChargeMemoNo: Code[20])
+    begin
+        FinanceChargeMemoLine.SetRange("Finance Charge Memo No.", FinanceChargeMemoNo);
+        FinanceChargeMemoLine.SetRange(Type, FinanceChargeMemoLine.Type::"Customer Ledger Entry");
+        FinanceChargeMemoLine.FindFirst();
     end;
 
     [ReportHandler]

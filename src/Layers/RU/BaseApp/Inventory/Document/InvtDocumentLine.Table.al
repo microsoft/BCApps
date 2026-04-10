@@ -788,8 +788,6 @@ table 5851 "Invt. Document Line"
 
     trigger OnModify()
     begin
-        if (Rec."Dimension Set ID" <> xRec."Dimension Set ID") or (Rec."Unit Amount" <> xRec."Unit Amount") then
-            exit;
         ReserveInvtDocLine.VerifyChange(Rec, xRec);
     end;
 

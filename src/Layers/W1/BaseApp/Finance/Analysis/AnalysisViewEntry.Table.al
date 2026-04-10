@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ table 365 "Analysis View Entry"
         field(1; "Analysis View Code"; Code[10])
         {
             Caption = 'Analysis View Code';
+            ToolTip = 'Specifies the analysis view.';
             NotBlank = true;
             TableRelation = "Analysis View" where("Account Source" = field("Account Source"));
         }
@@ -47,6 +48,7 @@ table 365 "Analysis View Entry"
         field(2; "Business Unit Code"; Code[20])
         {
             Caption = 'Business Unit Code';
+            ToolTip = 'Specifies the code for the business unit that the analysis view is based on.';
             TableRelation = "Business Unit";
         }
         /// <summary>
@@ -55,6 +57,7 @@ table 365 "Analysis View Entry"
         field(3; "Account No."; Code[20])
         {
             Caption = 'Account No.';
+            ToolTip = 'Specifies the account that the analysis entry comes from.';
             TableRelation = if ("Account Source" = const("G/L Account")) "G/L Account"
             else
             if ("Account Source" = const("Cash Flow Account")) "Cash Flow Account";
@@ -100,6 +103,7 @@ table 365 "Analysis View Entry"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(1);
             Caption = 'Dimension 1 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 1 on the analysis view card.';
         }
         /// <summary>
         /// Second dimension value code for multi-dimensional analysis and reporting.
@@ -109,6 +113,7 @@ table 365 "Analysis View Entry"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(2);
             Caption = 'Dimension 2 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 2 on the analysis view card.';
         }
         /// <summary>
         /// Third dimension value code for extended multi-dimensional analysis and reporting.
@@ -118,6 +123,7 @@ table 365 "Analysis View Entry"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(3);
             Caption = 'Dimension 3 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 3 on the analysis view card.';
         }
         /// <summary>
         /// Fourth dimension value code for comprehensive multi-dimensional analysis and reporting.
@@ -127,6 +133,7 @@ table 365 "Analysis View Entry"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(4);
             Caption = 'Dimension 4 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 4 on the analysis view card.';
         }
         /// <summary>
         /// Posting date of the transactions aggregated in this entry.
@@ -134,6 +141,7 @@ table 365 "Analysis View Entry"
         field(8; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
         }
         /// <summary>
         /// Unique entry number for this analysis view entry record.
@@ -150,6 +158,7 @@ table 365 "Analysis View Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount of the analysis view budget entry.';
 
             trigger OnLookup()
             begin
@@ -164,6 +173,7 @@ table 365 "Analysis View Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent debits.';
         }
         /// <summary>
         /// Total credit amounts aggregated from the underlying transactions.
@@ -173,6 +183,7 @@ table 365 "Analysis View Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent credits.';
         }
         /// <summary>
         /// Additional currency amount when using additional reporting currency.
@@ -183,6 +194,7 @@ table 365 "Analysis View Entry"
             AutoFormatExpression = GetAdditionalReportingCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Add.-Curr. Amount';
+            ToolTip = 'Specifies (in the additional reporting currency) the VAT difference that arises when you make a correction to a VAT amount on a sales or purchase document.';
         }
         /// <summary>
         /// Additional currency debit amount for multi-currency analysis and reporting.
@@ -194,6 +206,7 @@ table 365 "Analysis View Entry"
             AutoFormatExpression = GetAdditionalReportingCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Add.-Curr. Debit Amount';
+            ToolTip = 'Specifies, in the additional reporting currency, the amount of the debit entry.';
         }
         /// <summary>
         /// Additional currency credit amount for multi-currency analysis and reporting.
@@ -205,6 +218,7 @@ table 365 "Analysis View Entry"
             AutoFormatExpression = GetAdditionalReportingCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Add.-Curr. Credit Amount';
+            ToolTip = 'Specifies, in the additional reporting currency, the amount of the credit entry.';
         }
         /// <summary>
         /// Source type indicating whether this entry originates from G/L accounts or Cash Flow accounts.
@@ -213,6 +227,7 @@ table 365 "Analysis View Entry"
         field(16; "Account Source"; Enum "Analysis Account Source")
         {
             Caption = 'Account Source';
+            ToolTip = 'Specifies an account that you can use as a filter to define what is displayed in the Analysis by Dimensions window.';
         }
         /// <summary>
         /// Cash flow forecast number for cash flow analysis view entries.
@@ -221,6 +236,7 @@ table 365 "Analysis View Entry"
         field(17; "Cash Flow Forecast No."; Code[20])
         {
             Caption = 'Cash Flow Forecast No.';
+            ToolTip = 'Specifies a number for the cash flow forecast.';
             TableRelation = "Cash Flow Forecast";
         }
     }

@@ -204,7 +204,7 @@ codeunit 9871 "Security Group Impl."
         UserProperty: Record "User Property";
         [SecurityFiltering(SecurityFilter::Ignored)]
         DummySecurityGroup: Record "Security Group";
-        LocalSecurityGroupBuffer: Record "Security Group Buffer";
+        TempLocalSecurityGroupBuffer: Record "Security Group Buffer";
         EntraGroupId: Text;
         NavUserAccountHelper: DotNet NavUserAccountHelper;
         LocalWindowsGroupName: Text;
@@ -213,9 +213,9 @@ codeunit 9871 "Security Group Impl."
         if not DummySecurityGroup.WritePermission() then
             Error(NoPermissionsErr);
 
-        LocalSecurityGroupBuffer.Copy(SecurityGroupBuffer, true);
-        LocalSecurityGroupBuffer.Reset();
-        LocalSecurityGroupBuffer.DeleteAll();
+        TempLocalSecurityGroupBuffer.Copy(SecurityGroupBuffer, true);
+        TempLocalSecurityGroupBuffer.Reset();
+        TempLocalSecurityGroupBuffer.DeleteAll();
 
         if IsWindowsAuthentication() then
             foreach LocalWindowsGroupName in NavUserAccountHelper.GetLocalWindowsGroups() do begin
@@ -249,11 +249,11 @@ codeunit 9871 "Security Group Impl."
     procedure GetGroups(var SecurityGroupBuffer: Record "Security Group Buffer"; FetchGroupNames: Boolean)
     var
         SecurityGroup: Record "Security Group";
-        LocalSecurityGroupBuffer: Record "Security Group Buffer";
+        TempLocalSecurityGroupBuffer: Record "Security Group Buffer";
     begin
-        LocalSecurityGroupBuffer.Copy(SecurityGroupBuffer, true);
-        LocalSecurityGroupBuffer.Reset();
-        LocalSecurityGroupBuffer.DeleteAll();
+        TempLocalSecurityGroupBuffer.Copy(SecurityGroupBuffer, true);
+        TempLocalSecurityGroupBuffer.Reset();
+        TempLocalSecurityGroupBuffer.DeleteAll();
 
         if IsWindowsAuthentication() then
             SecurityGroup.SetAutoCalcFields("Windows Group ID")
@@ -282,13 +282,13 @@ codeunit 9871 "Security Group Impl."
     procedure GetMembers(var SecurityGroupMemberBuffer: Record "Security Group Member Buffer"): List of [Code[20]]
     var
         SecurityGroup: Record "Security Group";
-        LocalSecurityGroupMemberBuffer: Record "Security Group Member Buffer";
+        TempLocalSecurityGroupMemberBuffer: Record "Security Group Member Buffer";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         SkippedSecurityGroups: List of [Code[20]];
     begin
-        LocalSecurityGroupMemberBuffer.Copy(SecurityGroupMemberBuffer, true);
-        LocalSecurityGroupMemberBuffer.Reset();
-        LocalSecurityGroupMemberBuffer.DeleteAll();
+        TempLocalSecurityGroupMemberBuffer.Copy(SecurityGroupMemberBuffer, true);
+        TempLocalSecurityGroupMemberBuffer.Reset();
+        TempLocalSecurityGroupMemberBuffer.DeleteAll();
 
         if IsWindowsAuthentication() then
             SecurityGroup.SetAutoCalcFields("Windows Group ID")
@@ -533,24 +533,24 @@ codeunit 9871 "Security Group Impl."
 
     procedure SendNotificationForDeletedGroups(var SecurityGroupBuffer: Record "Security Group Buffer")
     var
-        LocalSecurityGroupBuffer: Record "Security Group Buffer";
+        TempLocalSecurityGroupBuffer: Record "Security Group Buffer";
         MissingGroupsNotification: Notification;
         GroupCodesTextBuilder: TextBuilder;
         MissingGroupCodes: Text;
     begin
-        LocalSecurityGroupBuffer.Copy(SecurityGroupBuffer, true);
-        LocalSecurityGroupBuffer.SetRange("Retrieved Successfully", false);
+        TempLocalSecurityGroupBuffer.Copy(SecurityGroupBuffer, true);
+        TempLocalSecurityGroupBuffer.SetRange("Retrieved Successfully", false);
 
-        if not LocalSecurityGroupBuffer.FindSet() then
+        if not TempLocalSecurityGroupBuffer.FindSet() then
             exit;
 
         repeat
-            GroupCodesTextBuilder.Append(LocalSecurityGroupBuffer.Code);
+            GroupCodesTextBuilder.Append(TempLocalSecurityGroupBuffer.Code);
             GroupCodesTextBuilder.Append(', ');
-        until LocalSecurityGroupBuffer.Next() = 0;
+        until TempLocalSecurityGroupBuffer.Next() = 0;
         MissingGroupCodes := GroupCodesTextBuilder.ToText().TrimEnd(', ');
 
-        if LocalSecurityGroupBuffer.Count() = 1 then begin
+        if TempLocalSecurityGroupBuffer.Count() = 1 then begin
             if IsWindowsAuthentication() then
                 MissingGroupsNotification.Message(StrSubstNo(GroupNotFoundTxt, MissingGroupCodes, AdTxt))
             else

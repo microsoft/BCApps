@@ -13,11 +13,10 @@ using Microsoft.Finance.VAT.Ledger;
 /// </summary>
 report 31 "VAT Exceptions"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/VAT/Reporting/VATExceptions.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'VAT Exceptions';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -189,6 +188,16 @@ report 31 "VAT Exceptions"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/VAT/Reporting/VATExceptions.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

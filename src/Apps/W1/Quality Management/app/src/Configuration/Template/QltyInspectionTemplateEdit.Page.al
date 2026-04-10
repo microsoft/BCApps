@@ -161,7 +161,7 @@ page 20440 "Qlty. Inspection Template Edit"
             {
                 ApplicationArea = All;
                 Caption = 'Add Test';
-                Image = CopyFromTask;
+                Image = TaskQualityMeasure;
                 ToolTip = 'Click here to use a Quality Inspection test in this expression.';
                 Promoted = true;
                 PromotedIsBig = true;

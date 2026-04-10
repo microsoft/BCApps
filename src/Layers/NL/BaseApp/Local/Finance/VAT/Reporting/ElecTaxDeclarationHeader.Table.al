@@ -436,8 +436,7 @@ table 11409 "Elec. Tax Declaration Header"
             ElecTaxDeclarationLine.SetRange("Declaration Type", "Declaration Type");
             ElecTaxDeclarationLine.SetRange("Declaration No.", "No.");
             ElecTaxDeclarationLine.SetRange("Line Type", ElecTaxDeclarationLine."Line Type"::Element);
-            ElecTaxDeclarationLine.SetFilter(Name, '%1|%2|%3', 'bd-t:IntraCommunitySupplies', 'bd-t:IntraCommunityServices',
-              'bd-t:IntraCommunityABCSupplies');
+            ElecTaxDeclarationLine.SetFilter(Name, '%1|%2', 'bd-i:SuppliesAmount', 'bd-i:ServicesAmount');
             if not ElecTaxDeclarationLine.FindFirst() then
                 Error(Text007, TableCaption(), FieldCaption("Declaration Type"), "Declaration Type");
         end;

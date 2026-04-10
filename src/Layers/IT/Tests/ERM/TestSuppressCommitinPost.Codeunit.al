@@ -207,6 +207,11 @@
         NoSeries: Record "No. Series";
         SalesHeader: Record "Sales Header";
     begin
+        // [SCENARIO] Posting with date-ordered No. Series commits after posting completes.
+        // The date-order guard only suppresses the early commit to keep number allocation
+        // and document creation in the same transaction. Once FinalizePosting completes,
+        // both exist so commit is safe and proceeds.
+
         // Setup
         Initialize();
         LibrarySales.CreateSalesInvoice(SalesHeader);
@@ -219,7 +224,37 @@
         // Exercise
         CODEUNIT.Run(CODEUNIT::"Sales-Post", SalesHeader);
 
-        // Verify - After Error
+        // Verify - After Error: posting was committed so the sales header no longer exists
+        asserterror Error('');
+        asserterror SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        Assert.AssertRecordNotFound();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestPostSalesDocumentSuppressCommitWithDateOrder()
+    var
+        NoSeries: Record "No. Series";
+        SalesHeader: Record "Sales Header";
+        SalesPost: Codeunit "Sales-Post";
+    begin
+        // [SCENARIO] When an external caller sets SuppressCommit and the No. Series has Date Order,
+        // the caller's SuppressCommit takes precedence — no commit happens even after posting completes.
+
+        // Setup
+        Initialize();
+        LibrarySales.CreateSalesInvoice(SalesHeader);
+
+        NoSeries.Get(SalesHeader."Posting No. Series");
+        NoSeries."Date Order" := true;
+        NoSeries.Modify();
+        Commit();
+
+        // Exercise
+        SalesPost.SetSuppressCommit(true);
+        SalesPost.Run(SalesHeader);
+
+        // Verify - After Error: external SuppressCommit is respected, posting was not committed
         asserterror Error('');
         SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
     end;

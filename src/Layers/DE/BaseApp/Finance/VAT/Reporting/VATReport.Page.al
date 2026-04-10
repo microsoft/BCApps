@@ -28,7 +28,6 @@ page 740 "VAT Report"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -90,7 +89,6 @@ page 740 "VAT Report"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether the amounts are in the additional reporting currency.';
                 }
                 field("Original Report No."; Rec."Original Report No.")
                 {

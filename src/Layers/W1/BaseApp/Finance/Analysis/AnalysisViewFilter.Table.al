@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ table 364 "Analysis View Filter"
         field(2; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
+            ToolTip = 'Specifies the dimension that the analysis view is based on.';
             NotBlank = true;
             TableRelation = Dimension;
         }
@@ -48,6 +49,7 @@ table 364 "Analysis View Filter"
         field(3; "Dimension Value Filter"; Code[250])
         {
             Caption = 'Dimension Value Filter';
+            ToolTip = 'Specifies the dimension value that the analysis view is based on.';
             TableRelation = "Dimension Value".Code where("Dimension Code" = field("Dimension Code"));
             ValidateTableRelation = false;
         }

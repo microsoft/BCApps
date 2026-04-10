@@ -18,7 +18,7 @@ codeunit 118834 "Create Warehouse Classes"
         XCOLD: Label 'COLD';
         X2degreesCelsiusTxt: Label '2 degrees Celsius';
         XDRY: Label 'DRY';
-        XNottoexceed60humidityTxt: Label 'Not to exceed 60 % humidity';
+        XNottoexceed60humidityTxt: Label 'Not to exceed 60 % humidity', MaxLength = 30;
         XNONSTATIC: Label 'NONSTATIC';
         XAntistaticareaTxt: Label 'Anti static area';
 

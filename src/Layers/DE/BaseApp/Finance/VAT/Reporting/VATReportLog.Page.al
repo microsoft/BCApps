@@ -28,27 +28,22 @@ page 739 "VAT Report Log"
                 field("VAT Report Type"; Rec."VAT Report Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if you want to create a new VAT report, or if you want to change a previously submitted report.';
                 }
                 field("VAT Report No."; Rec."VAT Report No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the VAT Report.';
                 }
                 field("Submitted By"; Rec."Submitted By")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the person who submitted the VAT Report.';
                 }
                 field("Submittion Date"; Rec."Submittion Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date that the VAT Report was submitted.';
                 }
                 field("Response Received Date"; Rec."Response Received Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the response was received.';
                 }
             }
         }

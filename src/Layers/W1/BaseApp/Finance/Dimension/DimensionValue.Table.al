@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ table 349 "Dimension Value"
         field(1; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
+            ToolTip = 'Specifies the dimension code for the dimension value.';
             NotBlank = true;
             TableRelation = Dimension;
 
@@ -54,6 +55,7 @@ table 349 "Dimension Value"
         field(2; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the dimension value.';
             OptimizeForTextSearch = true;
             NotBlank = true;
 
@@ -71,6 +73,7 @@ table 349 "Dimension Value"
         field(3; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies a descriptive name for the dimension value.';
             OptimizeForTextSearch = true;
         }
         /// <summary>
@@ -80,6 +83,7 @@ table 349 "Dimension Value"
         field(4; "Dimension Value Type"; Option)
         {
             Caption = 'Dimension Value Type';
+            ToolTip = 'Specifies the purpose of the dimension value.';
             OptionCaption = 'Standard,Heading,Total,Begin-Total,End-Total';
             OptionMembers = Standard,Heading,Total,"Begin-Total","End-Total";
 
@@ -100,6 +104,7 @@ table 349 "Dimension Value"
         field(5; Totaling; Text[250])
         {
             Caption = 'Totaling';
+            ToolTip = 'Specifies an account interval or a list of account numbers. The entries of the account will be totaled to give a total balance. How entries are totaled depends on the value in the Account Type field.';
             OptimizeForTextSearch = true;
             TableRelation = if ("Dimension Value Type" = const(Total)) "Dimension Value"."Dimension Code" where("Dimension Code" = field("Dimension Code"));
             ValidateTableRelation = false;
@@ -119,6 +124,7 @@ table 349 "Dimension Value"
         field(6; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         /// <summary>
         /// The consolidation code used when consolidating financial data across business units.
@@ -128,6 +134,7 @@ table 349 "Dimension Value"
         {
             AccessByPermission = TableData "Business Unit" = R;
             Caption = 'Consolidation Code';
+            ToolTip = 'Specifies the code that is used for consolidation.';
         }
         /// <summary>
         /// Controls the visual indentation level for hierarchical display in reports and forms.
@@ -152,6 +159,7 @@ table 349 "Dimension Value"
         field(10; "Map-to IC Dimension Code"; Code[20])
         {
             Caption = 'Map-to IC Dimension Code';
+            ToolTip = 'Specifies the intercompany''s dimension code associated with the dimension of the current company.';
 
             trigger OnValidate()
             begin
@@ -166,6 +174,7 @@ table 349 "Dimension Value"
         field(11; "Map-to IC Dimension Value Code"; Code[20])
         {
             Caption = 'Map-to IC Dimension Value Code';
+            ToolTip = 'Specifies which intercompany dimension value corresponds to the dimension value on the line.';
             TableRelation = "IC Dimension Value".Code where("Dimension Code" = field("Map-to IC Dimension Code"));
         }
         /// <summary>

@@ -9,11 +9,10 @@ using System.Utilities;
 
 report 1107 "Resource - Cost Breakdown"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Resources/Reports/ResourceCostBreakdown.rdlc';
     ApplicationArea = Jobs;
     Caption = 'Resource - Cost Breakdown';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -129,6 +128,16 @@ report 1107 "Resource - Cost Breakdown"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Resources/Reports/ResourceCostBreakdown.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

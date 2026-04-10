@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,7 +39,6 @@ page 546 "Dim. Allowed Values per Acc."
                     Editable = false;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the code for the dimension value.';
                 }
                 field(DimensionValueName; Rec."Dimension Value Name")
                 {
@@ -47,12 +46,10 @@ page 546 "Dim. Allowed Values per Acc."
                     Editable = false;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies a descriptive name for the dimension value.';
                 }
                 field(Allowed; Rec.Allowed)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies whether the related record can be posted in transactions.';
                 }
             }
         }

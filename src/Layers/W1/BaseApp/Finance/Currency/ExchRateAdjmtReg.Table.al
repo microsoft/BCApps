@@ -35,18 +35,22 @@ table 86 "Exch. Rate Adjmt. Reg."
         field(1; "No."; Integer)
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
         }
         field(2; "Creation Date"; Date)
         {
             Caption = 'Creation Date';
+            ToolTip = 'Specifies the posting date for the exchange rate adjustment register.';
         }
         field(3; "Account Type"; Enum "Exch. Rate Adjmt. Account Type")
         {
             Caption = 'Account Type';
+            ToolTip = 'Specifies the account type that was adjusted for exchange rate fluctuations when you ran the Adjust Exchange Rates batch job.';
         }
         field(4; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
+            ToolTip = 'Specifies the posting group of the exchange rate adjustment register on this line.';
             TableRelation = if ("Account Type" = const(Customer)) "Customer Posting Group"
             else
             if ("Account Type" = const(Vendor)) "Vendor Posting Group"
@@ -59,6 +63,7 @@ table 86 "Exch. Rate Adjmt. Reg."
         field(5; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the code for the currency whose exchange rate was adjusted.';
             TableRelation = Currency;
         }
         field(6; "Currency Factor"; Decimal)
@@ -73,6 +78,7 @@ table 86 "Exch. Rate Adjmt. Reg."
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Adjusted Base';
+            ToolTip = 'Specifies the amount that was adjusted by the batch job for customer, vendor and/or bank ledger entries.';
         }
         field(8; "Adjusted Base (LCY)"; Decimal)
         {
@@ -111,6 +117,7 @@ table 86 "Exch. Rate Adjmt. Reg."
         field(21; "Adjusted Customers"; Integer)
         {
             Caption = 'No. of Adj. Cust. Ledger Entries';
+            ToolTip = 'Specifies the number of customer ledger entries with remaining amount that was adjusted.';
             CalcFormula = count("Detailed Cust. Ledg. Entry" where("Exch. Rate Adjmt. Reg. No." = field("No.")));
             Editable = false;
             FieldClass = FlowField;
@@ -118,6 +125,7 @@ table 86 "Exch. Rate Adjmt. Reg."
         field(22; "Adjusted Vendors"; Integer)
         {
             Caption = 'No. of Adj. Vend. Ledger Entries';
+            ToolTip = 'Specifies the number of vendor ledger entries with remaining amount that was adjusted.';
             CalcFormula = count("Detailed Vendor Ledg. Entry" where("Exch. Rate Adjmt. Reg. No." = field("No.")));
             Editable = false;
             FieldClass = FlowField;
@@ -127,6 +135,7 @@ table 86 "Exch. Rate Adjmt. Reg."
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Adjustment Amount';
+            ToolTip = 'Specifies the total adjustment amount of exchange rate adjustment ledger entries.';
             CalcFormula = sum("Exch. Rate Adjmt. Ledg. Entry"."Adjustment Amount" where("Register No." = field("No.")));
             Editable = false;
             FieldClass = FlowField;
@@ -134,6 +143,7 @@ table 86 "Exch. Rate Adjmt. Reg."
         field(24; "Adjusted Employees"; Integer)
         {
             Caption = 'No. of Adj. Empl. Ledger Entries';
+            ToolTip = 'Specifies the number of emplooyee ledger entries with remaining amount that was adjusted.';
             CalcFormula = count("Detailed Employee Ledger Entry" where("Exch. Rate Adjmt. Reg. No." = field("No.")));
             Editable = false;
             FieldClass = FlowField;

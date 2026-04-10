@@ -41,6 +41,7 @@ table 589 "G/L Account Source Currency"
         field(2; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the source currency code.';
             TableRelation = Currency;
         }
         /// <summary>
@@ -84,6 +85,7 @@ table 589 "G/L Account Source Currency"
                                                         "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
                                                         "Posting Date" = field(upperlimit("Date Filter"))));
             Caption = 'Balance at Date';
+            ToolTip = 'Specifies the account balance in local currency.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -116,6 +118,7 @@ table 589 "G/L Account Source Currency"
                                                                           "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
                                                                           "Posting Date" = field(upperlimit("Date Filter"))));
             Caption = 'Source Curr. Balance at Date';
+            ToolTip = 'Specifies the account balance in source currency.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -127,6 +130,7 @@ table 589 "G/L Account Source Currency"
             CalcFormula = exist("G/L Entry" where("G/L Account No." = field("G/L Account No."),
                                                    "Source Currency Code" = field("Currency Code")));
             Caption = 'Entries Exists';
+            ToolTip = 'Specifies if general ledger entries with this source currency code exists.';
             Editable = false;
             FieldClass = FlowField;
         }

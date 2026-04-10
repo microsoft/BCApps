@@ -199,11 +199,11 @@ page 2515 "AppSource Product List"
 
     local procedure ReloadAllProducts()
     var
-        AppSourceProductTemp: Record "AppSource Product";
+        TempAppSourceProduct: Record "AppSource Product";
     begin
-        AppSourceProductTemp.Copy(Rec);
-        AppSourceProductManager.GetProductsAndPopulateRecord(AppSourceProductTemp);
-        Rec.Copy(AppSourceProductTemp, true);
+        TempAppSourceProduct.Copy(Rec);
+        AppSourceProductManager.GetProductsAndPopulateRecord(TempAppSourceProduct);
+        Rec.Copy(TempAppSourceProduct, true);
         Rec.FindFirst();
     end;
 }

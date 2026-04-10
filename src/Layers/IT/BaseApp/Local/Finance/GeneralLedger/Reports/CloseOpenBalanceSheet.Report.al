@@ -58,7 +58,8 @@ report 12113 "Close/Open Balance Sheet"
                            (ClosePerGlobalDim2 or not ClosePerGlobalDimOnly)
                         then
                             SetRange("Global Dimension 2 Code", "Global Dimension 2 Code");
-
+                        if not ClosePerGlobalDimOnly then
+                            SetRange("Close Income Statement Dim. ID", "Close Income Statement Dim. ID");
                         CalcSumsInFilter();
 
                         if (Amount <> 0) or ("Additional-Currency Amount" <> 0) then begin
@@ -102,6 +103,8 @@ report 12113 "Close/Open Balance Sheet"
                             SetRange("Global Dimension 1 Code");
                         if FieldActive("Global Dimension 2 Code") then
                             SetRange("Global Dimension 2 Code");
+                        if not ClosePerGlobalDimOnly then
+                            SetRange("Close Income Statement Dim. ID");
                     end;
 
                     trigger OnPostDataItem()
@@ -629,6 +632,9 @@ report 12113 "Close/Open Balance Sheet"
             exit;
 
         GLEntry.SetCurrentKey("G/L Account No.", "Posting Date", "Close Income Statement Dim. ID", "Entry No.");
+        GLEntry.SetAscending("G/L Account No.", true);
+        GLEntry.SetAscending("Posting Date", true);
+        GLEntry.SetAscending("Close Income Statement Dim. ID", false);
         GLEntry.SetLoadFields("Entry No.", "Dimension Set ID", "Close Income Statement Dim. ID");
         GLEntry.SetRange("G/L Account No.", AccNo);
         GLEntry.SetRange("Posting Date", FiscalYearStartDate, FiscYearClosingDate);

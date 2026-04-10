@@ -1,4 +1,4 @@
-namespace Microsoft.API;
+﻿namespace Microsoft.API;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 
@@ -16,6 +16,7 @@ table 5466 "API Entities Setup"
         field(3; "Customer Payments Batch Name"; Code[10])
         {
             Caption = 'Customer Payments Batch Name';
+            ToolTip = 'Specifies the default customer payments batch name of the integration journal.';
             TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = const('CASHRCPT'));
         }
         field(4; "Demo Company API Initialized"; Boolean)

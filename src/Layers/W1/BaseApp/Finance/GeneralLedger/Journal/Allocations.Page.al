@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,7 +35,6 @@ page 284 Allocations
                 field("Account No."; Rec."Account No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the account number that the allocation will be posted to.';
 
                     trigger OnValidate()
                     begin
@@ -46,18 +45,15 @@ page 284 Allocations
                 {
                     ApplicationArea = Suite;
                     DrillDown = false;
-                    ToolTip = 'Specifies the name of the account that the allocation will be posted to.';
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = false;
                 }
                 field("ShortcutDimCode[3]"; ShortcutDimCode[3])
@@ -147,34 +143,28 @@ page 284 Allocations
                 field("Gen. Posting Type"; Rec."Gen. Posting Type")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the type of transaction.';
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                 }
                 field("Allocation Quantity"; Rec."Allocation Quantity")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the quantity that will be used to calculate the amount in the allocation journal line.';
 
                     trigger OnValidate()
                     begin
@@ -184,7 +174,6 @@ page 284 Allocations
                 field("Allocation %"; Rec."Allocation %")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the percentage that will be used to calculate the amount in the allocation journal line.';
 
                     trigger OnValidate()
                     begin
@@ -194,7 +183,6 @@ page 284 Allocations
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the amount that will be posted from the allocation journal line.';
 
                     trigger OnValidate()
                     begin

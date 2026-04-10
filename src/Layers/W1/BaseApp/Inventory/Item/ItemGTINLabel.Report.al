@@ -73,6 +73,7 @@ report 6625 "Item GTIN Label"
         {
             Type = Word;
             LayoutFile = './Inventory/Item/ItemGTINLabel.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
     }
 

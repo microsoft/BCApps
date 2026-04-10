@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,37 +37,31 @@ page 560 "Dimension Value List"
                     ApplicationArea = Dimensions;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the code for the dimension value.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Dimensions;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies a descriptive name for the dimension value.';
                 }
                 field("Dimension Value Type"; Rec."Dimension Value Type")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the purpose of the dimension value.';
                     Visible = false;
                 }
                 field(Totaling; Rec.Totaling)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies an account interval or a list of account numbers. The entries of the account will be totaled to give a total balance. How entries are totaled depends on the value in the Account Type field.';
                     Visible = false;
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                     Visible = false;
                 }
                 field("Consolidation Code"; Rec."Consolidation Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code that is used for consolidation.';
                     Visible = false;
                 }
             }

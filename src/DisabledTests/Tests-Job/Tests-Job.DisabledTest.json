@@ -137,12 +137,32 @@
   {
     "codeunitId": 136302,
     "codeunitName": "Job Consumption Purchase",
+    "method": "FCYJobLedgerEntryPopulatesTotalCostFromDirectUnitCost"
+  },
+  {
+    "codeunitId": 136302,
+    "codeunitName": "Job Consumption Purchase",
+    "method": "LCYJobLedgerEntryPopulatesTotalCostFromDirectUnitCost"
+  },
+  {
+    "codeunitId": 136302,
+    "codeunitName": "Job Consumption Purchase",
     "method": "PurchaseCreditMemoWithItemReserveAsAlways"
   },
   {
     "codeunitId": 136302,
     "codeunitName": "Job Consumption Purchase",
     "method": "PurchaseOrderWithItemReserveAsAlways"
+  },
+  {
+    "codeunitId": 136302,
+    "codeunitName": "Job Consumption Purchase",
+    "method": "UndoPostedReturnShipmentWithJobAndItemTracking"
+  },
+  {
+    "codeunitId": 136302,
+    "codeunitName": "Job Consumption Purchase",
+    "method": "UndoPurchReceiptWithJobAndSNTrackingReversesCostAmount"
   },
   {
     "codeunitId": 136303,
@@ -482,6 +502,11 @@
   {
     "codeunitId": 136306,
     "codeunitName": "Job Invoicing",
+    "method": "JobToSalesInvPriceInclVATDiff"
+  },
+  {
+    "codeunitId": 136306,
+    "codeunitName": "Job Invoicing",
     "method": "PCreditGLLine"
   },
   {
@@ -753,6 +778,11 @@
     "codeunitId": 136309,
     "codeunitName": "Job Posting",
     "method": "PostInvtCostToGLPerPostingGroupLeavesJobNoBlank"
+  },
+  {
+    "codeunitId": 136309,
+    "codeunitName": "Job Posting",
+    "method": "PostJobJournalLineWithoutJobPlanningLineNo"
   },
   {
     "codeunitId": 136309,
@@ -1198,5 +1228,10 @@
     "codeunitId": 136357,
     "codeunitName": "UT T Job WIP Total",
     "method": "VerifyTotalWIPSalesAmountForJobWithPerJobLedgerEntry"
+  },
+  {
+    "codeunitId": 136318,
+    "codeunitName": "Whse. Pick On Job Planning",
+    "method": "ProjectJournalPostingBlockedIfNotFullyPicked"
   }
 ]

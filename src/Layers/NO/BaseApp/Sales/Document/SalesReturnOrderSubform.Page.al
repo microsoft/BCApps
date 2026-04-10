@@ -751,12 +751,17 @@ page 6631 "Sales Return Order Subform"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+#if not CLEAN29
                 field("Account Code"; Rec."Account Code")
                 {
                     ApplicationArea = SalesReturnOrder;
                     ToolTip = 'Specifies the account code of the customer.';
                     Visible = false;
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field("Attached to Line No."; Rec."Attached to Line No.")
                 {
                     ApplicationArea = Basic, Suite;

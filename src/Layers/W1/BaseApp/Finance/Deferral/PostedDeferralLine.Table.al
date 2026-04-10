@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -77,6 +77,7 @@ table 1705 "Posted Deferral Line"
         field(7; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date for the entry.';
         }
         /// <summary>
         /// Description of the posted deferral line for identification.
@@ -84,6 +85,7 @@ table 1705 "Posted Deferral Line"
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the record.';
         }
         /// <summary>
         /// Amount that was posted and recognized for this period in document currency.
@@ -93,6 +95,7 @@ table 1705 "Posted Deferral Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the line''s net amount.';
         }
         /// <summary>
         /// Amount that was posted and recognized in local currency (LCY).

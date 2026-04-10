@@ -304,6 +304,13 @@ page 31 "Item List"
         }
         area(factboxes)
         {
+            part(ItemPicture; "Item Picture")
+            {
+                ApplicationArea = All;
+                Caption = 'Picture';
+                SubPageLink = "No." = field("No.");
+                Visible = false;
+            }
             part(PowerBIEmbeddedReportPart; "Power BI Embedded Report Part")
             {
                 ApplicationArea = Basic, Suite;

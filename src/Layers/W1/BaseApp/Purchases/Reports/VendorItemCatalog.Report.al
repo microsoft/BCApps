@@ -14,11 +14,10 @@ using Microsoft.Utilities;
 
 report 320 "Vendor Item Catalog"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/VendorItemCatalog.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor Item Catalog';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -182,6 +181,16 @@ report 320 "Vendor Item Catalog"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/VendorItemCatalog.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

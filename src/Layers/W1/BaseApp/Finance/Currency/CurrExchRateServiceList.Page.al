@@ -34,17 +34,14 @@ page 1650 "Curr. Exch. Rate Service List"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the setup of a service to update currency exchange rates.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the setup of a service to update currency exchange rates.';
                 }
                 field(Enabled; Rec.Enabled)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the currency exchange rate service is enabled.';
                 }
             }
         }

@@ -9,12 +9,11 @@ using Microsoft.Inventory.Item;
 
 report 812 "Assembly BOM - End Items"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Assembly/Reports/AssemblyBOMEndItems.rdlc';
     AdditionalSearchTerms = 'kit bill of material end items';
     ApplicationArea = Assembly;
     Caption = 'Assembly BOM - End Items';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -84,6 +83,16 @@ report 812 "Assembly BOM - End Items"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Assembly/Reports/AssemblyBOMEndItems.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

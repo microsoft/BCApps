@@ -319,9 +319,9 @@ codeunit 3961 "Regex Impl."
 
     procedure Regex(Pattern: Text)
     var
-        RegexOptions: Record "Regex Options";
+        TempRegexOptions: Record "Regex Options";
     begin
-        Regex(Pattern, RegexOptions);
+        Regex(Pattern, TempRegexOptions);
     end;
 
     procedure Regex(Pattern: Text; var RegexOptions: Record "Regex Options")

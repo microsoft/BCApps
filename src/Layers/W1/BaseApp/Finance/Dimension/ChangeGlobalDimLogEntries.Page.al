@@ -53,12 +53,10 @@ page 578 "Change Global Dim. Log Entries"
                 field("Remaining Duration"; Rec."Remaining Duration")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the remaining duration of the job.';
                 }
                 field("Earliest Start Date/Time"; Rec."Earliest Start Date/Time")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the earliest date and time when the job should be run.';
                     Visible = false;
                 }
             }

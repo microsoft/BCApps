@@ -130,7 +130,9 @@ report 4409 "EXR Customer Top List"
         DateFilter: Text;
 
     protected var
+#pragma warning disable AA0073
         GlobalExtTopCustomerReportBuffer: Record "EXR Top Customer Report Buffer";
+#pragma warning restore AA0073
         EXTTopCustomerCaptionHandler: Codeunit "EXT Top Cust. Caption Handler";
         NoOfRecordsToPrint: Integer;
 

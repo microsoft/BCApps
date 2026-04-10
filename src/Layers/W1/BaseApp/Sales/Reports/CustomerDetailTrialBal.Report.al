@@ -16,11 +16,10 @@ using System.Utilities;
 
 report 104 "Customer - Detail Trial Bal."
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/Reports/CustomerDetailTrialBal.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Customer - Detail Trial Bal.';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -312,6 +311,16 @@ report 104 "Customer - Detail Trial Bal."
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reports/CustomerDetailTrialBal.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

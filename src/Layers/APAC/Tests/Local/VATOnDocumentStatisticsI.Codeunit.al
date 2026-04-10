@@ -35,39 +35,6 @@ codeunit 141079 "VAT On Document Statistics I"
         LibraryRandom: Codeunit "Library - Random";
         AmountErr: Label '%1 must be %2 in %3.';
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseOrderStatisticsModalPageHandler,VATAmountLinesModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure PurchOrderStatisticsWithInvoiceRoundingPrecision()
-    var
-        PurchaseLine: Record "Purchase Line";
-        PurchaseOrder: TestPage "Purchase Order";
-        OldInvoiceRoundingPrecision: Decimal;
-    begin
-        // [FEATURE] [Purchase] [Order] [Invoice Rounding]
-        // [SCENARIO] values on Purchase Order Statistics page of Purchase Order with Invoice Rounding Precision.
-
-        // [GIVEN] Update Invoice Rounding Precision on General Ledger Setup. Create Purchase Order.
-        Initialize();
-        OldInvoiceRoundingPrecision :=
-          UpdateInvRoundingPrecisionOnGeneralLedgerSetup(LibraryRandom.RandDecInDecimalRange(0.02, 0.1, 2));  // Random value required for Invoice Rounding Precision.
-        CreatePurchaseOrderWithSetup(PurchaseLine);
-        EnqueueValuesForHandler(PurchaseLine.Amount * PurchaseLine."VAT %" / 100, PurchaseLine."Amount Including VAT");  // Enqueue values for PurchaseOrderStatisticsModalPageHandler and VATAmountLinesModalPageHandler.
-        PurchaseOrder.OpenEdit();
-        PurchaseOrder.FILTER.SetFilter("No.", PurchaseLine."Document No.");
-
-        // Exercise.
-        PurchaseOrder.Statistics.Invoke();  // Opens PurchaseOrderStatisticsModalPageHandler.
-
-        // Verify: Verification is done in PurchaseOrderStatisticsModalPageHandler and VATAmountLinesModalPageHandler.
-
-        // Tear Down.
-        UpdateInvRoundingPrecisionOnGeneralLedgerSetup(OldInvoiceRoundingPrecision);
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('PurchaseOrderStatisticsPageHandler,VATAmountLinesModalPageHandler')]
     [Scope('OnPrem')]
@@ -98,74 +65,6 @@ codeunit 141079 "VAT On Document Statistics I"
         UpdateInvRoundingPrecisionOnGeneralLedgerSetup(OldInvoiceRoundingPrecision);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsModalPageHandler,VATAmountLinesModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure SalesOrderStatisticsWithInvoiceRoundingPrecision()
-    var
-        SalesLine: Record "Sales Line";
-        SalesOrder: TestPage "Sales Order";
-        OldInvoiceRoundingPrecision: Decimal;
-    begin
-        // [FEATURE] [Sales] [Order] [Invoice Rounding]
-        // [SCENARIO] values on Sales Order Statistics page of Sales Order with Invoice Rounding Precision.
-
-        // [GIVEN] Update Invoice Rounding Precision on General Ledger Setup. Create Sales Order.
-        Initialize();
-        OldInvoiceRoundingPrecision :=
-          UpdateInvRoundingPrecisionOnGeneralLedgerSetup(LibraryRandom.RandDecInDecimalRange(0.02, 0.1, 2));  // Random value required for Invoice Rounding Precision.
-        CreateSalesOrderWithSetup(SalesLine, 0);  // Value 0 required for Prepayment Percent.
-        EnqueueValuesForHandler(SalesLine.Amount * SalesLine."VAT %" / 100, SalesLine."Amount Including VAT");  // Enqueue values for SalesOrderStatisticsModalPageHandler and VATAmountLinesModalPageHandler.
-        SalesOrder.OpenEdit();
-        SalesOrder.FILTER.SetFilter("No.", SalesLine."Document No.");
-
-        // Exercise.
-        SalesOrder.Statistics.Invoke();  // Opens SalesOrderStatisticsModalPageHandler.
-
-        // Verify: Verification is done in SalesOrderStatisticsModalPageHandler and VATAmountLinesModalPageHandler.
-
-        // Tear Down.
-        UpdateInvRoundingPrecisionOnGeneralLedgerSetup(OldInvoiceRoundingPrecision);
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsModalPageHandler,VATAmountLinesModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure SalesOrdStatsWithMultipleLineFullGSTOnPrepmtFalse()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesLine2: Record "Sales Line";
-        SalesOrder: TestPage "Sales Order";
-        OldFullGSTOnPrepayment: Boolean;
-    begin
-        // [FEATURE] [Sales] [Order] [Full GST On Prepayment]
-        // [SCENARIO] values on Sales Order Statistics page of Sales Order with multiple lines and Full GST On Prepayment False.
-
-        // Setup: Update Full GST On Prepayment as False on General Ledger Setup. Create Sales Order with two lines.
-        Initialize();
-        OldFullGSTOnPrepayment := UpdateFullGSTOnPrepaymentOnGeneralLedgerSetup(false);
-        CreateSalesOrderWithSetup(SalesLine, LibraryRandom.RandDecInRange(20, 50, 2));  // Random value used for Prepayment Percent.
-        SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
-        CreateSalesLine(SalesLine2, SalesHeader, SalesLine."Gen. Prod. Posting Group", SalesLine."VAT Prod. Posting Group");
-        EnqueueValuesForHandler(
-          (SalesLine.Amount + SalesLine2.Amount) * SalesLine."VAT %" / 100,
-          SalesLine."Amount Including VAT" + SalesLine2."Amount Including VAT");  // Enqueue values for SalesOrderStatisticsModalPageHandler and VATAmountLinesModalPageHandler.
-        SalesOrder.OpenEdit();
-        SalesOrder.FILTER.SetFilter("No.", SalesHeader."No.");
-
-        // Exercise.
-        SalesOrder.Statistics.Invoke();  // Opens SalesOrderStatisticsModalPageHandler.
-
-        // Verify: Verification is done in SalesOrderStatisticsModalPageHandler and VATAmountLinesModalPageHandler.
-
-        // Tear Down.
-        UpdateFullGSTOnPrepaymentOnGeneralLedgerSetup(OldFullGSTOnPrepayment);
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesOrderStatisticsPageHandler,VATAmountLinesModalPageHandler')]
     [Scope('OnPrem')]
@@ -377,22 +276,6 @@ codeunit 141079 "VAT On Document Statistics I"
         GeneralLedgerSetup.Modify(true);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseOrderStatisticsModalPageHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
-    var
-        VATAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(VATAmount);
-        Assert.AreNearlyEqual(
-          PurchaseOrderStatistics."VATAmount[1]".AsDecimal(), VATAmount, LibraryERM.GetAmountRoundingPrecision(),
-          StrSubstNo(AmountErr, PurchaseOrderStatistics."VATAmount[1]".Caption, VATAmount, PurchaseOrderStatistics.Caption));
-        PurchaseOrderStatistics.NoOfVATLines_General.DrillDown();  // Opens VATAmountLinesModalPageHandler.
-    end;
-#endif
-
     [PageHandler]
     [Scope('OnPrem')]
     procedure PurchaseOrderStatisticsPageHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
@@ -406,21 +289,6 @@ codeunit 141079 "VAT On Document Statistics I"
         PurchaseOrderStatistics.NoOfVATLines_General.DrillDown();  // Opens VATAmountLinesModalPageHandler.
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesOrderStatisticsModalPageHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    var
-        VATAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(VATAmount);
-        Assert.AreNearlyEqual(
-          SalesOrderStatistics.VATAmount.AsDecimal(), VATAmount, LibraryERM.GetAmountRoundingPrecision(),
-          StrSubstNo(AmountErr, SalesOrderStatistics.VATAmount.Caption, VATAmount, SalesOrderStatistics.Caption));
-        SalesOrderStatistics.NoOfVATLines_General.DrillDown();  // Opens VATAmountLinesModalPageHandler.
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesOrderStatisticsPageHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")

@@ -8,12 +8,11 @@ using Microsoft.Inventory.Item;
 
 report 99000755 "Single-level Cost Shares"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Manufacturing/Reports/SinglelevelCostShares.rdlc';
     AdditionalSearchTerms = 'rolled-up cost,cost breakdown';
     ApplicationArea = Manufacturing;
     Caption = 'Single-level Cost Shares';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -137,6 +136,16 @@ report 99000755 "Single-level Cost Shares"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Manufacturing/Reports/SinglelevelCostShares.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

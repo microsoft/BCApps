@@ -151,6 +151,11 @@ table 5611 "Depreciation Book"
             Caption = 'Part of Duplication List';
             ToolTip = 'Specifies whether to indicate that entries made in another depreciation book should be duplicated to this depreciation book.';
         }
+        field(16; "G/L Integration - Bonus Depr."; Boolean)
+        {
+            Caption = 'G/L Integration - Bonus Depreciation';
+            ToolTip = 'Specifies whether bonus depreciation entries that are posted to this depreciation book are posted both to the general ledger and the FA ledger.';
+        }
         field(17; "Last Date Modified"; Date)
         {
             Caption = 'Last Date Modified';
@@ -344,6 +349,24 @@ table 5611 "Depreciation Book"
                     until FADeprBook.Next() = 0;
             end;
         }
+        field(50; "Use Bonus Depreciation"; Boolean)
+        {
+            Caption = 'Use Bonus Depreciation';
+            ToolTip = 'Specifies if the bonus depreciation should be used in this book.';
+
+            trigger OnValidate()
+            var
+                FASetup: Record "FA Setup";
+            begin
+                if Rec."Use Bonus Depreciation" then begin
+                    FASetup.Get();
+                    FASetup.TestField("Bonus Depreciation %");
+                    FASetup.TestField("Bonus Depr. Effective Date");
+                end;
+                if GuiAllowed() then
+                    Message(BonusDepreciationOnboardingMsg)
+            end;
+        }
         field(10500; "Use Accounting Period"; Boolean)
         {
             Caption = 'Use Accounting Period';
@@ -501,6 +524,7 @@ table 5611 "Depreciation Book"
         Text10802: Label 'The depreciation book %1 is already set up in combination with derogatory depreciation book %2.';
         Text10803: Label 'Derogatory depreciation books cannot be integrated with the general ledger. Please make sure that none of the fields on the Integration tab are checked.';
         Text10804: Label 'The depreciation book %1 is a derogatory depreciation book.';
+        BonusDepreciationOnboardingMsg: Label 'This change will take effect only for the fixed asset depreciation books that are newly created with this depreciation book.';
 
 #pragma warning disable AA0074
         Text000: Label 'The book cannot be deleted because it is in use.';

@@ -11,7 +11,7 @@ codeunit 101204 "Create Unit of Measure"
         InsertData(XUNIT, XUnit2, '642', 'EA');
         InsertData(XQTR, XQuarter2, '364', 'QAN');
         InsertData(XKG, XKilogram2, '166', 'KGM');
-        InsertData(XMILES, XMiles2, '008', '1A');
+        InsertData(XMILES, XMiles2, '008', 'SMI');
         InsertData(XKIT, XKit2, '839', 'KT');
         InsertData(XL, XLitre2, '112', 'LTR');
         InsertData(XMON, XMonth2, '362', 'MON');

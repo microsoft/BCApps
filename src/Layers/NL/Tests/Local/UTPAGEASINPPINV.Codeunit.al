@@ -42,31 +42,6 @@ codeunit 144034 "UT PAG EASINPPINV"
         PurchaseInvoicePage.Close();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseStatisticsPageHandler')]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsPurchaseInvoice()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        PurchaseInvoice: TestPage "Purchase Invoice";
-    begin
-        // [FEATURE] [Invoice] [Statistics] [UI]
-        // [SCENARIO] validate Statisitc - OnAction trigger of Page ID - 51 Purchase Invoice.
-        Initialize();
-        // [GIVEN] Create Purchase Invoice. Transaction Model is Autocommit, because it is explicitly called on Statisitc - OnAction trigger of Page Purchase Invoice.
-        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Invoice);
-        LibraryVariableStorage.Enqueue(PurchaseLine.Quantity);  // Required inside PurchaseStatisticsPageHandler.
-        OpenPurchaseInvoice(PurchaseInvoice, PurchaseHeader."No.");
-
-        // [WHEN] Invokes Action - Statistics on Purchase Invoice page and verification of Quantity is done inside PurchaseStatisticsPageHandler.
-        PurchaseInvoice.Statistics.Invoke();  // Opens PurchaseStatisticsPageHandler.
-        PurchaseInvoice.Close();
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('PurchaseStatisticsHandler')]
     [Scope('OnPrem')]
@@ -216,19 +191,6 @@ codeunit 144034 "UT PAG EASINPPINV"
         PurchaseCreditMemo.OpenEdit();
         PurchaseCreditMemo.FILTER.SetFilter("No.", No);
     end;
-
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseStatisticsPageHandler(var PurchaseStatistics: TestPage "Purchase Statistics")
-    var
-        Quantity: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(Quantity);
-        PurchaseStatistics.Quantity.AssertEquals(Quantity);
-    end;
-#endif    
 
     [PageHandler]
     [Scope('OnPrem')]

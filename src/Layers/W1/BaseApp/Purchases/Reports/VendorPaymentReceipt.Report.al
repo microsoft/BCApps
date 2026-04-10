@@ -14,12 +14,11 @@ using System.Utilities;
 
 report 411 "Vendor - Payment Receipt"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/VendorPaymentReceipt.rdlc';
     Caption = 'Vendor - Payment Receipt';
     ApplicationArea = Suite;
     UsageCategory = Documents;
     WordMergeDataItem = "Vendor Ledger Entry";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -351,6 +350,16 @@ report 411 "Vendor - Payment Receipt"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/VendorPaymentReceipt.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -13,9 +13,8 @@ using System.Utilities;
 
 report 6521 "Item Tracking Appendix"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/ItemTrackingAppendix.rdlc';
     Caption = 'Item Tracking Appendix';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -237,6 +236,16 @@ report 6521 "Item Tracking Appendix"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/ItemTrackingAppendix.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

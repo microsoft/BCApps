@@ -11,9 +11,6 @@ using Microsoft.Warehouse.Request;
 codeunit 910 "Asm. Item Jnl.-Check Line"
 {
     var
-#if not CLEAN26
-        ItemJnlCheckLine: Codeunit "Item Jnl.-Check Line";
-#endif
         WarehouseHandlingRequiredErr: Label 'Warehouse handling is required for %1 = %2, %3 = %4, %5 = %6.', Comment = '%1 %3 %5 - field captions, %2 %4 %6 - field values';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnRunOnCheckWarehouse', '', false, false)]
@@ -86,27 +83,18 @@ codeunit 910 "Asm. Item Jnl.-Check Line"
                 begin
                     InvtPutAwayLocation := not LocationToCheck."Require Receive" and LocationToCheck."Require Put-away";
                     OnAfterAssignInvtPutAwayRequired(ItemJnlLine, LocationToCheck, InvtPutAwayLocation);
-#if not CLEAN26
-                    ItemJnlCheckLine.RunOnAfterAssignInvtPutAwayRequired(ItemJnlLine, LocationToCheck, InvtPutAwayLocation);
-#endif
                     if InvtPutAwayLocation then
                         if ItemJnlLine.Quantity < 0 then
                             exit(true);
 
                     InvtPickLocation := LocationToCheck."Asm. Consump. Whse. Handling" = Enum::"Asm. Consump. Whse. Handling"::"Inventory Movement";
                     OnAfterAssignInvtPickRequired(ItemJnlLine, LocationToCheck, InvtPickLocation);
-#if not CLEAN26
-                    ItemJnlCheckLine.RunOnAfterAssignInvtPickRequired(ItemJnlLine, LocationToCheck, InvtPickLocation);
-#endif
                     if InvtPickLocation then
                         if ItemJnlLine.Quantity >= 0 then
                             exit(true);
 
                     WarehousePickLocation := LocationToCheck."Asm. Consump. Whse. Handling" = Enum::"Asm. Consump. Whse. Handling"::"Warehouse Pick (mandatory)";
                     OnAfterAssignWhsePickRequired(ItemJnlLine, LocationToCheck, WarehousePickLocation);
-#if not CLEAN26
-                    ItemJnlCheckLine.RunOnAfterAssignWhsePickRequired(ItemJnlLine, LocationToCheck, WarehousePickLocation);
-#endif
                     if WarehousePickLocation and (ItemJnlLine."Flushing Method" = ItemJnlLine."Flushing Method"::"Pick + Backward") then
                         if ItemJnlLine.Quantity >= 0 then
                             exit(true);

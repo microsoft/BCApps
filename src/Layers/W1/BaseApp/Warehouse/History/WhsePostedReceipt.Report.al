@@ -9,12 +9,11 @@ using System.Utilities;
 
 report 7308 "Whse. - Posted Receipt"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Warehouse/History/WhsePostedReceipt.rdlc';
     ApplicationArea = Warehouse;
     Caption = 'Warehouse Posted Receipt';
     UsageCategory = Documents;
     WordMergeDataItem = "Posted Whse. Receipt Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -125,6 +124,16 @@ report 7308 "Whse. - Posted Receipt"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Warehouse/History/WhsePostedReceipt.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -36,7 +36,7 @@ codeunit 30193 "Shpfy Shipping Methods"
             Shop.CopyFilters(ShopifyShop);
         if Shop.FindFirst() then begin
             CommunicationMgt.SetShop(Shop);
-            GraphQLType := GraphQLType::GetDeliveryProfiles;
+            GraphQLType := GraphQLType::Shipping_GetDeliveryProfiles;
             repeat
                 JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
                 if JsonHelper.GetJsonArray(JResponse, JDeliveryProfiles, 'data.deliveryProfiles.edges') then
@@ -47,7 +47,7 @@ codeunit 30193 "Shpfy Shipping Methods"
                     Parameters.Set('After', JsonHelper.GetValueAsText(JDeliveryProfile.AsObject(), 'cursor'))
                 else
                     Parameters.Add('After', JsonHelper.GetValueAsText(JDeliveryProfile.AsObject(), 'cursor'));
-                GraphQLType := GraphQLType::GetNextDeliveryProfiles;
+                GraphQLType := GraphQLType::Shipping_GetNextDeliveryProfiles;
             until not JsonHelper.GetValueAsBoolean(JResponse, 'data.deliveryProfiles.pageInfo.hasNextPage');
         end;
     end;
@@ -63,7 +63,7 @@ codeunit 30193 "Shpfy Shipping Methods"
     begin
         DeliveryProfileId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JDeliveryProfile.AsObject(), 'node.id'));
         Parameters.Add('DeliveryProfileId', Format(DeliveryProfileId));
-        GraphQLType := GraphQLType::GetLocationGroups;
+        GraphQLType := GraphQLType::Inventory_GetLocationGroups;
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JProfileLocationGroups, 'data.deliveryProfile.profileLocationGroups') then
             foreach JProfileLocationGroup in JProfileLocationGroups do
@@ -86,7 +86,7 @@ codeunit 30193 "Shpfy Shipping Methods"
         HasNextPage: Boolean;
         JResponse: JsonToken;
     begin
-        GraphQLType := GraphQLType::GetDeliveryMethods;
+        GraphQLType := GraphQLType::Shipping_GetDeliveryMethods;
         Parameters.Add('DeliveryProfileId', Format(DeliveryProfileId));
         Parameters.Add('DeliveryLocationGroupId', Format(ProfileLocationGroupId));
         repeat
@@ -116,7 +116,7 @@ codeunit 30193 "Shpfy Shipping Methods"
                             HasNextPage := JsonHelper.GetValueAsBoolean(JProfileLocationGroup, 'locationGroupZones.pageInfo.hasNextPage');
                         end;
                 end;
-            GraphQLType := GraphQLType::GetNextDeliveryMethods;
+            GraphQLType := GraphQLType::Shipping_GetNextDeliveryMethods;
         until not HasNextPage;
     end;
 }

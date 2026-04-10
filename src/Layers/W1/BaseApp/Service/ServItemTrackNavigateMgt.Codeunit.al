@@ -160,6 +160,20 @@ codeunit 6473 "Serv. Item Track Navigate Mgt"
         end;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Data Collection", 'OnCanIncludeReservEntryToTrackingSpecOnCaseElse', '', true, false)]
+    local procedure OnCanIncludeReservEntryToTrackingSpecOnCaseElse(TempReservEntry: Record "Reservation Entry"; var Result: Boolean);
+    var
+        ServiceLine: Record "Service Line";
+    begin
+        if (TempReservEntry."Reservation Status" = TempReservEntry."Reservation Status"::Prospect) and
+       (TempReservEntry."Source Type" = Database::"Service Line") and
+       (TempReservEntry."Source Subtype" = 2) then begin
+            ServiceLine.Get(TempReservEntry."Source Subtype", TempReservEntry."Source ID", TempReservEntry."Source Ref. No.");
+            if ServiceLine."Shipment No." <> '' then
+                Result := false;
+        end;
+    end;
+
     local procedure FindServInvoice(DocumentNo: Code[20]; var ItemTrackingNavigateMgt: Codeunit "Item Tracking Navigate Mgt.")
     var
         ServInvHeader: Record "Service Invoice Header";

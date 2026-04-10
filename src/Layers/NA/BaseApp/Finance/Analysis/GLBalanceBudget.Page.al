@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -230,21 +230,18 @@ page 422 "G/L Balance/Budget"
                     ApplicationArea = Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the name of the general ledger account.';
                 }
                 field("Income/Balance"; Rec."Income/Balance")
                 {
                     ApplicationArea = Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies whether a general ledger account is an income statement account or a balance sheet account.';
                     Visible = IncomeBalanceVisible;
                 }
                 field("Debit Amount"; Rec."Debit Amount")
@@ -253,7 +250,6 @@ page 422 "G/L Balance/Budget"
                     BlankNumbers = BlankNegAndZero;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                 }
                 field("Credit Amount"; Rec."Credit Amount")
                 {
@@ -261,7 +257,6 @@ page 422 "G/L Balance/Budget"
                     BlankNumbers = BlankNegAndZero;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                 }
                 field("Net Change"; Rec."Net Change")
                 {
@@ -269,7 +264,6 @@ page 422 "G/L Balance/Budget"
                     BlankZero = true;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the net change in the account balance during the time period in the Date Filter field.';
                     Visible = false;
                 }
                 field("Budgeted Debit Amount"; Rec."Budgeted Debit Amount")
@@ -277,7 +271,6 @@ page 422 "G/L Balance/Budget"
                     ApplicationArea = Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the Budgeted Debit Amount for the account.';
 
                     trigger OnValidate()
                     begin
@@ -290,7 +283,6 @@ page 422 "G/L Balance/Budget"
                     ApplicationArea = Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the Budgeted Credit Amount for the account.';
 
                     trigger OnValidate()
                     begin
@@ -304,7 +296,6 @@ page 422 "G/L Balance/Budget"
                     BlankZero = true;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies either the G/L account''s total budget or, if you have specified a name in the Budget Name field, a specific budget.';
                     Visible = false;
 
                     trigger OnValidate()

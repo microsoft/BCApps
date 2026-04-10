@@ -19,6 +19,7 @@ table 7603 "Customized Calendar Entry"
         field(1; "Source Type"; Enum "Calendar Source Type")
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies whether this customized calendar entry was set up for your company, a customer, vendor, location, shipping agent, or a service.';
             Editable = false;
         }
         field(2; "Source Code"; Code[20])
@@ -33,6 +34,7 @@ table 7603 "Customized Calendar Entry"
         field(4; "Base Calendar Code"; Code[10])
         {
             Caption = 'Base Calendar Code';
+            ToolTip = 'Specifies which base calendar was used as the basis for this customized calendar.';
             Editable = false;
             TableRelation = "Base Calendar";
         }

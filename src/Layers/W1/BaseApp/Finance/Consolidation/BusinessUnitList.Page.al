@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -48,76 +48,63 @@ page 240 "Business Unit List"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the business unit in the consolidated company.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
                     LookupPageID = Currencies;
-                    ToolTip = 'Specifies the currency to use for this business unit during consolidation.';
                 }
                 field("Currency Exchange Rate Table"; Rec."Currency Exchange Rate Table")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies where to get currency exchange rates from when importing consolidation data. If you choose Local, the currency exchange rate table in the current (local) company is used. If you choose Business Unit, the currency exchange rate table in the business unit is used.';
                     Visible = false;
                 }
                 field("Data Source"; Rec."Data Source")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies whether data is retrieved in the local currency (LCY) or the additional reporting currency (ACY) from the business unit.';
                     Visible = false;
                 }
                 field(Consolidate; Rec.Consolidate)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies whether to include the business unit in the Consolidation report.';
                 }
                 field("Consolidation %"; Rec."Consolidation %")
                 {
                     ApplicationArea = Suite;
                     Editable = true;
-                    ToolTip = 'Specifies the percentage of each transaction for the business unit to include in the consolidation. For example, if a sales invoice is for $1000, and you specify 70%, consolidation will include $700 for the invoice. This is useful when you own only a percentage of a business unit.';
                 }
                 field("Exch. Rate Gains Acc."; Rec."Exch. Rate Gains Acc.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the general ledger account that revenue gained from exchange rates during consolidation is posted to.';
                     Visible = false;
                 }
                 field("Exch. Rate Losses Acc."; Rec."Exch. Rate Losses Acc.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the general ledger account that revenue losses due to exchange rates during consolidation are posted.';
                     Visible = false;
                 }
                 field("Residual Account"; Rec."Residual Account")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the general ledger account for residual amounts that occur during consolidation.';
                     Visible = false;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the starting date of the fiscal year that the business unit uses. Enter a date only if the business unit and consolidated company have different fiscal years.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the ending date of the business unit''s fiscal year. Enter a date only if the business unit and the consolidated company have different fiscal years.';
                 }
                 field("File Format"; Rec."File Format")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the file format to use for the business unit data. If the business unit has version 3.70 or earlier, it must submit a .txt file. If the version is 4.00 or later, it must use an XML file.';
                     Visible = false;
                 }
                 field("Last Run"; Rec."Last Run")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the last date on which consolidation was run.';
                 }
                 field(LastConsolidationEndingDate; LastConsolidationEndingDate)
                 {

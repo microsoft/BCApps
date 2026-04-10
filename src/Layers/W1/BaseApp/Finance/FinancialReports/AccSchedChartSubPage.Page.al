@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,30 +31,25 @@ page 766 "Acc. Sched. Chart SubPage"
                 field("Account Schedule Line No."; Rec."Account Schedule Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the account schedule line that the chart is based on.';
                     Visible = false;
                 }
                 field("Column Layout Line No."; Rec."Column Layout Line No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the line number. This field is intended only for internal use.';
                     Visible = false;
                 }
                 field("Original Measure Name"; Rec."Original Measure Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the account schedule columns or lines that you select to include in the Account Schedules Chart Setup window.';
                     Visible = false;
                 }
                 field("Measure Name"; Rec."Measure Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the account schedule columns or lines that the measures on the y-axis in the specific chart are based on.';
                 }
                 field("Chart Type"; Rec."Chart Type")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies how the account schedule values are represented graphically in the chart.';
                     Visible = IsMeasure;
 
                     trigger OnValidate()

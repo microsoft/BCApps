@@ -221,9 +221,11 @@ report 5911 "Service - Invoice"
                     column(ServiceInvoiceHeaderPostingDateCaption; ServiceInvoiceHeaderPostingDateCaptionLbl)
                     {
                     }
+#if not CLEAN29
                     column(EnterpriseRegister; CompanyInfo.GetEnterpriseClassification())
                     {
                     }
+#endif
                     column(CompanyBankBranchNo; CompanyBankAccount."Bank Branch No.")
                     {
                     }

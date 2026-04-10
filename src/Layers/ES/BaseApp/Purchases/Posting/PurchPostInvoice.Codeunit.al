@@ -1299,6 +1299,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
             CalcSplitAmount(
                 GenJnlLine."Salvage Value", GenJnlLine2."Salvage Value", TotalGenJnlLine."Salvage Value", I, SplitNo);
 
+            OnSplitFAOnBeforeRunGenJnlPostLine(GenJnlLine, GenJnlLine2, TotalGenJnlLine, I, SplitNo);
+
             RunGenJnlPostLine(GenJnlLine, GenJnlPostLine);
         end;
     end;
@@ -1401,5 +1403,10 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                     FADeprBook2.Insert(true);
                 until FADeprBook.Next() = 0;
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSplitFAOnBeforeRunGenJnlPostLine(var GenJournalLine: Record "Gen. Journal Line"; var GenJournalLine2: Record "Gen. Journal Line"; var TotalGenJournalLine: Record "Gen. Journal Line"; IterationCounter: Integer; SplitNo: Integer)
+    begin
     end;
 }

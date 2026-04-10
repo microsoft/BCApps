@@ -19,23 +19,31 @@ report 10644 "Create Elec. Service Invoices"
             RequestFilterFields = "No.", "Customer No.", "Bill-to Customer No.", GLN, "E-Invoice Created";
 
             trigger OnAfterGetRecord()
+#if not CLEAN29
             var
                 EInvoiceExportServInvoice: Codeunit "E-Invoice Export Serv. Invoice";
+#endif
             begin
+#if not CLEAN29
                 EInvoiceExportServInvoice.Run("Service Invoice Header");
                 EInvoiceExportServInvoice.GetExportedFileInfo(TempEInvoiceTransferFile);
                 TempEInvoiceTransferFile."Line No." := Counter + 1;
                 TempEInvoiceTransferFile.Insert();
+#endif
 
                 Commit();
                 Counter := Counter + 1;
             end;
 
             trigger OnPostDataItem()
+#if not CLEAN29
             var
                 EInvoiceExportCommon: Codeunit "E-Invoice Export Common";
+#endif
             begin
+#if not CLEAN29
                 EInvoiceExportCommon.DownloadEInvoiceFile(TempEInvoiceTransferFile);
+#endif
                 Message(Text002, Counter);
             end;
 
@@ -87,7 +95,9 @@ report 10644 "Create Elec. Service Invoices"
     }
 
     var
+#if not CLEAN29
         TempEInvoiceTransferFile: Record "E-Invoice Transfer File" temporary;
+#endif
         Counter: Integer;
         Text000: Label 'One or more invoice documents that match your filter criteria are not electronic invoices and will be skipped.\\Do you want to continue?';
         Text001: Label 'One or more invoice documents that match your filter criteria have been created before.\\Do you want to continue?';

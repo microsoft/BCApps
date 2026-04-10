@@ -14,12 +14,15 @@ using System.Telemetry;
 /// </summary>
 page 584 "Report Selection - VAT Stmt."
 {
+    AboutTitle = 'About report selection for VAT';
+    AboutText = 'On this page, you set up the default reports that are used for VAT statements and related VAT reports. Use the Usage field to select the type of report, then specify which reports to use in the list below.';
+    AdditionalSearchTerms = 'Report Selections VAT, VAT Statement';
     ApplicationArea = Basic, Suite;
-    Caption = 'Report Selections VAT';
+    Caption = 'Report Selection - VAT';
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Report Selections";
-    UsageCategory = Tasks;
+    UsageCategory = Administration;
 
     layout
     {
@@ -47,20 +50,20 @@ page 584 "Report Selection - VAT Stmt."
                 field(Sequence; Rec.Sequence)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies where a report is in the printing order.';
+                    ToolTip = 'Specifies a number that indicates where this report is in the printing order.';
                 }
                 field("Report ID"; Rec."Report ID")
                 {
                     ApplicationArea = Basic, Suite;
                     LookupPageID = Objects;
-                    ToolTip = 'Specifies the ID of the report that prints for this document type.';
+                    ToolTip = 'Specifies the object ID of the report.';
                 }
                 field("Report Name"; Rec."Report Caption")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
                     LookupPageID = Objects;
-                    ToolTip = 'Specifies the name of the report that prints for this document type.';
+                    ToolTip = 'Specifies the display name of the report.';
                 }
             }
         }

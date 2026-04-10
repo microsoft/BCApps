@@ -17,11 +17,10 @@ using System.Utilities;
 /// </summary>
 report 19 "VAT- VIES Declaration Tax Auth"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/VAT/Reporting/VATVIESDeclarationTaxAuth.rdlc';
     ApplicationArea = VAT;
     Caption = 'VAT- VIES Declaration Tax Auth';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -203,6 +202,16 @@ report 19 "VAT- VIES Declaration Tax Auth"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/VAT/Reporting/VATVIESDeclarationTaxAuth.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

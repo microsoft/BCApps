@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ using System.Text;
 /// </remarks>
 page 18 "G/L Account List"
 {
+    ApplicationArea = Basic, Suite;
     Caption = 'G/L Account List';
     CardPageID = "G/L Account Card";
     DataCaptionFields = "Search Name";
@@ -32,6 +33,9 @@ page 18 "G/L Account List"
     PageType = List;
     RefreshOnActivate = true;
     SourceTable = "G/L Account";
+    UsageCategory = ReportsAndAnalysis;
+    AboutTitle = 'About G/L Account List';
+    AboutText = 'View general ledger (G/L) accounts and see whether an account belongs to the Income Statement or Balance Sheet, its Account Category, and whether it allows Direct Posting. Use it to validate how accounts participate in general posting setup and to ensure correct posting behavior before transactions are entered. Select an account to open detailed settings, review balances, or navigate to related entries and reports.';
 
     layout
     {
@@ -47,72 +51,59 @@ page 18 "G/L Account List"
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the name of the general ledger account.';
                 }
                 field("Income/Balance"; Rec."Income/Balance")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether a general ledger account is an income statement account or a balance sheet account.';
                 }
                 field("Account Category"; Rec."Account Category")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the category of the G/L account.';
                 }
                 field("Account Type"; Rec."Account Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the purpose of the account. Total: Used to total a series of balances on accounts from many different account groupings. To use Total, leave this field blank. Begin-Total: A marker for the beginning of a series of accounts to be totaled that ends with an End-Total account. End-Total: A total of a series of accounts that starts with the preceding Begin-Total account. The total is defined in the Totaling field.';
                 }
                 field("Gen. Posting Type"; Rec."Gen. Posting Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the general posting type to use when posting to this account.';
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                 }
                 field("Direct Posting"; Rec."Direct Posting")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether you will be able to post directly or only indirectly to this general ledger account. To allow Direct Posting to the G/L account, place a check mark in the check box.';
                 }
                 field("Reconciliation Account"; Rec."Reconciliation Account")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether this general ledger account will be included in the Reconciliation window in the general journal. To have the G/L account included in the window, place a check mark in the check box. You can find the Reconciliation window by clicking Actions, Posting in the General Journal window.';
                 }
                 field("Default Deferral Template Code"; Rec."Default Deferral Template Code")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Default Deferral Template';
-                    ToolTip = 'Specifies the default deferral template that governs how to defer revenues and expenses to the periods when they occurred.';
                 }
             }
         }

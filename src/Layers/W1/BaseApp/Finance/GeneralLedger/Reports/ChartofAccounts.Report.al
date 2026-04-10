@@ -18,12 +18,11 @@ using System.Utilities;
 /// </remarks>
 report 1 "Chart of Accounts"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/GeneralLedger/Reports/ChartofAccounts.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Chart of Accounts';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -176,6 +175,16 @@ report 1 "Chart of Accounts"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/GeneralLedger/Reports/ChartofAccounts.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

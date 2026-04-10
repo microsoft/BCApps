@@ -349,6 +349,8 @@ codeunit 5631 "FA Jnl.-Check Line"
                 GLIntegration := DeprBook."G/L Integration - Maintenance";
             FAPostingType::"Salvage Value":
                 GLIntegration := false;
+            FAPostingType::"Bonus Depreciation":
+                GLIntegration := DeprBook."G/L Integration - Bonus Depr.";
         end;
 
         IsHandled := false;

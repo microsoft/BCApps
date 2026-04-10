@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.CRM.Outlook;
 
+using Microsoft.Foundation.Company;
 using System.Environment;
 using System.Integration;
-using System.Privacy;
 using System.Security.AccessControl;
 using System.Utilities;
 
@@ -35,29 +35,45 @@ page 1832 "Outlook Individual Deployment"
                     ShowCaption = false;
                 }
             }
-
+#if not CLEAN29
             group(Step0)
             {
                 Caption = '';
-                Visible = PrivacyNoticeStepVisible;
+                Visible = false;
+                ObsoleteReason = 'Exchange is depracated. Please deploy add-in manually.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
 
                 group(PrivacyNoticeGroup)
                 {
                     Caption = 'Your privacy is important to us';
+                    ObsoleteReason = 'Exchange is depracated. Please deploy add-in manually.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
 
                     group(PrivacyNoticeInner)
                     {
                         ShowCaption = false;
+                        ObsoleteReason = 'Exchange is depracated. Please deploy add-in manually.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
+
                         label(PrivacyNoticeLabel)
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'This feature utilizes Microsoft Exchange. By continuing you are affirming that you understand that the data handling and compliance standards of Microsoft Exchange may not be the same as those provided by Microsoft Dynamics 365 Business Central. Please consult the documentation for Exchange to learn more.';
+                            ObsoleteReason = 'Exchange is depracated. Please deploy add-in manually.';
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '29.0';
                         }
                         field(PrivacyNoticeStatement; PrivacyStatementTxt)
                         {
                             ApplicationArea = Basic, Suite;
                             Editable = false;
                             ShowCaption = false;
+                            ObsoleteReason = 'Exchange is depracated. Please deploy add-in manually.';
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '29.0';
 
                             trigger OnDrillDown()
                             begin
@@ -67,7 +83,7 @@ page 1832 "Outlook Individual Deployment"
                     }
                 }
             }
-
+#endif
             // Introduction Step
             group(Step1)
             {
@@ -118,6 +134,11 @@ page 1832 "Outlook Individual Deployment"
                                 DownloadManifests();
                             end;
                         }
+                        group("Para2.1.2.12")
+                        {
+                            Caption = '';
+                            InstructionalText = '2. Right-click the .zip file and choose Extract All to extract the add-in files.';
+                        }
                         group("Para2.1.2.1")
                         {
                             Caption = '';
@@ -136,17 +157,24 @@ page 1832 "Outlook Individual Deployment"
                         group("Para2.1.2.2")
                         {
                             Caption = '';
-                            InstructionalText = '3. Choose the ‘My Add-ins’ tab and ‘add a custom add-in’ from file.';
+                            InstructionalText = '4. Choose the ‘My Add-ins’ tab and ‘add a custom add-in’ from file.';
                         }
                         group("Para2.1.2.3")
                         {
                             Caption = '';
-                            InstructionalText = '4. Select and install all downloaded XML files. You may need to repeat this step for each XML file within the ZIP file.';
+                            InstructionalText = '5. Select and install all downloaded XML files. You may need to repeat this step for each XML file within the ZIP file.';
                         }
                         group("Para2.1.2.4")
                         {
+                            Visible = IsSaaS;
                             Caption = '';
-                            InstructionalText = '5. Choose Finish when done.';
+                            InstructionalText = '6. Choose Next when done.';
+                        }
+                        group("Para2.1.2.41")
+                        {
+                            Visible = not IsSaaS;
+                            Caption = '';
+                            InstructionalText = '6. Choose Finish when done.';
                         }
                         group("Para2.1.2.5")
                         {
@@ -222,11 +250,15 @@ page 1832 "Outlook Individual Deployment"
                     DownloadManifests();
                 end;
             }
+#if not CLEAN29
             action(ActionInstall)
             {
                 ApplicationArea = Basic, Suite;
+                ObsoleteReason = 'Exchange is depracated. Please deploy add-in manually.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
                 Caption = 'Install to my Outlook';
-                Visible = InstallActionVisible;
+                Visible = false;
                 Image = NextRecord;
                 InFooterBar = true;
 
@@ -235,6 +267,7 @@ page 1832 "Outlook Individual Deployment"
                     PerformLastStep();
                 end;
             }
+#endif
             action(ActionDone)
             {
                 ApplicationArea = Basic, Suite;
@@ -254,85 +287,53 @@ page 1832 "Outlook Individual Deployment"
     trigger OnInit()
     var
         User: Record User;
+        EnvironmentInfo: Codeunit "Environment Information";
     begin
         LoadTopBanners();
 
         User.SetRange("User Name", UserId);
         if User.FindFirst() then
             Email := User."Authentication Email";
+
+        if Email <> '' then
+            SampleEmailStepVisible := true;
+
+        IsSaaS := EnvironmentInfo.IsSaaSInfrastructure();
     end;
 
     trigger OnOpenPage()
-    var
-        PrivacyNotice: Codeunit "Privacy Notice";
-        PrivacyNoticeRegistrations: Codeunit "Privacy Notice Registrations";
     begin
-        if not (PrivacyNotice.GetPrivacyNoticeApprovalState(PrivacyNoticeRegistrations.GetExchangePrivacyNoticeId()) = "Privacy Notice Approval State"::Agreed) then
-            ShowPrivacyNoticeStep()
-        else begin
-            Step := Step::Intro;
-            ShowIntroStep();
-        end;
+        Session.LogMessage('0000RPP', PageGetOutlookOpenTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', OfficeMgt.GetOfficeAddinTelemetryCategory());
+        Step := Step::Intro;
+        ShowIntroStep();
     end;
 
     local procedure NextStep()
     begin
         Step := Step + 1;
         case Step of
-            Step::PrivacyNotice:
-                ShowPrivacyNoticeStep();
             Step::Intro:
                 ShowIntroStep();
-            Step::SampleEmail:
-                ShowSampleEmailStep();
             Step::ManualDeployment:
                 ShowManualDeploymentStep();
+            Step::SampleEmail:
+                ShowSampleEmailStep();
         end;
         CurrPage.Update(true);
     end;
 
-    local procedure ShowPrivacyNoticeStep()
-    begin
-        ResetWizardControls();
-        PrivacyNoticeStepVisible := true;
-        NextActionVisible := true;
-    end;
-
     local procedure ShowIntroStep()
-    var
-        PrivacyNotice: Codeunit "Privacy Notice";
-        PrivacyNoticeRegistrations: Codeunit "Privacy Notice Registrations";
     begin
         ResetWizardControls();
         IntroStepVisible := true;
         NextActionVisible := true;
-
-        // User has agreed to the Privacy Notice
-        PrivacyNotice.SetApprovalState(PrivacyNoticeRegistrations.GetExchangePrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
-
-        if not CredentialsInitialized then begin
-            CredentialsRequired := (Email = '') or ExchangeAddinSetup.CredentialsRequired(CopyStr(Email, 1, 80));
-            SampleEmailsAvailable := ExchangeAddinSetup.SampleEmailsAvailable();
-            SetupSampleEmails := not CredentialsRequired and SampleEmailsAvailable;
-            CredentialsInitialized := true;
-        end;
-
-        if not CredentialsRequired and (not ExchangeAddinSetup.SampleEmailsAvailable()) then begin
-            NextActionVisible := false;
-            InstallActionVisible := true;
-        end;
     end;
 
     local procedure ShowSampleEmailStep()
     begin
         ResetWizardControls();
-        if not CredentialsRequired and ExchangeAddinSetup.SampleEmailsAvailable() then begin
-            SampleEmailStepVisible := true;
-            FinishActionVisible := true;
-            exit;
-        end;
-        // skip this step if manual deployment or sample emails not available
-        NextStep();
+        SampleEmailStepVisible := true;
+        FinishActionVisible := true;
     end;
 
     local procedure ShowManualDeploymentStep()
@@ -340,7 +341,10 @@ page 1832 "Outlook Individual Deployment"
         ResetWizardControls();
         ManualDeploymentStepVisible := true;
         DownloadActionVisible := true;
-        FinishActionVisible := true;
+        if IsSaaS then
+            NextActionVisible := true
+        else
+            FinishActionVisible := true;
     end;
 
     local procedure ResetWizardControls()
@@ -349,15 +353,15 @@ page 1832 "Outlook Individual Deployment"
         NextActionVisible := false;
         FinishActionVisible := false;
         DownloadActionVisible := false;
-        InstallActionVisible := false;
 
         // Tabs
         IntroStepVisible := false;
-        PrivacyNoticeStepVisible := false;
         SampleEmailStepVisible := false;
         ManualDeploymentStepVisible := false;
     end;
 
+#if not CLEAN29
+    [Obsolete('Exchange is depracated. Please deploy add-in manually.', '29.0')]
     local procedure DeployToExchange()
     var
         OfficeAddin: Record "Office Add-in";
@@ -388,12 +392,78 @@ page 1832 "Outlook Individual Deployment"
         end;
         ProgressWindow.Close();
     end;
+#endif
 
     local procedure PerformLastStep()
     begin
-        if not CredentialsRequired then
-            DeployToExchange();
         CurrPage.Close();
+
+        if SetupSampleEmails then
+            SendEmail();
+    end;
+
+    local procedure SendEmail()
+    var
+        OfficeAddinSampleEmails: Codeunit "Office Add-In Sample Emails";
+        O365GraphAuthentication: Codeunit "O365 Graph Authentication";
+        CompanyInformationMgt: Codeunit "Company Information Mgt.";
+        Client: HttpClient;
+        ResponseMessage: HttpResponseMessage;
+        RequestBody: JsonObject;
+        MessageBody: JsonObject;
+        EmailAddress: JsonObject;
+        Recipient: JsonObject;
+        Recipients: JsonArray;
+        Content: HttpContent;
+        ContentHeaders: HttpHeaders;
+        AccessToken: SecretText;
+        RequestContentTxt: Text;
+        RequestUri: Text;
+    begin
+        O365GraphAuthentication.GetAccessToken(AccessToken);
+        if AccessToken.IsEmpty() then
+            Error(FailedToAcquireGraphTokenErr);
+
+        MessageBody.Add('subject', StrSubstNo(WelcomeSubjectTxt, PRODUCTNAME.Marketing()));
+        if CompanyInformationMgt.IsDemoCompany() then
+            MessageBody.Add('body', BuildGraphBody(OfficeAddinSampleEmails.GetHTMLSampleMsg()))
+        else
+            MessageBody.Add('body', BuildGraphBody(OfficeAddinSampleEmails.GetHTMLSampleMsgNonEvalCompany()));
+
+        EmailAddress.Add('address', Email);
+        Recipient.Add('emailAddress', EmailAddress);
+        Recipients.Add(Recipient);
+        MessageBody.Add('toRecipients', Recipients);
+
+        RequestBody.Add('message', MessageBody);
+        RequestBody.Add('saveToSentItems', true);
+
+        RequestBody.WriteTo(RequestContentTxt);
+        Content.WriteFrom(RequestContentTxt);
+        Content.GetHeaders(ContentHeaders);
+        ContentHeaders.Clear();
+        ContentHeaders.Add('Content-Type', 'application/json');
+
+        Client.DefaultRequestHeaders().Add('Authorization', SecretStrSubstNo('Bearer %1', AccessToken));
+        Client.DefaultRequestHeaders().Add('Accept', 'application/json');
+
+        RequestUri := StrSubstNo(SendMailUriLbl, O365GraphAuthentication.GetURLForGraph());
+        if not Client.Post(RequestUri, Content, ResponseMessage) then
+            Error(GraphConnectionErr);
+
+        if not ResponseMessage.IsSuccessStatusCode() then begin
+            Session.LogMessage('0000RPQ', StrSubstNo(GraphErrorTelemetryTxt, ResponseMessage.HttpStatusCode()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', OfficeMgt.GetOfficeAddinTelemetryCategory());
+            Error(FailedToSendGraphEmailErr);
+        end;
+    end;
+
+    local procedure BuildGraphBody(BodyHtml: Text): JsonObject
+    var
+        BodyJson: JsonObject;
+    begin
+        BodyJson.Add('contentType', 'HTML');
+        BodyJson.Add('content', BodyHtml);
+        exit(BodyJson);
     end;
 
     local procedure DownloadManifests()
@@ -403,11 +473,6 @@ page 1832 "Outlook Individual Deployment"
     begin
         if OfficeAddin.GetAddins() then
             AddinManifestMgt.DownloadMultipleManifestsToClient(OfficeAddin);
-    end;
-
-    internal procedure SkipDeploymentStage(Skip: Boolean)
-    begin
-        SkipDeployment := Skip;
     end;
 
     local procedure LoadTopBanners()
@@ -420,41 +485,49 @@ page 1832 "Outlook Individual Deployment"
     var
         MediaRepositoryOutlook: Record "Media Repository";
         MediaResourcesOutlook: Record "Media Resources";
-        ExchangeAddinSetup: Codeunit "Exchange Add-in Setup";
-        ClientTypeManagement: Codeunit "Client Type Management";
         OfficeMgt: Codeunit "Office Management";
+#if not CLEAN29
+        ExchangeAddinSetup: Codeunit "Exchange Add-in Setup";
+#endif
+        ClientTypeManagement: Codeunit "Client Type Management";
         Email: Text[250];
-        Step: Option PrivacyNotice,Intro,SampleEmail,ManualDeployment;
+        Step: Option Intro,ManualDeployment,SampleEmail;
         NextActionVisible: Boolean;
         FinishActionVisible: Boolean;
         DownloadActionVisible: Boolean;
-        InstallActionVisible: Boolean;
         TopBannerVisible: Boolean;
-        PrivacyNoticeStepVisible: Boolean;
         IntroStepVisible: Boolean;
         ManualDeploymentStepVisible: Boolean;
         SampleEmailStepVisible: Boolean;
-        SampleEmailsAvailable: Boolean;
-        SkipDeployment: Boolean;
         SetupSampleEmails: Boolean;
-        CredentialsRequired: Boolean;
-        CredentialsInitialized: Boolean;
+        IsSaaS: Boolean;
+#if not CLEAN29
+        SkipDeployment: Boolean;
         ConnectingMsg: Label 'Connecting to Exchange.';
         DeployAccountMsg: Label 'Deploying add-in for your account.';
         DeploySampleMailMsg: Label 'Deploying sample email to your mailbox.';
         DeployingCompletedMsg: Label 'Deploying completed.';
         DeplyingFailedMsg: Label 'Deploying failed. Error: %1', Comment = '%1 last error text';
         ProgressTemplateMsg: Label '#1##########\@2@@@@@@@@@@', Locked = true;
+#endif
         VideoFwdLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2165118', Locked = true;
         LearnMoreFwdLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2102702', Locked = true;
         OutlookSideloadLinkTxt: Label 'https://aka.ms/olksideload', Locked = true;
+        WelcomeSubjectTxt: Label 'Welcome to %1 in Outlook', Comment = '%1 - Application name';
         LearnMoreLbl: Label 'Learn more about installing Outlook add-in';
         WatchVideoLbl: Label 'Watch the video';
         DownloadAddinsLbl: Label '1. Download the add-in files to your device.';
-        OpenOutlookLinkLbl: Label '2. Go to aka.ms/olksideload.';
+        OpenOutlookLinkLbl: Label '3. Go to aka.ms/olksideload.';
+        SendMailUriLbl: Label '%1/v1.0/me/sendMail', Locked = true;
+        GraphConnectionErr: Label 'Could not establish the connection to Microsoft Graph when sending the sample email.';
+        FailedToAcquireGraphTokenErr: Label 'Could not acquire a Microsoft Graph access token for sending the sample email.';
+        FailedToSendGraphEmailErr: Label 'Failed to send sample email through Microsoft Graph. Try again later.';
+#if not CLEAN29
         PrivacyStatementTxt: Label 'Privacy and cookies';
         SetupCompletedTelemetryTxt: Label 'Outlook add-in deployed.', Locked = true;
         SetupFailedTelemetryTxt: Label 'Outlook add-in deployment failed. Last Error: %1', Locked = true;
         SampleEmailSentTelemetryTxt: Label 'Sample email deployed.', Locked = true;
+#endif
+        PageGetOutlookOpenTelemetryTxt: Label 'Page Get Outlook Open.', Locked = true;
+        GraphErrorTelemetryTxt: Label 'Graph error occurred while sending sample email. Error code: %1', Comment = '%1 - Error code', Locked = true;
 }
-

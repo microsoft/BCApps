@@ -53,6 +53,16 @@ page 5607 "Fixed Asset Setup"
                     ApplicationArea = FixedAssets;
                     Importance = Additional;
                 }
+                field("Bonus Depreciation Percentage"; Rec."Bonus Depreciation %")
+                {
+                    ApplicationArea = FixedAssets;
+                    Importance = Additional;
+                }
+                field("Bonus Depr. Effective Date"; Rec."Bonus Depr. Effective Date")
+                {
+                    ApplicationArea = FixedAssets;
+                    Importance = Additional;
+                }
                 field("Employee No. Mandatory"; Rec."Employee No. Mandatory")
                 {
                     ApplicationArea = FixedAssets;

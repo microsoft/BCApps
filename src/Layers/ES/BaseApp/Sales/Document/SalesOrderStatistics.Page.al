@@ -820,13 +820,7 @@ page 402 "Sales Order Statistics"
 
     trigger OnOpenPage()
     begin
-#if not CLEAN26
-        if not Rec.SkipStatisticsPreparation() then
-            Rec.PrepareOpeningDocumentStatistics();
-        Rec.ResetSkipStatisticsPreparationFlag();
-#else
         Rec.PrepareOpeningDocumentStatistics();
-#endif
         SalesSetup.Get();
         AllowInvDisc := not (SalesSetup."Calc. Inv. Discount" and CustInvDiscRecExists(Rec."Invoice Disc. Code"));
         AllowVATDifference :=

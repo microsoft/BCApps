@@ -659,6 +659,43 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure CopySalesOrderToQuoteClearsPromisedDeliveryDate()
+    var
+        SourceSalesHeader: Record "Sales Header";
+        DestinationSalesHeader: Record "Sales Header";
+        SourceSalesLine: Record "Sales Line";
+        DestinationSalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO 1797] Copy Document from Sales Order to Sales Quote clears line "Promised Delivery Date".
+        Initialize();
+
+        // [GIVEN] Sales Order with one line and non-empty "Promised Delivery Date".
+        CreateOneItemSalesDoc(SourceSalesHeader, SourceSalesHeader."Document Type"::Order);
+        FindFirstLineOfSalesDocument(SourceSalesHeader, SourceSalesLine);
+        SourceSalesLine.Validate("Promised Delivery Date", CalcDate('<1W>', WorkDate()));
+        SourceSalesLine.Modify(true);
+
+        // [GIVEN] Sales Quote for same customer.
+        CreateSalesHeaderForCustomer(
+            DestinationSalesHeader, DestinationSalesHeader."Document Type"::Quote, SourceSalesHeader."Sell-to Customer No.");
+
+        // [WHEN] Copy Document from Sales Order to Sales Quote without line recalculation.
+        RunCopySalesDoc(
+            SourceSalesHeader."No.", DestinationSalesHeader,
+            MapperSalesHeaders(SourceSalesHeader."Document Type"), false, false);
+
+        // [THEN] Copied quote line has empty "Promised Delivery Date".
+        FindFirstLineOfSalesDocument(DestinationSalesHeader, DestinationSalesLine);
+        DestinationSalesLine.TestField("Promised Delivery Date", 0D);
+
+        // [THEN] "Requested Delivery Date" on quote header can be updated.
+        DestinationSalesHeader.Validate("Requested Delivery Date", CalcDate('<2W>', WorkDate()));
+        DestinationSalesHeader.Modify(true);
+    end;
+
+    [Test]
     [HandlerFunctions('CopySalesDocReportHandlerOKWithEmptyDocumentNo')]
     [Scope('OnPrem')]
     procedure CopySalesOrdWithEmptySrcDocumentNoThrowsError()

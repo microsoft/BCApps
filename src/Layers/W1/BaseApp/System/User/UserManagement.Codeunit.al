@@ -167,11 +167,6 @@ codeunit 418 "User Management"
 
     var
         MissingActionPermissionForTableErr: Label 'You do not have permissions for this action on the table %1.', Comment = '%1 table name';
-#if not CLEAN26
-#pragma warning disable AA0470
-        CurrentUserQst: Label 'You are signed in with the %1 account. Changing the account will refresh your session. Do you want to continue?', Comment = 'USERID';
-#pragma warning restore AA0470
-#endif
         UnsupportedLicenseTypeOnSaasErr: Label 'Only users of type %1, %2, %3, %4 and %5 are supported in the online environment.', Comment = '%1,%2,%3,%4,%5 = license type';
         WindowsSecurityIdNotEditableOnSaaSErr: Label 'Windows security identifier is not supported in online environments.';
 
@@ -207,24 +202,6 @@ codeunit 418 "User Management"
         UserLookup.SetTableView(User);
         UserLookup.RunModal();
     end;
-
-#if not CLEAN26
-    [Obsolete('ValidateUserName has been moved to the User Codeunit', '26.0')]
-    procedure ValidateUserName(NewUser: Record User; OldUser: Record User; WindowsUserName: Text)
-    var
-        User: Codeunit User;
-    begin
-        User.ValidateUserName(NewUser, OldUser, WindowsUserName);
-    end;
-
-    [Obsolete('ValidateState has been moved to the User Codeunit', '26.0')]
-    procedure ValidateState(var Rec: Record User; var xRec: Record User);
-    var
-        User: Codeunit User;
-    begin
-        User.ValidateState(Rec, xRec);
-    end;
-#endif
 
     local procedure IsPrimaryKeyField(TableID: Integer; FieldID: Integer; var NumberOfPrimaryKeyFields: Integer): Boolean
     var
@@ -365,75 +342,6 @@ codeunit 418 "User Management"
         end;
     end;
 
-#if not CLEAN26
-    [Obsolete('RenameUser has been moved to the User Codeunit', '26.0')]
-    procedure RenameUser(OldUserName: Code[50]; NewUserName: Code[50])
-    var
-        User: Record User;
-        "Field": Record "Field";
-        TableInformation: Record "Table Information";
-        Company: Record Company;
-        RecRef: RecordRef;
-        FieldRef: FieldRef;
-        FieldRef2: FieldRef;
-        SessionSetting: SessionSettings;
-        NumberOfPrimaryKeyFields: Integer;
-        IsHandled: Boolean;
-    begin
-        OnBeforeRenameUser(OldUserName, NewUserName);
-
-        if OldUserName = UserID then
-            if not confirm(CurrentUserQst, true, UserID) then
-                error('');
-
-        Field.SetFilter(ObsoleteState, '<>%1', Field.ObsoleteState::Removed);
-        Field.SetRange(RelationTableNo, DATABASE::User);
-        Field.SetRange(RelationFieldNo, User.FieldNo("User Name"));
-        Field.SetFilter(Type, '%1|%2', Field.Type::Code, Field.Type::Text);
-        if Field.FindSet() then
-            repeat
-                Company.FindSet();
-                repeat
-                    IsHandled := false;
-                    OnRenameUserOnBeforeProcessField(Field.TableNo, Field."No.", OldUserName, NewUserName, IsHandled);
-                    if not IsHandled then begin
-                        RecRef.Open(Field.TableNo, false, Company.Name);
-                        if RecRef.ReadPermission then begin
-                            FieldRef := RecRef.Field(Field."No.");
-                            FieldRef.SetRange(CopyStr(OldUserName, 1, Field.Len));
-                            if RecRef.FindSet(true) then
-                                repeat
-                                    if IsPrimaryKeyField(Field.TableNo, Field."No.", NumberOfPrimaryKeyFields) then
-                                        RenameRecord(RecRef, Field.TableNo, NumberOfPrimaryKeyFields, NewUserName, Company.Name)
-                                    else begin
-                                        FieldRef2 := RecRef.Field(Field."No.");
-                                        FieldRef2.Value := CopyStr(NewUserName, 1, Field.Len);
-                                        RecRef.Modify();
-                                    end;
-                                until RecRef.Next() = 0;
-                        end else begin
-                            TableInformation.SetFilter("Company Name", '%1|%2', '', Company.Name);
-                            TableInformation.SetRange("Table No.", Field.TableNo);
-                            if TableInformation.FindFirst() then
-                                if TableInformation."No. of Records" > 0 then
-#pragma warning disable AA0448
-                                    Error(MissingActionPermissionForTableErr, Field.TableName);
-#pragma warning restore AA0448
-                        end;
-                        RecRef.Close();
-                    end;
-                until Company.Next() = 0;
-            until Field.Next() = 0;
-
-        if OldUserName = UserId then begin
-            SessionSetting.Init();
-            SessionSetting.RequestSessionUpdate(false);
-        end;
-
-        OnAfterRenameUser(OldUserName, NewUserName);
-    end;
-#endif
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::User, OnAfterRenameRecord, '', false, false)]
     local procedure RenameRecordWithUser(var RecRef: RecordRef; TableNo: Integer; NumberOfPrimaryKeyFields: Integer; UserName: Code[50]; Company: Text[30])
     begin
@@ -441,32 +349,6 @@ codeunit 418 "User Management"
             RenameRecordWithMultipleKeys(RecRef, TableNo, UserName, Company);
         OnAfterRenameRecord(RecRef, TableNo, NumberOfPrimaryKeyFields, UserName, Company);
     end;
-
-#if not CLEAN26
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::User, OnValidateUserNameOnAfterCalcCheckForWindowsUserName, '', false, false)]
-    local procedure ReRaiseOnValidateUserNameOnAfterCalcCheckForWindowsUserName(NewUser: Record User; WindowsUserName: Text; var CheckForWindowsUserName: Boolean)
-    begin
-        OnValidateUserNameOnAfterCalcCheckForWindowsUserName(NewUser, WindowsUserName, CheckForWindowsUserName);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::User, OnAfterRenameUser, '', false, false)]
-    local procedure ReRaiseOnAfterRenameUser(OldUserName: Code[50]; NewUserName: Code[50])
-    begin
-        OnAfterRenameUser(OldUserName, NewUserName);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::User, OnBeforeRenameUser, '', false, false)]
-    local procedure ReRaiseOnBeforeRenameUser(OldUserName: Code[50]; NewUserName: Code[50])
-    begin
-        OnBeforeRenameUser(OldUserName, NewUserName);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::User, OnRenameUserOnBeforeProcessField, '', false, false)]
-    local procedure ReRaiseOnRenameUserOnBeforeProcessField(TableID: Integer; FieldID: Integer; OldUserName: Code[50]; NewUserName: Code[50]; var IsHandled: Boolean)
-    begin
-        OnRenameUserOnBeforeProcessField(TableID, FieldID, OldUserName, NewUserName, IsHandled);
-    end;
-#endif
 
     [EventSubscriber(ObjectType::Table, Database::User, 'OnBeforeModifyEvent', '', false, false)]
     local procedure OnBeforeModifyUserValidateWindowsSecurityIdOnSaaS(RunTrigger: Boolean; var Rec: Record User; var xRec: Record User)
@@ -651,30 +533,4 @@ codeunit 418 "User Management"
     procedure OnAfterRenameRecord(var RecRef: RecordRef; TableNo: Integer; NumberOfPrimaryKeyFields: Integer; UserName: Code[50]; Company: Text[30])
     begin
     end;
-
-#if not CLEAN26
-    [IntegrationEvent(false, false)]
-    [Obsolete('RenameUser has been moved to the User Codeunit', '26.0')]
-    local procedure OnAfterRenameUser(OldUserName: Code[50]; NewUserName: Code[50])
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    [Obsolete('RenameUser has been moved to the User Codeunit', '26.0')]
-    local procedure OnBeforeRenameUser(OldUserName: Code[50]; NewUserName: Code[50])
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    [Obsolete('RenameUser has been moved to the User Codeunit', '26.0')]
-    local procedure OnRenameUserOnBeforeProcessField(TableID: Integer; FieldID: Integer; OldUserName: Code[50]; NewUserName: Code[50]; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    [Obsolete('ValidateUserName has been moved to the User Codeunit', '26.0')]
-    local procedure OnValidateUserNameOnAfterCalcCheckForWindowsUserName(NewUser: Record User; WindowsUserName: Text; var CheckForWindowsUserName: Boolean)
-    begin
-    end;
-#endif
 }

@@ -466,7 +466,7 @@ codeunit 134254 "Calc. Posting Date Test"
         asserterror GenJournalTemplate.Validate("Allow Posting To DateFormula", AllowPostingToDateFormula);
 
         // [THEN] Expected error occurs
-        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', WorkDate()), CalcDate('<-2M>', WorkDate()), Format(GenJournalTemplate.RecordID(), 0, 1)));
+        Assert.ExpectedError(StrSubstNo(InvalidAllowedDateRangeErr, CalcDate('<-1M>', Today()), CalcDate('<-2M>', Today()), Format(GenJournalTemplate.RecordID(), 0, 1)));
     end;
 
     [Test]
@@ -518,6 +518,8 @@ codeunit 134254 "Calc. Posting Date Test"
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
         LibraryERM.CreateGeneralJnlLineWithBalAcc(GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Vendor, LibraryPurchase.CreateVendorNo(), GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -100);
+        GenJournalLine.Validate("Posting Date", Today());
+        GenJournalLine.Modify(true);
 
         // [WHEN] Post General Journal Line
         LibraryERM.PostGeneralJnlLine(GenJournalLine);

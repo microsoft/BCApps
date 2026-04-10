@@ -234,7 +234,7 @@ tableextension 99000829 "Mfg. Planning Component" extends "Planning Component"
             "Flushing Method"::Forward,
             "Flushing Method"::Backward:
                 exit(Location."Open Shop Floor Bin Code");
-            end;
+        end;
     end;
 
     procedure UpdateExpectedQuantityForPlanningNeeds()

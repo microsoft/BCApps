@@ -218,6 +218,11 @@ table 233 "Item Journal Batch"
         EnabledItemJournalBatchWorkflowsExist := WorkflowManagement.EnabledWorkflowExist(Database::"Item Journal Batch", WorkflowEventHandling.RunWorkflowOnSendItemJournalBatchForApprovalCode());
     end;
 
+    [IntegrationEvent(true, false)]
+    procedure OnMoveItemJournalBatch(ToRecordID: RecordId)
+    begin
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetupNewBatch(var ItemJournalBatch: Record "Item Journal Batch"; ItemJnlTemplate: Record "Item Journal Template")
     begin

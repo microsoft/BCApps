@@ -562,7 +562,7 @@ codeunit 5611 "Calculate Normal Depreciation"
             BookValue := FADeprBook."Book Value";
         end else
             BookValue := EntryAmounts[1];
-        MinusBookValue := DepreciationCalc.GetMinusBookValue(FA."No.", DeprBookCode, 0D, 0D);
+        MinusBookValue := DepreciationCalc.GetMinusBookValue(FA."No.", DeprBookCode, 0D, 0D) + DepreciationCalc.GetUnpostedBonusDepreciationForCalc(FADeprBook, 0D, 0D);
         FADeprBook.CalcFields("Depreciable Basis", "Salvage Value");
         DeprBasis := FADeprBook."Depreciable Basis";
         SalvageValue := FADeprBook."Salvage Value";
@@ -628,8 +628,6 @@ codeunit 5611 "Calculate Normal Depreciation"
     end;
 
     local procedure GetFAName(): Text[200]
-    var
-        DepreciationCalc: Codeunit "Depreciation Calculation";
     begin
         exit(DepreciationCalc.FAName(FA, DeprBookCode));
     end;

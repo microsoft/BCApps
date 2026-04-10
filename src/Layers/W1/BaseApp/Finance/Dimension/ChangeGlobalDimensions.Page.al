@@ -34,7 +34,6 @@ page 577 "Change Global Dimensions"
                     Editable = IsGlobalDimCodeEnabled;
                     StyleExpr = CurrGlobalDimCodeStyle1;
                     TableRelation = Dimension;
-                    ToolTip = 'Specifies another global dimension that you want to use. The second field on the row will show the current global dimension.';
 
                     trigger OnValidate()
                     begin
@@ -49,7 +48,6 @@ page 577 "Change Global Dimensions"
                     Editable = IsGlobalDimCodeEnabled;
                     StyleExpr = CurrGlobalDimCodeStyle2;
                     TableRelation = Dimension;
-                    ToolTip = 'Specifies another global dimension that you want to use. The second field on the row will show the current global dimension.';
 
                     trigger OnValidate()
                     begin
@@ -62,7 +60,6 @@ page 577 "Change Global Dimensions"
                 {
                     ApplicationArea = Dimensions;
                     Enabled = IsGlobalDimCodeEnabled and IsParallelProcessingAllowed;
-                    ToolTip = 'Specifies if the change will be processed by parallel background jobs.';
 
                     trigger OnValidate()
                     begin
@@ -75,7 +72,6 @@ page 577 "Change Global Dimensions"
                     Enabled = false;
                     ShowCaption = false;
                     StyleExpr = CurrGlobalDimCodeStyle1;
-                    ToolTip = 'Specifies the dimension that is currently defined as Global Dimension 1.';
                 }
                 field("Old Global Dimension 2 Code"; Rec."Old Global Dimension 2 Code")
                 {
@@ -83,7 +79,6 @@ page 577 "Change Global Dimensions"
                     Enabled = false;
                     ShowCaption = false;
                     StyleExpr = CurrGlobalDimCodeStyle2;
-                    ToolTip = 'Specifies the dimension that is currently defined as Global Dimension 2.';
                 }
                 label(Control16)
                 {

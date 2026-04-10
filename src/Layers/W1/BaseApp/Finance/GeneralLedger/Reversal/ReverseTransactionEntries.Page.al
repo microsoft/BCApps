@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -44,7 +44,6 @@ page 183 "Reverse Transaction Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the transaction that was reversed.';
                 }
                 field(EntryTypeText; GetEntryTypeText())
                 {
@@ -57,13 +56,11 @@ page 183 "Reverse Transaction Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the account number that the reversal was posted to.';
                 }
                 field("Account Name"; Rec."Account Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies erroneous postings that you want to undo by using the Reverse function.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
@@ -71,32 +68,27 @@ page 183 "Reverse Transaction Entries"
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
                 field("Posting Date"; Rec."Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
                     ClosingDates = true;
                     Editable = false;
-                    ToolTip = 'Specifies the posting date for the entry.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = DescriptionEditable;
-                    ToolTip = 'Specifies a description of the record.';
                 }
                 field("Document Type"; Rec."Document Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the document type that the entry belongs to.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the document number of the transaction that created the entry.';
                 }
                 field("Amount (LCY)"; Rec."Amount (LCY)")
                 {
@@ -108,7 +100,6 @@ page 183 "Reverse Transaction Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount of VAT that is included in the total amount.';
                 }
                 field("Debit Amount (LCY)"; Rec."Debit Amount (LCY)")
                 {
@@ -128,84 +119,71 @@ page 183 "Reverse Transaction Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the general ledger register, where the general ledger entry in this record was posted.';
                     Visible = false;
                 }
                 field("Source Code"; Rec."Source Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the source code that specifies where the entry was created.';
                     Visible = false;
                 }
                 field("Journal Batch Name"; Rec."Journal Batch Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the journal batch, a personalized journal layout, that the entries were posted from.';
                 }
                 field("Source Type"; Rec."Source Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the source type that applies to the source number that is shown in the Source No. field.';
                 }
                 field("Source No."; Rec."Source No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies where the entry originated.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the currency code for the amount on the line.';
                 }
                 field("Bal. Account Type"; Rec."Bal. Account Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
                 }
                 field("Bal. Account No."; Rec."Bal. Account No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the amount on the entry to be reversed.';
                     Visible = false;
                 }
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                     Visible = false;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                     Visible = false;
                 }
                 field("FA Posting Category"; Rec."FA Posting Category")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the posting category that is used for fixed assets.';
                 }
                 field("FA Posting Type"; Rec."FA Posting Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the posting type, if Account Type field contains Fixed Asset.';
                 }
             }
         }

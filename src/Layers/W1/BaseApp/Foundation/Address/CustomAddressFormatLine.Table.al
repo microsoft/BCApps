@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,11 +28,13 @@ table 726 "Custom Address Format Line"
         field(4; Separator; Text[10])
         {
             Caption = 'Separator';
+            ToolTip = 'Specifies separator symbol.';
             DataClassification = SystemMetadata;
         }
         field(5; "Field ID"; Integer)
         {
             Caption = 'Field ID';
+            ToolTip = 'Specifies reference field ID.';
             DataClassification = SystemMetadata;
             TableRelation = Field."No." where(TableNo = const(79),
                                                "No." = filter(2 | 3 | 4 | 5 | 6 | 30 | 31 | 36 | 51));
@@ -50,6 +52,7 @@ table 726 "Custom Address Format Line"
         field(6; "Field Name"; Text[30])
         {
             Caption = 'Field Name';
+            ToolTip = 'Specifies reference address field name.';
             DataClassification = SystemMetadata;
         }
         field(7; "Line No."; Integer)

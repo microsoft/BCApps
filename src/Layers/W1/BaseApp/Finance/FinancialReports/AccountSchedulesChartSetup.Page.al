@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ page 763 "Account Schedules Chart Setup"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the specific chart.';
 
                     trigger OnValidate()
                     begin
@@ -38,13 +37,11 @@ page 763 "Account Schedules Chart Setup"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the description of the specific chart.';
                 }
                 field("Account Schedule Name"; Rec."Account Schedule Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Row Definition';
-                    ToolTip = 'Specifies the name of the row definition that is used to generate the chart that is shown in the Finance Performance window.';
 
                     trigger OnValidate()
                     begin
@@ -57,7 +54,6 @@ page 763 "Account Schedules Chart Setup"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Column Definition';
-                    ToolTip = 'Specifies the name of the column layout in the account schedule that is used to generate the advanced chart that is shown in the Finance Performance window.';
 
                     trigger OnValidate()
                     begin
@@ -69,7 +65,6 @@ page 763 "Account Schedules Chart Setup"
                 field("Base X-Axis on"; Rec."Base X-Axis on")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how the values from the selected account schedule are displayed in the specific chart.';
 
                     trigger OnValidate()
                     begin
@@ -90,18 +85,15 @@ page 763 "Account Schedules Chart Setup"
                     {
                         ApplicationArea = Basic, Suite;
                         Editable = IsEndDateEnabled;
-                        ToolTip = 'Specifies the last date on which financial report values are included in the chart.';
                     }
                     field("Period Length"; Rec."Period Length")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the length of periods in the chart.';
                     }
                     field("No. of Periods"; Rec."No. of Periods")
                     {
                         ApplicationArea = Basic, Suite;
                         Enabled = IsNoOfPeriodsEnabled;
-                        ToolTip = 'Specifies how many periods are shown in the chart.';
                     }
                 }
             }

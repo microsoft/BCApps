@@ -2990,6 +2990,94 @@ codeunit 137271 "SCM Reservation IV"
         Assert.ExpectedError(ReserveMustBeNeverErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesPageHandler,ReservationPageHandler,ItemTrackingListPageHandler,ConfirmHandlerYes')]
+    [Scope('OnPrem')]
+    procedure ReservationNotDoubledAfterPartialPickRegisteredWithPriorLotReservation()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        LotNo: Code[50];
+        SalesQty: Decimal;
+        TrackedQty: Decimal;
+    begin
+        // [FEATURE] [Item Tracking] [Warehouse Pick] [Reservation]
+        // [SCENARIO 564481] Reserved quantity on the sales line must not be doubled when a partial warehouse pick is registered for a sales line that already carries an explicit lot reservation.
+        Initialize();
+
+        SalesQty := 10;
+        TrackedQty := 2;
+
+        // [GIVEN] Item tracking code with "Lot Warehouse Tracking" enabled.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", true);
+        ItemTrackingCode.Modify(true);
+
+        // [GIVEN] Lot-tracked item with a lot no. series
+        LibraryInventory.CreateTrackedItem(Item, LibraryUtility.GetGlobalNoSeriesCode(), '', ItemTrackingCode.Code);
+
+        // [GIVEN] Full WMS location
+        CreateWarehouseLocation(Location);
+
+        // [GIVEN] Purchase SalesQty units, assign lot, post warehouse receipt and register put-away
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        CreatePurchaseLine(PurchaseLine, PurchaseHeader, Item."No.", Location.Code, SalesQty, PurchaseLine.Type::Item);
+        LibraryVariableStorage.Enqueue(TrackingOption::AssignLot);
+        PurchaseLine.OpenItemTrackingLines();
+        LotNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(LotNo));
+        CreateAndPostWhseReceipt(PurchaseLine);
+        RegisterWarehouseActivity(
+          PurchaseLine."Document No.", WarehouseActivityHeader.Type::"Put-away", Location.Code,
+          WarehouseActivityLine."Action Type"::Place);
+
+        // [GIVEN] Sales order for SalesQty units at the WMS location
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CreateCustomer());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", SalesQty);
+        SalesLine.Validate("Location Code", Location.Code);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Partially track only TrackedQty units with the known lot on the sales line
+        LibraryVariableStorage.Enqueue(TrackingOption::AssignGivenLotNo);
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(TrackedQty);
+        SalesLine.OpenItemTrackingLines();
+
+        // [GIVEN] Reserve TrackedQty units explicitly from the sales line
+        LibraryVariableStorage.Enqueue(ReservationOption::ReserveFromCurrentLine);
+        SalesLine.ShowReservation();
+
+        // [GIVEN] Release the sales order and create warehouse shipment + pick
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+        CreatePick(Location.Code, SalesHeader."No.");
+
+        // [GIVEN] Delete pick lines without a lot no. (the untracked portion of the order)
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        WarehouseActivityLine.SetRange("Source No.", SalesHeader."No.");
+        WarehouseActivityLine.SetRange("Lot No.", '');
+        WarehouseActivityLine.DeleteAll(true);
+
+        // [WHEN] Register the remaining pick (TrackedQty units with lot)
+        RegisterWarehouseActivity(
+          SalesHeader."No.", WarehouseActivityLine."Activity Type"::Pick,
+          Location.Code, WarehouseActivityLine."Action Type"::Place);
+
+        // [THEN] Reserved quantity on the sales line equals TrackedQty, not doubled to 2 * TrackedQty
+        SalesLine.Find();
+        SalesLine.CalcFields("Reserved Quantity");
+        Assert.AreEqual(
+          TrackedQty, SalesLine."Reserved Quantity",
+          'Reserved Quantity must not be doubled after registering a partial warehouse pick');
+
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
     local procedure Initialize()
     var
         InventorySetup: Record "Inventory Setup";
@@ -4103,6 +4191,13 @@ codeunit 137271 "SCM Reservation IV"
         LibraryVariableStorage.Dequeue(ExpectedMessage);
         Assert.IsTrue(StrPos(ConfirmMessage, ExpectedMessage) > 0, ConfirmMessage);
         Reply := false;
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmHandlerYes(ConfirmMessage: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 
     [ConfirmHandler]

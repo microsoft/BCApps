@@ -941,6 +941,7 @@ codeunit 147559 "SII Complex Rules"
         SIIXMLCreator: Codeunit "SII XML Creator";
         XMLDoc: DotNet XmlDocument;
     begin
+        // [FEATURE] [AI TEST]
         // [FEATURE] [Sales]
         // [SCENARIO] The "ImporteTotal" xml node exists for F2 invoice with zero base amount even when "Include ImporteTotal" is disabled.
 
@@ -976,6 +977,7 @@ codeunit 147559 "SII Complex Rules"
         SIIXMLCreator: Codeunit "SII XML Creator";
         XMLDoc: DotNet XmlDocument;
     begin
+        // [FEATURE] [AI TEST]
         // [FEATURE] [Purchase]
         // [SCENARIO] The "ImporteTotal" xml node exists for F2 invoice with zero base amount even when "Include ImporteTotal" is disabled.
 

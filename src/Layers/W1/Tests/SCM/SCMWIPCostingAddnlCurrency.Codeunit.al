@@ -21,7 +21,7 @@ codeunit 137002 "SCM WIP Costing Addnl Currency"
         isInitialized: Boolean;
 
     [Test]
-    [HandlerFunctions('AdjustAddnlCurrConfirmHandler,AdjustAddnlCurrReportHandler')]
+    [HandlerFunctions('AdjustAddnlCurrReportHandler')]
     [Scope('OnPrem')]
     procedure WIPAddnlReportingCurrency()
     var
@@ -181,16 +181,19 @@ codeunit 137002 "SCM WIP Costing Addnl Currency"
     [Normal]
     local procedure UpdateAddnlReportingCurrency(var CurrencyExchangeRate: Record "Currency Exchange Rate"; var Currency: Record Currency)
     var
-        GeneralLedgerSetup: TestPage "General Ledger Setup";
+        GLSetup: Record "General Ledger Setup";
     begin
         // Set Residual Gains Account and Residual Losses Account for Currency.
         UpdateResidualAccountsCurrency(CurrencyExchangeRate, Currency);
         Commit();
 
         // Update Additional Reporting Currency on G/L setup to execute Adjust Additional Reporting Currency report.
-        GeneralLedgerSetup.OpenEdit();
-        GeneralLedgerSetup."Additional Reporting Currency".SetValue(Currency.Code);
-        GeneralLedgerSetup.OK().Invoke();
+        GLSetup.Get();
+        GLSetup.Validate("Journal Templ. Name Mandatory", false);
+        GLSetup.Modify();
+        Commit();
+        GLSetup.Validate("Additional Reporting Currency", Currency.code);
+        GLSetup.Modify();
     end;
 
     [Normal]

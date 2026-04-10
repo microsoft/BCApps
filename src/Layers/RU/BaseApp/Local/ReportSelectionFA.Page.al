@@ -1,11 +1,13 @@
 #pragma warning disable AA0247
 page 12484 "Report Selection - FA"
 {
+    AboutTitle = 'About report selection for fixed assets';
+    AboutText = 'On this page, you set up the default reports that are used when printing fixed asset documents such as writeoffs, releases, and movements. Use the Usage field to select the type of document, then specify which reports to use in the list below.';
     Caption = 'Report Selection - Fixed Asset';
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Report Selections";
-    UsageCategory = Tasks;
+    UsageCategory = Administration;
 
     layout
     {
@@ -29,6 +31,7 @@ page 12484 "Report Selection - FA"
                 field(Sequence; Rec.Sequence)
                 {
                     ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies a number that indicates where this report is in the printing order.';
                 }
                 field("Report ID"; Rec."Report ID")
                 {

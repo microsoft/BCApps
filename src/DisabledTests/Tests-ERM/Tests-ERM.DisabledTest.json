@@ -4302,6 +4302,16 @@
   {
     "codeunitId": 134254,
     "codeunitName": "Calc. Posting Date Test",
+    "method": "GeneralJournalNotAllowedPostingDateThroughDateFormula"
+  },
+  {
+    "codeunitId": 134254,
+    "codeunitName": "Calc. Posting Date Test",
+    "method": "ReceivePurchaseOrderNotAllowedPostingDateThroughDateFormula"
+  },
+  {
+    "codeunitId": 134254,
+    "codeunitName": "Calc. Posting Date Test",
     "method": "ShipSalesOrderNotAllowedPostingDateThroughDateFormula"
   },
   {
@@ -18163,5 +18173,130 @@
     "codeunitId": 139444,
     "codeunitName": "Test Manual Release",
     "method": "PerformManualReleaseSales"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "AverageDailyBalanceFinanceChargeMemoLineError"
+  },
+  {
+    "codeunitId": 134071,
+    "codeunitName": "Test Suppress Commit in Post",
+    "method": "TestPostSalesDocumentSuppressCommitWithDateOrder"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "AverageDailyBalanceReminderLineError"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "AverageDailyBalanceFinanceChargeMemoLine"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "BalanceDueReminderLineError"
+  },
+  {
+    "codeunitId": 134987,
+    "codeunitName": "ERM Financial Reports III",
+    "method": "AmountTextOnCheckPreviewWithCurrency"
+  },
+  {
+    "codeunitId": 134385,
+    "codeunitName": "ERM Sales Document",
+    "method": "PrintSendDocumentsWithRemovedSalesPersonPurchaserCodesIsNotPossible"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "OnRunTypeCustomerLedgerEntryReminderIssue"
+  },
+  {
+    "codeunitId": 134987,
+    "codeunitName": "ERM Financial Reports III",
+    "method": "AmountTextOnCheckPreview"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "BalanceDueFinanceChargeMemoLine"
+  },
+  {
+    "codeunitId": 134396,
+    "codeunitName": "ERM Sales Invoice Aggregate UT",
+    "method": "SalesInvoiceStatisticShowsCorrectQuantityWithSalesLineInvoiceRoundingGL"
+  },
+  {
+    "codeunitId": 134911,
+    "codeunitName": "ERM Create Finance Charge Memo",
+    "method": "FinChrgMemoClosedEntryNrOfDaysUsesClosedAtDate"
+  },
+  {
+    "codeunitId": 134831,
+    "codeunitName": "Alloc. Acc. Purch. E2E Tests",
+    "method": "TestInheritFromParentRoundingDistributesCorrectly"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "OnRunTypeCustomerLedgerEntryFinChrgMemoIssue"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "MakeReminderWithoutReminderTermsCodeOnHeaderAndCustomer"
+  },
+  {
+    "codeunitId": 134391,
+    "codeunitName": "ERM Sales Batch Posting",
+    "method": "PmtDiscCalculatedOnSalesOrderWhenNoCustInvDisc"
+  },
+  {
+    "codeunitId": 132522,
+    "codeunitName": "Sales-Calc. Discount Test",
+    "method": "InvDiscRecalcOnSellToCustChangeExistingRecord"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "BalanceDueFinanceChargeMemoLineError"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "OnValidateInterestRateFinanceChargeMemoLine"
+  },
+  {
+    "codeunitId": 134332,
+    "codeunitName": "ERM Copy Purch/Sales Doc",
+    "method": "CopySalesOrderToQuoteClearsPromisedDeliveryDate"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "MakeReminderWithoutReminderTermsCodeOnHeader"
+  },
+  {
+    "codeunitId": 132523,
+    "codeunitName": "Discount Setup Notifications",
+    "method": "NotifyAboutMissingSalesSetupRespectsProductPostingGroupOnServiceLine"
+  },
+  {
+    "codeunitId": 132523,
+    "codeunitName": "Discount Setup Notifications",
+    "method": "NotifyAboutMissingPurchaseSetupRespectsProductPostingGroup"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "MakeReminderWithoutReminderTermsCodeOnCustomer"
+  },
+  {
+    "codeunitId": 134929,
+    "codeunitName": "ERM MIR Test",
+    "method": "MakeReminder"
   }
 ]

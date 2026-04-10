@@ -42,6 +42,7 @@ table 737 "VAT Return Period"
         field(4; "Start Date"; Date)
         {
             Caption = 'Start Date';
+            ToolTip = 'Specifies the start date of the VAT return period.';
         }
         /// <summary>
         /// Ending date of the VAT return period for transaction inclusion.
@@ -49,6 +50,7 @@ table 737 "VAT Return Period"
         field(5; "End Date"; Date)
         {
             Caption = 'End Date';
+            ToolTip = 'Specifies the end date of the VAT return period.';
         }
         /// <summary>
         /// Due date for submitting the VAT return to tax authorities.
@@ -56,6 +58,7 @@ table 737 "VAT Return Period"
         field(6; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the due date for the VAT return period.';
         }
         /// <summary>
         /// Current status of the VAT return period indicating processing stage.
@@ -63,6 +66,7 @@ table 737 "VAT Return Period"
         field(7; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies the status of the VAT return period.';
             OptionCaption = 'Open,Closed';
             OptionMembers = Open,Closed;
         }
@@ -72,6 +76,7 @@ table 737 "VAT Return Period"
         field(8; "Received Date"; Date)
         {
             Caption = 'Received Date';
+            ToolTip = 'Specifies the VAT return period received date.';
         }
         /// <summary>
         /// Number of the associated VAT return document created for this period.
@@ -79,6 +84,7 @@ table 737 "VAT Return Period"
         field(20; "VAT Return No."; Code[20])
         {
             Caption = 'VAT Return No.';
+            ToolTip = 'Specifies the number of the associated VAT return.';
             Editable = false;
         }
         /// <summary>

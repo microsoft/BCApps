@@ -3342,6 +3342,7 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
         ItemCategory: Record "Item Category";
         ItemCategoryCard: TestPage "Item Category Card";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 593897] Blank Option attribute values should not create in Item Attribute Value Mapping.
         Initialize();
 
@@ -3377,6 +3378,7 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
         ItemCategory: Record "Item Category";
         ItemCategoryCard: TestPage "Item Category Card";
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 593897] Item Attribute Value Mapping should be created when user fills in Option attribute with actual value.
         Initialize();
 

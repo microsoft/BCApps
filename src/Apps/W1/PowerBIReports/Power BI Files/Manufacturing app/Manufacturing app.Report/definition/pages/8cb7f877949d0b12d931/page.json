@@ -8,7 +8,72 @@
   "filterConfig": {
     "filters": [
       {
+        "name": "13183ffb98a18a406e06",
+        "ordinal": 0,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Date"
+              }
+            },
+            "Property": "Date"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "b667b00b24bd9e58c90b",
+        "ordinal": 1,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Global Dimension 1"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "6a142f73bde2b12045c1",
+        "ordinal": 2,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Dimension Sets"
+              }
+            },
+            "Property": "Global Dimension 2"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "1decf6106c29c902912c",
+        "ordinal": 3,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Production Orders"
+              }
+            },
+            "Property": "Prod Order Source No."
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
         "name": "f100540f05a53c3e0633",
+        "ordinal": 4,
         "field": {
           "Column": {
             "Expression": {
@@ -83,22 +148,8 @@
         }
       },
       {
-        "name": "13183ffb98a18a406e06",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Date"
-              }
-            },
-            "Property": "Date"
-          }
-        },
-        "type": "Categorical",
-        "howCreated": "User"
-      },
-      {
         "name": "86fb10445e4321a6d345",
+        "ordinal": 5,
         "field": {
           "Column": {
             "Expression": {
@@ -113,52 +164,8 @@
         "howCreated": "User"
       },
       {
-        "name": "1decf6106c29c902912c",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Production Orders"
-              }
-            },
-            "Property": "Prod Order Source No."
-          }
-        },
-        "type": "Categorical",
-        "howCreated": "User"
-      },
-      {
-        "name": "b667b00b24bd9e58c90b",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Dimension Sets"
-              }
-            },
-            "Property": "Global Dimension 1"
-          }
-        },
-        "type": "Categorical",
-        "howCreated": "User"
-      },
-      {
-        "name": "6a142f73bde2b12045c1",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Dimension Sets"
-              }
-            },
-            "Property": "Global Dimension 2"
-          }
-        },
-        "type": "Categorical",
-        "howCreated": "User"
-      },
-      {
         "name": "93a1b4298d88696d46d5",
+        "ordinal": 6,
         "field": {
           "Column": {
             "Expression": {
@@ -174,6 +181,7 @@
       },
       {
         "name": "c8cdc9d31b269b5199ad",
+        "ordinal": 7,
         "field": {
           "Column": {
             "Expression": {
@@ -189,6 +197,7 @@
       },
       {
         "name": "520e0941638bd07bc00b",
+        "ordinal": 8,
         "field": {
           "Column": {
             "Expression": {
@@ -204,6 +213,7 @@
       },
       {
         "name": "e65a264270633e5d6a8b",
+        "ordinal": 9,
         "field": {
           "Column": {
             "Expression": {
@@ -219,6 +229,7 @@
       },
       {
         "name": "a28eae1daa75aec80039",
+        "ordinal": 10,
         "field": {
           "Column": {
             "Expression": {
@@ -234,6 +245,7 @@
       },
       {
         "name": "95340fe717719464ac03",
+        "ordinal": 11,
         "field": {
           "Column": {
             "Expression": {
@@ -246,7 +258,24 @@
         },
         "type": "Categorical",
         "howCreated": "User"
+      },
+      {
+        "name": "3b75eec2d09a0448d98e",
+        "ordinal": 12,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Work Center"
+              }
+            },
+            "Property": "Subcontracting"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
       }
-    ]
+    ],
+    "filterSortOrder": "Custom"
   }
 }

@@ -18,11 +18,10 @@ using Microsoft.Foundation.Address;
 /// </remarks>
 report 1405 "Bank Account - Labels"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Bank/Reports/BankAccountLabels.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Account - Labels';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -240,6 +239,16 @@ report 1405 "Bank Account - Labels"
         trigger OnOpenPage()
         begin
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Bank/Reports/BankAccountLabels.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

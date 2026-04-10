@@ -19,11 +19,10 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 /// </remarks>
 report 1403 "Bank Account Register"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Bank/Reports/BankAccountRegister.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Account Register';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -195,6 +194,16 @@ report 1403 "Bank Account Register"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Bank/Reports/BankAccountRegister.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

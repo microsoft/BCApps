@@ -217,7 +217,7 @@ codeunit 99000813 "Carry Out Action"
                 OnCarryOutToReqWkshOnAfterPlanningCompInsert(PlanningComponent2, PlanningComponent);
             until PlanningComponent.Next() = 0;
 
-        OnAfterCarryOutToReqWksh(RequisitionLine2, RequisitionLine, ReqWkshTempName, ReqJournalName, LineNo);
+        OnAfterCarryOutToReqWksh(RequisitionLine, RequisitionLine2, ReqWkshTempName, ReqJournalName, LineNo);
     end;
 
     procedure GetTransferOrdersToPrint(var TransferHeader: Record "Transfer Header")

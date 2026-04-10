@@ -311,12 +311,14 @@ report 99000792 "Work/Machine Center Load"
             Type = Word;
             LayoutFile = './Manufacturing/Reports/WorkMachineCenterLoad.docx';
             Caption = 'Work/Machine Center Load (Word)';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
         layout(WorkMachineCenterLoadExcel)
         {
             Type = Excel;
             LayoutFile = './Manufacturing/Reports/WorkMachineCenterLoad.xlsx';
             Caption = 'Work/Machine Center Load (Excel)';
+            Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
     }
 

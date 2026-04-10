@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -44,6 +44,7 @@ table 80 "Gen. Journal Template"
         field(1; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the journal template you are creating.';
             NotBlank = true;
         }
         /// <summary>
@@ -52,6 +53,7 @@ table 80 "Gen. Journal Template"
         field(2; Description; Text[80])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a brief description of the journal template you are creating.';
         }
         /// <summary>
         /// Report ID used for testing journal lines before posting to validate transactions.
@@ -59,6 +61,7 @@ table 80 "Gen. Journal Template"
         field(5; "Test Report ID"; Integer)
         {
             Caption = 'Test Report ID';
+            ToolTip = 'Specifies the test report that is printed when you click Test Report.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Report));
         }
         /// <summary>
@@ -67,6 +70,7 @@ table 80 "Gen. Journal Template"
         field(6; "Page ID"; Integer)
         {
             Caption = 'Page ID';
+            ToolTip = 'Specifies the number of the page that is used to show the journal or worksheet that uses the template.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Page));
 
             trigger OnValidate()
@@ -81,6 +85,7 @@ table 80 "Gen. Journal Template"
         field(7; "Posting Report ID"; Integer)
         {
             Caption = 'Posting Report ID';
+            ToolTip = 'Specifies the posting report that is printed when you choose Post and Print.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Report));
         }
         /// <summary>
@@ -89,6 +94,7 @@ table 80 "Gen. Journal Template"
         field(8; "Force Posting Report"; Boolean)
         {
             Caption = 'Force Posting Report';
+            ToolTip = 'Specifies whether a report is printed automatically when you post.';
         }
         /// <summary>
         /// Template type that determines journal behavior and specialized functionality for different business scenarios.
@@ -96,6 +102,7 @@ table 80 "Gen. Journal Template"
         field(9; Type; Enum "Gen. Journal Template Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the journal type.';
 
             trigger OnValidate()
             begin
@@ -160,6 +167,7 @@ table 80 "Gen. Journal Template"
         field(10; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
 
             trigger OnValidate()
@@ -175,6 +183,7 @@ table 80 "Gen. Journal Template"
         field(11; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         /// <summary>
@@ -183,6 +192,7 @@ table 80 "Gen. Journal Template"
         field(12; Recurring; Boolean)
         {
             Caption = 'Recurring';
+            ToolTip = 'Specifies whether the journal template will be a recurring journal.';
 
             trigger OnValidate()
             begin
@@ -199,6 +209,7 @@ table 80 "Gen. Journal Template"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Test Report ID")));
             Caption = 'Test Report Caption';
+            ToolTip = 'Specifies the name of the test report that is printed when you print a journal under this journal template.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -210,6 +221,7 @@ table 80 "Gen. Journal Template"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Page),
                                                                            "Object ID" = field("Page ID")));
             Caption = 'Page Caption';
+            ToolTip = 'Specifies the displayed name of the journal or worksheet that uses the template.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -221,6 +233,7 @@ table 80 "Gen. Journal Template"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Posting Report ID")));
             Caption = 'Posting Report Caption';
+            ToolTip = 'Specifies the name of the report that is printed when you print the journal.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -230,6 +243,7 @@ table 80 "Gen. Journal Template"
         field(18; "Force Doc. Balance"; Boolean)
         {
             Caption = 'Force Doc. Balance';
+            ToolTip = 'Specifies whether transactions that are posted in the general journal must balance by document number and document type, in addition to balancing by date.';
             InitValue = true;
         }
         /// <summary>
@@ -238,6 +252,7 @@ table 80 "Gen. Journal Template"
         field(19; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
 
             trigger OnValidate()
             begin
@@ -250,6 +265,7 @@ table 80 "Gen. Journal Template"
         field(20; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
@@ -274,6 +290,7 @@ table 80 "Gen. Journal Template"
         field(21; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -301,6 +318,7 @@ table 80 "Gen. Journal Template"
         field(22; "Posting No. Series"; Code[20])
         {
             Caption = 'Posting No. Series';
+            ToolTip = 'Specifies the code for the number series that will be used to assign document numbers to ledger entries that are posted from journals using this template.';
             TableRelation = "No. Series";
 
             trigger OnValidate()
@@ -315,6 +333,7 @@ table 80 "Gen. Journal Template"
         field(23; "Copy VAT Setup to Jnl. Lines"; Boolean)
         {
             Caption = 'Copy VAT Setup to Jnl. Lines';
+            ToolTip = 'Specifies whether the program to calculate VAT for accounts and balancing accounts on the journal line of the selected journal template.';
             InitValue = true;
 
             trigger OnValidate()
@@ -331,6 +350,7 @@ table 80 "Gen. Journal Template"
         field(24; "Allow VAT Difference"; Boolean)
         {
             Caption = 'Allow VAT Difference';
+            ToolTip = 'Specifies whether to allow the manual adjustment of VAT amounts in journals.';
 
             trigger OnValidate()
             begin
@@ -347,6 +367,7 @@ table 80 "Gen. Journal Template"
         {
             AccessByPermission = TableData Customer = R;
             Caption = 'Cust. Receipt Report ID';
+            ToolTip = 'Specifies how to print customer receipts when you post.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Report));
         }
         /// <summary>
@@ -358,6 +379,7 @@ table 80 "Gen. Journal Template"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Cust. Receipt Report ID")));
             Caption = 'Cust. Receipt Report Caption';
+            ToolTip = 'Specifies how to print customer receipts when you post.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -368,6 +390,7 @@ table 80 "Gen. Journal Template"
         {
             AccessByPermission = TableData Vendor = R;
             Caption = 'Vendor Receipt Report ID';
+            ToolTip = 'Specifies how to print vendor receipts when you post.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Report));
         }
         /// <summary>
@@ -379,6 +402,7 @@ table 80 "Gen. Journal Template"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Vendor Receipt Report ID")));
             Caption = 'Vendor Receipt Report Caption';
+            ToolTip = 'Specifies how to print vendor receipts when you post.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -388,6 +412,7 @@ table 80 "Gen. Journal Template"
         field(30; "Increment Batch Name"; Boolean)
         {
             Caption = 'Increment Batch Name';
+            ToolTip = 'Specifies if batch names using this template are automatically incremented. Example: The posting following BATCH001 is automatically named BATCH002.';
         }
         /// <summary>
         /// Creates copies of posted journal lines in the Posted General Journal Line table for audit history.
@@ -395,6 +420,7 @@ table 80 "Gen. Journal Template"
         field(31; "Copy to Posted Jnl. Lines"; Boolean)
         {
             Caption = 'Copy to Posted Jnl. Lines';
+            ToolTip = 'Specifies whether the journal lines to be copied to posted journal lines of the selected journal template.';
 
             trigger OnValidate()
             begin
@@ -411,6 +437,7 @@ table 80 "Gen. Journal Template"
         field(32; "Allow Posting Date From"; Date)
         {
             Caption = 'Allow Posting Date From';
+            ToolTip = 'Specifies the earliest date when posting to the journal template is allowed.';
 
             trigger OnValidate()
             begin
@@ -428,6 +455,7 @@ table 80 "Gen. Journal Template"
         field(33; "Allow Posting Date To"; Date)
         {
             Caption = 'Allow Posting Date To';
+            ToolTip = 'Specifies the last date when posting to the journal template is allowed.';
 
             trigger OnValidate()
             begin
@@ -445,6 +473,7 @@ table 80 "Gen. Journal Template"
         field(34; "Unlink Inc. Doc On Posting"; Boolean)
         {
             Caption = 'Unlink Incoming Documents On Posting';
+            ToolTip = 'Specifies whether the the incoming document will be unlinked from the journal when it is posted.';
 
             trigger OnValidate()
             begin
@@ -454,7 +483,7 @@ table 80 "Gen. Journal Template"
         }
         field(35; "Allow Posting From DateFormula"; DateFormula)
         {
-            Caption = 'Allow Posting From DateFormula';
+            Caption = 'Allow Posting From Date Formula';
 
             trigger OnValidate()
             begin
@@ -468,7 +497,7 @@ table 80 "Gen. Journal Template"
         }
         field(36; "Allow Posting To DateFormula"; DateFormula)
         {
-            Caption = 'Allow Posting To DateFormula';
+            Caption = 'Allow Posting To Date Formula';
 
             trigger OnValidate()
             begin

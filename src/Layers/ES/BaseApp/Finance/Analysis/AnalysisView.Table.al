@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ table 363 "Analysis View"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for this entry.';
             NotBlank = true;
         }
         /// <summary>
@@ -48,6 +49,7 @@ table 363 "Analysis View"
         field(2; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name.';
         }
         /// <summary>
         /// Source of accounts to include in the analysis view (G/L Account or Cash Flow Account).
@@ -55,6 +57,7 @@ table 363 "Analysis View"
         field(3; "Account Source"; Enum "Analysis Account Source")
         {
             Caption = 'Account Source';
+            ToolTip = 'Specifies an account that you can use as a filter to define what is displayed in the Analysis by Dimensions window.';
 
             trigger OnValidate()
             begin
@@ -72,6 +75,7 @@ table 363 "Analysis View"
         field(4; "Last Entry No."; Integer)
         {
             Caption = 'Last Entry No.';
+            ToolTip = 'Specifies the number of the last general ledger entry you posted, prior to updating the analysis view.';
         }
         /// <summary>
         /// Last budget entry number processed during analysis view update.
@@ -79,6 +83,7 @@ table 363 "Analysis View"
         field(5; "Last Budget Entry No."; Integer)
         {
             Caption = 'Last Budget Entry No.';
+            ToolTip = 'Specifies the number of the last item budget entry you entered prior to updating the analysis view.';
         }
         /// <summary>
         /// Date when the analysis view was last updated with transaction data.
@@ -86,6 +91,7 @@ table 363 "Analysis View"
         field(6; "Last Date Updated"; Date)
         {
             Caption = 'Last Date Updated';
+            ToolTip = 'Specifies the date on which the analysis view was last updated.';
         }
         /// <summary>
         /// Specifies whether the analysis view should be updated automatically when transactions are posted.
@@ -93,6 +99,7 @@ table 363 "Analysis View"
         field(7; "Update on Posting"; Boolean)
         {
             Caption = 'Update on Posting';
+            ToolTip = 'Specifies if the analysis view is updated every time that you post a general ledger entry.';
             Editable = false;
 
             trigger OnValidate()
@@ -106,6 +113,7 @@ table 363 "Analysis View"
         field(8; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
 
             trigger OnValidate()
             var
@@ -129,6 +137,7 @@ table 363 "Analysis View"
         field(9; "Account Filter"; Text[250])
         {
             Caption = 'Account Filter';
+            ToolTip = 'Specifies which accounts are shown in the analysis view.';
             TableRelation = if ("Account Source" = const("G/L Account")) "G/L Account"
             else
             if ("Account Source" = const("Cash Flow Account")) "Cash Flow Account";
@@ -304,6 +313,7 @@ table 363 "Analysis View"
         field(11; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the starting date of the campaign analysis.';
 
             trigger OnValidate()
             var
@@ -327,6 +337,7 @@ table 363 "Analysis View"
         field(12; "Date Compression"; Option)
         {
             Caption = 'Date Compression';
+            ToolTip = 'Specifies the period that the program will combine entries for, in order to create a single entry for that time period.';
             InitValue = Day;
             OptionCaption = 'None,Day,Week,Month,Quarter,Year,Period';
             OptionMembers = "None",Day,Week,Month,Quarter,Year,Period;
@@ -353,6 +364,7 @@ table 363 "Analysis View"
         field(13; "Dimension 1 Code"; Code[20])
         {
             Caption = 'Dimension 1 Code';
+            ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
             TableRelation = Dimension;
 
             trigger OnValidate()
@@ -374,6 +386,7 @@ table 363 "Analysis View"
         field(14; "Dimension 2 Code"; Code[20])
         {
             Caption = 'Dimension 2 Code';
+            ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
             TableRelation = Dimension;
 
             trigger OnValidate()
@@ -395,6 +408,7 @@ table 363 "Analysis View"
         field(15; "Dimension 3 Code"; Code[20])
         {
             Caption = 'Dimension 3 Code';
+            ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
             TableRelation = Dimension;
 
             trigger OnValidate()
@@ -416,6 +430,7 @@ table 363 "Analysis View"
         field(16; "Dimension 4 Code"; Code[20])
         {
             Caption = 'Dimension 4 Code';
+            ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
             TableRelation = Dimension;
 
             trigger OnValidate()
@@ -438,6 +453,7 @@ table 363 "Analysis View"
         {
             AccessByPermission = TableData "G/L Budget Name" = R;
             Caption = 'Include Budgets';
+            ToolTip = 'Specifies whether to include an update of analysis view budget entries, when updating an analysis view.';
 
             trigger OnValidate()
             var

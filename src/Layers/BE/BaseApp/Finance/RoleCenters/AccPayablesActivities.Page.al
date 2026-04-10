@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,18 +34,15 @@ page 9032 "Acc. Payables Activities"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDownPageID = "Vendor List";
-                    ToolTip = 'Specifies the number of vendor to whom your payment is on hold.';
                 }
                 field("Purchase Return Orders"; Rec."Purchase Return Orders")
                 {
                     ApplicationArea = PurchReturnOrder;
                     DrillDownPageID = "Purchase Return Order List";
-                    ToolTip = 'Specifies the number of purchase return orders that are displayed in the Finance Cue on the Role Center. The documents are filtered by today''s date.';
                 }
                 field("Outstanding Vendor Invoices"; Rec."Outstanding Vendor Invoices")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of invoices from your vendors that have not been paid yet.';
                 }
 
                 actions
@@ -81,13 +78,11 @@ page 9032 "Acc. Payables Activities"
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies the number of purchase orders that are pending approval.';
                 }
                 field("Approved Purchase Orders"; Rec."Approved Purchase Orders")
                 {
                     ApplicationArea = Suite;
                     DrillDownPageID = "Purchase Order List";
-                    ToolTip = 'Specifies the number of approved purchase orders.';
                 }
             }
         }

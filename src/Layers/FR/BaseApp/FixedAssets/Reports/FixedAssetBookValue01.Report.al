@@ -11,12 +11,11 @@ using Microsoft.FixedAssets.Setup;
 
 report 5605 "Fixed Asset - Book Value 01"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Reports/FixedAssetBookValue01.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Book Value 01';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -496,6 +495,16 @@ report 5605 "Fixed Asset - Book Value 01"
         begin
             GetDepreciationBookCode();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Reports/FixedAssetBookValue01.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

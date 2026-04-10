@@ -48,8 +48,10 @@ codeunit 10616 "E-Invoice Check Sales Cr. Memo"
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         SalesReceivablesSetup.Get();
+#if not CLEAN29
         SalesReceivablesSetup."E-Invoice Sales Cr. Memo Path" := DelChr(SalesReceivablesSetup."E-Invoice Sales Cr. Memo Path", '>', '\');
         SalesReceivablesSetup.TestField("E-Invoice Sales Cr. Memo Path");
+#endif
     end;
 }
 

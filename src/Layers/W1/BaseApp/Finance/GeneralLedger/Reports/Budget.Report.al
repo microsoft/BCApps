@@ -20,12 +20,11 @@ using System.Utilities;
 /// </remarks>
 report 8 Budget
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/GeneralLedger/Reports/Budget.rdlc';
     ApplicationArea = Suite;
     Caption = 'Budget';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -301,6 +300,16 @@ report 8 Budget
             if Format(PeriodLength) = '' then
                 Evaluate(PeriodLength, '<1M>');
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/GeneralLedger/Reports/Budget.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

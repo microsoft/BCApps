@@ -25,12 +25,10 @@ page 745 "VAT Report Error Log"
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                 }
                 field("Error Message"; Rec."Error Message")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the error message that is the result of validating a VAT report.';
                 }
             }
         }

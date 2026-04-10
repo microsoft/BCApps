@@ -8,7 +8,9 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
+#if not CLEAN29
 using Microsoft.EServices.EDocument;
+#endif
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Payables;
@@ -166,6 +168,8 @@ codeunit 10601 DocumentTools
             Error(KIDSetupErr, SRSetup1."KID Setup", SRSetup2."KID Setup");
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     procedure GetEInvoiceExportPaymentID(EInvoiceExportHeader: Record "E-Invoice Export Header"): Code[30]
     var
         GiroKID: Text[25];
@@ -176,6 +180,7 @@ codeunit 10601 DocumentTools
             exit(EInvoiceExportHeader."No.");
         exit(GiroKID);
     end;
+#endif
 
     procedure GetEInvoicePEPPOLPaymentID(SalesHeader: Record "Sales Header"): Code[30]
     begin

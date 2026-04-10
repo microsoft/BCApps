@@ -11,10 +11,9 @@ using System.Utilities;
 
 report 5751 "Put-away List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Warehouse/Reports/PutawayList.rdlc';
     Caption = 'Put-away List';
     WordMergeDataItem = "Warehouse Activity Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -329,6 +328,16 @@ report 5751 "Put-away List"
                 SumUpLinesEditable := false;
             end;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Warehouse/Reports/PutawayList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

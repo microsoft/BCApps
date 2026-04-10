@@ -93,6 +93,7 @@ codeunit 5763 "Whse.-Post Shipment"
         OnBeforeCheckWhseShptLines(WhseShptLine, WhseShptHeader, WhsePostParameters."Post Invoice", WhsePostParameters."Suppress Commit", IsHandled, WhsePostParameters."Preview Posting");
         if IsHandled then
             exit;
+
         WhseShptLine.SetFilter("Qty. to Ship", '>0');
         OnRunOnAfterWhseShptLineSetFilters(WhseShptLine);
         if WhseShptLine.Find('-') then

@@ -32,7 +32,6 @@ page 742 "VAT Report Statement Subform"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the VAT report statement.';
                 }
                 field("Box No."; Rec."Box No.")
                 {
@@ -49,14 +48,12 @@ page 742 "VAT Report Statement Subform"
                 field(Base; Rec.Base)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount that the VAT amount in the amount is calculated from.';
                     Visible = ShowBase;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = true;
-                    ToolTip = 'Specifies the amount of the entry in the report statement.';
                     trigger OnDrillDown()
                     var
                         BASManagement: Codeunit "BAS Management";

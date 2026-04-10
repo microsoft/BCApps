@@ -370,16 +370,6 @@ codeunit 6500 "Item Tracking Management"
         exit(false);
     end;
 
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Mfg. Item Tracking Mgt.', '26.0')]
-    procedure RetrieveConsumpItemTracking(ItemJnlLine: Record "Item Journal Line"; var TempHandlingSpecification: Record "Tracking Specification" temporary): Boolean
-    var
-        MfgItemTrackingMgt: Codeunit "Mfg. Item Tracking Mgt.";
-    begin
-        exit(MfgItemTrackingMgt.RetrieveConsumpItemTracking(ItemJnlLine, TempHandlingSpecification));
-    end;
-#endif
-
     procedure SumUpItemTracking(var ReservEntry: Record "Reservation Entry"; var TempHandlingSpecification: Record "Tracking Specification" temporary; SumPerLine: Boolean; SumPerTracking: Boolean): Boolean
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -586,16 +576,25 @@ codeunit 6500 "Item Tracking Management"
         CopyItemTracking(FromRowID, ToRowID, SwapSign, false);
     end;
 
+    procedure CopyItemTracking(FromRowID: Text[250]; ToRowID: Text[250]; SwapSign: Boolean; SkipReservation: Boolean; NewReservationStatus: Enum "Reservation Status")
+    var
+        ReservEntry: Record "Reservation Entry";
+    begin
+        ReservEntry.SetPointer(FromRowID);
+        ReservEntry.SetPointerFilter();
+        CopyItemTracking3(ReservEntry, ToRowID, SwapSign, SkipReservation, NewReservationStatus);
+    end;
+
     procedure CopyItemTracking(FromRowID: Text[250]; ToRowID: Text[250]; SwapSign: Boolean; SkipReservation: Boolean)
     var
         ReservEntry: Record "Reservation Entry";
     begin
         ReservEntry.SetPointer(FromRowID);
         ReservEntry.SetPointerFilter();
-        CopyItemTracking3(ReservEntry, ToRowID, SwapSign, SkipReservation);
+        CopyItemTracking3(ReservEntry, ToRowID, SwapSign, SkipReservation, ReservEntry."Reservation Status"::Prospect);
     end;
 
-    local procedure CopyItemTracking3(var ReservEntry: Record "Reservation Entry"; ToRowID: Text[250]; SwapSign: Boolean; SkipReservation: Boolean)
+    local procedure CopyItemTracking3(var ReservEntry: Record "Reservation Entry"; ToRowID: Text[250]; SwapSign: Boolean; SkipReservation: Boolean; NewReservationStatus: Enum "Reservation Status")
     var
         ReservEntry1: Record "Reservation Entry";
         TempReservEntry: Record "Reservation Entry" temporary;
@@ -613,7 +612,7 @@ codeunit 6500 "Item Tracking Management"
             repeat
                 if ReservEntry.TrackingExists() then begin
                     TempReservEntry := ReservEntry;
-                    TempReservEntry."Reservation Status" := TempReservEntry."Reservation Status"::Prospect;
+                    TempReservEntry."Reservation Status" := NewReservationStatus;
                     TempReservEntry.SetPointer(ToRowID);
                     if SwapSign then begin
                         TempReservEntry."Quantity (Base)" := -TempReservEntry."Quantity (Base)";
@@ -948,8 +947,7 @@ codeunit 6500 "Item Tracking Management"
                 if ToTransfer then begin
                     WhseItemTrackingSetup.CopyTrackingFromNewTrackingSpec(TempWhseSplitTrackingSpec);
                     TempWhseJnlLine2.CopyTrackingFromItemTrackingSetupIfRequired(WhseItemTrackingSetup);
-                    if TempWhseSplitTrackingSpec."New Expiration Date" <> 0D then
-                        TempWhseJnlLine2."Expiration Date" := TempWhseSplitTrackingSpec."New Expiration Date";
+                    TempWhseJnlLine2."Expiration Date" := TempWhseSplitTrackingSpec."New Expiration Date";
                 end else begin
                     WhseItemTrackingSetup.CopyTrackingFromTrackingSpec(TempWhseSplitTrackingSpec);
                     TempWhseJnlLine2.CopyTrackingFromItemTrackingSetupIfRequired(WhseItemTrackingSetup);
@@ -1808,7 +1806,7 @@ codeunit 6500 "Item Tracking Management"
                     Message(Text006);
                     exit;
                 end;
-            CopyItemTracking3(FromReservEntry, ToRowID, SignFactor1 <> SignFactor2, false);
+            CopyItemTracking3(FromReservEntry, ToRowID, SignFactor1 <> SignFactor2, false, FromReservEntry."Reservation Status"::Prospect);
 
             // Copy to inbound part of transfer.
             if IsReservedFromTransferShipment(FromReservEntry) then begin
@@ -3824,19 +3822,6 @@ codeunit 6500 "Item Tracking Management"
     begin
     end;
 
-#if not CLEAN26
-    internal procedure RunOnBeforeRetrieveSubcontrItemTracking(ItemJnlLine: Record "Item Journal Line"; var TempHandlingSpecification: Record "Tracking Specification" temporary; var Result: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeRetrieveSubcontrItemTracking(ItemJnlLine, TempHandlingSpecification, Result, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Mfg. Item Tracking Mgt.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeRetrieveSubcontrItemTracking(ItemJnlLine: Record "Item Journal Line"; var TempHandlingSpecification: Record "Tracking Specification" temporary; var Result: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSumUpItemTracking(var ReservEntry: Record "Reservation Entry"; var TempHandlingSpecification: Record "Tracking Specification" temporary; var SumPerLine: Boolean; var SumPerTracking: Boolean; var IsHandled: Boolean)
     begin
@@ -4022,32 +4007,6 @@ codeunit 6500 "Item Tracking Management"
     begin
     end;
 
-#if not CLEAN26
-    internal procedure RunOnRetrieveSubcontrItemTrackingOnAfterDeleteReservEntries(var TempHandlingSpecification: Record "Tracking Specification" temporary; var ReservationEntry: Record "Reservation Entry")
-    begin
-        OnRetrieveSubcontrItemTrackingOnAfterDeleteReservEntries(TempHandlingSpecification, ReservationEntry);
-    end;
-
-    [Obsolete('Moved to codeunit Mfg. Item Tracking Mgt.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnRetrieveSubcontrItemTrackingOnAfterDeleteReservEntries(var TempHandlingSpecification: Record "Tracking Specification" temporary; var ReservationEntry: Record "Reservation Entry")
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    internal procedure RunOnRetrieveConsumpItemTrackingOnAfterSetFilters(var ReservationEntry: Record "Reservation Entry"; ItemJournalLine: Record "Item Journal Line")
-    begin
-        OnRetrieveConsumpItemTrackingOnAfterSetFilters(ReservationEntry, ItemJournalLine);
-    end;
-
-    [Obsolete('Moved to codeunit Mfg. Item Tracking Mgt.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnRetrieveConsumpItemTrackingOnAfterSetFilters(var ReservationEntry: Record "Reservation Entry"; ItemJournalLine: Record "Item Journal Line")
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterSynchronizeItemTracking2(FromReservEntry: Record "Reservation Entry"; ReservEntry2: Record "Reservation Entry")
     begin
@@ -4077,19 +4036,6 @@ codeunit 6500 "Item Tracking Management"
     local procedure OnTempPostedWhseRcptLineSetFilters(var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; ItemLedgerEntry: Record "Item Ledger Entry"; WhseItemEntryRelation: Record "Whse. Item Entry Relation")
     begin
     end;
-
-#if not CLEAN26
-    internal procedure RunOnRetrieveSubcontrItemTrackingOnBeforeCheckLastOperation(ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; var IsLastOperation: Boolean)
-    begin
-        OnRetrieveSubcontrItemTrackingOnBeforeCheckLastOperation(ProdOrderRoutingLine, IsLastOperation);
-    end;
-
-    [Obsolete('Moved to codeunit Mfg. Item Tracking Mgt.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnRetrieveSubcontrItemTrackingOnBeforeCheckLastOperation(ProdOrderRoutingLine: Record Microsoft.Manufacturing.Document."Prod. Order Routing Line"; var IsLastOperation: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnSplitWhseJnlLineOnAfterCheckWhseItemTrkgSetup(var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var TempWhseSplitTrackingSpec: Record "Tracking Specification" temporary; var WhseSNRequired: Boolean; var WhseLNRequired: Boolean; var TempWhseJnlLine2: Record "Warehouse Journal Line" temporary; var IsHandled: Boolean)

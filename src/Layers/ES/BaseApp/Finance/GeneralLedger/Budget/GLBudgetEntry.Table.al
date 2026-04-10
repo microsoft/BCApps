@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ table 96 "G/L Budget Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         /// <summary>
         /// Reference to the budget name that groups related budget entries and defines dimension structure.
@@ -44,6 +45,7 @@ table 96 "G/L Budget Entry"
         field(2; "Budget Name"; Code[10])
         {
             Caption = 'Budget Name';
+            ToolTip = 'Specifies the name of the G/L budget that the entry belongs to.';
             TableRelation = "G/L Budget Name";
         }
         /// <summary>
@@ -52,6 +54,7 @@ table 96 "G/L Budget Entry"
         field(3; "G/L Account No."; Code[20])
         {
             Caption = 'G/L Account No.';
+            ToolTip = 'Specifies the number of the G/L account that the budget entry applies to, or, the account on the line where the budget figure has been entered.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -66,6 +69,7 @@ table 96 "G/L Budget Entry"
         field(4; Date; Date)
         {
             Caption = 'Date';
+            ToolTip = 'Specifies the date of the budget entry.';
             ClosingDates = true;
 
             trigger OnValidate()
@@ -81,6 +85,7 @@ table 96 "G/L Budget Entry"
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
 
             trigger OnValidate()
@@ -99,6 +104,7 @@ table 96 "G/L Budget Entry"
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
 
             trigger OnValidate()
@@ -118,6 +124,7 @@ table 96 "G/L Budget Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount of the budget entry.';
 
             trigger OnValidate()
             begin
@@ -131,6 +138,7 @@ table 96 "G/L Budget Entry"
         field(9; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the budget figure.';
         }
         /// <summary>
         /// Business unit code for consolidation and multi-company budget analysis scenarios.
@@ -138,6 +146,7 @@ table 96 "G/L Budget Entry"
         field(10; "Business Unit Code"; Code[20])
         {
             Caption = 'Business Unit Code';
+            ToolTip = 'Specifies the code for the business unit that the budget entry is linked to.';
             TableRelation = "Business Unit";
         }
         /// <summary>
@@ -158,6 +167,7 @@ table 96 "G/L Budget Entry"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(1);
             Caption = 'Budget Dimension 1 Code';
+            ToolTip = 'Specifies the dimension value code for the Budget Dimension 1 Code the budget entry is linked to.';
 
             trigger OnLookup()
             begin
@@ -184,6 +194,7 @@ table 96 "G/L Budget Entry"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(2);
             Caption = 'Budget Dimension 2 Code';
+            ToolTip = 'Specifies the dimension value code for the Budget Dimension 2 Code the budget entry is linked to.';
 
             trigger OnLookup()
             begin
@@ -210,6 +221,7 @@ table 96 "G/L Budget Entry"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(3);
             Caption = 'Budget Dimension 3 Code';
+            ToolTip = 'Specifies the dimension value code for the Budget Dimension 3 Code the budget entry is linked to.';
 
             trigger OnLookup()
             begin
@@ -236,6 +248,7 @@ table 96 "G/L Budget Entry"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(4);
             Caption = 'Budget Dimension 4 Code';
+            ToolTip = 'Specifies the dimension value code for the Budget Dimension 4 Code the budget entry is linked to.';
 
             trigger OnLookup()
             begin
@@ -268,6 +281,7 @@ table 96 "G/L Budget Entry"
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
+            ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
             Editable = false;
             TableRelation = "Dimension Set Entry";
 

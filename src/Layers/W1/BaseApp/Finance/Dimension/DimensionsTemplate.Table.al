@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -36,6 +36,7 @@ table 1302 "Dimensions Template"
         field(3; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
+            ToolTip = 'Specifies the code for the default dimension.';
             NotBlank = true;
             TableRelation = Dimension;
 
@@ -53,6 +54,7 @@ table 1302 "Dimensions Template"
         field(4; "Dimension Value Code"; Code[20])
         {
             Caption = 'Dimension Value Code';
+            ToolTip = 'Specifies the dimension value code to suggest as the default dimension.';
             TableRelation = "Dimension Value".Code where("Dimension Code" = field("Dimension Code"),
                                                          Blocked = const(false));
         }
@@ -62,6 +64,7 @@ table 1302 "Dimensions Template"
         field(5; "Value Posting"; Enum "Default Dimension Value Posting Type")
         {
             Caption = 'Value Posting';
+            ToolTip = 'Specifies how default dimensions and their values must be used.';
 
             trigger OnValidate()
             begin

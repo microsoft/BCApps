@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -69,6 +69,7 @@ table 570 "G/L Account Category"
         field(6; Description; Text[80])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the record.';
         }
         /// <summary>
         /// Primary financial statement classification determining the main category type.
@@ -77,6 +78,7 @@ table 570 "G/L Account Category"
         {
             BlankZero = true;
             Caption = 'Account Category';
+            ToolTip = 'Specifies the category of the G/L account.';
             OptionCaption = ',Assets,Liabilities,Equity,Income,Cost of Goods Sold,Expense';
             OptionMembers = ,Assets,Liabilities,Equity,Income,"Cost of Goods Sold",Expense;
 
@@ -112,6 +114,7 @@ table 570 "G/L Account Category"
         field(9; "Additional Report Definition"; Option)
         {
             Caption = 'Additional Report Definition';
+            ToolTip = 'Specifies additional attributes that are used to create the cash flow statement.';
             OptionCaption = ' ,Operating Activities,Investing Activities,Financing Activities,Cash Accounts,Retained Earnings,Distribution to Shareholders';
             OptionMembers = " ","Operating Activities","Investing Activities","Financing Activities","Cash Accounts","Retained Earnings","Distribution to Shareholders";
 

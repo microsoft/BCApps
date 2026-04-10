@@ -34,12 +34,10 @@ page 482 "Gen. Jnl. Dim. Filters"
                 field("Dimension Code"; Rec."Dimension Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the dimension.';
                 }
                 field("Dimension Value Filter"; Rec."Dimension Value Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the filter for the dimension values.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var

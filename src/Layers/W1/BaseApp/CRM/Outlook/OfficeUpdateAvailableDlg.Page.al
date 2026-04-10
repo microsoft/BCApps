@@ -5,7 +5,6 @@
 namespace Microsoft.CRM.Outlook;
 
 using Microsoft.Utilities;
-using System.Integration;
 using System.Security.AccessControl;
 
 page 1607 "Office Update Available Dlg"
@@ -17,6 +16,7 @@ page 1607 "Office Update Available Dlg"
     ModifyAllowed = false;
     SourceTable = "Office Add-in";
     SourceTableTemporary = true;
+    UsageCategory = None;
 
     layout
     {
@@ -70,13 +70,8 @@ page 1607 "Office Update Available Dlg"
                 Visible = UserCanUpdate;
 
                 trigger OnDrillDown()
-                var
-                    OfficeAddin: Record "Office Add-in";
                 begin
-                    if ExchangeAddinSetup.TryDeployAddins(OfficeAddin) then
-                        Message(RestartClientMsg)
-                    else
-                        Message(UnabletoUpdateMsg);
+                    Hyperlink('https://learn.microsoft.com/en-us/dynamics365/business-central/admin-outlook');
                     CurrPage.Close();
                 end;
             }
@@ -115,7 +110,7 @@ page 1607 "Office Update Available Dlg"
         User.SetRange("User Name", UserId);
         if User.FindFirst() then
             Email := User."Authentication Email";
-        UserCanUpdate := (Email <> '') and not ExchangeAddinSetup.CredentialsRequired(CopyStr(Email, 1, 80));
+        UserCanUpdate := true;
         UserCanContinue := not Rec.Breaking;
     end;
 
@@ -132,14 +127,11 @@ page 1607 "Office Update Available Dlg"
     end;
 
     var
-        DontDisplayAgainMsg: Label 'To update the add-in later, you must use the Outlook Add-In assisted setup guide.';
-        RestartClientMsg: Label 'The add-in has been updated. Please close and reopen Outlook.';
-        UnabletoUpdateMsg: Label 'The add-in has not been updated. To update the add-in, please contact your system administrator.';
-        ContinueLbl: Label 'Continue';
-        UpgradeNowLbl: Label 'Upgrade Now';
-        UpgradeLaterLbl: Label 'Upgrade Later';
-        ExchangeAddinSetup: Codeunit "Exchange Add-in Setup";
         InstructionMgt: Codeunit "Instruction Mgt.";
+        DontDisplayAgainMsg: Label 'To update the add-in later, you must use the Outlook Add-In assisted setup guide.';
+        ContinueLbl: Label 'Continue';
+        UpgradeNowLbl: Label 'See instructions to Upgrade';
+        UpgradeLaterLbl: Label 'Upgrade Later';
         DontShowAgain: Boolean;
         UserCanContinue: Boolean;
         UserCanUpdate: Boolean;
@@ -154,4 +146,3 @@ page 1607 "Office Update Available Dlg"
         end;
     end;
 }
-

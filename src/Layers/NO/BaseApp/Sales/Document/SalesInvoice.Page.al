@@ -108,7 +108,9 @@ page 43 "Sales Invoice"
                             if Rec."Sell-to Customer No." <> Customer."No." then
                                 error('');
                             IsSalesLinesEditable := Rec.SalesLinesEditable();
+#if not CLEAN29
                             SellToCustomerUsesEInvoicing := CustomerUsesEInvoicing(Rec."Sell-to Customer No.");
+#endif
                             CurrPage.Update();
                         end;
                     end;
@@ -936,15 +938,22 @@ page 43 "Sales Invoice"
                         }
                     }
                 }
+#if not CLEAN29
                 field(GLN; Rec.GLN)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the global location number of the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 field("Account Code"; Rec."Account Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the account code of the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
 
                     trigger OnValidate()
                     begin
@@ -955,7 +964,11 @@ page 43 "Sales Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether the customer is part of the EHF system and requires an electronic sales order.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
             }
             group("Foreign Trade")
             {
@@ -1108,33 +1121,6 @@ page 43 "Sales Invoice"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
-#if not CLEAN26
-                action(Statistics)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Statistics';
-                    Enabled = Rec."No." <> '';
-                    Image = Statistics;
-                    ShortCutKey = 'F7';
-                    ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-                    ObsoleteReason = 'The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-
-                    trigger OnAction()
-                    var
-                        Handled: Boolean;
-                    begin
-                        Handled := false;
-                        OnBeforeStatisticsAction(Rec, Handled);
-                        if Handled then
-                            exit;
-
-                        Rec.OpenDocumentStatistics();
-                        CurrPage.SalesLines.Page.ForceTotalsCalculation();
-                    end;
-                }
-#endif
                 action(SalesStatistics)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1142,11 +1128,7 @@ page 43 "Sales Invoice"
                     Enabled = Rec."No." <> '';
                     Image = Statistics;
                     ShortCutKey = 'F7';
-#if CLEAN26
                     Visible = true;
-#else
-                    Visible = false;
-#endif
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
                     RunObject = Page "Sales Statistics";
                     RunPageOnRec = true;
@@ -1832,18 +1814,9 @@ page 43 "Sales Invoice"
                 actionref(Dimensions_Promoted; Dimensions)
                 {
                 }
-#if not CLEAN26
-                actionref(Statistics_Promoted; Statistics)
-                {
-                    ObsoleteReason = 'The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                }
-#else
                 actionref(SalesStatistics_Promoted; SalesStatistics)
                 {
                 }
-#endif
                 actionref("Co&mments_Promoted"; "Co&mments")
                 {
                 }
@@ -1877,7 +1850,9 @@ page 43 "Sales Invoice"
 
     trigger OnAfterGetCurrRecord()
     begin
+#if not CLEAN29
         SellToCustomerUsesEInvoicing := CustomerUsesEInvoicing(Rec."Sell-to Customer No.");
+#endif
         CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
         CurrPage.ApprovalFactBox.PAGE.UpdateApprovalEntriesFromSourceRecord(Rec.RecordId);
         ShowWorkflowStatus := CurrPage.WorkflowStatus.PAGE.SetFilterOnWorkflowRecord(Rec.RecordId);
@@ -1918,8 +1893,9 @@ page 43 "Sales Invoice"
     begin
         JobQueuesUsed := SalesSetup.JobQueueActive();
         SetExtDocNoMandatoryCondition();
+#if not CLEAN29
         SellToCustomerUsesEInvoicing := CustomerUsesEInvoicing(Rec."Sell-to Customer No.");
-
+#endif
         IsPowerAutomatePrivacyNoticeApproved := PrivacyNotice.GetPrivacyNoticeApprovalState(FlowServiceManagement.GetPowerAutomatePrivacyNoticeId()) = "Privacy Notice Approval State"::Agreed;
     end;
 
@@ -2174,6 +2150,8 @@ page 43 "Sales Invoice"
         DocNoVisible := DocumentNoVisibility.SalesDocumentNoIsVisible(DocType::Invoice, Rec."No.");
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     local procedure CustomerUsesEInvoicing(CustomerNo: Code[20]): Boolean
     var
         Customer: Record Customer;
@@ -2182,6 +2160,7 @@ page 43 "Sales Invoice"
             exit(Customer."E-Invoice");
         exit(false)
     end;
+#endif
 
     local procedure SetExtDocNoMandatoryCondition()
     begin
@@ -2278,13 +2257,6 @@ page 43 "Sales Invoice"
     begin
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeStatisticsAction(var SalesHeader: Record "Sales Header"; var Handled: Boolean)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnPostOnAfterSetDocumentIsPosted(SalesHeader: Record "Sales Header"; var IsScheduledPosting: Boolean; var DocumentIsPosted: Boolean)
     begin

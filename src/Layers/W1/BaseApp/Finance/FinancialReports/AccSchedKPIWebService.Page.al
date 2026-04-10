@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -46,7 +46,6 @@ page 197 "Acc. Sched. KPI Web Service"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Closed Period';
-                    ToolTip = 'Specifies whether the fiscal year is closed.';
                 }
                 field("Account Schedule Name"; Rec."Account Schedule Name")
                 {
@@ -58,7 +57,6 @@ page 197 "Acc. Sched. KPI Web Service"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'KPI Code';
-                    ToolTip = 'Specifies a code for the financial report KPI web service.';
                 }
                 field("KPI Name"; Rec."KPI Name")
                 {
@@ -70,25 +68,21 @@ page 197 "Acc. Sched. KPI Web Service"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Net Change Actual';
-                    ToolTip = 'Specifies changes in the actual general ledger amount, for closed accounting periods, up until the date in the Date field.';
                 }
                 field("Balance at Date Actual"; Rec."Balance at Date Actual")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Balance at Date Actual';
-                    ToolTip = 'Specifies the actual general ledger balance, based on closed accounting periods, on the date in the Date field.';
                 }
                 field("Net Change Budget"; Rec."Net Change Budget")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Net Change Budget';
-                    ToolTip = 'Specifies changes in the budgeted general ledger amount, based on the general ledger budget, up until the date in the Date field.';
                 }
                 field("Balance at Date Budget"; Rec."Balance at Date Budget")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Balance at Date Budget';
-                    ToolTip = 'Specifies the budgeted general ledger balance, based on the general ledger budget, on the date in the Date field.';
                 }
                 field("Net Change Actual Last Year"; Rec."Net Change Actual Last Year")
                 {
@@ -100,7 +94,6 @@ page 197 "Acc. Sched. KPI Web Service"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Balance at Date Actual Last Year';
-                    ToolTip = 'Specifies the actual general ledger balance, based on closed accounting periods, on the date in the Date field in the previous accounting year.';
                 }
                 field("Net Change Budget Last Year"; Rec."Net Change Budget Last Year")
                 {
@@ -112,19 +105,16 @@ page 197 "Acc. Sched. KPI Web Service"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Balance at Date Budget Last Year';
-                    ToolTip = 'Specifies the budgeted general ledger balance, based on the general ledger budget, on the date in the Date field in the previous accounting year.';
                 }
                 field("Net Change Forecast"; Rec."Net Change Forecast")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Net Change Forecast';
-                    ToolTip = 'Specifies forecasted changes in the general ledger amount, based on open accounting periods, up until the date in the Date field.';
                 }
                 field("Balance at Date Forecast"; Rec."Balance at Date Forecast")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Balance at Date Forecast';
-                    ToolTip = 'Specifies the forecasted general ledger balance, based on open accounting periods, on the date in the Date field.';
                 }
             }
         }

@@ -86,23 +86,19 @@ page 363 "Electronic Document Format"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a code to identify the electronic document format in the system.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the electronic document format.';
                 }
                 field(Usage; Rec.Usage)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the electronic document format is used for sales invoices or sales credit memos.';
                 }
                 field("Codeunit ID"; Rec."Codeunit ID")
                 {
                     ApplicationArea = Suite;
                     LookupPageID = Objects;
-                    ToolTip = 'Specifies which codeunit is used to manage electronic document sending for this document sending method.';
                     trigger OnValidate()
                     begin
                         if (Rec."Codeunit ID" <> 0) and (Rec."Codeunit ID" = Rec."Delivery Codeunit ID") then
@@ -112,13 +108,11 @@ page 363 "Electronic Document Format"
                 field("Codeunit Caption"; Rec."Codeunit Caption")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the codeunit.';
                 }
                 field("Delivery Codeunit ID"; Rec."Delivery Codeunit ID")
                 {
                     ApplicationArea = Suite;
                     LookupPageID = Objects;
-                    ToolTip = 'Specifies which delivery codeunit is used to manage electronic document sending for this document sending method.';
                     trigger OnValidate()
                     begin
                         if (Rec."Delivery Codeunit ID" <> 0) and (Rec."Codeunit ID" = Rec."Delivery Codeunit ID") then
@@ -128,7 +122,6 @@ page 363 "Electronic Document Format"
                 field("Delivery Codeunit Caption"; Rec."Delivery Codeunit Caption")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the delivery codeunit.';
                 }
             }
         }

@@ -18,11 +18,10 @@ using Microsoft.Foundation.Address;
 /// </remarks>
 report 1402 "Bank Account - List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Bank/Reports/BankAccountList.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Account - List';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -171,6 +170,16 @@ report 1402 "Bank Account - List"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Bank/Reports/BankAccountList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

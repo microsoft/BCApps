@@ -246,7 +246,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text002, false);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalServLine[6].""Line Amount"""; TotalServLine[6]."Line Amount")
                 {
@@ -255,7 +254,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text002, false);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalServLine[5].""Inv. Discount Amount"""; TotalServLine[5]."Inv. Discount Amount")
                 {
@@ -282,7 +280,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text001, false);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalAmount1[6]"; TotalAmount1[6])
                 {
@@ -291,7 +288,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text001, false);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("VATAmount[5]"; VATAmount[5])
                 {
@@ -300,7 +296,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = Format(VATAmountText[1]);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalAmount2[5]"; TotalAmount2[5])
                 {
@@ -309,7 +304,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text001, true);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalServLineLCY[5].Amount"; TotalServLineLCY[5].Amount)
                 {
@@ -401,7 +395,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text002, false);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalServLine[7].""Inv. Discount Amount"""; TotalServLine[7]."Inv. Discount Amount")
                 {
@@ -419,7 +412,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text001, false);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("VATAmount[6]"; VATAmount[6])
                 {
@@ -428,7 +420,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = Format(VATAmountText[1]);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("VATAmount[7]"; VATAmount[7])
                 {
@@ -437,7 +428,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = Format(VATAmountText[1]);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalAmount2[6]"; TotalAmount2[6])
                 {
@@ -446,7 +436,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text001, true);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalAmount2[7]"; TotalAmount2[7])
                 {
@@ -455,7 +444,6 @@ page 10053 "Service Stats."
                     AutoFormatType = 1;
                     CaptionClass = GetCaptionClass(Text001, true);
                     Editable = false;
-                    ShowCaption = false;
                 }
                 field("TotalServLineLCY[6].Amount"; TotalServLineLCY[6].Amount)
                 {

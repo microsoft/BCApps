@@ -51,24 +51,20 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the company''s name and corporate form. For example, Inc. or Ltd.';
                 }
                 field(Address; Rec.Address)
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the company''s address.';
                 }
                 field("Address 2"; Rec."Address 2")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies additional address information.';
                 }
                 field(City; Rec.City)
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the company''s city.';
                 }
                 group(CountyGroup)
                 {
@@ -78,14 +74,12 @@ page 1 "Company Information"
                     {
                         ApplicationArea = Basic, Suite;
                         ShowMandatory = true;
-                        ToolTip = 'Specifies the state, province or county of the company''s address.';
                     }
                 }
                 field("Post Code"; Rec."Post Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the postal code.';
                 }
                 field("SAT Postal Code"; Rec."SAT Postal Code")
                 {
@@ -96,7 +90,6 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the country/region of the address.';
 
                     trigger OnValidate()
                     begin
@@ -107,17 +100,14 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Contact Name';
-                    ToolTip = 'Specifies the name of the contact person in your company.';
                 }
                 field("Phone No."; Rec."Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the company''s telephone number.';
                 }
                 field("VAT Registration No."; Rec."VAT Registration No.")
                 {
                     ApplicationArea = VAT, BasicCA;
-                    ToolTip = 'Specifies the company''s VAT registration number.';
 
                     trigger OnDrillDown()
                     var
@@ -134,24 +124,20 @@ page 1 "Company Information"
                 field("EORI Number"; Rec."EORI Number")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the Economic Operators Registration and Identification number that is used when you exchange information with the customs authorities due to trade into or out of the European Union.';
                 }
                 field("Industrial Classification"; Rec."Industrial Classification")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the company''s industrial classification code.';
                 }
                 field("Registration No."; Rec."Registration No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the company''s registration number. You can enter a maximum of 20 characters, both numbers and letters.';
                 }
                 field(Picture; Rec.Picture)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the picture that has been set up for the company, such as a company logo.';
 
                     trigger OnValidate()
                     begin
@@ -172,17 +158,14 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the company''s fax number.';
                 }
                 field("E-Mail"; Rec."E-Mail")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the company''s email address.';
                 }
                 field("Home Page"; Rec."Home Page")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies your company''s web site.';
                 }
                 field(DefaultLanguage; Rec."Default Language code")
                 {
@@ -196,13 +179,11 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the name of the bank the company uses.';
                 }
                 field("Bank Branch No."; Rec."Bank Branch No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IBANMissing;
-                    ToolTip = 'Specifies the bank''s branch number.';
 
                     trigger OnValidate()
                     begin
@@ -213,7 +194,6 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IBANMissing;
-                    ToolTip = 'Specifies the company''s bank account number.';
 
                     trigger OnValidate()
                     begin
@@ -223,18 +203,15 @@ page 1 "Company Information"
                 field("Payment Routing No."; Rec."Payment Routing No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the company''s payment routing number.';
                 }
                 field("Giro No."; Rec."Giro No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the company''s giro number.';
                 }
                 field("SWIFT Code"; Rec."SWIFT Code")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the SWIFT code (international bank identifier code) of your primary bank.';
 
                     trigger OnValidate()
                     begin
@@ -246,7 +223,6 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                     ShowMandatory = BankBranchNoOrAccountNoMissing;
-                    ToolTip = 'Specifies the international bank account number of your primary bank account.';
 
                     trigger OnValidate()
                     begin
@@ -260,22 +236,18 @@ page 1 "Company Information"
                 field("Ship-to Name"; Rec."Ship-to Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the location to which items for the company should be shipped.';
                 }
                 field("Ship-to Address"; Rec."Ship-to Address")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the address of the location to which items for the company should be shipped.';
                 }
                 field("Ship-to Address 2"; Rec."Ship-to Address 2")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an additional part of the ship-to address, in case it is a long address.';
                 }
                 field("Ship-to City"; Rec."Ship-to City")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the city of the company''s ship-to address.';
                 }
                 group(ShipToCounty)
                 {
@@ -285,18 +257,15 @@ page 1 "Company Information"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Ship-to County';
-                        ToolTip = 'Specifies the county of the company''s shipping address.';
                     }
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
                 }
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region code of the address that the items are shipped to.';
                     trigger OnValidate()
                     begin
                         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
@@ -305,12 +274,10 @@ page 1 "Company Information"
                 field("Ship-to Phone No."; Rec."Ship-to Phone No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the telephone number of the company''s shipping address.';
                 }
                 field("Ship-to Contact"; Rec."Ship-to Contact")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the contact person at the address that the items are shipped to.';
                 }
                 field("Ship-to UPS Zone"; Rec."Ship-to UPS Zone")
                 {
@@ -319,28 +286,23 @@ page 1 "Company Information"
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
-                    ToolTip = 'Specifies the location code that corresponds to the company''s ship-to address.';
                 }
                 field("Responsibility Center"; Rec."Responsibility Center")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for the default responsibility center.';
                 }
                 field("Check-Avail. Period Calc."; Rec."Check-Avail. Period Calc.")
                 {
                     ApplicationArea = OrderPromising;
-                    ToolTip = 'Specifies a date formula that defines the length of the period after the planned shipment date on demand lines in which the system checks availability for the demand line in question.';
                 }
                 field("Check-Avail. Time Bucket"; Rec."Check-Avail. Time Bucket")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies how frequently the system checks supply-demand events to discover if the item on the demand line is available on its shipment date.';
                 }
                 field("Base Calendar Code"; Rec."Base Calendar Code")
                 {
                     ApplicationArea = Suite;
                     DrillDown = false;
-                    ToolTip = 'Specifies the code for the base calendar that you want to assign to your company.';
                 }
                 field("Customized Calendar"; format(CalendarMgmt.CustomizedChangesExist(Rec)))
                 {
@@ -360,7 +322,6 @@ page 1 "Company Information"
                 field("Cal. Convergence Time Frame"; Rec."Cal. Convergence Time Frame")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how dates based on calendar and calendar-related documents are calculated.';
                 }
             }
             group(Tax)
@@ -454,7 +415,6 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Company Badge';
-                    ToolTip = 'Specifies how you want to use the Company Badge when you are working with different companies of Business Central.';
 
                     trigger OnValidate()
                     begin
@@ -465,7 +425,6 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Company Badge Style';
-                    ToolTip = 'Specifies if you want to apply a certain style to the Company Badge. Having different styles on badges can make it easier to recognize the company that you are currently working with.';
                     OptionCaption = 'Dark Blue,Light Blue,Dark Green,Light Green,Dark Yellow,Light Yellow,Red,Orange,Deep Purple,Bright Purple';
 
                     trigger OnValidate()

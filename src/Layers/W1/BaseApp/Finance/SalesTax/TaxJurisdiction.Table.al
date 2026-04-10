@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -27,6 +27,7 @@ table 320 "Tax Jurisdiction"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code you want to assign to this tax jurisdiction. You can enter up to 10 characters, both numbers and letters. It is a good idea to enter a code that is easy to remember.';
             NotBlank = true;
         }
         /// <summary>
@@ -35,6 +36,7 @@ table 320 "Tax Jurisdiction"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the tax jurisdiction. For example, if the tax jurisdiction code is ATLANTA GA, enter the description as Atlanta, Georgia.';
         }
         /// <summary>
         /// G/L account for posting tax amounts on sales transactions.
@@ -58,6 +60,7 @@ table 320 "Tax Jurisdiction"
         field(5; "Report-to Jurisdiction"; Code[10])
         {
             Caption = 'Report-to Jurisdiction';
+            ToolTip = 'Specifies the tax jurisdiction you want to associate with the jurisdiction you are setting up. For example, if you are setting up a jurisdiction for Atlanta, Georgia, the report-to jurisdiction is Georgia because Georgia is the tax authority to which you report Atlanta sales tax.';
             TableRelation = "Tax Jurisdiction";
         }
         /// <summary>
@@ -115,6 +118,7 @@ table 320 "Tax Jurisdiction"
         field(12; "Unrealized VAT Type"; Option)
         {
             Caption = 'Unrealized VAT Type';
+            ToolTip = 'Specifies how to handle unrealized tax, which is tax that is calculated but not due until the invoice is paid.';
             OptionCaption = ' ,Percentage,First,Last,First (Fully Paid),Last (Fully Paid)';
             OptionMembers = " ",Percentage,First,Last,"First (Fully Paid)","Last (Fully Paid)";
 
@@ -132,6 +136,7 @@ table 320 "Tax Jurisdiction"
         field(13; "Calculate Tax on Tax"; Boolean)
         {
             Caption = 'Calculate Tax on Tax';
+            ToolTip = 'Specifies whether to calculate the sales tax amount with the tax on tax principle.';
 
             trigger OnValidate()
             begin
@@ -146,6 +151,7 @@ table 320 "Tax Jurisdiction"
         field(14; "Adjust for Payment Discount"; Boolean)
         {
             Caption = 'Adjust for Payment Discount';
+            ToolTip = 'Specifies whether to recalculate tax amounts when you post payments that trigger payment discounts.';
 
             trigger OnValidate()
             begin

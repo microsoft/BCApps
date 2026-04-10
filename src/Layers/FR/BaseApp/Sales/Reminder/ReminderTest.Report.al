@@ -22,14 +22,9 @@ using System.Utilities;
 /// </summary>
 report 122 "Reminder - Test"
 {
-    DefaultLayout = RDLC;
-#if not CLEAN28
-    RDLCLayout = './Sales/Reminder/ReminderTestFR.rdlc';
-#else
-    RDLCLayout = './Sales/Reminder/ReminderTest.rdlc';
-#endif
     Caption = 'Reminder - Test';
     WordMergeDataItem = "Reminder Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -822,6 +817,25 @@ report 122 "Reminder - Test"
         actions
         {
         }
+    }
+
+    rendering
+    {
+#if not CLEAN28
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reminder/ReminderTestFR.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
+#else
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reminder/ReminderTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
+#endif
     }
 
     labels

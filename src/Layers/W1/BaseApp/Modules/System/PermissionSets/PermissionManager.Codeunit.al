@@ -26,11 +26,6 @@ codeunit 9002 "Permission Manager"
         LocalTok: Label 'LOCAL', Locked = true;
         TestabilityIntelligentCloud: Boolean;
         CannotModifyOtherUsersErr: Label 'You cannot change settings for another user.';
-#if not CLEAN26
-        FoundProfileFromPlanTxt: Label 'Found default profile from plan: %1.', Locked = true;
-        NoProfileFromPlanTxt: Label 'No profile could be determined from user plans, picking system wide defaults.', Locked = true;
-        TelemetryCategoryTxt: Label 'AL Perm Mgr', Locked = true;
-#endif
         PlanConfigurationFeatureNameTxt: Label 'Custom Permissions Assignment Per Plan', Locked = true;
 
     procedure AssignDefaultPermissionsToUser(UserSecurityID: Guid): Boolean
@@ -184,57 +179,6 @@ codeunit 9002 "Permission Manager"
                 UserPersonalization.Modify();
             end;
     end;
-
-#if not CLEAN26
-    /// <summary>
-    /// This procedure retrieves a Default Profile ID to be used for a user, in case there is no valid 
-    /// custom profile set for them in their User Personalization. 
-    /// </summary>
-    /// <param name="UserSecurityID">The SID for the User to find a default profile for</param>
-    /// <param name="AllProfile">The returned AllProfile that is the default for the specified user</param>
-    /// <remarks>
-    /// <list type="number">
-    ///   <item><description>If we can provide a tailored default for the user (from the Plan/License), return that, otherwise</description></item>
-    ///   <item><description>If there is any system-wide default AllProfile in the table, return it, otherwise</description></item>
-    ///   <item><description>Find the default Role Center ID for the system (which checks the Plan/License again and has some additional 
-    ///   defaulting logic), and if there is a profile for it return it, otherwise</description></item>
-    ///   <item><description>Fall back to just return the first AllProfile available in the table</description></item>
-    /// </list>
-    /// </remarks>
-    [Scope('OnPrem')]
-    [Obsolete('This procedure has been moved into codeunit "Conf./Personalization Mgt."', '26.0')]
-    procedure GetDefaultProfileID(UserSecurityID: Guid; var AllProfile: Record "All Profile")
-    var
-        ConfPersonalizationMgt: Codeunit "Conf./Personalization Mgt.";
-        RoleCenterFromPlans: Query "Role Center from Plans";
-    begin
-        RoleCenterFromPlans.SetRange(User_Security_ID, UserSecurityID);
-        if RoleCenterFromPlans.Open() then
-            while RoleCenterFromPlans.Read() do begin
-                AllProfile.SetRange("Role Center ID", RoleCenterFromPlans.Role_Center_ID);
-                if AllProfile.FindFirst() then begin
-                    Session.LogMessage('0000DUK', StrSubstNo(FoundProfileFromPlanTxt, AllProfile."Profile ID"), Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
-                    exit;
-                end;
-            end;
-
-        Session.LogMessage('0000DUL', NoProfileFromPlanTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
-
-        AllProfile.Reset();
-        AllProfile.SetRange("Default Role Center", true);
-        if AllProfile.FindFirst() then
-            exit;
-
-        AllProfile.Reset();
-        AllProfile.SetRange("Role Center ID", ConfPersonalizationMgt.DefaultRoleCenterID());
-        if AllProfile.FindFirst() then
-            exit;
-
-        AllProfile.Reset();
-        if AllProfile.FindFirst() then
-            exit;
-    end;
-#endif
 
     procedure CanCurrentUserManagePlansAndGroups(): Boolean
     var

@@ -49,6 +49,7 @@ report 1510 "Copy Workflow"
             ToWorkflow.Description := FromWorkflow.Description;
         if ToWorkflow.Category = '' then
             ToWorkflow.Category := FromWorkflow.Category;
+        OnBeforeCopyWorkflowPerItem(ToWorkflow, FromWorkflow);
         ToWorkflow.Modify();
 
         CopyWorkflowSteps();
@@ -99,6 +100,11 @@ report 1510 "Copy Workflow"
     begin
         FromWorkflowCode := NewFromWorkflow.Code;
         ToWorkflow := NewToWorkflow;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCopyWorkflowPerItem(var ToWorkflow: Record "Workflow"; FromWorkflow: Record "Workflow")
+    begin
     end;
 }
 

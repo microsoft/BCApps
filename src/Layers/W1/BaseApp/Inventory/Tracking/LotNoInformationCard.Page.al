@@ -40,6 +40,7 @@ page 6505 "Lot No. Information Card"
                 field("Test Quality"; Rec."Test Quality")
                 {
                     ApplicationArea = ItemTracking;
+                    Importance = Additional;
                 }
                 field("Certificate Number"; Rec."Certificate Number")
                 {

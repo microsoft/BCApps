@@ -672,6 +672,13 @@ table 122 "Purch. Inv. Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(1340; "Dispute Status"; Code[10])
+        {
+            Caption = 'Dispute Status';
+            ToolTip = 'Specifies if there is an ongoing dispute for this document.';
+            TableRelation = "Dispute Status";
+            DataClassification = CustomerContent;
+        }
         field(5050; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
@@ -968,7 +975,7 @@ table 122 "Purch. Inv. Header"
             if PurchInvHeader."Empl. Purchase" then
                 ReportSelection.PrintWithDialogForVend(
                   ReportSelection.Usage::AS, PurchInvHeader, ShowRequestPage, PurchInvHeader.FieldNo("Buy-from Vendor No."))
-            else 
+            else
                 if PurchInvHeader."Self-Billing Invoice" then
                     ReportSelection.PrintWithDialogForVend(
                     ReportSelection.Usage::"P.Self Billing Invoice", PurchInvHeader, ShowRequestPage, PurchInvHeader.FieldNo("Buy-from Vendor No."))

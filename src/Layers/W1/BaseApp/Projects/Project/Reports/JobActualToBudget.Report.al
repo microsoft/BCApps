@@ -11,11 +11,10 @@ using System.Utilities;
 report 1009 "Job Actual To Budget"
 {
     AdditionalSearchTerms = 'Job Actual To Budget';
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Project/Reports/JobActualToBudget.rdlc';
     ApplicationArea = Jobs;
     Caption = 'Project Actual To Budget';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -363,6 +362,16 @@ report 1009 "Job Actual To Budget"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Project/Reports/JobActualToBudget.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

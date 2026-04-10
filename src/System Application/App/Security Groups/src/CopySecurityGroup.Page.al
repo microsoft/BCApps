@@ -116,9 +116,9 @@ page 9873 "Copy Security Group"
     begin
         SecurityGroupLookup.LookupMode(true);
         if SecurityGroupLookup.RunModal() = Action::LookupOK then begin
-            SecurityGroupLookup.GetRecord(SelectedSecurityGroup);
-            NewSecurityGroupNameValue := SelectedSecurityGroup."Group Name";
-            NewSecurityGroupIdValue := SelectedSecurityGroup."Group ID";
+            SecurityGroupLookup.GetRecord(TempSelectedSecurityGroup);
+            NewSecurityGroupNameValue := TempSelectedSecurityGroup."Group Name";
+            NewSecurityGroupIdValue := TempSelectedSecurityGroup."Group ID";
             NewSecurityGroupCodeValue := SecurityGroupImpl.GetDesirableCode(NewSecurityGroupNameValue);
         end;
     end;
@@ -127,7 +127,7 @@ page 9873 "Copy Security Group"
     var
         SecurityGroupImpl: Codeunit "Security Group Impl.";
     begin
-        if (NewSecurityGroupNameValue = SelectedSecurityGroup."Group Name") and (NewSecurityGroupIdValue = SelectedSecurityGroup."Group ID") then
+        if (NewSecurityGroupNameValue = TempSelectedSecurityGroup."Group Name") and (NewSecurityGroupIdValue = TempSelectedSecurityGroup."Group ID") then
             exit; // no need to validate values from the lookup
 
         NewSecurityGroupIdValue := SecurityGroup.GetIdByName(NewSecurityGroupNameValue);
@@ -136,7 +136,7 @@ page 9873 "Copy Security Group"
     end;
 
     var
-        SelectedSecurityGroup: Record "Security Group Buffer";
+        TempSelectedSecurityGroup: Record "Security Group Buffer";
         SecurityGroup: Codeunit "Security Group";
         SourceSecurityGroupCode: Code[20];
         NewSecurityGroupCodeValue: Code[20];

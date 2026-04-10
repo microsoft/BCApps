@@ -14,9 +14,11 @@ codeunit 101931 "Create Local RapidStart Pack"
     begin
         CreateTable(Database::"VAT Reporting Code");
         CreateTable(DATABASE::"VAT Period");
+#if not CLEAN29
         CreateTable(DATABASE::"E-Invoice Export Header");
         CreateTable(DATABASE::"E-Invoice Export Line");
         CreateTable(DATABASE::"E-Invoice Transfer File");
+#endif
         CreateTable(DATABASE::"Regulatory Reporting Code");
         CreateTable(DATABASE::"Gen. Jnl. Line Reg. Rep. Code");
         CreateTable(Database::"VAT Posting Setup");

@@ -258,7 +258,7 @@ table 77 "Report Selections"
         field(32; "Report Layout Caption"; Text[250])
         {
             Caption = 'Report Layout';
-            ToolTip = 'Specifies the Name of the report layout that is used.';
+            ToolTip = 'Specifies the name of the report layout that is used.';
             FieldClass = FlowField;
             CalcFormula = lookup("Report Layout List".Caption where("Report ID" = field("Report ID"), Name = field("Report Layout Name")));
 
@@ -281,7 +281,7 @@ table 77 "Report Selections"
         field(33; "Report Layout Publisher"; Text[250])
         {
             Caption = 'Report Layout Publisher';
-            ToolTip = 'Specifies the publisher of the email Attachment layout that is used.';
+            ToolTip = 'Specifies the publisher of the report layout that is used.';
             FieldClass = FlowField;
             CalcFormula = lookup("Report Layout List"."Layout Publisher" where("Report ID" = field("Report ID"), "Application ID" = field("Report Layout AppID")));
             Editable = false;
@@ -429,6 +429,17 @@ table 77 "Report Selections"
         OnAfterSetEmailAttachmentUsageFilters(Rec, ReportUsage);
     end;
 
+    /// <summary>
+    /// Finds the report usage for a specific table.
+    /// </summary>
+    /// <param name="ReportUsage">The report usage enum value.</param>
+    /// <param name="ReportSelections">The temporary record to store the report selections.</param>
+    /// <param name="TableNo">The table number to filter the report selections.</param>
+    procedure FindReportUsageForTable(ReportUsage: Enum "Report Selection Usage"; var ReportSelections: Record "Report Selections" temporary; TableNo: Integer)
+    begin
+        FindPrintUsageInternal(ReportUsage, ReportSelections, TableNo);
+    end;
+
     procedure FindReportUsageForCust(ReportUsage: Enum "Report Selection Usage"; CustNo: Code[20]; var ReportSelections: Record "Report Selections" temporary)
     begin
         FindPrintUsageInternal(ReportUsage, CustNo, ReportSelections, Database::Customer);
@@ -437,6 +448,15 @@ table 77 "Report Selections"
     procedure FindReportUsageForVend(ReportUsage: Enum "Report Selection Usage"; VendorNo: Code[20]; var ReportSelections: Record "Report Selections" temporary)
     begin
         FindPrintUsageInternal(ReportUsage, VendorNo, ReportSelections, Database::Vendor);
+    end;
+
+    local procedure FindPrintUsageInternal(ReportUsage: Enum "Report Selection Usage"; var TempReportSelections: Record "Report Selections" temporary; TableNo: Integer)
+    begin
+        Reset();
+        SetRange(Usage, ReportUsage);
+        SetFilter("Report ID", '<>0');
+        FindReportSelections(TempReportSelections, TableNo);
+        TempReportSelections.FindSet();
     end;
 
     local procedure FindPrintUsageInternal(ReportUsage: Enum "Report Selection Usage"; AccountNo: Code[20]; var TempReportSelections: Record "Report Selections" temporary; TableNo: Integer)
@@ -771,6 +791,42 @@ table 77 "Report Selections"
             EmailBody.CreateInStream(FileInStream, TextEncoding::UTF8);
             DocumentContent := TypeHelper.ReadAsTextWithSeparator(FileInStream, '');
         end;
+    end;
+
+    /// <summary>
+    /// Gets File Path to the PDF report for a table
+    /// </summary>
+    /// <param name="ServerEmailBodyFilePath">File Path</param>
+    /// <param name="ReportUsage">Table based report usage</param>
+    /// <param name="RecordVariant">Record applied to report dataitem</param>
+    /// <param name="TableNo">Table No.</param>
+    [Scope('OnPrem')]
+    procedure GetPdfReportForTable(var ServerEmailBodyFilePath: Text[250]; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; TableNo: Integer)
+    var
+        TempBodyReportSelections: Record "Report Selections" temporary;
+    begin
+        ServerEmailBodyFilePath := '';
+
+        FindReportUsageForTable(ReportUsage, TempBodyReportSelections, TableNo);
+
+        ServerEmailBodyFilePath :=
+            SaveReportAsPDF(TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
+    end;
+
+    /// <summary>
+    /// Gets the PDF report for a table to TempBlob
+    /// </summary>
+    /// <param name="TempBlob">Temp Blob to store the PDF report</param>
+    /// <param name="ReportUsage">Table based report usage</param>
+    /// <param name="RecordVariant">Record applied to report dataitem</param>
+    /// <param name="TableNo">Table No.</param>
+    procedure GetPdfReportForTable(var TempBlob: Codeunit "Temp Blob"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; TableNo: Integer)
+    var
+        TempBodyReportSelections: Record "Report Selections" temporary;
+    begin
+        FindReportUsageForTable(ReportUsage, TempBodyReportSelections, TableNo);
+
+        SaveReportAsPDFInTempBlob(TempBlob, TempBodyReportSelections."Report ID", RecordVariant, TempBodyReportSelections."Custom Report Layout Code", ReportUsage);
     end;
 
     [Scope('OnPrem')]
@@ -1749,6 +1805,7 @@ table 77 "Report Selections"
             TempReportSelections.SaveReportAsPDFInTempBlob(TempBlob, TempReportSelections."Report ID", RecordVariant, TempReportSelections."Custom Report Layout Code", ReportUsage);
             TempBlob.CreateInStream(AttachmentInStream);
             ClientAttachmentFileName := ElectronicDocumentFormat.GetAttachmentFileName(RecordVariant, DocNo, DocName, 'pdf');
+            OnSendToDiskForCustOnBeforeDownloadAttachment(TempReportSelections, RecordVariant, DocNo, DocName, 'pdf', ClientAttachmentFileName);
             DownloadAttachmentFromStream(TempReportSelections, RecordVariant, AttachmentInStream, ClientAttachmentFileName);
         until TempReportSelections.Next() = 0;
     end;
@@ -2052,6 +2109,28 @@ table 77 "Report Selections"
         OnAfterDoSaveReportAsHTMLInTempBlob(ReportID, TempBlob, RecordVariant);
     end;
 
+    /// <summary>
+    /// Finds the report selections for the specified table number and loads them into the provided temporary record. 
+    /// </summary>
+    /// <param name="TempReportSelections">Temporary record to load the report selections into</param>
+    /// <param name="TableNo">Table number to find report selections for</param>
+    /// <returns>True if report selections were found and loaded, false otherwise</returns>
+    procedure FindReportSelections(var TempReportSelections: Record "Report Selections" temporary; TableNo: Integer): Boolean
+    var
+        Handled: Boolean;
+    begin
+        OnFindReportSelectionsForTable(TempReportSelections, Handled, Rec, TableNo);
+        if Handled then
+            exit(true);
+        if not TempReportSelections.IsTemporary() then
+            Error(ReportSelectionsMustBeTemporaryErr); // Avoid deleting actual entries in report selections
+
+        if CopyCustomReportSectionToReportSelection(TempReportSelections, TableNo) then
+            exit(true);
+
+        exit(CopyReportSelectionToReportSelection(TempReportSelections));
+    end;
+
     procedure FindReportSelections(var TempReportSelections: Record "Report Selections" temporary; AccountNo: Code[20]; TableNo: Integer): Boolean
     var
         Handled: Boolean;
@@ -2068,7 +2147,30 @@ table 77 "Report Selections"
         exit(CopyReportSelectionToReportSelection(TempReportSelections));
     end;
 
-    local procedure CopyCustomReportSectionToReportSelection(AccountNo: Code[20]; var TempToReportSelections: Record "Report Selections" temporary; TableNo: Integer) Result: Boolean
+    /// <summary>
+    /// Copies the custom report selection for the specific table to the report selection.
+    /// </summary>
+    /// <param name="TempToReportSelections">Temporary record to load the report selections into</param>
+    /// <param name="TableNo">Table number to find report selections for</param>
+    /// <returns>True if report selections were found and loaded, false otherwise</returns>
+    procedure CopyCustomReportSectionToReportSelection(var TempToReportSelections: Record "Report Selections" temporary; TableNo: Integer) Result: Boolean
+    var
+        CustomReportSelection: Record "Custom Report Selection";
+        IsHandled: Boolean;
+    begin
+        OnBeforeCopyCustomReportSectionToReportSelectionForTable(Rec, IsHandled, Result);
+        if IsHandled then
+            exit(Result);
+
+        GetCustomReportSelectionByUsageFilter(CustomReportSelection, GetFilter(Usage), TableNo);
+        CopyToReportSelection(TempToReportSelections, CustomReportSelection);
+
+        if not TempToReportSelections.FindSet() then
+            exit(false);
+        exit(true);
+    end;
+
+    procedure CopyCustomReportSectionToReportSelection(AccountNo: Code[20]; var TempToReportSelections: Record "Report Selections" temporary; TableNo: Integer) Result: Boolean
     var
         CustomReportSelection: Record "Custom Report Selection";
         IsHandled: Boolean;
@@ -2122,6 +2224,28 @@ table 77 "Report Selections"
         exit(TempToReportSelections.FindSet());
     end;
 
+    local procedure GetCustomReportSelection(var CustomReportSelection: Record "Custom Report Selection"; TableNo: Integer): Boolean
+    var
+        IsHandled: Boolean;
+        ReturnValue: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeGetCustomReportSelectionForTable(Rec, CustomReportSelection, TableNo, ReturnValue, IsHandled);
+        if IsHandled then
+            exit(ReturnValue);
+
+        CustomReportSelection.SetRange("Source Type", TableNo);
+        if CustomReportSelection.IsEmpty() then
+            exit(false);
+
+        CustomReportSelection.SetFilter("Use for Email Attachment", GetFilter("Use for Email Attachment"));
+        CustomReportSelection.SetFilter("Use for Email Body", GetFilter("Use for Email Body"));
+
+        OnAfterGetCustomReportSelectionForTable(CustomReportSelection, TableNo);
+
+        exit(not CustomReportSelection.IsEmpty());
+    end;
+
     local procedure GetCustomReportSelection(var CustomReportSelection: Record "Custom Report Selection"; AccountNo: Code[20]; TableNo: Integer): Boolean
     var
         IsHandled: Boolean;
@@ -2141,6 +2265,14 @@ table 77 "Report Selections"
         CustomReportSelection.SetFilter("Use for Email Body", GetFilter("Use for Email Body"));
 
         OnAfterGetCustomReportSelection(CustomReportSelection, AccountNo, TableNo);
+
+        exit(not CustomReportSelection.IsEmpty());
+    end;
+
+    local procedure GetCustomReportSelectionByUsageFilter(var CustomReportSelection: Record "Custom Report Selection"; ReportUsageFilter: Text; TableNo: Integer): Boolean
+    begin
+        CustomReportSelection.SetFilter(Usage, ReportUsageFilter);
+        exit(GetCustomReportSelection(CustomReportSelection, TableNo));
     end;
 
     local procedure GetCustomReportSelectionByUsageFilter(var CustomReportSelection: Record "Custom Report Selection"; AccountNo: Code[20]; ReportUsageFilter: Text; TableNo: Integer): Boolean
@@ -2348,6 +2480,11 @@ table 77 "Report Selections"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnAfterGetCustomReportSelectionForTable(var CustomReportSelection: Record "Custom Report Selection"; TableNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterGetCustomReportSelection(var CustomReportSelection: Record "Custom Report Selection"; AccountNo: Code[20]; TableNo: Integer)
     begin
     end;
@@ -2420,6 +2557,11 @@ table 77 "Report Selections"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetCustomReportSelectionForTable(var ReportSelections: Record "Report Selections"; var CustomReportSelection: Record "Custom Report Selection"; TableNo: Integer; var ReturnValue: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCustomReportSelection(var ReportSelections: Record "Report Selections"; var CustomReportSelection: Record "Custom Report Selection"; AccountNo: Code[20]; TableNo: Integer; var ReturnValue: Boolean; var IsHandled: Boolean)
     begin
     end;
@@ -2486,6 +2628,11 @@ table 77 "Report Selections"
 
     [IntegrationEvent(false, false)]
     local procedure OnEnqueueMailingJobOnBeforeRunJobQueueEnqueue(RecordIdToProcess: RecordID; ParameterString: Text; Description: Text; var JobQueueEntry: Record "Job Queue Entry"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnFindReportSelectionsForTable(var FilterReportSelections: Record "Report Selections"; var IsHandled: Boolean; var ReturnReportSelections: Record "Report Selections"; TableNo: Integer)
     begin
     end;
 
@@ -2717,6 +2864,11 @@ table 77 "Report Selections"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeCopyCustomReportSectionToReportSelectionForTable(var ReportSelectionsOrg: Record "Report Selections"; var IsHandled: Boolean; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyCustomReportSectionToReportSelection(var ReportSelectionsOrg: Record "Report Selections"; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
@@ -2801,6 +2953,11 @@ table 77 "Report Selections"
 
     [IntegrationEvent(false, false)]
     local procedure OnSendEmailDirectlyOnAfterAddRelatedReminderInvoiceSource(var SourceTableIDs: List of [Integer]; var SourceRelationTypes: List of [Integer]; var SourceIDs: List of [Guid]; ReminderLines: Record "Issued Reminder Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSendToDiskForCustOnBeforeDownloadAttachment(var TempReportSelections: Record "Report Selections" temporary; RecordVariant: Variant; DocumentNo: Code[20]; DocumentName: Text; Extension: Code[3]; var ClientAttachmentFileName: Text)
     begin
     end;
 }

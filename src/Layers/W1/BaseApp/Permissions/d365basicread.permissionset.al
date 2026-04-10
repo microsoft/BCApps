@@ -642,6 +642,8 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Power BI Chart Buffer" = R,
                   tabledata "Power BI Context Settings" = R,
                   tabledata "Power BI Customer Reports" = R,
+                  tabledata "Power BI Deployment" = R,
+                  tabledata "Power BI Deployment State" = R,
                   tabledata "Power BI Displayed Element" = R,
                   tabledata "Power BI Report Labels" = R,
                   tabledata "Power BI Report Uploads" = R,

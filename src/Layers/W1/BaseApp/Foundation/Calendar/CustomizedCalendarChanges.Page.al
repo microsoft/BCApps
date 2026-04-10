@@ -40,7 +40,6 @@ page 7603 "Customized Calendar Changes"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Recurring System';
-                    ToolTip = 'Specifies a date or day as a recurring nonworking or working day.';
                 }
                 field(Date; Rec.Date)
                 {

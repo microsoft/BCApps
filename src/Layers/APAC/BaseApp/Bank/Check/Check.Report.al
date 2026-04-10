@@ -33,10 +33,9 @@ using System.Utilities;
 /// </remarks>
 report 1401 Check
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Bank/Check/Check.rdlc';
     Caption = 'Check';
     Permissions = TableData "Bank Account" = m;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -951,6 +950,16 @@ report 1401 Check
                     UseCheckNo := '';
                 end;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Bank/Check/Check.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

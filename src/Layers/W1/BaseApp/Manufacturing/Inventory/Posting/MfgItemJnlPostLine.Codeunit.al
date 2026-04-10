@@ -1525,6 +1525,16 @@ codeunit 99000822 "Mfg. Item Jnl.-Post Line"
         NewItemLedgEntry."Prod. Order Comp. Line No." := ItemJournalLine."Prod. Order Comp. Line No.";
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnBeforeInsertCapValueEntry', '', true, false)]
+    local procedure CopyLocationCodeToCapValueEntry(var ValueEntry: Record "Value Entry"; ItemJnlLine: Record "Item Journal Line")
+    begin
+        if (ValueEntry.Type = ValueEntry.Type::"Work Center") and (ValueEntry."Order Type" = ValueEntry."Order Type"::Production) then begin
+            ManufacturingSetup.GetRecordOnce();
+            if ManufacturingSetup."Copy Loc. to Cap. Val. Entries" then
+                ValueEntry."Location Code" := ItemJnlLine."Location Code";
+        end;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnInsertCapValueEntryOnBeforeCapLedgEntryModify', '', true, false)]
     local procedure OnInsertCapValueEntryOnBeforeCapLedgEntryModify(var CapLedgEntry: Record "Capacity Ledger Entry"; ItemJournalLine: Record "Item Journal Line")
     begin

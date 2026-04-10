@@ -102,6 +102,20 @@ table 5603 "FA Setup"
             ToolTip = 'Specifies the number series code that will be used to assign numbers to insurance policies.';
             TableRelation = "No. Series";
         }
+        field(11; "Bonus Depreciation %"; Decimal)
+        {
+            Caption = 'Bonus Depreciation Percentage';
+            DecimalPlaces = 0 : 2;
+            MinValue = 0;
+            MaxValue = 100;
+            AutoFormatType = 0;
+            ToolTip = 'Specifies the percentage of bonus depreciation allowed for fixed assets.';
+        }
+        field(12; "Bonus Depr. Effective Date"; Date)
+        {
+            Caption = 'Bonus Depreciation Effective Date';
+            ToolTip = 'Specifies the date when bonus depreciation becomes effective for fixed assets.';
+        }
         field(12402; "Writeoff Nos."; Code[20])
         {
             Caption = 'Writeoff Nos.';
@@ -305,5 +319,10 @@ table 5603 "FA Setup"
     var
         DeprBook: Record "Depreciation Book";
         TaxRegisterSetup: Record "Tax Register Setup";
+
+    internal procedure BonusDepreciationCorrectlySetup(): Boolean
+    begin
+        exit((Rec."Bonus Depreciation %" > 0) and (Rec."Bonus Depr. Effective Date" <> 0D));
+    end;
 }
 

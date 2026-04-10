@@ -31,7 +31,8 @@ codeunit 139555 "Shpfy Product Collection Subs."
 
     local procedure MakeResponse(HttpRequestMessage: HttpRequestMessage; var HttpResponseMessage: HttpResponseMessage)
     var
-        GQLProductCollections: Codeunit "Shpfy GQL CustProdCollections";
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
         Uri: Text;
         GraphQlQuery: Text;
         PublishProductTok: Label '{"query":"mutation {publishablePublish(id: \"gid://shopify/Product/', locked = true;
@@ -56,7 +57,7 @@ codeunit 139555 "Shpfy Product Collection Subs."
                                         HttpResponseMessage := GetCreateProductResponse();
                                         ProductCreateGraphQueryTxt := GraphQlQuery;
                                     end;
-                                GraphQlQuery = GQLProductCollections.GetGraphQL():
+                                GraphQlQuery = GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Products_GetCustomProductCollections, ExpectedCost):
                                     HttpResponseMessage := GetProductCollectionsResponse();
                                 GraphQlQuery.Contains(VariantCreateTok):
                                     HttpResponseMessage := GetCreatedVariantResponse();

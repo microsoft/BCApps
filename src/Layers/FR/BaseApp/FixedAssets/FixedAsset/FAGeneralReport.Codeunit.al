@@ -58,7 +58,7 @@ codeunit 5626 "FA General Report"
             FADeprBook.FieldNo("Last Acquisition Cost Date"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Acquisition Cost");
             FADeprBook.FieldNo("Last Depreciation Date"):
-                FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Depreciation);
+                FALedgEntry.SetFilter("FA Posting Type", '%1|%2', FALedgEntry."FA Posting Type"::Depreciation, FALedgEntry."FA Posting Type"::"Bonus Depreciation");
             FADeprBook.FieldNo("Last Write-Down Date"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Write-Down");
             FADeprBook.FieldNo("Last Appreciation Date"):
@@ -136,7 +136,7 @@ codeunit 5626 "FA General Report"
             FADeprBook.FieldNo("Acquisition Cost"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Acquisition Cost");
             FADeprBook.FieldNo(Depreciation):
-                FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Depreciation);
+                FALedgEntry.SetFilter("FA Posting Type", '%1|%2', FALedgEntry."FA Posting Type"::Depreciation, FALedgEntry."FA Posting Type"::"Bonus Depreciation");
             FADeprBook.FieldNo("Write-Down"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Write-Down");
             FADeprBook.FieldNo(Appreciation):
@@ -214,7 +214,7 @@ codeunit 5626 "FA General Report"
             FADeprBook.FieldNo("Acquisition Cost"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Acquisition Cost");
             FADeprBook.FieldNo(Depreciation):
-                FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Depreciation);
+                FALedgEntry.SetFilter("FA Posting Type", '%1|%2', FALedgEntry."FA Posting Type"::Depreciation, FALedgEntry."FA Posting Type"::"Bonus Depreciation");
             FADeprBook.FieldNo("Write-Down"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Write-Down");
             FADeprBook.FieldNo(Appreciation):

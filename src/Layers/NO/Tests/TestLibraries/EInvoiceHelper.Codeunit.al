@@ -25,7 +25,9 @@ codeunit 143003 "E-Invoice Helper"
     begin
         LibrarySales.CreateCustomer(Customer);
         Customer.GLN := TestValueTxt;
+#if not CLEAN29
         Customer."Account Code" := TestValueTxt;
+#endif
 
         if not TempPredefinedCustomer.IsEmpty() then begin
             Customer.Address := TempPredefinedCustomer.Address;
@@ -40,7 +42,9 @@ codeunit 143003 "E-Invoice Helper"
             TempPredefinedCustomer."No." := Customer."No.";
             Customer."Currency Code" := TempPredefinedCustomer."Currency Code";
             Customer."VAT Registration No." := TempPredefinedCustomer."VAT Registration No.";
+#if not CLEAN29
             Customer.Validate("E-Invoice", TempPredefinedCustomer."E-Invoice");
+#endif
         end else begin
             Customer.Address := TestValueTxt;
             Customer."Address 2" := TestValueTxt;
@@ -48,7 +52,9 @@ codeunit 143003 "E-Invoice Helper"
             Customer.City := TestValueTxt;
             Customer."Post Code" := TestValueTxt;
             Customer."VAT Registration No." := '123456785';
+#if not CLEAN29
             Customer.Validate("E-Invoice", true);
+#endif
         end;
 
         Customer.Modify(true);
@@ -117,7 +123,9 @@ codeunit 143003 "E-Invoice Helper"
         TempExpectedCustomerInfo."Fax No." := '45870001';
         TempExpectedCustomerInfo."E-Mail" := 'mdcc@mdcc.dk';
         TempExpectedCustomerInfo."VAT Registration No." := '987654321';
+#if not CLEAN29
         TempExpectedCustomerInfo."E-Invoice" := true;
+#endif
     end;
 
     [Scope('OnPrem')]
@@ -128,6 +136,8 @@ codeunit 143003 "E-Invoice Helper"
         TempPredefinedCustomer.Insert(true);
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Scope('OnPrem')]
     procedure SetupEInvoiceForSales(Path: Text[250])
     var
@@ -140,6 +150,7 @@ codeunit 143003 "E-Invoice Helper"
         SalesReceivablesSetup.Validate("E-Invoice Fin. Charge Path", Path);
         SalesReceivablesSetup.Modify(true);
     end;
+#endif
 
     [Scope('OnPrem')]
     procedure KIDSetup(NewKIDSetup: Option; DocNoLength: Integer; CustNoLength: Integer)

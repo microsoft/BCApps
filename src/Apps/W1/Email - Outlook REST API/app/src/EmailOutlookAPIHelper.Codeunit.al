@@ -275,20 +275,6 @@ codeunit 4509 "Email - Outlook API Helper"
     end;
 #pragma warning restore AL0432
 #endif
-#if not CLEAN26
-#pragma warning disable AL0432
-    [Obsolete('Update OutlookAPIClient to v4.', '26.0')]
-    procedure InitializeClients(var OutlookAPIClient: interface "Email - Outlook API Client v3"; var OAuthClient: interface "Email - OAuth Client v2")
-    var
-        DefaultAPIClient: Codeunit "Email - Outlook API Client";
-        DefaultOAuthClient: Codeunit "Email - OAuth Client";
-    begin
-        OutlookAPIClient := DefaultAPIClient;
-        OAuthClient := DefaultOAuthClient;
-        OnAfterInitializeClientsV3(OutlookAPIClient, OAuthClient);
-    end;
-#pragma warning restore AL0432
-#endif
 #if not CLEAN28
 #pragma warning disable AL0432
     [Obsolete('Update OutlookAPIClient to v5.', '28.0')]
@@ -350,22 +336,6 @@ codeunit 4509 "Email - Outlook API Helper"
         OAuthClient.GetAccessToken(AccessToken);
         APIClient.SendEmail(AccessToken, EmailMessageToJson(EmailMessage));
     end;
-#if not CLEAN26
-    [Obsolete('Replaced by an overload without the MarkEmailsAsRead parameter.', '26.0')]
-    procedure RetrieveEmails(AccountId: Guid; MarkEmailsAsRead: Boolean; var EmailInbox: Record "Email Inbox")
-    var
-        TempFilters: Record "Email Retrieval Filters" temporary;
-    begin
-        TempFilters.Init();
-        RetrieveEmails(AccountId, EmailInbox, TempFilters);
-    end;
-
-    [Obsolete('Replaced by an overload without the MarkEmailsAsRead parameter.', '26.0')]
-    procedure RetrieveEmails(AccountId: Guid; MarkEmailsAsRead: Boolean; var EmailInbox: Record "Email Inbox"; var Filters: Record "Email Retrieval Filters")
-    begin
-        RetrieveEmails(AccountId, EmailInbox, Filters);
-    end;
-#endif
 
     procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox")
     var
@@ -416,13 +386,13 @@ codeunit 4509 "Email - Outlook API Helper"
 
     local procedure GetEmailAddressFromEmailAccounts(AccountId: Guid): Text
     var
-        EmailAccounts: Record "Email Account";
+        TempEmailAccounts: Record "Email Account";
     begin
-        EmailAccount.GetAllAccounts(EmailAccounts);
-        EmailAccounts.SetRange("Account Id", AccountId);
-        EmailAccounts.FindFirst();
+        EmailAccount.GetAllAccounts(TempEmailAccounts);
+        TempEmailAccounts.SetRange("Account Id", AccountId);
+        TempEmailAccounts.FindFirst();
 
-        exit(EmailAccounts."Email Address");
+        exit(TempEmailAccounts."Email Address");
     end;
 
     local procedure CreateEmailInboxFromJsonObject(var EmailInbox: Record "Email Inbox"; OutlookAccount: Record "Email - Outlook Account"; var Filters: Record "Email Retrieval Filters"; EmailJsonObject: JsonObject)
@@ -821,14 +791,6 @@ codeunit 4509 "Email - Outlook API Helper"
 #pragma warning disable AL0432
     [InternalEvent(false)]
     local procedure OnAfterInitializeClientsV2(var OutlookAPIClient: interface "Email - Outlook API Client v2"; var OAuthClient: interface "Email - OAuth Client v2")
-    begin
-    end;
-#pragma warning restore AL0432
-#endif
-#if not CLEAN26
-#pragma warning disable AL0432
-    [InternalEvent(false)]
-    local procedure OnAfterInitializeClientsV3(var OutlookAPIClient: interface "Email - Outlook API Client v3"; var OAuthClient: interface "Email - OAuth Client v2")
     begin
     end;
 #pragma warning restore AL0432

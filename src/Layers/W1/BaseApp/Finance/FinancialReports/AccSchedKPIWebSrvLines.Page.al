@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,13 +29,11 @@ page 196 "Acc. Sched. KPI Web Srv. Lines"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Row definition';
-                    ToolTip = 'Specifies the row definition that the KPI web service is based on. To view or edit the selected financial report, choose the Edit Row Definition button.';
                 }
                 field("Acc. Schedule Description"; Rec."Acc. Schedule Description")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Description';
-                    ToolTip = 'Specifies the description of the row definition that the KPI web service is based on.';
                 }
             }
         }

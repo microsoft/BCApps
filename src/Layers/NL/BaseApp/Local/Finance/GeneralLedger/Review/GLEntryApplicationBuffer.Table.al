@@ -414,7 +414,7 @@ table 11307 "G/L Entry Application Buffer"
         DimManagement: Codeunit DimensionManagement;
     begin
         "Dimension Set ID" := DimManagement.EditDimensionSet(
-            "Dimension Set ID", StrSubstNo('%1 %2', "Entry No.", "G/L Account No."),
+            Rec, "Dimension Set ID", StrSubstNo('%1 %2', "Entry No.", "G/L Account No."),
             "Global Dimension 1 Code", "Global Dimension 2 Code");
     end;
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -55,7 +55,6 @@ page 1164 "User Task List Part"
                 {
                     ApplicationArea = All;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies when the task must be completed.';
                 }
                 field(Priority; Rec.Priority)
                 {
@@ -76,7 +75,6 @@ page 1164 "User Task List Part"
                 field("Created DateTime"; Rec."Created DateTime")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies when the task was created.';
                 }
                 field("User Task Group Assigned To"; Rec."User Task Group Assigned To")
                 {
@@ -87,7 +85,6 @@ page 1164 "User Task List Part"
                 field("Completed DateTime"; Rec."Completed DateTime")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies when the task was completed.';
                     Visible = false;
                 }
                 field("Start DateTime"; Rec."Start DateTime")
@@ -99,13 +96,11 @@ page 1164 "User Task List Part"
                 field("Created By User Name"; Rec."Created By User Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies who created the task.';
                     Visible = false;
                 }
                 field("Completed By User Name"; Rec."Completed By User Name")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies who completed the task.';
                     Visible = false;
                 }
             }

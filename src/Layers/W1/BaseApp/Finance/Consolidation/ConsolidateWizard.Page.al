@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -175,7 +175,6 @@ page 242 "Consolidate Wizard"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Code';
-                            ToolTip = 'Specifies the code of the business unit.';
                             Editable = false;
                             TableRelation = "Business Unit";
                             DrillDown = true;
@@ -294,7 +293,6 @@ page 242 "Consolidate Wizard"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Average Currency Factor';
-                            ToolTip = 'Specifies the exchange rate to use for balance sheet accounts.';
                             AutoFormatType = 0;
                             DecimalPlaces = 2;
                             trigger OnDrillDown()
@@ -308,7 +306,6 @@ page 242 "Consolidate Wizard"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Closing Currency Factor';
-                            ToolTip = 'Specifies the exchange rate to use for income statement accounts.';
                             AutoFormatType = 0;
                             DecimalPlaces = 2;
                             trigger OnDrillDown()
@@ -322,7 +319,6 @@ page 242 "Consolidate Wizard"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Last Closing Currency Factor';
-                            ToolTip = 'Specifies the last closing currency factor used in the previous reconciliation. This will be used to adjust the balance entries.';
                             AutoFormatType = 0;
                             DecimalPlaces = 2;
                             trigger OnDrillDown()

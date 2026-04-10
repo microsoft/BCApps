@@ -18,12 +18,11 @@ using System.Reflection;
 /// </summary>
 report 10046 "Customer Register"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/Reports/CustomerRegister.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Customer Register';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -222,6 +221,16 @@ report 10046 "Customer Register"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reports/CustomerRegister.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

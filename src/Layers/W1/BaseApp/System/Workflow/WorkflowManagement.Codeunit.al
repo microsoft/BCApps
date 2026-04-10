@@ -245,6 +245,7 @@ codeunit 1501 "Workflow Management"
         WorkflowStep.SetRange("Function Name", FunctionName);
         WorkflowStep.SetRange("Entry Point", true);
         WorkflowStep.SetRange(Type, WorkflowStep.Type::"Event");
+        OnAfterSetFilterWorkflowStep(WorkflowStep);
         if WorkflowStep.FindSet() then
             repeat
                 if Workflow.Get(WorkflowStep."Workflow Code") then
@@ -673,12 +674,14 @@ codeunit 1501 "Workflow Management"
                 if WorkflowStepInstance.Status = WorkflowStepInstance.Status::Processing then begin
                     WorkflowRecordManagement.RestoreRecord(WorkflowEventQueue."Record Index", Variant);
                     WorkflowRecordManagement.RestoreRecord(WorkflowEventQueue."xRecord Index", xVariant);
-                    RecRef.GetTable(Variant);
-                    xRecRef.GetTable(xVariant);
-                    WorkflowStepInstance.FindWorkflowRules(WorkflowRule);
-                    if EvaluateCondition(RecRef, xRecRef, WorkflowStepInstance.Argument, WorkflowRule) then begin
-                        ExecuteResponses(RecRef, xRecRef, WorkflowStepInstance);
-                        WorkflowEventQueue.Delete();
+                    if Variant.IsRecord and xVariant.IsRecord then begin
+                        RecRef.GetTable(Variant);
+                        xRecRef.GetTable(xVariant);
+                        WorkflowStepInstance.FindWorkflowRules(WorkflowRule);
+                        if EvaluateCondition(RecRef, xRecRef, WorkflowStepInstance.Argument, WorkflowRule) then begin
+                            ExecuteResponses(RecRef, xRecRef, WorkflowStepInstance);
+                            WorkflowEventQueue.Delete();
+                        end;
                     end;
                 end;
             until WorkflowEventQueue.Next() = 0;
@@ -888,6 +891,11 @@ codeunit 1501 "Workflow Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnFindWorkflowStepInstanceWithOptionalWorkflowStartOnAfterSetWorkflowStepInstanceLoopFi1ters(RecordRef: RecordRef; var WorkflowStepInstanceLoop: Record "Workflow Step Instance"; FunctionName: Code[128]; StartWorkflow: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetFilterWorkflowStep(var WorkflowStep: Record "Workflow Step")
     begin
     end;
 }

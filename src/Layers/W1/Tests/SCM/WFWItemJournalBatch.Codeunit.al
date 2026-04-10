@@ -25,6 +25,7 @@ codeunit 139491 "WFW Item Journal Batch"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryERM: Codeunit "Library - ERM";
         IsInitialized: Boolean;
         BogusUserIdTxt: Label 'CONTOSO';
         DynamicRequestPageParametersItemJournalBatchTxt: Label '<?xml version="1.0" encoding="utf-8" standalone="yes"?><ReportParameters><DataItems><DataItem name="Item Journal Line">VERSION(1) SORTING(Field1,Field51,Field2)</DataItem></DataItems></ReportParameters>', Locked = true;
@@ -180,7 +181,6 @@ codeunit 139491 "WFW Item Journal Batch"
         VerifyWorkflowWebhookEntryResponse(ItemJournalBatch.SystemId, DummyWorkflowWebhookEntry.Response::Cancel);
     end;
 
-
     [Test]
     [HandlerFunctions('MessageHandler')]
     procedure TestDirectApproverApprovesRequestForItemJournalBatch()
@@ -304,7 +304,6 @@ codeunit 139491 "WFW Item Journal Batch"
         // [THEN] The variable storage is empty after the page handler processes the expected record ID.
         LibraryVariableStorage.AssertEmpty();
     end;
-
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -1665,11 +1664,641 @@ codeunit 139491 "WFW Item Journal Batch"
         Assert.ExpectedError(StrSubstNo(RecordRestrictedErr, Format(ItemJournalBatch.RecordId, 0, 1)));
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryForItemJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalBatch: Record "Item Journal Batch";
+        RequestorUserSetup: Record "User Setup";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+        ItemRegister: Record "Item Register";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624702] Verify that the approval entry is moved from approval entry to posted approval entry when the Item Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Item Journal Batch with setup.
+        SendApprovalRequestForItemJournalWithSetup(ItemJournalBatch, ItemJournalLine);
+
+        // [GIVEN] Approval entry for the batch is retrieved and assigned to the requestor.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        RequestorUserSetup.Get(UserId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approves the batch.
+        ApproveItemJournalBatch(ItemJournalBatch.Name);
+
+        // [WHEN] Post the Item Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        ItemRegister.Get(ItemJournalPostBatch.GetItemRegNo());
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, ItemRegister.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryWithCommentForItemJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalBatch: Record "Item Journal Batch";
+        RequestorUserSetup: Record "User Setup";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+        ItemRegister: Record "Item Register";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624702] Verify that the approval entry is moved from approval entry to posted approval entry with comment when the Item Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Item Journal Batch with setup.
+        SendApprovalRequestForItemJournalWithSetup(ItemJournalBatch, ItemJournalLine);
+
+        // [GIVEN] Approval entry for the batch is retrieved and assigned to the requestor.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        RequestorUserSetup.Get(UserId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] An approval comment is added to the approval entry.
+        AddApprovalComment(ApprovalEntry);
+
+        // [GIVEN] Approves the batch.
+        ApproveItemJournalBatch(ItemJournalBatch.Name);
+
+        // [WHEN] Post the Item Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        ItemRegister.Get(ItemJournalPostBatch.GetItemRegNo());
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, ItemRegister.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalStatusMustBeBlankWhenItemJournalIsPosted()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalBatch: Record "Item Journal Batch";
+        RequestorUserSetup: Record "User Setup";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+        ItemJournalPage: TestPage "Item Journal";
+    begin
+        // [SCENARIO 624702] Verify that the approval status on the journal batch is blank when the Item Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Item Journal Batch with setup.
+        SendApprovalRequestForItemJournalWithSetup(ItemJournalBatch, ItemJournalLine);
+
+        // [GIVEN] Approval entry for the batch is retrieved and assigned to the requestor.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        RequestorUserSetup.Get(UserId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approves the batch.
+        ApproveItemJournalBatch(ItemJournalBatch.Name);
+
+        // [WHEN] Post the Item Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval status on the journal batch is blank.
+        ItemJournalPage.OpenView();
+        ItemJournalPage.CurrentJnlBatchName.SetValue(ItemJournalBatch.Name);
+        ItemJournalPage.ItemJnlBatchApprovalStatus.AssertEquals('');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalRequestCanBeSendForNewLineWithoutAnyConfirmationForItemJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalBatch: Record "Item Journal Batch";
+        RequestorUserSetup: Record "User Setup";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624702] Verify that the approval request can be sent for a new line for Item Journal Batch without any confirmation.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Item Journal Batch with setup.
+        SendApprovalRequestForItemJournalWithSetup(ItemJournalBatch, ItemJournalLine);
+
+        // [GIVEN] Approval entry for the batch is retrieved and assigned to the requestor.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        RequestorUserSetup.Get(UserId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approves the batch.
+        ApproveItemJournalBatch(ItemJournalBatch.Name);
+
+        // [GIVEN] Post the Item Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [GIVEN] Add a new line to the approved batch.  
+        CreateItemJournalBatchWithOneJournalLine(ItemJournalBatch, ItemJournalLine);
+
+        // [GIVEN] Save a transaction.
+        Commit();
+
+        // [WHEN] Send approval request for the Item Journal Batch without any confirmation.
+        SendApprovalRequestForItemJournal(ItemJournalBatch.Name);
+
+        // [THEN] Verify approval entry is created.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        VerifyApprovalEntryIsOpen(ApprovalEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryForPhysicalInventoryJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemRegister: Record "Item Register";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624842] Verify that the approval entry is moved from approval entry to posted approval entry when the Physical Inventory Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Physical Inventory Journal Batch with setup.
+        SendApprovalRequestForPhysicalInventoryJournalWithSetup(ItemJournalBatch, ItemJournalLine, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve the Physical Inventory Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [WHEN] Post the Item Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        ItemRegister.Get(ItemJournalPostBatch.GetItemRegNo());
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, ItemRegister.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryWithCommentForPhysicalInventoryJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemRegister: Record "Item Register";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624842] Verify that the approval entry is moved from approval entry to posted approval entry with comment when the Physical Inventory Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Physical Inventory Journal Batch with setup.
+        SendApprovalRequestForPhysicalInventoryJournalWithSetup(ItemJournalBatch, ItemJournalLine, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] An approval comment is added to the approval entry.
+        AddApprovalComment(ApprovalEntry);
+
+        // [GIVEN] Approve the Physical Inventory Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [WHEN] Post the Item Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        ItemRegister.Get(ItemJournalPostBatch.GetItemRegNo());
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, ItemRegister.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalStatusMustBeBlankWhenPhysicalInventoryJournalIsPosted()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+        PhysInventoryJournalPage: TestPage "Phys. Inventory Journal";
+    begin
+        // [SCENARIO 624842] Verify that the approval status on the journal batch is blank when the Physical Inventory Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Physical Inventory Journal Batch with setup.
+        SendApprovalRequestForPhysicalInventoryJournalWithSetup(ItemJournalBatch, ItemJournalLine, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve the Physical Inventory Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [WHEN] Post the Item Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval status on the journal batch is blank.
+        PhysInventoryJournalPage.OpenView();
+        PhysInventoryJournalPage.CurrentJnlBatchName.SetValue(ItemJournalBatch.Name);
+        PhysInventoryJournalPage.ItemJnlBatchApprovalStatus.AssertEquals('');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalRequestCanBeSendForNewLineWithoutAnyConfirmationForPhysicalInventoryJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624842] Verify that the approval request can be sent for a new line for Physical Inventory Journal Batch without any confirmation.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Physical Inventory Journal Batch with setup.
+        SendApprovalRequestForPhysicalInventoryJournalWithSetup(ItemJournalBatch, ItemJournalLine, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve the Physical Inventory Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [GIVEN] Post the Item Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [GIVEN] Add a new line to the approved batch.  
+        CreatePhysicalInventoryJournalBatchWithOneJournalLine(ItemJournalBatch, ItemJournalLine);
+
+        // [GIVEN] Save a transaction.
+        Commit();
+
+        // [WHEN] Send approval request for the Physical Inventory Journal Batch without any confirmation.
+        SendApprovalRequestForPhysicalInventoryJnlBatch(ItemJournalBatch.Name);
+
+        // [THEN] Verify approval entry is created.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        VerifyApprovalEntryIsOpen(ApprovalEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryForOutputJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemRegister: Record "Item Register";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624843] Verify that the approval entry is moved from approval entry to posted approval entry when the Output Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Output Journal Batch with setup.
+        SendApprovalRequestForOutputJournalWithSetup(ItemJournalBatch, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve the Output Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [WHEN] Post the Output Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        ItemRegister.Get(ItemJournalPostBatch.GetItemRegNo());
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, ItemRegister.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryWithCommentForOutputJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemRegister: Record "Item Register";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624843] Verify that the approval entry is moved from approval entry to posted approval entry with comment when the Output Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Output Journal Batch with setup.
+        SendApprovalRequestForOutputJournalWithSetup(ItemJournalBatch, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] An approval comment is added to the approval entry.
+        AddApprovalComment(ApprovalEntry);
+
+        // [GIVEN] Approve the Output Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [WHEN] Post the Output Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        ItemRegister.Get(ItemJournalPostBatch.GetItemRegNo());
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, ItemRegister.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalStatusMustBeBlankWhenOutputJournalIsPosted()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+        OutputJournalPage: TestPage "Output Journal";
+    begin
+        // [SCENARIO 624843] Verify that the approval status on the journal batch is blank when the Output Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Output Journal Batch with setup.
+        SendApprovalRequestForOutputJournalWithSetup(ItemJournalBatch, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve the Output Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [WHEN] Post the Output Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval status on the journal batch is blank.
+        OutputJournalPage.OpenView();
+        OutputJournalPage.CurrentJnlBatchName.SetValue(ItemJournalBatch.Name);
+        OutputJournalPage.ItemJnlBatchApprovalStatus.AssertEquals('');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalRequestCanBeSendForNewLineWithoutAnyConfirmationForOutputJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624843] Verify that the approval request can be sent for a new line for Output Journal Batch without any confirmation.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Output Journal Batch with setup.
+        SendApprovalRequestForOutputJournalWithSetup(ItemJournalBatch, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve the Output Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [GIVEN] Post the Item Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [GIVEN] Add a new line to the approved batch.  
+        CreateOutputJournalBatchWithOneJournalLine(ItemJournalBatch);
+
+        // [GIVEN] Save a transaction.
+        Commit();
+
+        // [WHEN] Send approval request for the Output Journal Batch without any confirmation.
+        SendApprovalRequestForOutputJnlBatch(ItemJournalBatch.Name);
+
+        // [THEN] Verify approval entry is created.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        VerifyApprovalEntryIsOpen(ApprovalEntry);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryForConsumptionJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemRegister: Record "Item Register";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624844] Verify that the approval entry is moved from approval entry to posted approval entry when the Consumption Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Consumption Journal Batch with setup.
+        SendApprovalRequestForConsumptionJournalWithSetup(ItemJournalBatch, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve the Consumption Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [WHEN] Post the Consumption Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        ItemRegister.Get(ItemJournalPostBatch.GetItemRegNo());
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, ItemRegister.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalEntryMustBeMovedToPostedApprovalEntryWithCommentForConsumptionJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemRegister: Record "Item Register";
+        PostedApprovalEntry: Record "Posted Approval Entry";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624844] Verify that the approval entry is moved from approval entry to posted approval entry with comments when the Consumption Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Consumption Journal Batch with setup.
+        SendApprovalRequestForConsumptionJournalWithSetup(ItemJournalBatch, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] An approval comment is added to the approval entry.
+        AddApprovalComment(ApprovalEntry);
+
+        // [GIVEN] Approve the Consumption Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [WHEN] Post the Consumption Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval entry is moved to posted approval entry.
+        ItemRegister.Get(ItemJournalPostBatch.GetItemRegNo());
+        LibraryDocumentApprovals.GetPostedApprovalEntries(PostedApprovalEntry, ItemRegister.RecordId());
+        Assert.RecordCount(PostedApprovalEntry, 1);
+
+        // [THEN] Verify that the comment on approval entry is moved to posted approval entry.
+        PostedApprovalEntry.CalcFields(Comment);
+        PostedApprovalEntry.TestField(Comment, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalStatusMustBeBlankWhenConsumptionJournalIsPosted()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+        ConsumptionJournalPage: TestPage "Consumption Journal";
+    begin
+        // [SCENARIO 624844] Verify that the approval status on the journal batch is blank when the Consumption Journal Batch is approved and posted.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Consumption Journal Batch with setup.
+        SendApprovalRequestForConsumptionJournalWithSetup(ItemJournalBatch, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve the Consumption Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [WHEN] Post the Consumption Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [THEN] Verify that the approval status on the journal batch is blank.
+        ConsumptionJournalPage.OpenView();
+        ConsumptionJournalPage.CurrentJnlBatchName.SetValue(ItemJournalBatch.Name);
+        ConsumptionJournalPage.ItemJnlBatchApprovalStatus.AssertEquals('');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ApprovalRequestCanBeSendForNewLineWithoutAnyConfirmationForConsumptionJournal()
+    var
+        ApprovalEntry: Record "Approval Entry";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        RequestorUserSetup: Record "User Setup";
+        ItemJournalPostBatch: Codeunit "Item Jnl.-Post Batch";
+    begin
+        // [SCENARIO 624844] Verify that the approval request can be sent for a new line for Consumption Journal Batch without any confirmation.
+        Initialize();
+
+        // [GIVEN] Send an approval request for the Consumption Journal Batch with setup.
+        SendApprovalRequestForConsumptionJournalWithSetup(ItemJournalBatch, RequestorUserSetup);
+
+        // [GIVEN] Assign the approval entry to the requestor user setup.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        AssignApprovalEntry(ApprovalEntry, RequestorUserSetup);
+
+        // [GIVEN] Approve the Consumption Journal Batch.
+        Approve(ApprovalEntry);
+
+        // [GIVEN] Post the Item Journal Batch.
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        ItemJournalPostBatch.Run(ItemJournalLine);
+
+        // [GIVEN] Add a new line to the approved batch.  
+        CreateConsumptionJournalBatchWithOneJournalLine(ItemJournalBatch);
+
+        // [GIVEN] Save a transaction.
+        Commit();
+
+        // [WHEN] Send approval request for the Consumption Journal Batch without any confirmation.
+        SendApprovalRequestForConsumptionJnlBatch(ItemJournalBatch.Name);
+
+        // [THEN] Verify approval entry is created.
+        LibraryDocumentApprovals.GetApprovalEntries(ApprovalEntry, ItemJournalBatch.RecordId);
+        VerifyApprovalEntryIsOpen(ApprovalEntry);
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
         UserSetup: Record "User Setup";
+        ApprovalEntry: Record "Approval Entry";
         ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalLine: Record "Item Journal Line";
         ClearWorkflowWebhookEntry: Record "Workflow Webhook Entry";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
@@ -1677,8 +2306,11 @@ codeunit 139491 "WFW Item Journal Batch"
         Workflow.ModifyAll(Enabled, false, true);
         UserSetup.DeleteAll();
         ItemJournalTemplate.DeleteAll();
+        ItemJournalLine.DeleteAll();
         ClearWorkflowWebhookEntry.DeleteAll();
+        ApprovalEntry.DeleteAll();
         LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.CreateGeneralPostingSetupData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.UpdateLocalData();
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
@@ -2405,6 +3037,77 @@ codeunit 139491 "WFW Item Journal Batch"
         ApprovalEntry.Status := ApprovalEntry.Status::Open;
         ApprovalEntry."Sequence No." := 1;
         ApprovalEntry.Insert();
+    end;
+
+    local procedure SendApprovalRequestForItemJournalWithSetup(var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line")
+    var
+        Workflow: Record Workflow;
+        ApprovalUserSetup: Record "User Setup";
+    begin
+        LibraryDocumentApprovals.SetupUsersForApprovals(ApprovalUserSetup);
+        LibraryWorkflow.CreateEnabledWorkflow(Workflow, WorkflowSetup.ItemJournalBatchApprovalWorkflowCode());
+        CreateItemJournalBatchWithOneJournalLine(ItemJournalBatch, ItemJournalLine);
+
+        Commit();
+
+        SendApprovalRequestForItemJournal(ItemJournalBatch.Name);
+    end;
+
+    local procedure SendApprovalRequestForPhysicalInventoryJournalWithSetup(var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var RequestorUserSetup: Record "User Setup")
+    var
+        Workflow: Record Workflow;
+        ApproverUserSetup: Record "User Setup";
+    begin
+        CreateDirectApprovalEnabledWorkflow(Workflow);
+        CreatePhysicalInventoryJournalBatchWithOneJournalLine(ItemJournalBatch, ItemJournalLine);
+        CreateApprovalSetup(ApproverUserSetup, RequestorUserSetup);
+
+        FindItemJournalLine(ItemJournalLine, ItemJournalBatch);
+        CreateGeneralPostingSetup(ItemJournalLine."Gen. Bus. Posting Group", ItemJournalLine."Gen. Prod. Posting Group");
+
+        Commit();
+
+        SendApprovalRequestForPhysicalInventoryJnlBatch(ItemJournalBatch.Name);
+    end;
+
+    local procedure SendApprovalRequestForOutputJournalWithSetup(var ItemJournalBatch: Record "Item Journal Batch"; var RequestorUserSetup: Record "User Setup")
+    var
+        Workflow: Record Workflow;
+        ApproverUserSetup: Record "User Setup";
+    begin
+        CreateDirectApprovalEnabledWorkflow(Workflow);
+        CreateOutputJournalBatchWithOneJournalLine(ItemJournalBatch);
+        CreateApprovalSetup(ApproverUserSetup, RequestorUserSetup);
+
+        Commit();
+
+        SendApprovalRequestForOutputJnlBatch(ItemJournalBatch.Name);
+    end;
+
+    local procedure SendApprovalRequestForConsumptionJournalWithSetup(var ItemJournalBatch: Record "Item Journal Batch"; var RequestorUserSetup: Record "User Setup")
+    var
+        Workflow: Record Workflow;
+        ApproverUserSetup: Record "User Setup";
+    begin
+        CreateDirectApprovalEnabledWorkflow(Workflow);
+        CreateConsumptionJournalBatchWithOneJournalLine(ItemJournalBatch);
+        CreateApprovalSetup(ApproverUserSetup, RequestorUserSetup);
+
+        Commit();
+
+        SendApprovalRequestForConsumptionJnlBatch(ItemJournalBatch.Name);
+    end;
+
+    local procedure CreateGeneralPostingSetup(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        if not GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup, GenProdPostingGroup);
+            LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
+            LibraryERM.SetGeneralPostingSetupPurchAccounts(GeneralPostingSetup);
+            LibraryERM.SetGeneralPostingSetupSalesAccounts(GeneralPostingSetup);
+        end;
     end;
 
     [MessageHandler]

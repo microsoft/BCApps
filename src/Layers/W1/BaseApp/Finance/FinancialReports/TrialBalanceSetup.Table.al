@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 1312 "Trial Balance Setup"
         field(2; "Account Schedule Name"; Code[10])
         {
             Caption = 'Row Definition';
+            ToolTip = 'Specifies the rows definition to use to calculate the results that display in the Trial Balance chart.';
             NotBlank = true;
             TableRelation = "Acc. Schedule Name".Name;
         }
@@ -43,6 +44,7 @@ table 1312 "Trial Balance Setup"
         field(3; "Column Layout Name"; Code[10])
         {
             Caption = 'Column Definition';
+            ToolTip = 'Specifies the columns definition to use to determine how columns display in the Trial Balance chart.';
             NotBlank = true;
             TableRelation = "Column Layout Name".Name;
         }

@@ -31,7 +31,6 @@ page 7600 "Base Calendar Card"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name of the base calendar in the entry.';
                 }
                 field("Customized Changes Exist"; format(Rec."Customized Changes Exist"))
                 {

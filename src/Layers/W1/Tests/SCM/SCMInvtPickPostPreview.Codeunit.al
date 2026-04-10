@@ -12,6 +12,7 @@ codeunit 134778 "SCM Invt. Pick Post Preview"
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
@@ -504,6 +505,76 @@ codeunit 134778 "SCM Invt. Pick Post Preview"
         // [THEN] "Shelf No." = "S2" on the pick line for Item "A".
         FindWarehouseActivityLine(WarehouseActivityLine, DATABASE::"Sales Line", SalesHeader."No.", WarehouseActivityHeader.Type::"Invt. Pick");
         WarehouseActivityLine.TestField("Shelf No.", SKU."Shelf No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler,CreateInvtPickRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure PartialPickNegativePurchOrderLineUpdatesCorrectQtyReceived()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        Location: Record Location;
+        Bin: Record Bin;
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        WhseActivityPost: Codeunit "Whse.-Activity-Post";
+        TotalQty: Decimal;
+        QtyToHandle: Decimal;
+    begin
+        // [FEATURE] [Purchase] [Inventory Pick] [Negative Quantity]
+        // [SCENARIO 624561] When partially picking a purchase order line with negative quantity, only the picked quantity is received.
+        Initialize();
+
+        // [GIVEN] Location with 'Require Pick' and 'Bin Mandatory' enabled
+        CreateLocationWMSWithWhseEmployee(Location, true, false, true, false, false);
+        LibraryWarehouse.CreateBin(Bin, Location.Code,
+            CopyStr(LibraryUtility.GenerateRandomCode(Bin.FieldNo(Code), DATABASE::Bin), 1,
+            LibraryUtility.GetFieldLength(DATABASE::Bin, Bin.FieldNo(Code))), '', '');
+        Location.Validate("Default Bin Code", Bin.Code);
+        Location.Modify(true);
+
+        // [GIVEN] Item with inventory in the location
+        TotalQty := LibraryRandom.RandIntInRange(10, 20);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", Location.Code, Bin.Code, TotalQty);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Purchase Order with negative quantity (return scenario)
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        PurchaseHeader.Validate("Location Code", Location.Code);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", -TotalQty);
+        PurchaseLine.Validate("Location Code", Location.Code);
+        PurchaseLine.Validate("Bin Code", Bin.Code);
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Release purchase order and create inventory pick
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        Commit();
+        PurchaseHeader.CreateInvtPutAwayPick();
+
+        // [GIVEN] Set partial Qty. to Handle (e.g., 3 out of 10)
+        QtyToHandle := LibraryRandom.RandIntInRange(1, TotalQty - 1);
+        FindWarehouseActivityLine(WarehouseActivityLine, DATABASE::"Purchase Line", PurchaseHeader."No.", WarehouseActivityHeader.Type::"Invt. Pick");
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        WarehouseActivityLine.Validate("Qty. to Handle", QtyToHandle);
+        WarehouseActivityLine.Modify(true);
+
+        // [WHEN] Post the inventory pick
+        WhseActivityPost.SetInvoiceSourceDoc(false);
+        WhseActivityPost.PrintDocument(false);
+        WhseActivityPost.SetSuppressCommit(false);
+        WhseActivityPost.ShowHideDialog(false);
+        WhseActivityPost.SetIsPreview(false);
+        WhseActivityPost.Run(WarehouseActivityLine);
+
+        // [THEN] Purchase Line has correct Qty. Received (only the partial picked quantity)
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        Assert.AreEqual(-QtyToHandle, PurchaseLine."Quantity Received", 'Quantity Received should match the partial pick quantity');
+        Assert.AreEqual(-TotalQty + QtyToHandle, PurchaseLine."Qty. to Receive", 'Qty. to Receive should be the remaining quantity');
     end;
 
     local procedure Initialize()

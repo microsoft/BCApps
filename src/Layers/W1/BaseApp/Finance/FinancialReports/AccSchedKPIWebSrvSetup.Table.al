@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -46,6 +46,7 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
         field(2; "Forecasted Values Start"; Option)
         {
             Caption = 'Forecasted Values Start';
+            ToolTip = 'Specifies at what point in time forecasted values are shown on the financial-report KPI graphic. The forecasted values are retrieved from the selected general ledger budget.';
             OptionCaption = 'After Latest Closed Period,After Current Date';
             OptionMembers = "After Latest Closed Period","After Current Date";
         }
@@ -55,6 +56,7 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
         field(3; "G/L Budget Name"; Code[10])
         {
             Caption = 'G/L Budget Name';
+            ToolTip = 'Specifies the name of the general ledger budget that provides budgeted values to the financial-report KPI web service.';
             TableRelation = "G/L Budget Name";
         }
         /// <summary>
@@ -63,6 +65,7 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
         field(4; Period; Option)
         {
             Caption = 'Period';
+            ToolTip = 'Specifies the period that the financial-report KPI web service is based on.';
             OptionCaption = 'Fiscal Year - Last Locked Period,Current Fiscal Year,Current Calendar Year,Current Calendar Quarter,Current Month,Today,Current Period,Last Locked Period,Current Fiscal Year + 3 Previous Years';
             OptionMembers = "Fiscal Year - Last Locked Period","Current Fiscal Year","Current Calendar Year","Current Calendar Quarter","Current Month",Today,"Current Period","Last Locked Period","Current Fiscal Year + 3 Previous Years";
         }
@@ -72,6 +75,7 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
         field(5; "View By"; Option)
         {
             Caption = 'View By';
+            ToolTip = 'Specifies which time interval the financial-report KPI is shown in.';
             InitValue = Month;
             OptionCaption = 'Day,Week,Month,Quarter,Year,Period';
             OptionMembers = Day,Week,Month,Quarter,Year,Period;
@@ -82,6 +86,7 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
         field(6; "Web Service Name"; Text[240])
         {
             Caption = 'Web Service Name';
+            ToolTip = 'Specifies the name of the financial-report KPI web service. This name will be shown under the displayed financial-report KPI.';
 
             trigger OnValidate()
             var
@@ -105,6 +110,7 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
                                                      "Object ID" = const(197),
                                                      Published = const(true)));
             Caption = 'Published';
+            ToolTip = 'Specifies if the financial-report KPI web service has been published. Published web services are listed in the Web Services window.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -114,6 +120,7 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
         field(8; "Data Last Updated"; DateTime)
         {
             Caption = 'Data Last Updated';
+            ToolTip = 'Specifies the last time data was refreshed through the web service.';
             DataClassification = SystemMetadata;
             Editable = false;
         }

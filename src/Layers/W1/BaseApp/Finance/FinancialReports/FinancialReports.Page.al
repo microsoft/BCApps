@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -110,7 +110,6 @@ page 108 "Financial Reports"
                 field(DimPerspective; Rec.DimPerspective)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the dimension perspective to be used for the financial report.';
 
                     trigger OnValidate()
                     begin

@@ -26,6 +26,7 @@ codeunit 147515 "No Taxable Documents"
         NoTaxableEntryIsNotFoundErr: Label 'No Taxable is not found.';
         NoTaxableEntryShouldNotBeCreatedErr: Label 'No Taxable Entry should not be created.';
         CarteraDocShouldNotBeCreatedErr: Label ' Cartera Doc should not be created.';
+        NoTaxableEntryShouldBeCreatedErr: Label 'No Taxable Entry should be created.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1046,6 +1047,103 @@ codeunit 147515 "No Taxable Documents"
         asserterror Navigate."No. of Records".AssertEquals(LibraryRandom.RandInt(0));
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ServiceInvoiceWithDifferentBillToCreatesNoTaxableEntry()
+    var
+        BillToCustomer: Record Customer;
+        NoTaxableEntry: Record "No Taxable Entry";
+        SellToCustomer: Record Customer;
+        ServiceHeader: Record "Service Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceItem: Record "Service Item";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+        ItemNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 621044] Service invoice with different Bill-to customer creates No Taxable Entry.
+        LibraryLowerPermissions.SetO365Full();
+
+        // [GIVEN] Create Customer VAT Setup for both Sell-to and Bill-to Customers.
+        LibrarySII.CreateCustWithVATSetup(SellToCustomer);
+        LibrarySII.CreateCustWithVATSetup(BillToCustomer);
+
+        // [GIVEN] Create Service Order.
+        LibrarySII.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, SellToCustomer."No.", '');
+
+        // [GIVEN] Change Bill-to customer to another customer.
+        ServiceHeader.Validate("Bill-to Customer No.", BillToCustomer."No.");
+        ServiceHeader.Modify(true);
+
+        // [GIVEN] Create Service Item and Service Item Line.
+        LibraryService.CreateServiceItem(ServiceItem, ServiceHeader."Customer No.");
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, ServiceItem."No.");
+
+        // [GIVEN] Create Item with No Taxable VAT setup. 
+        ItemNo := CreateItemWithNoTaxableVATSetup(ServiceHeader);
+
+        // [GIVEN] Create Servie Line with the Item. 
+        CreateServiceLineWithUnitPrice(ServiceHeader, ServiceLine, ItemNo);
+
+        // [WHEN] Post the Service Order.
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+
+        // [GIVEN] Find the Service Invoice created.
+        ServiceInvoiceHeader.SetRange("Pre-Assigned No.", ServiceHeader."No.");
+        ServiceInvoiceHeader.FindFirst();
+
+        // [THEN] No Taxable Entry is created for the Bill-to customer
+        NoTaxableEntry.SetRange("Document No.", ServiceInvoiceHeader."No.");
+        NoTaxableEntry.SetRange("Source No.", ServiceInvoiceHeader."Bill-to Customer No.");
+        Assert.IsFalse(NoTaxableEntry.IsEmpty(), NoTaxableEntryShouldBeCreatedErr);
+    end;
+
+    [Test]
+    procedure ServiceInvoiceWithSameBillToCreatesNoTaxableEntry()
+    var
+        BillToCustomer: Record Customer;
+        NoTaxableEntry: Record "No Taxable Entry";
+        ServiceHeader: Record "Service Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceItem: Record "Service Item";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+        ItemNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 621044] Service invoice with Same Bill-to customer creates No Taxable Entry.
+        LibraryLowerPermissions.SetO365Full();
+
+        // [GIVEN] Create Customer VAT Setup for Bill-to Customer.
+        LibrarySII.CreateCustWithVATSetup(BillToCustomer);
+
+        // [GIVEN] Create Service Order.
+        LibrarySII.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, BillToCustomer."No.", '');
+
+        // [GIVEN] Create Service Item and Service Item Line.
+        LibraryService.CreateServiceItem(ServiceItem, ServiceHeader."Customer No.");
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, ServiceItem."No.");
+
+        // [GIVEN] Create Item with No Taxable VAT setup. 
+        ItemNo := CreateItemWithNoTaxableVATSetup(ServiceHeader);
+
+        // [GIVEN] Create Servie Line with the Item. 
+        CreateServiceLineWithUnitPrice(ServiceHeader, ServiceLine, ItemNo);
+
+        // [WHEN] Post the Service Order.
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+
+        // [GIVEN] Find the Service Invoice created.
+        ServiceInvoiceHeader.SetRange("Pre-Assigned No.", ServiceHeader."No.");
+        ServiceInvoiceHeader.FindFirst();
+
+        // [THEN] No Taxable Entry is created for the Bill-to customer.
+        NoTaxableEntry.SetRange("Document No.", ServiceInvoiceHeader."No.");
+        NoTaxableEntry.SetRange("Source No.", ServiceInvoiceHeader."Bill-to Customer No.");
+        Assert.IsFalse(NoTaxableEntry.IsEmpty(), NoTaxableEntryShouldBeCreatedErr);
+    end;
+
     local procedure CreateGLAccountNoTaxableSale(): Code[20]
     var
         GLAccount: Record "G/L Account";
@@ -1222,6 +1320,25 @@ codeunit 147515 "No Taxable Documents"
 
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
         PurchaseLine.Modify(true);
+    end;
+
+    local procedure CreateServiceLineWithUnitPrice(ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; ItemNo: Code[20])
+    begin
+        LibraryService.CreateServiceLineWithQuantity(
+            ServiceLine, ServiceHeader, ServiceLine.Type::Item, ItemNo, LibraryRandom.RandInt(100));
+        ServiceLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        ServiceLine.Modify(true);
+    end;
+
+    local procedure CreateItemWithNoTaxableVATSetup(ServiceHeader: Record "Service Header"): Code[20]
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        ItemNo: Code[20];
+    begin
+        ItemNo := LibrarySII.CreateItemNoWithSpecificVATSetup(
+            LibrarySII.CreateSpecificNoTaxableVATSetup(
+                ServiceHeader."VAT Bus. Posting Group", false, VATPostingSetup."No Taxable Type"::"Non Taxable Due To Localization Rules"));
+        exit(ItemNo);
     end;
 
     [ConfirmHandler]

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,7 +31,6 @@ page 744 "VAT Report List"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("VAT Report Config. Code"; Rec."VAT Report Config. Code")
                 {
@@ -41,7 +40,6 @@ page 744 "VAT Report List"
                 field("VAT Report Type"; Rec."VAT Report Type")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies if the VAT report is a standard report, or if it is related to a previously submitted VAT report.';
                 }
                 field("Start Date"; Rec."Start Date")
                 {

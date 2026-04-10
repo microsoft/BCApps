@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 251 "Gen. Product Posting Group"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the product posting group.';
             NotBlank = true;
         }
         /// <summary>
@@ -37,6 +38,7 @@ table 251 "Gen. Product Posting Group"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the product posting group.';
         }
         /// <summary>
         /// Default VAT product posting group applied when this product group is used.
@@ -45,6 +47,7 @@ table 251 "Gen. Product Posting Group"
         field(3; "Def. VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'Def. VAT Prod. Posting Group';
+            ToolTip = 'Specifies a default VAT product group code.';
             TableRelation = "VAT Product Posting Group";
 
             trigger OnValidate()
@@ -129,6 +132,7 @@ table 251 "Gen. Product Posting Group"
         field(4; "Auto Insert Default"; Boolean)
         {
             Caption = 'Auto Insert Default';
+            ToolTip = 'Specifies whether to automatically insert the default VAT product posting group code in the Def. VAT Prod. Posting Group field when you insert the corresponding general product posting group code from the Code field, for example on new item and resource cards, or in the item charges setup.';
             InitValue = true;
         }
     }

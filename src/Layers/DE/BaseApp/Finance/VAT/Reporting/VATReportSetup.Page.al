@@ -30,7 +30,6 @@ page 743 "VAT Report Setup"
                 field("Modify Submitted Reports"; Rec."Modify Submitted Reports")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if users can modify VAT reports that have been submitted to the tax authorities. If the field is left blank, users must create a corrective or supplementary VAT report instead.';
                 }
                 field("Export Cancellation Lines"; Rec."Export Cancellation Lines")
                 {
@@ -65,6 +64,14 @@ page 743 "VAT Report Setup"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number series that will be used for standard VAT reports.';
+                }
+            }
+            group(ELMA)
+            {
+                Caption = 'ELMA';
+                field("BOP User Account ID"; Rec."BOP User Account ID")
+                {
+                    ApplicationArea = Basic, Suite;
                 }
             }
 #if not CLEAN28

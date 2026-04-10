@@ -1587,6 +1587,16 @@
   {
     "codeunitId": 138701,
     "codeunitName": "Reten. Policy Setup Test",
+    "method": "TestTruncateTableRecordsSuccess"
+  },
+  {
+    "codeunitId": 138701,
+    "codeunitName": "Reten. Policy Setup Test",
+    "method": "TestTruncateTableRecordsTruncateNotAllowed"
+  },
+  {
+    "codeunitId": 138701,
+    "codeunitName": "Reten. Policy Setup Test",
     "method": "TestValidateRetentionPeriodNeverDeleteWithMinRetentionDays"
   },
   {
@@ -1753,6 +1763,11 @@
     "codeunitId": 138703,
     "codeunitName": "Reten. Pol. Allowed Tbl. Test",
     "method": "TestRemoveFromAllowedTables"
+  },
+  {
+    "codeunitId": 138703,
+    "codeunitName": "Reten. Pol. Allowed Tbl. Test",
+    "method": "TestSetTruncateAllowedToggle"
   },
   {
     "codeunitId": 138706,

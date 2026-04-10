@@ -1203,6 +1203,48 @@ codeunit 134563 "ERM Insert Std. Sales Lines"
                 SalesHeader[2].TableCaption()));
     end;
 
+    [Test]
+    procedure CreateSalesInvoiceWithDeferralCodeInRecurringLines()
+    var
+        SalesHeader: Record "Sales Header";
+        DeferralTemplate: Record "Deferral Template";
+        Item: Record Item;
+        LibraryInventory: Codeunit "Library - Inventory";
+        CustomerNo: Code[20];
+        StandardSalesCode: Code[10];
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 621455s] No error when creating Sales Invoice for Customer with Recurring Sales Lines that have Deferral Code
+        Initialize();
+
+        // [GIVEN] Deferral Template with "Calc. Method" = "Straight-Line" and 2 periods
+        LibraryERM.CreateDeferralTemplate(
+            DeferralTemplate, DeferralTemplate."Calc. Method"::"Straight-Line",
+            DeferralTemplate."Start Date"::"Posting Date", 2);
+
+        // [GIVEN] Item with Deferral Code
+        Item.Get(LibraryInventory.CreateItemNo());
+        Item.Validate("Default Deferral Template Code", DeferralTemplate."Deferral Code");
+        Item.Modify(true);
+
+        // [GIVEN] Standard Sales Code with Item that has Deferral Code
+        StandardSalesCode := CreateStandardSalesCodeWithDeferralItem(Item."No.");
+
+        // [GIVEN] Customer with Standard Sales Code where Insert Rec. Lines On Invoices = Automatic
+        CustomerNo := GetNewCustNoWithStandardSalesCodeForCode(RefDocType::Invoice, RefMode::Automatic, StandardSalesCode);
+
+        // [WHEN] Create new Sales Invoice, set Customer and Posting Date
+        SalesHeader.Init();
+        SalesHeader.Validate("Document Type", SalesHeader."Document Type"::Invoice);
+        SalesHeader.Validate("Sell-to Customer No.", CustomerNo);
+        SalesHeader.Insert(true);
+        SalesHeader.Validate("Posting Date", WorkDate());
+
+        // [THEN] No error occurs and recurring sales line with deferral code is created
+        VerifySalesLine(SalesHeader);
+        VerifySalesLineDeferralCode(SalesHeader, DeferralTemplate."Deferral Code");
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1496,6 +1538,27 @@ codeunit 134563 "ERM Insert Std. Sales Lines"
         AllocationAccount.Insert();
 
         exit(AllocationAccount."No.");
+    end;
+
+    local procedure CreateStandardSalesCodeWithDeferralItem(ItemNo: Code[20]): Code[10]
+    var
+        StandardSalesLine: Record "Standard Sales Line";
+    begin
+        StandardSalesLine."Standard Sales Code" := CreateStandardSalesCode();
+        StandardSalesLine.Type := StandardSalesLine.Type::Item;
+        StandardSalesLine."No." := ItemNo;
+        StandardSalesLine.Quantity := LibraryRandom.RandDec(10, 2);
+        StandardSalesLine.Insert();
+        exit(StandardSalesLine."Standard Sales Code")
+    end;
+
+    local procedure VerifySalesLineDeferralCode(SalesHeader: Record "Sales Header"; ExpectedDeferralCode: Code[10])
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        FilterOnSalesLine(SalesLine, SalesHeader);
+        SalesLine.FindFirst();
+        SalesLine.TestField("Deferral Code", ExpectedDeferralCode);
     end;
 
     [ModalPageHandler]

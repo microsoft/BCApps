@@ -21,6 +21,7 @@ codeunit 137212 "SCM Copy Document Mgt."
         LibraryDimension: Codeunit "Library - Dimension";
         LibraryResource: Codeunit "Library - Resource";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryRandom: Codeunit "Library - Random";
@@ -1579,6 +1580,47 @@ codeunit 137212 "SCM Copy Document Mgt."
 
         // [THEN] Verify Error message.
         Assert.ExpectedError(StrSubstNo(OverReceiveError, PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.", PurchaseLine.Type));
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
+    procedure CopyPostedInvoiceWithDifferentCustomerNotChanged()
+    var
+        FromCustomer: Record Customer;
+        ToCustomer: Record Customer;
+        ToSalesHeader: Record "Sales Header";
+        ToSalesLine: Record "Sales Line";
+        PostedInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 622277] When copying a posted invoice with Include Header = true and a different customer, if user declines to change customer, the customer should not change.
+        Initialize();
+
+        // [GIVEN] Create two different customers.
+        LibrarySales.CreateCustomer(FromCustomer);
+        LibrarySales.CreateCustomer(ToCustomer);
+
+        // [GIVEN] Create posted sales invoice for first customer. 
+        PostedInvoiceNo := CreateAndPostSalesInvoice(FromCustomer);
+
+        // [GIVEN] Create sales invoice for second customer.
+        LibrarySales.CreateSalesHeader(ToSalesHeader, ToSalesHeader."Document Type"::Invoice, ToCustomer."No.");
+
+        // [GIVEN] Copy Document with Include Header = true.
+        CopyDocumentMgt.SetProperties(true, false, false, false, false, false, false);
+
+        // [WHEN] Copy the posted invoice to the existing invoice and clicks "No" when asked to change customer.
+        CopyDocumentMgt.CopySalesDoc("Sales Document Type From"::"Posted Invoice", PostedInvoiceNo, ToSalesHeader);
+        Commit();
+
+        // [THEN] Find Sales Line to handle notification.
+        ToSalesLine.SetRange("Document Type", ToSalesHeader."Document Type");
+        ToSalesLine.SetRange("Document No.", ToSalesHeader."No.");
+        ToSalesLine.FindFirst();
+
+        // [THEN] The customer should remain as second customer and handle notification.
+        Assert.Equal(ToCustomer."No.", ToSalesHeader."Sell-to Customer No.");
+        LibraryNotificationMgt.RecallNotificationsForRecord(ToSalesHeader);
+        LibraryNotificationMgt.RecallNotificationsForRecord(ToSalesLine);
     end;
 
     local procedure Initialize()

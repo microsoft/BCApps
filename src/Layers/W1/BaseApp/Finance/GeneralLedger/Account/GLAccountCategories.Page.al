@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,12 +42,10 @@ page 790 "G/L Account Categories"
                     ApplicationArea = Basic, Suite;
                     Style = Strong;
                     StyleExpr = Rec."Has Children" or (Rec.Indentation = 0);
-                    ToolTip = 'Specifies a description of the record.';
                 }
                 field("Account Category"; Rec."Account Category")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the category of the G/L account.';
                 }
                 field(GLAccTotaling; GLAccTotaling)
                 {
@@ -70,7 +68,6 @@ page 790 "G/L Account Categories"
                 field("Additional Report Definition"; Rec."Additional Report Definition")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies additional attributes that are used to create the cash flow statement.';
                 }
                 field(GetBalance; Rec.GetBalance())
                 {

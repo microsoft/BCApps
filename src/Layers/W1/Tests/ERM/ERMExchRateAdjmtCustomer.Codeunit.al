@@ -15,6 +15,7 @@
         LibraryInventory: Codeunit "Library - Inventory";
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryHumanResource: Codeunit "Library - Human Resource";
         LibraryRandom: Codeunit "Library - Random";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryApplicationArea: Codeunit "Library - Application Area";
@@ -914,6 +915,213 @@
         Assert.AreEqual(4, GLEntry.GetLastEntryNo() - LastGLEntryNo, 'incorrect number of G/L entries.');
     end;
 
+    [Test]
+    procedure CustomersDiffPostingGroupsGetSeparateRegisters()
+    var
+        Customer1: Record Customer;
+        Customer2: Record Customer;
+        CustomerPostingGroup1: Record "Customer Posting Group";
+        CustomerPostingGroup2: Record "Customer Posting Group";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        ExchRateAdjmtReg: Record "Exch. Rate Adjmt. Reg.";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 626336] Two customers with different posting groups get separate registers with non-zero amounts
+        Initialize();
+
+        // [GIVEN] Currency "C" with exchange rate
+        CurrencyCode := CreateCurrency();
+
+        // [GIVEN] Customer "C1" with Customer Posting Group "CPG1" and currency "C"
+        CreateCustomerWithNewPostingGroup(Customer1, CustomerPostingGroup1, CurrencyCode);
+
+        // [GIVEN] Customer "C2" with Customer Posting Group "CPG2" and currency "C"
+        CreateCustomerWithNewPostingGroup(Customer2, CustomerPostingGroup2, CurrencyCode);
+
+        // [GIVEN] Posted sales invoices for "C1" and "C2"
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer,
+            Customer1."No.", LibraryRandom.RandIntInRange(500, 1000));
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer,
+            Customer2."No.", LibraryRandom.RandIntInRange(500, 1000));
+        GenJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Exchange rate is changed
+        ModifyExchangeRate(CurrencyCode, LibraryRandom.RandInt(50));
+
+        // [WHEN] Run Adjust Exchange Rates
+        LibraryERM.RunExchRateAdjustmentForDocNo(CurrencyCode, LibraryUtility.GenerateGUID());
+
+        // [THEN] Two register entries exist for Customer with different posting groups
+        ExchRateAdjmtReg.SetRange("Account Type", ExchRateAdjmtReg."Account Type"::Customer);
+        ExchRateAdjmtReg.SetRange("Currency Code", CurrencyCode);
+        Assert.AreEqual(2, ExchRateAdjmtReg.Count(), 'Expected 2 customer registers for 2 posting groups.');
+
+        // [THEN] Register for CPG1 has non-zero adjusted amount
+        ExchRateAdjmtReg.SetRange("Posting Group", CustomerPostingGroup1.Code);
+        ExchRateAdjmtReg.FindFirst();
+        Assert.AreNotEqual(0, ExchRateAdjmtReg."Adjusted Amt. (LCY)", 'Register for CPG1 must have non-zero amount.');
+
+        // [THEN] Register for CPG2 has non-zero adjusted amount
+        ExchRateAdjmtReg.SetRange("Posting Group", CustomerPostingGroup2.Code);
+        ExchRateAdjmtReg.FindFirst();
+        Assert.AreNotEqual(0, ExchRateAdjmtReg."Adjusted Amt. (LCY)", 'Register for CPG2 must have non-zero amount.');
+    end;
+
+    [Test]
+    procedure CustomerRegisterAmtMatchesLinkedLedgerEntries()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        ExchRateAdjmtReg: Record "Exch. Rate Adjmt. Reg.";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 626336] Customer register "Adjusted Amt. (LCY)" equals sum of linked ledger entry amounts
+        Initialize();
+
+        // [GIVEN] Customer "C" with posted invoice and changed exchange rate
+        CreateGenAndModifyExchRate(
+            GenJournalLine, GenJournalLine."Account Type"::Customer, CreateCustomer(CreateCurrency()),
+            GenJournalLine."Document Type"::Invoice, LibraryRandom.RandDec(100, 2), LibraryRandom.RandInt(50));
+
+        // [WHEN] Run Adjust Exchange Rates
+        RunExchRateAdjustment(GenJournalLine."Currency Code", WorkDate());
+
+        // [THEN] Register "Adjusted Amt. (LCY)" equals CalcSums of linked ledger entries "Adjustment Amount"
+        ExchRateAdjmtReg.SetRange("Account Type", ExchRateAdjmtReg."Account Type"::Customer);
+        ExchRateAdjmtReg.SetRange("Currency Code", GenJournalLine."Currency Code");
+        ExchRateAdjmtReg.FindFirst();
+        VerifyRegisterAmtMatchesLedgerEntries(ExchRateAdjmtReg);
+    end;
+
+    [Test]
+    procedure TwoCustomersSamePostingGroupSingleRegister()
+    var
+        Customer1: Record Customer;
+        Customer2: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        ExchRateAdjmtReg: Record "Exch. Rate Adjmt. Reg.";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 626336] Two customers with the same posting group produce one register with combined amount
+        Initialize();
+
+        // [GIVEN] Currency "C" with exchange rate
+        CurrencyCode := CreateCurrency();
+
+        // [GIVEN] Customer "C1" with currency "C"
+        LibrarySales.CreateCustomer(Customer1);
+        Customer1.Validate("Currency Code", CurrencyCode);
+        Customer1.Modify();
+
+        // [GIVEN] Customer "C2" with the same posting group as "C1" and currency "C"
+        LibrarySales.CreateCustomer(Customer2);
+        Customer2.Validate("Currency Code", CurrencyCode);
+        Customer2.Validate("Customer Posting Group", Customer1."Customer Posting Group");
+        Customer2.Modify();
+
+        // [GIVEN] Posted sales invoices for "C1" and "C2"
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer,
+            Customer1."No.", LibraryRandom.RandIntInRange(500, 1000));
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer,
+            Customer2."No.", LibraryRandom.RandIntInRange(500, 1000));
+        GenJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Exchange rate is changed
+        ModifyExchangeRate(CurrencyCode, LibraryRandom.RandInt(50));
+
+        // [WHEN] Run Adjust Exchange Rates
+        LibraryERM.RunExchRateAdjustmentForDocNo(CurrencyCode, LibraryUtility.GenerateGUID());
+
+        // [THEN] One register entry exists since both customers share the same posting group
+        ExchRateAdjmtReg.SetRange("Account Type", ExchRateAdjmtReg."Account Type"::Customer);
+        ExchRateAdjmtReg.SetRange("Currency Code", CurrencyCode);
+        Assert.AreEqual(1, ExchRateAdjmtReg.Count(), 'Expected 1 customer register for same posting group.');
+
+        // [THEN] Register amount matches linked ledger entries
+        ExchRateAdjmtReg.FindFirst();
+        VerifyRegisterAmtMatchesLedgerEntries(ExchRateAdjmtReg);
+    end;
+
+    [Test]
+    procedure EmployeesWithDiffPostingGroupsGetSeparateRegisters()
+    var
+        Employee1: Record Employee;
+        Employee2: Record Employee;
+        EmployeePostingGroup1: Record "Employee Posting Group";
+        EmployeePostingGroup2: Record "Employee Posting Group";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        ExchRateAdjmtReg: Record "Exch. Rate Adjmt. Reg.";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 626336] Two employees with different posting groups get separate registers with non-zero amounts
+        Initialize();
+
+        // [GIVEN] Currency "C" with exchange rate
+        CurrencyCode := CreateCurrency();
+
+        // [GIVEN] Employee "E1" with Employee Posting Group "EPG1" and currency "C"
+        CreateEmployeeWithNewPostingGroup(Employee1, EmployeePostingGroup1, CurrencyCode);
+
+        // [GIVEN] Employee "E2" with Employee Posting Group "EPG2" and currency "C"
+        CreateEmployeeWithNewPostingGroup(Employee2, EmployeePostingGroup2, CurrencyCode);
+
+        // [GIVEN] Posted expense entries for "E1" and "E2"
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::Employee,
+            Employee1."No.", -LibraryRandom.RandIntInRange(500, 1000));
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::Employee,
+            Employee2."No.", -LibraryRandom.RandIntInRange(500, 1000));
+        GenJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Exchange rate is changed
+        ModifyExchangeRate(CurrencyCode, LibraryRandom.RandInt(50));
+
+        // [WHEN] Run Adjust Exchange Rates
+        LibraryERM.RunExchRateAdjustmentForDocNo(CurrencyCode, LibraryUtility.GenerateGUID());
+
+        // [THEN] Two register entries exist for Employee with different posting groups
+        ExchRateAdjmtReg.SetRange("Account Type", ExchRateAdjmtReg."Account Type"::Employee);
+        ExchRateAdjmtReg.SetRange("Currency Code", CurrencyCode);
+        Assert.AreEqual(2, ExchRateAdjmtReg.Count(), 'Expected 2 employee registers for 2 posting groups.');
+
+        // [THEN] Both registers have non-zero adjusted amounts
+        ExchRateAdjmtReg.SetRange("Posting Group", EmployeePostingGroup1.Code);
+        ExchRateAdjmtReg.FindFirst();
+        Assert.AreNotEqual(0, ExchRateAdjmtReg."Adjusted Amt. (LCY)", 'Register for EPG1 must have non-zero amount.');
+
+        ExchRateAdjmtReg.SetRange("Posting Group", EmployeePostingGroup2.Code);
+        ExchRateAdjmtReg.FindFirst();
+        Assert.AreNotEqual(0, ExchRateAdjmtReg."Adjusted Amt. (LCY)", 'Register for EPG2 must have non-zero amount.');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1182,6 +1390,15 @@
           CustLedgerEntryApplyFrom."Document No.", CustLedgerEntryApplyTo."Document No.");
     end;
 
+    local procedure CreateEmployeeWithNewPostingGroup(var Employee: Record Employee; var EmployeePostingGroup: Record "Employee Posting Group"; CurrencyCode: Code[10])
+    begin
+        LibraryHumanResource.CreateEmployeePostingGroup(EmployeePostingGroup);
+        LibraryHumanResource.CreateEmployee(Employee);
+        Employee.Validate("Currency Code", CurrencyCode);
+        Employee.Validate("Employee Posting Group", EmployeePostingGroup.Code);
+        Employee.Modify(true);
+    end;
+
     local procedure GetVendorPostingAccount(VendorNo: Code[20]): Code[20]
     var
         Vendor: Record Vendor;
@@ -1430,6 +1647,26 @@
         exit(
           AmountLCY -
           Amount * CurrencyExchangeRate."Relational Exch. Rate Amount" / CurrencyExchangeRate."Exchange Rate Amount");
+    end;
+
+    local procedure CreateCustomerWithNewPostingGroup(var Customer: Record Customer; var CustomerPostingGroup: Record "Customer Posting Group"; CurrencyCode: Code[10])
+    begin
+        LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
+        CustomerPostingGroup.Validate("Receivables Account", LibraryERM.CreateGLAccountNo());
+        CustomerPostingGroup.Modify(true);
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Currency Code", CurrencyCode);
+        Customer.Validate("Customer Posting Group", CustomerPostingGroup.Code);
+        Customer.Modify(true);
+    end;
+
+    local procedure VerifyRegisterAmtMatchesLedgerEntries(ExchRateAdjmtReg: Record "Exch. Rate Adjmt. Reg.")
+    begin
+        ExchRateAdjmtReg.CalcFields("Adjustment Amount");
+        Assert.AreNotEqual(0, ExchRateAdjmtReg."Adjustment Amount", 'Register adjustment amount must be non-zero.');
+        Assert.AreEqual(
+            ExchRateAdjmtReg."Adjusted Amt. (LCY)", ExchRateAdjmtReg."Adjustment Amount",
+            'Register Adjusted Amt. (LCY) must equal sum of linked ledger entry Adjustment Amount.');
     end;
 
     [ModalPageHandler]

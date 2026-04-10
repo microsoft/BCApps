@@ -465,12 +465,4 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
     procedure CreatePostedDeferralSchedule(ServiceLineVar: Variant; NewDocumentType: Integer; NewDocumentNo: Code[20]; NewLineNo: Integer; PostingDate: Date)
     begin
     end;
-
-#if not CLEAN26
-    [Obsolete('Use same event from codeunit Service Post Invoice Events','26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareInvoicePostingBuffer(var ServiceLine: Record "Service Line"; var InvoicePostingBuffer: Record "Invoice Posting Buffer")
-    begin
-    end;
-#endif
 }

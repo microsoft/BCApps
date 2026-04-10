@@ -1,12 +1,14 @@
 #pragma warning disable AA0247
 page 12454 "Report Selection - Item. Docs"
 {
+    AboutTitle = 'About report selection for item documents';
+    AboutText = 'On this page, you set up the default reports that are used when printing item documents such as shipments, receipts, physical inventory, and reclassifications. Use the Usage field to select the type of document, then specify which reports to use in the list below.';
     ApplicationArea = Basic, Suite;
     Caption = 'Report Selection - Item Documents';
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Report Selections";
-    UsageCategory = Tasks;
+    UsageCategory = Administration;
 
     layout
     {
@@ -30,6 +32,7 @@ page 12454 "Report Selection - Item. Docs"
                 field(Sequence; Rec.Sequence)
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies a number that indicates where this report is in the printing order.';
                 }
                 field("Report ID"; Rec."Report ID")
                 {

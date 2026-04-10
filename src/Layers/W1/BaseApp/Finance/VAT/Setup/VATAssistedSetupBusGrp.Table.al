@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 1879 "VAT Assisted Setup Bus. Grp."
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code for the posting group that determines how to calculate and post VAT for customers and vendors. The number of VAT posting groups that you set up can depend on local legislation and whether you trade both domestically and internationally.';
             NotBlank = true;
         }
         /// <summary>
@@ -37,6 +38,7 @@ table 1879 "VAT Assisted Setup Bus. Grp."
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the VAT business posting group.';
         }
         /// <summary>
         /// User selection indicator for including this VAT business posting group in setup.
@@ -44,6 +46,7 @@ table 1879 "VAT Assisted Setup Bus. Grp."
         field(3; Selected; Boolean)
         {
             Caption = 'Selected';
+            ToolTip = 'Specifies if the VAT business posting group is included on the part.';
         }
         /// <summary>
         /// Indicates whether this VAT business posting group is the default selection.

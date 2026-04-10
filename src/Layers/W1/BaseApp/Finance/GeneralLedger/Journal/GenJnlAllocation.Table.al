@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -70,6 +70,7 @@ table 221 "Gen. Jnl. Allocation"
         field(5; "Account No."; Code[20])
         {
             Caption = 'Account No.';
+            ToolTip = 'Specifies the account number that the allocation will be posted to.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -110,6 +111,7 @@ table 221 "Gen. Jnl. Allocation"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -126,6 +128,7 @@ table 221 "Gen. Jnl. Allocation"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -142,6 +145,7 @@ table 221 "Gen. Jnl. Allocation"
         field(8; "Allocation Quantity"; Decimal)
         {
             Caption = 'Allocation Quantity';
+            ToolTip = 'Specifies the quantity that will be used to calculate the amount in the allocation journal line.';
             DecimalPlaces = 0 : 5;
             AutoFormatType = 0;
 
@@ -162,6 +166,7 @@ table 221 "Gen. Jnl. Allocation"
         field(9; "Allocation %"; Decimal)
         {
             Caption = 'Allocation %';
+            ToolTip = 'Specifies the percentage that will be used to calculate the amount in the allocation journal line.';
             DecimalPlaces = 2 : 2;
             AutoFormatType = 0;
 
@@ -183,6 +188,7 @@ table 221 "Gen. Jnl. Allocation"
             AutoFormatExpression = GetCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount that will be posted from the allocation journal line.';
 
             trigger OnValidate()
             begin
@@ -205,6 +211,7 @@ table 221 "Gen. Jnl. Allocation"
         field(11; "Gen. Posting Type"; Enum "General Posting Type")
         {
             Caption = 'Gen. Posting Type';
+            ToolTip = 'Specifies the type of transaction.';
 
             trigger OnValidate()
             begin
@@ -218,6 +225,7 @@ table 221 "Gen. Jnl. Allocation"
         field(12; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
 
             trigger OnValidate()
@@ -234,6 +242,7 @@ table 221 "Gen. Jnl. Allocation"
         field(13; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
 
             trigger OnValidate()
@@ -280,6 +289,7 @@ table 221 "Gen. Jnl. Allocation"
         {
             CalcFormula = lookup("G/L Account".Name where("No." = field("Account No.")));
             Caption = 'Account Name';
+            ToolTip = 'Specifies the name of the account that the allocation will be posted to.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -339,6 +349,7 @@ table 221 "Gen. Jnl. Allocation"
         field(22; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
 
             trigger OnValidate()
@@ -352,6 +363,7 @@ table 221 "Gen. Jnl. Allocation"
         field(23; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Product Posting Group";
 
             trigger OnValidate()

@@ -32,8 +32,8 @@ report 11404 "Create Elec. ICP Declaration"
                     trigger OnAfterGetRecord()
                     var
                         CountryRegion: Record "Country/Region";
-                        ElementName: Text[80];
                         CountryRegionCode: Code[10];
+                        ContextId: Text[20];
                     begin
                         TestField("VAT Registration No.");
 
@@ -47,22 +47,42 @@ report 11404 "Create Elec. ICP Declaration"
                             OnVATEntryOnAfterGetRecordOnGetCountryCode("VAT Entry");
 
                             if CountryRegionCode <> '' then begin
-                                "Elec. Tax Declaration Header".InsertLine(0, 1, CurrentType, '');
-                                InsertDataLine("Elec. Tax Declaration Header", 2, 'bd-i:CountryCodeISO-EC',
-                                  CopyStr(CountryRegionCode, 1, 2), '', 'Msg', '');
+                                ContextCounter += 1;
+                                ContextId := StrSubstNo('ICS%1', ContextCounter);
 
                                 if CopyStr(UpperCase("VAT Registration No."), 1, StrLen("Country/Region Code")) = CountryRegionCode then
                                     "VAT Registration No." := DelStr("VAT Registration No.", 1, StrLen("Country/Region Code"));
 
-                                if Integer.Number = 1 then
-                                    ElementName := 'bd-i:ServicesAmount'
-                                else
-                                    ElementName := 'bd-i:SuppliesAmount';
+                                // Dimensional context
+                                "Elec. Tax Declaration Header".InsertLine(0, 1, 'xbrli:context', '');
+                                "Elec. Tax Declaration Header".InsertLine(1, 2, 'id', ContextId);
 
-                                InsertDataLine("Elec. Tax Declaration Header", 2, ElementName,
-                                  Format(-Base, 0, '<Sign><Integer>'), 'INF', 'Msg', 'EUR');
-                                InsertDataLine("Elec. Tax Declaration Header", 2, 'bd-i:VATIdentificationNumberNational',
-                                  "VAT Registration No.", '', 'Msg', '');
+                                // Entity
+                                "Elec. Tax Declaration Header".InsertLine(0, 2, 'xbrli:entity', '');
+                                "Elec. Tax Declaration Header".InsertLine(0, 3, 'xbrli:identifier', StoredVATRegNo);
+                                "Elec. Tax Declaration Header".InsertLine(1, 4, 'scheme', 'www.belastingdienst.nl/omzetbelastingnummer');
+
+                                // Period
+                                "Elec. Tax Declaration Header".InsertLine(0, 2, 'xbrli:period', '');
+                                "Elec. Tax Declaration Header".InsertLine(0, 3, 'xbrli:startDate', Format(StoredFromDate, 0, '<Year4>-<Month,2>-<Day,2>'));
+                                "Elec. Tax Declaration Header".InsertLine(0, 3, 'xbrli:endDate', Format(StoredToDate, 0, '<Year4>-<Month,2>-<Day,2>'));
+
+                                // Scenario with typed dimensions
+                                "Elec. Tax Declaration Header".InsertLine(0, 2, 'xbrli:scenario', '');
+
+                                // Country dimension
+                                "Elec. Tax Declaration Header".InsertLine(0, 3, 'xbrldi:typedMember', '');
+                                "Elec. Tax Declaration Header".InsertLine(1, 4, 'dimension', 'bd-dim-dim:CountryCodeEUDimension');
+                                "Elec. Tax Declaration Header".InsertLine(0, 4, 'bd-dim-dom:CountryCodeEUDomain', CopyStr(CountryRegionCode, 1, 2));
+
+                                // VAT number dimension
+                                "Elec. Tax Declaration Header".InsertLine(0, 3, 'xbrldi:typedMember', '');
+                                "Elec. Tax Declaration Header".InsertLine(1, 4, 'dimension', 'bd-dim-dim:VATNumberDimension');
+                                "Elec. Tax Declaration Header".InsertLine(0, 4, 'bd-dim-dom:VATNumberDomain', "VAT Registration No.");
+
+                                // Amount fact referencing the dimensional context
+                                InsertDataLine("Elec. Tax Declaration Header", 1, CurrentElementName,
+                                  Format(-Base, 0, '<Sign><Integer>'), 'INF', ContextId, 'EUR');
                             end;
                         end;
 
@@ -83,19 +103,19 @@ report 11404 "Create Elec. ICP Declaration"
                                 begin
                                     SetRange("EU 3-Party Trade", false);
                                     SetRange("EU Service", false);
-                                    CurrentType := 'bd-t:IntraCommunitySupplies';
+                                    CurrentElementName := 'bd-i:SuppliesAmount';
                                 end;
                             1:
                                 begin
                                     SetRange("EU 3-Party Trade");
                                     SetRange("EU Service", true);
-                                    CurrentType := 'bd-t:IntraCommunityServices';
+                                    CurrentElementName := 'bd-i:ServicesAmount';
                                 end;
                             2:
                                 begin
                                     SetRange("EU Service", false);
                                     SetRange("EU 3-Party Trade", true);
-                                    CurrentType := 'bd-t:IntraCommunityABCSupplies';
+                                    CurrentElementName := 'bd-i:SuppliesAmount';
                                 end;
                         end;
                     end;
@@ -125,14 +145,20 @@ report 11404 "Create Elec. ICP Declaration"
                 ElecTaxDeclarationHeader.Modify();
 
                 UseVATRegNo := CompanyInfo.GetVATIdentificationNo(ElecTaxDeclarationSetup."Part of Fiscal Entity");
+                StoredVATRegNo := UseVATRegNo;
+                StoredFromDate := "Declaration Period From Date";
+                StoredToDate := "Declaration Period To Date";
+                ContextCounter := 0;
 
                 ClearLines();
 
                 InsertLine(0, 0, 'xbrli:xbrl', '');
                 InsertLine(1, 1, 'xml:lang', 'nl');
-                InsertLine(1, 1, 'xmlns:bd-t', ElecTaxDeclarationMgt.GetBDTuplesEndpoint());
+                InsertLine(1, 1, 'xmlns:xbrldi', ElecTaxDeclarationMgt.GetXBRLDIEndpoint());
+                InsertLine(1, 1, 'xmlns:bd-dim-dim', ElecTaxDeclarationMgt.GetBDDimAxesEndpoint());
+                InsertLine(1, 1, 'xmlns:bd-dim-dom', ElecTaxDeclarationMgt.GetBDDimDomainsEndpoint());
                 InsertLine(1, 1, 'xmlns:link', 'http://www.xbrl.org/2003/linkbase');
-                InsertLine(1, 1, 'xmlns:bd-i', ElecTaxDeclarationMgt.GetBDDataEndpoint());
+                InsertLine(1, 1, 'xmlns:bd-i', ElecTaxDeclarationMgt.GetICPBDDataEndpoint());
                 InsertLine(1, 1, 'xmlns:iso4217', 'http://www.xbrl.org/2003/iso4217');
                 InsertLine(1, 1, 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
                 InsertLine(1, 1, 'xmlns:xbrli', 'http://www.xbrl.org/2003/instance');
@@ -252,7 +278,11 @@ report 11404 "Create Elec. ICP Declaration"
         CompanyInfo: Record "Company Information";
         ElecTaxDeclarationSetup: Record "Elec. Tax Declaration Setup";
         StatusErr: Label 'The report status need to have value " " or Created to create the report content.';
-        CurrentType: Text[60];
+        CurrentElementName: Text[60];
+        ContextCounter: Integer;
+        StoredVATRegNo: Text[20];
+        StoredFromDate: Date;
+        StoredToDate: Date;
 
     local procedure GetStrippedAppVersion(AppVersion: Text[250]) Res: Text[250]
     begin

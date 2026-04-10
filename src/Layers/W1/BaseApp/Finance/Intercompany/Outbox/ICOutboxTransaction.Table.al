@@ -54,13 +54,8 @@ table 414 "IC Outbox Transaction"
             OptionCaption = 'Journal Line,Sales Document,Purchase Document';
             OptionMembers = "Journal Line","Sales Document","Purchase Document";
             ObsoleteReason = 'Replaced by IC Source Type for Enum typing';
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '29.0';
-#endif
         }
 #endif
         /// <summary>

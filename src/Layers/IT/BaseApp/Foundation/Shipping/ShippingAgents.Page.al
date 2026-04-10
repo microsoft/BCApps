@@ -25,23 +25,19 @@ page 428 "Shipping Agents"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a shipping agent code.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the shipping agent.';
                 }
                 field("Internet Address"; Rec."Internet Address")
                 {
                     Caption = 'Package Tracking URL';
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the URL for the shipping agent''s package tracking system. To let users track specific packages, add %1 to the URL. When users track a package, the tracking number will replace %1. Example, http://www.providername.com/track?awb=%1.';
                 }
                 field("Account No."; Rec."Account No.")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the account number that the shipping agent has assigned to your company.';
                     Visible = false;
                 }
                 field("Shipping Agent Type"; Rec."Shipping Agent Type")

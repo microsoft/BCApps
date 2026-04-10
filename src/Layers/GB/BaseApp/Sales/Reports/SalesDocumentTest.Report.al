@@ -39,14 +39,9 @@ using System.Utilities;
 
 report 202 "Sales Document - Test"
 {
-    DefaultLayout = RDLC;
-#if not CLEAN27
-    RDLCLayout = './Sales/Reports/SalesDocumentTestGB.rdlc';
-#else
-    RDLCLayout = './Sales/Reports/SalesDocumentTest.rdlc';
-#endif
     Caption = 'Sales Document - Test';
     WordMergeDataItem = "Sales Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -1769,6 +1764,25 @@ report 202 "Sales Document - Test"
                 InvOnNextPostReq := true;
             end;
         end;
+    }
+
+    rendering
+    {
+#if not CLEAN27
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reports/SalesDocumentTestGB.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
+#else
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reports/SalesDocumentTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
+#endif
     }
 
     labels

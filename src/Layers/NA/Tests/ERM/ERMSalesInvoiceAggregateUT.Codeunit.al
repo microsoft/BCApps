@@ -1548,6 +1548,44 @@ codeunit 134396 "ERM Sales Invoice Aggregate UT"
             StrSubstNo(SalesStatisticsQtyErr, 1));
     end;
 
+    [Test]
+    procedure SalesInvoiceStatisticShowsCorrectQuantityWithSalesLineInvoiceRoundingGL()
+    var
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoice: TestPage "Sales Invoice";
+        SalesStatistics: TestPage "Sales Statistics";
+    begin
+        // [SCENARIO 580156] Sales Invoice Statistic shows wrong quantity when invoice rounding G/L is used in sales invoice line.
+        Initialize();
+
+        // [GIVEN] Create SalesHeader.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, LibrarySales.CreateCustomerNo());
+
+        // [GIVEN] Create Sales Line with Invoice Posting Group G/L Account and Quantity.
+        CustomerPostingGroup.Get(SalesHeader."Customer Posting Group");
+        GLAccount.Get(CustomerPostingGroup."Invoice Rounding Account");
+        GLAccount.Validate("Direct Posting", true);
+        GLAccount.Modify(true);
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", CustomerPostingGroup."Invoice Rounding Account", LibraryRandom.RandIntInRange(1, 1));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+
+        // [WHEN] Open Sales Statistics page from Sales Invoice page.
+        SalesInvoice.OpenEdit();
+        SalesInvoice.FILTER.SetFilter("No.", SalesHeader."No.");
+        SalesStatistics.Trap();
+        SalesInvoice.SalesStatistics.Invoke();
+
+        // [THEN] Verify Sales Invoice Statistics show Quantity as sales line.
+        Assert.AreEqual(SalesLine.Quantity,
+            SalesStatistics."TotalSalesLine.Quantity".AsDecimal(),
+            StrSubstNo(SalesStatisticsQtyErr, SalesLine.Quantity));
+    end;
+
     local procedure CreateCustomerWithDiscount(var Customer: Record Customer; DiscPct: Decimal; minAmount: Decimal)
     begin
         CreateCustomer(Customer);

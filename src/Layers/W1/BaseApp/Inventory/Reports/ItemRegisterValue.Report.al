@@ -10,11 +10,10 @@ using Microsoft.Inventory.Ledger;
 
 report 5805 "Item Register - Value"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/ItemRegisterValue.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Item Register Value';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -666,6 +665,16 @@ report 5805 "Item Register - Value"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/ItemRegisterValue.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

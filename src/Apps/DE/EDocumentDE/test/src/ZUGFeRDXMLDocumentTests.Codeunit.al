@@ -223,6 +223,63 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyBuyerContactWithAllFields();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 556034] Export posted sales invoice with all buyer contact fields populated
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice with contact, phone, and email.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ZUGFeRD Electronic Document is created with all buyer contact fields
+        VerifyBuyerContactData(SalesInvoiceHeader, TempXMLBuffer, true, true, true);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyBuyerContactWithoutPhone();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 556034] Export posted sales invoice without buyer phone number
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice without phone number.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithoutPhone("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ZUGFeRD Electronic Document is created with contact and email, but no phone
+        VerifyBuyerContactData(SalesInvoiceHeader, TempXMLBuffer, true, false, true);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyBuyerContactWithoutContactName();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 556034] Export posted sales invoice without buyer contact name
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice without contact name.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithoutContact("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ZUGFeRD Electronic Document is created with phone and email, but no contact name
+        VerifyBuyerContactData(SalesInvoiceHeader, TempXMLBuffer, false, true, true);
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyPaymentMeans();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -237,8 +294,38 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // [WHEN] Export ZUGFeRD Electronic Document.
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] ZUGFeRD Electronic Document is created with bank informarion as payment means
+        // [THEN] ZUGFeRD Electronic Document is created with bank information as payment means
         VerifyPaymentMeans(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement', SalesInvoiceHeader."Currency Code");
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyBankAccountPaymentMeans();
+    var
+        BankAccount: Record "Bank Account";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        BankAccountIBAN: Code[50];
+        BankAccountSWIFT: Code[20];
+    begin
+        // [SCENARIO 496414] Export posted sales invoice uses Bank Account IBAN and SWIFT Code when Company Bank Account Code is specified
+        Initialize();
+
+        // [GIVEN] Create Bank Account with specific IBAN and SWIFT Code
+        BankAccountIBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        BankAccountSWIFT := LibraryUtility.GenerateGUID();
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.IBAN := BankAccountIBAN;
+        BankAccount."SWIFT Code" := BankAccountSWIFT;
+        BankAccount.Modify(true);
+
+        // [GIVEN] Create and Post Sales Invoice with Bank Account Code
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithBankAccount("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, BankAccount."No."));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ZUGFeRD Electronic Document uses Bank Account IBAN and SWIFT Code
+        VerifyPaymentMeans(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement', BankAccountIBAN, BankAccountSWIFT);
     end;
 
     [Test]
@@ -573,8 +660,38 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         // [WHEN] Export ZUGFeRD Electronic Document.
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
-        // [THEN] ZUGFeRD Electronic Document is created with bank informarion as payment means
+        // [THEN] ZUGFeRD Electronic Document is created with bank information as payment means
         VerifyPaymentMeans(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement', SalesCrMemoHeader."Currency Code");
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyBankAccountPaymentMeans();
+    var
+        BankAccount: Record "Bank Account";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        BankAccountIBAN: Code[50];
+        BankAccountSWIFT: Code[20];
+    begin
+        // [SCENARIO 496414] Export posted sales credit memo uses Bank Account IBAN and SWIFT Code when Company Bank Account Code is specified
+        Initialize();
+
+        // [GIVEN] Create Bank Account with specific IBAN and SWIFT Code
+        BankAccountIBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        BankAccountSWIFT := LibraryUtility.GenerateGUID();
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.IBAN := BankAccountIBAN;
+        BankAccount."SWIFT Code" := BankAccountSWIFT;
+        BankAccount.Modify(true);
+
+        // [GIVEN] Create and Post Sales Credit Memo with Bank Account Code
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithBankAccount("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, BankAccount."No."));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ZUGFeRD Electronic Document uses Bank Account IBAN and SWIFT Code
+        VerifyPaymentMeans(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement', BankAccountIBAN, BankAccountSWIFT);
     end;
 
     [Test]
@@ -1320,6 +1437,22 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndPostSalesDocumentWithoutPhone(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        SalesHeader.Get(DocumentType, CreateSalesDocumentWithoutPhone(DocumentType, LineType));
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesDocumentWithoutContact(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        SalesHeader.Get(DocumentType, CreateSalesDocumentWithoutContact(DocumentType, LineType));
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateAndPostSalesDocumentWithTwoLines(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; InvoiceDiscount: Boolean): Code[20];
     var
         SalesHeader: Record "Sales Header";
@@ -1341,6 +1474,17 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesHeader: Record "Sales Header";
     begin
         SalesHeader.Get(DocumentType, CreateSalesDocumentWithLine(DocumentType, LineType, false, RespCenterCode));
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesDocumentWithBankAccount(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; BankAccountCode: Code[20]): Code[20];
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType);
+        SalesHeader.Validate("Company Bank Account Code", BankAccountCode);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, LineType, false);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
@@ -1440,6 +1584,30 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         exit(CreateSalesDocumentWithLine(DocumentType, LineType, InvoiceDiscount, ''));
     end;
 
+    local procedure CreateSalesDocumentWithoutPhone(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType);
+        SalesHeader.Validate("Sell-to Phone No.", '');
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, LineType, false);
+        exit(SalesHeader."No.");
+    end;
+
+    local procedure CreateSalesDocumentWithoutContact(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType);
+        SalesHeader.SetHideValidationDialog(true);
+        SalesHeader.Validate("Sell-to Contact", '');
+        SalesHeader.SetHideValidationDialog(false);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, LineType, false);
+        exit(SalesHeader."No.");
+    end;
+
     local procedure CreateSalesDocumentWithLine(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; InvoiceDiscount: Boolean; RespCenterCode: Code[20]): Code[20]
     var
         SalesHeader: Record "Sales Header";
@@ -1513,6 +1681,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesHeader.Validate("Ship-to City", PostCode.City);
         SalesHeader.Validate("Sell-to Address", LibraryUtility.GenerateGUID());
         SalesHeader.Validate("Sell-to City", PostCode.City);
+        SalesHeader.Validate("Sell-to Phone No.", LibraryUtility.GenerateRandomPhoneNo());
         SalesHeader.Validate("Your Reference", LibraryUtility.GenerateRandomText(20));
         SalesHeader.Validate("Payment Terms Code", PaymentTermsCode);
         SalesHeader.Validate("Payment Method Code", PaymentMethod.Code);
@@ -1881,6 +2050,41 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(GetVATRegistrationNo(SalesInvoiceHeader."VAT Registration No.", CompanyInformation."Country/Region Code"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
+    local procedure VerifyBuyerContactData(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary; ExpectContactName: Boolean; ExpectPhone: Boolean; ExpectEmail: Boolean);
+    var
+        DocumentBuyerContactTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:DefinedTradeContact', Locked = true;
+        Path: Text;
+        NodeValue: Text;
+    begin
+        // Check if DefinedTradeContact element exists when any field is populated
+        if ExpectContactName or ExpectPhone or ExpectEmail then
+            Assert.IsTrue(NodeExistsByPath(TempXMLBuffer, DocumentBuyerContactTok), 'DefinedTradeContact element should exist when contact fields are populated');
+
+        // Verify PersonName
+        Path := DocumentBuyerContactTok + '/ram:PersonName';
+        if ExpectContactName then begin
+            NodeValue := GetNodeByPathWithError(TempXMLBuffer, Path);
+            Assert.AreEqual(SalesInvoiceHeader."Sell-to Contact", NodeValue, StrSubstNo(IncorrectValueErr, Path));
+        end else
+            Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), 'PersonName should not exist when contact name is empty');
+
+        // Verify TelephoneUniversalCommunication/CompleteNumber
+        Path := DocumentBuyerContactTok + '/ram:TelephoneUniversalCommunication/ram:CompleteNumber';
+        if ExpectPhone then begin
+            NodeValue := GetNodeByPathWithError(TempXMLBuffer, Path);
+            Assert.AreEqual(SalesInvoiceHeader."Sell-to Phone No.", NodeValue, StrSubstNo(IncorrectValueErr, Path));
+        end else
+            Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), 'TelephoneUniversalCommunication/CompleteNumber should not exist when phone is empty');
+
+        // Verify EmailURIUniversalCommunication/URIID
+        Path := DocumentBuyerContactTok + '/ram:EmailURIUniversalCommunication/ram:URIID';
+        if ExpectEmail then begin
+            NodeValue := GetNodeByPathWithError(TempXMLBuffer, Path);
+            Assert.AreEqual(SalesInvoiceHeader."Sell-to E-Mail", NodeValue, StrSubstNo(IncorrectValueErr, Path));
+        end else
+            Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), 'EmailURIUniversalCommunication/URIID should not exist when email is empty');
+    end;
+
     local procedure VerifyBuyerData(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
         DocumentBuyerTradePartyTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty', Locked = true;
@@ -1928,6 +2132,20 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual('58', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayeePartyCreditorFinancialAccount/ram:IBANID';
         Assert.AreEqual(GetIBAN(CompanyInformation.IBAN), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    local procedure VerifyPaymentMeans(var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text; ExpectedIBAN: Code[50]; ExpectedSWIFT: Code[20])
+    var
+        Path: Text;
+    begin
+        Path := DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:TypeCode';
+        Assert.AreEqual('58', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayeePartyCreditorFinancialAccount/ram:IBANID';
+        Assert.AreEqual(GetIBAN(ExpectedIBAN), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        if ExpectedSWIFT <> '' then begin
+            Path := DocumentTok + '/ram:SpecifiedTradeSettlementPaymentMeans/ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID';
+            Assert.AreEqual(GetIBAN(ExpectedSWIFT), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        end;
     end;
 
     local procedure VerifyPaymentTerms(PaymentTermsCode: Code[10]; DueDate: Date; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
@@ -2329,6 +2547,14 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         if TempXMLBuffer.FindFirst() then
             exit(TempXMLBuffer.Value);
         Error('Node not found: %1', XPath);
+    end;
+
+    local procedure NodeExistsByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Boolean
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        exit(TempXMLBuffer.FindFirst());
     end;
 
     local procedure GetLastNodeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text

@@ -9,9 +9,8 @@ using System.Utilities;
 
 report 5067 "Questionnaire - Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/QuestionnaireTest.rdlc';
     Caption = 'Questionnaire - Test';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -100,6 +99,16 @@ report 5067 "Questionnaire - Test"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/QuestionnaireTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

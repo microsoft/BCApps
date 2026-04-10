@@ -13,7 +13,7 @@ report 713 "Inventory - Customer Sales"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Customer Sales';
-    DefaultRenderingLayout = Word;
+    DefaultRenderingLayout = Excel;
     UsageCategory = ReportsAndAnalysis;
 
     dataset

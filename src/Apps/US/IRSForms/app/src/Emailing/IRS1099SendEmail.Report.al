@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8,7 +8,7 @@ using System.Threading;
 
 report 10033 "IRS 1099 Send Email"
 {
-    ApplicationArea = BasicUS;
+    ApplicationArea = BasicCA, BasicUS;
     ProcessingOnly = true;
 
     dataset
@@ -32,7 +32,7 @@ report 10033 "IRS 1099 Send Email"
                     ShowCaption = false;
                     field(ReportTypeField; ReportType)
                     {
-                        ApplicationArea = BasicUS;
+                        ApplicationArea = BasicCA, BasicUS;
                         Caption = 'Report Type';
                         ToolTip = 'Specifies the 1099 report type to send in the email. Note that only documents with status Submitted will be processed.';
 
@@ -43,7 +43,7 @@ report 10033 "IRS 1099 Send Email"
                     }
                     field(ResendEmailField; ResendEmail)
                     {
-                        ApplicationArea = BasicUS;
+                        ApplicationArea = BasicCA, BasicUS;
                         Visible = ResendEmailVisible;
                         Caption = 'Resend Email';
 #pragma warning disable AA0219
@@ -69,7 +69,7 @@ report 10033 "IRS 1099 Send Email"
     trigger OnPostReport()
     var
         IRS1099EmailQueue: Record "IRS 1099 Email Queue";
-        IRS1099PrintParams: Record "IRS 1099 Print Params";
+        TempIRS1099PrintParams: Record "IRS 1099 Print Params";
         IRS1099SendEmail: Codeunit "IRS 1099 Send Email";
         IRSFormsFacade: Codeunit "IRS Forms Facade";
     begin
@@ -78,8 +78,8 @@ report 10033 "IRS 1099 Send Email"
             if not (IRS1099FormDocHeader.Status in ["IRS 1099 Form Doc. Status"::Released, "IRS 1099 Form Doc. Status"::Submitted]) then
                 IRS1099FormDocHeader.FieldError(Status);
 
-            IRS1099PrintParams."Report Type" := ReportType;
-            IRSFormsFacade.SaveContentForDocument(IRS1099FormDocHeader, IRS1099PrintParams, false);
+            TempIRS1099PrintParams."Report Type" := ReportType;
+            IRSFormsFacade.SaveContentForDocument(IRS1099FormDocHeader, TempIRS1099PrintParams, false);
             IRS1099SendEmail.SendEmailToVendor(IRS1099FormDocHeader, ReportType);
             IRS1099SendEmail.SetEmailStatusSuccess(IRS1099FormDocHeader, ReportType);
             exit;

@@ -18,7 +18,7 @@ report 108 "Customer - Order Detail"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Customer - Order Detail';
-    DefaultRenderingLayout = Word;
+    DefaultRenderingLayout = Excel;
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
 
@@ -296,11 +296,13 @@ report 108 "Customer - Order Detail"
                 end;
             }
 
+#if not CLEAN28
             trigger OnAfterGetRecord()
             begin
                 if PrintOnlyOnePerPage then
                     PageGroupNo := PageGroupNo + 1;
             end;
+#endif
 
             trigger OnPreDataItem()
             begin
@@ -364,12 +366,20 @@ report 108 "Customer - Order Detail"
                         Caption = 'Show Amounts in LCY';
                         ToolTip = 'Specifies if the reported amounts are shown in the local currency.';
                     }
+#if not CLEAN28
                     field(NewPagePerCustomer; PrintOnlyOnePerPage)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'New Page per Customer';
                         ToolTip = 'Specifies if each customer''s information is printed on a new page if you have chosen two or more customers to be included in the report.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'The New Page per Customer option is only supported by the RDLC layout which has been deprecated.';
+                        ObsoleteTag = '28.0';
+#if CLEAN27
+                        Visible = false;
+#endif
                     }
+#endif
                     field(PostingDateFilter; PostingDateFilter)
                     {
                         ApplicationArea = Basic, Suite;
@@ -398,12 +408,14 @@ report 108 "Customer - Order Detail"
             Caption = 'Customer - Order Detail Word';
             Type = Word;
             LayoutFile = './Sales/Reports/CustomerOrderDetail.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
         layout(Excel)
         {
             Caption = 'Customer - Order Detail Excel';
             Type = Excel;
             LayoutFile = './Sales/Reports/CustomerOrderDetail.xlsx';
+            Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
 #if not CLEAN27
         layout(RDLC)
@@ -414,6 +426,7 @@ report 108 "Customer - Order Detail"
             ObsoleteState = Pending;
             ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
             ObsoleteTag = '27.0';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
     }
@@ -476,7 +489,9 @@ report 108 "Customer - Order Detail"
         SalesOrderAmountLCY: Decimal;
         PrintAmountsInLCY: Boolean;
         PeriodText: Text;
+#if not CLEAN28
         PrintOnlyOnePerPage: Boolean;
+#endif
         BackOrderQty: Decimal;
         NewOrder: Boolean;
         OK: Boolean;
@@ -505,15 +520,29 @@ report 108 "Customer - Order Detail"
     protected var
         SalesHeader: Record "Sales Header";
 
+#if not CLEAN28
+#pragma warning disable AS0072
     /// <summary>
     /// Initializes the report request options for the Customer Order Detail report.
     /// </summary>
     /// <param name="ShowAmountInLCY">True to show amounts in local currency.</param>
     /// <param name="NewPagePerCustomer">True to start a new page per customer.</param>
+    [Obsolete('The New Page per Customer option is only supported by the RDLC layout which has been deprecated.', '28.0')]
     procedure InitializeRequest(ShowAmountInLCY: Boolean; NewPagePerCustomer: Boolean)
     begin
         PrintAmountsInLCY := ShowAmountInLCY;
         PrintOnlyOnePerPage := NewPagePerCustomer;
+    end;
+#pragma warning restore AS0072
+#endif
+
+    /// <summary>
+    /// Initializes the report request options for the Customer Order Detail report.
+    /// </summary>
+    /// <param name="ShowAmountInLCY">True to show amounts in local currency.</param>
+    procedure InitializeRequest(ShowAmountInLCY: Boolean)
+    begin
+        PrintAmountsInLCY := ShowAmountInLCY;
     end;
 }
 

@@ -14,10 +14,14 @@ codeunit 11409 "Elec. Tax Declaration Mgt."
     var
         VATReportHeaderForResponseMessage: Record "VAT Report Header";
         SchemaVersionTxt: Label '2019v13.0', Locked = true;
-        BDDataEndpointTxt: Label 'https://www.nltaxonomie.nl/nt19/bd/20241211/dictionary/bd-data', Locked = true;
+        BDDataEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/dictionary/bd-data', Locked = true;
         BDTuplesEndpointTxt: Label 'https://www.nltaxonomie.nl/nt19/bd/20241211/dictionary/bd-tuples', Locked = true;
-        VATDeclarationSchemaEndpointTxt: Label 'http://www.nltaxonomie.nl/nt19/bd/20241211/entrypoints/bd-rpt-ob-aangifte-2025.xsd', Locked = true;
-        ICPDeclarationSchemaEndpointTxt: Label 'http://www.nltaxonomie.nl/nt19/bd/20241211/entrypoints/bd-rpt-icp-opgaaf-2025.xsd', Locked = true;
+        VATDeclarationSchemaEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/entrypoints/bd-rpt-ob-aangifte-2026.xsd', Locked = true;
+        ICPDeclarationSchemaEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/entrypoints/bd-rpt-icp-opgaaf-2026.xsd', Locked = true;
+        ICPBDDataEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/dictionary/bd-data', Locked = true;
+        XBRLDIEndpointTxt: Label 'http://xbrl.org/2006/xbrldi', Locked = true;
+        BDDimAxesEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/validation/bd-axes', Locked = true;
+        BDDimDomainsEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/validation/bd-domains', Locked = true;
         CannotDeleteCertificateErr: Label 'You cannot delete certificate since it is used in table %1, field %2.', Comment = '%1 - table caption;%2 - field caption.';
         SubmitErr: Label 'Submission of declaration %1 failed with error code %2 and the following message: \\%3.', Comment = '%1 = Fault.foutcode, %2 = Fault.foutbeschrijving, %3 = message text.';
         WindowStatusMsg: Label 'Submitting Electronic Tax Declaration...\\Status          #1##################', Comment = '%1 - any text that represents the status';
@@ -381,6 +385,26 @@ codeunit 11409 "Elec. Tax Declaration Mgt."
         if ElecTaxDeclarationSetup."ICP Decl. Schema Endpoint" <> '' then
             exit(ElecTaxDeclarationSetup."ICP Decl. Schema Endpoint");
         exit(ICPDeclarationSchemaEndpointTxt);
+    end;
+
+    procedure GetICPBDDataEndpoint(): Text[250]
+    begin
+        exit(ICPBDDataEndpointTxt);
+    end;
+
+    procedure GetXBRLDIEndpoint(): Text[250]
+    begin
+        exit(XBRLDIEndpointTxt);
+    end;
+
+    procedure GetBDDimAxesEndpoint(): Text[250]
+    begin
+        exit(BDDimAxesEndpointTxt);
+    end;
+
+    procedure GetBDDimDomainsEndpoint(): Text[250]
+    begin
+        exit(BDDimDomainsEndpointTxt);
     end;
 
     [Scope('OnPrem')]

@@ -19,9 +19,8 @@ using System.Utilities;
 report 1005 "Job Journal - Test"
 {
     AdditionalSearchTerms = 'Job Journal - Test';
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Project/Reports/JobJournalTest.rdlc';
     Caption = 'Project Journal - Test';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -396,6 +395,16 @@ report 1005 "Job Journal - Test"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Project/Reports/JobJournalTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

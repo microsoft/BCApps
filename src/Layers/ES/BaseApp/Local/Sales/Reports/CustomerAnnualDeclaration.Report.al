@@ -138,7 +138,7 @@ report 10702 "Customer - Annual Declaration"
                             until GLEntries.Next() = 0;
                     until CustEntries.Next() = 0;
                 SalesAmt := InvoiceAmt - CrMemoAmt;
-                if SalesAmt <= MinAmount then
+                if Abs(SalesAmt) <= MinAmount then
                     CurrReport.Skip();
 
                 SalesAmt := SalesAmt + IgnoreAmt;

@@ -209,9 +209,11 @@ report 208 "Sales - Shipment"
                     column(ExternalDocumentNo_SalesShptHeader; "Sales Shipment Header"."External Document No.")
                     {
                     }
+#if not CLEAN29
                     column(EnterpriseRegister; CompanyInfo.GetEnterpriseClassification())
                     {
                     }
+#endif
                     dataitem(DimensionLoop1; "Integer")
                     {
                         DataItemLinkReference = "Sales Shipment Header";

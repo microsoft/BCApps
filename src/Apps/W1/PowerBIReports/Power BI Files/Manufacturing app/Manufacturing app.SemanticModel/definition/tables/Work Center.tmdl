@@ -325,6 +325,15 @@ table 'Work Center'
 
 		annotation SummarizationSetBy = Automatic
 
+	column Subcontracting
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 5a312239-41c6-44ea-beb5-3a53e3394f5c
+		summarizeBy: none
+		sourceColumn: Subcontracting
+
+		annotation SummarizationSetBy = Automatic
+
 	partition 'Work Center-b82d66f0-7e4c-4e99-8958-f16b054d3596' = m
 		mode: import
 		queryGroup: 'Dimension Tables'
@@ -355,9 +364,10 @@ table 'Work Center'
 				    ),
 				    #"Added Column" = Table.AddColumn(
 				        #"Renamed Columns", "Work Center Key", each "Work Center" & " " & [#"Work Center No."], type text
-				    )
+				    ),
+				    #"Added Subcontracting Column" = Table.AddColumn(#"Added Column", "Subcontracting", each if [#"Work Center Subcontractor No."] <> "" then true else false, Logical.Type)
 				in
-				    #"Added Column"
+				    #"Added Subcontracting Column"
 
 	annotation PBI_ResultType = Table
 

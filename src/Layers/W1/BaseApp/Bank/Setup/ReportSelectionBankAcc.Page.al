@@ -17,12 +17,14 @@ using System.Reflection;
 /// </remarks>
 page 385 "Report Selection - Bank Acc."
 {
+    AboutTitle = 'About report selection for bank accounts';
+    AboutText = 'On this page, you set up the default reports that are used when printing bank account documents such as statements, checks, and reconciliation reports. Use the Usage field to select the type of document, then specify which reports to use in the list below.';
     ApplicationArea = Basic, Suite;
     Caption = 'Report Selection - Bank Account';
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Report Selections";
-    UsageCategory = Tasks;
+    UsageCategory = Administration;
 
     layout
     {
@@ -45,16 +47,19 @@ page 385 "Report Selection - Bank Acc."
                 field(Sequence; Rec.Sequence)
                 {
                     ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies a number that indicates where this report is in the printing order.';
                 }
                 field("Report ID"; Rec."Report ID")
                 {
                     ApplicationArea = Basic, Suite;
                     LookupPageID = Objects;
+                    ToolTip = 'Specifies the object ID of the report.';
                 }
                 field("Report Caption"; Rec."Report Caption")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
+                    ToolTip = 'Specifies the display name of the report.';
                 }
             }
         }

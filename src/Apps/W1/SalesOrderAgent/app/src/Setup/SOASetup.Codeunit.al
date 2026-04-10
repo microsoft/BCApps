@@ -37,14 +37,14 @@ codeunit 4400 "SOA Setup"
     [Scope('OnPrem')]
     procedure CreateDefaultAgentNoEmail()
     var
-        AgentSetupBuffer: Record "Agent Setup Buffer";
+        TempAgentSetupBuffer: Record "Agent Setup Buffer";
         TempSOASetup: Record "SOA Setup" temporary;
         AgentSetup: Codeunit "Agent Setup";
         SOASetup: Codeunit "SOA Setup";
         AgentUserSecurityID: Guid;
     begin
         Clear(TempSOASetup);
-        AgentSetup.GetSetupRecord(AgentSetupBuffer,
+        AgentSetup.GetSetupRecord(TempAgentSetupBuffer,
            TempSOASetup."User Security ID",
            "Agent Metadata Provider"::"SO Agent",
            SOASetup.GetSOAUsername(),
@@ -52,12 +52,12 @@ codeunit 4400 "SOA Setup"
            SOASetup.GetAgentSummary()
         );
 
-        AgentSetupBuffer.State := AgentSetupBuffer.State::Enabled;
-        AgentUserSecurityID := AgentSetup.SaveChanges(AgentSetupBuffer);
+        TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Enabled;
+        AgentUserSecurityID := AgentSetup.SaveChanges(TempAgentSetupBuffer);
         GetSOASetup(TempSOASetup, AgentUserSecurityID);
         TempSOASetup."Email Monitoring" := false;
 
-        UpdateAgent(AgentSetupBuffer, TempSOASetup, true);
+        UpdateAgent(TempAgentSetupBuffer, TempSOASetup, true);
     end;
 
     local procedure CreateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"; var TempSOASetup: Record "SOA Setup" temporary)
@@ -96,7 +96,12 @@ codeunit 4400 "SOA Setup"
     internal procedure AllowCreateNewSOAgent(): Boolean
     var
         SOASetup: Record "SOA Setup";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
+        if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
+            // Limit agent creation to agent admins.
+            exit(false);
+
         exit(SOASetup.IsEmpty());
     end;
 
@@ -178,23 +183,23 @@ codeunit 4400 "SOA Setup"
 
     local procedure LogTelemetry(var AgentSetupBuffer: Record "Agent Setup Buffer"; var TempSOASetup: Record "SOA Setup" temporary)
     var
-        UserSettings: Record "User Settings";
+        TempUserSettings: Record "User Settings";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Language: Codeunit Language;
         TelemetryCustomDimension: Dictionary of [Text, Text];
     begin
         // SOA user settings
         TelemetryCustomDimension.Add('AgentUserId', Format(TempSOASetup."User Security ID"));
-        Agent.GetUserSettings(AgentSetupBuffer."User Security ID", UserSettings);
-        if UserSettings."Language ID" <> 0 then
-            TelemetryCustomDimension.Add('Language', Language.GetCultureName(UserSettings."Language ID"))
+        Agent.GetUserSettings(AgentSetupBuffer."User Security ID", TempUserSettings);
+        if TempUserSettings."Language ID" <> 0 then
+            TelemetryCustomDimension.Add('Language', Language.GetCultureName(TempUserSettings."Language ID"))
         else
             TelemetryCustomDimension.Add('Language', '');
-        if UserSettings."Locale ID" <> 0 then
-            TelemetryCustomDimension.Add('Locale', Language.GetCultureName(UserSettings."Locale ID"))
+        if TempUserSettings."Locale ID" <> 0 then
+            TelemetryCustomDimension.Add('Locale', Language.GetCultureName(TempUserSettings."Locale ID"))
         else
             TelemetryCustomDimension.Add('Locale', '');
-        TelemetryCustomDimension.Add('TimeZone', UserSettings."Time Zone");
+        TelemetryCustomDimension.Add('TimeZone', TempUserSettings."Time Zone");
 
         // SOA setup config
         TelemetryCustomDimension.Add('IncomingMonitoring', Format(TempSOASetup."Incoming Monitoring"));
@@ -447,6 +452,7 @@ codeunit 4400 "SOA Setup"
                 begin
                     if (AgentTaskUserInterventionRequestDetails."Page ID" = Page::"Sales Quote") then begin
                         AgentTaskUserInterventionSuggestion.Init();
+                        AgentTaskUserInterventionSuggestion.Code := GetUpdatedQuoteInterventionSuggestionCode();
                         AgentTaskUserInterventionSuggestion.Summary := StrSubstNo(SOAInterventionSuggestionSummaryLbl, SOAInterventionSuggestionQuoteLbl);
                         AgentTaskUserInterventionSuggestion.Description := StrSubstNo(SOAInterventionSuggestionDescriptionLbl, SOAInterventionSuggestionQuoteLockedLbl);
                         AgentTaskUserInterventionSuggestion.Instructions := StrSubstNo(SOAInterventionSuggestionInstructionsLbl, SOAInterventionSuggestionQuoteLockedLbl);
@@ -455,6 +461,7 @@ codeunit 4400 "SOA Setup"
 
                     if (AgentTaskUserInterventionRequestDetails."Page ID" = Page::"Sales Order") then begin
                         AgentTaskUserInterventionSuggestion.Init();
+                        AgentTaskUserInterventionSuggestion.Code := GetUpdatedOrderInterventionSuggestionCode();
                         AgentTaskUserInterventionSuggestion.Summary := StrSubstNo(SOAInterventionSuggestionSummaryLbl, SOAInterventionSuggestionOrderLbl);
                         AgentTaskUserInterventionSuggestion.Description := StrSubstNo(SOAInterventionSuggestionDescriptionLbl, SOAInterventionSuggestionOrderLockedLbl);
                         AgentTaskUserInterventionSuggestion.Instructions := StrSubstNo(SOAInterventionSuggestionInstructionsLbl, SOAInterventionSuggestionOrderLockedLbl);
@@ -465,6 +472,7 @@ codeunit 4400 "SOA Setup"
                 begin
                     if AgentTaskUserInterventionRequestDetails."Page ID" = Page::"SOA Multi Items Availability" then begin
                         AgentTaskUserInterventionSuggestion.Init();
+                        AgentTaskUserInterventionSuggestion.Code := SOAItemAvailabilityInterventionSuggestionCodeLbl;
                         AgentTaskUserInterventionSuggestion.Summary := SOAItemAvailabilityInterventionSuggestionSummaryLbl;
                         AgentTaskUserInterventionSuggestion.Description := SOAItemAvailabilityInterventionSuggestionDescriptionLbl;
                         AgentTaskUserInterventionSuggestion.Instructions := SOAItemAvailabilityInterventionSuggestionInstructionsLbl;
@@ -473,12 +481,14 @@ codeunit 4400 "SOA Setup"
 
                     if AgentTaskUserInterventionRequestDetails."Page ID" = Page::"Customer List" then begin
                         AgentTaskUserInterventionSuggestion.Init();
+                        AgentTaskUserInterventionSuggestion.Code := SOACustomerInterventionSuggestionCodeLbl;
                         AgentTaskUserInterventionSuggestion.Summary := SOACustomerInterventionSuggestionSummaryLbl;
                         AgentTaskUserInterventionSuggestion.Description := SOACustomerInterventionSuggestionDescriptionLbl;
                         AgentTaskUserInterventionSuggestion.Instructions := SOACustomerInterventionSuggestionInstructionsLbl;
                         AgentTaskUserInterventionSuggestion.Insert();
 
                         AgentTaskUserInterventionSuggestion.Init();
+                        AgentTaskUserInterventionSuggestion.Code := SOAContactInterventionSuggestionCodeLbl;
                         AgentTaskUserInterventionSuggestion.Summary := SOAContactInterventionSuggestionSummaryLbl;
                         AgentTaskUserInterventionSuggestion.Description := SOAContactInterventionSuggestionDescriptionLbl;
                         AgentTaskUserInterventionSuggestion.Instructions := SOAContactInterventionSuggestionInstructionsLbl;
@@ -487,6 +497,7 @@ codeunit 4400 "SOA Setup"
 
                     if AgentTaskUserInterventionRequestDetails."Page ID" = Page::"Contact List" then begin
                         AgentTaskUserInterventionSuggestion.Init();
+                        AgentTaskUserInterventionSuggestion.Code := SOAContactInterventionSuggestionCodeLbl;
                         AgentTaskUserInterventionSuggestion.Summary := SOAContactInterventionSuggestionSummaryLbl;
                         AgentTaskUserInterventionSuggestion.Description := SOAContactInterventionSuggestionDescriptionLbl;
                         AgentTaskUserInterventionSuggestion.Instructions := SOAContactInterventionSuggestionInstructionsLbl;
@@ -744,6 +755,16 @@ codeunit 4400 "SOA Setup"
         exit('Sales Order Agent');
     end;
 
+    internal procedure GetUpdatedQuoteInterventionSuggestionCode(): Code[20]
+    begin
+        exit(StrSubstNo(SOAInterventionSuggestionCodeLbl, SOAInterventionSuggestionQuoteLockedLbl));
+    end;
+
+    internal procedure GetUpdatedOrderInterventionSuggestionCode(): Code[20]
+    begin
+        exit(StrSubstNo(SOAInterventionSuggestionCodeLbl, SOAInterventionSuggestionOrderLockedLbl));
+    end;
+
     var
         SOAImpl: Codeunit "SOA Impl";
         Agent: Codeunit Agent;
@@ -755,22 +776,26 @@ codeunit 4400 "SOA Setup"
         SalesOrderAgentInitialLbl: Label 'SO', MaxLength = 4;
         SOASummaryLbl: Label 'Monitors incoming emails for sales inquiries, matches senders to customers, checks inventory, and creates quotes. When processing replies, the agent converts accepted quotes into orders.';
         DelegateAdminErr: Label 'Delegated admin and helpdesk users are not allowed to update the agent.';
-        SOAInterventionSuggestionSummaryLbl: Label 'I have updated the %1', Comment = '%1 = Sales Document Type';
-        SOAInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to a sales %1 as part of reviewing it before sending it to a customer.', Comment = '%1 = Sales Document Type', Locked = true;
-        SOAInterventionSuggestionInstructionsLbl: Label 'I have updated the sales %1. Make sure to download the PDF again before including the %1 information in any outgoing communication.', Comment = '%1 = Sales Document Type', Locked = true;
+        SOAInterventionSuggestionCodeLbl: Label 'SOA-UPDATE-%1', Locked = true, Comment = '%1 = Sales Document Type';
+        SOAInterventionSuggestionSummaryLbl: Label 'I have updated the %1', Comment = '%1 = Sales Document Type', MaxLength = 100;
+        SOAInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to a sales %1 as part of reviewing it before sending it to a customer.', Comment = '%1 = Sales Document Type', Locked = true, MaxLength = 1024;
+        SOAInterventionSuggestionInstructionsLbl: Label 'I have updated the sales %1. Make sure to download the PDF again before including the %1 information in any outgoing communication.', Comment = '%1 = Sales Document Type', Locked = true, MaxLength = 1024;
         SOAInterventionSuggestionQuoteLbl: Label 'quote';
         SOAInterventionSuggestionOrderLbl: Label 'order';
         SOAInterventionSuggestionQuoteLockedLbl: Label 'quote', Locked = true;
         SOAInterventionSuggestionOrderLockedLbl: Label 'order', Locked = true;
-        SOAItemAvailabilityInterventionSuggestionSummaryLbl: Label 'I have made the items available';
-        SOAItemAvailabilityInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to the item availability. Rerun the item availability check', Locked = true;
-        SOAItemAvailabilityInterventionSuggestionInstructionsLbl: Label 'I have updated the item availability. Make sure to recheck the item availability and proceed further.', Locked = true;
-        SOACustomerInterventionSuggestionSummaryLbl: Label 'I have added the customer';
-        SOACustomerInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to add the customer information. Rerun the customer information check', Locked = true;
-        SOACustomerInterventionSuggestionInstructionsLbl: Label 'I have updated the customer information. Rerun the customer information check and proceed further.', Locked = true;
-        SOAContactInterventionSuggestionSummaryLbl: Label 'I have added the contact';
-        SOAContactInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to add the contact information. Rerun the contact information check', Locked = true;
-        SOAContactInterventionSuggestionInstructionsLbl: Label 'I have updated the contact information. Rerun the contact information check on the contact list page and proceed further.', Locked = true;
+        SOAItemAvailabilityInterventionSuggestionCodeLbl: Label 'SOA-ITEM-AVAILABLE', Locked = true;
+        SOAItemAvailabilityInterventionSuggestionSummaryLbl: Label 'I have made the items available', MaxLength = 100;
+        SOAItemAvailabilityInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to the item availability. Rerun the item availability check', Locked = true, MaxLength = 1024;
+        SOAItemAvailabilityInterventionSuggestionInstructionsLbl: Label 'I have updated the item availability. Make sure to recheck the item availability and proceed further.', Locked = true, MaxLength = 1024;
+        SOACustomerInterventionSuggestionCodeLbl: Label 'SOA-CUSTOMER-ADDED', Locked = true;
+        SOACustomerInterventionSuggestionSummaryLbl: Label 'I have added the customer', MaxLength = 100;
+        SOACustomerInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to add the customer information. Rerun the customer information check', Locked = true, MaxLength = 1024;
+        SOACustomerInterventionSuggestionInstructionsLbl: Label 'I have updated the customer information. Rerun the customer information check and proceed further.', Locked = true, MaxLength = 1024;
+        SOAContactInterventionSuggestionCodeLbl: Label 'SOA-CONTACT-ADDED', Locked = true;
+        SOAContactInterventionSuggestionSummaryLbl: Label 'I have added the contact', MaxLength = 100;
+        SOAContactInterventionSuggestionDescriptionLbl: Label 'Used to indicate that a user has done some manual updates to add the contact information. Rerun the contact information check', Locked = true, MaxLength = 1024;
+        SOAContactInterventionSuggestionInstructionsLbl: Label 'I have updated the contact information. Rerun the contact information check on the contact list page and proceed further.', Locked = true, MaxLength = 1024;
         NewEmailsSinceDeactivationLbl: Label 'New e-mails (%1) have arrived since %2 but haven''t been processed yet. Should Sales Order Agent also process these?', Comment = '%1 - Number of emails, %2 - Date and time of deactivation.';
         SOAAttemptedConnectionFailedErr: Label 'The agent can''t be activated because the connection to the selected Microsoft 365 mailbox failed. Ask your Microsoft 365 administrator to check if the user configuring the agent has permission to access the mailbox.';
         SOAAttemptedConnectionHttpRequestFailedErr: Label 'The agent can''t be activated because its settings don''t allow Http Requests. Ask your administrator to update this setting and try again.';

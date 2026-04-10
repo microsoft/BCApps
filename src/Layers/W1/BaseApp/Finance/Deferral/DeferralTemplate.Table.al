@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 1700 "Deferral Template"
         field(1; "Deferral Code"; Code[10])
         {
             Caption = 'Deferral Code';
+            ToolTip = 'Specifies the code for the deferral template.';
             NotBlank = true;
         }
         /// <summary>
@@ -36,6 +37,7 @@ table 1700 "Deferral Template"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the record.';
         }
         /// <summary>
         /// G/L Account number where deferred amounts will be temporarily stored before recognition.
@@ -44,6 +46,7 @@ table 1700 "Deferral Template"
         field(3; "Deferral Account"; Code[20])
         {
             Caption = 'Deferral Account';
+            ToolTip = 'Specifies the G/L account that the deferred expenses are posted to.';
             NotBlank = true;
             TableRelation = "G/L Account" where("Account Type" = const(Posting),
                                                  Blocked = const(false));
@@ -56,6 +59,7 @@ table 1700 "Deferral Template"
         {
             AutoFormatType = 0;
             Caption = 'Deferral %';
+            ToolTip = 'Specifies how much of the total amount will be deferred.';
             DecimalPlaces = 0 : 5;
             InitValue = 100;
             MaxValue = 100;
@@ -73,6 +77,7 @@ table 1700 "Deferral Template"
         field(5; "Calc. Method"; Enum "Deferral Calculation Method")
         {
             Caption = 'Calc. Method';
+            ToolTip = 'Specifies how the Amount field for each period is calculated.';
         }
         /// <summary>
         /// Determines when the deferral schedule starts (Posting Date, Beginning of Period, etc.).
@@ -80,6 +85,7 @@ table 1700 "Deferral Template"
         field(6; "Start Date"; Enum "Deferral Calculation Start Date")
         {
             Caption = 'Start Date';
+            ToolTip = 'Specifies when to start calculating deferral amounts.';
         }
         /// <summary>
         /// Number of accounting periods over which the deferral will be recognized.
@@ -89,6 +95,7 @@ table 1700 "Deferral Template"
         {
             BlankZero = true;
             Caption = 'No. of Periods';
+            ToolTip = 'Specifies how many accounting periods the total amounts will be deferred to.';
             MinValue = 1;
 
             trigger OnValidate()
@@ -104,6 +111,7 @@ table 1700 "Deferral Template"
         field(8; "Period Description"; Text[100])
         {
             Caption = 'Period Description';
+            ToolTip = 'Specifies a description that will be shown on entries for the deferral posting.';
         }
     }
 

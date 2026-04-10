@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,12 +30,10 @@ page 9251 "Dimension Combinations Matrix"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the dimension.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension code you enter in the Code field.';
                 }
                 field(Field1; MATRIX_CellData[1])
                 {

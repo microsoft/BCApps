@@ -41,6 +41,9 @@ report 413 "Self Billing Invoice"
             column(No_PurchInvHeader; "No.")
             {
             }
+            column(VendorInvoiceNo_PurchInvHeader; "Vendor Invoice No.")
+            {
+            }
             column(InvDiscAmtCaption; InvDiscAmtCaptionLbl)
             {
             }

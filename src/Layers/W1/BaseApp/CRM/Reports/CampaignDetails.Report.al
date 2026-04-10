@@ -9,12 +9,11 @@ using Microsoft.CRM.Segment;
 
 report 5060 "Campaign - Details"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/CampaignDetails.rdlc';
     ApplicationArea = RelationshipMgmt;
     Caption = 'Campaign - Details';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = Campaign;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -196,6 +195,16 @@ report 5060 "Campaign - Details"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/CampaignDetails.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

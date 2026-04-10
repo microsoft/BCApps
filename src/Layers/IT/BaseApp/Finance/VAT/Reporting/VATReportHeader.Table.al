@@ -24,6 +24,7 @@ table 740 "VAT Report Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -39,6 +40,7 @@ table 740 "VAT Report Header"
         field(2; "VAT Report Config. Code"; Option)
         {
             Caption = 'VAT Report Config. Code';
+            ToolTip = 'Specifies the appropriate configuration code for EC Sales List Reports.';
             Editable = true;
             OptionCaption = ' ,VAT Transactions Report,Datifattura';
             OptionMembers = " ","VAT Transactions Report",Datifattura;
@@ -54,6 +56,7 @@ table 740 "VAT Report Header"
         field(3; "VAT Report Type"; Option)
         {
             Caption = 'VAT Report Type';
+            ToolTip = 'Specifies if the VAT report is a standard report, or if it is related to a previously submitted VAT report.';
             OptionCaption = 'Standard,Corrective,,,,,,,,,Cancellation ';
             OptionMembers = Standard,Corrective,,,,,,,,,"Cancellation ";
 
@@ -84,6 +87,7 @@ table 740 "VAT Report Header"
         field(4; "Start Date"; Date)
         {
             Caption = 'Start Date';
+            ToolTip = 'Specifies the first date of the reporting period.';
 
             trigger OnValidate()
             begin
@@ -97,6 +101,7 @@ table 740 "VAT Report Header"
         field(5; "End Date"; Date)
         {
             Caption = 'End Date';
+            ToolTip = 'Specifies the last date of the reporting period.';
 
             trigger OnValidate()
             begin
@@ -111,6 +116,7 @@ table 740 "VAT Report Header"
         field(6; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies whether the report is in progress, is completed, or contains errors.';
             Editable = false;
             OptionCaption = 'Open,Released,Submitted';
             OptionMembers = Open,Released,Submitted;
@@ -121,6 +127,7 @@ table 740 "VAT Report Header"
         field(8; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
 
             trigger OnValidate()
             begin
@@ -133,6 +140,7 @@ table 740 "VAT Report Header"
         field(9; "Original Report No."; Code[20])
         {
             Caption = 'Original Report No.';
+            ToolTip = 'Specifies the number of the original report.';
 
             trigger OnLookup()
             var
@@ -196,11 +204,13 @@ table 740 "VAT Report Header"
         }
         field(32; "Country/Region Filter"; Text[250])
         {
+            ToolTip = 'Specifies the country/region filter for the report.';
             Editable = false;
             Caption = 'Country/Region Filter';
         }
         field(100; "Amounts in Add. Rep. Currency"; Boolean)
         {
+            ToolTip = 'Specifies whether the amounts are in the additional reporting currency.';
             Caption = 'Amounts in Add. Rep. Currency';
             Editable = false;
         }

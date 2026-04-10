@@ -674,6 +674,13 @@ table 122 "Purch. Inv. Header"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(1340; "Dispute Status"; Code[10])
+        {
+            Caption = 'Dispute Status';
+            ToolTip = 'Specifies if there is an ongoing dispute for this document.';
+            TableRelation = "Dispute Status";
+            DataClassification = CustomerContent;
+        }
         field(5050; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';

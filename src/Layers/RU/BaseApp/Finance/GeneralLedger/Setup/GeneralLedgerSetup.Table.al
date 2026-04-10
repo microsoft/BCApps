@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -66,6 +66,7 @@ table 98 "General Ledger Setup"
         field(2; "Allow Posting From"; Date)
         {
             Caption = 'Allow Posting From';
+            ToolTip = 'Specifies the earliest date on which posting to the company books is allowed.';
 
             trigger OnValidate()
             begin
@@ -85,6 +86,7 @@ table 98 "General Ledger Setup"
         field(3; "Allow Posting To"; Date)
         {
             Caption = 'Allow Posting To';
+            ToolTip = 'Specifies the last date on which posting to the company books is allowed.';
 
             trigger OnValidate()
             begin
@@ -104,6 +106,7 @@ table 98 "General Ledger Setup"
         field(4; "Register Time"; Boolean)
         {
             Caption = 'Register Time';
+            ToolTip = 'Specifies whether to register users'' time usage defined as the time spent from when a user logs in to when the user logs out. Unexpected interruptions, such as idle session timeout, terminal server idle session timeout, or a client crash are not recorded. This setting can be overruled per user by filling in the Register Time field in the User Setup window.';
         }
         /// <summary>
         /// Earliest date allowed for posting deferral transactions to the general ledger.
@@ -111,6 +114,7 @@ table 98 "General Ledger Setup"
         field(5; "Allow Deferral Posting From"; Date)
         {
             Caption = 'Allow Deferral Posting From';
+            ToolTip = 'Specifies the earliest date on which deferral posting to the company books is allowed.';
 
             trigger OnValidate()
             begin
@@ -123,6 +127,7 @@ table 98 "General Ledger Setup"
         field(6; "Allow Deferral Posting To"; Date)
         {
             Caption = 'Allow Deferral Posting To';
+            ToolTip = 'Specifies the last date on which deferral posting to the company books is allowed.';
 
             trigger OnValidate()
             begin
@@ -135,6 +140,7 @@ table 98 "General Ledger Setup"
         field(7; "VAT Reporting Date"; Enum "VAT Reporting Date")
         {
             Caption = 'Default VAT Date';
+            ToolTip = 'Specifies the date used to include entries on VAT reports in a VAT period. This is either the date that the document was created or posted, depending on this setting.';
         }
         /// <summary>
         /// Controls whether VAT reporting date is enabled, disabled, or controlled by posting date.
@@ -142,6 +148,7 @@ table 98 "General Ledger Setup"
         field(8; "VAT Reporting Date Usage"; Enum "VAT Reporting Date Usage")
         {
             Caption = 'VAT Date Usage';
+            ToolTip = 'Specifies the usage of VAT date.';
 
             trigger OnValidate()
             begin
@@ -154,6 +161,7 @@ table 98 "General Ledger Setup"
         field(28; "Pmt. Disc. Excl. VAT"; Boolean)
         {
             Caption = 'Pmt. Disc. Excl. VAT';
+            ToolTip = 'Specifies if the payment discount is calculated based on amounts including or excluding VAT.';
 
             trigger OnValidate()
             begin
@@ -225,6 +233,7 @@ table 98 "General Ledger Setup"
         field(48; "Unrealized VAT"; Boolean)
         {
             Caption = 'Unrealized VAT';
+            ToolTip = 'Specifies whether to handle unrealized VAT, which is VAT that is calculated but not due until the invoice is paid.';
 
             trigger OnValidate()
             begin
@@ -256,6 +265,7 @@ table 98 "General Ledger Setup"
         field(49; "Adjust for Payment Disc."; Boolean)
         {
             Caption = 'Adjust for Payment Disc.';
+            ToolTip = 'Specifies whether to recalculate tax amounts when you post payments that trigger payment discounts.';
 
             trigger OnValidate()
             begin
@@ -283,6 +293,7 @@ table 98 "General Ledger Setup"
         field(50; "Post with Job Queue"; Boolean)
         {
             Caption = 'Post with Job Queue';
+            ToolTip = 'Specifies if you use job queues to post general ledger documents in the background.';
 
             trigger OnValidate()
             begin
@@ -296,6 +307,7 @@ table 98 "General Ledger Setup"
         field(51; "Job Queue Category Code"; Code[10])
         {
             Caption = 'Job Queue Category Code';
+            ToolTip = 'Specifies the code for the category of the job queue that you want to associate with background posting.';
             TableRelation = "Job Queue Category";
         }
         /// <summary>
@@ -319,6 +331,7 @@ table 98 "General Ledger Setup"
         field(53; "Post & Print with Job Queue"; Boolean)
         {
             Caption = 'Post & Print with Job Queue';
+            ToolTip = 'Specifies if you use job queues to post and print general ledger documents in the background.';
 
             trigger OnValidate()
             begin
@@ -347,6 +360,7 @@ table 98 "General Ledger Setup"
         field(55; "Notify On Success"; Boolean)
         {
             Caption = 'Notify On Success';
+            ToolTip = 'Specifies if a notification is sent when posting and printing is successfully completed.';
         }
         /// <summary>
         /// Marks credit memos as corrections for proper VAT and financial reporting compliance.
@@ -354,6 +368,7 @@ table 98 "General Ledger Setup"
         field(56; "Mark Cr. Memos as Corrections"; Boolean)
         {
             Caption = 'Mark Cr. Memos as Corrections';
+            ToolTip = 'Specifies whether to automatically mark a new credit memo as a corrective entry. Correction flag does not affect how inventory reconciled with general ledger.';
         }
         /// <summary>
         /// Format used for displaying local addresses on documents and reports.
@@ -361,6 +376,7 @@ table 98 "General Ledger Setup"
         field(57; "Local Address Format"; Option)
         {
             Caption = 'Local Address Format';
+            ToolTip = 'Specifies the format in which addresses must appear on printouts.';
             OptionCaption = 'Post Code+City,City+Post Code,City+County+Post Code,Blank Line+Post Code+City';
             OptionMembers = "Post Code+City","City+Post Code","City+County+Post Code","Blank Line+Post Code+City";
         }
@@ -397,6 +413,7 @@ table 98 "General Ledger Setup"
         field(60; "Local Cont. Addr. Format"; Option)
         {
             Caption = 'Local Cont. Addr. Format';
+            ToolTip = 'Specifies where you want the contact name to appear in mailing addresses.';
             InitValue = "After Company Name";
             OptionCaption = 'First,After Company Name,Last,Local Format';
             OptionMembers = First,"After Company Name",Last,"Local Format";
@@ -407,6 +424,7 @@ table 98 "General Ledger Setup"
         field(61; "Report Output Type"; Enum "Setup Report Output Type")
         {
             Caption = 'Report Output Type';
+            ToolTip = 'Specifies the output of the report that will be scheduled with a job queue entry when the Post and Print with Job Queue check box is selected.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -425,6 +443,7 @@ table 98 "General Ledger Setup"
         {
             AccessByPermission = TableData "Bank Account" = R;
             Caption = 'Bank Account Nos.';
+            ToolTip = 'Specifies the code for the number series that will be used to assign numbers to bank accounts.';
             TableRelation = "No. Series";
         }
         /// <summary>
@@ -440,6 +459,7 @@ table 98 "General Ledger Setup"
         field(66; "Amount Decimal Places"; Text[5])
         {
             Caption = 'Amount Decimal Places';
+            ToolTip = 'Specifies the number of decimal places that are shown for amounts in LCY. This covers amounts created with all types of transactions and is useful to avoid inconsistencies when viewing or summing different amounts. The default setting, 2:2, specifies that all amounts in LCY are shown with a minimum of 2 decimal places and a maximum of 2 decimal places. You can also enter a fixed number, such as 2, which also means that amounts are shown with two decimals. On the Currencies page, you specify how many decimal places to show for amounts in foreign currencies.';
             InitValue = '2:2';
 
             trigger OnValidate()
@@ -453,6 +473,7 @@ table 98 "General Ledger Setup"
         field(67; "Unit-Amount Decimal Places"; Text[5])
         {
             Caption = 'Unit-Amount Decimal Places';
+            ToolTip = 'Specifies the number of decimal places that are shown for unit amounts, item or resource prices per unit, in LCY. The default setting, 2:5, specifies that unit amounts will be shown with a minimum of two decimal places and a maximum of five decimal places. You can also enter a fixed number, such as 2, to specify that all unit amounts are shown with two decimal places. On the Currencies page, you specify how many decimal places to show for unit amounts in foreign currencies.';
             InitValue = '2:5';
 
             trigger OnValidate()
@@ -466,6 +487,7 @@ table 98 "General Ledger Setup"
         field(68; "Additional Reporting Currency"; Code[10])
         {
             Caption = 'Additional Reporting Currency';
+            ToolTip = 'Specifies the currency that will be used as an additional reporting currency.';
             TableRelation = Currency;
 
             trigger OnValidate()
@@ -510,6 +532,7 @@ table 98 "General Ledger Setup"
         field(70; "EMU Currency"; Boolean)
         {
             Caption = 'EMU Currency';
+            ToolTip = 'Specifies if LCY is an EMU (Economic and Monetary Union) currency.';
         }
         /// <summary>
         /// Local Currency Code identifying the company's functional currency for accounting and reporting.
@@ -541,6 +564,7 @@ table 98 "General Ledger Setup"
         field(72; "VAT Exchange Rate Adjustment"; Enum "Exch. Rate Adjustment Type")
         {
             Caption = 'VAT Exchange Rate Adjustment';
+            ToolTip = 'Specifies how the accounts set up for VAT posting in the VAT Posting Setup window will be adjusted for exchange rate fluctuations.';
         }
         /// <summary>
         /// Precision used for rounding monetary amounts in local currency calculations.
@@ -549,6 +573,7 @@ table 98 "General Ledger Setup"
         {
             AutoFormatType = 0;
             Caption = 'Amount Rounding Precision';
+            ToolTip = 'Specifies the size of the interval to be used when rounding amounts in LCY. This covers amounts created with all types of transactions and is useful to avoid inconsistencies when viewing or summing different amounts. Amounts will be rounded to the nearest digit. Example: To have amounts rounded to whole numbers, enter 1.00 in this field. In this case, amounts less than 0.5 will be rounded down and amounts greater than or equal to 0.5 will be rounded up. On the Currencies page, you specify how amounts in foreign currencies are rounded.';
             DecimalPlaces = 0 : 5;
             InitValue = 0.01;
 
@@ -570,6 +595,7 @@ table 98 "General Ledger Setup"
         {
             AutoFormatType = 0;
             Caption = 'Unit-Amount Rounding Precision';
+            ToolTip = 'Specifies the size of the interval to be used when rounding unit amounts, item or resource prices per unit, in LCY. Amounts will be rounded to the nearest digit. Example: To have unit amounts rounded to whole numbers, enter 1.00 in this field. In this case, amounts less than 0.5 will be rounded down and amounts greater than or equal to 0.5 will be rounded up. On the Currencies page, you specify how unit amounts in foreign currencies are rounded.';
             DecimalPlaces = 0 : 9;
             InitValue = 0.00001;
 
@@ -587,6 +613,7 @@ table 98 "General Ledger Setup"
             AutoFormatExpression = '';
             AutoFormatType = 0;
             Caption = 'Appln. Rounding Precision';
+            ToolTip = 'Specifies the rounding difference that will be allowed when you apply entries in LCY to entries in a different currency.';
             MinValue = 0;
         }
         /// <summary>
@@ -595,6 +622,7 @@ table 98 "General Ledger Setup"
         field(79; "Global Dimension 1 Code"; Code[20])
         {
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for a global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             Editable = false;
             TableRelation = Dimension;
 
@@ -609,6 +637,7 @@ table 98 "General Ledger Setup"
         field(80; "Global Dimension 2 Code"; Code[20])
         {
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for a global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             Editable = false;
             TableRelation = Dimension;
 
@@ -623,6 +652,7 @@ table 98 "General Ledger Setup"
         field(81; "Shortcut Dimension 1 Code"; Code[20])
         {
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, whose dimension values you can then enter directly on journals and sales or purchase lines.';
             Editable = false;
             TableRelation = Dimension;
         }
@@ -632,6 +662,7 @@ table 98 "General Ledger Setup"
         field(82; "Shortcut Dimension 2 Code"; Code[20])
         {
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             TableRelation = Dimension;
         }
@@ -642,6 +673,7 @@ table 98 "General Ledger Setup"
         {
             AccessByPermission = TableData "Dimension Combination" = R;
             Caption = 'Shortcut Dimension 3 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 3, whose dimension values you can then enter directly on journals and sales or purchase lines.';
             TableRelation = Dimension;
 
             trigger OnValidate()
@@ -656,6 +688,7 @@ table 98 "General Ledger Setup"
         {
             AccessByPermission = TableData "Dimension Combination" = R;
             Caption = 'Shortcut Dimension 4 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 4, whose dimension values you can then enter directly on journals and sales or purchase lines.';
             TableRelation = Dimension;
 
             trigger OnValidate()
@@ -670,6 +703,7 @@ table 98 "General Ledger Setup"
         {
             AccessByPermission = TableData "Dimension Combination" = R;
             Caption = 'Shortcut Dimension 5 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 5, whose dimension values you can then enter directly on journals and sales or purchase lines.';
             TableRelation = Dimension;
 
             trigger OnValidate()
@@ -684,6 +718,7 @@ table 98 "General Ledger Setup"
         {
             AccessByPermission = TableData "Dimension Combination" = R;
             Caption = 'Shortcut Dimension 6 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 6, whose dimension values you can then enter directly on journals and sales or purchase lines.';
             TableRelation = Dimension;
 
             trigger OnValidate()
@@ -698,6 +733,7 @@ table 98 "General Ledger Setup"
         {
             AccessByPermission = TableData "Dimension Combination" = R;
             Caption = 'Shortcut Dimension 7 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 7, whose dimension values you can then enter directly on journals and sales or purchase lines.';
             TableRelation = Dimension;
 
             trigger OnValidate()
@@ -712,6 +748,7 @@ table 98 "General Ledger Setup"
         {
             AccessByPermission = TableData "Dimension Combination" = R;
             Caption = 'Shortcut Dimension 8 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 8, whose dimension values you can then enter directly on journals and sales or purchase lines.';
             TableRelation = Dimension;
 
             trigger OnValidate()
@@ -727,6 +764,7 @@ table 98 "General Ledger Setup"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Max. VAT Difference Allowed';
+            ToolTip = 'Specifies the maximum VAT correction amount allowed for the local currency. For example, if you enter 5 in this field for British Pounds, then you can correct VAT amounts by up to five pounds.';
 
             trigger OnValidate()
             begin
@@ -744,6 +782,7 @@ table 98 "General Ledger Setup"
         field(90; "VAT Rounding Type"; Option)
         {
             Caption = 'VAT Rounding Type';
+            ToolTip = 'Specifies how the program will round VAT when calculated for the local currency. When you enter an Amount Including VAT in a document, the system first calculates and rounds the Amount Excluding VAT, and then calculates by subtraction the VAT Amount because the total amount has to match the Amount Including VAT entered manually. In that case, the VAT Rounding Type does not apply as the Amount Excluding VAT is already rounded using the Amount Rounding Precision.';
             OptionCaption = 'Nearest,Up,Down';
             OptionMembers = Nearest,Up,Down;
         }
@@ -753,6 +792,7 @@ table 98 "General Ledger Setup"
         field(92; "Pmt. Disc. Tolerance Posting"; Option)
         {
             Caption = 'Pmt. Disc. Tolerance Posting';
+            ToolTip = 'Specifies the posting method that is used when posting a payment tolerance. Payment Tolerance Accounts: The payment discount tolerance is posted to a special general ledger account set up for payment tolerance. Payment Discount Amount: The payment discount tolerance is posted as a payment discount.';
             OptionCaption = 'Payment Tolerance Accounts,Payment Discount Accounts';
             OptionMembers = "Payment Tolerance Accounts","Payment Discount Accounts";
         }
@@ -762,6 +802,7 @@ table 98 "General Ledger Setup"
         field(93; "Payment Discount Grace Period"; DateFormula)
         {
             Caption = 'Payment Discount Grace Period';
+            ToolTip = 'Specifies the number of days that a payment or refund can pass the payment discount due date and still receive payment discount.';
         }
         /// <summary>
         /// Payment tolerance percentage allowed for customer and vendor payment applications.
@@ -770,6 +811,7 @@ table 98 "General Ledger Setup"
         {
             AutoFormatType = 0;
             Caption = 'Payment Tolerance %';
+            ToolTip = 'Specifies the percentage that a payment or refund is allowed to be less than the amount on the related invoice or credit memo.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             MaxValue = 100;
@@ -783,6 +825,7 @@ table 98 "General Ledger Setup"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Max. Payment Tolerance Amount';
+            ToolTip = 'Specifies the maximum allowed amount that a payment or refund can differ from the amount on the related invoice or credit memo.';
             Editable = false;
             MinValue = 0;
         }
@@ -792,6 +835,7 @@ table 98 "General Ledger Setup"
         field(97; "Allow G/L Acc. Deletion Before"; Date)
         {
             Caption = 'Check G/L Acc. Deletion After';
+            ToolTip = 'Specifies if and when general ledger accounts can be deleted. If you enter a date, G/L accounts with entries on or after this date can be deleted only after confirmation by the user. This setting is only valid when "Block Deletion of G/L accounts" is set to No';
         }
         /// <summary>
         /// Enables checking G/L account usage before allowing deletion to prevent loss of transaction history.
@@ -799,6 +843,7 @@ table 98 "General Ledger Setup"
         field(98; "Check G/L Account Usage"; Boolean)
         {
             Caption = 'Check G/L Account Usage';
+            ToolTip = 'Specifies that you want the program to protect G/L accounts that are used in setup tables from being deleted.';
         }
         /// <summary>
         /// Specifies how payment tolerance amounts are posted to the general ledger when payment tolerances are applied.
@@ -806,6 +851,7 @@ table 98 "General Ledger Setup"
         field(99; "Payment Tolerance Posting"; Option)
         {
             Caption = 'Payment Tolerance Posting';
+            ToolTip = 'Specifies the posting method that is used when posting a payment tolerance. Payment Tolerance Accounts: Posts the payment tolerance to a special general ledger account set up for payment tolerance. Payment Discount Amount: Posts the payment tolerance as a payment discount.';
             OptionCaption = 'Payment Tolerance Accounts,Payment Discount Accounts';
             OptionMembers = "Payment Tolerance Accounts","Payment Discount Accounts";
         }
@@ -815,6 +861,7 @@ table 98 "General Ledger Setup"
         field(100; "Pmt. Disc. Tolerance Warning"; Boolean)
         {
             Caption = 'Pmt. Disc. Tolerance Warning';
+            ToolTip = 'Specifies if a warning will appear every time an application occurs between the dates specified in the Payment Discount Date field and the Pmt. Disc. Tolerance Date field in the General Ledger Setup window.';
         }
         /// <summary>
         /// Controls whether warning messages are displayed when payment tolerance limits are exceeded during payment processing.
@@ -822,6 +869,7 @@ table 98 "General Ledger Setup"
         field(101; "Payment Tolerance Warning"; Boolean)
         {
             Caption = 'Payment Tolerance Warning';
+            ToolTip = 'Specifies whether to display a message when a payment differs from the invoice amount within the specified tolerance, so you can choose how to process it. If you do not enable the message, and a tolerance level is specified, invoices with amounts that are within tolerance will be automatically closed and you cannot choose to leave the remaining amount. Default tolerance levels are specified in the Payment Tolerance % and Max. Payment Tolerance fields, but can also be specified for each customer ledger entry.';
         }
         /// <summary>
         /// Tracks the last transaction number used for intercompany transactions to ensure unique numbering.
@@ -836,6 +884,7 @@ table 98 "General Ledger Setup"
         field(103; "Bill-to/Sell-to VAT Calc."; Enum "G/L Setup VAT Calculation")
         {
             Caption = 'Bill-to/Sell-to VAT Calc.';
+            ToolTip = 'Specifies where the VAT Bus. Posting Group code on an order or invoice is copied from. Bill-to/Pay-to No.: The VAT Bus. Posting Group code on sales invoices and orders is copied from the Bill-to Customer field. The VAT Bus. Posting Group code on purchase invoices and orders is copied from the Pay-to Vendor field. Sell-to/Buy-from No. : The VAT Bus. Posting Group code on sales invoices and orders is copied from the Sell-to Customer field. The VAT Bus. Posting Group code on purchase invoices and orders is copied from the Buy-from Vendor field.';
         }
         /// <summary>
         /// Prevents deletion of G/L accounts that are referenced in setup tables or have transaction history when enabled.
@@ -843,6 +892,7 @@ table 98 "General Ledger Setup"
         field(104; "Block Deletion of G/L Accounts"; Boolean)
         {
             Caption = 'Block Deletion of G/L Accounts';
+            ToolTip = 'Specifies whether to prevent users from deleting G/L accounts with ledger entries that are after the date in the Check G/L Acc. Deletion After field. For example, blocking deletion helps you avoid losing financial data that your business should keep due to country regional requirements.';
             InitValue = true;
         }
 #if not CLEANSCHEMA25
@@ -959,6 +1009,7 @@ table 98 "General Ledger Setup"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Tax Invoice Renaming Threshold';
+            ToolTip = 'Specifies that if the amount on a sales invoice or a service invoice exceeds the threshold, then the name of the document is changed to include the words "Tax Invoice", as required by the tax authorities.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -967,6 +1018,7 @@ table 98 "General Ledger Setup"
         field(130; "Req.Country/Reg. Code in Addr."; Boolean)
         {
             Caption = 'Require Country/Region Code in Address';
+            ToolTip = 'Specifies whether to clear the Post Code, City, and County fields when the value in the Country/Region Code field is changed.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -975,6 +1027,7 @@ table 98 "General Ledger Setup"
         field(150; "Print VAT specification in LCY"; Boolean)
         {
             Caption = 'Print VAT specification in LCY';
+            ToolTip = 'Specifies that an extra VAT specification in local currency will be included on documents in a foreign currency. This can be used to make tax audits easier when reconciling VAT payables to invoices.';
         }
         /// <summary>
         /// Enables unrealized VAT processing for prepayment transactions when prepayments are subject to VAT.
@@ -982,6 +1035,7 @@ table 98 "General Ledger Setup"
         field(151; "Prepayment Unrealized VAT"; Boolean)
         {
             Caption = 'Prepayment Unrealized VAT';
+            ToolTip = 'Specifies whether to handle unrealized VAT on prepayments.';
 
             trigger OnValidate()
             begin
@@ -1012,6 +1066,7 @@ table 98 "General Ledger Setup"
         field(160; "Payroll Trans. Import Format"; Code[20])
         {
             Caption = 'Payroll Trans. Import Format';
+            ToolTip = 'Specifies the format of the payroll transaction file that can be imported into the General Journal window.';
             TableRelation = "Data Exch. Def" where(Type = const("Payroll Import"));
         }
         /// <summary>
@@ -1020,6 +1075,7 @@ table 98 "General Ledger Setup"
         field(162; "Local Currency Symbol"; Text[10])
         {
             Caption = 'Local Currency Symbol';
+            ToolTip = 'Specifies the symbol for the local currency that you want to appear on checks and charts, such as $ for USD.';
         }
         /// <summary>
         /// Descriptive name for the local currency used in reports and system displays.
@@ -1027,6 +1083,7 @@ table 98 "General Ledger Setup"
         field(163; "Local Currency Description"; Text[60])
         {
             Caption = 'Local Currency Description';
+            ToolTip = 'Specifies the description of the local currency.';
         }
         /// <summary>
         /// Controls how amounts are displayed in G/L entries and reports: amount only, debit/credit only, or all amounts.
@@ -1034,6 +1091,7 @@ table 98 "General Ledger Setup"
         field(164; "Show Amounts"; Option)
         {
             Caption = 'Show Amounts';
+            ToolTip = 'Specifies which type of amounts are shown in journals and in ledger entries windows. Amount Only: The Amount and Amount (LCY) fields are shown. Debit/Credit Only: The Debit Amount, Debit Amount (LCY), Credit Amount, and Credit Amount (LCY) fields are shown. All Amounts: All amount fields are shown.';
             OptionCaption = 'Amount Only,Debit/Credit Only,All Amounts';
             OptionMembers = "Amount Only","Debit/Credit Only","All Amounts";
         }
@@ -1043,6 +1101,7 @@ table 98 "General Ledger Setup"
         field(169; "Posting Preview Type"; Enum "Posting Preview Type")
         {
             Caption = 'Posting Preview Type';
+            ToolTip = 'Specifies the amount of detail to include in the posting preview. Standard gives an overview of entries grouped by type, and you can choose the type of entry to view details. Extended displays the details for G/L entries and VAT entries.';
         }
         /// <summary>
         /// Allows SEPA payment export for currencies other than Euro when enabled.
@@ -1050,6 +1109,7 @@ table 98 "General Ledger Setup"
         field(170; "SEPA Non-Euro Export"; Boolean)
         {
             Caption = 'SEPA Non-Euro Export';
+            ToolTip = 'Specifies whether to use SEPA export for journal lines with currencies different from Euro.';
         }
         /// <summary>
         /// Enables SEPA payment export without requiring complete bank account data when enabled.
@@ -1057,6 +1117,7 @@ table 98 "General Ledger Setup"
         field(171; "SEPA Export w/o Bank Acc. Data"; Boolean)
         {
             Caption = 'SEPA Export w/o Bank Acc. Data';
+            ToolTip = 'Specifies if it is possible to use SEPA direct debit export by filling in the Bank Branch No. and Bank Account No. fields instead of the IBAN and SWIFT No. fields on the bank account and customer bank account cards.';
         }
         /// <summary>
         /// Requires journal template name to be specified when creating general journal lines for better control and validation.
@@ -1064,6 +1125,7 @@ table 98 "General Ledger Setup"
         field(175; "Journal Templ. Name Mandatory"; Boolean)
         {
             Caption = 'Journal Templ. Name Mandatory';
+            ToolTip = 'Specifies if a journal template and batch names are required when posting general ledger transactions. If you want to have template name in posted documents and entries, you must set this field as TRUE.';
         }
         /// <summary>
         /// Hides payment method code field in journals and documents when enabled for simplified data entry.
@@ -1071,6 +1133,7 @@ table 98 "General Ledger Setup"
         field(176; "Hide Payment Method Code"; Boolean)
         {
             Caption = 'Hide Payment Method Code';
+            ToolTip = 'Specifies if payment method code is shown in sales and purchase documents.';
         }
         /// <summary>
         /// Enables additional data validation checks during posting to ensure data integrity and compliance.
@@ -1078,6 +1141,7 @@ table 98 "General Ledger Setup"
         field(177; "Enable Data Check"; Boolean)
         {
             Caption = 'Enable Data Check';
+            ToolTip = 'Specifies whether Business Central validates the data you enter in documents and journals while you type. For documents, you can turn on the check and messages will be shown in the Document Check FactBox. For journals, messages are always shown in the Journal Check FactBox.';
         }
         /// <summary>
         /// Default retention period applied to financial documents for automatic cleanup and compliance management.
@@ -1094,6 +1158,7 @@ table 98 "General Ledger Setup"
         field(180; "Apply Jnl. Template Name"; Code[10])
         {
             Caption = 'Apply Jnl. Template Name';
+            ToolTip = 'Specifies the name of the journal template you want to use for applying customer or vendor ledger entries.';
             TableRelation = "Gen. Journal Template";
         }
         /// <summary>
@@ -1102,6 +1167,7 @@ table 98 "General Ledger Setup"
         field(181; "Apply Jnl. Batch Name"; Code[10])
         {
             Caption = 'Apply Jnl. Batch Name';
+            ToolTip = 'Specifies the name of the journal batch you want to use for applying customer or vendor ledger entries.';
             TableRelation = if ("Apply Jnl. Template Name" = filter(<> '')) "Gen. Journal Batch".Name where("Journal Template Name" = field("Apply Jnl. Template Name"));
 
             trigger OnValidate()
@@ -1115,6 +1181,7 @@ table 98 "General Ledger Setup"
         field(182; "Job WIP Jnl. Template Name"; Code[10])
         {
             Caption = 'Project WIP Jnl. Template Name';
+            ToolTip = 'Specifies the name of the journal template you want to use for posting project WIP to G/L.';
             TableRelation = "Gen. Journal Template";
         }
         /// <summary>
@@ -1123,6 +1190,7 @@ table 98 "General Ledger Setup"
         field(183; "Job WIP Jnl. Batch Name"; Code[10])
         {
             Caption = 'Project WIP Jnl. Batch Name';
+            ToolTip = 'Specifies the name of the journal batch you want to use for posting project WIP to G/L.';
             TableRelation = if ("Job WIP Jnl. Template Name" = filter(<> '')) "Gen. Journal Batch".Name where("Journal Template Name" = field("Job WIP Jnl. Template Name"));
 
             trigger OnValidate()
@@ -1136,6 +1204,7 @@ table 98 "General Ledger Setup"
         field(184; "Adjust ARC Jnl. Template Name"; Code[10])
         {
             Caption = 'Adjust Add. Rep. Currency Jnl. Template Name';
+            ToolTip = 'Specifies the name of the journal template you want to use for posting adjustment of additional reporting currency.';
             TableRelation = "Gen. Journal Template";
         }
         /// <summary>
@@ -1144,6 +1213,7 @@ table 98 "General Ledger Setup"
         field(185; "Adjust ARC Jnl. Batch Name"; Code[10])
         {
             Caption = 'Adjust Add. Rep. Currency Jnl. Batch Name';
+            ToolTip = 'Specifies the name of the journal batch you want to use for posting adjustment of additional reporting currency.';
             TableRelation = if ("Adjust ARC Jnl. Template Name" = filter(<> '')) "Gen. Journal Batch".Name where("Journal Template Name" = field("Adjust ARC Jnl. Template Name"));
 
             trigger OnValidate()
@@ -1157,6 +1227,7 @@ table 98 "General Ledger Setup"
         field(186; "Bank Acc. Recon. Template Name"; Code[10])
         {
             Caption = 'Bank Acc. Recon. Template Name';
+            ToolTip = 'Specifies the name of the journal batch you want to use for posting bank account reconciliation.';
             TableRelation = "Gen. Journal Template";
         }
         /// <summary>
@@ -1165,6 +1236,7 @@ table 98 "General Ledger Setup"
         field(187; "Bank Acc. Recon. Batch Name"; Code[10])
         {
             Caption = 'Bank Acc. Recon. Batch Name';
+            ToolTip = 'Specifies the name of the journal batch you want to use for posting bank account reconciliation.';
             TableRelation = if ("Bank Acc. Recon. Template Name" = filter(<> '')) "Gen. Journal Batch".Name where("Journal Template Name" = field("Bank Acc. Recon. Template Name"));
         }
         /// <summary>
@@ -1173,6 +1245,7 @@ table 98 "General Ledger Setup"
         field(188; "Control VAT Period"; Enum "VAT Period Control")
         {
             Caption = 'Control VAT Period';
+            ToolTip = 'Specifies a way of using VAT Date against VAT Return Periods. If you choose â€˜Block posting within closed and warn for released periodâ€™, system will not allow postings in closed VAT Return Period, but if the period is not closed, but VAT returns are released or submitted, user will be warned what try to post an entry with VAT Date in this period. If you choose â€˜Block posting within closed periodâ€™, system will still not allow postings in closed VAT Return Period, but there will be no warnings for release or submitted VAT returns. If you choose â€˜Warn when posting in closed periodâ€™, system will not block posting entry with VAT Date in the closed VAT return period, but it will show warning message before posting. And if you choose â€˜Disabledâ€™ options, system will allow you to post without any control regardless of VAT return or period status.';
 
             trigger OnValidate()
             begin
@@ -1214,6 +1287,7 @@ table 98 "General Ledger Setup"
         field(191; "App. Dimension Posting"; Enum "Exch. Rate Adjmt. Dimensions")
         {
             Caption = 'Dimension Posting';
+            ToolTip = 'Specifies dimension source for Realized Gain/Loss application entries.';
             DataClassification = CustomerContent;
         }
         /// <summary>
@@ -1222,10 +1296,12 @@ table 98 "General Ledger Setup"
         field(192; "Hide Company Bank Account"; Boolean)
         {
             Caption = 'Hide Company Bank Account';
+            ToolTip = 'Specifies whether or not the Company Bank Account can be updated on posted documents.';
         }
         field(193; "Check Source Curr. Consistency"; Boolean)
         {
             Caption = 'Check Source Curr. Consistency';
+            ToolTip = 'Specifies whether Business Central validates the total of general ledger entries source currency amount during posting.';
         }
         field(194; "Acc. Payables Category"; Integer)
         {
@@ -1298,7 +1374,7 @@ table 98 "General Ledger Setup"
         }
         field(205; "Allow Posting From DateFormula"; DateFormula)
         {
-            Caption = 'Allow Posting From DateFormula';
+            Caption = 'Allow Posting From Date Formula';
 
             trigger OnValidate()
             begin
@@ -1312,7 +1388,7 @@ table 98 "General Ledger Setup"
         }
         field(206; "Allow Posting To DateFormula"; DateFormula)
         {
-            Caption = 'Allow Posting To DateFormula';
+            Caption = 'Allow Posting To Date Formula';
 
             trigger OnValidate()
             begin

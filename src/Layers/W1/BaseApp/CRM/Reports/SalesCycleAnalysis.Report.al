@@ -8,11 +8,10 @@ using Microsoft.CRM.Opportunity;
 
 report 5062 "Sales Cycle - Analysis"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/SalesCycleAnalysis.rdlc';
     ApplicationArea = RelationshipMgmt;
     Caption = 'Sales Cycle - Analysis';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -133,6 +132,16 @@ report 5062 "Sales Cycle - Analysis"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/SalesCycleAnalysis.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

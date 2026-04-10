@@ -1045,6 +1045,70 @@ codeunit 144021 "IT - CU 2015 Unit Test"
         WithholdingTaxCard.Close();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure HRecordEntryNumberMatchesDRecordForSameVendorAndReason()
+    var
+        WithholdingTax: Record "Withholding Tax";
+        VendorNo: Code[20];
+        Filename: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 625603] H records have same entry number as corresponding D record when multiple entries exist for same vendor and reason
+        Initialize();
+
+        // [GIVEN] Vendor "V"
+        VendorNo := CreateVendor();
+
+        // [GIVEN] Three withholding tax entries for "V" with reason A and different non-taxable income types
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"1");
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"2");
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"5");
+
+        // [WHEN] Export withholding taxes
+        Filename := Export(CreateCompanyOfficial());
+
+        // [THEN] All H records have entry number matching the D record entry number
+        LoadFile(Filename);
+        VerifyDAndHRecordEntryNumbers(3, 1, 3);
+        ValidateFooterOfDAndHRecords(7, 3, 1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure HRecordEntryNumbersCorrectAcrossMultipleGroups()
+    var
+        WithholdingTax: Record "Withholding Tax";
+        VendorNo: Code[20];
+        Filename: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 625603] Entry numbers are sequential per vendor-reason group and consistent between D and H records
+        Initialize();
+
+        // [GIVEN] Vendor "V"
+        VendorNo := CreateVendor();
+
+        // [GIVEN] Two withholding tax entries for "V" with reason A and different non-taxable income types
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"1");
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo, "Withholding Tax Reason"::A, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"2");
+
+        // [GIVEN] Two withholding tax entries for "V" with reason B and different non-taxable income types
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo, "Withholding Tax Reason"::B, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"1");
+        CreateWithholdingTaxWithAU001006AndContributionEntry(VendorNo, "Withholding Tax Reason"::B, 0, WorkDate(), WorkDate(), WithholdingTax."Non-Taxable Income Type"::"2");
+
+        // [WHEN] Export withholding taxes
+        Filename := Export(CreateCompanyOfficial());
+
+        // [THEN] First group (reason A): D and H records have entry number 1
+        LoadFile(Filename);
+        VerifyDAndHRecordEntryNumbers(3, 1, 2);
+
+        // [THEN] Second group (reason B): D and H records have entry number 2
+        VerifyDAndHRecordEntryNumbers(6, 2, 2);
+        ValidateFooterOfDAndHRecords(9, 4, 2);
+    end;
+
     local procedure Initialize()
     var
         WithholdingTax: Record "Withholding Tax";
@@ -1489,6 +1553,18 @@ codeunit 144021 "IT - CU 2015 Unit Test"
         ValidateTextFileValue(LineNo, 34, 9, '00000000' + Format(NumDRecords, 0, 1)); // Number of D-Records
         ValidateTextFileValue(LineNo, 43, 9, '000000000'); // Number of G-Records
         ValidateTextFileValue(LineNo, 52, 9, '00000000' + Format(NumHRecords, 0, 1)); // Number of H-Records
+    end;
+
+    local procedure VerifyDAndHRecordEntryNumbers(DRecordLineNo: Integer; ExpectedEntryNumber: Integer; HRecordCount: Integer)
+    var
+        i: Integer;
+    begin
+        ValidateTextFileValue(DRecordLineNo, 1, 1, 'D');
+        ValidateTextFileValue(DRecordLineNo, 42, 5, FormatToLength(ExpectedEntryNumber, 5));
+        for i := 1 to HRecordCount do begin
+            ValidateTextFileValue(DRecordLineNo + i, 1, 1, 'H');
+            ValidateTextFileValue(DRecordLineNo + i, 18, 8, FormatToLength(ExpectedEntryNumber, 8));
+        end;
     end;
 
     [MessageHandler]

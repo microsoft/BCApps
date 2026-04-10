@@ -13,12 +13,11 @@ using System.Utilities;
 
 report 99000787 "Routing Sheet"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Manufacturing/Reports/RoutingSheet.rdlc';
     AdditionalSearchTerms = 'operations sheet,process structure sheet';
     ApplicationArea = Manufacturing;
     Caption = 'Routing Sheet';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -348,6 +347,16 @@ report 99000787 "Routing Sheet"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Manufacturing/Reports/RoutingSheet.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

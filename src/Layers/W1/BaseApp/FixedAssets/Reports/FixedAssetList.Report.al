@@ -12,11 +12,10 @@ using Microsoft.FixedAssets.Setup;
 
 report 5601 "Fixed Asset - List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Reports/FixedAssetList.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset List';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -281,6 +280,16 @@ report 5601 "Fixed Asset - List"
                 DeprBookCode := FASetup."Default Depr. Book";
             end;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Reports/FixedAssetList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

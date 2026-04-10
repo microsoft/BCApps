@@ -20,22 +20,26 @@ table 3 "Payment Terms"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code to identify this set of payment terms.';
             NotBlank = true;
         }
         field(2; "Due Date Calculation"; DateFormula)
         {
             Caption = 'Due Date Calculation';
+            ToolTip = 'Specifies a formula that determines how to calculate the due date, for example, when you create an invoice.';
             Enabled = false;
         }
         field(3; "Discount Date Calculation"; DateFormula)
         {
             Caption = 'Discount Date Calculation';
+            ToolTip = 'Specifies the date formula if the payment terms include a possible payment discount.';
             Enabled = false;
         }
         field(4; "Discount %"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Discount %';
+            ToolTip = 'Specifies the percentage of the invoice amount (amount including VAT is the default setting) that will constitute a possible payment discount.';
             DecimalPlaces = 0 : 5;
             Enabled = false;
             MaxValue = 100;
@@ -44,10 +48,12 @@ table 3 "Payment Terms"
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies an explanation of the payment terms.';
         }
         field(6; "Calc. Pmt. Disc. on Cr. Memos"; Boolean)
         {
             Caption = 'Calc. Pmt. Disc. on Cr. Memos';
+            ToolTip = 'Specifies that a payment discount, cash discount, cash discount date, and due date are calculated on credit memos with these payment terms.';
         }
         field(8; "Last Modified Date Time"; DateTime)
         {

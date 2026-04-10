@@ -178,6 +178,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetSalesShptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetServiceShptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetZeroClosedBankAccountLedgerEntriesUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetDepreciationBooksGLIntegrationUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerDatabaseUpgradeTags', '', false, false)]
@@ -1264,6 +1265,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetZeroClosedBankAccountLedgerEntriesUpgradeTag(): Code[250]
     begin
         exit('MS-621821-ZeroClosedBankAccountLedgerEntriesUpgradeTag-20260223');
+    end;
+
+    internal procedure GetDepreciationBooksGLIntegrationUpgradeTag(): Code[250]
+    begin
+        exit('MS-626097-DepreciationBooksGLIntegrationUpgradeTag-20260319');
     end;
 
 }

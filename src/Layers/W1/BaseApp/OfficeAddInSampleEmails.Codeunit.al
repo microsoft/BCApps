@@ -550,5 +550,404 @@ codeunit 1655 "Office Add-In Sample Emails"
           '</body>' +
           '</html>'
     end;
-}
 
+    procedure GetHTMLSampleMsgNonEvalCompany() HTMLBody: Text
+    var
+        AddinManifestManagement: Codeunit "Add-in Manifest Management";
+    begin
+        HTMLBody := '<html>' +
+          '<head>' +
+          '<style>' +
+          '<!--' +
+          ' /* Font Definitions */' +
+          ' @font-face' +
+          '{font-family:"Cambria Math";' +
+          'panose-1:2 4 5 3 5 4 6 3 2 4;' +
+          'mso-font-alt:"Calisto MT";' +
+          'mso-font-charset:1;' +
+          'mso-generic-font-family:roman;' +
+          'mso-font-pitch:variable;' +
+          'mso-font-signature:-536870145 1107305727 0 0 415 0;}' +
+          '@font-face' +
+          '{font-family:Calibri;' +
+          'panose-1:2 15 5 2 2 2 4 3 2 4;' +
+          'mso-font-alt:"Arial Rounded MT Bold";' +
+          'mso-font-charset:0;' +
+          'mso-generic-font-family:swiss;' +
+          'mso-font-pitch:variable;' +
+          'mso-font-signature:-536859905 -1073732485 9 0 511 0;}' +
+          '@font-face' +
+          '{font-family:"Segoe UI";' +
+          'panose-1:2 11 5 2 4 2 4 2 2 3;' +
+          'mso-font-alt:"Times New Roman";' +
+          'mso-font-charset:0;' +
+          'mso-generic-font-family:swiss;' +
+          'mso-font-pitch:variable;' +
+          'mso-font-signature:-469750017 -1073683329 9 0 511 0;}' +
+          '@font-face' +
+          '{font-family:"Segoe UI Light";' +
+          'panose-1:2 11 5 2 4 2 4 2 2 3;' +
+          'mso-font-charset:0;' +
+          'mso-generic-font-family:swiss;' +
+          'mso-font-pitch:variable;' +
+          'mso-font-signature:-469750017 -1073683329 9 0 511 0;}' +
+          ' /* Style Definitions */' +
+          ' p.MsoNormal, li.MsoNormal, div.MsoNormal' +
+          '{mso-style-unhide:no;' +
+          'mso-style-qformat:yes;' +
+          'mso-style-parent:"";' +
+          'margin:0in;' +
+          'margin-bottom:.0001pt;' +
+          'mso-pagination:widow-orphan;' +
+          'font-size:11.0pt;' +
+          'font-family:"Calibri",sans-serif;' +
+          'mso-fareast-font-family:Calibri;' +
+          'mso-fareast-theme-font:minor-latin;' +
+          'mso-bidi-font-family:"Times New Roman";}' +
+          'a:link, span.MsoHyperlink' +
+          '{mso-style-noshow:yes;' +
+          'mso-style-priority:99;' +
+          'color:#0563C1;' +
+          'mso-themecolor:hyperlink;' +
+          'text-decoration:underline;' +
+          'text-underline:single;}' +
+          'a:visited, span.MsoHyperlinkFollowed' +
+          '{mso-style-noshow:yes;' +
+          'mso-style-priority:99;' +
+          'color:#954F72;' +
+          'mso-themecolor:followedhyperlink;' +
+          'text-decoration:underline;' +
+          'text-underline:single;}' +
+          'p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph' +
+          '{mso-style-priority:34;' +
+          'mso-style-unhide:no;' +
+          'mso-style-qformat:yes;' +
+          'margin-top:0in;' +
+          'margin-right:0in;' +
+          'margin-bottom:0in;' +
+          'margin-left:.5in;' +
+          'margin-bottom:.0001pt;' +
+          'mso-pagination:widow-orphan;' +
+          'font-size:11.0pt;' +
+          'font-family:"Calibri",sans-serif;' +
+          'mso-fareast-font-family:Calibri;' +
+          'mso-fareast-theme-font:minor-latin;' +
+          'mso-bidi-font-family:"Times New Roman";}' +
+          'span.EmailStyle17' +
+          '{mso-style-type:personal-compose;' +
+          'mso-style-noshow:yes;' +
+          'mso-style-unhide:no;' +
+          'mso-ansi-font-size:11.0pt;' +
+          'mso-bidi-font-size:11.0pt;' +
+          'font-family:"Calibri",sans-serif;' +
+          'mso-ascii-font-family:Calibri;' +
+          'mso-hansi-font-family:Calibri;' +
+          'mso-bidi-font-family:"Times New Roman";' +
+          'mso-bidi-theme-font:minor-bidi;' +
+          'color:windowtext;}' +
+          '.MsoChpDefault' +
+          '{mso-style-type:export-only;' +
+          'mso-default-props:yes;' +
+          'font-family:"Calibri",sans-serif;' +
+          'mso-ascii-font-family:Calibri;' +
+          'mso-ascii-theme-font:minor-latin;' +
+          'mso-fareast-font-family:Calibri;' +
+          'mso-fareast-theme-font:minor-latin;' +
+          'mso-hansi-font-family:Calibri;' +
+          'mso-hansi-theme-font:minor-latin;' +
+          'mso-bidi-font-family:"Times New Roman";' +
+          'mso-bidi-theme-font:minor-bidi;}' +
+          '@page WordSection1' +
+          '{size:8.5in 11.0in;' +
+          'margin:1.0in 1.0in 1.0in 1.0in;' +
+          'mso-header-margin:.5in;' +
+          'mso-footer-margin:.5in;' +
+          'mso-paper-source:0;}' +
+          'div.WordSection1' +
+          '{page:WordSection1;}' +
+          ' /* List Definitions */' +
+          ' @list l0' +
+          '{mso-list-id:1687175560;' +
+          'mso-list-type:hybrid;' +
+          'mso-list-template-ids:512502080 771374942 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}' +
+          '@list l0:level1' +
+          '{mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:.25in;' +
+          'text-indent:-.25in;' +
+          'mso-ansi-font-size:9.0pt;}' +
+          '@list l0:level2' +
+          '{mso-level-number-format:alpha-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:.75in;' +
+          'text-indent:-.25in;}' +
+          '@list l0:level3' +
+          '{mso-level-number-format:roman-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:right;' +
+          'margin-left:1.25in;' +
+          'text-indent:-9.0pt;}' +
+          '@list l0:level4' +
+          '{mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:1.75in;' +
+          'text-indent:-.25in;}' +
+          '@list l0:level5' +
+          '{mso-level-number-format:alpha-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:2.25in;' +
+          'text-indent:-.25in;}' +
+          '@list l0:level6' +
+          '{mso-level-number-format:roman-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:right;' +
+          'margin-left:2.75in;' +
+          'text-indent:-9.0pt;}' +
+          '@list l0:level7' +
+          '{mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:3.25in;' +
+          'text-indent:-.25in;}' +
+          '@list l0:level8' +
+          '{mso-level-number-format:alpha-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:3.75in;' +
+          'text-indent:-.25in;}' +
+          '@list l0:level9' +
+          '{mso-level-number-format:roman-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:right;' +
+          'margin-left:4.25in;' +
+          'text-indent:-9.0pt;}' +
+          '@list l1' +
+          '{mso-list-id:1846242723;' +
+          'mso-list-type:hybrid;' +
+          'mso-list-template-ids:512502080 771374942 67698713 67698715 67698703 67698713 67698715 67698703 67698713 67698715;}' +
+          '@list l1:level1' +
+          '{mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:.25in;' +
+          'text-indent:-.25in;' +
+          'mso-ansi-font-size:9.0pt;}' +
+          '@list l1:level2' +
+          '{mso-level-number-format:alpha-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:.75in;' +
+          'text-indent:-.25in;}' +
+          '@list l1:level3' +
+          '{mso-level-number-format:roman-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:right;' +
+          'margin-left:1.25in;' +
+          'text-indent:-9.0pt;}' +
+          '@list l1:level4' +
+          '{mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:1.75in;' +
+          'text-indent:-.25in;}' +
+          '@list l1:level5' +
+          '{mso-level-number-format:alpha-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:2.25in;' +
+          'text-indent:-.25in;}' +
+          '@list l1:level6' +
+          '{mso-level-number-format:roman-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:right;' +
+          'margin-left:2.75in;' +
+          'text-indent:-9.0pt;}' +
+          '@list l1:level7' +
+          '{mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:3.25in;' +
+          'text-indent:-.25in;}' +
+          '@list l1:level8' +
+          '{mso-level-number-format:alpha-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:left;' +
+          'margin-left:3.75in;' +
+          'text-indent:-.25in;}' +
+          '@list l1:level9' +
+          '{mso-level-number-format:roman-lower;' +
+          'mso-level-tab-stop:none;' +
+          'mso-level-number-position:right;' +
+          'margin-left:4.25in;' +
+          'text-indent:-9.0pt;}' +
+          'ol' +
+          '{margin-bottom:0in;}' +
+          'ul' +
+          '{margin-bottom:0in;}' +
+          '-->' +
+          '</style>' +
+          '<!--[if gte mso 10]>' +
+          '<style>' +
+          ' /* Style Definitions */' +
+          ' table.MsoNormalTable' +
+          '{mso-style-name:"Table Normal";' +
+          'mso-tstyle-rowband-size:0;' +
+          'mso-tstyle-colband-size:0;' +
+          'mso-style-noshow:yes;' +
+          'mso-style-priority:99;' +
+          'mso-style-parent:"";' +
+          'mso-padding-alt:0in 5.4pt 0in 5.4pt;' +
+          'mso-para-margin:0in;' +
+          'mso-para-margin-bottom:.0001pt;' +
+          'mso-pagination:widow-orphan;' +
+          'font-size:11.0pt;' +
+          'font-family:"Calibri",sans-serif;' +
+          'mso-ascii-font-family:Calibri;' +
+          'mso-ascii-theme-font:minor-latin;' +
+          'mso-hansi-font-family:Calibri;' +
+          'mso-hansi-theme-font:minor-latin;' +
+          'mso-bidi-font-family:"Times New Roman";' +
+          'mso-bidi-theme-font:minor-bidi;}' +
+          'table.MsoTableGrid' +
+          '{mso-style-name:"Table Grid";' +
+          'mso-tstyle-rowband-size:0;' +
+          'mso-tstyle-colband-size:0;' +
+          'mso-style-priority:39;' +
+          'mso-style-unhide:no;' +
+          'border:solid windowtext 1.0pt;' +
+          'mso-border-alt:solid windowtext .5pt;' +
+          'mso-padding-alt:0in 5.4pt 0in 5.4pt;' +
+          'mso-border-insideh:.5pt solid windowtext;' +
+          'mso-border-insidev:.5pt solid windowtext;' +
+          'mso-para-margin:0in;' +
+          'mso-para-margin-bottom:.0001pt;' +
+          'mso-pagination:widow-orphan;' +
+          'font-size:10.0pt;' +
+          'font-family:"Calibri",sans-serif;' +
+          'mso-ascii-font-family:Calibri;' +
+          'mso-ascii-theme-font:minor-latin;' +
+          'mso-hansi-font-family:Calibri;' +
+          'mso-hansi-theme-font:minor-latin;}' +
+          '</style>' +
+          '<![endif]--><!--[if gte mso 9]><xml>' +
+          ' <o:shapedefaults v:ext="edit" spidmax="1026"/>' +
+          '</xml><![endif]--><!--[if gte mso 9]><xml>' +
+          ' <o:shapelayout v:ext="edit">' +
+          '  <o:idmap v:ext="edit" data="1"/>' +
+          ' </o:shapelayout></xml><![endif]-->' +
+          '</head>' +
+          '<body link="#0563C1" vlink="#954F72" style=''tab-interval:.5in''>' +
+          '<div class=WordSection1>' +
+          '<p class=MsoNormal style=''mso-layout-grid-align:none;text-autospace:none''><span' +
+          'style=''mso-bidi-font-family:Calibri;color:black''><o:p>&nbsp;</o:p></span></p>' +
+          '<p class=MsoNormal><o:p>&nbsp;</o:p></p>' +
+          '<div align=center>' +
+          '<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=625' +
+          ' style=''width:468.5pt;border-collapse:collapse;mso-yfti-tbllook:1184;' +
+          ' mso-padding-alt:0in 0in 0in 0in''>' +
+          ' <tr style=''mso-yfti-irow:0;mso-yfti-firstrow:yes;height:64.75pt''>' +
+          '  <td width=425 colspan=2 style=''width:319.1pt;background:#D9F0F2;padding:0in 0in 0in .15in;' +
+          '  height:64.75pt''>' +
+          '  <p class=MsoNormal><span style=''font-size:22.0pt;mso-bidi-font-size:11.0pt;' +
+          '  font-family:"Segoe UI Light",sans-serif;color:#212121;mso-themecolor:text1;' +
+          '  mso-themetint:217;mso-style-textfill-fill-color:#212121;mso-style-textfill-fill-themecolor:' +
+          '  text1;mso-style-textfill-fill-alpha:100.0%;mso-style-textfill-fill-colortransforms:' +
+          '  "lumm=85000 lumo=15000"''>' + WelcomeTxt + '</span><span style=''font-family:"Segoe UI Light",sans-serif;' +
+          '  color:#212121;mso-themecolor:text1;mso-themetint:217;mso-style-textfill-fill-color:' +
+          '  #212121;mso-style-textfill-fill-themecolor:text1;mso-style-textfill-fill-alpha:' +
+          '  100.0%;mso-style-textfill-fill-colortransforms:"lumm=85000 lumo=15000"''><o:p></o:p></span></p>' +
+          '  </td>' +
+          '  <td width=199 style=''width:149.4pt;background:#D9F0F2;padding:0in 0in 0in 0in;' +
+          '  height:64.75pt''>' +
+          '  <p class=MsoNormal align=right style=''text-align:right''><span' +
+          '  style=''color:#7F7F7F;mso-no-proof:yes''>' +
+          '  </v:shape><![endif]--><![if !vml]><img width=171 height=106' +
+          '  src="' + AddinManifestManagement.GetImageUrl(BrandingFolderTxt + 'OutlookWelcomeBanner.png') + '"' +
+          '  alt="WelcomeBanner" v:shapes="Picture_x0020_392"><![endif]></span><span' +
+          '  style=''color:#7F7F7F''><o:p></o:p></span></p>' +
+          '  </td>' +
+          ' </tr>' +
+          ' <tr style=''mso-yfti-irow:1;height:57.0pt''>' +
+          '  <td width=625 colspan=3 valign=top style=''width:468.5pt;padding:8.65pt .15in 8.65pt .15in;' +
+          '  height:57.0pt''>' +
+          '  <p class=MsoNormal><span style=''font-family:"Segoe UI",sans-serif;color:#008489''>' +
+             FirstHeaderTxt + '</span><span style=''font-size:9.0pt;' +
+          '  font-family:"Segoe UI",sans-serif;color:#00B0F0''><o:p></o:p></span></p>' +
+          '  <p class=MsoNormal><span style=''font-size:10.0pt;font-family:"Segoe UI",sans-serif;' +
+          '  color:#595959''>' + StrSubstNo(FirstParagraph_Part1Txt, PRODUCTNAME.Short()) + '<o:p></o:p></span></p>' +
+          '  <p class=MsoNormal><span style=''font-size:10.0pt;font-family:"Segoe UI",sans-serif;' +
+          '  color:#595959''><o:p>&nbsp;</o:p></span></p>' +
+          '  </td>' +
+          ' </tr>' +
+          ' <tr style=''mso-yfti-irow:2;height:13.0pt''>' +
+          '  <td width=625 colspan=3 valign=top style=''width:468.5pt;padding:.05in .15in .05in .15in;' +
+          '  height:13.0pt''>' +
+          '  <p class=MsoNormal><span style=''font-family:"Segoe UI",sans-serif;color:#008489''>' + GetStartedTxt + '<o:p></o:p></span></p>' +
+          '  </td>' +
+          ' </tr>' +
+          ' <tr style=''mso-yfti-irow:3;height:84.0pt''>' +
+          '  <td width=311 valign=top style=''width:233.6pt;padding:0in .2in 8.65pt .15in;' +
+          '  height:84.0pt''>' +
+          '  <p class=MsoNormal><span style=''font-size:10.0pt;font-family:"Segoe UI",sans-serif;' +
+          '  color:#008489''>' + OutlookHeaderTxt + '</span></p>' +
+          '  <p class=MsoNormal><span style=''font-size:10.0pt;font-family:"Segoe UI",sans-serif;' +
+          '  color:#595959''>' + StrSubstNo(OutlookParagraphTxt, PRODUCTNAME.Short()) + '<o:p></o:p></span></p>' +
+          '  <p class=MsoListParagraph style=''margin-left:.25in''><span style=''font-size:' +
+          '  10.0pt;font-family:"Segoe UI",sans-serif;color:#595959''><o:p>&nbsp;</o:p></span></p>' +
+          '  <p class=MsoNormal align=left style=''text-align:left''><span' +
+          '  style=''font-size:10.0pt;font-family:"Segoe UI",sans-serif;color:#595959;' +
+          '  mso-no-proof:yes''>' +
+          '  </v:shape><![endif]--><![if !vml]><img width=253 height=194' +
+          '  src="' + AddinManifestManagement.GetImageUrl(BrandingFolderTxt + 'OutlookDesktopIconDiscovery.png') + '"' +
+          '  alt="Outlook Desktop Icon Discovery" v:shapes="Picture_x0020_5"><![endif]></span><span' +
+          '  style=''font-size:10.0pt;font-family:"Segoe UI",sans-serif;color:#595959''><o:p></o:p></span></p>' +
+          '  </td>' +
+          '  <td width=313 colspan=2 valign=top style=''width:234.9pt;padding:0in .2in 0in 5.75pt;' +
+          '  height:84.0pt''>' +
+          '  <p class=MsoListParagraph style=''margin-left:.25in''><span style=''font-size:' +
+          '  10.0pt;font-family:"Segoe UI",sans-serif;color:#008489''>' + OWAHeaderTxt + '</span></p>' +
+          '  <p class=MsoListParagraph style=''margin-left:.25in''><span style=''font-size:' +
+          '  10.0pt;font-family:"Segoe UI",sans-serif;color:#595959''>' + OWAParagraph1Txt + OpenParenTxt +
+          '  <span style=''mso-no-proof:yes''></v:shape><![endif]--><![if !vml]><img width=21 height=14' +
+          '  src="' + AddinManifestManagement.GetImageUrl(BrandingFolderTxt + 'OutlookEllipse.png') + '"' +
+          '  alt="Outlook Ellipse" v:shapes="Picture_x0020_1058"><![endif]></span><span' +
+          '  style=''mso-spacerun:yes''> </span>' + CloseParenTxt + StrSubstNo(OWAParagraph2Txt, PRODUCTNAME.Short()) + '</span><span' +
+          '  style=''font-size:10.0pt;font-family:"Segoe UI",sans-serif''> <o:p></o:p></span></p>' +
+          '  <p class=MsoListParagraph style=''margin-left:.25in''><span style=''font-size:' +
+          '  10.0pt;font-family:"Segoe UI",sans-serif''><o:p>&nbsp;</o:p></span></p>' +
+          '  <p class=MsoNormal align=right style=''text-align:right;margin-top:6px''><span' +
+          '  style=''font-size:10.0pt;font-family:"Segoe UI",sans-serif;mso-no-proof:yes''>' +
+          '  </v:shape><![endif]--><![if !vml]><img width=290 height=169' +
+          '  src="' + AddinManifestManagement.GetImageUrl(BrandingFolderTxt + 'OutlookWebIconDiscovery.png') + '"' +
+          '  alt="Outlook Web Icon Discovery" v:shapes="Picture_x0020_20"><![endif]></span><span' +
+          '  style=''font-size:10.0pt;font-family:"Segoe UI",sans-serif;color:#595959''><o:p></o:p></span></p>' +
+          '  </td>' +
+          ' </tr>' +
+          ' <tr style=''mso-yfti-irow:5;height:.2in''>' +
+          '  <td width=625 colspan=3 valign=top style=''width:468.5pt;background:#00B7C3;' +
+          '  padding:0in 5.4pt 0in 5.4pt;height:.2in''>' +
+          '  <p class=MsoNormal><o:p>&nbsp;</o:p></p>' +
+          '  </td>' +
+          ' </tr>' +
+          ' <tr style=''mso-yfti-irow:6;mso-yfti-lastrow:yes;height:.2in''>' +
+          '  <td width=625 colspan=3 valign=top style=''width:468.5pt;padding:0in 5.4pt 0in 5.4pt;' +
+          '  height:.2in''>' +
+          '  <p class=MsoNormal><span style=''mso-no-proof:yes''><![if !vml]><img width=150 height=55' +
+          '  src="' + AddinManifestManagement.GetImageUrl(BrandingFolderTxt + 'MS_Logo.png') + '"' +
+          '  v:shapes="Picture_x0020_8"><![endif]></span><o:p></o:p></p>' +
+          '  </td>' +
+          ' </tr>' +
+          ' <![if !supportMisalignedColumns]>' +
+          ' <tr height=0>' +
+          '  <td width=311 style=''border:none''></td>' +
+          '  <td width=114 style=''border:none''></td>' +
+          '  <td width=199 style=''border:none''></td>' +
+          ' </tr>' +
+          ' <![endif]>' +
+          '</table>' +
+          '</div>' +
+          '<p class=MsoNormal><span style=''mso-bidi-font-family:"Times New Roman";' +
+          'mso-bidi-theme-font:minor-bidi''><o:p>&nbsp;</o:p></span></p>' +
+          '</div>' +
+          '</body>' +
+          '</html>'
+    end;
+}

@@ -1166,6 +1166,7 @@ codeunit 136121 "Service Reservation"
         ServiceLineQuantity: Decimal;
         InvoiceNo: Code[20];
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 622249] Available Quantity is wrong in the item tracking information when creating a Service invoice with get shipment lines
 
         // [GIVEN] Create Item with Lot No, Create and post Item Journal Line, Create and Ship Service Order with Item Tracking.

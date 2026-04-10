@@ -11,12 +11,11 @@ using Microsoft.Foundation.Address;
 
 report 5051 "Contact - Company Summary"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/ContactCompanySummary.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Contact - Company Summary';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = Contact;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -267,6 +266,16 @@ report 5051 "Contact - Company Summary"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/ContactCompanySummary.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

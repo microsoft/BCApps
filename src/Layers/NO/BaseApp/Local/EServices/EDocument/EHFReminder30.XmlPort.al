@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN29
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,6 +18,9 @@ xmlport 10601 "EHF Reminder 3.0"
     Direction = Export;
     Encoding = UTF8;
     Namespaces = "" = 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', cac = 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', cbc = 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', ccts = 'urn:un:unece:uncefact:documentation:2', qdt = 'urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2', udt = 'urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2';
+    ObsoleteReason = 'This xmlport is deprecated and will be removed in a future release.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     schema
     {
@@ -1735,4 +1739,4 @@ xmlport 10601 "EHF Reminder 3.0"
         end;
     end;
 }
-
+#endif

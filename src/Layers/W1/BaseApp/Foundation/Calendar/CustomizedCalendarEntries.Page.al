@@ -23,14 +23,12 @@ page 7606 "Customized Calendar Entries"
                     ApplicationArea = Suite;
                     Caption = 'Source Type';
                     DrillDown = false;
-                    ToolTip = 'Specifies whether this customized calendar entry was set up for your company, a customer, vendor, location, shipping agent, or a service.';
                 }
                 field("Base Calendar Code"; Rec."Base Calendar Code")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Base Calendar Code';
                     Lookup = true;
-                    ToolTip = 'Specifies which base calendar was used as the basis for this customized calendar.';
                 }
             }
             part(CustomizedCalendarEntries; "Customized Cal. Entries Subfm")

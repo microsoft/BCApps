@@ -271,9 +271,6 @@ codeunit 5997 "Assembly Warehouse Mgt."
     begin
         IsHandled := false;
         OnBeforeCheckQtyRemainingToBePickedForAssemblyConsumption(NewItemJnlLine, OldItemJnlLine, IsHandled, QtyRemainingToBePicked);
-#if not CLEAN26
-        WhseValidateSourceLine.RunOnBeforeCheckQtyRemainingToBePickedForAssemblyConsumption(NewItemJnlLine, OldItemJnlLine, IsHandled, QtyRemainingToBePicked);
-#endif
         if IsHandled then
             exit;
 

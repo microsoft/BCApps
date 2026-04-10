@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ table 326 "Tax Setup"
         field(2; "Auto. Create Tax Details"; Boolean)
         {
             Caption = 'Auto. Create Tax Details';
+            ToolTip = 'Specifies that the required tax information is created automatically.';
         }
         /// <summary>
         /// Default tax group code for non-taxable items and transactions.
@@ -40,6 +41,7 @@ table 326 "Tax Setup"
         field(3; "Non-Taxable Tax Group Code"; Code[20])
         {
             Caption = 'Non-Taxable Tax Group Code';
+            ToolTip = 'Specifies the group code for non-taxable sales.';
             TableRelation = "Tax Group";
         }
         /// <summary>

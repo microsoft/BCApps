@@ -23,23 +23,19 @@ page 5790 "Shipping Agent Services"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the shipping agent.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the shipping agent.';
                 }
                 field("Shipping Time"; Rec."Shipping Time")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
                 }
                 field("Base Calendar Code"; Rec."Base Calendar Code")
                 {
                     ApplicationArea = Warehouse;
                     DrillDown = false;
-                    ToolTip = 'Specifies a customizable calendar for shipment planning that holds the shipping agent''s working days and holidays.';
                 }
                 field(CustomizedCalendar; format(CalendarMgmt.CustomizedChangesExist(Rec)))
                 {

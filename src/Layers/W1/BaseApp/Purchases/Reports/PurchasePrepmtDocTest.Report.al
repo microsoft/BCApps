@@ -25,9 +25,8 @@ using System.Utilities;
 
 report 412 "Purchase Prepmt. Doc. - Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/PurchasePrepmtDocTest.rdlc';
     Caption = 'Purchase Prepmt. Doc. - Test';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -940,6 +939,16 @@ report 412 "Purchase Prepmt. Doc. - Test"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/PurchasePrepmtDocTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

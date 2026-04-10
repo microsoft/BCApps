@@ -5120,6 +5120,7 @@ codeunit 137020 "SCM Planning"
         ShipmentDate1: Date;
         ShipmentDate2: Date;
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 611978] Regenerative plan should not create new lines after carry out action message for multi-level BOM with Order reordering policy
         Initialize();
 

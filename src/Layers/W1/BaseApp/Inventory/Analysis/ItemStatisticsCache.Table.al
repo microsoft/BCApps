@@ -15,9 +15,14 @@ table 5310 "Item Statistics Cache"
     InherentEntitlements = RIMD;
     InherentPermissions = RIMD;
 
+    DataCaptionFields = "Item No.", Description;
+
     fields
     {
         field(1; "Item No."; Code[20])
+        {
+        }
+        field(22; Description; Text[100])
         {
         }
         field(2; ItemLedgerEntryNoLatest; Integer)
@@ -43,7 +48,7 @@ table 5310 "Item Statistics Cache"
         field(7; "SalesGrowthRateThisPeriod"; Decimal)
         {
             AutoFormatType = 0;
-            ToolTip = 'Specifies the percentage change in sales compared to the previous period in the fiscal year, calculated as ((Sales in the current period in the fiscal year - Sales in the prior period in the fiscal year) Ã· Sales in the prior period in the fiscal year) x 100%. A positive value indicates growth, while a negative value indicates a decline in sales.';
+            ToolTip = 'Specifies the percentage change in sales compared to the previous period in the fiscal year, calculated as ((Sales in the current period in the fiscal year - Sales in the prior period in the fiscal year) ÷ Sales in the prior period in the fiscal year) x 100%. A positive value indicates growth, while a negative value indicates a decline in sales.';
         }
         field(8; "NetSalesLCYThisPeriod"; Decimal)
         {
@@ -53,19 +58,19 @@ table 5310 "Item Statistics Cache"
         field(9; "GrossMarginThisPeriod"; Decimal)
         {
             AutoFormatType = 0;
-            ToolTip = 'Specifies the percentage of revenue remaining after deducting the cost of goods sold (COGS) for the current period in the fiscal year. This metric indicates how efficiently the company produces and sells its products. Calculated as: Gross Margin (%) = ((Net Sales - COGS) Ã· Net Sales) x 100%. A higher percentage reflects better profitability.';
+            ToolTip = 'Specifies the percentage of revenue remaining after deducting the cost of goods sold (COGS) for the current period in the fiscal year. This metric indicates how efficiently the company produces and sells its products. Calculated as: Gross Margin (%) = ((Net Sales - COGS) ÷ Net Sales) x 100%. A higher percentage reflects better profitability.';
         }
         field(10; "ReturnRateThisPeriod"; Decimal)
         {
             AutoFormatType = 0;
-            ToolTip = 'Specifies the percentage of sold quantity that were returned during the current period in the fiscal year. This metric helps measure product quality and customer satisfaction. Calculated as: Return Rate (%) = (Returned Quantity Ã· Total Sold Quantity) x 100%. A lower percentage indicates fewer returns and higher product acceptance.';
+            ToolTip = 'Specifies the percentage of sold quantity that were returned during the current period in the fiscal year. This metric helps measure product quality and customer satisfaction. Calculated as: Return Rate (%) = (Returned Quantity ÷ Total Sold Quantity) x 100%. A lower percentage indicates fewer returns and higher product acceptance.';
         }
         #endregion
         #region This fiscal year
         field(11; "SalesGrowthRateThisFY"; Decimal)
         {
             AutoFormatType = 0;
-            ToolTip = 'Specifies the percentage change in sales compared to the previous fiscal year, calculated as ((Sales in current fiscal year - Sales in the last fiscal year) Ã· Sales in the last fiscal year) x 100%. A positive value indicates growth, while a negative value indicates a decline in sales.';
+            ToolTip = 'Specifies the percentage change in sales compared to the previous fiscal year, calculated as ((Sales in current fiscal year - Sales in the last fiscal year) ÷ Sales in the last fiscal year) x 100%. A positive value indicates growth, while a negative value indicates a decline in sales.';
         }
         field(12; "NetSalesLCYThisFY"; Decimal)
         {
@@ -75,19 +80,19 @@ table 5310 "Item Statistics Cache"
         field(13; "GrossMarginThisFY"; Decimal)
         {
             AutoFormatType = 0;
-            ToolTip = 'Specifies the percentage of revenue remaining after deducting the cost of goods sold (COGS) for the current fiscal year. This metric indicates how efficiently the company produces and sells its products. Calculated as: Gross Margin (%) = ((Net Sales - COGS) Ã· Net Sales) x 100%. A higher percentage reflects better profitability.';
+            ToolTip = 'Specifies the percentage of revenue remaining after deducting the cost of goods sold (COGS) for the current fiscal year. This metric indicates how efficiently the company produces and sells its products. Calculated as: Gross Margin (%) = ((Net Sales - COGS) ÷ Net Sales) x 100%. A higher percentage reflects better profitability.';
         }
         field(14; "ReturnRateThisFY"; Decimal)
         {
             AutoFormatType = 0;
-            ToolTip = 'Specifies the percentage of sold quantity that were returned during the current fiscal year. This metric helps measure product quality and customer satisfaction. Calculated as: Return Rate (%) = (Returned Quantity Ã· Total Sold Quantity) x 100%. A lower percentage indicates fewer returns and higher product acceptance.';
+            ToolTip = 'Specifies the percentage of sold quantity that were returned during the current fiscal year. This metric helps measure product quality and customer satisfaction. Calculated as: Return Rate (%) = (Returned Quantity ÷ Total Sold Quantity) x 100%. A lower percentage indicates fewer returns and higher product acceptance.';
         }
         #endregion
         #region Last fiscal year
         field(15; "SalesGrowthRateLastFY"; Decimal)
         {
             AutoFormatType = 0;
-            ToolTip = 'Specifies the percentage change in sales compared to the previous fiscal year, calculated as ((Sales in the last fiscal year - Sales in the prior fiscal year) Ã· Sales in the prior fiscal year) x 100%. A positive value indicates growth, while a negative value indicates a decline in sales.';
+            ToolTip = 'Specifies the percentage change in sales compared to the previous fiscal year, calculated as ((Sales in the last fiscal year - Sales in the prior fiscal year) ÷ Sales in the prior fiscal year) x 100%. A positive value indicates growth, while a negative value indicates a decline in sales.';
         }
         field(16; "NetSalesLCYLastFY"; Decimal)
         {
@@ -97,12 +102,12 @@ table 5310 "Item Statistics Cache"
         field(17; "GrossMarginLastFY"; Decimal)
         {
             AutoFormatType = 0;
-            ToolTip = 'Specifies the percentage of revenue remaining after deducting the cost of goods sold (COGS) for the last fiscal year. This metric indicates how efficiently the company produces and sells its products. Calculated as: Gross Margin (%) = ((Net Sales - COGS) Ã· Net Sales) x 100%. A higher percentage reflects better profitability.';
+            ToolTip = 'Specifies the percentage of revenue remaining after deducting the cost of goods sold (COGS) for the last fiscal year. This metric indicates how efficiently the company produces and sells its products. Calculated as: Gross Margin (%) = ((Net Sales - COGS) ÷ Net Sales) x 100%. A higher percentage reflects better profitability.';
         }
         field(18; "ReturnRateLastFY"; Decimal)
         {
             AutoFormatType = 0;
-            ToolTip = 'Specifies the percentage of sold quantity that were returned during the last fiscal year. This metric helps measure product quality and customer satisfaction. Calculated as: Return Rate (%) = (Returned Quantity Ã· Total Sold Quantity) x 100%. A lower percentage indicates fewer returns and higher product acceptance.';
+            ToolTip = 'Specifies the percentage of sold quantity that were returned during the last fiscal year. This metric helps measure product quality and customer satisfaction. Calculated as: Return Rate (%) = (Returned Quantity ÷ Total Sold Quantity) x 100%. A lower percentage indicates fewer returns and higher product acceptance.';
         }
         #endregion
         #region Lifetime
@@ -114,12 +119,12 @@ table 5310 "Item Statistics Cache"
         field(20; "GrossMarginLifetime"; Decimal)
         {
             AutoFormatType = 0;
-            ToolTip = 'Specifies the percentage of revenue remaining after deducting the cost of goods sold (COGS) for the lifetime. This metric indicates how efficiently the company produces and sells its products. Calculated as: Gross Margin (%) = ((Net Sales - COGS) Ã· Net Sales) x 100%. A higher percentage reflects better profitability.';
+            ToolTip = 'Specifies the percentage of revenue remaining after deducting the cost of goods sold (COGS) for the lifetime. This metric indicates how efficiently the company produces and sells its products. Calculated as: Gross Margin (%) = ((Net Sales - COGS) ÷ Net Sales) x 100%. A higher percentage reflects better profitability.';
         }
         field(21; "ReturnRateLifetime"; Decimal)
         {
             AutoFormatType = 0;
-            ToolTip = 'Specifies the percentage of sold quantity that were returned during the lifetime. This metric helps measure product quality and customer satisfaction. Calculated as: Return Rate (%) = (Returned Quantity Ã· Total Sold Quantity) x 100%. A lower percentage indicates fewer returns and higher product acceptance.';
+            ToolTip = 'Specifies the percentage of sold quantity that were returned during the lifetime. This metric helps measure product quality and customer satisfaction. Calculated as: Return Rate (%) = (Returned Quantity ÷ Total Sold Quantity) x 100%. A lower percentage indicates fewer returns and higher product acceptance.';
         }
         #endregion
     }
@@ -132,10 +137,24 @@ table 5310 "Item Statistics Cache"
         }
     }
 
+#if not CLEAN29
+    [Obsolete('Use InitAndInsert with ItemNo and ItemDescription parameters instead.', '29.0')]
     procedure InitAndInsert(ItemNo: Code[20])
+    var
+        Item: Record Item;
+    begin
+        if Item.Get(ItemNo) then
+            InitAndInsert(ItemNo, Item.Description)
+        else
+            InitAndInsert(ItemNo, '');
+    end;
+#endif
+
+    procedure InitAndInsert(ItemNo: Code[20]; ItemDescription: Text[100])
     begin
         Rec.Init();
         Rec."Item No." := ItemNo;
+        Rec.Description := ItemDescription;
         Rec.Insert();
     end;
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -49,6 +49,7 @@ table 2672 "Allocation Line"
         {
             DataClassification = SystemMetadata;
             Caption = 'Destination Account Type';
+            ToolTip = 'Specifies the type of the Destination Account.';
         }
         /// <summary>
         /// Account number for the allocation destination based on the destination account type.
@@ -57,6 +58,7 @@ table 2672 "Allocation Line"
         {
             DataClassification = SystemMetadata;
             Caption = 'Destination Account Number';
+            ToolTip = 'Specifies the number of the Destination Account.';
             TableRelation = if ("Destination Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting), "Direct Posting" = const(true))
             else
             if ("Destination Account Type" = const("Bank Account")) "Bank Account";
@@ -68,6 +70,7 @@ table 2672 "Allocation Line"
         {
             DataClassification = SystemMetadata;
             Caption = 'Destination Account Name';
+            ToolTip = 'Specifies the name of the Destination Account.';
         }
         /// <summary>
         /// Allocated amount for this destination account.
@@ -78,6 +81,7 @@ table 2672 "Allocation Line"
             AutoFormatType = 1;
             DataClassification = SystemMetadata;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount to be allocated to the Destination Account.';
         }
         /// <summary>
         /// Account number used for breakdown calculations in variable allocation methods.
@@ -86,6 +90,7 @@ table 2672 "Allocation Line"
         {
             DataClassification = SystemMetadata;
             Caption = 'Breakdown Account Number';
+            ToolTip = 'Specifies the number of the Breakdown Account that is used to calculate the amount to be distributed to the destination account.';
         }
         /// <summary>
         /// Balance of the breakdown account used for calculation purposes.
@@ -96,6 +101,7 @@ table 2672 "Allocation Line"
             AutoFormatType = 1;
             DataClassification = SystemMetadata;
             Caption = 'Breakdown Account Balance';
+            ToolTip = 'Specifies the balance of the Breakdown Account that is used to calculate the amount to be distributed to the destination account.';
         }
         /// <summary>
         /// Name of the breakdown account for display purposes.
@@ -104,6 +110,7 @@ table 2672 "Allocation Line"
         {
             DataClassification = SystemMetadata;
             Caption = 'Breakdown Account Name';
+            ToolTip = 'Specifies the name of the Breakdown Account that is used to calculate the amount to be distributed to the destination account.';
         }
         /// <summary>
         /// Percentage of the total allocation assigned to this destination account.
@@ -113,6 +120,7 @@ table 2672 "Allocation Line"
             AutoFormatType = 0;
             DataClassification = SystemMetadata;
             Caption = 'Percentage';
+            ToolTip = 'Specifies the percentage that is used to calculate the amount to be assinged to the destination account.';
         }
         /// <summary>
         /// Quantity allocated to this destination account for quantity-based allocations.
@@ -122,6 +130,7 @@ table 2672 "Allocation Line"
             AutoFormatType = 0;
             DataClassification = SystemMetadata;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity to be allocated to the Destination Account.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>

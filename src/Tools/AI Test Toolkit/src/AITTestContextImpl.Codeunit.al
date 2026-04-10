@@ -106,6 +106,7 @@ codeunit 149043 "AIT Test Context Impl."
     var
         CurrentTestOutputJson: Codeunit "Test Output Json";
     begin
+        CurrentTestOutputJson.Initialize();
         CurrentTestOutputJson.Add(AnswerTok, Answer);
         CopyElementToOutput(ContextTok, CurrentTestOutputJson);
         CopyElementToOutput(QuestionTok, CurrentTestOutputJson);

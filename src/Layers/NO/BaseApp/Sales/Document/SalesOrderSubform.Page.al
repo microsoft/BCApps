@@ -250,13 +250,14 @@ page 46 "Sales Order Subform"
 
                         Rec.RestoreLookupSelection();
                         NoOnAfterValidate();
-
+                        ResetxRecAmountValues();
+                        CalculateTotals();
+                        DeltaUpdateTotals();
                         if Rec."No." = xRec."No." then
                             exit;
 
                         Rec.ShowShortcutDimCode(ShortcutDimCode);
                         UpdateTypeText();
-                        DeltaUpdateTotals();
                         OnAfterValidateDescription(Rec, xRec);
                     end;
 
@@ -931,12 +932,17 @@ page 46 "Sales Order Subform"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+#if not CLEAN29
                 field("Account Code"; Rec."Account Code")
                 {
                     ApplicationArea = Advanced;
                     ToolTip = 'Specifies the account code of the customer.';
                     Visible = false;
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field("Attached to Line No."; Rec."Attached to Line No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -2363,6 +2369,16 @@ page 46 "Sales Order Subform"
         AssembleToOrderLink.UpdateAsmDimFromSalesLine(Rec);
 
         OnAfterValidateShortcutDimCode(Rec, ShortcutDimCode, DimIndex);
+    end;
+
+    local procedure ResetxRecAmountValues()
+    begin
+        xRec."Line Amount" := 0;
+        xRec."Amount Including VAT" := 0;
+        xRec.Amount := 0;
+        xRec."Inv. Discount Amount" := 0;
+        xRec."VAT Base Amount" := 0;
+        xRec."VAT Difference" := 0;
     end;
 
     [IntegrationEvent(true, false)]

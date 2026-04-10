@@ -215,31 +215,6 @@ codeunit 134325 "ERM Purchase Quote"
           InvDiscountAmount, PurchaseLine."Inv. Discount Amount", GeneralLedgerSetup."Amount Rounding Precision",
           StrSubstNo(AmountErrorMessage, PurchaseLine.FieldCaption("Inv. Discount Amount"), InvDiscountAmount, PurchaseLine.TableCaption()));
     end;
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseQuoteStatisticsHandler')]
-    [Scope('OnPrem')]
-    procedure VATAmountNonEditableOnStatistics()
-    var
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        PurchaseQuote: TestPage "Purchase Quote";
-    begin
-        // Check that field 'VAT Amount' is not editable on Purchase Quote Statistics page.
-
-        // Setup: Create Purchase Quote.
-        Initialize();
-        CreatePurchaseQuote(PurchaseHeader, PurchaseLine, CreateVendor());
-        PurchaseQuote.OpenEdit();
-        PurchaseQuote.FILTER.SetFilter("No.", PurchaseHeader."No.");
-
-        // Exercise: Open Statistics page from Purchase Quote.
-        PurchaseQuote.Statistics.Invoke();
-
-        // Verify: Verification is done in 'PurchaseQuoteStatisticsHandler' handler method.
-    end;
-#endif
 
     [Test]
     [HandlerFunctions('PurchaseQuotePurchaseStatisticsHandler')]
@@ -687,16 +662,6 @@ codeunit 134325 "ERM Purchase Quote"
         Assert.IsTrue(StrPos(Question, LibraryVariableStorage.DequeueText()) <> 0, 'Invalid confirm message');
         Reply := true;
     end;
-
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseQuoteStatisticsHandler(var PurchaseStatistics: TestPage "Purchase Statistics")
-    begin
-        Assert.IsFalse(PurchaseStatistics.VATAmount.Editable(), 'The VAT Amount field should not be editable');
-    end;
-#endif
 
     [PageHandler]
     [Scope('OnPrem')]

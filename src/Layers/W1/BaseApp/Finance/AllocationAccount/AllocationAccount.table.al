@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,6 +22,7 @@ table 2670 "Allocation Account"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the allocation account number.';
             OptimizeForTextSearch = true;
             NotBlank = true;
         }
@@ -31,6 +32,7 @@ table 2670 "Allocation Account"
         field(2; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the allocation account name.';
             OptimizeForTextSearch = true;
         }
         /// <summary>
@@ -39,6 +41,7 @@ table 2670 "Allocation Account"
         field(3; "Account Type"; Option)
         {
             Caption = 'Account type';
+            ToolTip = 'Specifies the account type for the distribution.';
             OptionMembers = Fixed,Variable;
 
             trigger OnValidate()
@@ -52,6 +55,7 @@ table 2670 "Allocation Account"
         field(10; "Document Lines Split"; Option)
         {
             Caption = 'Split Document Lines';
+            ToolTip = 'Specifies the strategy for splitting the lines when used on the documents.';
             OptionMembers = "Split Amount","Split Quantity";
         }
     }

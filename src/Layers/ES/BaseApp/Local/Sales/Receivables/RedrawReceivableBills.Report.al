@@ -273,8 +273,18 @@ report 7000096 "Redraw Receivable Bills"
             end;
 
             trigger OnPostDataItem()
+            var
+                IsHandled: Boolean;
+                ShowMessage: Boolean;
             begin
                 Window.Close();
+
+                ShowMessage := true;
+                IsHandled := false;
+                OnBeforeOnPostDataItemOnBeforeOnPostDataItemCustLedgEntry(GenJnlLine, BatchName, ShowMessage, IsHandled);
+                if IsHandled then
+                    exit;
+
                 // CarteraDimMgt.CopyJnlLinDim(GenJnlLine,GenJnlLine,TempJnlLineDim,JnlLineDim2);
                 Commit();
                 GenJnlLine.Reset();
@@ -291,7 +301,8 @@ report 7000096 "Redraw Receivable Bills"
 
                 SplitDetailedCVEntry();
 
-                Message(Text1100010, DocCount);
+                if ShowMessage then
+                    Message(Text1100010, DocCount);
             end;
 
             trigger OnPreDataItem()
@@ -482,6 +493,7 @@ report 7000096 "Redraw Receivable Bills"
 
         trigger OnOpenPage()
         begin
+            OnBeforeOnOpenRequestPagePage(PostingDate, NewDueDate, NewPmtMethod, IncludeDiscCollExpenses, IncludeRejExpenses, IncludeFinanceCharges, TemplName, BatchName);
             PostingDate := WorkDate();
             TemplName := '';
             BatchName := '';
@@ -811,6 +823,16 @@ report 7000096 "Redraw Receivable Bills"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGenJnlLineInsert(var GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; var NewPaymentMethod: Code[10])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnPostDataItemOnBeforeOnPostDataItemCustLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; BatchName: Code[10]; var ShowMessage: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnOpenRequestPagePage(var PostingDate: Date; var NewDueDate: Date; var NewPmtMethod: Code[10]; var IncludeDiscCollExpenses: Boolean; var IncludeRejExpenses: Boolean; var IncludeFinanceCharges: Boolean; var TemplName: Code[10]; var BatchName: Code[10])
     begin
     end;
 }

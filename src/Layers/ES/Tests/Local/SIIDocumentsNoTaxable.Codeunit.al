@@ -32,6 +32,7 @@ codeunit 147524 "SII Documents No Taxable"
         XPathSalesNoTaxLocalTok: Label '//soapenv:Body/siiRL:SuministroLRFacturasEmitidas/siiRL:RegistroLRFacturasEmitidas/siiRL:FacturaExpedida/sii:TipoDesglose/sii:DesgloseFactura/sii:NoSujeta/sii:ImporteTAIReglasLocalizacion', Locked = true;
         UploadType: Option Regular,Intracommunity,RetryAccepted;
         XPathEUSalesNoTaxTok: Label '//soapenv:Body/siiRL:SuministroLRFacturasEmitidas/siiRL:RegistroLRFacturasEmitidas/siiRL:FacturaExpedida/sii:TipoDesglose/sii:DesgloseTipoOperacion/%1/sii:NoSujeta/sii:ImportePorArticulos7_14_Otros', Locked = true;
+        XPathEUSalesOSSNoTaxLocalTok: Label '//soapenv:Body/siiRL:SuministroLRFacturasEmitidas/siiRL:RegistroLRFacturasEmitidas/siiRL:FacturaExpedida/sii:TipoDesglose/sii:DesgloseTipoOperacion/sii:Entrega/sii:NoSujeta/sii:ImporteTAIReglasLocalizacion', Locked = true;
         NoTaxableSetupErr: Label 'The %1 for VAT Calculation Type = No Taxable VAT must be 0.', Comment = '%1 = VAT or EC percent.';
         AmountShouldBeNegative: Label 'Amount should be in negative.';
 
@@ -2627,6 +2628,64 @@ codeunit 147524 "SII Documents No Taxable"
         // [THEN] XML file has both sii:BaseImponible and sii:ImporteTAIReglasLocalizacion nodes
         LibrarySII.VerifyCountOfElements(XMLDoc, 'sii:BaseImponible', 1);
         LibrarySII.VerifyCountOfElements(XMLDoc, 'sii:ImporteTAIReglasLocalizacion', 1);
+    end;
+
+    [Test]
+    procedure SalesInvWithOneStopShopAndZeroAmountForEUCustomer()
+    var
+        Customer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GLAccount: Record "G/L Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        XMLDoc: DotNet XmlDocument;
+        GLAccountNo: Code[20];
+    begin
+        // [FEATURE] [Sales] [One Stop Shop]
+        // [SCENARIO 622547] XML has DesgloseTipoOperacion node when posting simplified sales invoice with OSS regime and 100% discount (zero amount) for EU customer
+        Initialize();
+
+        // [GIVEN] EU Customer with Country = FR
+        LibrarySII.CreateForeignCustWithVATSetup(Customer);
+
+        // [GIVEN] VAT Posting Setup with "One Stop Shop Reporting" = true and Special Scheme Code "17"
+        VATBusinessPostingGroup.Get(Customer."VAT Bus. Posting Group");
+        LibrarySII.CreateVATPostingSetup(
+          VATPostingSetup, VATProductPostingGroup, VATBusinessPostingGroup,
+          VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandInt(50), false);
+        VATPostingSetup.Validate("Sales Special Scheme Code", VATPostingSetup."Sales Special Scheme Code"::"17 Operations Under The One-Stop-Shop Regime");
+        VATPostingSetup.Validate("One Stop Shop Reporting", true);
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Sales Invoice with Invoice Type = "F2 Simplified Invoice"
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Invoice Type", SalesHeader."Invoice Type"::"F2 Simplified Invoice");
+        SalesHeader.Modify(true);
+
+        // [GIVEN] Sales line with 100% Line Discount (zero amount)
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Sale);
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccountNo, LibraryRandom.RandInt(100));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        SalesLine.Validate("Line Discount %", 100);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Posted Sales Invoice
+        LibraryERM.FindCustomerLedgerEntry(
+          CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice,
+          LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Create XML for posted Sales Invoice
+        Assert.IsTrue(SIIXMLCreator.GenerateXml(CustLedgerEntry, XMLDoc, UploadType::Regular, false), IncorrectXMLDocErr);
+
+        // [THEN] XML file has DesgloseTipoOperacion node with Entrega/NoSujeta/ImporteTAIReglasLocalizacion
+        LibrarySII.VerifyCountOfElements(XMLDoc, 'sii:DesgloseTipoOperacion', 1);
+        LibrarySII.VerifyOneNodeWithValueByXPath(
+          XMLDoc, XPathEUSalesOSSNoTaxLocalTok, '',
+          SIIXMLCreator.FormatNumber(0));
     end;
 
     [Test]

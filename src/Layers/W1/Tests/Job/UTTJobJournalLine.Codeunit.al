@@ -659,6 +659,7 @@ codeunit 136351 "UT T Job Journal Line"
         ExpectedUnitPrice2: Decimal;
         Qty: Decimal;
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 621076] When Work Type changes on Job Journal Line to one with different UoM, price recalculation uses the correct UoM
         Initialize();
 

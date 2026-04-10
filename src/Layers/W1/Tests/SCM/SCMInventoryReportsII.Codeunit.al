@@ -1128,7 +1128,7 @@ codeunit 137302 "SCM Inventory Reports - II"
         // Verify: Verify "As of..." value is correct in report Inventory Valuation - WIP
         LibraryReportDataset.LoadDataSetFile();
         VerifyVariantLineInPriceListReport(
-          'SourceNo_ProductionOrder', Item."No.", 'LastWIP', -ComponentItem."Unit Cost", 'AtLastDate', ComponentItem."Unit Cost");
+          'SourceNo_ProductionOrder', Item."No.", 'LastWIP', -ComponentItem."Unit Cost" * OutputQty[3], 'AtLastDate', ComponentItem."Unit Cost" * OutputQty[3]);
     end;
 
     [Test]

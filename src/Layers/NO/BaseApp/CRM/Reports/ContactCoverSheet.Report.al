@@ -13,12 +13,11 @@ using System.Email;
 
 report 5055 "Contact - Cover Sheet"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/ContactCoverSheet.rdlc';
     ApplicationArea = RelationshipMgmt;
     Caption = 'Contact - Cover Sheet';
     UsageCategory = Documents;
     WordMergeDataItem = Contact;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -179,9 +178,11 @@ report 5055 "Contact - Cover Sheet"
             column(Best_regards_Caption; Best_regards_CaptionLbl)
             {
             }
+#if not CLEAN29
             column(EnterpriseRegister; CompanyInfo.GetEnterpriseClassification())
             {
             }
+#endif
 
             trigger OnAfterGetRecord()
             begin
@@ -357,6 +358,16 @@ report 5055 "Contact - Cover Sheet"
             LogInteraction := SegManagement.FindInteractionTemplateCode("Interaction Log Entry Document Type"::"Cover Sheet") <> '';
             LogInteractionEnable := LogInteraction;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/ContactCoverSheet.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

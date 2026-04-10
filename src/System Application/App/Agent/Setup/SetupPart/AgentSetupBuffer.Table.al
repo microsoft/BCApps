@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -190,12 +190,12 @@ table 4310 "Agent Setup Buffer"
 
     internal procedure GetUserSettings(var TempNewUserSetting: Record "User Settings" temporary)
     var
-        UserSettings: Record "User Settings";
+        TempFetchedUserSettings: Record "User Settings";
         Agent: Codeunit Agent;
     begin
         if not TempUserSettings.FindFirst() then begin
-            Agent.GetUserSettings(Rec."User Security ID", UserSettings);
-            TempUserSettings.Copy(UserSettings);
+            Agent.GetUserSettings(Rec."User Security ID", TempFetchedUserSettings);
+            TempFetchedUserSettings.Copy(TempUserSettings);
         end;
 
         TempNewUserSetting.Copy(TempUserSettings, true);

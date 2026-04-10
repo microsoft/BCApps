@@ -8,11 +8,10 @@ using Microsoft.Foundation.Company;
 
 report 10200 "Resource Usage"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Resources/Reports/ResourceUsage.rdlc';
     ApplicationArea = Jobs;
     Caption = 'Resource Usage';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -122,6 +121,16 @@ report 10200 "Resource Usage"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Resources/Reports/ResourceUsage.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

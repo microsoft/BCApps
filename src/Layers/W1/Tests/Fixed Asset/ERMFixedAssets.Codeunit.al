@@ -1206,6 +1206,134 @@ codeunit 134451 "ERM Fixed Assets"
     end;
 
     [Test]
+    [HandlerFunctions('DepreciationCalcConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure UseAccPeriodWithHalfYearConvDeprDaysAt31stDay()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        FAJournalLine: Record "FA Journal Line";
+        FAJournalBatch: Record "FA Journal Batch";
+        DepreciationStartingDate: Date;
+        DeprUntilDate: Date;
+        Year: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624274] "Use Accounting Period" does not affect depreciation days calculation when "Fiscal Year 365 Days" is OFF, "Use Half-Year Convention" is ON, and posting date falls on the 31st day of a month.
+        Initialize();
+        Year := Date2DMY(WorkDate(), 3);
+
+        // [GIVEN] Accounting periods with fiscal years starting Jan 1 and Jan 1 of the next year
+        DepreciationStartingDate := DMY2Date(1, 1, Year);
+        DeprUntilDate := DMY2Date(31, 7, Year);
+        CreateAccountingPeriodWithNewFiscalYear(DepreciationStartingDate);
+        CreateAccountingPeriodWithNewFiscalYear(CalcDate('<1Y>', DepreciationStartingDate));
+
+        // [GIVEN] Depreciation Book with "Fiscal Year 365 Days" = FALSE and "Use Accounting Period" = ON
+        CreateFixedAssetSetup(DepreciationBook);
+        DepreciationBook.Validate("Fiscal Year 365 Days", false);
+        DepreciationBook.Validate("Use Accounting Period", true);
+        DepreciationBook.Modify(true);
+        UpdateIntegrationInBook(DepreciationBook, false, false, false);
+
+        // [GIVEN] Fixed Asset with FA Depreciation Book: Straight-Line, "Use Half-Year Convention" = ON, starting Jan 1
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", DepreciationBook.Code);
+        FADepreciationBook.Validate("FA Posting Group", FixedAsset."FA Posting Group");
+        FADepreciationBook.Validate("Depreciation Method", FADepreciationBook."Depreciation Method"::"Straight-Line");
+        FADepreciationBook.Validate("Depreciation Starting Date", DepreciationStartingDate);
+        FADepreciationBook.Validate("No. of Depreciation Years", 5);
+        FADepreciationBook.Validate("Use Half-Year Convention", true);
+        FADepreciationBook.Modify(true);
+
+        // [GIVEN] Posted Acquisition Cost on Jan 1
+        CreateFAJournalBatch(FAJournalBatch);
+        CreateFAJournalLine(
+            FAJournalLine, FAJournalBatch, FAJournalLine."FA Posting Type"::"Acquisition Cost",
+            FixedAsset."No.", DepreciationBook.Code, LibraryRandom.RandIntInRange(10000, 20000));
+        FAJournalLine.Validate("FA Posting Date", DepreciationStartingDate);
+        FAJournalLine.Validate("Posting Date", DepreciationStartingDate);
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+
+        // [WHEN] Calculate depreciation with posting date = July 31 and post it
+        RunCalculateDepreciationForDate(FixedAsset."No.", DepreciationBook.Code, DeprUntilDate);
+        PostDepreciationWithDocumentNo(DepreciationBook.Code);
+
+        // [THEN] Number of depreciation days equals 210 (30/360 convention), not 212 (actual calendar days)
+        VerifyFALedgEntryDeprDays(FixedAsset."No.", DepreciationBook.Code, 210);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeprDaysNotAffectedByUseAccountingPeriod()
+    var
+        DepreciationCalculation: Codeunit "Depreciation Calculation";
+        StartingDate: Date;
+        EndingDate: Date;
+        DeprDaysWithAccPeriod: Integer;
+        DeprDaysWithoutAccPeriod: Integer;
+        Year: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624274] DeprDays returns the same value regardless of "Use Accounting Period" when "Year365Days" is FALSE.
+        Initialize();
+        Year := Date2DMY(WorkDate(), 3);
+
+        // [GIVEN] Date range from January 1 to July 31 (ending on the 31st day of a month)
+        StartingDate := DMY2Date(1, 1, Year);
+        EndingDate := DMY2Date(31, 7, Year);
+
+        // [WHEN] DeprDays is called with UseAccountingPeriod = FALSE
+        DeprDaysWithoutAccPeriod := DepreciationCalculation.DeprDays(StartingDate, EndingDate, false, false);
+
+        // [WHEN] DeprDays is called with UseAccountingPeriod = TRUE
+        DeprDaysWithAccPeriod := DepreciationCalculation.DeprDays(StartingDate, EndingDate, false, true);
+
+        // [THEN] Both results are equal and equal to 210 (30/360 convention)
+        Assert.AreEqual(210, DeprDaysWithoutAccPeriod, WrongDeprDaysErr);
+        Assert.AreEqual(DeprDaysWithoutAccPeriod, DeprDaysWithAccPeriod, WrongDeprDaysErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeprDaysWithUseAccPeriodEndingOnLastDayOfFeb()
+    var
+        DepreciationCalculation: Codeunit "Depreciation Calculation";
+        TypeHelper: Codeunit "Type Helper";
+        StartingDate: Date;
+        EndingDate: Date;
+        DeprDaysWithAccPeriod: Integer;
+        DeprDaysWithoutAccPeriod: Integer;
+        Year: Integer;
+        LastDayOfFeb: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 624274] DeprDays returns the same value regardless of "Use Accounting Period" when ending date falls on the last day of February.
+        Initialize();
+        Year := Date2DMY(WorkDate(), 3);
+
+        // [GIVEN] Date range from January 1 to the last day of February
+        if TypeHelper.IsLeapYear(DMY2Date(1, 1, Year)) then
+            LastDayOfFeb := 29
+        else
+            LastDayOfFeb := 28;
+        StartingDate := DMY2Date(1, 1, Year);
+        EndingDate := DMY2Date(LastDayOfFeb, 2, Year);
+
+        // [WHEN] DeprDays is called with UseAccountingPeriod = FALSE
+        DeprDaysWithoutAccPeriod := DepreciationCalculation.DeprDays(StartingDate, EndingDate, false, false);
+
+        // [WHEN] DeprDays is called with UseAccountingPeriod = TRUE
+        DeprDaysWithAccPeriod := DepreciationCalculation.DeprDays(StartingDate, EndingDate, false, true);
+
+        // [THEN] Both results are equal and equal to 60 (30/360 convention: 2 months x 30 days, last day of Feb counts as 30)
+        Assert.AreEqual(60, DeprDaysWithoutAccPeriod, WrongDeprDaysErr);
+        Assert.AreEqual(DeprDaysWithoutAccPeriod, DeprDaysWithAccPeriod, WrongDeprDaysErr);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure FAJnlLineDimDuplicationListNoGLIntegration()
     var
@@ -3941,6 +4069,19 @@ codeunit 134451 "ERM Fixed Assets"
         FAJournalBatch.Modify(true);
     end;
 
+    local procedure CreateAccountingPeriodWithNewFiscalYear(StartingDate: Date)
+    var
+        AccountingPeriod: Record "Accounting Period";
+    begin
+        if not AccountingPeriod.Get(StartingDate) then begin
+            AccountingPeriod.Init();
+            AccountingPeriod."Starting Date" := StartingDate;
+            AccountingPeriod.Insert();
+        end;
+        AccountingPeriod."New Fiscal Year" := true;
+        AccountingPeriod.Modify();
+    end;
+
     local procedure CreateSalesLine(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; FANo: Code[20]; DepreciationBookCode: Code[10])
     begin
         // Using Random Number Generator for Amount and Quantity.
@@ -4273,6 +4414,20 @@ codeunit 134451 "ERM Fixed Assets"
         CalculateDepreciation.SetTableView(FixedAsset);
         CalculateDepreciation.InitializeRequest(
           DepreciationBookCode, CalcDate('<1D>', WorkDate()), false, 0, CalcDate('<1D>', WorkDate()), FixedAssetNo, FixedAsset.Description, BalAccount);
+        CalculateDepreciation.UseRequestPage(false);
+        CalculateDepreciation.Run();
+    end;
+
+    local procedure RunCalculateDepreciationForDate(FixedAssetNo: Code[20]; DepreciationBookCode: Code[10]; DeprUntilDate: Date)
+    var
+        FixedAsset: Record "Fixed Asset";
+        CalculateDepreciation: Report "Calculate Depreciation";
+    begin
+        Clear(CalculateDepreciation);
+        FixedAsset.SetRange("No.", FixedAssetNo);
+        CalculateDepreciation.SetTableView(FixedAsset);
+        CalculateDepreciation.InitializeRequest(
+            DepreciationBookCode, DeprUntilDate, false, 0, DeprUntilDate, FixedAssetNo, FixedAsset.Description, false);
         CalculateDepreciation.UseRequestPage(false);
         CalculateDepreciation.Run();
     end;

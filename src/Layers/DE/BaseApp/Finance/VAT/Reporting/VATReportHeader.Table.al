@@ -28,6 +28,7 @@ table 740 "VAT Report Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -43,6 +44,7 @@ table 740 "VAT Report Header"
         field(2; "VAT Report Config. Code"; Option)
         {
             Caption = 'VAT Report Config. Code';
+            ToolTip = 'Specifies the appropriate configuration code for EC Sales List Reports.';
             Editable = true;
             OptionCaption = ' ,VIES';
             OptionMembers = " ",VIES;
@@ -59,6 +61,7 @@ table 740 "VAT Report Header"
         field(3; "VAT Report Type"; Option)
         {
             Caption = 'VAT Report Type';
+            ToolTip = 'Specifies if the VAT report is a standard report, or if it is related to a previously submitted VAT report.';
             OptionCaption = 'Standard,Corrective';
             OptionMembers = Standard,Corrective;
 
@@ -77,6 +80,7 @@ table 740 "VAT Report Header"
         field(4; "Start Date"; Date)
         {
             Caption = 'Start Date';
+            ToolTip = 'Specifies the first date of the reporting period.';
             Editable = false;
 
             trigger OnValidate()
@@ -91,6 +95,7 @@ table 740 "VAT Report Header"
         field(5; "End Date"; Date)
         {
             Caption = 'End Date';
+            ToolTip = 'Specifies the last date of the reporting period.';
             Editable = false;
 
             trigger OnValidate()
@@ -108,6 +113,7 @@ table 740 "VAT Report Header"
         field(6; Status; Option)
         {
             Caption = 'Status';
+            ToolTip = 'Specifies whether the report is in progress, is completed, or contains errors.';
             Editable = false;
             OptionCaption = 'Open,Released,Exported,Submitted';
             OptionMembers = Open,Released,Exported,Submitted;
@@ -122,6 +128,7 @@ table 740 "VAT Report Header"
         field(8; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
 
             trigger OnValidate()
             begin
@@ -134,6 +141,7 @@ table 740 "VAT Report Header"
         field(9; "Original Report No."; Code[20])
         {
             Caption = 'Original Report No.';
+            ToolTip = 'Specifies the number of the original report.';
             TableRelation = "VAT Report Header"."No." where("VAT Report Type" = const(Standard),
                                                              Status = const(Submitted));
 
@@ -194,6 +202,7 @@ table 740 "VAT Report Header"
         /// </summary>
         field(10; "Report Period Type"; Option)
         {
+            ToolTip = 'Specifies the length of the reporting period.';
             Caption = 'Report Period Type';
             OptionCaption = ' ,Month,Quarter,Year,Bi-Monthly';
             OptionMembers = " ",Month,Quarter,Year,"Bi-Monthly";
@@ -214,6 +223,7 @@ table 740 "VAT Report Header"
         /// </summary>
         field(11; "Report Period No."; Integer)
         {
+            ToolTip = 'Specifies the specific reporting period to use.';
             Caption = 'Report Period No.';
 
             trigger OnValidate()
@@ -233,6 +243,7 @@ table 740 "VAT Report Header"
         /// </summary>
         field(12; "Report Year"; Integer)
         {
+            ToolTip = 'Specifies the year of the reporting period.';
             Caption = 'Report Year';
             MinValue = 2000;
 
@@ -338,6 +349,7 @@ table 740 "VAT Report Header"
                                                             "Line Type" = filter(New | Correction)));
             Caption = 'Total Base';
             Editable = false;
+            ToolTip = 'Specifies the date when the VAT report lines were created.';
             FieldClass = FlowField;
         }
         field(32; "Total Amount"; Decimal)
@@ -366,6 +378,7 @@ table 740 "VAT Report Header"
                                                          "Line Type" = filter(New | Correction)));
             Caption = 'Total Number of Lines';
             Editable = false;
+            ToolTip = 'Specifies the country/region filter for the report.';
             FieldClass = FlowField;
         }
         field(40; "Company Name"; Text[100])
@@ -475,6 +488,7 @@ table 740 "VAT Report Header"
         field(100; "Amounts in Add. Rep. Currency"; Boolean)
         {
             Caption = 'Amounts in Add. Rep. Currency';
+            ToolTip = 'Specifies whether the amounts are in the additional reporting currency.';
             Editable = false;
         }
     }

@@ -503,6 +503,8 @@ permissionset 208 "D365 Basic - Edit"
                   tabledata "Power BI Chart Buffer" = IMD,
                   tabledata "Power BI Context Settings" = IMD,
                   tabledata "Power BI Customer Reports" = IMD,
+                  tabledata "Power BI Deployment" = IMD,
+                  tabledata "Power BI Deployment State" = IMD,
                   tabledata "Power BI Displayed Element" = IMD,
                   tabledata "Power BI Report Uploads" = IMD,
                   tabledata "Prepayment Inv. Line Buffer" = IMD,

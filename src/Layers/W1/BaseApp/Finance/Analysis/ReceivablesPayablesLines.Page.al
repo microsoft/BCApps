@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,13 +35,11 @@ page 355 "Receivables-Payables Lines"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Period Start';
-                    ToolTip = 'Specifies the beginning of the period covered by the summary report of receivables for customers and payables for vendors.';
                 }
                 field("Period Name"; Rec."Period Name")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Period Name';
-                    ToolTip = 'Specifies the name of the period covered by the summary report of receivables for customers and payables for vendors.';
                 }
                 field(CustBalancesDue; Rec."Cust. Balances Due")
                 {
@@ -49,7 +47,6 @@ page 355 "Receivables-Payables Lines"
                     AutoFormatType = 1;
                     Caption = 'Cust. Balances Due';
                     DrillDown = true;
-                    ToolTip = 'Specifies the total amount your company is owed by customers. The program automatically calculates and updates the contents of the field, using entries in the Remaining Amt. (LCY) field in the Cust. Ledger Entry table.';
 
                     trigger OnDrillDown()
                     begin
@@ -62,7 +59,6 @@ page 355 "Receivables-Payables Lines"
                     AutoFormatType = 1;
                     Caption = 'Vendor Balances Due';
                     DrillDown = true;
-                    ToolTip = 'Specifies the total amount your company owes its vendors. The program automatically calculates and updates the contents of the field, using entries in the Remaining Amt. (LCY) field in the Vendor Ledger Entry table.';
 
                     trigger OnDrillDown()
                     begin
@@ -74,7 +70,6 @@ page 355 "Receivables-Payables Lines"
                     ApplicationArea = Suite;
                     AutoFormatType = 1;
                     Caption = 'Receivables-Payables';
-                    ToolTip = 'Specifies expected payments from customers and to vendors. It does not include other transactions that affect liquidity or the liquid balance at the beginning of the period. Therefore, the amounts in the column do not represent the liquid balance at the close of the period.';
                 }
             }
         }

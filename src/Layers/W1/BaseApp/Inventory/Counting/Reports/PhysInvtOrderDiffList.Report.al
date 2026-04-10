@@ -13,12 +13,11 @@ using System.Utilities;
 
 report 5875 "Phys. Invt. Order Diff. List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Counting/Reports/PhysInvtOrderDiffList.rdlc';
     ApplicationArea = Warehouse;
     Caption = 'Phys. Invt. Order Diff. List';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Phys. Invt. Order Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -638,6 +637,16 @@ report 5875 "Phys. Invt. Order Diff. List"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Counting/Reports/PhysInvtOrderDiffList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

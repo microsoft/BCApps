@@ -680,7 +680,13 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
         Item: Record Item;
         ProdOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeValidateProdOrderOnReqLine(ReqLine, IsHandled);
+        if IsHandled then
+            exit;
+
         ReqLine.TestField(Type, ReqLine.Type::Item);
 
         if ProdOrder.Get(ProdOrder.Status::Released, ReqLine."Prod. Order No.") then begin
@@ -697,6 +703,11 @@ tableextension 99000860 "Mfg. Requisition Line" extends "Requisition Line"
             Item.Get(ReqLine."No.");
             ReqLine.Validate("Unit of Measure Code", Item."Base Unit of Measure");
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateProdOrderOnReqLine(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
+    begin
     end;
 
     [IntegrationEvent(false, false)]

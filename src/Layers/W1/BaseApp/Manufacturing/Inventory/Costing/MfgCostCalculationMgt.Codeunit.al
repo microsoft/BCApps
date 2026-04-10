@@ -72,9 +72,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
     begin
         IsHandled := false;
         OnBeforeCalcRoutingCostPerUnit(Type, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, WorkCenter, MachineCenter, IsHandled);
-#if not CLEAN26
-        CostCalculationMgt.RunOnBeforeCalcRoutingCostPerUnit(Type, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, WorkCenter, MachineCenter, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -102,9 +99,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
                 end;
         end;
         OnAfterCalcRoutingCostPerUnit(Type, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, WorkCenter, MachineCenter);
-#if not CLEAN26
-        CostCalculationMgt.RunOnAfterCalcRoutingCostPerUnit(Type, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, WorkCenter, MachineCenter);
-#endif
     end;
 
     procedure CalcShareOfTotalCapCost(ProdOrderLine: Record "Prod. Order Line"; var ShareOfTotalCapCost: Decimal)
@@ -123,9 +117,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
             ShareOfTotalCapCost := Qty / ProdOrderLine.Quantity;
 
         OnAfterCalcShareOfTotalCapCost(ProdOrderLine, ShareOfTotalCapCost);
-#if not CLEAN26
-        CostCalculationMgt.RunOnAfterCalcShareOfTotalCapCost(ProdOrderLine, ShareOfTotalCapCost);
-#endif
     end;
 
     procedure CalcProdOrderLineStdCost(ProdOrderLine: Record "Prod. Order Line"; CurrencyFactor: Decimal; RndgPrec: Decimal; var StdMatCost: Decimal; var StdCapDirCost: Decimal; var StdSubDirCost: Decimal; var StdCapOvhdCost: Decimal; var StdMfgOvhdCost: Decimal)
@@ -146,9 +137,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
             Item."Single-Level Cap. Ovhd Cost" := InvtAdjmtEntryOrder."Single-Level Cap. Ovhd Cost";
             Item."Single-Level Mfg. Ovhd Cost" := InvtAdjmtEntryOrder."Single-Level Mfg. Ovhd Cost";
             OnCalcProdOrderLineStdCostOnAfterCalcSingleLevelCost(Item, InvtAdjmtEntryOrder);
-#if not CLEAN26
-            CostCalculationMgt.RunOnCalcProdOrderLineStdCostOnAfterCalcSingleLevelCost(Item, InvtAdjmtEntryOrder);
-#endif
             QtyBase := ProdOrderLine."Finished Qty. (Base)";
         end else begin
             Item.Get(ProdOrderLine."Item No.");
@@ -160,11 +148,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         OnBeforeCalcProdOrderLineStdCost(
           ProdOrderLine, QtyBase, CurrencyFactor, RndgPrec,
           StdMatCost, StdCapDirCost, StdSubDirCost, StdCapOvhdCost, StdMfgOvhdCost, IsHandled);
-#if not CLEAN26
-        CostCalculationMgt.RunOnBeforeCalcProdOrderLineStdCost(
-          ProdOrderLine, QtyBase, CurrencyFactor, RndgPrec,
-          StdMatCost, StdCapDirCost, StdSubDirCost, StdCapOvhdCost, StdMfgOvhdCost, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -263,9 +246,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
         ProdOrderComp.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
         OnCalcProdOrderLineExpCostOnAfterProdOrderCompSetFilters(ProdOrderComp, ProdOrderLine);
-#if not CLEAN26
-        CostCalculationMgt.RunOnCalcProdOrderLineExpCostOnAfterProdOrderCompSetFilters(ProdOrderComp, ProdOrderLine);
-#endif
         if ProdOrderComp.Find('-') then
             repeat
                 ExpMatCost := ExpMatCost + ProdOrderComp."Cost Amount";
@@ -276,18 +256,12 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         ProdOrderRtngLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
         ProdOrderRtngLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
         OnCalcProdOrderLineExpCostOnAfterProdOrderRtngLineSetFilters(ProdOrderRtngLine, ProdOrderLine);
-#if not CLEAN26
-        CostCalculationMgt.RunOnCalcProdOrderLineExpCostOnAfterProdOrderRtngLineSetFilters(ProdOrderRtngLine, ProdOrderLine);
-#endif
         if ProdOrderRtngLine.Find('-') then
             repeat
                 ExpOperCost :=
                   ProdOrderRtngLine."Expected Operation Cost Amt." -
                   ProdOrderRtngLine."Expected Capacity Ovhd. Cost";
                 OnCalcProdOrderLineExpCostOnExpOperCostCalculated(ExpOperCost, ProdOrderRtngLine);
-#if not CLEAN26
-                CostCalculationMgt.RunOnCalcProdOrderLineExpCostOnExpOperCostCalculated(ExpOperCost, ProdOrderRtngLine);
-#endif
                 if ProdOrderRtngLine.Type = ProdOrderRtngLine.Type::"Work Center" then begin
                     if not WorkCenter.Get(ProdOrderRtngLine."No.") then
                         Clear(WorkCenter);
@@ -313,9 +287,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
             ExpMfgOvhdCost := Round(CostCalculationMgt.CalcOvhdCost(ExpMfgDirCost, ProdOrderLine."Indirect Cost %", ProdOrderLine."Overhead Rate", ProdOrderLine."Quantity (Base)"));
 
         OnAfterCalcProdOrderLineExpCost(ProdOrderLine, ShareOfTotalCapCost, ExpMatCost, ExpCapDirCost, ExpSubDirCost, ExpCapOvhdCost, ExpMfgOvhdCost);
-#if not CLEAN26
-        CostCalculationMgt.RunOnAfterCalcProdOrderLineExpCost(ProdOrderLine, ShareOfTotalCapCost, ExpMatCost, ExpCapDirCost, ExpSubDirCost, ExpCapOvhdCost, ExpMfgOvhdCost);
-#endif
     end;
 
     procedure CalcProdOrderLineExpCost(ProdOrderLine: Record "Prod. Order Line"; ShareOfTotalCapCost: Decimal; var ExpMatCost: Decimal; var ExpNonInvMatCost: Decimal; var ExpCapDirCost: Decimal; var ExpSubDirCost: Decimal; var ExpCapOvhdCost: Decimal; var ExpMfgOvhdCost: Decimal)
@@ -396,9 +367,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         end;
 
         OnCalcProdOrderLineActCostOnBeforeSetProdOrderLine(ProdOrderLine, ActMatCost, ActCapDirCost, ActSubDirCost, ActCapOvhdCost, ActMfgOvhdCost, ActMatCostCostACY, ActCapDirCostACY, ActSubDirCostACY, ActCapOvhdCostACY, ActMfgOvhdCostACY);
-#if not CLEAN26
-        CostCalculationMgt.RunOnCalcProdOrderLineActCostOnBeforeSetProdOrderLine(ProdOrderLine, ActMatCost, ActCapDirCost, ActSubDirCost, ActCapOvhdCost, ActMfgOvhdCost, ActMatCostCostACY, ActCapDirCostACY, ActSubDirCostACY, ActCapOvhdCostACY, ActMfgOvhdCostACY);
-#endif
         TempSourceInvtAdjmtEntryOrder.SetProdOrderLine(ProdOrderLine);
         OutputQty := CalcInvtAdjmtOrder.CalcOutputQty(TempSourceInvtAdjmtEntryOrder, false);
         CalcInvtAdjmtOrder.CalcActualUsageCosts(TempSourceInvtAdjmtEntryOrder, OutputQty, TempSourceInvtAdjmtEntryOrder);
@@ -470,9 +438,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         ExpectedCapNeed: Decimal;
     begin
         OnBeforeCalcProdOrderExpCapNeed(ProdOrder, ProdOrderCapNeed, ProdOrderRtngLine);
-#if not CLEAN26
-        CostCalculationMgt.RunOnBeforeCalcProdOrderExpCapNeed(ProdOrder, ProdOrderCapNeed, ProdOrderRtngLine);
-#endif
 
         if ProdOrder.Status <> ProdOrder.Status::Finished then begin
             ProdOrderCapNeed.SetRange(Status, ProdOrder.Status);
@@ -483,9 +448,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
             ProdOrderCapNeed.SetFilter(Date, ProdOrder.GetFilter("Date Filter"));
             ProdOrderCapNeed.SetRange("Requested Only", false);
             OnCalcProdOrderExpCapNeedOnAfterProdOrderCapNeedSetFilters(ProdOrderCapNeed, ProdOrder);
-#if not CLEAN26
-            CostCalculationMgt.RunOnCalcProdOrderExpCapNeedOnAfterProdOrderCapNeedSetFilters(ProdOrderCapNeed, ProdOrder);
-#endif
             if ProdOrderCapNeed.FindSet() then begin
                 repeat
                     if ProdOrderCapNeed.Type = ProdOrderCapNeed.Type::"Work Center" then begin
@@ -517,9 +479,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
                     if WorkCenter."Subcontractor No." = '' then begin
                         ExpectedCapNeed += ProdOrderRtngLine."Expected Capacity Need";
                         OnCalcProdOrderExpCapNeedOnBeforeMarkNotFinishedProdOrderRtngLine(ProdOrderRtngLine, WorkCenter, ExpectedCapNeed);
-#if not CLEAN26
-                        CostCalculationMgt.RunOnCalcProdOrderExpCapNeedOnBeforeMarkNotFinishedProdOrderRtngLine(ProdOrderRtngLine, WorkCenter, ExpectedCapNeed);
-#endif
                         ProdOrderRtngLine.Mark(true);
                     end;
                 until ProdOrderRtngLine.Next() = 0;
@@ -541,9 +500,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         IsHandled: Boolean;
     begin
         OnBeforeCalcProdOrderActTimeUsed(ProdOrder, CapLedgEntry);
-#if not CLEAN26
-        CostCalculationMgt.RunOnBeforeCalcProdOrderActTimeUsed(ProdOrder, CapLedgEntry);
-#endif
 
         if ProdOrder.IsStatusLessThanReleased() then
             exit(0);
@@ -551,9 +507,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         CapLedgEntry.SetRange("Order Type", CapLedgEntry."Order Type"::Production);
         CapLedgEntry.SetRange("Order No.", ProdOrder."No.");
         OnCalcProdOrderActTimeUsedOnAfterCapacityLedgerEntrySetFilters(CapLedgEntry, ProdOrder);
-#if not CLEAN26
-        CostCalculationMgt.RunOnCalcProdOrderActTimeUsedOnAfterCapacityLedgerEntrySetFilters(CapLedgEntry, ProdOrder);
-#endif
         if CapLedgEntry.FindSet() then begin
             repeat
                 ClearWorkCenter(CapLedgEntry, WorkCenter);
@@ -563,9 +516,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
 
                     IsHandled := false;
                     OnCalcProdOrderActTimeUsedOnBeforeCalcQty(CapLedgEntry, Qty, IsHandled);
-#if not CLEAN26
-                    CostCalculationMgt.RunOnCalcProdOrderActTimeUsedOnBeforeCalcQty(CapLedgEntry, Qty, IsHandled);
-#endif
                     if not IsHandled then
                         Qty +=
                             CapLedgEntry.Quantity /
@@ -600,9 +550,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         end else
             Clear(WorkCenter);
         OnAfterClearWorkCenter(CapacityLedgerEntry, WorkCenter);
-#if not CLEAN26
-        CostCalculationMgt.RunOnAfterClearWorkCenter(CapacityLedgerEntry, WorkCenter);
-#endif
     end;
 
     procedure CalcOutputQtyBaseOnPurchOrder(ProdOrderLine: Record "Prod. Order Line"; ProdOrderRtngLine: Record "Prod. Order Routing Line"): Decimal
@@ -616,9 +563,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         IsHandled := false;
         OutstandingBaseQty := 0;
         OnBeforeCalcOutputQtyBaseOnPurchOrder(ProdOrderLine, ProdOrderRtngLine, OutstandingBaseQty, IsHandled);
-#if not CLEAN26
-        CostCalculationMgt.RunOnBeforeCalcOutputQtyBaseOnPurchOrder(ProdOrderLine, ProdOrderRtngLine, OutstandingBaseQty, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -652,9 +596,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
             ProdOrderRtngLine."Routing No.", ProdOrderRtngLine."Routing Reference No.");
         CapLedgEntry.SetRange("Operation No.", ProdOrderRtngLine."Operation No.");
         OnCalcActOutputQtyBaseOnAfterSetFilters(CapLedgEntry, ProdOrderLine, ProdOrderRtngLine);
-#if not CLEAN26
-        CostCalculationMgt.RunOnCalcActOutputQtyBaseOnAfterSetFilters(CapLedgEntry, ProdOrderLine, ProdOrderRtngLine);
-#endif
         CapLedgEntry.CalcSums("Output Quantity");
         exit(CapLedgEntry."Output Quantity");
     end;
@@ -702,9 +643,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
             ProdOrderRtngLine."Routing No.", ProdOrderRtngLine."Routing Reference No.");
         CapLedgEntry.SetRange("Last Output Line", true);
         OnCalcActOperOutputAndScrapOnAfterFilterCapLedgEntry(CapLedgEntry);
-#if not CLEAN26
-        CostCalculationMgt.RunOnCalcActOperOutputAndScrapOnAfterFilterCapLedgEntry(CapLedgEntry);
-#endif
         CapLedgEntry.CalcSums("Output Quantity", "Scrap Quantity");
         OutputQtyBase := CapLedgEntry."Output Quantity" + CapLedgEntry."Scrap Quantity";
 
@@ -718,9 +656,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
     begin
         IsHandled := false;
         OnBeforeCalcActNeededQtyBase(OutputQtyBase, ProdOrderComp, ProdOrderLine, Result, IsHandled);
-#if not CLEAN26
-        CostCalculationMgt.RunOnBeforeCalcActNeededQtyBase(OutputQtyBase, ProdOrderComp, ProdOrderLine, Result, IsHandled);
-#endif
         if IsHandled then
             exit(Result);
 
@@ -825,9 +760,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         RoutingLine.SetRange("Routing No.", RoutingNo);
         RoutingLine.SetRange("Version Code", VersionMgt.GetRtngVersion(RoutingNo, CalculationDate, true));
         OnFindRoutingLineOnAfterRoutingLineSetFilters(RoutingLine, ProdBOMLine, CalculationDate, RoutingNo);
-#if not CLEAN26
-        CostCalculationMgt.RunOnFindRountingLineOnAfterRoutingLineSetFilters(RoutingLine, ProdBOMLine, CalculationDate, RoutingNo);
-#endif
         if not RoutingLine.IsEmpty() then begin
             if ProdBOMLine."Routing Link Code" <> '' then
                 RoutingLine.SetRange("Routing Link Code", ProdBOMLine."Routing Link Code");
@@ -847,9 +779,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
     begin
         IsHandled := false;
         OnBeforeCalcQtyAdjdForBOMScrap(Qty, ScrapPct, QtyAdjdForBomScrap, IsHandled);
-#if not CLEAN26
-        CostCalculationMgt.RunOnBeforeCalcQtyAdjdForBOMScrap(Qty, ScrapPct, QtyAdjdForBomScrap, IsHandled);
-#endif
         if not IsHandled then
             exit(Qty * (1 + ScrapPct / 100));
     end;
@@ -860,9 +789,6 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
     begin
         IsHandled := false;
         OnBeforeCalcQtyAdjdForRoutingScrap(Qty, ScrapFactorPctAccum, FixedScrapQtyAccum, QtyAdjdForRoutingScrap, IsHandled);
-#if not CLEAN26
-        CostCalculationMgt.RunOnBeforeCalcQtyAdjdForRoutingScrap(Qty, ScrapFactorPctAccum, FixedScrapQtyAccum, QtyAdjdForRoutingScrap, IsHandled);
-#endif
         if not IsHandled then
             exit(Qty * (1 + ScrapFactorPctAccum) + FixedScrapQtyAccum);
     end;

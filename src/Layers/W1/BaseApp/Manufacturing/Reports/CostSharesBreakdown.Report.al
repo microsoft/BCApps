@@ -13,11 +13,10 @@ using System.Utilities;
 
 report 5848 "Cost Shares Breakdown"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Manufacturing/Reports/CostSharesBreakdown.rdlc';
     ApplicationArea = Manufacturing;
     Caption = 'Cost Shares Breakdown';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -465,6 +464,16 @@ report 5848 "Cost Shares Breakdown"
             if (StartDate = 0D) and (EndDate = 0D) then
                 EndDate := WorkDate();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Manufacturing/Reports/CostSharesBreakdown.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

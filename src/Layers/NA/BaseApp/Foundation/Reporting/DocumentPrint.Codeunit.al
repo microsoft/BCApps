@@ -436,141 +436,99 @@ codeunit 229 "Document-Print"
     end;
 
     procedure PrintInvtOrderTest(PhysInvtOrderHeader: Record "Phys. Invt. Order Header"; ShowRequestForm: Boolean)
-    var
-        ReportSelections: Record "Report Selections";
     begin
         PhysInvtOrderHeader.SetRange("No.", PhysInvtOrderHeader."No.");
-        ReportSelections.SetRange(Usage, ReportSelections.Usage::"Phys.Invt.Order Test");
-        ReportSelections.SetFilter("Report ID", '<>0');
-        if ReportSelections.FindSet() then
-            repeat
-                REPORT.RunModal(ReportSelections."Report ID", ShowRequestForm, false, PhysInvtOrderHeader);
-            until ReportSelections.Next() = 0;
+        PrintDocumentWithReportUsage(PhysInvtOrderHeader, Enum::"Report Selection Usage"::"Phys.Invt.Order Test", ShowRequestForm);
     end;
 
     procedure PrintInvtOrder(PhysInvtOrderHeader: Record "Phys. Invt. Order Header"; ShowRequestForm: Boolean)
-    var
-        ReportSelections: Record "Report Selections";
     begin
         PhysInvtOrderHeader.SetRange("No.", PhysInvtOrderHeader."No.");
-        ReportSelections.SetRange(Usage, ReportSelections.Usage::"Phys.Invt.Order");
-        ReportSelections.SetFilter("Report ID", '<>0');
-        if ReportSelections.FindSet() then
-            repeat
-                REPORT.RunModal(ReportSelections."Report ID", ShowRequestForm, false, PhysInvtOrderHeader);
-            until ReportSelections.Next() = 0;
+        PrintDocumentWithReportUsage(PhysInvtOrderHeader, Enum::"Report Selection Usage"::"Phys.Invt.Order", ShowRequestForm);
     end;
 
     procedure PrintPostedInvtOrder(PstdPhysInvtOrderHdr: Record "Pstd. Phys. Invt. Order Hdr"; ShowRequestForm: Boolean)
-    var
-        ReportSelections: Record "Report Selections";
     begin
         PstdPhysInvtOrderHdr.SetRange("No.", PstdPhysInvtOrderHdr."No.");
-        ReportSelections.SetRange(Usage, ReportSelections.Usage::"P.Phys.Invt.Order");
-        ReportSelections.SetFilter("Report ID", '<>0');
-        if ReportSelections.FindSet() then
-            repeat
-                REPORT.RunModal(ReportSelections."Report ID", ShowRequestForm, false, PstdPhysInvtOrderHdr);
-            until ReportSelections.Next() = 0;
+        PrintDocumentWithReportUsage(PstdPhysInvtOrderHdr, Enum::"Report Selection Usage"::"P.Phys.Invt.Order", ShowRequestForm);
     end;
 
     procedure PrintInvtRecording(PhysInvtRecordHeader: Record "Phys. Invt. Record Header"; ShowRequestForm: Boolean)
-    var
-        ReportSelections: Record "Report Selections";
     begin
         PhysInvtRecordHeader.SetRange("Order No.", PhysInvtRecordHeader."Order No.");
         PhysInvtRecordHeader.SetRange("Recording No.", PhysInvtRecordHeader."Recording No.");
-        ReportSelections.SetRange(Usage, ReportSelections.Usage::"Phys.Invt.Rec.");
-        ReportSelections.SetFilter("Report ID", '<>0');
-        if ReportSelections.FindSet() then
-            repeat
-                REPORT.RunModal(ReportSelections."Report ID", ShowRequestForm, false, PhysInvtRecordHeader);
-            until ReportSelections.Next() = 0;
+        PrintDocumentWithReportUsage(PhysInvtRecordHeader, Enum::"Report Selection Usage"::"Phys.Invt.Rec.", ShowRequestForm);
     end;
 
     procedure PrintPostedInvtRecording(PstdPhysInvtRecordHdr: Record "Pstd. Phys. Invt. Record Hdr"; ShowRequestForm: Boolean)
-    var
-        ReportSelections: Record "Report Selections";
     begin
         PstdPhysInvtRecordHdr.SetRange("Order No.", PstdPhysInvtRecordHdr."Order No.");
         PstdPhysInvtRecordHdr.SetRange("Recording No.", PstdPhysInvtRecordHdr."Recording No.");
-        ReportSelections.SetRange(Usage, ReportSelections.Usage::"P.Phys.Invt.Rec.");
-        ReportSelections.SetFilter("Report ID", '<>0');
-        if ReportSelections.FindSet() then
-            repeat
-                REPORT.RunModal(ReportSelections."Report ID", ShowRequestForm, false, PstdPhysInvtRecordHdr);
-            until ReportSelections.Next() = 0;
+        PrintDocumentWithReportUsage(PstdPhysInvtRecordHdr, Enum::"Report Selection Usage"::"P.Phys.Invt.Rec.", ShowRequestForm);
     end;
 
     procedure PrintInvtDocument(var NewInvtDocHeader: Record "Invt. Document Header"; ShowRequestPage: Boolean)
     var
         InvtDocHeader: Record "Invt. Document Header";
         ReportSelections: Record "Report Selections";
+        ReportUsage: Enum "Report Selection Usage";
     begin
         InvtDocHeader.Copy(NewInvtDocHeader);
         InvtDocHeader.SetRecFilter();
 
         case InvtDocHeader."Document Type" of
             InvtDocHeader."Document Type"::Receipt:
-                ReportSelections.SetRange(Usage, ReportSelections.Usage::"Inventory Receipt");
+                ReportUsage := ReportSelections.Usage::"Inventory Receipt";
             InvtDocHeader."Document Type"::Shipment:
-                ReportSelections.SetRange(Usage, ReportSelections.Usage::"Inventory Shipment");
+                ReportUsage := ReportSelections.Usage::"Inventory Shipment";
         end;
+        ReportSelections.SetRange(Usage, ReportUsage);
         ReportSelections.SetFilter("Report ID", '<>0');
-
         CheckNoReportSelectionThrowError(ReportSelections, InvtDocHeader);
 
-        if ReportSelections.FindSet() then
-            repeat
-                REPORT.RunModal(ReportSelections."Report ID", ShowRequestPage, false, InvtDocHeader);
-            until ReportSelections.Next() = 0;
+        PrintDocumentWithReportUsage(InvtDocHeader, ReportUsage, ShowRequestPage);
     end;
 
     procedure PrintInvtReceipt(NewInvtReceiptHeader: Record "Invt. Receipt Header"; ShowRequestPage: Boolean)
     var
-        ReportSelections: Record "Report Selections";
         InvtReceiptHeader: Record "Invt. Receipt Header";
     begin
         InvtReceiptHeader.Copy(NewInvtReceiptHeader);
         InvtReceiptHeader.SetRecFilter();
-
-        ReportSelections.SetRange(Usage, ReportSelections.Usage::"P.Inventory Receipt");
-        ReportSelections.SetFilter("Report ID", '<>0');
-        if ReportSelections.FindSet() then
-            repeat
-                REPORT.RunModal(ReportSelections."Report ID", ShowRequestPage, false, InvtReceiptHeader);
-            until ReportSelections.Next() = 0;
+        PrintDocumentWithReportUsage(InvtReceiptHeader, Enum::"Report Selection Usage"::"P.Inventory Receipt", ShowRequestPage);
     end;
 
     procedure PrintInvtShipment(NewInvtShipmentHeader: Record "Invt. Shipment Header"; ShowRequestPage: Boolean)
     var
-        ReportSelections: Record "Report Selections";
         InvtShipmentHeader: Record "Invt. Shipment Header";
     begin
         InvtShipmentHeader.Copy(NewInvtShipmentHeader);
         InvtShipmentHeader.SetRecFilter();
-
-        ReportSelections.SetRange(Usage, ReportSelections.Usage::"P.Inventory Shipment");
-        ReportSelections.SetFilter("Report ID", '<>0');
-        if ReportSelections.FindSet() then
-            repeat
-                REPORT.RunModal(ReportSelections."Report ID", ShowRequestPage, false, InvtShipmentHeader);
-            until ReportSelections.Next() = 0;
+        PrintDocumentWithReportUsage(InvtShipmentHeader, Enum::"Report Selection Usage"::"P.Inventory Shipment", ShowRequestPage);
     end;
 
     procedure PrintDirectTransfer(NewDirectTransHeader: Record "Direct Trans. Header"; ShowRequestPage: Boolean)
     var
-        ReportSelections: Record "Report Selections";
         DirectTransHeader: Record "Direct Trans. Header";
     begin
         DirectTransHeader.Copy(NewDirectTransHeader);
         DirectTransHeader.SetRecFilter();
+        PrintDocumentWithReportUsage(DirectTransHeader, Enum::"Report Selection Usage"::"P.Direct Transfer", ShowRequestPage);
+    end;
 
-        ReportSelections.SetRange(Usage, ReportSelections.Usage::"P.Direct Transfer");
+    local procedure PrintDocumentWithReportUsage(DocumentVariant: Variant; ReportUsage: Enum "Report Selection Usage"; ShowRequestPage: Boolean)
+    var
+        ReportSelections: Record "Report Selections";
+        SkipReportRunModal: Boolean;
+    begin
+        ReportSelections.SetRange(Usage, ReportUsage);
         ReportSelections.SetFilter("Report ID", '<>0');
         if ReportSelections.FindSet() then
             repeat
-                REPORT.RunModal(ReportSelections."Report ID", ShowRequestPage, false, DirectTransHeader);
+                SkipReportRunModal := false;
+                OnBeforePrintDocumentWithReportSelections(ReportSelections, DocumentVariant, ShowRequestPage, SkipReportRunModal);
+                if not SkipReportRunModal then
+                    Report.RunModal(ReportSelections."Report ID", ShowRequestPage, false, DocumentVariant);
             until ReportSelections.Next() = 0;
     end;
 
@@ -983,6 +941,11 @@ codeunit 229 "Document-Print"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessPrintSalesOrder(var SalesHeader: Record "Sales Header"; Usage: Option "Order Confirmation","Work Order","Pick Instruction"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePrintDocumentWithReportSelections(ReportSelections: Record "Report Selections"; DocumentVariant: Variant; ShowRequestPage: Boolean; var SkipReportRunModal: Boolean)
     begin
     end;
 }

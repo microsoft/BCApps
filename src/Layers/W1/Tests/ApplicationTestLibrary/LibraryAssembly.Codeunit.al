@@ -649,26 +649,6 @@ codeunit 132207 "Library - Assembly"
         AssemblySetup.Modify(true);
     end;
 
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Library Manufacturing as CreateProductionBOM', '26.0')]
-    procedure CreateBOM(var Item: Record Item; NoOfComps: Integer)
-    var
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-    begin
-        LibraryManufacturing.CreateProductionBOM(Item, NoOfComps);
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Library Manufacturing as CreateProductionRouting', '26.0')]
-    procedure CreateRouting(var Item: Record Item; NoOfLines: Integer)
-    var
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-    begin
-        LibraryManufacturing.CreateProductionRouting(Item, NoOfLines);
-    end;
-#endif
-
     procedure CreateDimensionSetup(var TempDimension: Record Dimension temporary; var TempDimensionValue: Record "Dimension Value" temporary)
     var
         DimensionValue: Record "Dimension Value";

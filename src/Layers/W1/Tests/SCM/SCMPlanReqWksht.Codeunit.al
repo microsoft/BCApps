@@ -5406,7 +5406,8 @@
         RoutingNo: Code[20];
         ShipmentDate: Date;
     begin
-        // [SCENARIO 572592] With reordering policy set to Order, Planning Worksheet should not break reservation entries 
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 572592] With reordering policy set to Order, Planning Worksheet should not break reservation entries
         //and no new planning line should be created for quantity that was already posted on Output.
         Initialize();
         LibraryApplicationArea.EnablePremiumSetup();

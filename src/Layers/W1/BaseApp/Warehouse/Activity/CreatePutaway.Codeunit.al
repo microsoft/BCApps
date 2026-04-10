@@ -400,6 +400,7 @@ codeunit 7313 "Create Put-away"
             WhseActivLine."Qty. Rounding Precision" := PutAwayItemUnitOfMeasure."Qty. Rounding Precision";
             WhseActivLine."Qty. Rounding Precision (Base)" := BasePutAwayItemUnitOfMeasure."Qty. Rounding Precision";
         end;
+        OnCreateNewWhseActivityOnBeforeValidateQuantity(WhseActivLine, BreakPackage, ActionType, CurrLocation, PutAwayItemUnitOfMeasure, PostedWhseRcptLine);
         WhseActivLine.Validate(
           Quantity, UnitOfMeasureManagement.RoundQty(QtyToHandleBase / WhseActivLine."Qty. per Unit of Measure", WhseActivLine."Qty. Rounding Precision"));
         if QtyToHandleBase <> 0 then begin
@@ -1272,6 +1273,11 @@ codeunit 7313 "Create Put-away"
 
     [IntegrationEvent(false, false)]
     local procedure OnCreateNewWhseActivityOnAfterAssignBinZone(var WhseActivLine: Record "Warehouse Activity Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateNewWhseActivityOnBeforeValidateQuantity(var WarehouseActivityLine: Record "Warehouse Activity Line"; BreakPackage: Boolean; ActionType: Enum "Warehouse Action Type"; var Location: Record Location; var ItemUnitOfMeasure: Record "Item Unit of Measure"; var PostedWhseReceiptLine: Record "Posted Whse. Receipt Line")
     begin
     end;
 

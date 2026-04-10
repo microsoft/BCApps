@@ -292,21 +292,32 @@ page 5159 "Sales Order Archive"
                         ToolTip = 'Specifies the email address of the person you should contact at the customer you are sending the invoice to.';
                     }
                 }
+#if not CLEAN29
                 field(GLN; Rec.GLN)
                 {
                     ApplicationArea = Advanced;
                     ToolTip = 'Specifies the global location number of the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 field("Account Code"; Rec."Account Code")
                 {
                     ApplicationArea = Advanced;
                     ToolTip = 'Specifies the account code of the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 field("E-Invoice"; Rec."E-Invoice")
                 {
                     ApplicationArea = Advanced;
                     ToolTip = 'Specifies whether the customer is part of the EHF system and requires an electronic invoice.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;

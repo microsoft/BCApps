@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,6 +21,7 @@ table 362 "ECSL VAT Report Line"
         field(1; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the unique identifier for the line.';
         }
         /// <summary>
         /// ECSL VAT report number that this line belongs to.
@@ -28,6 +29,7 @@ table 362 "ECSL VAT Report Line"
         field(2; "Report No."; Code[20])
         {
             Caption = 'Report No.';
+            ToolTip = 'Specifies the unique identifier for the report.';
         }
         /// <summary>
         /// EU country code for the customer's VAT registration location.
@@ -35,6 +37,7 @@ table 362 "ECSL VAT Report Line"
         field(3; "Country Code"; Code[10])
         {
             Caption = 'Country Code';
+            ToolTip = 'Specifies country code of the customer used for the line calculation.';
         }
         /// <summary>
         /// Customer's VAT registration number in the destination EU country.
@@ -42,6 +45,7 @@ table 362 "ECSL VAT Report Line"
         field(4; "Customer VAT Reg. No."; Text[20])
         {
             Caption = 'Customer VAT Reg. No.';
+            ToolTip = 'Specifies VAT Registration Number of the customer.';
         }
         /// <summary>
         /// Total value of supplies provided to this customer during the reporting period.
@@ -49,6 +53,7 @@ table 362 "ECSL VAT Report Line"
         field(5; "Total Value Of Supplies"; Decimal)
         {
             Caption = 'Total Value Of Supplies';
+            ToolTip = 'Specifies the total amount of the sold supplies.';
             AutoFormatType = 1;
             AutoFormatExpression = '';
         }
@@ -58,6 +63,7 @@ table 362 "ECSL VAT Report Line"
         field(6; "Transaction Indicator"; Option)
         {
             Caption = 'Transaction Indicator';
+            ToolTip = 'Specifies the transaction number.';
             OptionCaption = 'B2B Goods,,Triangulated Goods,B2B Services';
             OptionMembers = "B2B Goods",,"Triangulated Goods","B2B Services";
         }

@@ -1944,6 +1944,121 @@ codeunit 137269 "SCM Transfer Reservation"
                 TransferHeader.TableCaption()));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TransferShipmentWithPartialReservationFromUnpostedPO()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        LocationTo: Record Location;
+        Bin: array[2] of Record Bin;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        TransferRoute: Record "Transfer Route";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: Record "Requisition Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        TransferShipmentHeader: Record "Transfer Shipment Header";
+        TransferShipmentLine: Record "Transfer Shipment Line";
+        LocationInTransit: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 615167] Post warehouse shipment for transfer order with partial inventory when reservation exists from unposted purchase order
+        Initialize();
+
+        // [GIVEN] Create Item with reordering policy
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::Order);
+        Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
+        Item.Validate("Vendor No.", Vendor."No.");
+        Item.Validate(Reserve, Item.Reserve::Always);
+        Item.Modify(true);
+
+        // [GIVEN] Location with warehouse management (bins, require shipment, require pick)
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, true, false, true);
+        LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 2, false);
+        LibraryWarehouse.FindBin(Bin[1], Location.Code, '', 1);
+        LibraryWarehouse.FindBin(Bin[2], Location.Code, '', 2);
+
+        // [GIVEN] Create Warehouse employee for the location
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Create To locaotion
+        CreateLocationWithInventoryPostingSetup(LocationTo);
+
+        // [GIVEN] Create In-Transit location and Transfer route between locations
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+        LibraryInventory.CreateTransferRoute(TransferRoute, Location.Code, LocationTo.Code);
+
+        // [GIVEN] Create and Post Purchase order
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Location Code", Location.Code);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        PurchaseLine.Validate("Bin Code", Bin[1].Code);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Create Transfer order
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, Location.Code, LocationTo.Code, LocationInTransit.Code);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 2);
+        LibraryWarehouse.ReleaseTransferOrder(TransferHeader);
+
+        // [GIVEN] Calculate regenerative plan creates purchase order
+        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::"Req.");
+        Item.SetRange("No.", Item."No.");
+        Item.SetRange("Location Filter", Location.Code);
+        LibraryPlanning.CalculatePlanForReqWksh(
+            Item, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name,
+            WorkDate(), CalcDate('<1M>', WorkDate()));
+
+        // [GIVEN] Update quantity on requisition line, then carry out action message (creates PO with reservation to transfer order)
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", Item."No.");
+        RequisitionLine.FindFirst();
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+        RequisitionLine.Validate(Quantity, 1);
+        RequisitionLine.Modify(true);
+        LibraryPlanning.CarryOutReqWksh(RequisitionLine, WorkDate(), WorkDate(), WorkDate(), WorkDate(), '');
+
+        // [GIVEN] Create warehouse shipment from transfer order
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        Commit();
+
+        // [GIVEN] Create and Post warehouse Pick from Warehouse Shipment
+        WarehouseShipmentLine.SetRange("Source Document", WarehouseShipmentLine."Source Document"::"Outbound Transfer");
+        WarehouseShipmentLine.SetRange("Source No.", TransferHeader."No.");
+        if WarehouseShipmentLine.FindFirst() then
+            WarehouseShipmentLine."Bin Code" := Bin[2].Code;
+        WarehouseShipmentLine.Modify(true);
+        WarehouseShipmentHeader.Get(WarehouseShipmentLine."No.");
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+        WarehouseActivityLine.SetRange("Source Document", WarehouseActivityLine."Source Document"::"Outbound Transfer");
+        WarehouseActivityLine.SetRange("Source No.", TransferHeader."No.");
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [WHEN] Post warehouse shipment
+        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+
+        // [THEN] Transfer shipment is created with quantity 1
+        TransferShipmentHeader.SetRange("Transfer Order No.", TransferHeader."No.");
+        TransferShipmentHeader.FindFirst();
+        TransferShipmentLine.SetRange("Document No.", TransferShipmentHeader."No.");
+        TransferShipmentLine.SetRange("Item No.", Item."No.");
+        TransferShipmentLine.FindFirst();
+        Assert.AreEqual(1, TransferShipmentLine.Quantity, '');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Transfer Reservation");
@@ -2791,6 +2906,22 @@ codeunit 137269 "SCM Transfer Reservation"
     local procedure RunDummyConfirm()
     begin
         if Confirm(DummyQst) then;
+    end;
+
+    procedure CreateLocationWithInventoryPostingSetup(var Location: Record Location): Code[10]
+    begin
+        CreateLocationCodeAndName(Location);
+        LibraryInventory.UpdateInventoryPostingSetup(Location);
+        exit(Location.Code);
+    end;
+
+    local procedure CreateLocationCodeAndName(var Location: Record Location): Code[10]
+    begin
+        Location.Init();
+        Location.Validate(Code, LibraryUtility.GenerateRandomCode(Location.FieldNo(Code), DATABASE::Location));
+        Location.Validate(Name, Location.Code);
+        Location.Insert(true);
+        exit(Location.Code);
     end;
 
     [ModalPageHandler]

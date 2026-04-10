@@ -39,6 +39,7 @@ table 1878 "VAT Assisted Setup Templates"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the VAT assisted setup.';
         }
         /// <summary>
         /// Default VAT business posting group assigned to records using this template.
@@ -46,6 +47,7 @@ table 1878 "VAT Assisted Setup Templates"
         field(3; "Default VAT Bus. Posting Grp"; Code[20])
         {
             Caption = 'Default VAT Bus. Posting Grp';
+            ToolTip = 'Specifies the default VAT business posting group for the customers and vendors.';
             TableRelation = "VAT Assisted Setup Bus. Grp.".Code where(Selected = const(true),
                                                                        Default = const(false));
         }
@@ -55,6 +57,7 @@ table 1878 "VAT Assisted Setup Templates"
         field(4; "Default VAT Prod. Posting Grp"; Code[20])
         {
             Caption = 'Default VAT Prod. Posting Grp';
+            ToolTip = 'Specifies the default VAT production posting group for the customers and vendors.';
             TableRelation = "VAT Setup Posting Groups"."VAT Prod. Posting Group" where(Selected = const(true),
                                                                                         Default = const(false));
         }

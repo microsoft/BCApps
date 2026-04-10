@@ -43,7 +43,6 @@ page 741 "VAT Report Subform"
                 field("Country/Region Code"; Rec."Country/Region Code")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the country/region of the address.';
                 }
                 field("VAT Registration No."; Rec."VAT Registration No.")
                 {

@@ -295,17 +295,6 @@ table 1523 "Workflow Step Argument"
         exit("Notification User ID");
     end;
 
-#if not CLEAN26
-    [Obsolete('Use GetNotificationUserId(var Variant: Variant): Text[50] instead.', '26.0')]
-    procedure GetNotificationUserID(ApprovalEntry: Record "Approval Entry") NotificationUserID: Text[50]
-    begin
-        if "Notification User ID" <> '' then
-            exit("Notification User ID");
-        if "Notify Sender" then
-            exit(ApprovalEntry."Sender ID");
-        exit(ApprovalEntry."Approver ID");
-    end;
-#endif
     procedure GetNotificationUserName(): Text
     begin
         if "Notify Sender" then

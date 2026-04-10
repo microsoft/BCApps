@@ -16,9 +16,8 @@ using System.Utilities;
 
 report 780 "Certificate of Supply"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/CertificateofSupply.rdlc';
     Caption = 'Certificate of Supply';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -276,6 +275,16 @@ report 780 "Certificate of Supply"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/CertificateofSupply.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

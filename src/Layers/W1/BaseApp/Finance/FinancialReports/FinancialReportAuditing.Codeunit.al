@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.FinancialReports;
 
 using System.DataAdministration;
+using System.DateTime;
 using System.Upgrade;
 
 codeunit 8390 "Financial Report Auditing"
@@ -30,6 +31,17 @@ codeunit 8390 "Financial Report Auditing"
         FinancialReportAuditLog.Format := Format;
         FinancialReportAuditLog.Scheduled := Scheduled;
         FinancialReportAuditLog.Insert();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Financial Report Audit Log", OnBeforeInsertEvent, '', false, false)]
+    local procedure FinancialReportAuditLogOnBeforeInsert(var Rec: Record "Financial Report Audit Log")
+    var
+        DotNetDateTimeOffset: Codeunit DotNet_DateTimeOffset;
+        UTCDateTime: DateTime;
+    begin
+        UTCDateTime := DotNetDateTimeOffset.ConvertToUtcDateTime(CurrentDateTime());
+        Rec."Run at Date (UTC)" := UTCDateTime.Date;
+        Rec."Run at Time (UTC)" := UTCDateTime.Time;
     end;
 
     procedure AddRetentionPolicy()
@@ -65,7 +77,6 @@ codeunit 8390 "Financial Report Auditing"
     begin
         exit('612825-FinancialReportAuditLogAddRetentionPolicy-20251124');
     end;
-
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure OnGetPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])

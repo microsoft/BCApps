@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ table 550 "VAT Rate Change Setup"
         field(10; "Update Gen. Prod. Post. Groups"; Option)
         {
             Caption = 'Update Gen. Prod. Post. Groups';
+            ToolTip = 'Specifies the VAT rate change for general product posting groups.';
             InitValue = "VAT Prod. Posting Group";
             OptionCaption = 'VAT Prod. Posting Group,,,No';
             OptionMembers = "VAT Prod. Posting Group",,,No;
@@ -48,6 +49,7 @@ table 550 "VAT Rate Change Setup"
         field(15; "Update G/L Accounts"; Option)
         {
             Caption = 'Update G/L Accounts';
+            ToolTip = 'Specifies the VAT rate change for general ledger accounts.';
             InitValue = Both;
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
@@ -59,6 +61,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Update Items';
+            ToolTip = 'Specifies the VAT rate change for items.';
             InitValue = Both;
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
@@ -70,6 +73,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Update Item Templates';
+            ToolTip = 'Specifies that VAT rate changes are updated for item categories.';
             InitValue = Both;
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
@@ -81,6 +85,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData "Item Charge" = R;
             Caption = 'Update Item Charges';
+            ToolTip = 'Specifies the VAT rate change for item charges.';
             InitValue = Both;
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
@@ -92,6 +97,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData Resource = R;
             Caption = 'Update Resources';
+            ToolTip = 'Specifies the VAT rate change for resources.';
             InitValue = Both;
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
@@ -102,6 +108,7 @@ table 550 "VAT Rate Change Setup"
         field(30; "Update Gen. Journal Lines"; Option)
         {
             Caption = 'Update Gen. Journal Lines';
+            ToolTip = 'Specifies the VAT rate change for general journal lines.';
             InitValue = Both;
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
@@ -113,6 +120,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData "Gen. Jnl. Allocation" = R;
             Caption = 'Update Gen. Journal Allocation';
+            ToolTip = 'Specifies the VAT rate change for general journal allocation.';
             InitValue = Both;
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
@@ -123,6 +131,7 @@ table 550 "VAT Rate Change Setup"
         field(32; "Update Std. Gen. Jnl. Lines"; Option)
         {
             Caption = 'Update Std. Gen. Jnl. Lines';
+            ToolTip = 'Specifies the VAT rate change for standard general journal lines.';
             InitValue = Both;
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
@@ -134,6 +143,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData Resource = R;
             Caption = 'Update Res. Journal Lines';
+            ToolTip = 'Specifies the VAT rate change for resource journal lines.';
             InitValue = "Gen. Prod. Posting Group";
             OptionCaption = ',Gen. Prod. Posting Group,,No';
             OptionMembers = ,"Gen. Prod. Posting Group",,No;
@@ -145,6 +155,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData Job = R;
             Caption = 'Update Project Journal Lines';
+            ToolTip = 'Specifies the VAT rate change for job journal lines.';
             InitValue = "Gen. Prod. Posting Group";
             OptionCaption = ',Gen. Prod. Posting Group,,No';
             OptionMembers = ,"Gen. Prod. Posting Group",,No;
@@ -156,6 +167,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData "Req. Wksh. Template" = R;
             Caption = 'Update Requisition Lines';
+            ToolTip = 'Specifies the VAT rate change for requisition lines.';
             InitValue = "Gen. Prod. Posting Group";
             OptionCaption = ',Gen. Prod. Posting Group,,No';
             OptionMembers = ,"Gen. Prod. Posting Group",,No;
@@ -167,6 +179,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Update Std. Item Jnl. Lines';
+            ToolTip = 'Specifies the VAT rate change for standard item journal lines.';
             InitValue = "Gen. Prod. Posting Group";
             OptionCaption = ',Gen. Prod. Posting Group,,No';
             OptionMembers = ,"Gen. Prod. Posting Group",,No;
@@ -178,6 +191,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData "Sales Header" = R;
             Caption = 'Update Sales Documents';
+            ToolTip = 'Specifies the VAT rate change for sales documents.';
             InitValue = Both;
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
@@ -189,6 +203,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData "Purchase Header" = R;
             Caption = 'Update Purchase Documents';
+            ToolTip = 'Specifies the VAT rate change for purchase documents.';
             InitValue = Both;
             OptionCaption = 'VAT Prod. Posting Group,Gen. Prod. Posting Group,Both,No';
             OptionMembers = "VAT Prod. Posting Group","Gen. Prod. Posting Group",Both,No;
@@ -200,6 +215,7 @@ table 550 "VAT Rate Change Setup"
         {
             AccessByPermission = TableData "Sales Header" = R;
             Caption = 'Update Reminders';
+            ToolTip = 'Specifies the VAT rate change for reminders.';
             InitValue = "VAT Prod. Posting Group";
             OptionCaption = 'VAT Prod. Posting Group,,,No';
             OptionMembers = "VAT Prod. Posting Group",,,No;
@@ -210,6 +226,7 @@ table 550 "VAT Rate Change Setup"
         field(75; "Update Finance Charge Memos"; Option)
         {
             Caption = 'Update Finance Charge Memos';
+            ToolTip = 'Specifies the VAT rate change for finance charge memos.';
             InitValue = "VAT Prod. Posting Group";
             OptionCaption = 'VAT Prod. Posting Group,,,No';
             OptionMembers = "VAT Prod. Posting Group",,,No;
@@ -220,6 +237,7 @@ table 550 "VAT Rate Change Setup"
         field(90; "VAT Rate Change Tool Completed"; Boolean)
         {
             Caption = 'VAT Rate Change Tool Completed';
+            ToolTip = 'Specifies if the VAT rate change conversion is complete.';
             InitValue = false;
         }
         /// <summary>
@@ -228,6 +246,7 @@ table 550 "VAT Rate Change Setup"
         field(91; "Ignore Status on Sales Docs."; Boolean)
         {
             Caption = 'Ignore Status on Sales Docs.';
+            ToolTip = 'Specifies that all existing sales documents regardless of status, including documents with a status of released, are updated.';
             InitValue = true;
         }
         /// <summary>
@@ -236,6 +255,7 @@ table 550 "VAT Rate Change Setup"
         field(92; "Ignore Status on Purch. Docs."; Boolean)
         {
             Caption = 'Ignore Status on Purch. Docs.';
+            ToolTip = 'Specifies all existing purchase documents regardless of status, including documents with a status of released, are updated.';
             InitValue = true;
         }
         /// <summary>
@@ -244,6 +264,7 @@ table 550 "VAT Rate Change Setup"
         field(93; "Perform Conversion"; Boolean)
         {
             Caption = 'Perform Conversion';
+            ToolTip = 'Specifies that the VAT rate conversion is performed on existing data.';
         }
         /// <summary>
         /// Filter used to limit which items are included in the VAT rate change conversion process.
@@ -251,6 +272,7 @@ table 550 "VAT Rate Change Setup"
         field(100; "Item Filter"; Text[250])
         {
             Caption = 'Item Filter';
+            ToolTip = 'Specifies which items will be updated by setting appropriate filters.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
@@ -260,6 +282,7 @@ table 550 "VAT Rate Change Setup"
         field(101; "Account Filter"; Text[250])
         {
             Caption = 'Account Filter';
+            ToolTip = 'Specifies which accounts will be updated by setting appropriate filters.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
@@ -269,6 +292,7 @@ table 550 "VAT Rate Change Setup"
         field(102; "Resource Filter"; Text[250])
         {
             Caption = 'Resource Filter';
+            ToolTip = 'Specifies which resources will be updated by setting appropriate filters.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
@@ -278,6 +302,7 @@ table 550 "VAT Rate Change Setup"
         field(110; "Update Unit Price For G/L Acc."; Boolean)
         {
             Caption = 'Update Unit Prices for G/L Accounts';
+            ToolTip = 'Specifies that the unit price must be updated for document lines that have the type G/L Account.';
         }
         /// <summary>
         /// Specifies whether unit prices should be updated for item charge lines when prices include VAT.
@@ -285,6 +310,7 @@ table 550 "VAT Rate Change Setup"
         field(111; "Upd. Unit Price For Item Chrg."; Boolean)
         {
             Caption = 'Update Unit Prices for Item Charges';
+            ToolTip = 'Specifies that the unit price must be updated for document lines that have the type Charge (Item).';
         }
         /// <summary>
         /// Specifies whether unit prices should be updated for fixed asset lines when prices include VAT.
@@ -292,6 +318,7 @@ table 550 "VAT Rate Change Setup"
         field(112; "Upd. Unit Price For FA"; Boolean)
         {
             Caption = 'Update Unit Prices for Fixed Assets';
+            ToolTip = 'Specifies that the unit price must be updated for document lines that have the type Fixed Asset.';
         }
     }
 

@@ -35,10 +35,9 @@ using System.Utilities;
 
 report 402 "Purchase Document - Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/PurchaseDocumentTest.rdlc';
     Caption = 'Purchase Document - Test';
     WordMergeDataItem = "Purchase Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -2032,6 +2031,16 @@ report 402 "Purchase Document - Test"
                 InvOnNextPostReq := true;
             end;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/PurchaseDocumentTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

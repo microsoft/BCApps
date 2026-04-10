@@ -19,6 +19,7 @@ using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Activity.History;
 using Microsoft.Warehouse.Availability;
 using Microsoft.Warehouse.History;
+using Microsoft.Warehouse.InventoryDocument;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Structure;
@@ -36,8 +37,6 @@ codeunit 6516 "Package Management"
         PackageNoRequiredErr: Label 'You must assign a package number for item %1.', Comment = '%1 - Item No.';
         LineNoTxt: Label ' Line No. = ''%1''.', Comment = '%1 - Line No.';
         CannotBeFullyAppliedErr: Label 'Item Tracking Serial No. %1 Lot No. %2 Package No. %3 for Item No. %4 Variant %5 cannot be fully applied.', Comment = '%1 - Serial No., %2  - Lot No., %3 - Package No., %4 - Item No., %5 - Variant Code';
-
-
 
 
     // Tracking Specification subscribers
@@ -898,6 +897,12 @@ codeunit 6516 "Package Management"
     local procedure ItemTrackingSetupCopyTrackingFromTrackingSpec(var ItemTrackingSetup: Record "Item Tracking Setup"; TrackingSpecification: Record "Tracking Specification")
     begin
         ItemTrackingSetup."Package No." := TrackingSpecification."Package No.";
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Tracking Setup", OnAfterCopyTrackingFromPostedInvtPickLine, '', false, false)]
+    local procedure ItemTrackingSetupCopyTrackingFromPostedInvtPickLine(var ItemTrackingSetup: Record "Item Tracking Setup"; PostedInvtPickLine: Record "Posted Invt. Pick Line")
+    begin
+        ItemTrackingSetup."Package No." := PostedInvtPickLine."Package No.";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Item Tracking Setup", 'OnAfterCopyTrackingFromWhseActivityLine', '', false, false)]

@@ -45,7 +45,9 @@ codeunit 10615 "E-Invoice Check Sales Invoice"
     begin
         // If it's RTC, is there a location for storing the file? If not, don't create the e-invoice
         SalesSetup.Get();
+#if not CLEAN29
         SalesSetup.TestField("E-Invoice Sales Invoice Path");
+#endif
     end;
 }
 

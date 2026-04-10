@@ -19,16 +19,22 @@ report 10641 "Create Electronic Credit Memos"
         dataitem("Sales Cr.Memo Header"; "Sales Cr.Memo Header")
         {
             DataItemTableView = sorting("No.");
+#if not CLEAN29
             RequestFilterFields = "No.", "Sell-to Customer No.", "Bill-to Customer No.", GLN, "E-Invoice Created";
+#endif
 
             trigger OnAfterGetRecord()
+#if not CLEAN29
             var
                 EInvoiceExpSalesCrMemo: Codeunit "E-Invoice Exp. Sales Cr. Memo";
+#endif
             begin
+#if not CLEAN29
                 EInvoiceExpSalesCrMemo.Run("Sales Cr.Memo Header");
                 EInvoiceExpSalesCrMemo.GetExportedFileInfo(TempEInvoiceTransferFile);
                 TempEInvoiceTransferFile."Line No." := Counter + 1;
                 TempEInvoiceTransferFile.Insert();
+#endif
 
                 if LogInteraction then
                     SegManagement.LogDocument(
@@ -40,10 +46,14 @@ report 10641 "Create Electronic Credit Memos"
             end;
 
             trigger OnPostDataItem()
+#if not CLEAN29
             var
                 EInvoiceExportCommon: Codeunit "E-Invoice Export Common";
+#endif
             begin
+#if not CLEAN29
                 EInvoiceExportCommon.DownloadEInvoiceFile(TempEInvoiceTransferFile);
+#endif
                 Message(Text002, Counter);
             end;
 
@@ -56,24 +66,32 @@ report 10641 "Create Electronic Credit Memos"
                 // Any electronic credit memos?
                 SalesCrMemoHeader.Copy("Sales Cr.Memo Header");
                 SalesCrMemoHeader.FilterGroup(6);
+#if not CLEAN29
                 SalesCrMemoHeader.SetRange("E-Invoice", true);
+#endif
                 if not SalesCrMemoHeader.FindFirst() then
                     Error(Text003);
 
                 // All electronic credit memos?
+#if not CLEAN29
                 SalesCrMemoHeader.SetRange("E-Invoice", false);
+#endif
                 if SalesCrMemoHeader.FindFirst() then
                     if not Confirm(Text000, true) then
                         CurrReport.Quit();
+#if not CLEAN29
                 SalesCrMemoHeader.SetRange("E-Invoice");
 
                 // Some already sent?
                 SalesCrMemoHeader.SetRange("E-Invoice Created", true);
+#endif
                 if SalesCrMemoHeader.FindFirst() then
                     if not Confirm(Text001, true) then
                         CurrReport.Quit();
 
+#if not CLEAN29
                 SetRange("E-Invoice", true);
+#endif
             end;
         }
     }
@@ -126,7 +144,9 @@ report 10641 "Create Electronic Credit Memos"
     end;
 
     var
+#if not CLEAN29
         TempEInvoiceTransferFile: Record "E-Invoice Transfer File" temporary;
+#endif
         SegManagement: Codeunit SegManagement;
         Counter: Integer;
         Text000: Label 'One or more credit memo documents that match your filter criteria are not electronic credit memos and will be skipped.\\Do you want to continue?';

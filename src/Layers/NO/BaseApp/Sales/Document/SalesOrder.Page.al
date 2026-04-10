@@ -950,15 +950,22 @@ page 42 "Sales Order"
                         }
                     }
                 }
+#if not CLEAN29
                 field(GLN; Rec.GLN)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the global location number of the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 field("Account Code"; Rec."Account Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the account code of the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
 
                     trigger OnValidate()
                     begin
@@ -969,7 +976,11 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether the customer is part of the EHF system and requires an electronic sales order.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;
@@ -1212,32 +1223,6 @@ page 42 "Sales Order"
             {
                 Caption = 'O&rder';
                 Image = "Order";
-#if not CLEAN26
-                action(Statistics)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Statistics';
-                    Image = Statistics;
-                    ShortCutKey = 'F7';
-                    ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-                    ObsoleteReason = 'The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-
-                    trigger OnAction()
-                    var
-                        Handled: Boolean;
-                    begin
-                        Handled := false;
-                        OnBeforeStatisticsAction(Rec, Handled);
-                        if Handled then
-                            exit;
-
-                        Rec.OpenSalesOrderStatistics();
-                        CurrPage.SalesLines.Page.ForceTotalsCalculation();
-                    end;
-                }
-#endif
                 action(SalesOrderStatistics)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1245,11 +1230,7 @@ page 42 "Sales Order"
                     Enabled = Rec."No." <> '';
                     Image = Statistics;
                     ShortCutKey = 'F7';
-#if CLEAN26
                     Visible = true;
-#else
-                    Visible = false;
-#endif
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
                     RunObject = Page "Sales Order Statistics";
                     RunPageOnRec = true;
@@ -2473,18 +2454,9 @@ page 42 "Sales Order"
                 actionref(Dimensions_Promoted; Dimensions)
                 {
                 }
-#if not CLEAN26
-                actionref(Statistics_Promoted; Statistics)
-                {
-                    ObsoleteReason = 'The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                }
-#else
                 actionref(SalesOrderStatistics_Promoted; SalesOrderStatistics)
                 {
                 }
-#endif
                 actionref("Co&mments_Promoted"; "Co&mments")
                 {
                 }
@@ -2558,7 +2530,9 @@ page 42 "Sales Order"
     begin
         if GuiAllowed() then begin
             IsSalesLinesEditable := Rec.SalesLinesEditable();
+#if not CLEAN29
             SellToCustomerUsesEInvoicing := CustomerUsesEInvoicing(Rec."Sell-to Customer No.");
+#endif
             CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
             CurrPage.ApprovalFactBox.PAGE.UpdateApprovalEntriesFromSourceRecord(Rec.RecordId);
         end;
@@ -2610,8 +2584,9 @@ page 42 "Sales Order"
     begin
         JobQueuesUsed := SalesSetup.JobQueueActive();
         SetExtDocNoMandatoryCondition();
+#if not CLEAN29
         SellToCustomerUsesEInvoicing := CustomerUsesEInvoicing(Rec."Sell-to Customer No.");
-
+#endif
         IsPowerAutomatePrivacyNoticeApproved := PrivacyNotice.GetPrivacyNoticeApprovalState(FlowServiceManagement.GetPowerAutomatePrivacyNoticeId()) = "Privacy Notice Approval State"::Agreed;
     end;
 
@@ -2858,10 +2833,12 @@ page 42 "Sales Order"
         CurrPage.Update();
     end;
 
+#if not CLEAN29
     local procedure AccountCodeOnAfterValidate()
     begin
         CurrPage.SalesLines.PAGE.UpdateForm(true)
     end;
+#endif
 
     local procedure Prepayment37OnAfterValidate()
     begin
@@ -2876,6 +2853,8 @@ page 42 "Sales Order"
         DocNoVisible := DocumentNoVisibility.SalesDocumentNoIsVisible(DocType::Order, Rec."No.");
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     local procedure CustomerUsesEInvoicing(CustomerNo: Code[20]): Boolean
     var
         Customer: Record Customer;
@@ -2884,6 +2863,7 @@ page 42 "Sales Order"
             exit(Customer."E-Invoice");
         exit(false)
     end;
+#endif
 
     local procedure SetExtDocNoMandatoryCondition()
     begin
@@ -2987,13 +2967,6 @@ page 42 "Sales Order"
             IsPostingGroupEditable := BillToCustomer."Allow Multiple Posting Groups";
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeStatisticsAction(var SalesHeader: Record "Sales Header"; var Handled: Boolean)
-    begin
-    end;
-#endif
     /// <summary>
     /// Sets a flag to check notifications once on the next update.
     /// </summary>

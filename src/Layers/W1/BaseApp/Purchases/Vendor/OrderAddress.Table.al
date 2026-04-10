@@ -211,6 +211,8 @@ table 224 "Order Address"
         Text000: Label 'untitled';
 #pragma warning restore AA0074
         Vend: Record Vendor;
+
+    protected var
         PostCode: Record "Post Code";
 
     procedure Caption(): Text

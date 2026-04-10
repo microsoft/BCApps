@@ -7,7 +7,7 @@ codeunit 7106 "O365 Bidirectional Sync"
         LastSyncCreatedCount: Integer;
         NextEntryNo: Integer;
         NoContactsFoundMsg: Label 'No contacts found in the selected folder to Synchronize.';
-        StartMsgTxt: Label 'Retrieving your contacts...';
+        StartMsgTxt: Label 'Retrieving your contacts... This will take some time.';
         ContentTypeLbl: Label 'application/json', Locked = true;
         ResponseLbl: Label 'Folder ID not found in the response.';
         RetrievedContactsMsg: Label 'Found %1 contacts', Comment = '%1 = count of contacts';
@@ -128,7 +128,7 @@ codeunit 7106 "O365 Bidirectional Sync"
             Error(UpgradeInProgressErr);
 
         OutSyncQueue.DeleteAll();
-        ProgressDialog.Open(StartMsgTxt);
+        Clear(ExistingEmails);
         LastSyncCreatedCount := 0;
         NextEntryNo := 1;
         Counter := 0;
@@ -151,7 +151,7 @@ codeunit 7106 "O365 Bidirectional Sync"
                 Uri := DeltaUrl; // delta sync
         end else
             DoFullSync(FolderId, O365Records, Uri);
-
+        ProgressDialog.Open(StartMsgTxt);
         Session.LogMessage('0000QT9', StrSubstNo(FetchingContactsFromGraphTxt, Uri), Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', getTracecat());
         SetupHttpClientHeaders(HttpClient, AccessToken);
         // Pre-load existing emails into dictionary for O(1) lookup
@@ -454,12 +454,10 @@ codeunit 7106 "O365 Bidirectional Sync"
         ContactSyncUserRec.Reset();
         ContactSyncUserRec.SetCurrentKey("User ID", "Folder ID");
         ContactSyncUserRec.SetRange("User ID", CopyStr(UserId(), 1, 50));
-        ContactSyncUserRec.SetRange("Folder ID", FolderId);
+        ContactSyncUserRec.SetRange("Folder ID", CopyStr(FolderId, 1, 250));
         ContactSyncUserRec.SetLoadFields("Delta Url");
-        if ContactSyncUserRec.FindFirst() then begin
-            ContactSyncUserRec.MigrateDeltaUrlToIsolatedStorage();
+        if ContactSyncUserRec.FindFirst() then
             exit(ContactSyncUserRec.GetDeltaUrl());
-        end;
         exit('');
     end;
 

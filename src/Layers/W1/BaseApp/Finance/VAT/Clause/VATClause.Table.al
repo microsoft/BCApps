@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ table 560 "VAT Clause"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for a VAT clause, which is used to provide a VAT description associated with a sales line on a sales invoice, credit memo, or other sales document.';
             NotBlank = true;
         }
         /// <summary>
@@ -45,6 +46,7 @@ table 560 "VAT Clause"
         field(2; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the descriptive text that is associated with a VAT clause.';
         }
         /// <summary>
         /// Additional description text providing extended information about the VAT clause requirements.
@@ -52,6 +54,7 @@ table 560 "VAT Clause"
         field(3; "Description 2"; Text[250])
         {
             Caption = 'Description 2';
+            ToolTip = 'Specifies an additional description of a VAT clause.';
         }
         /// <summary>
         /// Timestamp indicating when the VAT clause record was last modified for audit and synchronization purposes.

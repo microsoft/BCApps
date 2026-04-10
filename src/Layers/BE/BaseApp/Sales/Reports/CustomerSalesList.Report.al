@@ -19,13 +19,12 @@ report 119 "Customer - Sales List"
     ObsoleteState = Pending;
     ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
     ObsoleteTag = '28.0';
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/Reports/CustomerSalesList.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Customer - Sales List';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -161,6 +160,16 @@ report 119 "Customer - Sales List"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reports/CustomerSalesList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

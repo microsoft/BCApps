@@ -383,7 +383,9 @@ page 21 "Customer Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
+#if not CLEAN29
                     ShowMandatory = Rec."E-Invoice";
+#endif
                 }
                 field("Use GLN in Electronic Document"; Rec."Use GLN in Electronic Document")
                 {
@@ -393,16 +395,24 @@ page 21 "Customer Card"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+#if not CLEAN29
                 field("Account Code"; Rec."Account Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the account code for the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 field("E-Invoice"; Rec."E-Invoice")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether the customer is part of the EHF system and requires an electronic invoice.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field("Tax Liable"; Rec."Tax Liable")
                 {
                     ApplicationArea = SalesTax;

@@ -27,4 +27,6 @@ enum 13115 "Non-Taxable Income Type"
     value(15; "22") { Caption = 'Type 22'; }
     value(16; "23") { Caption = 'Type 23'; }
     value(17; "24") { Caption = 'Type 24'; }
+    value(18; "25") { Caption = 'Type 25'; }
+    value(19; "26") { Caption = 'Type 26'; }
 }

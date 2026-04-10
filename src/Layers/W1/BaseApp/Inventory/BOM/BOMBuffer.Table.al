@@ -772,11 +772,17 @@ table 5870 "BOM Buffer"
     end;
 
     procedure CalcUnitCost()
+    var
+        StandardCost: Decimal;
     begin
         "Total Cost" := CalcDirectCost() + CalcIndirectCost();
         "Unit Cost" := 0;
         if "Qty. per Top Item" <> 0 then
             "Unit Cost" := Round("Total Cost" / "Qty. per Top Item", 0.00001);
+
+        if ShouldUseStandardCost(StandardCost) then
+            "Unit Cost" := StandardCost;
+
         OnAfterCalcUnitCost(Rec);
     end;
 
@@ -983,6 +989,26 @@ table 5870 "BOM Buffer"
     procedure SetItemWarningLog(var BOMWarningLog: Record "BOM Warning Log"; var Item: Record Item; WarningText: Text)
     begin
         BOMWarningLog.SetWarning(StrSubstNo(WarningText, Item."No."), DATABASE::Item, CopyStr(Item.GetPosition(), 1, 250));
+    end;
+
+    local procedure ShouldUseStandardCost(var StandardCost: Decimal): Boolean
+    var
+        Item: Record Item;
+    begin
+        if (Type <> Type::Item) or ("No." = '') then
+            exit(false);
+
+        if not Item.Get("No.") then
+            exit(false);
+
+        if Item."Costing Method" <> Item."Costing Method"::Standard then
+            exit(false);
+
+        if Item."Standard Cost" = 0 then
+            exit(false);
+        StandardCost := Item."Standard Cost";
+
+        exit(true);
     end;
 
     [IntegrationEvent(false, false)]

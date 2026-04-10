@@ -72,30 +72,6 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         VerifyMachineCenterCalendar(MachineCenter, WorkCenter."No.");
     end;
 
-#if not CLEAN26
-    [Test]
-    [HandlerFunctions('MachineCenterListRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure MachineCenterListReport()
-    var
-        WorkCenter: Record "Work Center";
-        MachineCenter: Record "Machine Center";
-    begin
-        // Setup: Create Work Center and Machine Center.
-        Initialize();
-        CreateWorkCenter(WorkCenter);
-        CreateMachineCenter(MachineCenter, WorkCenter."No.");
-
-        // Exercise: Generate the Machine Center List report.
-        Commit();
-        MachineCenter.SetRange("No.", MachineCenter."No.");
-        REPORT.Run(REPORT::"Machine Center List", true, false, MachineCenter);
-
-        // Verify: Verify Machine Center details on Generated Report.
-        VerifyMachineCenterList(MachineCenter);
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('ProdOrderRoutingListRequestPageHandler')]
     [Scope('OnPrem')]
@@ -137,28 +113,6 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         // Verify: Verify Production Order details on Generated Report.
         VerifyProdOrderList(ProductionOrder);
     end;
-
-#if not CLEAN26
-    [Test]
-    [HandlerFunctions('WorkCenterListRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure WorkCenterListReport()
-    var
-        WorkCenter: Record "Work Center";
-    begin
-        // Setup: Create Work Center.
-        Initialize();
-        CreateWorkCenter(WorkCenter);
-
-        // Exercise: Run Calculate Work Center List Report.
-        Commit();
-        WorkCenter.SetRange("No.", WorkCenter."No.");
-        REPORT.Run(REPORT::"Work Center List", true, false, WorkCenter);
-
-        // Verify: Verify Work Center details on Generated Report.
-        VerifyWorkCenterList(WorkCenter);
-    end;
-#endif
 
     [Test]
     [HandlerFunctions('WorkMachineCenterLoadRequestPageHandler')]
@@ -1060,18 +1014,6 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         until CalendarEntry.Next() = 0;
     end;
 
-#if not CLEAN26
-    local procedure VerifyMachineCenterList(MachineCenter: Record "Machine Center")
-    begin
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('Machine_Center__No__', MachineCenter."No.");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('Machine_Center__Work_Center_No__', MachineCenter."Work Center No.");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Machine_Center_Capacity', MachineCenter.Capacity);
-        LibraryReportDataset.AssertCurrentRowValueEquals('Machine_Center_Efficiency', MachineCenter.Efficiency);
-    end;
-#endif
-
     local procedure VerifyMachineCenterLoadBar(MachineCenter: Record "Machine Center"; NoOfPeriods: Integer)
     var
         VarDate: Variant;
@@ -1094,18 +1036,6 @@ codeunit 137310 "SCM Manufacturing Reports -II"
 
         Assert.AreEqual(NoOfPeriods, Count, NoOfLinesError);
     end;
-
-#if not CLEAN26
-    local procedure VerifyWorkCenterList(WorkCenter: Record "Work Center")
-    begin
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('Work_Center__No__', WorkCenter."No.");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('Work_Center__Work_Center_Group_Code_', WorkCenter."Work Center Group Code");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Work_Center__Shop_Calendar_Code_', WorkCenter."Shop Calendar Code");
-        LibraryReportDataset.AssertCurrentRowValueEquals('Work_Center_Capacity', WorkCenter.Capacity);
-    end;
-#endif
 
     local procedure VerifyProdOrderList(ProductionOrder: Record "Production Order")
     begin
@@ -1284,15 +1214,6 @@ codeunit 137310 "SCM Manufacturing Reports -II"
     begin
     end;
 
-#if not CLEAN26
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure MachineCenterListRequestPageHandler(var MachineCenterList: TestRequestPage "Machine Center List")
-    begin
-        MachineCenterList.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-#endif
-
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure ProdOrderRoutingListRequestPageHandler(var ProdOrderRoutingList: TestRequestPage "Prod. Order - Routing List")
@@ -1306,15 +1227,6 @@ codeunit 137310 "SCM Manufacturing Reports -II"
     begin
         ProdOrderList.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
-
-#if not CLEAN26
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure WorkCenterListRequestPageHandler(var WorkCenterList: TestRequestPage "Work Center List")
-    begin
-        WorkCenterList.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -73,6 +73,7 @@ table 181 "Posted Gen. Journal Line"
         field(1; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
+            ToolTip = 'Specifies the name of the journal template.';
         }
         /// <summary>
         /// Original line number from the general journal line before posting.
@@ -88,6 +89,7 @@ table 181 "Posted Gen. Journal Line"
         field(3; "Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Account Type';
+            ToolTip = 'Specifies the type of account that the entry on the journal line will be posted to.';
         }
         /// <summary>
         /// Account number that was posted to in the original journal transaction.
@@ -95,6 +97,7 @@ table 181 "Posted Gen. Journal Line"
         field(4; "Account No."; Code[20])
         {
             Caption = 'Account No.';
+            ToolTip = 'Specifies the account number that the entry on the journal line will be posted to.';
             TableRelation = if ("Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
                                                                                           Blocked = const(false))
             else
@@ -116,6 +119,7 @@ table 181 "Posted Gen. Journal Line"
         field(5; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
             ClosingDates = true;
         }
         /// <summary>
@@ -124,6 +128,7 @@ table 181 "Posted Gen. Journal Line"
         field(6; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of document that the entry on the journal line is.';
         }
         /// <summary>
         /// Document number of the posted transaction for reference and tracking.
@@ -131,6 +136,7 @@ table 181 "Posted Gen. Journal Line"
         field(7; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies a document number for the journal line.';
         }
         /// <summary>
         /// Description text from the original journal line explaining the transaction purpose.
@@ -138,6 +144,7 @@ table 181 "Posted Gen. Journal Line"
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the entry.';
         }
         /// <summary>
         /// VAT percentage rate applied to the posted transaction amount.
@@ -157,6 +164,7 @@ table 181 "Posted Gen. Journal Line"
         field(11; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account to which a balancing entry for the journal line will posted (for example, a cash account for cash purchases).';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
                                                                                                Blocked = const(false))
             else
@@ -178,6 +186,7 @@ table 181 "Posted Gen. Journal Line"
         field(12; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the code of the currency for the amounts on the journal line.';
             TableRelation = Currency;
         }
         /// <summary>
@@ -188,6 +197,7 @@ table 181 "Posted Gen. Journal Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the total amount (including VAT) that the journal line consists of.';
         }
         /// <summary>
         /// Debit amount of the posted transaction (always positive when displayed).
@@ -198,6 +208,7 @@ table 181 "Posted Gen. Journal Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the total amount (including VAT) that the journal line consists of, if it is a debit amount.';
         }
         /// <summary>
         /// Credit amount for the posted transaction when using debit/credit presentation.
@@ -208,6 +219,7 @@ table 181 "Posted Gen. Journal Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the total amount (including VAT) that the journal line consists of, if it is a credit amount.';
         }
         /// <summary>
         /// Transaction amount converted to local currency using posting date exchange rate.
@@ -301,6 +313,7 @@ table 181 "Posted Gen. Journal Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
         }
@@ -311,6 +324,7 @@ table 181 "Posted Gen. Journal Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
         }
@@ -400,6 +414,7 @@ table 181 "Posted Gen. Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of items to be included on the journal line.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -410,6 +425,7 @@ table 181 "Posted Gen. Journal Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'VAT Amount';
+            ToolTip = 'Specifies the amount of VAT included in the total amount.';
         }
         /// <summary>
         /// VAT posting method used (Automatic or Manual VAT Entry).
@@ -450,6 +466,7 @@ table 181 "Posted Gen. Journal Line"
         field(51; "Journal Batch Name"; Code[10])
         {
             Caption = 'Journal Batch Name';
+            ToolTip = 'Specifies the name of the journal batch.';
             TableRelation = "Posted Gen. Journal Batch".Name where("Journal Template Name" = field("Journal Template Name"));
         }
         /// <summary>
@@ -488,6 +505,7 @@ table 181 "Posted Gen. Journal Line"
         field(57; "Gen. Posting Type"; Enum "General Posting Type")
         {
             Caption = 'Gen. Posting Type';
+            ToolTip = 'Specifies the general posting type that will be used when you post the entry on this journal line.';
         }
         /// <summary>
         /// General business posting group for posting setup determination.
@@ -495,6 +513,7 @@ table 181 "Posted Gen. Journal Line"
         field(58; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         /// <summary>
@@ -503,6 +522,7 @@ table 181 "Posted Gen. Journal Line"
         field(59; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         /// <summary>
@@ -535,6 +555,7 @@ table 181 "Posted Gen. Journal Line"
         field(63; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the code for the balancing account type that should be used in this journal line.';
         }
         /// <summary>
         /// General posting type for balancing account transactions.
@@ -542,6 +563,7 @@ table 181 "Posted Gen. Journal Line"
         field(64; "Bal. Gen. Posting Type"; Enum "General Posting Type")
         {
             Caption = 'Bal. Gen. Posting Type';
+            ToolTip = 'Specifies the general posting type associated with the balancing account that will be used when you post the entry on the journal line.';
         }
         /// <summary>
         /// General business posting group for balancing account posting setup.
@@ -549,6 +571,7 @@ table 181 "Posted Gen. Journal Line"
         field(65; "Bal. Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Bal. Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the general business posting group code associated with the balancing account that will be used when you post the entry.';
             TableRelation = "Gen. Business Posting Group";
         }
         /// <summary>
@@ -557,6 +580,7 @@ table 181 "Posted Gen. Journal Line"
         field(66; "Bal. Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Bal. Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the general product posting group code associated with the balancing account that will be used when you post the entry.';
             TableRelation = "Gen. Product Posting Group";
         }
         /// <summary>
@@ -749,6 +773,7 @@ table 181 "Posted Gen. Journal Line"
         field(90; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT business posting group code that will be used when you post the entry on the journal line.';
             TableRelation = "VAT Business Posting Group";
         }
         /// <summary>
@@ -757,6 +782,7 @@ table 181 "Posted Gen. Journal Line"
         field(91; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT product posting group. Links business transactions made for the item, resource, or G/L account with the general ledger, to account for VAT amounts resulting from trade with that record.';
             TableRelation = "VAT Product Posting Group";
         }
         /// <summary>
@@ -1446,6 +1472,7 @@ table 181 "Posted Gen. Journal Line"
         field(1700; "Deferral Code"; Code[10])
         {
             Caption = 'Deferral Code';
+            ToolTip = 'Specifies the deferral template that governs how expenses or revenue are deferred to the different accounting periods when the expenses or revenue were incurred.';
             TableRelation = "Deferral Template"."Deferral Code";
         }
         /// <summary>
@@ -1754,6 +1781,7 @@ table 181 "Posted Gen. Journal Line"
         field(8010; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
+            ToolTip = 'Specifies the number of the general ledger register.';
             TableRelation = "G/L Register";
         }
         /// <summary>

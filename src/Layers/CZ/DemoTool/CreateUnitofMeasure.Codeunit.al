@@ -10,7 +10,7 @@ codeunit 101204 "Create Unit of Measure"
         InsertData(XBOX, XBox2, 'BX');
         InsertData(XPALLET, XPallet2, 'PF');
         InsertData(XPACK, XPack2, 'PK');
-        InsertData(XMILES, XMiles2, '1A');
+        InsertData(XMILES, XMiles2, 'SMI');
         InsertData(KMTok, KilometerTok, 'KMT');
         InsertData(KGTok, KiloTok, 'KGM');
         InsertData(XG, XGram, 'GRM'); // NAVCZ
@@ -38,7 +38,7 @@ codeunit 101204 "Create Unit of Measure"
         KilometerTok: Label 'Kilometer';
         KMTok: Label 'KM';
         KGTok: Label 'KG';
-        KiloTok: Label 'Kilo';
+        KiloTok: Label 'Kilogram';
         XG: Label 'G';
         XGram: Label 'Gram';
 	    XSET: Label 'SET';

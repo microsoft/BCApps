@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -58,7 +58,6 @@ page 543 "Default Dimension Priorities"
                 field("Table ID"; Rec."Table ID")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the table ID for the account type, if you want to prioritize an account type.';
 
                     trigger OnValidate()
                     begin
@@ -69,12 +68,10 @@ page 543 "Default Dimension Priorities"
                 {
                     ApplicationArea = Dimensions;
                     DrillDown = false;
-                    ToolTip = 'Specifies the table name for the account type you wish to prioritize.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the priority of an account type, with the highest priority being 1.';
 
                     trigger OnValidate()
                     begin

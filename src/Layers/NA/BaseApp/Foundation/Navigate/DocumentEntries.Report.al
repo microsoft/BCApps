@@ -29,10 +29,9 @@ using System.Utilities;
 
 report 35 "Document Entries"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Foundation/Navigate/DocumentEntries.rdlc';
     Caption = 'Document Entries';
     AllowScheduling = false;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -1685,6 +1684,16 @@ report 35 "Document Entries"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Foundation/Navigate/DocumentEntries.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

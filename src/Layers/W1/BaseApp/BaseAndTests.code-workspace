@@ -28,9 +28,6 @@
 			"path": "..\\Tests\\DotNet-Internal"
 		},
 		{
-			"path": "..\\Tests\\DotNet-Internal"
-		},
-		{
 			"path": "..\\Tests\\ERM"
 		},
 		{
@@ -138,6 +135,9 @@
 		{
 			"path": "..\\Tests\\BCPT-SampleTests"
 		},
+		{
+			"path": "../../../../../../Users/v-cwurtzen/.claude/plans"
+		}
 	],
 	"settings": {}
 }

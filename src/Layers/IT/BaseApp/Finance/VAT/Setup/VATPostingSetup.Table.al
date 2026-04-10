@@ -40,6 +40,7 @@ table 325 "VAT Posting Setup"
         field(1; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
         }
         /// <summary>
@@ -48,6 +49,7 @@ table 325 "VAT Posting Setup"
         field(2; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Product Posting Group";
         }
         /// <summary>
@@ -56,6 +58,7 @@ table 325 "VAT Posting Setup"
         field(3; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
+            ToolTip = 'Specifies how VAT will be calculated for purchases or sales of items with this particular combination of VAT business posting group and VAT product posting group.';
 
             trigger OnValidate()
             begin
@@ -71,6 +74,7 @@ table 325 "VAT Posting Setup"
         {
             AutoFormatType = 0;
             Caption = 'VAT %';
+            ToolTip = 'Specifies the relevant VAT rate for the particular combination of VAT business posting group and VAT product posting group. Do not enter the percent sign, only the number. For example, if the VAT rate is 25 %, enter 25 in this field.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -89,6 +93,7 @@ table 325 "VAT Posting Setup"
         field(5; "Unrealized VAT Type"; Option)
         {
             Caption = 'Unrealized VAT Type';
+            ToolTip = 'Specifies how to handle unrealized VAT, which is VAT that is calculated but not due until the invoice is paid.';
             OptionCaption = ' ,Percentage,First,Last,First (Fully Paid),Last (Fully Paid)';
             OptionMembers = " ",Percentage,First,Last,"First (Fully Paid)","Last (Fully Paid)";
 
@@ -110,6 +115,7 @@ table 325 "VAT Posting Setup"
         field(6; "Adjust for Payment Discount"; Boolean)
         {
             Caption = 'Adjust for Payment Discount';
+            ToolTip = 'Specifies whether to recalculate VAT amounts when you post payments that trigger payment discounts.';
 
             trigger OnValidate()
             begin
@@ -127,6 +133,7 @@ table 325 "VAT Posting Setup"
         field(7; "Sales VAT Account"; Code[20])
         {
             Caption = 'Sales VAT Account';
+            ToolTip = 'Specifies the general ledger account number to which to post sales VAT for the particular combination of VAT business posting group and VAT product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -142,6 +149,7 @@ table 325 "VAT Posting Setup"
         field(8; "Sales VAT Unreal. Account"; Code[20])
         {
             Caption = 'Sales VAT Unreal. Account';
+            ToolTip = 'Specifies the general ledger account number to which to post unrealized sales VAT (as calculated when you post sales invoices) using this particular combination of VAT business posting group and VAT product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -157,6 +165,7 @@ table 325 "VAT Posting Setup"
         field(9; "Purchase VAT Account"; Code[20])
         {
             Caption = 'Purchase VAT Account';
+            ToolTip = 'Specifies the general ledger account number to which to post purchase VAT for the particular combination of business group and product group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -172,6 +181,7 @@ table 325 "VAT Posting Setup"
         field(10; "Purch. VAT Unreal. Account"; Code[20])
         {
             Caption = 'Purch. VAT Unreal. Account';
+            ToolTip = 'Specifies the general ledger account number to which to post unrealized purchase VAT (as calculated when you post purchase invoices) using this particular combination of VAT business posting group and VAT product posting group.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -187,6 +197,7 @@ table 325 "VAT Posting Setup"
         field(11; "Reverse Chrg. VAT Acc."; Code[20])
         {
             Caption = 'Reverse Chrg. VAT Acc.';
+            ToolTip = 'Specifies the general ledger account number to which you want to post reverse charge VAT (purchase VAT) for this combination of VAT business posting group and VAT product posting group, if you have selected the Reverse Charge VAT option in the VAT Calculation Type field.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -202,6 +213,7 @@ table 325 "VAT Posting Setup"
         field(12; "Reverse Chrg. VAT Unreal. Acc."; Code[20])
         {
             Caption = 'Reverse Chrg. VAT Unreal. Acc.';
+            ToolTip = 'Specifies the number of the general ledger account to post amounts for unrealized reverse charge VAT to.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -217,6 +229,7 @@ table 325 "VAT Posting Setup"
         field(13; "VAT Identifier"; Code[20])
         {
             Caption = 'VAT Identifier';
+            ToolTip = 'Specifies a code to group various VAT posting setups with similar attributes, for example VAT percentage.';
             TableRelation = "VAT Identifier";
 
             trigger OnValidate()
@@ -231,6 +244,7 @@ table 325 "VAT Posting Setup"
         field(14; "EU Service"; Boolean)
         {
             Caption = 'EU Service';
+            ToolTip = 'Specifies if this combination of VAT business posting group and VAT product posting group are to be reported as services in the periodic VAT reports.';
 
             trigger OnValidate()
             begin
@@ -243,6 +257,7 @@ table 325 "VAT Posting Setup"
         field(15; "VAT Clause Code"; Code[20])
         {
             Caption = 'VAT Clause Code';
+            ToolTip = 'Specifies the VAT Clause Code that is associated with the VAT Posting Setup.';
             TableRelation = "VAT Clause";
         }
         /// <summary>
@@ -251,6 +266,7 @@ table 325 "VAT Posting Setup"
         field(16; "Certificate of Supply Required"; Boolean)
         {
             Caption = 'Certificate of Supply Required';
+            ToolTip = 'Specifies if documents that use this combination of VAT business posting group and VAT product posting group require a certificate of supply.';
         }
         /// <summary>
         /// Tax category code used for electronic document transmission and VAT reporting purposes.
@@ -258,6 +274,7 @@ table 325 "VAT Posting Setup"
         field(17; "Tax Category"; Code[10])
         {
             Caption = 'Tax Category';
+            ToolTip = 'Specifies the VAT category in connection with electronic document sending. For example, when you send sales documents through the PEPPOL service, the value in this field is used to populate the TaxApplied element in the Supplier group. The number is based on the UNCL5305 standard.';
         }
         /// <summary>
         /// Descriptive text explaining the purpose and usage of this VAT posting setup combination.
@@ -265,6 +282,7 @@ table 325 "VAT Posting Setup"
         field(20; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the VAT posting setup';
         }
         /// <summary>
         /// Prevents the use of this VAT posting setup in new transactions when enabled.
@@ -272,6 +290,7 @@ table 325 "VAT Posting Setup"
         field(21; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies if this particular combination of VAT business posting group and VAT product posting group is blocked.';
         }
         /// <summary>
         /// VAT reporting code used for sales VAT return and statistical reporting purposes.
@@ -296,6 +315,7 @@ table 325 "VAT Posting Setup"
         {
             AutoFormatType = 0;
             Caption = 'Non-Deductible VAT %';
+            ToolTip = 'Specifies the percentage of the transaction amount to which VAT is not applied.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -323,6 +343,7 @@ table 325 "VAT Posting Setup"
         field(6202; "Non-Ded. Purchase VAT Account"; Code[20])
         {
             Caption = 'Non-Deductible Purchase VAT Account';
+            ToolTip = 'Specifies the account associated with the VAT amount that is not deducted due to the type of goods or services purchased.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -337,6 +358,7 @@ table 325 "VAT Posting Setup"
         field(6203; "Allow Non-Deductible VAT"; Enum "Allow Non-Deductible VAT Type")
         {
             Caption = 'Allow Non-Deductible VAT';
+            ToolTip = 'Specifies whether the Non-Deductible VAT is considered for this particular combination of VAT business posting group and VAT product posting group.';
 
             trigger OnValidate()
             begin

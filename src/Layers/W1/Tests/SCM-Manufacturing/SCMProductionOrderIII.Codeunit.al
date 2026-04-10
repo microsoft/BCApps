@@ -5461,6 +5461,7 @@ codeunit 137079 "SCM Production Order III"
         CapacityLedgerEntries: TestPage "Capacity Ledger Entries";
         RunTime: Decimal;
         UnitCost: Decimal;
+        OutputQty: Decimal;
     begin
         // [SCENARIO 327365] Verify a Reverse Entry should not be created for the last operation of the capacity ledger entry when the reverse action is executed.
         Initialize();
@@ -5475,13 +5476,15 @@ codeunit 137079 "SCM Production Order III"
         // [GIVEN] Generate Random Run Time and Unit Cost.
         RunTime := LibraryRandom.RandDec(10, 2);
         UnitCost := LibraryRandom.RandDec(10, 2);
+        OutputQty := LibraryRandom.RandDec(10, 2);
 
         // [GIVEN] Create and Post Output Journal.
-        CreateAndPostOutputJournalWithRunTimeAndUnitCost(ProductionOrder."No.", 0, RunTime, UnitCost);
+        CreateAndPostOutputJournalWithRunTimeAndUnitCost(ProductionOrder."No.", OutputQty, RunTime, UnitCost);
 
         // [GIVEN] OpenEdit Capacity Ledger Entries.
         CapacityLedgerEntries.OpenEdit();
         CapacityLedgerEntries.Filter.SetFilter("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntries.Filter.SetFilter("Output Quantity", '<>0');
 
         // [WHEN] Invoke "Reverse" action.
         asserterror CapacityLedgerEntries.Reverse.Invoke();
@@ -8238,6 +8241,43 @@ codeunit 137079 "SCM Production Order III"
         ItemJournalLine.Validate("Output Quantity", 1);
         ItemJournalLine.Modify(true);
         asserterror LibraryInventory.PostItemJournalLine(OutputItemJournalBatch."Journal Template Name", OutputItemJournalBatch.Name);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ReverseCapacityLedgerEntryLastOperationWithoutOutput()
+    var
+        Item: Record Item;
+        WorkCenter: Record "Work Center";
+        ProductionOrder: Record "Production Order";
+        CapacityLedgerEntries: TestPage "Capacity Ledger Entries";
+        RunTime: Decimal;
+        UnitCost: Decimal;
+    begin
+        // [SCENARIO 623277] When capacity-only entry (no output) and capacity+output entry both exist on the last operation, the capacity-only entry can be reversed directly from Capacity Ledger Entries.
+        Initialize();
+
+        // [GIVEN] Create Production item with routing.
+        CreateProductionItem(Item, '');
+        CreateRoutingAndUpdateItem(Item, WorkCenter);
+
+        // [GIVEN] Create and Refresh Released Production Order.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandInt(10), '', '');
+
+        // [GIVEN] Generate Random Run Time and Unit Cost.
+        RunTime := LibraryRandom.RandDec(10, 2);
+        UnitCost := LibraryRandom.RandDec(10, 2);
+
+        // [GIVEN] Create and Post Output Journal with output quantity on the last operation.
+        CreateAndPostOutputJournalWithRunTimeAndUnitCost(ProductionOrder."No.", LibraryRandom.RandInt(10), RunTime, UnitCost);
+
+        // [GIVEN] OpenEdit Capacity Ledger Entries.
+        CapacityLedgerEntries.OpenEdit();
+        CapacityLedgerEntries.Filter.SetFilter("Order No.", ProductionOrder."No.");
+        CapacityLedgerEntries.Filter.SetFilter("Output Quantity", '0');
+
+        // [WHEN] Invoke "Reverse" action.Reverse Entry should be created for last operation of Capacity Ledger Entry without output.
+        CapacityLedgerEntries.Reverse.Invoke();
     end;
 
     local procedure Initialize()

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,7 +29,6 @@ page 555 "Analysis View Card"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the name.';
                 }
                 field("Account Source"; Rec."Account Source")
                 {
@@ -44,51 +43,42 @@ page 555 "Analysis View Card"
                 field("Account Filter"; Rec."Account Filter")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies which accounts are shown in the analysis view.';
                 }
                 field("Date Compression"; Rec."Date Compression")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the period that the program will combine entries for, in order to create a single entry for that time period.';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the starting date of the campaign analysis.';
                 }
                 field("Last Date Updated"; Rec."Last Date Updated")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the date on which the analysis view was last updated.';
                 }
                 field("Last Entry No."; Rec."Last Entry No.")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the last general ledger entry you posted, prior to updating the analysis view.';
                 }
                 field("Last Budget Entry No."; Rec."Last Budget Entry No.")
                 {
                     ApplicationArea = Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the number of the last item budget entry you entered prior to updating the analysis view.';
                 }
                 field("Update on Posting"; Rec."Update on Posting")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the analysis view is updated every time that you post a general ledger entry.';
                 }
                 field("Include Budgets"; Rec."Include Budgets")
                 {
                     ApplicationArea = Suite;
                     Editable = GLAccountSource;
-                    ToolTip = 'Specifies whether to include an update of analysis view budget entries, when updating an analysis view.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
             }
             group(Dimensions)
@@ -97,22 +87,18 @@ page 555 "Analysis View Card"
                 field("Dimension 1 Code"; Rec."Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
                 }
                 field("Dimension 2 Code"; Rec."Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
                 }
                 field("Dimension 3 Code"; Rec."Dimension 3 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
                 }
                 field("Dimension 4 Code"; Rec."Dimension 4 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies one of the four dimensions that you can include in an analysis view.';
                 }
             }
         }

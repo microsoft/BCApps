@@ -33,5 +33,10 @@
     "codeunitId": 139648,
     "codeunitName": "Shpfy Suggest Payment Test",
     "method": "UnitTestSuggestShopifyPaymentRefundWithPresentmentCurrency"
+  },
+  {
+    "codeunitId": 139566,
+    "codeunitName": "Shpfy Payments Test",
+    "method": "UnitTestImportPayoutWithExternalTraceId"
   }
 ]

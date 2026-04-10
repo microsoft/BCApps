@@ -778,7 +778,24 @@ table 11000000 "Proposal Line"
     [Scope('OnPrem')]
     procedure ValidateShortcutDimCode(FieldNo: Integer; var ShortcutDimCode: Code[20])
     begin
+        OnBeforeValidateShortcutDimCode(Rec, xRec, FieldNo, ShortcutDimCode);
         DimManagement.ValidateShortcutDimValues(FieldNo, ShortcutDimCode, "Dimension Set ID");
+    end;
+
+    /// <summary>
+    /// Integration event raised before validating a shortcut dimension code for proposal line.
+    /// Enables custom dimension validation logic or preprocessing before standard validation.
+    /// </summary>
+    /// <param name="ProposalLine">Proposal line record being validated</param>
+    /// <param name="xProposalLine">Previous proposal line record state</param>
+    /// <param name="FieldNo">Field number of the dimension being validated</param>
+    /// <param name="ShortcutDimCode">Dimension code being validated</param>
+    /// <remarks>
+    /// Raised from ValidateShortcutDimCode procedure before standard dimension validation.
+    /// </remarks>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateShortcutDimCode(var ProposalLine: Record "Proposal Line"; var xProposalLine: Record "Proposal Line"; FieldNo: Integer; var ShortcutDimCode: Code[20])
+    begin
     end;
 
     [Scope('OnPrem')]
@@ -819,7 +836,8 @@ table 11000000 "Proposal Line"
     begin
         "Dimension Set ID" :=
           DimManagement.EditDimensionSet(
-            "Dimension Set ID", StrSubstNo('%1 %2', "Our Bank No.", "Line No."));
+            Rec, "Dimension Set ID", StrSubstNo('%1 %2', "Our Bank No.", "Line No."),
+            "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
     end;
 
     [Scope('OnPrem')]
@@ -830,7 +848,7 @@ table 11000000 "Proposal Line"
     begin
         "Header Dimension Set ID" :=
           DimManagement.EditDimensionSet(
-            "Header Dimension Set ID", StrSubstNo('%1 %2', "Our Bank No.", "Line No."),
+            Rec, "Header Dimension Set ID", StrSubstNo('%1 %2', "Our Bank No.", "Line No."),
             HeaderGlobalDim1, HeaderGlobalDim2);
     end;
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ table 182 "Posted Gen. Journal Batch"
         field(1; "Journal Template Name"; Code[10])
         {
             Caption = 'Journal Template Name';
+            ToolTip = 'Specifies the name of the journal template.';
             NotBlank = true;
             TableRelation = "Gen. Journal Template";
         }
@@ -46,6 +47,7 @@ table 182 "Posted Gen. Journal Batch"
         field(2; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the journal batch.';
             NotBlank = true;
         }
         /// <summary>
@@ -54,6 +56,7 @@ table 182 "Posted Gen. Journal Batch"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a brief description of the journal batch.';
         }
         /// <summary>
         /// Reason code that was applied to the posted general journal batch for audit purposes.
@@ -69,6 +72,7 @@ table 182 "Posted Gen. Journal Batch"
         field(5; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the type of account that a balancing entry is posted to.';
         }
         /// <summary>
         /// Balancing account number that was used for the posted general journal batch.
@@ -76,6 +80,7 @@ table 182 "Posted Gen. Journal Batch"
         field(6; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to.';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer

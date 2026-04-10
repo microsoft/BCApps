@@ -159,6 +159,7 @@ report 99000794 "Compare Production Cost Shares"
             Caption = 'Compare Production Cost Shares Excel';
             Type = Excel;
             LayoutFile = './Manufacturing/Reports/CompareProductionCostShares.xlsx';
+            Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
     }
 

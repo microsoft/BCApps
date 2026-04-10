@@ -25,14 +25,13 @@ using System.Utilities;
 /// </summary>
 report 20 "Calc. and Post VAT Settlement"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/VAT/Reporting/CalcandPostVATSettlement.rdlc';
     AdditionalSearchTerms = 'settle vat value added tax,report vat value added tax';
     ApplicationArea = Basic, Suite;
     Caption = 'Calculate and Post VAT Settlement';
     Permissions = TableData "VAT Entry" = rimd,
                   TableData "No Taxable Entry" = rimd;
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -775,6 +774,16 @@ report 20 "Calc. and Post VAT Settlement"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/VAT/Reporting/CalcandPostVATSettlement.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

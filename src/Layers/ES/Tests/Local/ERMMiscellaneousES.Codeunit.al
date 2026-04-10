@@ -508,48 +508,6 @@ codeunit 144072 "ERM Miscellaneous ES"
         VerifyPurchaseLine(DocumentType, PurchaseHeader."No.", PurchaseLine."Line Amount", PurchaseLine."Outstanding Amount (LCY)");
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [Test]
-    [HandlerFunctions('StatisticsPageHandler,MessageHandler,SalesInvoiceStatisticsPageHandler')]
-    [Scope('OnPrem')]
-    procedure SalesInvoiceWithModifiedVATAmount()
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        PostedSalesInvoice: TestPage "Posted Sales Invoice";
-        VATAmount: Decimal;
-        VATDifference: Decimal;
-    begin
-        // Purpose of this test case to verify that VAT Amount field is correctly updated on Sales Invoice Statistics window when Max. VAT difference allowed" to 0,02.
-
-        // Setup: Create Sales Invoice with multiple line.
-        Initialize();
-        GeneralLedgerSetup.Get();
-        VATDifference := 0.02;  // Value required for test case.
-        UpdateGeneralLedgerSetup(
-          GeneralLedgerSetup."Payment Discount Type", GeneralLedgerSetup."Discount Calculation",
-          GeneralLedgerSetup."Unit-Amount Rounding Precision", VATDifference);
-        UpdateSalesReceivablesSetup(true);  // Using True for Allow VAT Difference.
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesLine."Document Type"::Invoice, LibrarySales.CreateCustomerNo());
-        CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", CreateGLAccount());
-        VATAmount := SalesLine."Amount Including VAT" - SalesLine.Amount - VATDifference;
-        LibraryVariableStorage.Enqueue(VATAmount);  // Enqueue for SalesStatisticsPageHandler.
-        OpenVATAmountOnStatistics(SalesHeader."No.");
-        LibraryVariableStorage.Enqueue(VATAmount);  // Enqueue for SalesInvoiceStatisticsPageHandler.
-
-        // Exercise.
-        LibrarySales.PostSalesDocument(SalesHeader, true, true);  // True for Ship and Invoice.
-
-        // Verify: Verification done in SalesInvoiceStatisticsPageHandler.
-        PostedSalesInvoice.OpenView();
-        PostedSalesInvoice.FILTER.SetFilter("No.", SalesHeader."Last Posting No.");
-        PostedSalesInvoice.Statistics.Invoke();
-
-        PostedSalesInvoice.Close();
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesStatisticsPageHandler,MessageHandler,SalesInvoiceStatisticsPageHandler')]
     [Scope('OnPrem')]
@@ -2488,18 +2446,6 @@ codeunit 144072 "ERM Miscellaneous ES"
         exit(NoSeries.PeekNextNo(GLSetup."Autoinvoice Nos."));
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    local procedure OpenVATAmountOnStatistics(No: Code[20])
-    var
-        SalesInvoice: TestPage "Sales Invoice";
-    begin
-        SalesInvoice.OpenEdit();
-        SalesInvoice.FILTER.SetFilter("No.", No);
-        SalesInvoice.Statistics.Invoke();
-        SalesInvoice.Close();
-    end;
-#endif
     local procedure OpenVATAmountOnSalesStatistics(No: Code[20])
     var
         SalesInvoice: TestPage "Sales Invoice";
@@ -2987,19 +2933,6 @@ codeunit 144072 "ERM Miscellaneous ES"
         SalesInvoiceStatistics.OK().Invoke();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure StatisticsPageHandler(var SalesStatistics: TestPage "Sales Statistics")
-    var
-        VATAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(VATAmount);
-        SalesStatistics.SubForm."VAT Amount".SetValue(VATAmount);
-        SalesStatistics.OK().Invoke();
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesStatisticsPageHandler(var SalesStatistics: TestPage "Sales Statistics")

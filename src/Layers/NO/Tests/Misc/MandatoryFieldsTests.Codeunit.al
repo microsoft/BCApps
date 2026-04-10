@@ -67,7 +67,9 @@
         Assert.IsTrue(CustomerCard."Customer Posting Group".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         Assert.IsTrue(CustomerCard."Payment Terms Code".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         Assert.IsFalse(CustomerCard.GLN.ShowMandatory(), UnexpectedShowMandatoryValueTxt);
+#if not CLEAN29
         CustomerCard."E-Invoice".SetValue(true);
+#endif
         Assert.IsTrue(CustomerCard.GLN.ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         Assert.IsFalse(CustomerCard."Tax Area Code".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         CustomerCard.Close();
@@ -110,10 +112,16 @@
         VerifyMandatoryFieldsOnSalesOrder(Customer, false);
         VerifyMandatoryFieldsOnSalesReturnOrder(Customer, false);
         VerifyMandatoryFieldsOnSalesQuote(Customer);
+#if not CLEAN29
         VerifyMandatoryFieldsOnSalesCreditMemo(Customer, false);
+#else
+        VerifyMandatoryFieldsOnSalesCreditMemo(Customer);
+#endif
         VerifyMandatoryFieldsOnSalesInvoice(Customer, true);
         VerifyMandatoryFieldsOnSalesOrder(Customer, true);
+#if not CLEAN29
         VerifyMandatoryFieldsOnSalesCreditMemo(Customer, true);
+#endif
         VerifyMandatoryFieldsOnSalesReturnOrder(Customer, true);
     end;
 
@@ -243,7 +251,9 @@
         SalesInvoice: TestPage "Sales Invoice";
     begin
         SetExternalDocNoMandatory(true);
+#if not CLEAN29
         SetEInvoiceFlag(Customer, EInvoiceCustomer);
+#endif
         SalesInvoice.OpenNew();
         Assert.IsTrue(SalesInvoice."Sell-to Customer Name".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         Assert.IsTrue(SalesInvoice."External Document No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
@@ -279,7 +289,9 @@
         SalesOrder: TestPage "Sales Order";
     begin
         SetExternalDocNoMandatory(true);
+#if not CLEAN29
         SetEInvoiceFlag(Customer, EInvoiceCustomer);
+#endif
         SalesOrder.OpenNew();
         Assert.IsTrue(SalesOrder."Sell-to Customer Name".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         Assert.IsTrue(SalesOrder."External Document No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
@@ -314,7 +326,9 @@
         SalesLine: Record "Sales Line";
         SalesReturnOrder: TestPage "Sales Return Order";
     begin
+#if not CLEAN29
         SetEInvoiceFlag(Customer, EInvoiceCustomer);
+#endif
         SalesReturnOrder.OpenNew();
         Assert.IsTrue(SalesReturnOrder."Sell-to Customer Name".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         SalesReturnOrder."Sell-to Customer Name".SetValue(Customer."No.");
@@ -359,13 +373,19 @@
         SalesQuote.Close();
     end;
 
+#if not CLEAN29
     local procedure VerifyMandatoryFieldsOnSalesCreditMemo(Customer: Record Customer; EInvoiceCustomer: Boolean)
+#else
+    local procedure VerifyMandatoryFieldsOnSalesCreditMemo(Customer: Record Customer)
+#endif
     var
         SalesLine: Record "Sales Line";
         SalesCreditMemo: TestPage "Sales Credit Memo";
     begin
         SetExternalDocNoMandatory(true);
+#if not CLEAN29
         SetEInvoiceFlag(Customer, EInvoiceCustomer);
+#endif
         SalesCreditMemo.OpenNew();
         Assert.AreEqual(true, SalesCreditMemo."Sell-to Customer Name".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         SalesCreditMemo."Sell-to Customer Name".SetValue(Customer."No.");
@@ -515,10 +535,13 @@
         ItemTempl.DeleteAll(true);
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     local procedure SetEInvoiceFlag(var Customer: Record Customer; EInvoiceCustomer: Boolean)
     begin
         Customer.Validate("E-Invoice", EInvoiceCustomer);
         Customer.Modify();
     end;
+#endif
 }
 

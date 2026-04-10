@@ -786,9 +786,6 @@ codeunit 925 "Assembly Header-Reserve"
         SourceRecRef.SetTable(AssemblyHeader);
         AssemblyHeader.SetReservationEntry(CalcReservEntry);
         OnSetAssemblyHeaderOnBeforeUpdateReservation(CalcReservEntry, AssemblyHeader);
-#if not CLEAN26
-        ReservationManagement.RunOnSetAssemblyHeaderOnBeforeUpdateReservation(CalcReservEntry, AssemblyHeader);
-#endif
         EntryIsPositive := ((CreateReservEntry.SignFactor(CalcReservEntry) * AssemblyHeader."Remaining Quantity (Base)") < 0);
     end;
 

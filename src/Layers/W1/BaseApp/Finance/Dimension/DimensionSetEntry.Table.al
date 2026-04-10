@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ table 480 "Dimension Set Entry"
         field(2; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
+            ToolTip = 'Specifies the dimension.';
             NotBlank = true;
             TableRelation = Dimension;
 
@@ -58,6 +59,7 @@ table 480 "Dimension Set Entry"
         field(3; "Dimension Value Code"; Code[20])
         {
             Caption = 'Dimension Value Code';
+            ToolTip = 'Specifies the dimension value.';
             NotBlank = true;
             TableRelation = "Dimension Value".Code where("Dimension Code" = field("Dimension Code"), Blocked = const(false));
 
@@ -84,6 +86,7 @@ table 480 "Dimension Set Entry"
         {
             CalcFormula = lookup(Dimension.Name where(Code = field("Dimension Code")));
             Caption = 'Dimension Name';
+            ToolTip = 'Specifies the descriptive name of the Dimension Code field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -95,6 +98,7 @@ table 480 "Dimension Set Entry"
             CalcFormula = lookup("Dimension Value".Name where("Dimension Code" = field("Dimension Code"),
                                                                Code = field("Dimension Value Code")));
             Caption = 'Dimension Value Name';
+            ToolTip = 'Specifies the descriptive name of the Dimension Value Code field.';
             Editable = false;
             FieldClass = FlowField;
         }

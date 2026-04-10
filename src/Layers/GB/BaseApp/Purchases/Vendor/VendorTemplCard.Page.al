@@ -307,17 +307,6 @@ page 1386 "Vendor Templ. Card"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
-#if not CLEAN26
-                field("Exclude from Pmt. Pract. Rep."; Rec."Exclude from Pmt. Pract. Rep.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that vendor must be excluded from calculation in Payment Practices report.';
-                    Visible = false;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Not supported in the template.';
-                    ObsoleteTag = '26.0';
-                }
-#endif
             }
             group(Receiving)
             {

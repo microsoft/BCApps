@@ -11,11 +11,10 @@ using Microsoft.Utilities;
 report 1012 "Jobs per Customer"
 {
     AdditionalSearchTerms = 'Jobs per Customer';
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Project/Reports/JobsperCustomer.rdlc';
     ApplicationArea = Jobs;
     Caption = 'Projects per Customer';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -156,6 +155,16 @@ report 1012 "Jobs per Customer"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Project/Reports/JobsperCustomer.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -79,6 +79,7 @@ report 6627 "SN Label"
         {
             Type = Word;
             LayoutFile = './Inventory/Tracking/SNLabel.docx';
+            Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
     }
 

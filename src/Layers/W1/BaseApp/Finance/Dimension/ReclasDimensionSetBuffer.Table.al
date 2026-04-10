@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 482 "Reclas. Dimension Set Buffer"
         field(1; "Dimension Code"; Code[20])
         {
             Caption = 'Dimension Code';
+            ToolTip = 'Specifies a dimension code to attach a dimension to a journal line.';
             DataClassification = SystemMetadata;
             NotBlank = true;
             TableRelation = Dimension;
@@ -49,6 +50,7 @@ table 482 "Reclas. Dimension Set Buffer"
         field(2; "Dimension Value Code"; Code[20])
         {
             Caption = 'Dimension Value Code';
+            ToolTip = 'Specifies the original dimension value to register the transfer of items from the original dimension value to the new dimension value.';
             DataClassification = SystemMetadata;
             TableRelation = "Dimension Value".Code where("Dimension Code" = field("Dimension Code"));
 
@@ -71,6 +73,7 @@ table 482 "Reclas. Dimension Set Buffer"
         field(4; "New Dimension Value Code"; Code[20])
         {
             Caption = 'New Dimension Value Code';
+            ToolTip = 'Specifies the new dimension value to register the transfer of items, from the original dimension value to the new dimension value.';
             DataClassification = SystemMetadata;
             TableRelation = "Dimension Value".Code where("Dimension Code" = field("Dimension Code"));
 
@@ -94,6 +97,7 @@ table 482 "Reclas. Dimension Set Buffer"
         {
             CalcFormula = lookup(Dimension.Name where(Code = field("Dimension Code")));
             Caption = 'Dimension Name';
+            ToolTip = 'Specifies the descriptive name of the Dimension Code field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -105,6 +109,7 @@ table 482 "Reclas. Dimension Set Buffer"
             CalcFormula = lookup("Dimension Value".Name where("Dimension Code" = field("Dimension Code"),
                                                                Code = field("Dimension Value Code")));
             Caption = 'Dimension Value Name';
+            ToolTip = 'Specifies the descriptive name of the original Dimension Value Code field.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -116,6 +121,7 @@ table 482 "Reclas. Dimension Set Buffer"
             CalcFormula = lookup("Dimension Value".Name where("Dimension Code" = field("Dimension Code"),
                                                                Code = field("New Dimension Value Code")));
             Caption = 'New Dimension Value Name';
+            ToolTip = 'Specifies the descriptive name of the New Dimension Value Code field.';
             Editable = false;
             FieldClass = FlowField;
         }

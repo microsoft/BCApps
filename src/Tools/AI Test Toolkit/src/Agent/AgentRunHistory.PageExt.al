@@ -5,6 +5,8 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.Agents;
+
 pageextension 149032 "Agent Run History" extends "AIT Run History"
 {
     layout
@@ -15,8 +17,8 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
-                Visible = ViewBy = ViewBy::Version;
-                Caption = 'Copilot credits';
+                Visible = (ViewBy = ViewBy::Version) and ConsumedCreditsVisible;
+                Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
                 Editable = false;
             }
@@ -24,7 +26,7 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             {
                 ApplicationArea = All;
                 Visible = ViewBy = ViewBy::Version;
-                Caption = 'Agent tasks';
+                Caption = 'Agent Tasks Executed';
                 ToolTip = 'Specifies the number of Agent Tasks related to the current version.';
                 Editable = false;
 
@@ -42,8 +44,8 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
-                Visible = ViewBy = ViewBy::Tag;
-                Caption = 'Copilot credits';
+                Visible = (ViewBy = ViewBy::Tag) and ConsumedCreditsVisible;
+                Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for the tag.';
                 Editable = false;
             }
@@ -51,7 +53,7 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             {
                 ApplicationArea = All;
                 Visible = ViewBy = ViewBy::Tag;
-                Caption = 'Agent tasks';
+                Caption = 'Agent Tasks Executed';
                 ToolTip = 'Specifies the number of Agent Tasks related to the tag.';
                 Editable = false;
 
@@ -64,6 +66,13 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+    begin
+        ConsumedCreditsVisible := AgentSystemPermissions.CurrentUserCanSeeConsumptionData();
+    end;
 
     trigger OnAfterGetRecord()
     begin
@@ -85,6 +94,7 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         AgentTaskCountByVersion: Integer;
         AgentTaskCountByTag: Integer;
+        ConsumedCreditsVisible: Boolean;
 
 }
 

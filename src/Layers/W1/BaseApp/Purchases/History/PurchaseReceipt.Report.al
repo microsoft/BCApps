@@ -20,11 +20,10 @@ using System.Utilities;
 
 report 408 "Purchase - Receipt"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/History/PurchaseReceipt.rdlc';
     Caption = 'Purchase - Receipt';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Purch. Rcpt. Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -523,6 +522,16 @@ report 408 "Purchase - Receipt"
             InitLogInteraction();
             LogInteractionEnable := LogInteraction;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/History/PurchaseReceipt.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

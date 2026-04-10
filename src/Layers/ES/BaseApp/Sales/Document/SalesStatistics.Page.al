@@ -289,13 +289,7 @@ page 160 "Sales Statistics"
 
     trigger OnOpenPage()
     begin
-#if not CLEAN26
-        if not Rec.SkipStatisticsPreparation() then
-            Rec.PrepareOpeningDocumentStatistics();
-        Rec.ResetSkipStatisticsPreparationFlag();
-#else
         Rec.PrepareOpeningDocumentStatistics();
-#endif
 
         SalesSetup.Get();
         AllowInvDisc :=

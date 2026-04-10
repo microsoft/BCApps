@@ -18,13 +18,12 @@ report 112 "Sales Statistics"
     ObsoleteState = Pending;
     ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
     ObsoleteTag = '28.0';
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/Reports/SalesStatistics.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Sales Statistics';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -465,6 +464,16 @@ report 112 "Sales Statistics"
             if Format(PeriodLength) = '' then
                 Evaluate(PeriodLength, '<1M>');
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Reports/SalesStatistics.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

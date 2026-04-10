@@ -141,21 +141,21 @@ codeunit 5854 "Invt. Doc. Line-Reserve"
         ShowErrorInbnd := (NewInvtDocumentLine."Reserved Qty. Inbnd. (Base)" <> 0);
         ShowErrorOutbnd := (NewInvtDocumentLine."Reserved Qty. Outbnd. (Base)" <> 0);
 
-        if NewInvtDocumentLine."Document Type" = NewInvtDocumentLine."Document Type"::Receipt then begin
-            if NewInvtDocumentLine."Document Date" = 0D then
+        if NewInvtDocumentLine."Document Type" = NewInvtDocumentLine."Document Type"::Receipt then
+            if NewInvtDocumentLine."Document Date" = 0D then begin
                 if ShowErrorOutbnd then
                     NewInvtDocumentLine.FieldError("Document Date", MustBeFilledErr);
 
-            HasErrorOutbnd := true;
-        end;
+                HasErrorOutbnd := true;
+            end;
 
-        if NewInvtDocumentLine."Document Type" = NewInvtDocumentLine."Document Type"::Shipment then begin
-            if NewInvtDocumentLine."Document Date" = 0D then
+        if NewInvtDocumentLine."Document Type" = NewInvtDocumentLine."Document Type"::Shipment then
+            if NewInvtDocumentLine."Document Date" = 0D then begin
                 if ShowErrorOutbnd then
                     NewInvtDocumentLine.FieldError("Document Date", MustBeFilledErr);
 
-            HasErrorOutbnd := true;
-        end;
+                HasErrorOutbnd := true;
+            end;
 
         if NewInvtDocumentLine."Item No." <> OldInvtDocumentLine."Item No." then begin
             if ShowErrorInbnd or ShowErrorOutbnd then

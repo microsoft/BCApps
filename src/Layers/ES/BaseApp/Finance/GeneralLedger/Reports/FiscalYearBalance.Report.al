@@ -21,12 +21,11 @@ using System.Utilities;
 /// </remarks>
 report 36 "Fiscal Year Balance"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/GeneralLedger/Reports/FiscalYearBalance.rdlc';
     AdditionalSearchTerms = 'closing balance';
     ApplicationArea = Basic, Suite;
     Caption = 'Fiscal Year Balance';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -488,6 +487,16 @@ report 36 "Fiscal Year Balance"
 
             SetEndingDate();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/GeneralLedger/Reports/FiscalYearBalance.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

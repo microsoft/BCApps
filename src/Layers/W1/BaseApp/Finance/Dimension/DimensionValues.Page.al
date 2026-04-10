@@ -40,19 +40,16 @@ page 537 "Dimension Values"
                     ApplicationArea = Dimensions;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the code for the dimension value.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Dimensions;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies a descriptive name for the dimension value.';
                 }
                 field("Dimension Value Type"; Rec."Dimension Value Type")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the purpose of the dimension value.';
 
                     trigger OnValidate()
                     begin
@@ -62,7 +59,6 @@ page 537 "Dimension Values"
                 field(Totaling; Rec.Totaling)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies an account interval or a list of account numbers. The entries of the account will be totaled to give a total balance. How entries are totaled depends on the value in the Account Type field.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -84,18 +80,15 @@ page 537 "Dimension Values"
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
                 field("Map-to IC Dimension Value Code"; Rec."Map-to IC Dimension Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies which intercompany dimension value corresponds to the dimension value on the line.';
                     Visible = false;
                 }
                 field("Consolidation Code"; Rec."Consolidation Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code that is used for consolidation.';
                     Visible = false;
                 }
             }

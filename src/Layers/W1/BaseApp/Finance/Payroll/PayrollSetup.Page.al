@@ -27,18 +27,15 @@ page 1660 "Payroll Setup"
                 field("User Name"; Rec."User Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the user account.';
                 }
                 field("General Journal Template Name"; Rec."General Journal Template Name")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the general journal template that is used for import.';
                 }
                 field("General Journal Batch Name"; Rec."General Journal Batch Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Enabled = Show;
-                    ToolTip = 'Specifies the name of the general journal batch that is used for import.';
                 }
             }
         }

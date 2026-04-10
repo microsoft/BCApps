@@ -2756,6 +2756,8 @@ codeunit 131300 "Library - ERM"
         GLAccount.Modify();
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     procedure SetEnterpriseRegisterCompInfo(IsEnterpriseRegister: Boolean)
     var
         CompanyInfo: Record "Company Information";
@@ -2764,6 +2766,7 @@ codeunit 131300 "Library - ERM"
         CompanyInfo.Validate(Enterpriseregister, IsEnterpriseRegister);
         CompanyInfo.Modify(true);
     end;
+#endif
 
     procedure SetInvRoundingPrecisionLCY(InvRoundingPrecisionLCY: Decimal)
     begin

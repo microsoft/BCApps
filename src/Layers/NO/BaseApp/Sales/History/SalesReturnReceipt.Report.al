@@ -224,9 +224,11 @@ report 6646 "Sales - Return Receipt"
                     column(EmailCaption; EmailCaptionLbl)
                     {
                     }
+#if not CLEAN29
                     column(EnterpriseRegister; CompanyInfo.GetEnterpriseClassification())
                     {
                     }
+#endif
                     dataitem(DimensionLoop1; "Integer")
                     {
                         DataItemLinkReference = "Return Receipt Header";

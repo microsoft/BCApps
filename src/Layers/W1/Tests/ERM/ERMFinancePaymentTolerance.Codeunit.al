@@ -26,6 +26,7 @@ codeunit 134024 "ERM Finance Payment Tolerance"
         ConfirmMessageForPayment: Label 'Do you want to change all open entries for every customer and vendor that are not blocked?';
         SuccessPostingMsg: Label 'The journal lines were successfully posted.';
         AppliedError: Label 'Customer ledger entries are not applied correctly';
+        PaymentAmountError: Label 'Payment amount should match the original Gen. Journal Line amount';
 
     [Normal]
     local procedure Initialize()
@@ -2387,6 +2388,73 @@ codeunit 134024 "ERM Finance Payment Tolerance"
 
         // [THEN] Verify the Payment Entry is applied to both Invoices.
         VerifyCustLdgrEntryApplied(PaymentDocNo);
+    end;
+
+    [Test]
+    procedure PmtDiscTolWarningPartialPaymentCorrectAmount()
+    var
+        Customer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalLine2: Record "Gen. Journal Line";
+        PaymentTerms: Record "Payment Terms";
+        OriginalPartialPaymentAmount: Decimal;
+        InvoiceAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 625610] Partial payment within tolerance grace period posts with correct amount without modification
+        Initialize();
+
+        // [GIVEN] General Ledger Setup with Payment Discount Tolerance Warning enabled and Payment Discount Grace Period
+        UpdatePmtToleranceFieldsInGeneralLedgerSetup();
+
+        // [GIVEN] Payment Terms "PT" with discount (5 days discount date, 5% discount)
+        CreatePaymentTerms(PaymentTerms, 5, 5);
+
+        // [GIVEN] Customer "C" with Payment Terms "PT"
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Payment Terms Code", PaymentTerms.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Posted Sales Invoice "SI" for Customer "C"
+        InvoiceAmount := LibraryRandom.RandDecInDecimalRange(1000, 2000, 2);
+        CreateGenJournalLine(GenJournalLine, Customer."No.", '', GenJournalLine."Document Type"::Invoice, InvoiceAmount, WorkDate());
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Partial Payment Journal Line "P" (50% of Invoice "SI" less discount) within grace period
+        OriginalPartialPaymentAmount := Round(-((InvoiceAmount / 2) - ((InvoiceAmount / 2) * 5 / 100)));
+        CreateGenJournalLine(
+            GenJournalLine2,
+            Customer."No.",
+            '',
+            GenJournalLine2."Document Type"::Payment,
+            OriginalPartialPaymentAmount,
+            CalcDate('<1D>', CalcDate(PaymentTerms."Discount Date Calculation", WorkDate())));
+
+        // [GIVEN] Invoice "SI" ledger entry set for application with Amount to Apply = 50%
+        FindCustomerLedgerEntry(CustLedgerEntry, GenJournalLine."Account No.", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.Validate("Amount to Apply", InvoiceAmount / 2);
+        CustLedgerEntry.Modify(true);
+        LibraryERM.SetAppliestoIdCustomer(CustLedgerEntry);
+        SetAppliesToIDGenJournalLine(GenJournalLine2);
+
+        // [WHEN] Post Partial Payment Journal Line "P" (triggers payment discount tolerance warning)
+        LibraryERM.PostGeneralJnlLine(GenJournalLine2);
+
+        // [THEN] Payment "P" was posted with the original amount (not incorrectly modified)
+        VerifyPostedPaymentAmount(GenJournalLine2."Document No.", Customer."No.", OriginalPartialPaymentAmount);
+    end;
+
+    local procedure VerifyPostedPaymentAmount(DocumentNo: Code[20]; CustomerNo: Code[20]; ExpectedAmount: Decimal)
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Payment);
+        CustLedgerEntry.SetRange("Document No.", DocumentNo);
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields(Amount);
+        Assert.AreEqual(ExpectedAmount, CustLedgerEntry.Amount, PaymentAmountError);
     end;
 
     [Normal]

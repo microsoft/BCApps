@@ -8,11 +8,10 @@ using Microsoft.CRM.Task;
 
 report 5057 "Salesperson - Tasks"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/SalespersonTasks.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Salesperson Tasks';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -122,6 +121,16 @@ report 5057 "Salesperson - Tasks"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/SalespersonTasks.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

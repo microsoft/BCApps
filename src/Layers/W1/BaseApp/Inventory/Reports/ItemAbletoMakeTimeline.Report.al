@@ -160,12 +160,14 @@ report 5871 "Item - Able to Make (Timeline)"
             Caption = 'Item - Able to Make (Timeline) Excel';
             Type = Excel;
             LayoutFile = './Inventory/Reports/ItemAbletoMakeTimeline.xlsx';
+            Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
         layout(RDLCLayout)
         {
             Caption = 'Item - Able to Make (Timeline) RDLC';
             Type = RDLC;
             LayoutFile = './Inventory/Reports/ItemAbletoMakeTimeline.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

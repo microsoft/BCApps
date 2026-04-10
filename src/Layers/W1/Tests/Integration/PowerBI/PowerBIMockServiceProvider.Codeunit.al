@@ -53,7 +53,7 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
         ReturnedReport := ReturnedReport.ReturnedReport(GeneratedReportId, 'https://powerbi.com/report/foobar', 'Report Name', GeneratedDatasetId);
     end;
 
-    procedure UpdateDatasetParameters(DatasetId: Text; EnvironmentName: Text; CompanyName: Text; var OperationResult: DotNet OperationResult)
+    procedure UpdateDatasetParameters(DatasetId: Text; Parameters: Dictionary of [Text, Text]; var OperationResult: DotNet OperationResult)
     begin
         CheckFailStep();
 

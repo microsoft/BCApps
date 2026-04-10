@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ page 321 "ECSL Report"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
                     trigger OnAssistEdit()
                     begin
@@ -47,14 +46,12 @@ page 321 "ECSL Report"
                     ApplicationArea = BasicEU;
                     Enabled = IsEditable;
                     NotBlank = true;
-                    ToolTip = 'Specifies version of the report.';
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = BasicEU;
                     DrillDown = false;
                     Enabled = false;
-                    ToolTip = 'Specifies whether the report is in progress, is completed, or contains errors.';
 
                     trigger OnValidate()
                     begin
@@ -69,7 +66,6 @@ page 321 "ECSL Report"
                         ApplicationArea = BasicEU;
                         LookupPageID = "Date Lookup";
                         NotBlank = true;
-                        ToolTip = 'Specifies the year of the reporting period.';
 
                         trigger OnValidate()
                         var
@@ -83,7 +79,6 @@ page 321 "ECSL Report"
                         ApplicationArea = BasicEU;
                         NotBlank = true;
                         OptionCaption = ',,Month,Quarter';
-                        ToolTip = 'Specifies the length of the reporting period.';
 
                         trigger OnValidate()
                         var
@@ -96,7 +91,6 @@ page 321 "ECSL Report"
                     {
                         ApplicationArea = BasicEU;
                         NotBlank = true;
-                        ToolTip = 'Specifies the specific reporting period to use.';
 
                         trigger OnValidate()
                         var
@@ -111,7 +105,6 @@ page 321 "ECSL Report"
                     ApplicationArea = BasicEU;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the first date of the reporting period.';
 
                     trigger OnValidate()
                     begin
@@ -123,7 +116,6 @@ page 321 "ECSL Report"
                     ApplicationArea = BasicEU;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the last date of the reporting period.';
 
                     trigger OnValidate()
                     begin

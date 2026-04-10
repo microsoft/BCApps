@@ -377,30 +377,6 @@ codeunit 134028 "ERM Change VAT On VAT Amt Line"
         Assert.AreEqual(DefaultVATAmountLineTxt, TempVATAmountLine.VATAmountText(), 'VATAmountText returned wrong text');
     end;
 
-#if not CLEAN26
-    [Test]
-    [Scope('OnPrem')]
-    procedure VATAmountTextOnNonTempVATAmountLine()
-    var
-        VATAmountLine: Record "VAT Amount Line";
-        VATPostingSetupNormalVAT: Record "VAT Posting Setup";
-        VATPostingSetupReverseChargeVAT: Record "VAT Posting Setup";
-    begin
-        LibraryERM.CreateVATPostingSetupWithAccounts(
-          VATPostingSetupNormalVAT,
-          VATPostingSetupNormalVAT."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 20));
-        LibraryERM.CreateVATPostingSetupWithAccounts(
-          VATPostingSetupReverseChargeVAT,
-          VATPostingSetupNormalVAT."VAT Calculation Type"::"Reverse Charge VAT", LibraryRandom.RandIntInRange(10, 20));
-
-        VATAmountLine.Init();
-        VATAmountLine.InsertNewLine(VATPostingSetupNormalVAT."VAT Identifier", VATPostingSetupNormalVAT."VAT Calculation Type", '', false, VATPostingSetupNormalVAT."VAT %", true, false, false, 0);
-        VATAmountLine.InsertNewLine(VATPostingSetupReverseChargeVAT."VAT Identifier", VATPostingSetupReverseChargeVAT."VAT Calculation Type", '', false, VATPostingSetupReverseChargeVAT."VAT %", true, false, false, 0);
-
-        Assert.ExpectedMessage(DefaultVATAmountLineTxt, VATAmountLine.VATAmountText());
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('ServiceStatisticsHandler2')]
     [Scope('OnPrem')]

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,7 +33,6 @@ page 1702 "Deferral Schedule"
                 field("Amount to Defer"; Rec."Amount to Defer")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the amount to defer per period.';
                     trigger OnValidate()
                     begin
                         ShowAllocationWarning(Rec.FieldCaption("Amount to Defer"));
@@ -42,7 +41,6 @@ page 1702 "Deferral Schedule"
                 field("Calc. Method"; Rec."Calc. Method")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how the Amount field for each period is calculated. Straight-Line: Calculated per the number of periods, distributed by period length. Equal Per Period: Calculated per the number of periods, distributed evenly on periods. Days Per Period: Calculated per the number of days in the period. User-Defined: Not calculated. You must manually fill the Amount field for each period.';
                     trigger OnValidate()
                     begin
                         ShowAllocationWarning(Rec.FieldCaption("Calc. Method"));
@@ -51,7 +49,6 @@ page 1702 "Deferral Schedule"
                 field("No. of Periods"; Rec."No. of Periods")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies how many accounting periods the total amounts will be deferred to.';
                     trigger OnValidate()
                     begin
                         ShowAllocationWarning(Rec.FieldCaption("No. of Periods"));
@@ -74,7 +71,6 @@ page 1702 "Deferral Schedule"
                 field("Start Date"; Rec."Start Date")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies when to start calculating deferral amounts.';
                     trigger OnValidate()
                     begin
                         ShowAllocationWarning(Rec.FieldCaption("Start Date"));

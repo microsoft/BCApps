@@ -9,13 +9,15 @@ using System.Reflection;
 
 page 99000917 "Report Selection - Prod. Order"
 {
+    AboutTitle = 'About report selection for production';
+    AboutText = 'On this page, you set up the default reports that are used when printing production documents such as job cards and material requisitions. Use the Usage field to select the type of document, then specify which reports to use in the list below.';
+    AdditionalSearchTerms = 'Report Selections Manufacturing, Report Selections Production Order';
     ApplicationArea = Manufacturing;
-    Caption = 'Report Selections Production Order';
-    AdditionalSearchTerms = 'Report Selections Manufacturing';
+    Caption = 'Report Selection - Production';
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Report Selections";
-    UsageCategory = Tasks;
+    UsageCategory = Administration;
 
     layout
     {
@@ -38,16 +40,19 @@ page 99000917 "Report Selection - Prod. Order"
                 field(Sequence; Rec.Sequence)
                 {
                     ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies a number that indicates where this report is in the printing order.';
                 }
                 field("Report ID"; Rec."Report ID")
                 {
                     ApplicationArea = Manufacturing;
                     LookupPageID = Objects;
+                    ToolTip = 'Specifies the object ID of the report.';
                 }
                 field("Report Caption"; Rec."Report Caption")
                 {
                     ApplicationArea = Manufacturing;
                     DrillDown = false;
+                    ToolTip = 'Specifies the display name of the report.';
                 }
             }
         }

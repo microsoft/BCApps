@@ -29,12 +29,10 @@ page 323 "EC Sales List Reports"
                 field("No."; Rec."No.")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                 }
                 field("VAT Report Config. Code"; Rec."VAT Report Config. Code")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the appropriate configuration code for EC Sales List Reports.';
                     Visible = false;
                 }
                 field("VAT Report Type"; Rec."VAT Report Type")
@@ -46,7 +44,6 @@ page 323 "EC Sales List Reports"
                 field("Start Date"; Rec."Start Date")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the first date of the reporting period.';
                     Visible = false;
                 }
                 field("End Date"; Rec."End Date")
@@ -58,19 +55,16 @@ page 323 "EC Sales List Reports"
                 field("No. Series"; Rec."No. Series")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
                     Visible = false;
                 }
                 field("Original Report No."; Rec."Original Report No.")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the number of the original report.';
                     Visible = false;
                 }
                 field("Period Type"; Rec."Period Type")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the length of the reporting period.';
                 }
                 field("Period No."; Rec."Period No.")
                 {
@@ -80,24 +74,20 @@ page 323 "EC Sales List Reports"
                 field("Period Year"; Rec."Period Year")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the year of the reporting period.';
                 }
                 field("Message Id"; Rec."Message Id")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the message ID of the report listing sales to other EU countries/regions.';
                     Visible = false;
                 }
                 field("Statement Template Name"; Rec."Statement Template Name")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the name of the statement template from the EC Sales List Report.';
                     Visible = false;
                 }
                 field("Statement Name"; Rec."Statement Name")
                 {
                     ApplicationArea = VAT;
-                    ToolTip = 'Specifies the name of the statement from the EC Sales List Report.';
                     Visible = false;
                 }
                 field("VAT Report Version"; Rec."VAT Report Version")

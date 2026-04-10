@@ -234,10 +234,7 @@ codeunit 1235 "XML Buffer Writer"
             if XMLBuffer.FindFirst() then
                 exit;
         end;
-#if not CLEAN26
-        if CanPassValue(XmlReader.Name, XmlReader.Value) then
-#endif
-            InsertAttribute(XMLBuffer, ParentXMLBuffer, AttributeNumber, XmlReader.Depth + 1, XmlReader.Name, XmlReader.Value);
+        InsertAttribute(XMLBuffer, ParentXMLBuffer, AttributeNumber, XmlReader.Depth + 1, XmlReader.Name, XmlReader.Value);
     end;
 
     local procedure InsertXmlProcessingInstruction(var XMLBuffer: Record "XML Buffer"; ParentXMLBuffer: Record "XML Buffer"; ProcessingInstructionNumber: Integer)
@@ -407,26 +404,6 @@ codeunit 1235 "XML Buffer Writer"
     begin
         XmlReader.Read();
     end;
-
-#if not CLEAN26
-    local procedure CanPassValue(Name: Text; Value: Text): Boolean
-    var
-        ReturnValue: Boolean;
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeCanPassValue(Name, Value, ReturnValue, IsHandled);
-        if IsHandled then
-            exit(ReturnValue);
-        exit(true);
-    end;
-
-    [Obsolete('This event is obsolete and will be removed in a future release. There is no replacement.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCanPassValue(Name: Text; var Value: Text; var ReturnValue: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertAttribute(var XMLBuffer: Record "XML Buffer"; ParentXMLBuffer: Record "XML Buffer"; NodeNumber: Integer; NodeDepth: Integer; var AttributeName: Text; var AttributeValue: Text; var IsHandled: Boolean)

@@ -11,6 +11,7 @@ report 8053 "Vend Contr. Def. Analysis"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     AdditionalSearchTerms = 'Vendor Deferrals, Deferral Analysis, Cost Deferrals, Contract Analysis, Deferral Report, Deferred Costs';
+    ToolTip = 'Analyze Vendor Subscription Contract deferrals.';
 
     dataset
     {
@@ -221,6 +222,7 @@ report 8053 "Vend Contr. Def. Analysis"
         VendorContractDeferral.SetRange("Subscription Contract No.", SourceContractNo);
         VendorContractDeferral.SetFilter("Document Type", Format(DocumentTypeFilter));
         VendorContractDeferral.SetFilter("Document No.", DocumentNoFilter);
+        OnAfterSetContractDeferralFilter(VendorContractDeferral, SourceContractNo);
     end;
 
     local procedure SetPeriodFilter()
@@ -313,5 +315,10 @@ report 8053 "Vend Contr. Def. Analysis"
         ResetPostingDateFilters(VendorContractDeferral);
         if VendorContractDeferral.FindLast() then
             DateLastRelease := VendorContractDeferral."Posting Date";
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetContractDeferralFilter(var VendorContractDeferral: Record "Vend. Sub. Contract Deferral"; SourceContractNo: Code[20])
+    begin
     end;
 }

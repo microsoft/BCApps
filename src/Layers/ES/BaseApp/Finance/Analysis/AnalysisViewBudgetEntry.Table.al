@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,6 +35,7 @@ table 366 "Analysis View Budget Entry"
         field(1; "Analysis View Code"; Code[10])
         {
             Caption = 'Analysis View Code';
+            ToolTip = 'Specifies the analysis view.';
             NotBlank = true;
             TableRelation = "Analysis View";
         }
@@ -45,6 +46,7 @@ table 366 "Analysis View Budget Entry"
         field(2; "Budget Name"; Code[10])
         {
             Caption = 'Budget Name';
+            ToolTip = 'Specifies the name of the budget that the analysis view budget entries are linked to.';
             TableRelation = "G/L Budget Name";
         }
         /// <summary>
@@ -54,6 +56,7 @@ table 366 "Analysis View Budget Entry"
         field(3; "Business Unit Code"; Code[20])
         {
             Caption = 'Business Unit Code';
+            ToolTip = 'Specifies the code for the business unit that the analysis view is based on.';
             TableRelation = "Business Unit";
         }
         /// <summary>
@@ -63,6 +66,7 @@ table 366 "Analysis View Budget Entry"
         field(4; "G/L Account No."; Code[20])
         {
             Caption = 'G/L Account No.';
+            ToolTip = 'Specifies the number of the account that the entry has been posted to.';
             TableRelation = "G/L Account";
         }
         /// <summary>
@@ -74,6 +78,7 @@ table 366 "Analysis View Budget Entry"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(1);
             Caption = 'Dimension 1 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 1 on the analysis view card.';
         }
         /// <summary>
         /// Second dimension value code for budget analysis breakdown.
@@ -84,6 +89,7 @@ table 366 "Analysis View Budget Entry"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(2);
             Caption = 'Dimension 2 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 2 on the analysis view card.';
         }
         /// <summary>
         /// Third dimension value code for budget analysis breakdown.
@@ -94,6 +100,7 @@ table 366 "Analysis View Budget Entry"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(3);
             Caption = 'Dimension 3 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 3 on the analysis view card.';
         }
         /// <summary>
         /// Fourth dimension value code for budget analysis breakdown.
@@ -104,6 +111,7 @@ table 366 "Analysis View Budget Entry"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(4);
             Caption = 'Dimension 4 Value Code';
+            ToolTip = 'Specifies the dimension value you selected for the analysis view dimension that you defined as Dimension 4 on the analysis view card.';
         }
         /// <summary>
         /// Budget posting date for period-based analysis and reporting.
@@ -112,6 +120,7 @@ table 366 "Analysis View Budget Entry"
         field(9; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
         }
         /// <summary>
         /// Sequential entry number for unique identification within the analysis view.
@@ -130,6 +139,7 @@ table 366 "Analysis View Budget Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the amount of the analysis view budget entry.';
         }
         field(10720; "Old G/L Account No."; Code[20])
         {

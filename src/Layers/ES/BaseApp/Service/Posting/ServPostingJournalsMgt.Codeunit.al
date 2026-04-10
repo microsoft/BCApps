@@ -55,9 +55,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         Consume: Boolean;
         Invoice: Boolean;
         ItemJnlRollRndg: Boolean;
-#if not CLEAN26
-        ServiceLinePostingDate: Date;
-#endif
 
     procedure Initialize(var TempServHeader: Record "Service Header"; TmpConsume: Boolean; TmpInvoice: Boolean)
     var
@@ -646,14 +643,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         exit(true);
     end;
 
-#if not CLEAN26
-    [Obsolete('The variable ServiceLinePostingDate is initialized but not used.', '26.0')]
-    procedure SetPostingDate(PostingDate: Date)
-    begin
-        ServiceLinePostingDate := PostingDate;
-    end;
-#endif
-
 #if not CLEAN27
     [Obsolete('Moved to codeunit ServicePostingSubscrES', '27.0')]
     [Scope('OnPrem')]
@@ -683,7 +672,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
     local procedure OnAfterTransferValuesToJobJnlLine(var JobJournalLine: Record "Job Journal Line"; ServiceLine: Record "Service Line")
     begin
     end;
-
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; ServiceShipmentHeader: Record "Service Shipment Header"; ServiceLine: Record "Service Line"; GenJnlLineDocNo: Code[20]; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal)

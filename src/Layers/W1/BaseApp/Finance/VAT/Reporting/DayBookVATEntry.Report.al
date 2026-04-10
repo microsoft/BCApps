@@ -17,11 +17,10 @@ using System.Utilities;
 /// </summary>
 report 2500 "Day Book VAT Entry"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/VAT/Reporting/DayBookVATEntry.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Day Book VAT Entry';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -357,6 +356,16 @@ report 2500 "Day Book VAT Entry"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/VAT/Reporting/DayBookVATEntry.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -13,8 +13,11 @@ permissionset 4305 "Agent - Admin"
     Caption = 'Agent administrator';
     IncludedPermissionSets = "D365 Agent";
     Permissions =
+        page "Agent Creation Control" = X,
+        page "Agent Creation Control Part" = X,
         tabledata "Access Control" = RIMD,
         tabledata Agent = RIMD,
+        tabledata "Agent Creation Control" = RIMD,
         system "Configure All Agents" = X,
         system "Create Custom Agent" = X;
 }

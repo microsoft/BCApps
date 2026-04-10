@@ -109,6 +109,10 @@ page 5610 "Depreciation Book Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+                field("Use Bonus Depreciation"; Rec."Use Bonus Depreciation")
+                {
+                    ApplicationArea = FixedAssets;
+                }
             }
             group(Integration)
             {
@@ -163,6 +167,11 @@ page 5610 "Depreciation Book Card"
                         ApplicationArea = FixedAssets;
                         Caption = 'Derogatory';
                         ToolTip = 'Specifies if you want derogatory entries that are posted to this depreciation book to be posted both to the general ledger and the FA ledger.';
+                    }
+                    field("G/L Integration - Bonus Depr."; Rec."G/L Integration - Bonus Depr.")
+                    {
+                        ApplicationArea = FixedAssets;
+                        Caption = 'G/L Integration - Bonus Depreciation';
                     }
                 }
             }

@@ -139,16 +139,6 @@ codeunit 7311 "Whse. Worksheet-Create"
             exit(true);
     end;
 
-#if not CLEAN26
-    [Obsolete('Moved to codeunit ProdOrderWarehouseMgt', '26.0')]
-    procedure FromProdOrderCompLine(WhseWkshTemplateName: Code[10]; WhseWkshName: Code[10]; LocationCode: Code[10]; ToBinCode: Code[20]; ProdOrderCompLine: Record Microsoft.Manufacturing.Document."Prod. Order Component"): Boolean
-    var
-        ProdOrderWarehouseMgt: Codeunit Microsoft.Manufacturing.Document."Prod. Order Warehouse Mgt.";
-    begin
-        exit(ProdOrderWarehouseMgt.FromProdOrderCompLine(WhseWkshTemplateName, WhseWkshName, LocationCode, ToBinCode, ProdOrderCompLine));
-    end;
-#endif
-
     procedure FromAssemblyLine(WhseWkshTemplateName: Code[10]; WhseWkshName: Code[10]; AssemblyLine: Record "Assembly Line"): Boolean
     var
         WhseWkshLine: Record "Whse. Worksheet Line";
@@ -483,19 +473,6 @@ codeunit 7311 "Whse. Worksheet-Create"
     local procedure OnAfterTransferFromWhseShptLine(var WhseWorksheetLine: Record "Whse. Worksheet Line"; WhseWkshTemplateName: Code[10]; WhseWkshName: Code[10]; WhseShipmentLine: Record "Warehouse Shipment Line")
     begin
     end;
-
-#if not CLEAN26
-    internal procedure RunOnAfterFromProdOrderCompLineCreateWhseWkshLine(var WhseWorksheetLine: Record "Whse. Worksheet Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; LocationCode: Code[10]; ToBinCode: Code[20])
-    begin
-        OnAfterFromProdOrderCompLineCreateWhseWkshLine(WhseWorksheetLine, ProdOrderComponent, LocationCode, ToBinCode);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderWarehouseMgt', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterFromProdOrderCompLineCreateWhseWkshLine(var WhseWorksheetLine: Record "Whse. Worksheet Line"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; LocationCode: Code[10]; ToBinCode: Code[20])
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterFromWhseRcptLineCreateWhseWkshLine(var WhseWorksheetLine: Record "Whse. Worksheet Line"; PostedWhseReceiptLine: Record "Posted Whse. Receipt Line")

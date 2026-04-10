@@ -60,19 +60,22 @@ codeunit 144051 "ERM EVAT"
         LibraryXMLRead: Codeunit "Library - XML Read";
         LibraryApplicationArea: Codeunit "Library - Application Area";
         AgentConAddressErr: Label 'Agent Contact Address must have a value in Elec. Tax Declaration Setup';
-        SuppliesAmountZeroErr: Label 'Element %1 with Data zero exsits';
-        SubElementErr: Label 'Element bd-ob-tuple:IntraCommunitySupplies should have 3 subelements';
-        ParentElementErr: Label 'Parent of element %1 is wrong';
         XbrliXbrlTok: Label 'xbrli:xbrl';
         AttrBdTTok: Label 'xmlns:bd-t';
         AttrBdITok: Label 'xmlns:bd-i';
         AttrBdObTok: Label 'xmlns:bd-ob';
+        AttrXbrldiTok: Label 'xmlns:xbrldi';
+        AttrBdDimDimTok: Label 'xmlns:bd-dim-dim';
+        AttrBdDimDomTok: Label 'xmlns:bd-dim-dom';
         DownloadSubmissionMessageQst: Label 'Do you want to download the submission message?';
         NoSubmissionMessageAvailableErr: Label 'The submission message of the report is not available.';
-        BDDataEndpointTxt: Label 'https://www.nltaxonomie.nl/nt19/bd/20241211/dictionary/bd-data', Locked = true;
-        VATDeclarationSchemaEndpointTxt: Label 'http://www.nltaxonomie.nl/nt19/bd/20241211/entrypoints/bd-rpt-ob-aangifte-2025.xsd', Locked = true;
-        BDTuplesEndpointTxt: Label 'https://www.nltaxonomie.nl/nt19/bd/20241211/dictionary/bd-tuples', Locked = true;
-        ICPDeclarationSchemaEndpointTxt: Label 'http://www.nltaxonomie.nl/nt19/bd/20241211/entrypoints/bd-rpt-icp-opgaaf-2025.xsd', Locked = true;
+        BDDataEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/dictionary/bd-data', Locked = true;
+        VATDeclarationSchemaEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/entrypoints/bd-rpt-ob-aangifte-2026.xsd', Locked = true;
+        ICPDeclarationSchemaEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/entrypoints/bd-rpt-icp-opgaaf-2026.xsd', Locked = true;
+        ICPBDDataEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/dictionary/bd-data', Locked = true;
+        XBRLDIEndpointTxt: Label 'http://xbrl.org/2006/xbrldi', Locked = true;
+        BDDimAxesEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/validation/bd-axes', Locked = true;
+        BDDimDomainsEndpointTxt: Label 'http://www.nltaxonomie.nl/nt20/bd/20251210/validation/bd-domains', Locked = true;
 
     [Test]
     [HandlerFunctions('CreateElecVATDeclarationRequestPageHandler,VATStatementRequestPageHandler')]
@@ -238,8 +241,7 @@ codeunit 144051 "ERM EVAT"
         ElecTaxDeclLine.SetRange("Declaration Type", ElecTaxDeclHeader."Declaration Type"::"ICP Declaration");
         ElecTaxDeclLine.SetRange("Declaration No.", No);
         ElecTaxDeclLine.SetRange("Line Type", ElecTaxDeclLine."Line Type"::Element);
-        ElecTaxDeclLine.SetFilter(Name, '%1|%2|%3', 'bd-t:IntraCommunitySupplies', 'bd-t:IntraCommunityServices',
-          'bd-t:IntraCommunityABCSupplies');
+        ElecTaxDeclLine.SetFilter(Name, '%1|%2', 'bd-i:SuppliesAmount', 'bd-i:ServicesAmount');
 
         if ElecTaxDeclLine.Find('-') then
             repeat
@@ -674,29 +676,26 @@ codeunit 144051 "ERM EVAT"
     var
         ElecTaxDeclHeader: Record "Elec. Tax Declaration Header";
         ElecTaxDeclLine: Record "Elec. Tax Declaration Line";
+        VATEntry: Record "VAT Entry";
         ElecTaxDeclHeaderNo: Code[20];
     begin
         // Verify Electronic Tax ICP Declaration does not show line for Amount Zero and its parent and sibling elements.
 
         // Setup: Create a Reverse Charge Sales Invoice VAT Entry with base amount greater than 0 and less than 1.
         Initialize();
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetRange("VAT Calculation Type", VATEntry."VAT Calculation Type"::"Reverse Charge VAT");
+        VATEntry.DeleteAll();
         CreateSalesInvoiceVATEntry();
 
         // Exercise: Create Electronic Tax ICP Declaration.
         ElecTaxDeclHeaderNo := CreateElectronicTaxDeclaration(ElecTaxDeclHeader."Declaration Type"::"ICP Declaration");
 
-        // Verify: Element bd-ob:SuppliesAmount has no Data Zero.
+        // Verify: No bd-i:SuppliesAmount element exists (entry base < 1 is filtered out entirely)
         FilterOnElecTaxDeclLine(
           ElecTaxDeclLine, ElecTaxDeclLine."Declaration Type"::"ICP Declaration", ElecTaxDeclHeaderNo,
-          ElecTaxDeclLine."Line Type"::Element, 'bd-ob:SuppliesAmount');
-        VerifyNoZeroAmount(ElecTaxDeclLine);
-
-        // Verify: Element bd-ob-tuple:IntraCommunitySupplies, bd-ob:CountryCodeISO-EC and bd-ob:VATIdentificationNumberNational
-        // always appear together with element bd-ob:SuppliesAmount.
-        VerifySubElementCount(ElecTaxDeclLine);
-        VerifyParentElement(ElecTaxDeclLine, 'bd-ob:CountryCodeISO-EC');
-        VerifyParentElement(ElecTaxDeclLine, 'bd-ob:SuppliesAmount');
-        VerifyParentElement(ElecTaxDeclLine, 'bd-ob:VATIdentificationNumberNational');
+          ElecTaxDeclLine."Line Type"::Element, 'bd-i:SuppliesAmount');
+        Assert.IsTrue(ElecTaxDeclLine.IsEmpty(), 'SuppliesAmount line should not exist for amount less than 1');
     end;
 
     local procedure BuildDeclarationDocumentPreview(ElecTaxDeclheader: Record "Elec. Tax Declaration Header") TempFile: Text
@@ -808,8 +807,11 @@ codeunit 144051 "ERM EVAT"
             UseVATRegNo := DelStr(UseVATRegNo, 1, 2);
 
         LibraryXMLRead.Initialize(Filename);
-        LibraryXMLRead.VerifyAttributeValue(XbrliXbrlTok, AttrBdTTok, BDTuplesEndpointTxt);
-        LibraryXMLRead.VerifyAttributeValue(XbrliXbrlTok, AttrBdITok, BDDataEndpointTxt);
+        LibraryXMLRead.VerifyAttributeAbsence(XbrliXbrlTok, AttrBdTTok);
+        LibraryXMLRead.VerifyAttributeValue(XbrliXbrlTok, AttrBdITok, ICPBDDataEndpointTxt);
+        LibraryXMLRead.VerifyAttributeValue(XbrliXbrlTok, AttrXbrldiTok, XBRLDIEndpointTxt);
+        LibraryXMLRead.VerifyAttributeValue(XbrliXbrlTok, AttrBdDimDimTok, BDDimAxesEndpointTxt);
+        LibraryXMLRead.VerifyAttributeValue(XbrliXbrlTok, AttrBdDimDomTok, BDDimDomainsEndpointTxt);
         LibraryXMLRead.VerifyAttributeValueInSubtree(
           XbrliXbrlTok, 'link:schemaRef', 'xlink:href', ICPDeclarationSchemaEndpointTxt);
         LibraryXMLRead.VerifyNodeValueInSubtree('xbrli:context', 'xbrli:identifier', UseVATRegNo);
@@ -842,33 +844,23 @@ codeunit 144051 "ERM EVAT"
     local procedure VerifyICPVATEntry(var VATEntry: Record "VAT Entry")
     var
         CountryRegion: Record "Country/Region";
-        TagName: Text;
         ElementName: Text;
+        ExpectedAmount: Text;
     begin
-        if VATEntry."EU Service" then begin
-            TagName := 'bd-t:IntraCommunityServices';
-            ElementName := 'bd-i:ServicesAmount';
-        end;
-        if not VATEntry."EU 3-Party Trade" and not VATEntry."EU Service" then begin
-            TagName := 'bd-t:IntraCommunitySupplies';
+        if VATEntry."EU Service" then
+            ElementName := 'bd-i:ServicesAmount'
+        else
             ElementName := 'bd-i:SuppliesAmount';
-        end;
-        if VATEntry."EU 3-Party Trade" and not VATEntry."EU Service" then begin
-            TagName := 'bd-t:IntraCommunityABCSupplies';
-            ElementName := 'bd-i:SuppliesAmount';
-        end;
 
+        ExpectedAmount := Format(-VATEntry.Base, 0, '<Sign><Integer>');
         if CountryRegion.Get(VATEntry."Country/Region Code") then;
-        LibraryXMLRead.VerifyNodeValueInSubtree(TagName, 'bd-i:CountryCodeISO-EC', CountryRegion."ISO Code");
-        LibraryXMLRead.VerifyAttributeValueInSubtree(TagName, 'bd-i:CountryCodeISO-EC', 'contextRef', 'Msg');
 
-        LibraryXMLRead.VerifyNodeValueInSubtree(TagName, ElementName, Format(-VATEntry.Base, 0, '<Sign><Integer>'));
-        LibraryXMLRead.VerifyAttributeValueInSubtree(TagName, ElementName, 'contextRef', 'Msg');
-        LibraryXMLRead.VerifyAttributeValueInSubtree(TagName, ElementName, 'unitRef', 'EUR');
-        LibraryXMLRead.VerifyAttributeValueInSubtree(TagName, ElementName, 'decimals', 'INF');
+        // Verify the amount fact exists with correct value
+        LibraryXMLRead.VerifyNodeValueInSubtree(XbrliXbrlTok, ElementName, ExpectedAmount);
 
-        LibraryXMLRead.VerifyNodeValueInSubtree(TagName, 'bd-i:VATIdentificationNumberNational', VATEntry."VAT Registration No.");
-        LibraryXMLRead.VerifyAttributeValueInSubtree(TagName, ElementName, 'contextRef', 'Msg');
+        // Verify dimensional context contains the right country and VAT number
+        LibraryXMLRead.VerifyNodeValueInSubtree('xbrli:scenario', 'bd-dim-dom:CountryCodeEUDomain', CopyStr(CountryRegion."EU Country/Region Code", 1, 2));
+        LibraryXMLRead.VerifyNodeValueInSubtree('xbrli:scenario', 'bd-dim-dom:VATNumberDomain', VATEntry."VAT Registration No.");
 
         LibraryXMLRead.VerifyXMLDeclaration('1.0', 'UTF-8', 'yes');
     end;
@@ -883,7 +875,7 @@ codeunit 144051 "ERM EVAT"
         CountryRegion: Record "Country/Region";
         No: Code[20];
     begin
-        // [SCENARIO 271082] When Country/Region record has nonempty "EU Country/Region Code", bd-i:CountryCodeISO-EC and bd-i:VATIdentificationNumberNational values are set according to EU Country Code.
+        // [SCENARIO 271082] When Country/Region record has nonempty "EU Country/Region Code", bd-dim-dom:CountryCodeEUDomain and bd-dim-dom:VATNumberDomain values are set according to EU Country Code.
         Initialize();
 
         // [GIVEN] Country/Region record with "EU Country/Region Code" = "EL", it is different from Code = "GR".
@@ -900,10 +892,10 @@ codeunit 144051 "ERM EVAT"
         // [WHEN] Create Electronic Tax Declaration
         No := CreateElectronicTaxDeclaration(ElecTaxDeclarationHeader."Declaration Type"::"ICP Declaration");
 
-        // [THEN] bd-i:CountryCodeISO-EC = "EL", bd-i:VATIdentificationNumberNational = "1234567".
-        VerifyElecTaxDeclarationLine(No, 'bd-i:CountryCodeISO-EC', CountryRegion."EU Country/Region Code");
+        // [THEN] bd-dim-dom:CountryCodeEUDomain = "EL", bd-dim-dom:VATNumberDomain = "1234567".
+        VerifyElecTaxDeclarationLine(No, 'bd-dim-dom:CountryCodeEUDomain', CountryRegion."EU Country/Region Code");
         VerifyElecTaxDeclarationLine(
-          No, 'bd-i:VATIdentificationNumberNational',
+          No, 'bd-dim-dom:VATNumberDomain',
           DelStr(VATEntry."VAT Registration No.", 1, StrLen(CountryRegion."EU Country/Region Code")));
 
         // Tear down
@@ -1076,13 +1068,6 @@ codeunit 144051 "ERM EVAT"
         FilterOnElecTaxDeclLine(
           ElecTaxDeclarationLine, ElecTaxDeclarationLine."Declaration Type"::"ICP Declaration", ElecTaxDeclHeaderNo,
           ElecTaxDeclarationLine."Line Type"::Element, 'bd-i:SuppliesAmount');
-        Assert.IsTrue(ElecTaxDeclarationLine.IsEmpty(), 'Electronic tax declaration line has been generated');
-
-        // [THEN] No electronic tax declaration line has been generated with 'bd-t:IntraCommunitySupplies' name
-        // Bug id 420957: No electronic tax declaration line must be generated for non-EU country
-        FilterOnElecTaxDeclLine(
-          ElecTaxDeclarationLine, ElecTaxDeclarationLine."Declaration Type"::"ICP Declaration", ElecTaxDeclHeaderNo,
-          ElecTaxDeclarationLine."Line Type"::Element, 'bd-t:IntraCommunitySupplies');
         Assert.IsTrue(ElecTaxDeclarationLine.IsEmpty(), 'Electronic tax declaration line has been generated');
 
         LibraryVariableStorage.AssertEmpty();
@@ -1483,46 +1468,6 @@ codeunit 144051 "ERM EVAT"
         ElecTaxDeclarationLine.SetRange(Name, Name);
         ElecTaxDeclarationLine.FindFirst();
         ElecTaxDeclarationLine.TestField(Data, Data);
-    end;
-
-    local procedure VerifyNoZeroAmount(var ElecTaxDeclLine: Record "Elec. Tax Declaration Line")
-    begin
-        ElecTaxDeclLine.SetRange(Data, '-0');
-        Assert.IsTrue(ElecTaxDeclLine.IsEmpty, StrSubstNo(SuppliesAmountZeroErr, 'bd-ob:SuppliesAmount'));
-        ElecTaxDeclLine.SetRange(Data);
-    end;
-
-    local procedure VerifySubElementCount(var ElecTaxDeclLine: Record "Elec. Tax Declaration Line")
-    var
-        ElecTaxDeclLine2: Record "Elec. Tax Declaration Line";
-    begin
-        ElecTaxDeclLine.SetRange(Name, 'bd-ob-tuple:IntraCommunitySupplies');
-        if ElecTaxDeclLine.FindSet() then
-            repeat
-                ElecTaxDeclLine2.CopyFilters(ElecTaxDeclLine);
-                ElecTaxDeclLine2.SetRange(Name);
-                ElecTaxDeclLine2.SetRange("Parent Line No.", ElecTaxDeclLine."Line No.");
-                Assert.AreEqual(3, ElecTaxDeclLine2.Count, SubElementErr);
-            until ElecTaxDeclLine.Next() = 0;
-        ElecTaxDeclLine.SetRange(Name);
-    end;
-
-    local procedure VerifyParentElement(var ElecTaxDeclLine: Record "Elec. Tax Declaration Line"; ElementName: Text[80])
-    var
-        ElecTaxDeclLine2: Record "Elec. Tax Declaration Line";
-    begin
-        ElecTaxDeclLine.SetRange(Name, ElementName);
-        if ElecTaxDeclLine.FindSet() then
-            repeat
-                ElecTaxDeclLine2.Get(
-                  ElecTaxDeclLine."Declaration Type", ElecTaxDeclLine."Declaration No.", ElecTaxDeclLine."Parent Line No.");
-                Assert.IsTrue(
-                  ElecTaxDeclLine2.Name in
-                  ['bd-ob-tuple:IntraCommunitySupplies', 'bd-ob-tuple:IntraCommunityServices',
-                   'bd-ob-tuple:IntraCommunityABCSupplies'],
-                  StrSubstNo(ParentElementErr, ElementName));
-            until ElecTaxDeclLine.Next() = 0;
-        ElecTaxDeclLine.SetRange(Name);
     end;
 
     local procedure VerifyVATDeclarationSubmissionMessageGenerated(ElecTaxDeclarationHeader: Record "Elec. Tax Declaration Header")

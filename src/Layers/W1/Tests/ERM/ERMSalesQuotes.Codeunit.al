@@ -434,9 +434,6 @@ codeunit 134379 "ERM Sales Quotes"
         Assert.IsFalse(SalesQuotes.Dimensions.Enabled(), ControlShouldBeDisabledErr);
         Assert.IsFalse(SalesQuotes.Customer.Enabled(), ControlShouldBeDisabledErr);
         Assert.IsFalse(SalesQuotes."C&ontact".Enabled(), ControlShouldBeDisabledErr);
-#if not CLEAN26
-        Assert.IsFalse(SalesQuotes.Statistics.Enabled(), ControlShouldBeDisabledErr);
-#endif
         Assert.IsFalse(SalesQuotes.SalesStatistics.Enabled(), ControlShouldBeDisabledErr);
         Assert.IsFalse(SalesQuotes."Co&mments".Enabled(), ControlShouldBeDisabledErr);
         Assert.IsFalse(SalesQuotes.CreateCustomer.Enabled(), ControlShouldBeDisabledErr);
@@ -479,9 +476,6 @@ codeunit 134379 "ERM Sales Quotes"
         Assert.IsTrue(SalesQuotes.Dimensions.Enabled(), ControlShouldBeEnabledErr);
         Assert.IsTrue(SalesQuotes.Customer.Enabled(), ControlShouldBeEnabledErr);
         Assert.IsTrue(SalesQuotes."C&ontact".Enabled(), ControlShouldBeEnabledErr);
-#if not CLEAN26
-        Assert.IsTrue(SalesQuotes.Statistics.Enabled(), ControlShouldBeEnabledErr);
-#endif
         Assert.IsTrue(SalesQuotes.SalesStatistics.Enabled(), ControlShouldBeEnabledErr);
         Assert.IsTrue(SalesQuotes."Co&mments".Enabled(), ControlShouldBeDisabledErr);
         Assert.IsFalse(SalesQuotes.CreateCustomer.Enabled(), ControlShouldBeDisabledErr);
@@ -657,9 +651,6 @@ codeunit 134379 "ERM Sales Quotes"
         SalesQuote.OpenNew();
 
         // [THEN] All controls related to customer (and not on SaaS) are disabled
-#if not CLEAN26
-        Assert.IsFalse(SalesQuote.Statistics.Enabled(), ControlShouldBeDisabledErr);
-#endif
         Assert.IsFalse(SalesQuote.SalesStatistics.Enabled(), ControlShouldBeDisabledErr);
     end;
 
@@ -701,10 +692,6 @@ codeunit 134379 "ERM Sales Quotes"
         SalesQuote.GotoRecord(SalesHeader);
 
         // [THEN] All controls related to customer (and not on SaaS) are enabled
-#if not CLEAN26
-        Assert.IsTrue(SalesQuote.Statistics.Enabled(), ControlShouldBeEnabledErr);
-#endif
-
         Assert.IsTrue(SalesQuote.SalesStatistics.Enabled(), ControlShouldBeEnabledErr);
     end;
 

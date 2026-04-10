@@ -1225,6 +1225,70 @@ codeunit 144050 "ERM Auto Payment"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure RecallIssuedCustomerBillSecondTimeForSameInvoice()
+    var
+        Bill: Record Bill;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        SalesLine: Record "Sales Line";
+        Customer: Record Customer;
+        CustomerBillHeader: Record "Customer Bill Header";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        BillPostingGroup: Record "Bill Posting Group";
+        PaymentMethod: Record "Payment Method";
+        RecallEntryNo: Integer;
+        PaymentEntryNo: Integer;
+        DocumentNo: Code[20];
+    begin
+        // [SCENARIO: 622588] Recall issued customer bill for the same invoice twice without getting open-entry error.
+        Initialize();
+
+        // [GIVEN] Customer with payment method and bill configuration.
+        LibraryITLocalization.CreateBill(Bill);
+        Bill.Validate("Allow Issue", false);
+        Bill.Validate("Bank Receipt", true);
+        Bill.Validate("List No.", LibraryUtility.GetGlobalNoSeriesCode());
+        Bill.Validate("Final Bill No.", LibraryUtility.GetGlobalNoSeriesCode());
+        Bill.Validate("Vendor Bill List", LibraryUtility.GetGlobalNoSeriesCode());
+        Bill.Validate("Vendor Bill No.", LibraryUtility.GetGlobalNoSeriesCode());
+        Bill.Modify(true);
+        LibraryERM.CreatePaymentMethod(PaymentMethod);
+        PaymentMethod.Validate("Bill Code", Bill.Code);
+        PaymentMethod.Modify(true);
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Payment Method Code", PaymentMethod.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] One posted sales invoice.
+        CreateSalesInvoice(SalesLine, Customer."No.");
+        DocumentNo := PostSalesInvoice(SalesLine);
+
+        // [GIVEN] First posted customer bill for the invoice.
+        CreateBillPostingGroup(BillPostingGroup, Customer."Payment Method Code");
+        CreateCustomerBill(CustomerBillHeader, Customer."No.", BillPostingGroup);
+        PostCustomerBill(CustomerBillHeader);
+
+        // [WHEN] Recall first issued customer bill line.
+        RecallLastInvoice(DocumentNo);
+
+        // [WHEN] Post and recall a second customer bill for the same invoice.
+        CreateCustomerBill(CustomerBillHeader, Customer."No.", BillPostingGroup);
+        PostCustomerBill(CustomerBillHeader);
+        RecallLastInvoice(DocumentNo);
+
+        // [THEN] Recall entry is applied to payment entry for the invoice without error.
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, DocumentNo);
+        PaymentEntryNo :=
+            FindCLEDocumentToClose(Customer."No.", CustLedgerEntry."Document Type"::Payment, CustLedgerEntry."Document Type", CustLedgerEntry."Document No.", CustLedgerEntry."Document Occurrence");
+        RecallEntryNo :=
+            FindCLEDocumentToClose(Customer."No.", CustLedgerEntry."Document Type"::" ", CustLedgerEntry."Document Type", CustLedgerEntry."Document No.", CustLedgerEntry."Document Occurrence");
+
+        FindAppliedCustLedgerEntry(DetailedCustLedgEntry, RecallEntryNo);
+        DetailedCustLedgEntry.TestField("Cust. Ledger Entry No.", PaymentEntryNo);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure SuggestVendorBillLineAndVerifyWithWithholdingTaxAmount()
     var

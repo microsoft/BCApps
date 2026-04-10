@@ -108,7 +108,6 @@ table 130405 "CAL Test Result"
     {
     }
 
-    [Scope('OnPrem')]
     procedure Add(SourceCALTestLine: Record "CAL Test Line"; TestRunNo: Integer)
     begin
         Initialize(TestRunNo, SourceCALTestLine."Test Codeunit", SourceCALTestLine."Function", SourceCALTestLine."Start Time");
@@ -129,7 +128,6 @@ table 130405 "CAL Test Result"
         Insert();
     end;
 
-    [Scope('OnPrem')]
     procedure Update(Success: Boolean; FinishTime: DateTime)
     var
         Out: OutStream;

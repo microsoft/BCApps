@@ -9,9 +9,8 @@ using System.Utilities;
 
 report 1301 "Print ASCII File"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Utilities/PrintASCIIFile.rdlc';
     Caption = 'Print ASCII File';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -98,6 +97,16 @@ report 1301 "Print ASCII File"
         begin
             FileName := '';
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Utilities/PrintASCIIFile.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

@@ -832,7 +832,7 @@ codeunit 132600 "Report Layout"
     begin
         CustomerOrdeRSummary.ShwAmtinLCY.SetValue(true);
         CustomerOrdeRSummary.StartingDate.SetValue(WorkDate());
-        CustomerOrdeRSummary.SaveAsPdf(FormatFileName(CustomerOrdeRSummary.Caption));
+        CustomerOrdeRSummary.SaveAsExcel(FormatFileName(CustomerOrdeRSummary.Caption));
     end;
 
     [RequestPageHandler]
@@ -927,7 +927,7 @@ codeunit 132600 "Report Layout"
     begin
         InventoryValuationWIP.StartingDate.SetValue(WorkDate());
         InventoryValuationWIP.EndingDate.SetValue(CalcDate('<+10Y>', WorkDate()));
-        InventoryValuationWIP.SaveAsPdf(FormatFileName(InventoryValuationWIP.Caption));
+        InventoryValuationWIP.SaveAsExcel(FormatFileName(InventoryValuationWIP.Caption));
     end;
 
     [RequestPageHandler]

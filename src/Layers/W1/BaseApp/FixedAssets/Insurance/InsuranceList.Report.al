@@ -6,11 +6,10 @@ namespace Microsoft.FixedAssets.Insurance;
 
 report 5621 "Insurance - List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Insurance/InsuranceList.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Insurance List';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -96,6 +95,16 @@ report 5621 "Insurance - List"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Insurance/InsuranceList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

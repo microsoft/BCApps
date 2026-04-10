@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,29 +32,24 @@ page 580 "Dimension Translations"
                 {
                     ApplicationArea = Dimensions;
                     LookupPageID = "Windows Languages";
-                    ToolTip = 'Specifies a language code.';
                 }
                 field("Language Name"; Rec."Language Name")
                 {
                     ApplicationArea = Dimensions;
                     DrillDown = false;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the language.';
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the name of the dimension code.';
                 }
                 field("Code Caption"; Rec."Code Caption")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the name of the dimension code as you want it to appear as a field name after the Language ID code is selected.';
                 }
                 field("Filter Caption"; Rec."Filter Caption")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension filter caption.';
                 }
             }
         }

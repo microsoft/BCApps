@@ -136,7 +136,7 @@ report 10083 "Export Electronic Payments"
                     column(DiscountTaken; DiscountTaken)
                     {
                     }
-                    column(VendLedgEntry__Remaining_Amt___LCY__; -VendLedgEntry."Remaining Amt. (LCY)")
+                    column(VendLedgEntry__Remaining_Amt___LCY__; -VendLedgEntry."Remaining Amount")
                     {
                     }
                     column(VendLedgEntry__Document_Date_; VendLedgEntry."Document Date")
@@ -317,7 +317,7 @@ report 10083 "Export Electronic Payments"
                             ValidExchRate: Boolean;
                         begin
                             ValidExchRate := true;
-                            CalcFields("Remaining Amt. (LCY)");
+                            CalcFields("Remaining Amount");
                             if ("Pmt. Discount Date" >= "Gen. Journal Line"."Document Date") and
                                ("Remaining Pmt. Disc. Possible" <> 0) and
                                ((-ExportAmount - TotalAmountPaid) - "Remaining Pmt. Disc. Possible" >= -"Amount to Apply")
@@ -690,7 +690,7 @@ report 10083 "Export Electronic Payments"
             VendLedgEntry.SetRange("Vendor No.", Vendor."No.");
             VendLedgEntry.SetRange(Open, true);
             VendLedgEntry.FindFirst();
-            VendLedgEntry.CalcFields("Remaining Amt. (LCY)");
+            VendLedgEntry.CalcFields("Remaining Amount");
             if (VendLedgEntry."Pmt. Discount Date" >= GenJnlLine."Document Date") and
                (VendLedgEntry."Remaining Pmt. Disc. Possible" <> 0) and
                (-(ExportAmount + VendLedgEntry."Remaining Pmt. Disc. Possible") >= -VendLedgEntry."Amount to Apply")

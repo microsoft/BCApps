@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -52,31 +52,26 @@ page 184 "Copy Gen. Journal Parameters"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Target Journal Template';
-                    ToolTip = 'Specifies journal template is used to copy posted journal lines.';
                 }
                 field("Journal Batch Name"; Rec."Journal Batch Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Target Journal Batch';
-                    ToolTip = 'Specifies journal batch is used to copy posted journal lines.';
                 }
                 field("Replace Posting Date"; Rec."Replace Posting Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Replace Posting Date';
-                    ToolTip = 'Specifies if the posting date will be validated with the value of current field while copy posted journal lines. If you leave this field blank original Posting Date will be used in Target Journal.';
                 }
                 field("Replace Document No."; Rec."Replace Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Replace Document No.';
-                    ToolTip = 'Specifies if the document number will be replaced with the value of current field while copy posted journal lines. If you leave this field blank original Document No. will be used in Target Journal.';
                 }
                 field("Reverse Sign"; Rec."Reverse Sign")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Reverse Sign';
-                    ToolTip = 'Specifies if the amount will be replaced with the opposite value while copy posted journal lines. If you leave this field disabled original amount will be used in Target Journal.';
                 }
             }
         }

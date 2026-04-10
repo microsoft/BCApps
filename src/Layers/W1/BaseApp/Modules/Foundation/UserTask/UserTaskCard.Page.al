@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +25,6 @@ page 1171 "User Task Card"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the title of the task.';
                 }
                 field(MultiLineTextControl; MultiLineTextControl)
                 {
@@ -45,13 +44,11 @@ page 1171 "User Task Card"
                     Editable = false;
                     Enabled = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies who created the task.';
                 }
                 field("Created DateTime"; Rec."Created DateTime")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies when the task was created.';
                 }
             }
             group(Status)
@@ -61,7 +58,6 @@ page 1171 "User Task Card"
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
-                    ToolTip = 'Specifies who the task is assigned to.';
 
                     trigger OnAssistEdit()
                     var
@@ -83,7 +79,6 @@ page 1171 "User Task Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'User Task Group';
-                    ToolTip = 'Specifies the group if the task has been assigned to a group of people.';
 
                     trigger OnValidate()
                     begin
@@ -93,12 +88,10 @@ page 1171 "User Task Card"
                 field("Due DateTime"; Rec."Due DateTime")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the task must be completed.';
                 }
                 field("Percent Complete"; Rec."Percent Complete")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the progress of the task.';
 
                     trigger OnValidate()
                     begin
@@ -108,20 +101,17 @@ page 1171 "User Task Card"
                 field("Start DateTime"; Rec."Start DateTime")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the task must start.';
                 }
                 field(Priority; Rec.Priority)
                 {
                     ApplicationArea = Basic, Suite;
                     BlankZero = true;
-                    ToolTip = 'Specifies the priority of the task.';
                 }
                 field("Completed By User Name"; Rec."Completed By User Name")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies who completed the task.';
 
                     trigger OnAssistEdit()
                     var
@@ -143,7 +133,6 @@ page 1171 "User Task Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies when the task was completed.';
 
                     trigger OnValidate()
                     begin
@@ -159,7 +148,6 @@ page 1171 "User Task Card"
                     ApplicationArea = Basic, Suite;
                     BlankZero = true;
                     OptionCaption = ',,,Report,,,,,Page';
-                    ToolTip = 'Specifies the type of window that the task opens.';
 
                     trigger OnValidate()
                     begin
@@ -174,7 +162,6 @@ page 1171 "User Task Card"
                     BlankZero = true;
                     CaptionClass = GetObjectTypeCaption();
                     Lookup = true;
-                    ToolTip = 'Specifies the window that the task opens.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var

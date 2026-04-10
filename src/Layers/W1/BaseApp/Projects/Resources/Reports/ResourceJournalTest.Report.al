@@ -16,9 +16,8 @@ using System.Utilities;
 
 report 1102 "Resource Journal - Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Resources/Reports/ResourceJournalTest.rdlc';
     Caption = 'Resource Journal - Test';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -339,6 +338,16 @@ report 1102 "Resource Journal - Test"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Resources/Reports/ResourceJournalTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

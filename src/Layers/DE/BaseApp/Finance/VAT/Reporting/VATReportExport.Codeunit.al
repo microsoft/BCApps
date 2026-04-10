@@ -59,19 +59,39 @@ codeunit 743 "VAT Report Export"
         ExportVIESELMAReport(VATReportHeader);
     end;
 
-    procedure CreateVIESELMAXml(VATReportHeader: Record "VAT Report Header"; var TempBlob: Codeunit "Temp Blob")
+    procedure CreateVIESELMAXml(VATReportHeader: Record "VAT Report Header"; var FileID: Text; var TempBlob: Codeunit "Temp Blob")
     var
         VIESELMAXml: Codeunit "VIES ELMA Xml";
     begin
-        VIESELMAXml.Create(VATReportHeader, TempBlob);
+        VIESELMAXml.Create(VATReportHeader, FileID, TempBlob);
     end;
 
+#if not CLEAN29
+    [Obsolete('Use the overload that returns FileID instead.', '29.0')]
+    procedure CreateVIESELMAXml(VATReportHeader: Record "VAT Report Header"; var TempBlob: Codeunit "Temp Blob")
+    var
+        FileID: Text;
+    begin
+        CreateVIESELMAXml(VATReportHeader, FileID, TempBlob);
+    end;
+#endif
+
+    procedure GetVIESELMAFileName(VATReportHeader: Record "VAT Report Header"; FileID: Text): Text
+    var
+        VIESELMAXml: Codeunit "VIES ELMA Xml";
+    begin
+        exit(VIESELMAXml.MakeFileName(VATReportHeader, FileID));
+    end;
+
+#if not CLEAN29
+    [Obsolete('Use the overload with explicit FileID parameter instead.', '29.0')]
     procedure GetVIESELMAFileName(VATReportHeader: Record "VAT Report Header"): Text
     var
         VIESELMAXml: Codeunit "VIES ELMA Xml";
     begin
         exit(VIESELMAXml.MakeFileName(VATReportHeader));
     end;
+#endif
 
     local procedure ExportVIESELMAReport(VATReportHeader: Record "VAT Report Header")
     var
@@ -79,10 +99,11 @@ codeunit 743 "VAT Report Export"
         FileMgt: Codeunit "File Management";
         XmlInStream: InStream;
         FileName: Text;
+        FileID: Text;
     begin
-        CreateVIESELMAXml(VATReportHeader, TempBlob);
+        CreateVIESELMAXml(VATReportHeader, FileID, TempBlob);
         TempBlob.CreateInStream(XmlInStream);
-        FileName := GetVIESELMAFileName(VATReportHeader);
+        FileName := GetVIESELMAFileName(VATReportHeader, FileID);
         FileMgt.DownloadFromStreamHandler(XmlInStream, '', '', '', FileName);
     end;
 

@@ -750,9 +750,6 @@ codeunit 99000845 "Reservation Management"
     var
         CalcReservEntry4: Record "Reservation Entry";
         ReqLine: Record "Requisition Line";
-#if not CLEAN26
-        MfgSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
         TrackingMgt: Codeunit OrderTrackingManagement;
         ReservMgt: Codeunit "Reservation Management";
         QtyToReTrack: Decimal;
@@ -761,10 +758,6 @@ codeunit 99000845 "Reservation Management"
     begin
         IsHandled := false;
         OnBeforeDeleteReservEntries2(CalcReservEntry, CalcReservEntry2, IsHandled, Item, ItemTrackingCode, SKU, Positive, Location, TotalAvailQty, QtyAllocInWhse, QtyReservedOnPickShip);
-#if not CLEAN26
-        MfgSetup.Get();
-        OnDeleteReservEntriesOnBeforeDeleteReservEntries(CalcReservEntry, CalcReservEntry2, IsHandled, Item, ItemTrackingCode, SKU, MfgSetup, Positive, Location, TotalAvailQty, QtyAllocInWhse, QtyReservedOnPickShip);
-#endif
         if IsHandled then
             exit;
 
@@ -2630,32 +2623,6 @@ codeunit 99000845 "Reservation Management"
     begin
     end;
 
-#if not CLEAN26
-    internal procedure RunOnSetAssemblyHeaderOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-        OnSetAssemblyHeaderOnBeforeUpdateReservation(ReservEntry, AssemblyHeader);
-    end;
-
-    [Obsolete('Moved to codeunit AssemblyHeaderReserve', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetAssemblyHeaderOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    internal procedure RunOnSetAssemblyLineOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-        OnSetAssemblyLineOnBeforeUpdateReservation(ReservEntry, AssemblyLine);
-    end;
-
-    [Obsolete('Moved to codeunit AssemblyHeaderReserve', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetAssemblyLineOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnSetItemJnlLineOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; ItemJnlLine: Record "Item Journal Line")
     begin
@@ -2686,32 +2653,6 @@ codeunit 99000845 "Reservation Management"
     begin
     end;
 
-#if not CLEAN26
-    internal procedure RunOnSetProdOrderLineOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        OnSetProdOrderLineOnBeforeUpdateReservation(ReservEntry, ProdOrderLine);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderLineReserve', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetProdOrderLineOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    internal procedure RunOnSetProdOrderCompOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnSetProdOrderCompOnBeforeUpdateReservation(ReservEntry, ProdOrderComp);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderCompReserve', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetProdOrderCompOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnSetPurchLineOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; PurchLine: Record "Purchase Line")
     begin
@@ -2726,19 +2667,6 @@ codeunit 99000845 "Reservation Management"
     local procedure OnSetReqLineOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; ReqLine: Record "Requisition Line")
     begin
     end;
-
-#if not CLEAN26
-    internal procedure RunOnSetServLineOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-        OnSetServLineOnBeforeUpdateReservation(ReservEntry, ServiceLine);
-    end;
-
-    [Obsolete('Moved to codeunit ServiceLineReserve', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetServLineOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; ServiceLine: Record Microsoft.Service.Document."Service Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnSetTransLineOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; TransferLine: Record "Transfer Line")
@@ -2789,14 +2717,6 @@ codeunit 99000845 "Reservation Management"
     local procedure OnBeforeReservedQuantityAssign(ReservationEntry: Record "Reservation Entry"; var ReservedQuantity: Decimal; SignFactor: Integer; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN26
-    [Obsolete('Replaced by event OnBeforeDeleteReservEntries2', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnDeleteReservEntriesOnBeforeDeleteReservEntries(CalcReservEntry: Record "Reservation Entry"; var CalcReservEntry2: Record "Reservation Entry"; var IsHandled: Boolean; var Item: record Item; var ItemTrackingCode: Record "Item Tracking Code"; var SKU: Record "Stockkeeping Unit"; var MfgSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup"; var Positive: Boolean; var Location: Record Location; var TotalAvailQty: Decimal; var QtyAllocInWhse: Decimal; var QtyReservedOnPickShip: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteReservEntries2(CalcReservEntry: Record "Reservation Entry"; var CalcReservEntry2: Record "Reservation Entry"; var IsHandled: Boolean; var Item: record Item; var ItemTrackingCode: Record "Item Tracking Code"; var SKU: Record "Stockkeeping Unit"; var Positive: Boolean; var Location: Record Location; var TotalAvailQty: Decimal; var QtyAllocInWhse: Decimal; var QtyReservedOnPickShip: Decimal)

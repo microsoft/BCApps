@@ -19,12 +19,11 @@ using System.Utilities;
 /// </remarks>
 report 5 "Receivables-Payables"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/GeneralLedger/Reports/ReceivablesPayables.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Receivables-Payables';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -202,6 +201,16 @@ report 5 "Receivables-Payables"
             if Format(PeriodLength) = '' then
                 Evaluate(PeriodLength, '<1M>');
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/GeneralLedger/Reports/ReceivablesPayables.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

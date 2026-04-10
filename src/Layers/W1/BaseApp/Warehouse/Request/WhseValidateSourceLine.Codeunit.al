@@ -343,16 +343,6 @@ codeunit 5777 "Whse. Validate Source Line"
             Error(JobPostQtyPickRemainErr, NewJobJnlLine."Job No.", QtyRemainingToBePicked);
     end;
 
-#if not CLEAN26
-    [Obsolete('Replaced by same procedure in codeunit ProdOrder Warehouse Mgt.', '26.0')]
-    procedure CalcNextLevelProdOutput(ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"): Decimal
-    var
-        ProdOrderWarehouseMgt: Codeunit Microsoft.Manufacturing.Document."Prod. Order Warehouse Mgt.";
-    begin
-        exit(ProdOrderWarehouseMgt.CalcNextLevelProdOutput(ProdOrderComp));
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterItemLineVerifyChange(var NewItemJnlLine: Record "Item Journal Line"; var OldItemJnlLine: Record "Item Journal Line")
     begin
@@ -367,33 +357,6 @@ codeunit 5777 "Whse. Validate Source Line"
     local procedure OnAfterTransLineDelete(var TransferLine: Record "Transfer Line")
     begin
     end;
-
-#if not CLEAN26
-    [Obsolete('Replaced by same event in codeunit Assembly Warehouse Mgt.', '26.0')]
-    internal procedure RunOnBeforeCheckQtyRemainingToBePickedForAssemblyConsumption(var NewItemJnlLine: Record "Item Journal Line"; var OldItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean; var QtyRemainingToBePicked: Decimal)
-    begin
-        OnBeforeCheckQtyRemainingToBePickedForAssemblyConsumption(NewItemJnlLine, OldItemJnlLine, IsHandled, QtyRemainingToBePicked);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit Assembly Warehouse Mgt.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckQtyRemainingToBePickedForAssemblyConsumption(var NewItemJnlLine: Record "Item Journal Line"; var OldItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean; var QtyRemainingToBePicked: Decimal)
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    internal procedure RunOnBeforeCheckQtyRemainingToBePickedForConsumption(var NewItemJnlLine: Record "Item Journal Line"; var OldItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyRemainingToBePicked: Decimal)
-    begin
-        OnBeforeCheckQtyRemainingToBePickedForConsumption(NewItemJnlLine, OldItemJnlLine, IsHandled, ProdOrderComp, QtyRemainingToBePicked);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ProdOrder Warehouse Mgt.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckQtyRemainingToBePickedForConsumption(var NewItemJnlLine: Record "Item Journal Line"; var OldItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; QtyRemainingToBePicked: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckQtyRemainingToBePickedForJob(NewJobJnlLine: Record "Job Journal Line"; QtyRemainingToBePicked: Decimal; var IsHandled: Boolean)
@@ -414,19 +377,6 @@ codeunit 5777 "Whse. Validate Source Line"
     local procedure OnBeforeWhseLinesExist(SourceType: Integer; SourceSubType: Option; SourceNo: Code[20]; SourceLineNo: Integer; SourceSublineNo: Integer; SourceQty: Decimal; var TableCaptionValue: Text[100]; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN26
-    internal procedure RunOnItemLineVerifyChangeOnBeforeCheckConsumptionQty(NewItemJournalLine: Record "Item Journal Line"; Location: Record Location; var QtyChecked: Boolean; var IsHandled: Boolean)
-    begin
-        OnItemLineVerifyChangeOnBeforeCheckConsumptionQty(NewItemJournalLine, Location, QtyChecked, IsHandled);
-    end;
-
-    [Obsolete('Replaced by same event in codeunit ProdOrderWarehouseMgt', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnItemLineVerifyChangeOnBeforeCheckConsumptionQty(NewItemJournalLine: Record "Item Journal Line"; Location: Record Location; var QtyChecked: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnTransLineCommonVerificationOnBeforeQuantityCheck(var OldTransferLine: Record "Transfer Line"; var NewTransferLine: Record "Transfer Line"; var IsHandled: Boolean)

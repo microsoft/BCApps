@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ page 2585 "Dim Correct Selection Criteria"
                 {
                     ApplicationArea = All;
                     Caption = 'Type';
-                    ToolTip = 'Specifies the type of the selection.';
                 }
 
                 field(SelectionCriteriaText; SelectionCriteriaText)

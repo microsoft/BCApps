@@ -741,7 +741,7 @@ codeunit 1336 "Item Templ. Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSelectItemTemplate(ItemTempl: Record "Item Templ."; var IsHandled: Boolean; var Result: Boolean)
+    local procedure OnBeforeSelectItemTemplate(var ItemTempl: Record "Item Templ."; var IsHandled: Boolean; var Result: Boolean)
     begin
     end;
 

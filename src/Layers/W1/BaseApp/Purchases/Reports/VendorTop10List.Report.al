@@ -11,8 +11,6 @@ using System.Utilities;
 
 report 311 "Vendor - Top 10 List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/VendorTop10List.rdlc';
     ApplicationArea = Suite;
     Caption = 'Vendor - Top 10 List (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
@@ -20,6 +18,7 @@ report 311 "Vendor - Top 10 List"
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been replaced by the report Vendor - Top List (Excel). This report will be removed in a future release.';
     ObsoleteTag = '28.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -216,6 +215,16 @@ report 311 "Vendor - Top 10 List"
             if NoOfRecordsToPrint = 0 then
                 NoOfRecordsToPrint := 10;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/VendorTop10List.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

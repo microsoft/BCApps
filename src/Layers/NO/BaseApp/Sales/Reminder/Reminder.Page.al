@@ -189,15 +189,22 @@ page 434 Reminder
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                 }
+#if not CLEAN29
                 field(GLN; Rec.GLN)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the global location number of the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 field("Account Code"; Rec."Account Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the account code of the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
 
                     trigger OnValidate()
                     begin
@@ -208,7 +215,11 @@ page 434 Reminder
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether the customer is part of the EHF system and requires an electronic reminder.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
@@ -567,10 +578,12 @@ page 434 Reminder
         IsOfficeAddin: Boolean;
         VATDateEnabled: Boolean;
 
+#if not CLEAN29
     local procedure AccountCodeOnAfterValidate()
     begin
         CurrPage.ReminderLines.PAGE.UpdatePage(true);
     end;
+#endif
 
     local procedure SetDocNoVisible()
     var

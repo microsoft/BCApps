@@ -75,8 +75,11 @@ function ConvertTo-SettingsRelativePath {
         relative paths used in AL-Go settings.json (e.g. ../../../src/System Application/App).
     #>
     param([string]$AbsolutePath)
-    $path = $AbsolutePath -replace [regex]::Escape("$RepoRoot\"), ''
-    $path = $path -replace '\\', '/'
+    # Normalize both paths to forward slashes before comparison so that
+    # Split-Path back-slash normalization doesn't break the replacement.
+    $normalizedRoot = $RepoRoot -replace '\\', '/'
+    $normalizedPath = $AbsolutePath -replace '\\', '/'
+    $path = $normalizedPath -replace [regex]::Escape("$normalizedRoot/"), ''
     return "../../../$path"
 }
 

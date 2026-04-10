@@ -6,7 +6,7 @@ pageextension 8013 "Sub. Billing Role Center" extends "Sub. Billing Role Center"
 {
     actions
     {
-        addfirst(Sections)
+        addlast(Reporting)
         {
             group("PBI Reports")
             {

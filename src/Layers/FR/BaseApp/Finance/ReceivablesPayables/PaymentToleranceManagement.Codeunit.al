@@ -1724,37 +1724,24 @@ codeunit 426 "Payment Tolerance Management"
             AppliedCustLedgEntry.SetCurrentKey("Customer No.", Open, Positive);
             AppliedCustLedgEntry.SetRange("Customer No.", GenJnlLine."Account No.");
             AppliedCustLedgEntry.SetRange(Open, true);
+            AppliedCustLedgEntry.SetRange("Document No.", DocumentNo);
             AppliedCustLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
-            AppliedCustLedgEntry.SetLoadFields("Document No.", "Accepted Payment Tolerance", "Accepted Pmt. Disc. Tolerance");
-            if AppliedCustLedgEntry.FindSet() then begin
-                repeat
-                    if AppliedCustLedgEntry."Document No." = DocumentNo then begin
-                        AppliedCustLedgEntry."Accepted Payment Tolerance" := 0;
-                        AppliedCustLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
-                        AppliedCustLedgEntry.Modify();
-                    end;
-                until AppliedCustLedgEntry.Next() = 0;
-                if not SuppressCommit then
-                    Commit();
-            end;
+            AppliedCustLedgEntry.ModifyAll("Accepted Payment Tolerance", 0);
+            AppliedCustLedgEntry.ModifyAll("Accepted Pmt. Disc. Tolerance", false);
+            if not SuppressCommit then
+                Commit();
         end else
             if GenJnlLine."Account Type" = GenJnlLine."Account Type"::Vendor then begin
                 AppliedVendLedgEntry.SetCurrentKey("Vendor No.", Open, Positive);
                 AppliedVendLedgEntry.SetRange("Vendor No.", GenJnlLine."Account No.");
                 AppliedVendLedgEntry.SetRange(Open, true);
+                AppliedVendLedgEntry.SetRange("Document No.", DocumentNo);
                 AppliedVendLedgEntry.ReadIsolation(IsolationLevel::UpdLock);
-                AppliedVendLedgEntry.SetLoadFields("Document No.", "Accepted Payment Tolerance", "Accepted Pmt. Disc. Tolerance");
-                if AppliedVendLedgEntry.FindSet() then begin
-                    repeat
-                        if AppliedVendLedgEntry."Document No." = DocumentNo then begin
-                            AppliedVendLedgEntry."Accepted Payment Tolerance" := 0;
-                            AppliedVendLedgEntry."Accepted Pmt. Disc. Tolerance" := false;
-                            AppliedVendLedgEntry.Modify();
-                        end;
-                    until AppliedVendLedgEntry.Next() = 0;
-                    if not SuppressCommit then
-                        Commit();
-                end;
+                AppliedVendLedgEntry.ModifyAll("Accepted Payment Tolerance", 0);
+                AppliedVendLedgEntry.ModifyAll("Accepted Pmt. Disc. Tolerance", false);
+
+                if not SuppressCommit then
+                    Commit();
             end;
 
         OnAfterDelPmtTolApllnDocNo(GenJnlLine, DocumentNo, SuppressCommit);
@@ -2460,7 +2447,8 @@ codeunit 426 "Payment Tolerance Management"
                         if (AppliedCustLedgEntry."Remaining Pmt. Disc. Possible" - AppliedCustLedgEntry."Remaining Amount") <> NewCustLedgEntry.Amount then
                             if NewCustLedgEntry.Amount < (AppliedCustLedgEntry."Remaining Pmt. Disc. Possible" - AppliedCustLedgEntry."Remaining Amount") then begin
                                 NewCustLedgEntry.Amount += AppliedCustLedgEntry."Remaining Pmt. Disc. Possible";
-                                UpdateGenJournalLineAmount(NewCustLedgEntry.Amount);
+                                if GenJnlLineApplID = '' then
+                                    UpdateGenJournalLineAmount(NewCustLedgEntry.Amount);
                                 AdjustRemainingAmount(NewCustLedgEntry, AppliedCustLedgEntry."Remaining Amount");
                                 if not SuppressCommit then
                                     Commit();

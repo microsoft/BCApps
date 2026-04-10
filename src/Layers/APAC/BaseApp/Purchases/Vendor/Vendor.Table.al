@@ -2066,6 +2066,7 @@ table 23 Vendor
         ContactPageID: Integer;
         ShouldExit: Boolean;
     begin
+        OnBeforeShowContact(Rec);
         if OfficeMgt.GetContact(OfficeContact, "No.") and (OfficeContact.Count = 1) then begin
             ContactPageID := PAGE::"Contact Card";
             OnShowContactOnBeforeOpenContactCard(OfficeContact, ContactPageID);
@@ -3086,6 +3087,11 @@ table 23 Vendor
 
     [IntegrationEvent(false, false)]
     local procedure OnMarkVendorsWithSimilarNameOnBeforeVendorFindSet(var Vendor: Record Vendor)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeShowContact(var Vendor: Record Vendor)
     begin
     end;
 

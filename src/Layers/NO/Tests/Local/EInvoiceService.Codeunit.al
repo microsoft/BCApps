@@ -13,7 +13,9 @@ codeunit 144111 "E-Invoice Service"
         EInvoiceHelper: Codeunit "E-Invoice Helper";
         EInvoiceServiceHelper: Codeunit "E-Invoice Service Helper";
         EInvoiceXMLXSDValidation: Codeunit "E-Invoice XML XSD Validation";
+#if not CLEAN29
         EInvoiceExportCommon: Codeunit "E-Invoice Export Common";
+#endif
         NOXMLReadHelper: Codeunit "NO XML Read Helper";
         LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
@@ -30,8 +32,10 @@ codeunit 144111 "E-Invoice Service"
         StandardRate: Decimal;
         SuccessfullyCreatedMsg: Label 'Successfully created ';
         TestValueTxt: Label 'Test Value';
+#if not CLEAN29
         IncorrectFieldValueEInvoiceErr: Label 'Incorrect bool value of field E-Invoice on the Service Header table';
         ChangeBillToCustomerNoQst: Label 'Do you want to change the %1?';
+#endif
         ExternalDocumentNoErr: Label 'External Document No. should be passed from Service Header to Service Shipment Header.';
 
     [Test]
@@ -49,6 +53,8 @@ codeunit 144111 "E-Invoice Service"
         EInvoiceXMLXSDValidation.CheckIfFileExists(XmlFileName);
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
     [Scope('OnPrem')]
@@ -76,6 +82,7 @@ codeunit 144111 "E-Invoice Service"
           EInvoiceExportCommon.WriteCompanyID(CompanyInfo."VAT Registration No."), true); // entRegistered = TRUE
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
     [Scope('OnPrem')]
@@ -102,6 +109,7 @@ codeunit 144111 "E-Invoice Service"
         EInvoiceXMLXSDValidation.VerifyEntRegElements(XmlFileName, ServInvHdr."Bill-to Name",
           EInvoiceExportCommon.WriteCompanyID(CompanyInfo."VAT Registration No."), false); // entRegistered = FALSE
     end;
+#endif
 
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
@@ -576,6 +584,8 @@ codeunit 144111 "E-Invoice Service"
         EInvoiceXMLXSDValidation.VerifyEndpointID(EInvoiceServCrMemo());
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
     [Scope('OnPrem')]
@@ -603,6 +613,7 @@ codeunit 144111 "E-Invoice Service"
           EInvoiceExportCommon.WriteCompanyID(CompanyInfo."VAT Registration No."), true); // entRegistered = TRUE
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
     [Scope('OnPrem')]
@@ -629,6 +640,7 @@ codeunit 144111 "E-Invoice Service"
         EInvoiceXMLXSDValidation.VerifyEntRegElements(XmlFileName, ServCrMemoHdr."Bill-to Name",
           EInvoiceExportCommon.WriteCompanyID(CompanyInfo."VAT Registration No."), false);  // entRegistered = FALSE
     end;
+#endif
 
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
@@ -973,6 +985,8 @@ codeunit 144111 "E-Invoice Service"
         StandardRate := 25;
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure EInvoiceFlagOnSalesDocumentTakenFromSellTo()
@@ -994,6 +1008,7 @@ codeunit 144111 "E-Invoice Service"
         Assert.IsTrue(ServiceHeader."E-Invoice", IncorrectFieldValueEInvoiceErr);
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('ChangeBillToCustomerNoConfirmHandler')]
     [Scope('OnPrem')]
@@ -1022,6 +1037,7 @@ codeunit 144111 "E-Invoice Service"
         Assert.IsTrue(ServiceHeader."E-Invoice", IncorrectFieldValueEInvoiceErr);
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
     [Scope('OnPrem')]
@@ -1053,6 +1069,7 @@ codeunit 144111 "E-Invoice Service"
         NOXMLReadHelper.Initialize(XmlFileName);
         NOXMLReadHelper.VerifyNodeValue('//cac:PaymentMeans/cbc:PaymentID', ExpectedResult);
     end;
+#endif
 
     [Test]
     procedure TransferExternalDocumentNoWhilePostingServiceOrderToShipmentOrder()

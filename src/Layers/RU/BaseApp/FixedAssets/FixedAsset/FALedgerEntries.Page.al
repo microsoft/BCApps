@@ -1,7 +1,6 @@
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
-// ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.Ledger;
 
 using Microsoft.Finance.Dimension;
@@ -506,6 +505,28 @@ page 5604 "FA Ledger Entries"
                 {
                 }
             }
+        }
+    }
+
+    analysisviews
+    {
+        analysisview("Asset value changes over time")
+        {
+            Caption = 'Asset value changes over time';
+            DefinitionFile = './FixedAssets/FixedAsset/AssetValueChangesOverTime.analysis.json';
+            ToolTip = 'Track asset value changes over time.';
+        }
+        analysisview("FA depreciations over time")
+        {
+            Caption = 'FA depreciations over time';
+            DefinitionFile = './FixedAssets/FixedAsset/FADepreciationsOverTime.analysis.json';
+            ToolTip = 'Track depreciations over time, both across all assets and on a single asset.';
+        }
+        analysisview("Fixed Assets (current value)")
+        {
+            Caption = 'Fixed Assets (current value)';
+            DefinitionFile = './FixedAssets/FixedAsset/FixedAssetsCurrentValue.analysis.json';
+            ToolTip = 'Track asset value, both across all assets and on a single asset.';
         }
     }
 

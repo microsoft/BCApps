@@ -16,9 +16,6 @@ codeunit 240 ItemJnlManagement
     end;
 
     var
-#if not CLEAN26
-        MfgItemJournalMgt: Codeunit "Mfg. Item Journal Mgt.";
-#endif
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label '%1 journal';
@@ -255,30 +252,6 @@ codeunit 240 ItemJnlManagement
 
         OnAfterGetItem(Item, ItemDescription);
     end;
-
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Mfg. Item Journal Management', '26.0')]
-    procedure GetConsump(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderDescription: Text[100])
-    begin
-        MfgItemJournalMgt.GetConsump(ItemJnlLine, ProdOrderDescription);
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Mfg. Item Journal Management', '26.0')]
-    procedure GetOutput(var ItemJnlLine: Record "Item Journal Line"; var ProdOrderDescription: Text[100]; var OperationDescription: Text[100])
-    begin
-        MfgItemJournalMgt.GetOutput(ItemJnlLine, ProdOrderDescription, OperationDescription);
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Mfg. Item Journal Management', '26.0')]
-    procedure GetCapacity(CapType: Enum Microsoft.Manufacturing.Capacity."Capacity Type"; CapNo: Code[20]; var CapDescription: Text[100])
-    begin
-        MfgItemJournalMgt.GetCapacity(CapType, CapNo, CapDescription);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckName(CurrentJnlBatchName: Code[10]; var ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)

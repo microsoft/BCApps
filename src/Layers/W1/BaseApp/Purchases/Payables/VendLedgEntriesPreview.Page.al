@@ -454,6 +454,7 @@ page 128 "Vend. Ledg. Entries Preview"
                 RemainingAmountFCY += TempDetailedVendLedgEntry.Amount;
                 RemainingAmountLCY += TempDetailedVendLedgEntry."Amount (LCY)";
             until TempDetailedVendLedgEntry.Next() = 0;
+        OnAfterCalcAmounts(Rec, TempDetailedVendLedgEntry, AmountFCY, AmountLCY, RemainingAmountFCY, RemainingAmountLCY, OriginalAmountFCY, OriginalAmountLCY);
     end;
 
     local procedure DrilldownAmounts(AmountType: Option Amount,"Remaining Amount","Original Amount")
@@ -472,6 +473,11 @@ page 128 "Vend. Ledg. Entries Preview"
         DetailedVendEntriesPreview.Set(TempDetailedVendLedgEntry);
         DetailedVendEntriesPreview.RunModal();
         Clear(DetailedVendEntriesPreview);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalcAmounts(VendorLedgerEntry: Record "Vendor Ledger Entry"; var TempDetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry" temporary; var AmountFCY: Decimal; var AmountLCY: Decimal; var RemainingAmountFCY: Decimal; var RemainingAmountLCY: Decimal; var OriginalAmountFCY: Decimal; var OriginalAmountLCY: Decimal)
+    begin
     end;
 }
 

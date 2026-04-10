@@ -8,11 +8,10 @@ using Microsoft.FixedAssets.FixedAsset;
 
 report 5623 "Insurance Register"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Insurance/InsuranceRegister.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Insurance Register';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -152,6 +151,16 @@ report 5623 "Insurance Register"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Insurance/InsuranceRegister.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

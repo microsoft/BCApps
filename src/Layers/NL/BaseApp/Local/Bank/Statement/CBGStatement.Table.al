@@ -611,7 +611,7 @@ table 11400 "CBG Statement"
     procedure ShowDimensions()
     begin
         "Dimension Set ID" := DimManagement.EditDimensionSet(
-            "Dimension Set ID", StrSubstNo('%1 %2', "Journal Template Name", "No."),
+            Rec, "Dimension Set ID", StrSubstNo('%1 %2', "Journal Template Name", "No."),
             "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
     end;
 

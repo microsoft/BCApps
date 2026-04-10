@@ -12,11 +12,10 @@ using System.Utilities;
 
 report 308 "Vendor - Order Detail"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/VendorOrderDetail.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor - Order Detail';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -312,6 +311,16 @@ report 308 "Vendor - Order Detail"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/VendorOrderDetail.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

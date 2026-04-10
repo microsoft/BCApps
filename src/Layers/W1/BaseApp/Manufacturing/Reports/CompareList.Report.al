@@ -11,14 +11,13 @@ using System.Utilities;
 
 report 99000758 "Compare List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Manufacturing/Reports/CompareList.rdlc';
     ApplicationArea = Manufacturing;
     Caption = 'Item BOM Compare List (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been replaced by the "Compare Production Cost Shares" report and will be removed in a future release.';
     ObsoleteTag = '27.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -235,6 +234,16 @@ report 99000758 "Compare List"
         begin
             CalculateDate := WorkDate();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Manufacturing/Reports/CompareList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

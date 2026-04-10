@@ -6,7 +6,9 @@ namespace Microsoft.Sales.Reminder;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.Contact;
+#if not CLEAN29
 using Microsoft.EServices.EDocument;
+#endif
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -110,9 +112,11 @@ table 295 "Reminder Header"
                 "Tax Liable" := Cust."Tax Liable";
                 "Reminder Terms Code" := Cust."Reminder Terms Code";
                 "Fin. Charge Terms Code" := Cust."Fin. Charge Terms Code";
+#if not CLEAN29
                 "Account Code" := Cust."Account Code";
                 GLN := Cust.GLN;
                 "E-Invoice" := Cust."E-Invoice";
+#endif
                 OnValidateCustomerNoOnAfterAssignCustomerValues(Rec, Cust);
                 Validate("Reminder Terms Code");
 
@@ -713,30 +717,60 @@ table 295 "Reminder Header"
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
         }
+#if not CLEANSCHEMA32
         field(10605; GLN; Code[13])
         {
             Caption = 'GLN';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
 
+#if not CLEAN29
             trigger OnValidate()
             begin
                 if not EInvoiceDocumentEncode.IsValidEANNo(GLN, true) then
                     FieldError(GLN, InvalidGLNNumberErr);
             end;
+#endif
         }
         field(10606; "Account Code"; Text[30])
         {
             Caption = 'Account Code';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
 
+#if not CLEAN29
             trigger OnValidate()
             begin
                 if "Account Code" <> xRec."Account Code" then
                     UpdateReminderLines(FieldCaption("Account Code"));
             end;
+#endif
         }
         field(10613; "E-Invoice"; Boolean)
         {
             Caption = 'E-Invoice';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
     }
 
     keys
@@ -817,7 +851,9 @@ table 295 "Reminder Header"
         IssuedReminderHeader: Record "Issued Reminder Header";
         GenBusPostingGrp: Record "Gen. Business Posting Group";
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN29
         EInvoiceDocumentEncode: Codeunit "E-Invoice Document Encode";
+#endif
         AutoFormat: Codeunit "Auto Format";
         NoSeries: Codeunit "No. Series";
         TransferExtendedText: Codeunit "Transfer Extended Text";
@@ -827,7 +863,9 @@ table 295 "Reminder Header"
         LineSpacing: Integer;
         ReminderTotal: Decimal;
         SelectNoSeriesAllowed: Boolean;
+#if not CLEAN29
         InvalidGLNNumberErr: Label 'The GLN No. field does not contain a valid, 13-digit GLN  number';
+#endif
         ReminderNoLbl: Label 'Reminder %1', Comment = '%1 = Reminder No.';
         PrintReminderQst: Label 'Do you want to print reminder %1?', Comment = '%1 = Reminder No.';
         DeleteExistingLinesTxt: Label 'This change will cause the existing lines to be deleted for this reminder.\\';
@@ -995,7 +1033,9 @@ table 295 "Reminder Header"
 
                     NextLineNo := NextLineNo + LineSpacing;
                     ReminderLine.Init();
+#if not CLEAN29
                     ReminderLine."Account Code" := "Account Code";
+#endif
                     ReminderLine."Line No." := NextLineNo;
                     ReminderLine.Type := ReminderLine.Type::"G/L Account";
                     TestField("Customer Posting Group");
@@ -1542,6 +1582,7 @@ table 295 "Reminder Header"
             ReminderLine.LockTable();
             Modify();
 
+#if not CLEAN29
             if ChangedFieldName = FieldCaption("Account Code") then begin
                 ReminderLine.Reset();
                 ReminderLine.SetRange("Reminder No.", "No.");
@@ -1552,6 +1593,7 @@ table 295 "Reminder Header"
                         ReminderLine.Modify(true);
                     until ReminderLine.Next() = 0;
             end;
+#endif
         end;
     end;
 

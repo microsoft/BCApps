@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,11 +20,13 @@ table 1170 "User Task"
         {
             AutoIncrement = true;
             Caption = 'ID';
+            ToolTip = 'Specifies the ID that applies.';
             Editable = false;
         }
         field(2; Title; Text[250])
         {
             Caption = 'Subject';
+            ToolTip = 'Specifies the title of the task.';
         }
         field(3; "Created By"; Guid)
         {
@@ -36,11 +38,13 @@ table 1170 "User Task"
         field(4; "Created DateTime"; DateTime)
         {
             Caption = 'Created Date';
+            ToolTip = 'Specifies when the task was created.';
             Editable = false;
         }
         field(5; "Assigned To"; Guid)
         {
             Caption = 'Assigned To';
+            ToolTip = 'Specifies who the task is assigned to.';
             TableRelation = User."User Security ID" where("License Type" = const("Full User"));
 
             trigger OnValidate()
@@ -86,6 +90,7 @@ table 1170 "User Task"
         field(8; "Completed DateTime"; DateTime)
         {
             Caption = 'Completed Date';
+            ToolTip = 'Specifies when the task was completed.';
 
             trigger OnValidate()
             begin
@@ -104,10 +109,12 @@ table 1170 "User Task"
         field(9; "Due DateTime"; DateTime)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies when the task must be completed.';
         }
         field(10; "Percent Complete"; Integer)
         {
             Caption = '% Complete';
+            ToolTip = 'Specifies the progress of the task.';
             MaxValue = 100;
             MinValue = 0;
 
@@ -131,22 +138,26 @@ table 1170 "User Task"
         field(11; "Start DateTime"; DateTime)
         {
             Caption = 'Start Date';
+            ToolTip = 'Specifies when the task must start.';
         }
         field(12; Priority; Option)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority of the task.';
             OptionCaption = ',Low,Normal,High';
             OptionMembers = ,Low,Normal,High;
         }
         field(13; Description; BLOB)
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a descriptions of the task.';
             SubType = Memo;
         }
         field(14; "Created By User Name"; Code[50])
         {
             CalcFormula = lookup(User."User Name" where("User Security ID" = field("Created By")));
             Caption = 'User Created By';
+            ToolTip = 'Specifies who created the task.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -154,6 +165,7 @@ table 1170 "User Task"
         {
             CalcFormula = lookup(User."User Name" where("User Security ID" = field("Assigned To")));
             Caption = 'User Assigned To';
+            ToolTip = 'Specifies who the task is assigned to.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -161,18 +173,21 @@ table 1170 "User Task"
         {
             CalcFormula = lookup(User."User Name" where("User Security ID" = field("Completed By")));
             Caption = 'User Completed By';
+            ToolTip = 'Specifies who completed the task.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(17; "Object Type"; Option)
         {
             Caption = 'Link Task To';
+            ToolTip = 'Specifies the type of window that the task opens.';
             OptionCaption = ',,,Report,,,,,Page';
             OptionMembers = ,,,"Report",,,,,"Page";
         }
         field(18; "Object ID"; Integer)
         {
             Caption = 'Object ID';
+            ToolTip = 'Specifies the window that the task opens.';
             TableRelation = AllObj."Object ID" where("Object Type" = field("Object Type"));
         }
         field(19; "Parent ID"; Integer)
@@ -182,6 +197,7 @@ table 1170 "User Task"
         field(20; "User Task Group Assigned To"; Code[20])
         {
             Caption = 'User Task Group Assigned To';
+            ToolTip = 'Specifies the group if the task has been assigned to a group of people.';
             DataClassification = CustomerContent;
             TableRelation = "User Task Group".Code;
 

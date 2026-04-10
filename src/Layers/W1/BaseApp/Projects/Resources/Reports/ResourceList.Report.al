@@ -9,11 +9,10 @@ using Microsoft.Finance.GeneralLedger.Setup;
 
 report 1101 "Resource - List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Resources/Reports/ResourceList.rdlc';
     ApplicationArea = Jobs;
     Caption = 'Resource - List';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -83,6 +82,16 @@ report 1101 "Resource - List"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Resources/Reports/ResourceList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

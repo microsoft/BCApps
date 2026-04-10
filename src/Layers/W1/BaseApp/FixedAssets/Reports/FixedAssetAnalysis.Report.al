@@ -12,14 +12,13 @@ using Microsoft.FixedAssets.Setup;
 
 report 5600 "Fixed Asset - Analysis"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Reports/FixedAssetAnalysis.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Analysis (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been replaced by the report Fixed Asset Analysis (Excel). This report will be removed in a future release.';
     ObsoleteTag = '28.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -355,6 +354,16 @@ report 5600 "Fixed Asset - Analysis"
         begin
             GetFASetup();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Reports/FixedAssetAnalysis.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

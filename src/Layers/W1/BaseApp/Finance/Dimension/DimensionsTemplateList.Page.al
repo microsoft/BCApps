@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,17 +28,14 @@ page 1343 "Dimensions Template List"
                 field("Dimension Code"; Rec."Dimension Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the default dimension.';
                 }
                 field("Dimension Value Code"; Rec."Dimension Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value code to suggest as the default dimension.';
                 }
                 field("<Dimension Value Code>"; Rec."Value Posting")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies how default dimensions and their values must be used.';
                 }
             }
         }

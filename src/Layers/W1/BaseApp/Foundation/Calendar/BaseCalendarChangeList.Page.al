@@ -22,7 +22,6 @@ page 7607 "Base Calendar Change List"
                 field("Base Calendar Code"; Rec."Base Calendar Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the code of the base calendar in the entry.';
                     Visible = false;
                 }
                 field("Recurring System"; Rec."Recurring System")
@@ -34,17 +33,14 @@ page 7607 "Base Calendar Change List"
                 field(Date; Rec.Date)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the date to change associated with the base calendar in this entry.';
                 }
                 field(Day; Rec.Day)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the day of the week associated with this change entry.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies a description of the change in this entry.';
                 }
                 field(Nonworking; Rec.Nonworking)
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -53,6 +53,7 @@ table 85 "Acc. Schedule Line"
         field(3; "Row No."; Code[10])
         {
             Caption = 'Row No.';
+            ToolTip = 'Specifies a number that identifies the line.';
         }
         /// <summary>
         /// Descriptive text explaining the purpose and content of the account schedule line.
@@ -60,6 +61,7 @@ table 85 "Acc. Schedule Line"
         field(4; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies text that will appear on the financial report line.';
         }
         /// <summary>
         /// Account numbers, formulas, or expressions used to calculate line values from G/L accounts or other sources.
@@ -145,6 +147,7 @@ table 85 "Acc. Schedule Line"
         field(6; "Totaling Type"; Enum "Acc. Schedule Line Totaling Type")
         {
             Caption = 'Totaling Type';
+            ToolTip = 'Specifies the totaling type for the financial report line. The type determines which accounts within the totaling interval you specify in the Totaling field will be totaled.';
 
             trigger OnValidate()
             begin
@@ -163,6 +166,7 @@ table 85 "Acc. Schedule Line"
         field(7; "New Page"; Boolean)
         {
             Caption = 'New Page';
+            ToolTip = 'Specifies whether there will be a page break after the current line when the financial report is exported to PDF or printed.';
         }
         /// <summary>
         /// Visual indentation level for hierarchical display of account schedule lines.
@@ -221,6 +225,7 @@ table 85 "Acc. Schedule Line"
         field(16; Show; Enum "Acc. Schedule Line Show")
         {
             Caption = 'Show';
+            ToolTip = 'Specifies whether the line will be printed on the report.';
         }
         /// <summary>
         /// Dimension 3 filter for extended multi-dimensional analysis and reporting.
@@ -248,6 +253,7 @@ table 85 "Acc. Schedule Line"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(5);
             Caption = 'Dimension 1 Totaling';
+            ToolTip = 'Specifies which dimension value amounts will be totaled on this line.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
@@ -259,6 +265,7 @@ table 85 "Acc. Schedule Line"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(6);
             Caption = 'Dimension 2 Totaling';
+            ToolTip = 'Specifies which dimension value amounts will be totaled on this line.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
@@ -270,6 +277,7 @@ table 85 "Acc. Schedule Line"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(7);
             Caption = 'Dimension 3 Totaling';
+            ToolTip = 'Specifies which dimension value amounts will be totaled on this line.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
@@ -281,6 +289,7 @@ table 85 "Acc. Schedule Line"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(8);
             Caption = 'Dimension 4 Totaling';
+            ToolTip = 'Specifies which dimension value amounts will be totaled on this line.';
             //The property 'ValidateTableRelation' can only be set if the property 'TableRelation' is set
             //ValidateTableRelation = false;
         }
@@ -290,6 +299,7 @@ table 85 "Acc. Schedule Line"
         field(23; Bold; Boolean)
         {
             Caption = 'Bold';
+            ToolTip = 'Specifies whether to print the amounts in this row in bold.';
         }
         /// <summary>
         /// Applies italic formatting to this line in report output.
@@ -297,6 +307,7 @@ table 85 "Acc. Schedule Line"
         field(24; Italic; Boolean)
         {
             Caption = 'Italic';
+            ToolTip = 'Specifies whether to print the amounts in this row in italics.';
         }
         /// <summary>
         /// Applies underline formatting to this line in report output.
@@ -304,6 +315,7 @@ table 85 "Acc. Schedule Line"
         field(25; Underline; Boolean)
         {
             Caption = 'Underline';
+            ToolTip = 'Specifies whether to underline the amounts in this row.';
 
             trigger OnValidate()
             begin
@@ -324,6 +336,7 @@ table 85 "Acc. Schedule Line"
         field(26; "Show Opposite Sign"; Boolean)
         {
             Caption = 'Show Opposite Sign';
+            ToolTip = 'Specifies whether to show debits in reports as negative amounts with a minus sign and credits as positive amounts.';
         }
         /// <summary>
         /// Type of balance calculation (Net Change, Balance at Date, Beginning Balance).
@@ -331,6 +344,7 @@ table 85 "Acc. Schedule Line"
         field(27; "Row Type"; Option)
         {
             Caption = 'Row Type';
+            ToolTip = 'Specifies the row type for the row definition. The type determines how the amounts in the row are calculated.';
             OptionCaption = 'Net Change,Balance at Date,Beginning Balance';
             OptionMembers = "Net Change","Balance at Date","Beginning Balance";
         }
@@ -340,6 +354,7 @@ table 85 "Acc. Schedule Line"
         field(28; "Amount Type"; Enum "Account Schedule Amount Type")
         {
             Caption = 'Amount Type';
+            ToolTip = 'Specifies the type of entries that will be included in the amounts in the row definition.';
         }
         /// <summary>
         /// Applies double underline formatting to this line in report output.
@@ -347,6 +362,7 @@ table 85 "Acc. Schedule Line"
         field(30; "Double Underline"; Boolean)
         {
             Caption = 'Double Underline';
+            ToolTip = 'Specifies whether to double underline the amounts in this row.';
 
             trigger OnValidate()
             begin
@@ -367,6 +383,7 @@ table 85 "Acc. Schedule Line"
         field(40; "Hide Currency Symbol"; Boolean)
         {
             Caption = 'Hide Currency Symbol';
+            ToolTip = 'Specifies whether to hide currency symbols when a calculated result is not a currency.';
 
             trigger OnValidate()
             begin

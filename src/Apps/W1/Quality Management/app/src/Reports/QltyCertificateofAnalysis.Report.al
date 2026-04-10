@@ -16,9 +16,10 @@ using Microsoft.QualityManagement.Utilities;
 
 report 20401 "Qlty. Certificate of Analysis"
 {
-    ApplicationArea = QualityManagement;
-    UsageCategory = ReportsAndAnalysis;
     Caption = 'Quality Management - Certificate of Analysis';
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+    UsageCategory = ReportsAndAnalysis;
+    ApplicationArea = QualityManagement;
     DefaultRenderingLayout = QltyCertificateOfAnalysisDefault;
     Extensible = true;
 
@@ -295,21 +296,7 @@ report 20401 "Qlty. Certificate of Analysis"
             Type = RDLC;
             Caption = 'Default Layout';
             Summary = 'The default certificate of analysis report.';
-            LayoutFile = './src/Reports/QltyCertificateOfAnalysisDefault.rdl';
-        }
-        layout(QltyCertificateOfAnalysisAlternate)
-        {
-            Type = RDLC;
-            Caption = 'Alternate Layout';
-            Summary = 'Alternate certificate of analysis report.';
             LayoutFile = './src/Reports/QltyCertificateOfAnalysisAlternate.rdl';
-        }
-        layout(QualityManagement_CertificateOfAnalysis_Default)
-        {
-            Type = Word;
-            Caption = 'Word Layout';
-            Summary = 'Word layout for certificate of analysis report.';
-            LayoutFile = './src/Reports/QltyCertificateOfAnalysis.docx';
         }
     }
 

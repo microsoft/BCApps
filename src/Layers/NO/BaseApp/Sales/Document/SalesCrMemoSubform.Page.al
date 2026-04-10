@@ -643,12 +643,17 @@ page 96 "Sales Cr. Memo Subform"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+#if not CLEAN29
                 field("Account Code"; Rec."Account Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies that the document number is used as the file name. The files are stored at the location that has been specified in the Sales & Receivables Setup window';
                     Visible = false;
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
             }
             group(Control39)
             {

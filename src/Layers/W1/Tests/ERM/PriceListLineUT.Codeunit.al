@@ -45,6 +45,7 @@ codeunit 134123 "Price List Line UT"
         VATProdPostingGroupErr: Label 'VAT Product Posting Group are not equal.';
         AmountTypeNotAllowedForSourceTypeErr: Label '%1 is not allowed for %2.', Comment = '%1 - Price or Discount, %2 - Source Type';
         VariantCodeErr: Label 'Variant Code must be empty when new record is inserted.';
+        LineDiscountPctErr: Label 'Line Discount should be set to the value provided.';
 
     [Test]
     [HandlerFunctions('ItemUOMModalHandler')]
@@ -3759,6 +3760,52 @@ codeunit 134123 "Price List Line UT"
 
         // [THEN] The value of Variant Code in new line must be empty.
         Assert.AreEqual('', SalesPriceList.Lines."Variant Code".Value(), VariantCodeErr);
+    end;
+
+
+    [Test]
+    procedure NonZeroUnitPriceNotAllowedForDiscountLine()
+    var
+        PriceListLine: Record "Price List Line";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 623785] Setting "Unit Price" to a non-zero value on a Discount line raises an error.
+        Initialize();
+
+        // [GIVEN] A Price List Line with Amount Type = Discount
+        PriceListLine."Amount Type" := PriceListLine."Amount Type"::Discount;
+
+        // [WHEN] Validating "Unit Price" with a non-zero value
+        asserterror PriceListLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+
+        // [THEN] Error is raised for field not allowed for Amount Type
+        Assert.ExpectedError(
+            StrSubstNo(
+                FieldNotAllowedForAmountTypeErr, PriceListLine.FieldCaption("Unit Price"),
+                PriceListLine.FieldCaption("Amount Type"), PriceListLine."Amount Type"::Discount));
+    end;
+
+    [Test]
+    procedure LineDiscPercentIsAllowedForPriceLine()
+    var
+        PriceListLine: Record "Price List Line";
+        LineDisountPct: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 623785] Setting "Line Discount %" to 0 on a Price line does not raise an error, allowing package upload.
+        Initialize();
+
+        // [GIVEN] A Price List Line with Amount Type = Price (set via Source Type = Customer Price Group)
+        PriceListLine.Validate("Amount Type", PriceListLine."Amount Type"::Discount);
+
+        // [Given] Random "Line Discount %" value.
+        LineDisountPct := LibraryRandom.RandDec(100, 2);
+
+        // [WHEN] Validating "Line Discount %" with zero value (simulating package upload)
+        PriceListLine.Validate("Line Discount %", LineDisountPct);
+
+        // [THEN] No error is raised; "Line Discount %" is updated.
+        Assert.AreEqual(LineDisountPct, PriceListLine."Line Discount %", LineDiscountPctErr);
     end;
 
     local procedure Initialize()

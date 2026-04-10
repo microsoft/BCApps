@@ -35,9 +35,8 @@ using System.Utilities;
 
 report 317 "Vendor Pre-Payment Journal"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/VendorPrePaymentJournal.rdlc';
     Caption = 'Vendor Pre-Payment Journal';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -768,6 +767,16 @@ report 317 "Vendor Pre-Payment Journal"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/VendorPrePaymentJournal.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

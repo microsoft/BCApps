@@ -19,8 +19,6 @@ using System.Utilities;
 /// </remarks>
 report 6 "Trial Balance"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/GeneralLedger/Reports/TrialBalance.rdlc';
     AdditionalSearchTerms = 'year closing,close accounting period,close fiscal year';
     ApplicationArea = Basic, Suite;
     Caption = 'Trial Balance (Obsolete)';
@@ -30,6 +28,7 @@ report 6 "Trial Balance"
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
     ObsoleteTag = '28.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -171,6 +170,16 @@ report 6 "Trial Balance"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/GeneralLedger/Reports/TrialBalance.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

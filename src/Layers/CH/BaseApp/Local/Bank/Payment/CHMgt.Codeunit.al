@@ -333,10 +333,13 @@ codeunit 11503 CHMgt
         exit('957D62D7-3D00-4C8F-A3B0-D14DBC9EC4FD');
     end;
 
+#if not CLEAN29
+    [Obsolete('The batch booking behavior is now configurable per bank account via the SEPA CT Batch Booking field.', '29.0')]
     procedure NoOfPaymentsForBatchBooking(): Integer
     begin
         exit(50);
     end;
+#endif
 
     [EventSubscriber(ObjectType::Report, Report::"Suggest Vendor Payments", 'OnBeforeUpdateGnlJnlLineDimensionsFromVendorPaymentBuffer', '', false, false)]
     local procedure SuggestVendorPaymentFromBufferUpdatePaymentLine(var GenJournalLine: Record "Gen. Journal Line"; TempVendorPaymentBuffer: Record "Vendor Payment Buffer" temporary)

@@ -240,25 +240,6 @@ codeunit 10 "Type Helper"
         exit(DateTime.IsLeapYear(Date2DMY(Date, 3)));
     end;
 
-#if not CLEAN26
-    [Obsolete('Use codeunit 43 Language, procedure GetCultureName instead.', '26.0')]
-    procedure LanguageIDToCultureName(LanguageID: Integer): Text
-    var
-        CultureInfo: DotNet CultureInfo;
-    begin
-        CultureInfo := CultureInfo.GetCultureInfo(LanguageID);
-        exit(CultureInfo.Name);
-    end;
-
-    [Obsolete('Use codeunit 43 Language, procedure GetCurrentCultureName instead.', '26.0')]
-    procedure GetCultureName(): Text
-    var
-        CultureInfo: DotNet CultureInfo;
-    begin
-        exit(CultureInfo.CurrentCulture.Name);
-    end;
-#endif
-
     procedure GetOptionNo(Value: Text; OptionString: Text): Integer
     var
         OptionNo: Integer;

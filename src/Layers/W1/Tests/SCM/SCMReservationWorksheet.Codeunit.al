@@ -1247,6 +1247,7 @@ codeunit 137023 "SCM Reservation Worksheet"
         TotalQuantity: Decimal;
         LotNo: array[2] of Code[50];
     begin
+        // [FEATURE] [AI TEST]
         // [SCENARIO 620961] Available Qty. to Reserve calculation should not be overstated when LOT NO has not been specified on Reserved Sales Order Demand.
         Initialize();
 

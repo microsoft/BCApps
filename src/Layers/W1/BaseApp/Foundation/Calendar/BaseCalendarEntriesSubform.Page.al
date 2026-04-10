@@ -31,7 +31,6 @@ page 7604 "Base Calendar Entries Subform"
                     ApplicationArea = Suite;
                     Caption = 'Base Calendar Code';
                     Editable = false;
-                    ToolTip = 'Specifies which base calendar was used as the basis.';
                     Visible = false;
                 }
                 field("Period Start"; Rec.Date)
@@ -39,14 +38,12 @@ page 7604 "Base Calendar Entries Subform"
                     ApplicationArea = Suite;
                     Caption = 'Date';
                     Editable = false;
-                    ToolTip = 'Specifies the date.';
                 }
                 field("Period Name"; Rec.Day)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Day';
                     Editable = false;
-                    ToolTip = 'Specifies the day of the week.';
                 }
                 field(WeekNo; Date2DWY(Rec.Date, 2))
                 {
@@ -61,7 +58,6 @@ page 7604 "Base Calendar Entries Subform"
                     ApplicationArea = Suite;
                     Caption = 'Nonworking';
                     Editable = true;
-                    ToolTip = 'Specifies the date entry as a nonworking day. You can also remove the check mark to return the status to working day.';
 
                     trigger OnValidate()
                     begin
@@ -72,7 +68,6 @@ page 7604 "Base Calendar Entries Subform"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Description';
-                    ToolTip = 'Specifies the description of the entry to be applied.';
 
                     trigger OnValidate()
                     begin

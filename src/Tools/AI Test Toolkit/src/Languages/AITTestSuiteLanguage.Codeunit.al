@@ -11,6 +11,7 @@ using System.TestTools.TestRunner;
 codeunit 149046 "AIT Test Suite Language"
 {
     Access = Internal;
+    Permissions = tabledata "Test Input Group" = r;
 
     /// <summary>
     /// Updates the eval suite languages by adding all available language versions from the test input groups.

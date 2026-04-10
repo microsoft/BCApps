@@ -15,7 +15,7 @@ report 718 "Inventory - Sales Back Orders"
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory - Sales Back Orders';
     UsageCategory = ReportsAndAnalysis;
-    DefaultRenderingLayout = Word;
+    DefaultRenderingLayout = Excel;
 
     dataset
     {
@@ -262,6 +262,7 @@ report 718 "Inventory - Sales Back Orders"
             ObsoleteState = Pending;
             ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
             ObsoleteTag = '27.0';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
     }

@@ -14,8 +14,6 @@ using Microsoft.Purchases.Vendor;
 
 report 707 "Inventory - Availability Plan"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/InventoryAvailabilityPlan.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory - Availability Plan (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
@@ -23,6 +21,7 @@ report 707 "Inventory - Availability Plan"
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been replaced by the report Inventory - Availability Plan (Excel). This report will be removed in a future release.';
     ObsoleteTag = '28.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -478,6 +477,16 @@ report 707 "Inventory - Availability Plan"
             if PeriodStartDate[2] = 0D then
                 PeriodStartDate[2] := WorkDate();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/InventoryAvailabilityPlan.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

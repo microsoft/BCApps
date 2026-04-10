@@ -26,17 +26,22 @@ codeunit 10650 "Serv. Document Mgt. NO"
         ServiceHeader."Delivery Date" := ServiceHeader."Posting Date";
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterCopyCustomerFields', '', false, false)]
     local procedure OnAfterCopyCustomerFields(var ServiceHeader: Record "Service Header"; Customer: Record Customer)
     begin
         ServiceHeader."Account Code" := Customer."Account Code";
     end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterCopyBillToCustomerFields', '', false, false)]
     local procedure OnAfterCopyBillToCustomerFields(var ServiceHeader: Record "Service Header"; Customer: Record Customer)
     begin
         ServiceHeader.GLN := Customer.GLN;
+#if not CLEAN29
         ServiceHeader."E-Invoice" := Customer."E-Invoice";
+#endif
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterAssignHeaderValues', '', false, false)]

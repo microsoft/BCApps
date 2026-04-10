@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 725 "Custom Address Format"
         field(3; "Line Format"; Text[80])
         {
             Caption = 'Line Format';
+            ToolTip = 'Specifies address format fields.';
         }
         field(4; "Line No."; Integer)
         {
@@ -38,6 +39,7 @@ table 725 "Custom Address Format"
         field(5; "Field ID"; Integer)
         {
             Caption = 'Field ID';
+            ToolTip = 'Specifies reference field ID.';
             DataClassification = SystemMetadata;
             TableRelation = Field."No." where(TableNo = const(79),
                                                "No." = filter(2 | 3 | 4 | 5 | 6 | 30 | 31 | 36 | 51));

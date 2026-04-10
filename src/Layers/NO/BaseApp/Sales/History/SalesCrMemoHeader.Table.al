@@ -1142,23 +1142,57 @@ table 114 "Sales Cr.Memo Header"
             Caption = 'Draft Cr. Memo System Id';
             DataClassification = SystemMetadata;
         }
+#if not CLEANSCHEMA32
         field(10605; GLN; Code[13])
         {
             Caption = 'GLN';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10606; "Account Code"; Text[30])
         {
             Caption = 'Account Code';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10612; "E-Invoice Created"; Boolean)
         {
             Caption = 'E-Invoice Created';
             Editable = false;
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10613; "E-Invoice"; Boolean)
         {
             Caption = 'E-Invoice';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
     }
 
     keys
@@ -1459,6 +1493,8 @@ table 114 "Sales Cr.Memo Header"
         end;
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Scope('OnPrem')]
     procedure AccountCodeLineSpecified(): Boolean
     var
@@ -1470,6 +1506,7 @@ table 114 "Sales Cr.Memo Header"
         SalesCrMemoLine.SetFilter("Account Code", '<>%1&<>%2', '', "Account Code");
         exit(not SalesCrMemoLine.IsEmpty);
     end;
+#endif
 
     /// <summary>
     /// Gets the style class for displaying the document exchange status.

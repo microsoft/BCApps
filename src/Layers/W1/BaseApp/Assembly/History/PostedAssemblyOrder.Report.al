@@ -10,10 +10,9 @@ using System.Utilities;
 
 report 910 "Posted Assembly Order"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Assembly/History/PostedAssemblyOrder.rdlc';
     Caption = 'Posted Assembly Order';
     WordMergeDataItem = CopyLoop;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -244,6 +243,16 @@ report 910 "Posted Assembly Order"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Assembly/History/PostedAssemblyOrder.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

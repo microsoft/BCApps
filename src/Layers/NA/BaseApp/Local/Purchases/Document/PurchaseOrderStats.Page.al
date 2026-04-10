@@ -745,13 +745,7 @@ page 10039 "Purchase Order Stats."
 
     trigger OnOpenPage()
     begin
-#if not CLEAN26
-        if not Rec.SkipStatisticsPreparation() then
-            Rec.PrepareOpeningDocumentStatistics();
-        Rec.ResetSkipStatisticsPreparationFlag();
-#else
         Rec.PrepareOpeningDocumentStatistics();
-#endif
         PurchSetup.Get();
         NullTab := -1;
         AllowInvDisc :=

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -43,6 +43,7 @@ table 348 Dimension
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code for the dimension.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -72,6 +73,7 @@ table 348 Dimension
         field(2; Name; Text[30])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the dimension code you enter in the Code field.';
         }
         /// <summary>
         /// The caption used for dimension code fields in forms and reports.
@@ -80,6 +82,7 @@ table 348 Dimension
         field(3; "Code Caption"; Text[80])
         {
             Caption = 'Code Caption';
+            ToolTip = 'Specifies the caption of the dimension. This is displayed as the name of dimension fields.';
         }
         /// <summary>
         /// The caption used for dimension filter fields in forms and reports.
@@ -88,6 +91,7 @@ table 348 Dimension
         field(4; "Filter Caption"; Text[80])
         {
             Caption = 'Filter Caption';
+            ToolTip = 'Specifies the caption of the dimension code when used as a filter. This is displayed as the name of dimension filter fields.';
         }
         /// <summary>
         /// Extended description of the dimension providing additional context about its purpose and usage.
@@ -95,6 +99,7 @@ table 348 Dimension
         field(5; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the dimension code.';
         }
         /// <summary>
         /// Indicates whether the dimension is blocked from being used in new transactions.
@@ -103,6 +108,7 @@ table 348 Dimension
         field(6; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
         }
         /// <summary>
         /// The consolidation code used when consolidating financial data across business units.
@@ -112,6 +118,7 @@ table 348 Dimension
         {
             AccessByPermission = TableData "Business Unit" = R;
             Caption = 'Consolidation Code';
+            ToolTip = 'Specifies the code that is used for consolidation.';
         }
         /// <summary>
         /// Maps this dimension to an intercompany dimension for transactions between related companies.
@@ -120,6 +127,7 @@ table 348 Dimension
         field(8; "Map-to IC Dimension Code"; Code[20])
         {
             Caption = 'Map-to IC Dimension Code';
+            ToolTip = 'Specifies which intercompany dimension corresponds to the dimension on the line.';
             TableRelation = "IC Dimension";
 
             trigger OnValidate()

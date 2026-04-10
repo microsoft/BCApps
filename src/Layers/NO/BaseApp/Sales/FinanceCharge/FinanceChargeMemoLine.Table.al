@@ -69,12 +69,16 @@ table 303 "Finance Charge Memo Line"
                     FinChrgMemoLine := Rec;
                     Init();
                     Type := FinChrgMemoLine.Type;
+#if not CLEAN29
                     "Account Code" := FinChrgMemoLine."Account Code";
+#endif
                     GetFinChrgMemoHeader();
+#if not CLEAN29
                     if (Type <> Type::" ") and ("Account Code" = '') then
                         "Account Code" := FinChrgMemoHeader."Account Code"
                     else
                         "Account Code" := '';
+#endif
                 end;
             end;
         }
@@ -482,16 +486,28 @@ table 303 "Finance Charge Memo Line"
             Caption = 'System-Created Entry';
             Editable = false;
         }
+#if not CLEANSCHEMA32
         field(10601; "Account Code"; Text[30])
         {
             Caption = 'Account Code';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
 
+#if not CLEAN29
             trigger OnValidate()
             begin
                 if (Type = Type::" ") and ("Account Code" <> '') then
                     Error(Text10600, FieldCaption("Account Code"), FieldCaption(Type), Type);
             end;
+#endif
         }
+#endif
     }
 
     keys
@@ -562,7 +578,9 @@ table 303 "Finance Charge Memo Line"
         NrOfDays: Integer;
         NrOfLinesToInsert: Integer;
         NrOfLines: Integer;
+#if not CLEAN29
         Text10600: Label 'You cannot enter %1 if %2 is "%3".';
+#endif
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -648,6 +666,8 @@ table 303 "Finance Charge Memo Line"
                             CumulateDetailedEntries(Amount, UseDueDate, UseCalcDate,
                               UseInterestRate, FinanceChargeInterestRate."Interest Period (Days)", BaseAmount);
                     NrOfDays := UseCalcDate - UseDueDate;
+                    if (CustLedgEntry."Closed at Date" <> 0D) and (CustLedgEntry."Closed at Date" < UseCalcDate) then
+                        NrOfDays := CustLedgEntry."Closed at Date" - UseDueDate;
 
                     OnCalcFinChrgOnBeforeCheckNrOfLinesToInsert(FinChrgMemoLine, NrOfDays);
                     if (NrOfLinesToInsert > 0) and

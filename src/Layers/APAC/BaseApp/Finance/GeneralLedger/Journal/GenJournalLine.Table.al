@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -119,6 +119,7 @@ table 81 "Gen. Journal Line"
         field(3; "Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Account Type';
+            ToolTip = 'Specifies the type of account that the entry on the journal line will be posted to.';
 
             trigger OnValidate()
             begin
@@ -178,6 +179,7 @@ table 81 "Gen. Journal Line"
         field(4; "Account No."; Code[20])
         {
             Caption = 'Account No.';
+            ToolTip = 'Specifies the account number that the entry on the journal line will be posted to.';
             TableRelation = if ("Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
                                                                                           Blocked = const(false))
             else
@@ -274,6 +276,7 @@ table 81 "Gen. Journal Line"
         field(5; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date for the entry.';
             ClosingDates = true;
 
             trigger OnValidate()
@@ -308,6 +311,7 @@ table 81 "Gen. Journal Line"
         field(6; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of document that the entry on the journal line is.';
 
             trigger OnValidate()
             var
@@ -351,6 +355,7 @@ table 81 "Gen. Journal Line"
         field(7; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies a document number for the journal line.';
         }
         /// <summary>
         /// Text description of the journal line transaction for identification and reporting purposes.
@@ -358,6 +363,7 @@ table 81 "Gen. Journal Line"
         field(8; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the entry.';
         }
         /// <summary>
         /// VAT percentage rate applied to the transaction amount for VAT calculation.
@@ -366,6 +372,7 @@ table 81 "Gen. Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'VAT %';
+            ToolTip = 'Specifies the relevant VAT rate for the particular combination of VAT business posting group and VAT product posting group. Do not enter the percent sign, only the number. For example, if the VAT rate is 25 %, enter 25 in this field.';
             DecimalPlaces = 0 : 5;
             Editable = false;
             MaxValue = 100;
@@ -426,6 +433,7 @@ table 81 "Gen. Journal Line"
         field(11; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
                                                                                                Blocked = const(false))
             else
@@ -515,6 +523,7 @@ table 81 "Gen. Journal Line"
         field(12; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the code of the currency for the amounts on the journal line.';
             TableRelation = Currency;
 
             trigger OnValidate()
@@ -576,6 +585,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Amount';
+            ToolTip = 'Specifies the total amount (including VAT) that the journal line consists of.';
 
             trigger OnValidate()
             begin
@@ -591,6 +601,7 @@ table 81 "Gen. Journal Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Debit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent debits.';
 
             trigger OnValidate()
             begin
@@ -612,6 +623,7 @@ table 81 "Gen. Journal Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Credit Amount';
+            ToolTip = 'Specifies the total of the ledger entries that represent credits.';
 
             trigger OnValidate()
             begin
@@ -731,6 +743,7 @@ table 81 "Gen. Journal Line"
         field(22; "Bill-to/Pay-to No."; Code[20])
         {
             Caption = 'Bill-to/Pay-to No.';
+            ToolTip = 'Specifies the number of the bill-to customer or pay-to vendor that the entry is linked to.';
             Editable = false;
             TableRelation = if ("Account Type" = const(Customer)) Customer
             else
@@ -755,6 +768,7 @@ table 81 "Gen. Journal Line"
         field(23; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
+            ToolTip = 'Specifies the posting group that will be used in posting the journal line.The field is used only if the account type is either customer or vendor.';
             TableRelation = if ("Account Type" = const(Customer)) "Customer Posting Group"
             else
             if ("Account Type" = const(Vendor)) "Vendor Posting Group"
@@ -775,6 +789,7 @@ table 81 "Gen. Journal Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -790,6 +805,7 @@ table 81 "Gen. Journal Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -804,6 +820,7 @@ table 81 "Gen. Journal Line"
         field(26; "Salespers./Purch. Code"; Code[20])
         {
             Caption = 'Salespers./Purch. Code';
+            ToolTip = 'Specifies the salesperson or purchaser who is linked to the journal line.';
             TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
 
             trigger OnValidate()
@@ -852,6 +869,7 @@ table 81 "Gen. Journal Line"
         field(34; "On Hold"; Code[3])
         {
             Caption = 'On Hold';
+            ToolTip = 'Specifies that the related entry represents an unpaid invoice for which either a payment suggestion, a reminder, or a finance charge memo exists.';
         }
         /// <summary>
         /// Document type of the entry being applied to for payment application and settlement.
@@ -859,6 +877,7 @@ table 81 "Gen. Journal Line"
         field(35; "Applies-to Doc. Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Applies-to Doc. Type';
+            ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
 
             trigger OnValidate()
             var
@@ -878,6 +897,7 @@ table 81 "Gen. Journal Line"
         field(36; "Applies-to Doc. No."; Code[20])
         {
             Caption = 'Applies-to Doc. No.';
+            ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
 
             trigger OnLookup()
             var
@@ -935,6 +955,8 @@ table 81 "Gen. Journal Line"
 
                 if "Applies-to Doc. No." <> xRec."Applies-to Doc. No." then
                     ClearCustVendApplnEntry();
+
+                OnAppliesToDocNoOnValidateOnBeforeDelPmtTolApllnDocNo(Rec, SuppressCommit);
 
                 if ("Applies-to Doc. No." = '') and (xRec."Applies-to Doc. No." <> '') then begin
                     PaymentToleranceMgt.DelPmtTolApllnDocNo(Rec, xRec."Applies-to Doc. No.");
@@ -1042,6 +1064,7 @@ table 81 "Gen. Journal Line"
         field(38; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the due date on the entry.';
         }
         /// <summary>
         /// Payment discount date until which the payment discount percentage applies.
@@ -1049,6 +1072,7 @@ table 81 "Gen. Journal Line"
         field(39; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
+            ToolTip = 'Specifies the date on which the amount in the entry must be paid for a payment discount to be granted.';
         }
         /// <summary>
         /// Payment discount percentage offered for early payment within the discount period.
@@ -1057,6 +1081,7 @@ table 81 "Gen. Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Payment Discount %';
+            ToolTip = 'Specifies the payment discount percent granted if payment is made on or before the date in the Pmt. Discount Date field.';
             DecimalPlaces = 0 : 5;
             MaxValue = 100;
             MinValue = 0;
@@ -1067,6 +1092,7 @@ table 81 "Gen. Journal Line"
         field(42; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             TableRelation = Job;
 
             trigger OnValidate()
@@ -1105,6 +1131,7 @@ table 81 "Gen. Journal Line"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity of items to be included on the journal line.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -1120,6 +1147,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'VAT Amount';
+            ToolTip = 'Specifies the amount of VAT that is included in the total amount.';
 
             trigger OnValidate()
             begin
@@ -1186,6 +1214,7 @@ table 81 "Gen. Journal Line"
         field(47; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
+            ToolTip = 'Specifies a formula that calculates the payment due date, payment discount date, and payment discount amount.';
             TableRelation = "Payment Terms";
 
             trigger OnValidate()
@@ -1241,6 +1270,7 @@ table 81 "Gen. Journal Line"
         field(48; "Applies-to ID"; Code[50])
         {
             Caption = 'Applies-to ID';
+            ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
 
             trigger OnValidate()
             begin
@@ -1257,6 +1287,7 @@ table 81 "Gen. Journal Line"
         field(50; "Business Unit Code"; Code[20])
         {
             Caption = 'Business Unit Code';
+            ToolTip = 'Specifies the code of the business unit that the entry derives from in a consolidated company.';
             TableRelation = "Business Unit";
         }
         /// <summary>
@@ -1278,6 +1309,7 @@ table 81 "Gen. Journal Line"
         field(52; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         /// <summary>
@@ -1287,6 +1319,7 @@ table 81 "Gen. Journal Line"
         {
             BlankZero = true;
             Caption = 'Recurring Method';
+            ToolTip = 'Specifies a recurring method if the Recurring field of the General Journal Template table indicates the journal is recurring.';
 
             trigger OnValidate()
             begin
@@ -1306,6 +1339,7 @@ table 81 "Gen. Journal Line"
         field(54; "Expiration Date"; Date)
         {
             Caption = 'Expiration Date';
+            ToolTip = 'Specifies the last date the recurring journal will be posted, if you have indicated in the journal is recurring.';
         }
         /// <summary>
         /// Recurring frequency formula that defines the interval between recurring journal entries.
@@ -1313,6 +1347,7 @@ table 81 "Gen. Journal Line"
         field(55; "Recurring Frequency"; DateFormula)
         {
             Caption = 'Recurring Frequency';
+            ToolTip = 'Specifies a recurring frequency if the Recurring field of the General Journal Template table indicates the journal is recurring.';
         }
         /// <summary>
         /// Allocated amount in local currency calculated from related allocation lines for this journal line.
@@ -1334,6 +1369,7 @@ table 81 "Gen. Journal Line"
         field(57; "Gen. Posting Type"; Enum "General Posting Type")
         {
             Caption = 'Gen. Posting Type';
+            ToolTip = 'Specifies the type of transaction.';
 
             trigger OnValidate()
             var
@@ -1356,6 +1392,7 @@ table 81 "Gen. Journal Line"
         field(58; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
 
             trigger OnValidate()
@@ -1377,6 +1414,7 @@ table 81 "Gen. Journal Line"
         field(59; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
 
             trigger OnValidate()
@@ -1406,6 +1444,7 @@ table 81 "Gen. Journal Line"
         field(61; "EU 3-Party Trade"; Boolean)
         {
             Caption = 'EU 3-Party Trade';
+            ToolTip = 'Specifies whether the entry was part of a 3-party trade. If it was, there is a check mark in the field.';
             Editable = false;
         }
         /// <summary>
@@ -1422,6 +1461,7 @@ table 81 "Gen. Journal Line"
         field(63; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
 
             trigger OnValidate()
             begin
@@ -1490,6 +1530,7 @@ table 81 "Gen. Journal Line"
         field(64; "Bal. Gen. Posting Type"; Enum "General Posting Type")
         {
             Caption = 'Bal. Gen. Posting Type';
+            ToolTip = 'Specifies the general posting type associated with the balancing account that will be used when you post the entry on the journal line.';
 
             trigger OnValidate()
             var
@@ -1519,6 +1560,7 @@ table 81 "Gen. Journal Line"
         field(65; "Bal. Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Bal. Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the general business posting group code associated with the balancing account that will be used when you post the entry.';
             TableRelation = "Gen. Business Posting Group";
 
             trigger OnValidate()
@@ -1541,6 +1583,7 @@ table 81 "Gen. Journal Line"
         field(66; "Bal. Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Bal. Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the general product posting group code associated with the balancing account that will be used when you post the entry.';
             TableRelation = "Gen. Product Posting Group";
 
             trigger OnValidate()
@@ -1637,6 +1680,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Bal. VAT Amount';
+            ToolTip = 'Specifies the amount of Bal. VAT included in the total amount.';
 
             trigger OnValidate()
             begin
@@ -1695,6 +1739,7 @@ table 81 "Gen. Journal Line"
         {
             AccessByPermission = TableData "Bank Account" = R;
             Caption = 'Bank Payment Type';
+            ToolTip = 'Specifies the code for the payment type to be used for the entry on the journal line.';
 
             trigger OnValidate()
             begin
@@ -1826,6 +1871,7 @@ table 81 "Gen. Journal Line"
         field(73; Correction; Boolean)
         {
             Caption = 'Correction';
+            ToolTip = 'Specifies the entry as a corrective entry. You can use the field if you need to post a corrective entry to an account.';
 
             trigger OnValidate()
             begin
@@ -1846,6 +1892,7 @@ table 81 "Gen. Journal Line"
         {
             AccessByPermission = TableData "Check Ledger Entry" = R;
             Caption = 'Check Printed';
+            ToolTip = 'Specifies whether a check has been printed for the amount on the payment journal line.';
             Editable = false;
         }
         /// <summary>
@@ -1854,6 +1901,7 @@ table 81 "Gen. Journal Line"
         field(76; "Document Date"; Date)
         {
             Caption = 'Document Date';
+            ToolTip = 'Specifies the date when the related document was created.';
             ClosingDates = true;
 
             trigger OnValidate()
@@ -1871,6 +1919,7 @@ table 81 "Gen. Journal Line"
         field(77; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
         }
         /// <summary>
         /// Source type that identifies the entity type that originated this journal line.
@@ -1927,6 +1976,7 @@ table 81 "Gen. Journal Line"
         field(82; "Tax Area Code"; Code[20])
         {
             Caption = 'Tax Area Code';
+            ToolTip = 'Specifies the tax area that is used to calculate and post sales tax.';
             TableRelation = "Tax Area";
 
             trigger OnValidate()
@@ -1940,6 +1990,7 @@ table 81 "Gen. Journal Line"
         field(83; "Tax Liable"; Boolean)
         {
             Caption = 'Tax Liable';
+            ToolTip = 'Specifies if the customer or vendor is liable for sales tax.';
 
             trigger OnValidate()
             begin
@@ -1952,6 +2003,7 @@ table 81 "Gen. Journal Line"
         field(84; "Tax Group Code"; Code[20])
         {
             Caption = 'Tax Group Code';
+            ToolTip = 'Specifies the tax group that is used to calculate and post sales tax.';
             TableRelation = "Tax Group";
 
             trigger OnValidate()
@@ -1965,6 +2017,7 @@ table 81 "Gen. Journal Line"
         field(85; "Use Tax"; Boolean)
         {
             Caption = 'Use Tax';
+            ToolTip = 'Specifies that the purchase is subject to use tax. Use tax is a sales tax that is paid on items that are purchased by a company and are used by that company instead of being sold to a customer.';
 
             trigger OnValidate()
             begin
@@ -2029,6 +2082,7 @@ table 81 "Gen. Journal Line"
         field(90; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
 
             trigger OnValidate()
@@ -2050,6 +2104,7 @@ table 81 "Gen. Journal Line"
         field(91; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Product Posting Group";
 
             trigger OnValidate()
@@ -2099,6 +2154,7 @@ table 81 "Gen. Journal Line"
         field(92; "Bal. VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'Bal. VAT Bus. Posting Group';
+            ToolTip = 'Specifies the code of the VAT business posting group that will be used when you post the entry on the journal line.';
             TableRelation = "VAT Business Posting Group";
 
             trigger OnValidate()
@@ -2117,6 +2173,7 @@ table 81 "Gen. Journal Line"
         field(93; "Bal. VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'Bal. VAT Prod. Posting Group';
+            ToolTip = 'Specifies the code of the VAT product posting group that will be used when you post the entry on the journal line.';
             TableRelation = "VAT Product Posting Group";
 
             trigger OnValidate()
@@ -2287,6 +2344,7 @@ table 81 "Gen. Journal Line"
         field(110; "Ship-to/Order Address Code"; Code[10])
         {
             Caption = 'Ship-to/Order Address Code';
+            ToolTip = 'Specifies the address code of the ship-to customer or order-from vendor that the entry is linked to.';
             TableRelation = if ("Account Type" = const(Customer)) "Ship-to Address".Code where("Customer No." = field("Bill-to/Pay-to No."))
             else
             if ("Account Type" = const(Vendor)) "Order Address".Code where("Vendor No." = field("Bill-to/Pay-to No."))
@@ -2303,6 +2361,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'VAT Difference';
+            ToolTip = 'Specifies the difference between the calculated VAT amount and a VAT amount that you have entered manually.';
             Editable = false;
         }
         /// <summary>
@@ -2313,6 +2372,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Bal. VAT Difference';
+            ToolTip = 'Specifies the difference between the calculate VAT amount and the VAT amount that you have entered manually.';
             Editable = false;
         }
         /// <summary>
@@ -2458,6 +2518,7 @@ table 81 "Gen. Journal Line"
         field(128; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
+            ToolTip = 'Specifies the VAT date for the entry.';
             Editable = true;
 
             trigger OnValidate()
@@ -2476,6 +2537,7 @@ table 81 "Gen. Journal Line"
         field(130; "IC Account Type"; Enum "IC Journal Account Type")
         {
             Caption = 'IC Account Type';
+            ToolTip = 'Specifies the type of the account that you want to use for the transaction with your IC partner.';
         }
         /// <summary>
         /// Intercompany account number for posting IC transactions to partner company accounts.
@@ -2483,6 +2545,7 @@ table 81 "Gen. Journal Line"
         field(131; "IC Account No."; Code[20])
         {
             Caption = 'IC Account No.';
+            ToolTip = 'Specifies the number of the general ledger or bank account that the IC transaction is posted to.';
             TableRelation =
             if ("IC Account Type" = const("G/L Account")) "IC G/L Account" where("Account Type" = const(Posting), Blocked = const(false))
             else
@@ -2504,6 +2567,7 @@ table 81 "Gen. Journal Line"
         field(160; "Job Queue Status"; Enum "Document Job Queue Status")
         {
             Caption = 'Job Queue Status';
+            ToolTip = 'Specifies the status of a job queue entry or task that handles the posting of general journals.';
             Editable = false;
         }
         /// <summary>
@@ -2520,6 +2584,7 @@ table 81 "Gen. Journal Line"
         field(165; "Incoming Document Entry No."; Integer)
         {
             Caption = 'Incoming Document Entry No.';
+            ToolTip = 'Specifies the number of the incoming document that this general journal line is created for.';
             TableRelation = "Incoming Document";
 
             trigger OnValidate()
@@ -2543,6 +2608,7 @@ table 81 "Gen. Journal Line"
         field(170; "Creditor No."; Code[20])
         {
             Caption = 'Creditor No.';
+            ToolTip = 'Specifies the vendor who sent the purchase invoice.';
         }
         /// <summary>
         /// Payment reference number for electronic payments and bank reconciliation matching.
@@ -2550,6 +2616,7 @@ table 81 "Gen. Journal Line"
         field(171; "Payment Reference"; Code[50])
         {
             Caption = 'Payment Reference';
+            ToolTip = 'Specifies the payment of the purchase invoice.';
         }
         /// <summary>
         /// Payment method code determining payment processing rules and export file formats.
@@ -2557,6 +2624,7 @@ table 81 "Gen. Journal Line"
         field(172; "Payment Method Code"; Code[10])
         {
             Caption = 'Payment Method Code';
+            ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
             TableRelation = "Payment Method";
 
             trigger OnValidate()
@@ -2570,12 +2638,14 @@ table 81 "Gen. Journal Line"
         field(173; "Applies-to Ext. Doc. No."; Code[35])
         {
             Caption = 'Applies-to Ext. Doc. No.';
+            ToolTip = 'Specifies the external document number that will be exported in the payment file.';
         }
         /// <summary>
         /// Date when vendor invoice was received for payment terms calculation and approval workflow tracking.
         /// </summary>
         field(175; "Invoice Received Date"; Date)
         {
+            ToolTip = 'Specifies the date when the related document was received.';
 
 
             trigger OnValidate()
@@ -2600,6 +2670,7 @@ table 81 "Gen. Journal Line"
         field(288; "Recipient Bank Account"; Code[20])
         {
             Caption = 'Recipient Bank Account';
+            ToolTip = 'Specifies the bank account that the amount will be transferred to after it has been exported from the payment journal.';
             TableRelation = if ("Account Type" = const(Customer)) "Customer Bank Account".Code where("Customer No." = field("Account No."))
             else
             if ("Account Type" = const(Vendor)) "Vendor Bank Account".Code where("Vendor No." = field("Account No."))
@@ -2618,6 +2689,7 @@ table 81 "Gen. Journal Line"
         field(289; "Message to Recipient"; Text[140])
         {
             Caption = 'Message to Recipient';
+            ToolTip = 'Specifies the message exported to the payment file when you use the Export Payments to File function in the Payment Journal window.';
         }
         /// <summary>
         /// Indicates whether this journal line has been exported to an electronic payment file for bank processing.
@@ -2625,6 +2697,7 @@ table 81 "Gen. Journal Line"
         field(290; "Exported to Payment File"; Boolean)
         {
             Caption = 'Exported to Payment File';
+            ToolTip = 'Specifies that the payment journal line was exported to a payment file.';
             Editable = false;
         }
         /// <summary>
@@ -2636,6 +2709,7 @@ table 81 "Gen. Journal Line"
                                                                         "Journal Batch Name" = field("Journal Batch Name"),
                                                                         "Journal Line No." = field("Line No.")));
             Caption = 'Has Payment Export Error';
+            ToolTip = 'Specifies that an error occurred when you used the Export Payments to File function in the Payment Journal window.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -2664,6 +2738,7 @@ table 81 "Gen. Journal Line"
         field(1000; "Remit-to Code"; Code[20])
         {
             Caption = 'Remit-to Code';
+            ToolTip = 'Specifies the address for the remit-to code.';
             TableRelation = "Remit Address".Code where("Vendor No." = field("Sell-to/Buy-from No."));
         }
         /// <summary>
@@ -2672,6 +2747,7 @@ table 81 "Gen. Journal Line"
         field(1001; "Job Task No."; Code[20])
         {
             Caption = 'Project Task No.';
+            ToolTip = 'Specifies the number of the related project task.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
 
             trigger OnValidate()
@@ -2728,6 +2804,7 @@ table 81 "Gen. Journal Line"
             AccessByPermission = TableData Job = R;
             AutoFormatType = 0;
             Caption = 'Project Quantity';
+            ToolTip = 'Specifies the quantity for the project ledger entry that is derived from posting the journal line. If the Project Quantity is 0, the total amount on the project ledger entry will also be 0.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -2759,6 +2836,7 @@ table 81 "Gen. Journal Line"
             AccessByPermission = TableData Job = R;
             AutoFormatType = 0;
             Caption = 'Project Line Discount %';
+            ToolTip = 'Specifies the line discount percentage of the project ledger entry that is related to the purchase line.';
 
             trigger OnValidate()
             begin
@@ -2794,6 +2872,7 @@ table 81 "Gen. Journal Line"
         field(1008; "Job Unit Of Measure Code"; Code[10])
         {
             Caption = 'Project Unit Of Measure Code';
+            ToolTip = 'Specifies the unit of measure code that is used to determine the unit price. This code specifies how the quantity is measured, for example, by the box or by the piece. The application retrieves this code from the corresponding item or resource card.';
             TableRelation = "Unit of Measure";
         }
         /// <summary>
@@ -2803,6 +2882,7 @@ table 81 "Gen. Journal Line"
         {
             AccessByPermission = TableData Job = R;
             Caption = 'Project Line Type';
+            ToolTip = 'Specifies the type of planning line to create when a project ledger entry is posted. If the field is empty, no planning lines are created.';
 
             trigger OnValidate()
             begin
@@ -2819,6 +2899,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = Rec."Job Currency Code";
             AutoFormatType = 2;
             Caption = 'Project Unit Price';
+            ToolTip = 'Specifies the unit price for the selected account type and account number on the journal line.';
 
             trigger OnValidate()
             begin
@@ -2838,6 +2919,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = Rec."Job Currency Code";
             AutoFormatType = 1;
             Caption = 'Project Total Price';
+            ToolTip = 'Specifies the total price for the journal line. The value is calculated as follows: Quantity x Unit Price (LCY).';
             Editable = false;
         }
         /// <summary>
@@ -2849,6 +2931,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = Rec."Job Currency Code";
             AutoFormatType = 2;
             Caption = 'Project Unit Cost';
+            ToolTip = 'Specifies the project cost of one unit of the item or resource on the journal line. The value is calculated as follows: Project Total Cost (LCY) / Project Quantity.';
             Editable = false;
         }
         /// <summary>
@@ -2860,6 +2943,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = Rec."Job Currency Code";
             AutoFormatType = 1;
             Caption = 'Project Total Cost';
+            ToolTip = 'Specifies if you have assigned a project number and a project task number to the journal line. It shows the amount excluding VAT divided by the project quantity for the journal line. The amount is shown in the currency specified for the project. The value field is calculated as follows: (Amount - VAT Amount) x (Project Currency Rate/Currency Rate).';
             Editable = false;
         }
         /// <summary>
@@ -2871,6 +2955,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = Rec."Job Currency Code";
             AutoFormatType = 1;
             Caption = 'Project Line Discount Amount';
+            ToolTip = 'Specifies the line discount amount of the project ledger entry.';
 
             trigger OnValidate()
             begin
@@ -2890,6 +2975,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = Rec."Job Currency Code";
             AutoFormatType = 1;
             Caption = 'Project Line Amount';
+            ToolTip = 'Specifies the line amount of the project ledger entry.';
 
             trigger OnValidate()
             begin
@@ -2963,6 +3049,7 @@ table 81 "Gen. Journal Line"
             AccessByPermission = TableData Job = R;
             BlankZero = true;
             Caption = 'Project Planning Line No.';
+            ToolTip = 'Specifies the project planning line number that the usage should be linked to when the project journal is posted. You can only link to project planning lines that have the Apply Usage Link option enabled.';
 
             trigger OnLookup()
             var
@@ -3012,6 +3099,7 @@ table 81 "Gen. Journal Line"
             AccessByPermission = TableData Job = R;
             AutoFormatType = 0;
             Caption = 'Project Remaining Qty.';
+            ToolTip = 'Specifies the quantity that remains to complete a project.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
@@ -3038,6 +3126,7 @@ table 81 "Gen. Journal Line"
         field(1200; "Direct Debit Mandate ID"; Code[35])
         {
             Caption = 'Direct Debit Mandate ID';
+            ToolTip = 'Specifies the identification of the direct-debit mandate that is being used on the journal lines to process a direct debit collection.';
             TableRelation = if ("Account Type" = const(Customer)) "SEPA Direct Debit Mandate" where("Customer No." = field("Account No."));
 
             trigger OnValidate()
@@ -3067,6 +3156,7 @@ table 81 "Gen. Journal Line"
         field(1221; "Payer Information"; Text[50])
         {
             Caption = 'Payer Information';
+            ToolTip = 'Specifies payer information that is imported with the bank statement file.';
         }
         /// <summary>
         /// Transaction information text for electronic banking import and payment reference tracking.
@@ -3074,6 +3164,7 @@ table 81 "Gen. Journal Line"
         field(1222; "Transaction Information"; Text[100])
         {
             Caption = 'Transaction Information';
+            ToolTip = 'Specifies transaction information that is imported with the bank statement file.';
         }
         /// <summary>
         /// Data exchange line number for tracking individual lines within imported electronic files.
@@ -3089,6 +3180,7 @@ table 81 "Gen. Journal Line"
         field(1224; "Applied Automatically"; Boolean)
         {
             Caption = 'Applied Automatically';
+            ToolTip = 'Specifies that the general journal line has been automatically applied with a matching payment using the Apply Automatically function.';
         }
         /// <summary>
         /// Linked table identifier for external system integration and data synchronization tracking.
@@ -3112,6 +3204,7 @@ table 81 "Gen. Journal Line"
         field(1700; "Deferral Code"; Code[10])
         {
             Caption = 'Deferral Code';
+            ToolTip = 'Specifies the deferral template that governs how expenses or revenue are deferred to the different accounting periods when the expenses or revenue were incurred.';
             TableRelation = "Deferral Template"."Deferral Code";
 
             trigger OnValidate()
@@ -3154,6 +3247,7 @@ table 81 "Gen. Journal Line"
         field(2676; "Selected Alloc. Account No."; Code[20])
         {
             Caption = 'Allocation Account No.';
+            ToolTip = 'Specifies the allocation account number that will be used to distribute the amounts during the posting process.';
             DataClassification = CustomerContent;
             TableRelation = "Allocation Account";
         }
@@ -3189,6 +3283,7 @@ table 81 "Gen. Journal Line"
         field(5050; "Campaign No."; Code[20])
         {
             Caption = 'Campaign No.';
+            ToolTip = 'Specifies the number of the campaign that the journal line is linked to.';
             TableRelation = Campaign;
 
             trigger OnValidate()
@@ -3218,6 +3313,7 @@ table 81 "Gen. Journal Line"
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'FA Posting Date';
+            ToolTip = 'Specifies the posting date of the related fixed asset transaction, such as a depreciation.';
         }
         /// <summary>
         /// Fixed asset posting type determining the nature of FA transaction and G/L account mapping.
@@ -3226,6 +3322,7 @@ table 81 "Gen. Journal Line"
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'FA Posting Type';
+            ToolTip = 'Specifies the posting type, if Account Type field contains Fixed Asset.';
 
             trigger OnValidate()
             begin
@@ -3261,6 +3358,7 @@ table 81 "Gen. Journal Line"
         field(5602; "Depreciation Book Code"; Code[10])
         {
             Caption = 'Depreciation Book Code';
+            ToolTip = 'Specifies the code for the depreciation book to which the line will be posted if you have selected Fixed Asset in the Type field for this line.';
             TableRelation = "Depreciation Book";
 
             trigger OnValidate()
@@ -3296,6 +3394,7 @@ table 81 "Gen. Journal Line"
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             Caption = 'Salvage Value';
+            ToolTip = 'Specifies the estimated residual value of a fixed asset when it can no longer be used.';
         }
         /// <summary>
         /// Number of depreciation days for custom depreciation period calculations.
@@ -3305,6 +3404,7 @@ table 81 "Gen. Journal Line"
             AccessByPermission = TableData "Fixed Asset" = R;
             BlankZero = true;
             Caption = 'No. of Depreciation Days';
+            ToolTip = 'Specifies the number of depreciation days if you have selected the Depreciation or Custom 1 option in the FA Posting Type field.';
         }
         /// <summary>
         /// Indicates whether to calculate depreciation until the FA posting date.
@@ -3313,6 +3413,7 @@ table 81 "Gen. Journal Line"
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'Depr. until FA Posting Date';
+            ToolTip = 'Specifies if depreciation should be calculated until the FA posting date of the line.';
         }
         /// <summary>
         /// Indicates whether to depreciate the acquisition cost portion of the FA transaction.
@@ -3321,6 +3422,7 @@ table 81 "Gen. Journal Line"
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'Depr. Acquisition Cost';
+            ToolTip = 'Specifies if, when this line was posted, the additional acquisition cost posted on the line was depreciated in proportion to the amount by which the fixed asset had already been depreciated.';
         }
         /// <summary>
         /// Fixed asset maintenance code for tracking maintenance expenses and costs.
@@ -3328,6 +3430,7 @@ table 81 "Gen. Journal Line"
         field(5609; "Maintenance Code"; Code[10])
         {
             Caption = 'Maintenance Code';
+            ToolTip = 'Specifies a maintenance code.';
             TableRelation = Maintenance;
 
             trigger OnValidate()
@@ -3342,6 +3445,7 @@ table 81 "Gen. Journal Line"
         field(5610; "Insurance No."; Code[20])
         {
             Caption = 'Insurance No.';
+            ToolTip = 'Specifies an insurance code if you have selected the Acquisition Cost option in the FA Posting Type field.';
             TableRelation = Insurance;
 
             trigger OnValidate()
@@ -3356,6 +3460,7 @@ table 81 "Gen. Journal Line"
         field(5611; "Budgeted FA No."; Code[20])
         {
             Caption = 'Budgeted FA No.';
+            ToolTip = 'Specifies the number of a fixed asset with the Budgeted Asset check box selected. When you post the journal or document line, an additional entry is created for the budgeted fixed asset where the amount has the opposite sign.';
             TableRelation = "Fixed Asset";
 
             trigger OnValidate()
@@ -3374,6 +3479,7 @@ table 81 "Gen. Journal Line"
         field(5612; "Duplicate in Depreciation Book"; Code[10])
         {
             Caption = 'Duplicate in Depreciation Book';
+            ToolTip = 'Specifies a depreciation book code if you want the journal line to be posted to that depreciation book, as well as to the depreciation book in the Depreciation Book Code field.';
             TableRelation = "Depreciation Book";
 
             trigger OnValidate()
@@ -3388,6 +3494,7 @@ table 81 "Gen. Journal Line"
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'Use Duplication List';
+            ToolTip = 'Specifies whether the line is to be posted to all depreciation books, using different journal batches and with a check mark in the Part of Duplication List field.';
 
             trigger OnValidate()
             begin
@@ -3401,6 +3508,7 @@ table 81 "Gen. Journal Line"
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'FA Reclassification Entry';
+            ToolTip = 'Specifies if the entry was generated from a fixed asset reclassification journal.';
         }
         /// <summary>
         /// Fixed asset error entry number for tracking FA posting errors and corrections.
@@ -3409,6 +3517,7 @@ table 81 "Gen. Journal Line"
         {
             BlankZero = true;
             Caption = 'FA Error Entry No.';
+            ToolTip = 'Specifies the number of a posted FA ledger entry to mark as an error entry.';
             TableRelation = "FA Ledger Entry";
         }
         /// <summary>
@@ -3431,6 +3540,7 @@ table 81 "Gen. Journal Line"
         field(5618; Comment; Text[250])
         {
             Caption = 'Comment';
+            ToolTip = 'Specifies a comment about the activity on the journal line. Note that the comment is not carried forward to posted entries.';
         }
         /// <summary>
         /// Indicates whether the check for this payment has been exported to the bank.
@@ -3452,6 +3562,7 @@ table 81 "Gen. Journal Line"
         field(5703; "Reverse Date Calculation"; DateFormula)
         {
             Caption = 'Reverse Date Calculation';
+            ToolTip = 'Specifies posting date calculation formula for reverse recurring methods.';
 
             trigger OnValidate()
             var
@@ -8427,11 +8538,16 @@ table 81 "Gen. Journal Line"
     local procedure GetFAAccount()
     var
         FA: Record "Fixed Asset";
+        SkipFixedAssetTestFields: Boolean;
     begin
+        SkipFixedAssetTestFields := false;
         FA.Get("Account No.");
-        FA.TestField(Blocked, false);
-        FA.TestField(Inactive, false);
-        FA.TestField("Budgeted Asset", false);
+        OnGetFAAccountOnBeforeFixedAssetTestField(Rec, FA, SkipFixedAssetTestFields);
+        if not SkipFixedAssetTestFields then begin
+            FA.TestField(Blocked, false);
+            FA.TestField(Inactive, false);
+            FA.TestField("Budgeted Asset", false);
+        end;
         UpdateDescription(FA.Description);
         GetFADeprBook("Account No.");
         GetFAVATSetup();
@@ -8443,11 +8559,16 @@ table 81 "Gen. Journal Line"
     local procedure GetFABalAccount()
     var
         FA: Record "Fixed Asset";
+        SkipFixedAssetTestFields: Boolean;
     begin
+        SkipFixedAssetTestFields := false;
         FA.Get("Bal. Account No.");
-        FA.TestField(Blocked, false);
-        FA.TestField(Inactive, false);
-        FA.TestField("Budgeted Asset", false);
+        OnGetFABalAccountOnBeforeFixedAssetTestField(Rec, FA, SkipFixedAssetTestFields);
+        if not SkipFixedAssetTestFields then begin
+            FA.TestField(Blocked, false);
+            FA.TestField(Inactive, false);
+            FA.TestField("Budgeted Asset", false);
+        end;
         UpdateDescriptionFromBalAccount(FA.Description);
         GetFADeprBook("Bal. Account No.");
         GetFAVATSetup();
@@ -9492,6 +9613,25 @@ table 81 "Gen. Journal Line"
     end;
 
     /// <summary>
+    /// Event triggered before the fixed asset validation TestFields (Blocked, Inactive, Budgeted Asset) are executed
+    /// in the GetFAAccount procedure. Subscribing to this event allows developers to skip the standard
+    /// validation checks for specific scenarios or business rules.
+    /// </summary>
+    /// <param name="GenJournalLine">
+    /// The general journal line record for which the fixed asset account is being processed.
+    /// </param>
+    /// <param name="FixedAsset">
+    /// The fixed asset record retrieved for the account number on the general journal line.
+    /// </param>
+    /// <param name="SkipFixedAssetTestFields">
+    /// Set to true to skip the Blocked, Inactive, and Budgeted Asset TestField validations.
+    /// </param>
+    [IntegrationEvent(false, false)]
+    local procedure OnGetFAAccountOnBeforeFixedAssetTestField(GenJournalLine: Record "Gen. Journal Line"; var FixedAsset: Record "Fixed Asset"; var SkipFixedAssetTestFields: Boolean)
+    begin
+    end;
+
+    /// <summary>
     /// Event triggered after retrieving a fixed asset record for the balancing account in the general journal line.
     /// Subscribing to this event allows developers to extend or customize the behavior
     /// when processing fixed asset data for the balancing account. This can be useful for implementing additional logic,
@@ -9505,6 +9645,25 @@ table 81 "Gen. Journal Line"
     /// </param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterAccountNoOnValidateGetFABalAccount(var GenJournalLine: Record "Gen. Journal Line"; var FixedAsset: Record "Fixed Asset")
+    begin
+    end;
+
+    /// <summary>
+    /// Event triggered before the fixed asset validation TestFields (Blocked, Inactive, Budgeted Asset) are executed
+    /// in the GetFABalAccount procedure. Subscribing to this event allows developers to skip the standard
+    /// validation checks for specific scenarios or business rules.
+    /// </summary>
+    /// <param name="GenJournalLine">
+    /// The general journal line record for which the balancing fixed asset account is being processed.
+    /// </param>
+    /// <param name="FixedAsset">
+    /// The fixed asset record retrieved for the balancing account number on the general journal line.
+    /// </param>
+    /// <param name="SkipFixedAssetTestFields">
+    /// Set to true to skip the Blocked, Inactive, and Budgeted Asset TestField validations.
+    /// </param>
+    [IntegrationEvent(false, false)]
+    local procedure OnGetFABalAccountOnBeforeFixedAssetTestField(GenJournalLine: Record "Gen. Journal Line"; var FixedAsset: Record "Fixed Asset"; var SkipFixedAssetTestFields: Boolean)
     begin
     end;
 
@@ -9575,6 +9734,17 @@ table 81 "Gen. Journal Line"
     /// <param name="TempGenJnlLine">A temporary Gen. Journal Line record used for processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAppliesToDocNoOnValidateOnAfterCustLedgEntrySetFilters(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry"; TempGenJnlLine: Record "Gen. Journal Line" temporary)
+    begin
+    end;
+
+    /// <summary>
+    /// Event triggered before calling PaymentToleranceMgt.DelPmtTolApllnDocNo during the validation of the "Applies-to Doc. No." field.
+    /// This event allows developers to run additional checks and modify the Gen. Journal Line after ClearCustVendApplnEntry and before DelPmtTolApllnDocNo.
+    /// </summary>
+    /// <param name="GenJournalLine">The current Gen. Journal Line being processed.</param>
+    /// <param name="SuppressCommit">Indicates whether commits are suppressed.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAppliesToDocNoOnValidateOnBeforeDelPmtTolApllnDocNo(var GenJournalLine: Record "Gen. Journal Line"; SuppressCommit: Boolean)
     begin
     end;
 

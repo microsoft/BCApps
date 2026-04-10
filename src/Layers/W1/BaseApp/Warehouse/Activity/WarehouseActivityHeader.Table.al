@@ -1051,6 +1051,24 @@ table 5766 "Warehouse Activity Header"
         OnProdWhseHandlingIsInventoryPutaway(Location, Result);
     end;
 
+    /// <summary>
+    /// Determines whether the inbound transfer should be posted in one step.
+    /// </summary>
+    /// <returns>True if the transfer should post shipment and receipt together; otherwise, false.</returns>
+    internal procedure PostInboundTransferInOneStep(): Boolean
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        if Rec."Source Type" <> Database::"Transfer Line" then
+            exit(false);
+        if Rec.Type = "Warehouse Activity Type"::"Invt. Put-away" then
+            exit(false);
+
+        TransferHeader.SetLoadFields("Direct Transfer", "Transfer-to Code");
+        if TransferHeader.Get(Rec."Source No.") then
+            exit(TransferHeader.ShouldPostReceiptWithShipment());
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteWhseActivHeader(var WarehouseActivityHeader: Record "Warehouse Activity Header")
     begin

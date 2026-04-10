@@ -30,5 +30,6 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "application": "29.0.0.0"
+  "application": "29.0.0.0",
+  "brief": "Tests-Fixed Asset (W1)"
 }

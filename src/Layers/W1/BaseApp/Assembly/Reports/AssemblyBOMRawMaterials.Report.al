@@ -8,12 +8,11 @@ using Microsoft.Inventory.Item;
 
 report 810 "Assembly BOM - Raw Materials"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Assembly/Reports/AssemblyBOMRawMaterials.rdlc';
     AdditionalSearchTerms = 'bill of material raw';
     ApplicationArea = Assembly;
     Caption = 'BOM - Raw Materials';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -71,6 +70,16 @@ report 810 "Assembly BOM - Raw Materials"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Assembly/Reports/AssemblyBOMRawMaterials.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

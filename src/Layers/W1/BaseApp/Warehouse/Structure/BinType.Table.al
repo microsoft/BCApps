@@ -174,15 +174,6 @@ table 7303 "Bin Type"
         end;
     end;
 
-
-#if not CLEAN26
-    [Obsolete('Replaced by procedure MakeBinTypeFilter(var BinTypeFilter: Text; BinTypeFieldNo: Integer)', '26.0')]
-    procedure CreateBinTypeFilter(var BinTypeFilter: Text; BinTypeFieldNo: Integer)
-    begin
-        MakeBinTypeFilter(BinTypeFilter, BinTypeFieldNo);
-    end;
-#endif
-
     procedure MakeBinTypeFilter(var BinTypeFilter: Text; BinTypeFieldNo: Integer)
     var
         BinType: Record "Bin Type";

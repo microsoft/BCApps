@@ -115,6 +115,13 @@ page 9660 "Report Layouts"
                     Caption = 'Obsolete';
                     ToolTip = 'Specifies whether the layout is obsolete.';
                 }
+                field("Layout Status"; Rec."Layout Status")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    Caption = 'Layout Status';
+                    ToolTip = 'Specifies the approval status of the layout. Only Approved layouts are available for selection on report request pages.';
+                }
                 field("Excel data sheet configuration"; Rec.ExcelLayoutMultipleDataSheets)
                 {
                     ApplicationArea = Basic, Suite;
@@ -386,6 +393,69 @@ page 9660 "Report Layouts"
                     ReportLayoutsImpl.ShareWithOneDrive(Rec);
                 end;
             }
+
+            group(StatusActions)
+            {
+                Caption = 'Layout Status';
+                Image = Status;
+
+                action(SetApproved)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Set Approved';
+                    ToolTip = 'Mark the selected user-defined layouts as approved. Only approved layouts are available for selection on report request pages.';
+                    Image = Approve;
+                    Enabled = CanModifyStatus;
+                    AccessByPermission = tabledata "Tenant Report Layout" = M;
+
+                    trigger OnAction()
+                    begin
+                        SetLayoutStatusAction(Enum::"Report Layout Status"::Approved);
+                    end;
+                }
+                action(SetDraft)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Set Draft';
+                    ToolTip = 'Mark the selected user-defined layouts as draft. Draft layouts are not available for selection on report request pages.';
+                    Image = OpenWorksheet;
+                    Enabled = CanModifyStatus;
+                    AccessByPermission = tabledata "Tenant Report Layout" = M;
+
+                    trigger OnAction()
+                    begin
+                        SetLayoutStatusAction(Enum::"Report Layout Status"::Draft);
+                    end;
+                }
+                action(SetPendingApproval)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Set Pending Approval';
+                    ToolTip = 'Mark the selected user-defined layouts as pending approval. Pending layouts are not available for selection on report request pages.';
+                    Image = AddWatch;
+                    Enabled = CanModifyStatus;
+                    AccessByPermission = tabledata "Tenant Report Layout" = M;
+
+                    trigger OnAction()
+                    begin
+                        SetLayoutStatusAction(Enum::"Report Layout Status"::"Pending Approval");
+                    end;
+                }
+                action(SetRetired)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Set Retired';
+                    ToolTip = 'Mark the selected user-defined layouts as retired. Retired layouts are not available for selection on report request pages.';
+                    Image = Archive;
+                    Enabled = CanModifyStatus;
+                    AccessByPermission = tabledata "Tenant Report Layout" = M;
+
+                    trigger OnAction()
+                    begin
+                        SetLayoutStatusAction(Enum::"Report Layout Status"::Retired);
+                    end;
+                }
+            }
         }
 
         area(Promoted)
@@ -449,11 +519,33 @@ page 9660 "Report Layouts"
             Caption = 'Extensions';
             Filters = where("User Defined" = const(false));
         }
+        view(ApprovedLayouts)
+        {
+            Caption = 'Approved Layouts';
+            Filters = where("Layout Status" = const(Approved));
+        }
+        view(DraftLayouts)
+        {
+            Caption = 'Draft Layouts';
+            Filters = where("Layout Status" = const(Draft));
+        }
+        view(AwaitingApproval)
+        {
+            Caption = 'Pending Approval';
+            Filters = where("Layout Status" = const("Pending Approval"));
+        }
+        view(RetiredLayouts)
+        {
+            Caption = 'Retired Layouts';
+            Filters = where("Layout Status" = const(Retired));
+        }
     }
 
     trigger OnOpenPage()
     begin
         ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        if CurrPage.LookupMode then
+            Rec.SetRange("Layout Status", Enum::"Report Layout Status"::Approved);
     end;
 
     trigger OnDeleteRecord(): Boolean
@@ -489,6 +581,9 @@ page 9660 "Report Layouts"
         IsMultiSelect := SelectedReportLayoutList.Count() > 1;
         ShareOptionsVisible := DocumentSharing.ShareEnabled(Enum::"Document Sharing Source"::System);
         ShareOptionsEnabled := LayoutIsSelected and (not IsMultiSelect) and Rec."User Defined" and (Rec."Layout Format" <> Rec."Layout Format"::RDLC);
+        SelectedReportLayoutList.SetRange("User Defined", true);
+        CanModifyStatus := LayoutIsSelected and not SelectedReportLayoutList.IsEmpty();
+        SelectedReportLayoutList.SetRange("User Defined");
         UpdateUserDisplayName();
     end;
 
@@ -528,11 +623,25 @@ page 9660 "Report Layouts"
         LayoutIsSelected: Boolean;
         ShareOptionsVisible: Boolean;
         ShareOptionsEnabled: Boolean;
+        CanModifyStatus: Boolean;
         ModifyNonUserLayoutErr: Label 'Only user-defined layouts can be modified or removed.';
         EditInfoExtensionLayoutTxt: Label 'It is not possible to modify the layout info for this layout because it is provided by an extension. Do you want to edit a copy of the layout instead ?';
         ReplaceConfirmationTxt: Label 'This action will replace the layout file of the currently selected layout "%1". Do you want to continue ?', Comment = '%1 = LayoutName';
+        LayoutStatusChangedMsg: Label '%1 layout(s) set to %2.', Comment = '%1 = Number of layouts updated, %2 = Status name';
         SystemModifiedByDisplayName: Text;
         SystemCreatedByDisplayName: Text;
+
+    local procedure SetLayoutStatusAction(NewStatus: Enum "Report Layout Status")
+    var
+        SelectedLayouts: Record "Report Layout List";
+        UpdateCount: Integer;
+    begin
+        CurrPage.SetSelectionFilter(SelectedLayouts);
+        UpdateCount := ReportLayoutsImpl.SetLayoutStatusBatch(SelectedLayouts, NewStatus);
+        if UpdateCount > 0 then
+            Message(LayoutStatusChangedMsg, UpdateCount, NewStatus);
+        CurrPage.Update(false);
+    end;
 
     local procedure SetFocusedRecord(ReportID: Integer; LayoutName: Text)
     var

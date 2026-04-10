@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -47,6 +47,7 @@ table 763 "Acc. Sched. Chart Setup Line"
         field(3; "Account Schedule Name"; Code[10])
         {
             Caption = 'Account Schedule Name';
+            ToolTip = 'Specifies the account schedule name.';
             Editable = false;
             TableRelation = "Acc. Schedule Name".Name;
         }
@@ -56,6 +57,7 @@ table 763 "Acc. Sched. Chart Setup Line"
         field(4; "Account Schedule Line No."; Integer)
         {
             Caption = 'Account Schedule Line No.';
+            ToolTip = 'Specifies the number of the account schedule line that the chart is based on.';
             Editable = false;
             TableRelation = "Acc. Schedule Line"."Line No." where("Schedule Name" = field("Account Schedule Name"));
         }
@@ -65,6 +67,7 @@ table 763 "Acc. Sched. Chart Setup Line"
         field(5; "Column Layout Name"; Code[10])
         {
             Caption = 'Column Layout Name';
+            ToolTip = 'Specifies the name. This field is intended only for internal use.';
             Editable = false;
             TableRelation = "Column Layout Name".Name;
         }
@@ -74,6 +77,7 @@ table 763 "Acc. Sched. Chart Setup Line"
         field(6; "Column Layout Line No."; Integer)
         {
             Caption = 'Column Layout Line No.';
+            ToolTip = 'Specifies the line number. This field is intended only for internal use.';
             Editable = false;
             TableRelation = "Column Layout"."Line No." where("Column Layout Name" = field("Column Layout Name"));
         }
@@ -83,6 +87,7 @@ table 763 "Acc. Sched. Chart Setup Line"
         field(10; "Original Measure Name"; Text[111])
         {
             Caption = 'Original Measure Name';
+            ToolTip = 'Specifies the account schedule columns or lines that you select to include in the Account Schedules Chart Setup window.';
             Editable = false;
         }
         /// <summary>
@@ -91,6 +96,7 @@ table 763 "Acc. Sched. Chart Setup Line"
         field(15; "Measure Name"; Text[111])
         {
             Caption = 'Measure Name';
+            ToolTip = 'Specifies the account schedule columns or lines that the measures on the y-axis in the specific chart are based on.';
 
             trigger OnValidate()
             begin
@@ -111,6 +117,7 @@ table 763 "Acc. Sched. Chart Setup Line"
         field(40; "Chart Type"; Enum "Account Schedule Chart Type")
         {
             Caption = 'Chart Type';
+            ToolTip = 'Specifies how the account schedule values are represented graphically in the chart.';
 
             trigger OnValidate()
             var

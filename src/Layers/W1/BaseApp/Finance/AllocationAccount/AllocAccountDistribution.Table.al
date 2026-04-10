@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -52,6 +52,7 @@ table 2671 "Alloc. Account Distribution"
         {
             AutoFormatType = 0;
             Caption = 'Share';
+            ToolTip = 'Specifies the Share that is used for the variable account distributions.';
             DecimalPlaces = 2 : 5;
             MinValue = 0;
             InitValue = 1;
@@ -68,6 +69,7 @@ table 2671 "Alloc. Account Distribution"
         {
             AutoFormatType = 0;
             Caption = 'Percent';
+            ToolTip = 'Specifies the Percent that is used for the variable account distributions.';
             DecimalPlaces = 2 : 5;
             Editable = false;
             ExtendedDatatype = Ratio;
@@ -87,6 +89,7 @@ table 2671 "Alloc. Account Distribution"
         field(9; "Destination Account Type"; Enum "Destination Account Type")
         {
             Caption = 'Destination Account Type';
+            ToolTip = 'Specifies the account type the amount will be posted to.';
             trigger OnValidate()
             begin
                 Clear(Rec."Destination Account Number");
@@ -98,6 +101,7 @@ table 2671 "Alloc. Account Distribution"
         field(10; "Destination Account Number"; Code[20])
         {
             Caption = 'Destination Account Number';
+            ToolTip = 'Specifies the account number that the amount will be posted to. You can select Destination Account Number if Destination Account Type field is G/L Account or Bank Account. If Destination Account Type field is Inherit from Parent, Destination Account Number and Destination Account Type will be taken from the line when the Allocation Account No. field is set.';
 
             TableRelation = if ("Destination Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting), "Direct Posting" = const(true))
             else
@@ -110,6 +114,7 @@ table 2671 "Alloc. Account Distribution"
         field(19; "Breakdown Account Type"; Enum "Breakdown Account Type")
         {
             Caption = 'Breakdown Account Type';
+            ToolTip = 'Specifies the account type the that is used to calculate percentage for the distributions.';
         }
         /// <summary>
         /// Account number used for breakdown calculations based on the breakdown account type.
@@ -117,6 +122,7 @@ table 2671 "Alloc. Account Distribution"
         field(20; "Breakdown Account Number"; Code[20])
         {
             Caption = 'Breakdown Account Number';
+            ToolTip = 'Specifies the code of the Account that is used to calculate percentage for the distributions.';
 
             trigger OnLookup()
             var
@@ -158,6 +164,7 @@ table 2671 "Alloc. Account Distribution"
         field(21; "Calculation Period"; Enum "Allocation Account Period")
         {
             Caption = 'Calculation Period';
+            ToolTip = 'Specifies the period to use to calculate the account balance that is used as a percentage for the distributions.';
         }
 
         /// <summary>
@@ -167,6 +174,7 @@ table 2671 "Alloc. Account Distribution"
         {
             CaptionClass = '3, ' + GetDimensionCaption(1);
             Caption = 'Dimension 1 Filter';
+            ToolTip = 'Specifies the code for Global Dimension 1, that will be used to filter Ledger Entries when cacluating balance.';
             DataClassification = CustomerContent;
 
             trigger OnLookup()
@@ -181,6 +189,7 @@ table 2671 "Alloc. Account Distribution"
         {
             CaptionClass = '3, ' + GetDimensionCaption(2);
             Caption = 'Dimension 2 Filter';
+            ToolTip = 'Specifies the code for Global Dimension 2, that will be used to filter Ledger Entries when cacluating balance.';
             DataClassification = CustomerContent;
 
             trigger OnLookup()
@@ -195,6 +204,7 @@ table 2671 "Alloc. Account Distribution"
         {
             CaptionClass = '3, ' + GetDimensionCaption(3);
             Caption = 'Dimension 3 Filter';
+            ToolTip = 'Specifies the code for Shortcut Dimension 3, that will be used to filter Ledger Entries when cacluating balance.';
             DataClassification = CustomerContent;
 
             trigger OnLookup()
@@ -209,6 +219,7 @@ table 2671 "Alloc. Account Distribution"
         {
             CaptionClass = '3, ' + GetDimensionCaption(4);
             Caption = 'Dimension 4 Filter';
+            ToolTip = 'Specifies the code for Shortcut Dimension 4, that will be used to filter Ledger Entries when cacluating balance.';
             DataClassification = CustomerContent;
 
             trigger OnLookup()
@@ -223,6 +234,7 @@ table 2671 "Alloc. Account Distribution"
         {
             CaptionClass = '3, ' + GetDimensionCaption(5);
             Caption = 'Dimension 5 Filter';
+            ToolTip = 'Specifies the code for Shortcut Dimension 5, that will be used to filter Ledger Entries when cacluating balance.';
             DataClassification = CustomerContent;
 
             trigger OnLookup()
@@ -237,6 +249,7 @@ table 2671 "Alloc. Account Distribution"
         {
             CaptionClass = '3, ' + GetDimensionCaption(6);
             Caption = 'Dimension 6 Filter';
+            ToolTip = 'Specifies the code for Shortcut Dimension 6, that will be used to filter Ledger Entries when cacluating balance.';
             DataClassification = CustomerContent;
 
             trigger OnLookup()
@@ -251,6 +264,7 @@ table 2671 "Alloc. Account Distribution"
         {
             CaptionClass = '3, ' + GetDimensionCaption(7);
             Caption = 'Dimension 7 Filter';
+            ToolTip = 'Specifies the code for Shortcut Dimension 7, that will be used to filter Ledger Entries when cacluating balance.';
             DataClassification = CustomerContent;
 
             trigger OnLookup()
@@ -265,6 +279,7 @@ table 2671 "Alloc. Account Distribution"
         {
             CaptionClass = '3, ' + GetDimensionCaption(8);
             Caption = 'Dimension 8 Filter';
+            ToolTip = 'Specifies the code for Shortcut Dimension 8, that will be used to filter Ledger Entries when cacluating balance.';
             DataClassification = CustomerContent;
 
             trigger OnLookup()
@@ -278,6 +293,7 @@ table 2671 "Alloc. Account Distribution"
         field(35; "Business Unit Code Filter"; Text[1024])
         {
             Caption = 'Business Unit Code Filter';
+            ToolTip = 'Specifies the filter for the Business Unit Code, that will be used to filter Ledger Entries when calculating balance.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()

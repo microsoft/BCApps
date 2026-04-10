@@ -6,6 +6,7 @@ namespace Microsoft.Inventory.Item;
 
 using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Item.Picture;
 using System.Text;
 
 page 5401 "Item Variants"
@@ -34,7 +35,8 @@ page 5401 "Item Variants"
 
                     trigger OnValidate()
                     begin
-                        CurrPage.Update(true);
+                        if (xRec.Code = '') and (Rec.Code <> '') then
+                            CurrPage.Update(true);
                     end;
                 }
                 field(Description; Rec.Description)
@@ -66,6 +68,14 @@ page 5401 "Item Variants"
         }
         area(factboxes)
         {
+            part(ItemVariantPicture; "Item Variant Picture")
+            {
+                ApplicationArea = All;
+                Caption = 'Picture';
+                SubPageLink = "Item No." = field("Item No."),
+                              Code = field(Code);
+                Visible = false;
+            }
             part(ItemAttributesFactbox; "Item Attributes Factbox")
             {
                 ApplicationArea = Basic, Suite;

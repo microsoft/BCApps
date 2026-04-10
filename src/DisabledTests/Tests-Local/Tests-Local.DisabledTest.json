@@ -19683,5 +19683,150 @@
     "codeunitId": 148800,
     "codeunitName": "IT RS Pack - Evaluation",
     "method": "CompanyInfoBankAccountNo"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType22_UstrdReferenceQRIBAN"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_BatchBooking_Auto_1Payment"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType22_BlankReferenceQRIBAN"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_BatchBooking_Always_1Payment"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType1_Negative_BlankedReferenceNo"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType22_UstrdReferenceQRIBAN"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_BatchBooking_Never_1Payment"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_BatchBooking_Never_50Payments"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_BatchBooking_Auto_50Payment"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_BatchBooking_Always_1Payment"
+  },
+  {
+    "codeunitId": 144005,
+    "codeunitName": "VAT Statement",
+    "method": "UpdateEndDateOfOldRates"
+  },
+  {
+    "codeunitId": 144021,
+    "codeunitName": "IT - CU 2015 Unit Test",
+    "method": "HRecordEntryNumberMatchesDRecordForSameVendorAndReason"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_BatchBooking_Always_50Payments"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_BatchBooking_Always_50Payments"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "VAT Report",
+    "method": "CreateVIESELMA_BenutzerkontoIDInXml"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_BatchBooking_Auto_50Payment"
+  },
+  {
+    "codeunitId": 144021,
+    "codeunitName": "IT - CU 2015 Unit Test",
+    "method": "HRecordEntryNumbersCorrectAcrossMultipleGroups"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType22_BlankReferenceQRIBAN"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "VAT Report",
+    "method": "CreateVIESELMA_FileIDInFileName"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType1_Negative_BlankedReferenceNo"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_BatchBooking_Never_50Payments"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "VAT Report",
+    "method": "CreateVIESELMA_BOPUserAccountIDMissing"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_BatchBooking_Never_1Payment"
+  },
+  {
+    "codeunitId": 142074,
+    "codeunitName": "UT REP Export Electronic Pmt.",
+    "method": "ExportElectronicPaymentsVendorWithForeignCurrency"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_BatchBooking_Auto_1Payment"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "UnApplyPstdPurchInvUsingACY"
+  },
+  {
+    "codeunitId": 144008,
+    "codeunitName": "EB - Payment Journal Export",
+    "method": "VerifyPaymentInformationXMLNodesCurrencyCodesMustFail"
+  },
+  {
+    "codeunitId": 144050,
+    "codeunitName": "ERM Auto Payment",
+    "method": "RecallIssuedCustomerBillSecondTimeForSameInvoice"
+  },
+  {
+    "codeunitId": 144001,
+    "codeunitName": "VAT Report",
+    "method": "CreateVIESELMA_FileIDMatchesEingangsID"
   }
 ]

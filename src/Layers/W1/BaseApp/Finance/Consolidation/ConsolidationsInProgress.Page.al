@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,19 +34,16 @@ page 245 "Consolidations in Progress"
                 {
                     ApplicationArea = All;
                     Caption = 'Status';
-                    ToolTip = 'Status of the consolidation process';
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = All;
                     Caption = 'Starting Date';
-                    ToolTip = 'Starting date for the entries in the consolidation';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = All;
                     Caption = 'Ending Date';
-                    ToolTip = 'Ending date for the entries in the consolidation';
                 }
                 field(ScheduledAt; Rec.SystemCreatedAt)
                 {

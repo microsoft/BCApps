@@ -263,6 +263,7 @@ table 8360 "Financial Report Schedule"
         end;
         AccountSchedule.SetFinancialReportName("Financial Report Name");
         AccountSchedule.SetDateFilterDisabled(true);
+        AccountSchedule.SetRunForExport();
         NewReportParameters := AccountSchedule.RunRequestPage(ReportParameters);
         if (NewReportParameters <> '') and (ReportParameters <> NewReportParameters) then begin
             AccountSchedule.GetFilters(AccScheduleLine);

@@ -17,10 +17,9 @@ using System.Utilities;
 
 report 415 "Archived Purchase Quote"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Archive/ArchivedPurchaseQuote.rdlc';
     Caption = 'Archived Purchase Quote';
     WordMergeDataItem = "Purchase Header Archive";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -509,6 +508,16 @@ report 415 "Archived Purchase Quote"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Archive/ArchivedPurchaseQuote.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

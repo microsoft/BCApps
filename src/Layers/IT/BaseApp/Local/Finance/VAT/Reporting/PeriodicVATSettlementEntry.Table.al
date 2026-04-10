@@ -226,6 +226,7 @@ table 12136 "Periodic VAT Settlement Entry"
     var
         GLSetup: Record Microsoft.Finance.GeneralLedger.Setup."General Ledger Setup";
     begin
+        GLSetup.Get();
         exit(GLSetup."Additional Reporting Currency");
     end;
 }

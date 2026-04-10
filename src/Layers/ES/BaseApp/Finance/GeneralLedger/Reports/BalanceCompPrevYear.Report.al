@@ -22,11 +22,10 @@ using System.Utilities;
 /// </remarks>
 report 37 "Balance Comp. - Prev. Year"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/GeneralLedger/Reports/BalanceCompPrevYear.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Balance Comp. - Prev. Year';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -356,6 +355,16 @@ report 37 "Balance Comp. - Prev. Year"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/GeneralLedger/Reports/BalanceCompPrevYear.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

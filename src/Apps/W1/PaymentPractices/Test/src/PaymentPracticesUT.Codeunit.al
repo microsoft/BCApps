@@ -571,6 +571,40 @@ codeunit 134197 "Payment Practices UT"
         PaymentPracticeLine.TestField("Modified Manually");
     end;
 
+    [Test]
+    procedure PaymentPracticeCardLinesPartAlwaysVisible()
+    var
+        PaymentPracticeHeader: Record "Payment Practice Header";
+        PaymentPracticeCard: TestPage "Payment Practice Card";
+        VendorNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 626602] Lines part on Payment Practice Card is visible after clicking Generate
+        Initialize();
+
+        // [GIVEN] Vendor "V" with company size and an entry in the period
+        VendorNo := PaymentPracticesLibrary.CreateVendorNoWithSizeAndExcl(CompanySizeCodes[1], false);
+        MockVendorInvoice(VendorNo, WorkDate(), WorkDate());
+
+        // [GIVEN] A payment practice header "PPH"
+        PaymentPracticesLibrary.CreatePaymentPracticeHeaderSimple(PaymentPracticeHeader);
+
+        // [WHEN] Open the Payment Practice Card for "PPH"
+        PaymentPracticeCard.OpenEdit();
+        PaymentPracticeCard.Filter.SetFilter("No.", Format(PaymentPracticeHeader."No."));
+
+        // [THEN] Lines part is visible even before generating
+        Assert.IsTrue(PaymentPracticeCard.Lines.Visible(), 'Lines part should be visible before generating.');
+
+        // [WHEN] Generate the payment practice lines
+        PaymentPracticeCard.Generate.Invoke();
+
+        // [THEN] Lines part is still visible after generating
+        Assert.IsTrue(PaymentPracticeCard.Lines.Visible(), 'Lines part should be visible after generating.');
+
+        PaymentPracticeCard.Close();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Payment Practices UT");

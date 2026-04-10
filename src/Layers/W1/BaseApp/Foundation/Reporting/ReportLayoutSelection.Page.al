@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -48,19 +48,16 @@ page 9652 "Report Layout Selection"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the object ID of the report.';
                 }
                 field("Report Name"; Rec."Report Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the report.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Layout Type';
-                    ToolTip = 'Specifies the type of the report layout that is currently used on the report.';
 
                     trigger OnValidate()
                     begin
@@ -74,7 +71,6 @@ page 9652 "Report Layout Selection"
                 {
                     ApplicationArea = Basic, Suite;
                     TableRelation = "Custom Report Layout" where("Report ID" = field("Report ID"));
-                    ToolTip = 'Specifies the custom report layout.';
                     Visible = false;
 
                     trigger OnValidate()

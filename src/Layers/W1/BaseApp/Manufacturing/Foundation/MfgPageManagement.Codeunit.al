@@ -20,6 +20,25 @@ codeunit 99000791 "Mfg. Page Management"
         end;
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", OnBeforeGetConditionalListPageID, '', false, false)]
+    local procedure OnBeforeGetConditionalListPageID(RecRef: RecordRef; var PageID: Integer; var IsHandled: Boolean; CheckDocumentTypeFilter: Boolean)
+    var
+        ConditionalListPageID: Integer;
+    begin
+        if IsHandled then
+            exit;
+
+        case RecRef.Number of
+            Database::"Production Order":
+                ConditionalListPageID := GetProductionOrderListPageID(RecRef, CheckDocumentTypeFilter);
+        end;
+
+        if ConditionalListPageID <> 0 then begin
+            PageID := ConditionalListPageID;
+            IsHandled := true;
+        end;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnGetItemJournalTemplatePageID', '', true, false)]
     local procedure OnGetItemJournalTemplatePageID(ItemJournalTemplate: Record "Item Journal Template"; RecordRef: RecordRef; var CardPageID: Integer);
     begin
@@ -51,6 +70,37 @@ codeunit 99000791 "Mfg. Page Management"
                 exit(PAGE::"Released Production Order");
             ProductionOrder.Status::Finished:
                 exit(PAGE::"Finished Production Order");
+        end;
+    end;
+
+    local procedure GetProductionOrderListPageID(RecRef: RecordRef; CheckDocumentTypeFilter: Boolean): Integer
+    var
+        ProductionOrder: Record "Production Order";
+        ProdOrderStatus: Enum "Production Order Status";
+    begin
+        RecRef.SetTable(ProductionOrder);
+        if CheckDocumentTypeFilter then begin
+            if ProductionOrder.GetFilter(Status) = '' then
+                exit(0);
+            if not Evaluate(ProdOrderStatus, ProductionOrder.GetFilter(Status)) then
+                exit(0);
+        end else begin
+            if IsNullGuid(ProductionOrder.SystemId) then
+                exit(0);
+            ProdOrderStatus := ProductionOrder.Status;
+        end;
+
+        case ProdOrderStatus of
+            ProductionOrder.Status::Simulated:
+                exit(PAGE::"Simulated Production Orders");
+            ProductionOrder.Status::Planned:
+                exit(PAGE::"Planned Production Orders");
+            ProductionOrder.Status::"Firm Planned":
+                exit(PAGE::"Firm Planned Prod. Orders");
+            ProductionOrder.Status::Released:
+                exit(PAGE::"Released Production Orders");
+            ProductionOrder.Status::Finished:
+                exit(PAGE::"Finished Production Orders");
         end;
     end;
 

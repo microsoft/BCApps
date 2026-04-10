@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -35,7 +35,6 @@ page 536 Dimensions
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for the dimension.';
                 }
                 field(Name; Rec.Name)
                 {
@@ -50,28 +49,23 @@ page 536 Dimensions
                 field("Filter Caption"; Rec."Filter Caption")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the caption of the dimension code when used as a filter. This is displayed as the name of dimension filter fields.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a description of the dimension code.';
                 }
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
                 field("Map-to IC Dimension Code"; Rec."Map-to IC Dimension Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies which intercompany dimension corresponds to the dimension on the line.';
                     Visible = false;
                 }
                 field("Consolidation Code"; Rec."Consolidation Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code that is used for consolidation.';
                     Visible = false;
                 }
             }

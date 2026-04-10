@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { fulfillmentServiceUpdate( id: \"gid://shopify/FulfillmentService/{{Id}}\" callbackUrl: \"{{CallbackUrl}}\" ) { userErrors { field message } fulfillmentService { callbackUrl } } }"}

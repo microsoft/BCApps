@@ -251,7 +251,9 @@ codeunit 5601 "FA Insert G/L Account"
                         exit("FA Posting Group Account Type"::"Book Value Gain");
 
                     exit("FA Posting Group Account Type"::"Book Value Loss");
-                end
+                end;
+            FALedgEntry."FA Posting Type"::"Bonus Depreciation":
+                exit("FA Posting Group Account Type"::Depreciation);
             else
                 exit("FA Posting Group Account Type".FromInteger(FALedgEntry.ConvertPostingType()));
         end;
@@ -281,7 +283,7 @@ codeunit 5601 "FA Insert G/L Account"
         if not SkipInsert then begin
             NonBlankFAPostingType := GenJnlLine."FA Posting Type".AsInteger() - 1;
             InsertBufferBalAcc(
-              "FA Posting Group Account Type".FromInteger(NonBlankFAPostingType), -GenJnlLine.Amount, GenJnlLine."Depreciation Book Code",
+              GetPostingType(GenJnlLine, NonBlankFAPostingType), -GenJnlLine.Amount, GenJnlLine."Depreciation Book Code",
               GenJnlLine."Posting Group", GenJnlLine."Shortcut Dimension 1 Code", GenJnlLine."Shortcut Dimension 2 Code", GenJnlLine."Dimension Set ID", false, false);
         end;
         CalculateNoOfEmptyLines(GenJnlLine, NumberOfEntries);
@@ -306,6 +308,16 @@ codeunit 5601 "FA Insert G/L Account"
             until TempFAGLPostBuf.Next() = 0;
         TempFAGLPostBuf.DeleteAll();
         exit(GenJnlLine."Line No.");
+    end;
+
+    local procedure GetPostingType(var GenJournalLine: Record "Gen. Journal Line"; NonBlankFAPostingType: Option): Enum "FA Posting Group Account Type"
+    begin
+        case GenJournalLine."FA Posting Type" of
+            GenJournalLine."FA Posting Type"::"Bonus Depreciation":
+                exit("FA Posting Group Account Type"::Depreciation);
+            else
+                exit("FA Posting Group Account Type".FromInteger(NonBlankFAPostingType));
+        end;
     end;
 
     local procedure CheckAccountType(var GenJnlLine: Record "Gen. Journal Line")

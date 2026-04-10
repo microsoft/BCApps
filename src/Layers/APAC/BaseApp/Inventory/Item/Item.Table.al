@@ -2586,10 +2586,10 @@ table 27 Item
         CheckJournalsAndWorksheets(0);
         CheckDocuments(0);
 
+        MoveEntries.MoveItemEntries(Rec);
+
         if not "Cost is Adjusted" then
             RunCostAdjustment(Rec);
-
-        MoveEntries.MoveItemEntries(Rec);
 
         DeleteRelatedData();
 
@@ -3556,6 +3556,8 @@ table 27 Item
         if Item.FilterGroup = -1 then
             ItemList.SetTempFilteredItemRec(Item);
 
+        OnPickItemOnBeforeFindFirstItem(Item);
+
         RaiseNotification := Item.Count > FindRecordMgt.GetMaxRecordCountToReturn();
 
         if Item.FindFirst() then;
@@ -4165,6 +4167,11 @@ table 27 Item
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnPickItemOnBeforeFindFirstItem(var Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnTryGetItemNoOpenCardOnAfterSetItemFilters(var Item: Record Item; var ItemFilterContains: Text)
     begin
     end;
@@ -4187,12 +4194,11 @@ table 27 Item
 
     procedure ItemTrackingCodeUseExpirationDates(): Boolean
     begin
-        if "Item Tracking Code" = '' then
-            exit(false);
-
         ItemTrackingCode.SetLoadFields("Use Expiration Dates");
-        ItemTrackingCode.Get("Item Tracking Code");
-        ItemTrackingCode.SetLoadFields();
+        if not ItemTrackingCode.Get("Item Tracking Code") then begin
+            Clear(ItemTrackingCode);
+            exit(false);
+        end;
         exit(ItemTrackingCode."Use Expiration Dates");
     end;
 

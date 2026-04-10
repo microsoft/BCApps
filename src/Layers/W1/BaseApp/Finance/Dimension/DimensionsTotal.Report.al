@@ -21,12 +21,11 @@ using System.Utilities;
 /// </summary>
 report 27 "Dimensions - Total"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/Dimension/DimensionsTotal.rdlc';
     AllowScheduling = false;
     ApplicationArea = Dimensions;
     Caption = 'Dimensions - Total';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -842,6 +841,16 @@ report 27 "Dimensions - Total"
                 if DateFilter = '' then
                     Error(Text002);
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/Dimension/DimensionsTotal.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

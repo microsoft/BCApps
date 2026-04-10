@@ -14,7 +14,7 @@ interface "Power BI Service Provider"
 
     procedure GetImport(ImportID: Guid; var ImportState: Text; var ReturnedReport: DotNet ReturnedReport; var OperationResult: DotNet OperationResult);
 
-    procedure UpdateDatasetParameters(DatasetId: Text; EnvironmentName: Text; CompanyName: Text; var OperationResult: DotNet OperationResult);
+    procedure UpdateDatasetParameters(DatasetId: Text; Parameters: Dictionary of [Text, Text]; var OperationResult: DotNet OperationResult);
 
     procedure GetDatasource(DatasetId: Text; var DataSourceId: Guid; var GatewayId: Guid; var OperationResult: DotNet OperationResult);
 

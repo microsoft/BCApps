@@ -240,14 +240,6 @@ codeunit 5605 "Calculate Disposal"
         exit(FALedgEntry."FA Posting Type".AsInteger());
     end;
 
-#if not CLEAN26
-    [Obsolete('Replaced by procedure SetFALedgerPostingCategory()', '26.0')]
-    procedure SetFAPostingCategory(i: Integer): Integer
-    begin
-        exit(SetFALedgerPostingCategory(i).AsInteger());
-    end;
-#endif
-
     procedure SetFALedgerPostingCategory(i: Integer): Enum "FA Ledger Posting Category"
     var
         FALedgEntry: Record "FA Ledger Entry";

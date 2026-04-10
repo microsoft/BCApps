@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,69 +38,56 @@ page 251 "General Journal Batches"
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the name of the journal you are creating.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a brief description of the journal batch you are creating.';
                 }
                 field("Bal. Account Type"; Rec."Bal. Account Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
                 }
                 field("Bal. Account No."; Rec."Bal. Account No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
                 }
                 field("No. Series"; Rec."No. Series")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
                 }
                 field("Posting No. Series"; Rec."Posting No. Series")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for the number series that will be used to assign document numbers to ledger entries that are posted from this journal batch.';
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                 }
                 field("Copy VAT Setup to Jnl. Lines"; Rec."Copy VAT Setup to Jnl. Lines")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the program to calculate VAT for accounts and balancing accounts on the journal line of the selected journal batch.';
                 }
                 field("Allow VAT Difference"; Rec."Allow VAT Difference")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to allow the manual adjustment of VAT amounts in journal templates.';
                 }
                 field("Allow Payment Export"; Rec."Allow Payment Export")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if you can export bank payment files from payment journal lines using this general journal batch.';
                     Visible = IsPaymentTemplate;
                 }
                 field("Suggest Balancing Amount"; Rec."Suggest Balancing Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the Amount field on journal lines for the same document number is automatically prefilled with the value that is required to balance the document.';
                 }
                 field("Bank Statement Import Format"; Rec."Bank Statement Import Format")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the format of the bank statement file that can be imported into this general journal batch.';
                     Visible = false;
                 }
                 field("Copy to Posted Jnl. Lines"; Rec."Copy to Posted Jnl. Lines")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies whether the journal lines to be copied to posted journal lines of the selected journal batch.';
                 }
                 field("No. of Lines"; Rec."No. of Lines")
                 {

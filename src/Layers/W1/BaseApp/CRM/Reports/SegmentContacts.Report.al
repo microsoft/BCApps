@@ -10,10 +10,9 @@ using Microsoft.Foundation.Address;
 
 report 5063 "Segment - Contacts"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/SegmentContacts.rdlc';
     Caption = 'Segment - Contacts';
     WordMergeDataItem = "Segment Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -142,6 +141,16 @@ report 5063 "Segment - Contacts"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/SegmentContacts.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

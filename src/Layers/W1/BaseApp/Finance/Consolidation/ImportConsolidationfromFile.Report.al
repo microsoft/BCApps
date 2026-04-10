@@ -300,24 +300,6 @@ report 92 "Import Consolidation from File"
         GLDocNo := NewGLDocNo;
     end;
 
-#if not CLEAN26
-    /// <summary>
-    /// Sets consolidation import parameters for file-based data processing.
-    /// Obsolete procedure replaced by SetParameters with enum parameter.
-    /// </summary>
-    /// <param name="NewFileFormat">File format option for consolidation data import processing</param>
-    /// <param name="NewFilePath">File path location for consolidation data file import</param>
-    /// <param name="NewGLDocNo">G/L document number for imported consolidation transactions</param>
-    [Obsolete('Replaced by procedure SetParameters()', '26.0')]
-    procedure InitializeRequest(NewFileFormat: Option; NewFilePath: Text; NewGLDocNo: Code[20])
-    begin
-        FileFormat := "Business Unit File Format".FromInteger(NewFileFormat);
-        FilePath := NewFilePath;
-        FileName := GetFileName(FilePath);
-        GLDocNo := NewGLDocNo;
-    end;
-#endif
-
     /// <summary>
     /// Sets general journal batch for consolidation import processing.
     /// Associates imported consolidation transactions with specific journal batch for posting.

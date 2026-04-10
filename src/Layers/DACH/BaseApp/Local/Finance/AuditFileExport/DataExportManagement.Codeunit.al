@@ -443,6 +443,7 @@ codeunit 11000 "Data Export Management"
         DataExportSetup: Record "Data Export Setup";
         DataExportRecDef: Record "Data Export Record Definition";
         DataExportRecSource: Record "Data Export Record Source";
+        GLRegister: Record "G/L Register";
         DateFilterHandling: Option " ",Period,EndDate,StartDate;
         DataExportCode: Code[10];
         DataExpRecTypeCode: Code[10];
@@ -564,7 +565,10 @@ codeunit 11000 "Data Export Management"
         InsertDataRecordDefTable(DataExportRecSource, DataExportRecDef, Database::"G/L Register", GLRegisterLineNo);
         InsertDataRecordDefField(DataExportRecSource, Database::"G/L Register", 2, 10000);
         InsertDataRecordDefField(DataExportRecSource, Database::"G/L Register", 3, 20000);
-        InsertDataRecordDefField(DataExportRecSource, Database::"G/L Register", 4, 30000);
+
+        //Not using FieldId directly as its a system field
+        InsertDataRecordDefField(DataExportRecSource, Database::"G/L Register", GLRegister.FieldNo(SystemCreatedAt), 30000);
+        
         InsertDataRecordDefField(DataExportRecSource, Database::"G/L Register", 6, 40000);
 
         // table 98 General Ledger Setup

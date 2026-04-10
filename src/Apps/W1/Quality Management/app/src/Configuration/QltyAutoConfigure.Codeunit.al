@@ -93,12 +93,37 @@ codeunit 20402 "Qlty. Auto Configure"
         OpenLedgerToInspectTok: Label 'ITEMLDGROPENINSPECT', MaxLength = 20, Locked = true;
         OpenLedgerToInspectDescriptionTxt: Label 'Open Item Ledger Entry to Inspection', MaxLength = 100;
 
-    internal procedure GetDefaultPassResult(): Text
+    procedure GetDefaultPassResult(): Text
     begin
         exit(DefaultResult2PassCodeTok);
     end;
 
-    internal procedure EnsureBasicSetupExists(ShowMessage: Boolean)
+    procedure GetDefaultFailResult(): Text
+    begin
+        exit(DefaultResult1FailCodeTok);
+    end;
+
+    procedure GetDefaultInProgressResult(): Text
+    begin
+        exit(DefaultResult0InProgressCodeTok);
+    end;
+
+    procedure GetDefaultPassResultDescription(): Text
+    begin
+        exit(DefaultResult2PassDescriptionTxt);
+    end;
+
+    procedure GetDefaultFailResultDescription(): Text
+    begin
+        exit(DefaultResult1FailDescriptionTxt);
+    end;
+
+    procedure GetDefaultInProgressResultDescription(): Text
+    begin
+        exit(DefaultResult0InProgressDescriptionTxt);
+    end;
+
+    procedure EnsureBasicSetupExists(ShowMessage: Boolean)
     begin
         EnsureSetupRecordExists();
         EnsureResultExists();

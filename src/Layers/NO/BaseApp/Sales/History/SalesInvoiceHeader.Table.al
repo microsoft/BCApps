@@ -1283,23 +1283,57 @@ table 112 "Sales Invoice Header"
                 UpdateDisputeStatus();
             end;
         }
+#if not CLEANSCHEMA32
         field(10605; GLN; Code[13])
         {
             Caption = 'GLN';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10606; "Account Code"; Text[30])
         {
             Caption = 'Account Code';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10612; "E-Invoice Created"; Boolean)
         {
             Caption = 'E-Invoice Created';
             Editable = false;
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10613; "E-Invoice"; Boolean)
         {
             Caption = 'E-Invoice';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
     }
 
     keys
@@ -1622,8 +1656,16 @@ table 112 "Sales Invoice Header"
     /// </summary>
     /// <returns>The GLN if customer exists, otherwise empty.</returns>
     procedure GetCustomerGlobalLocationNumber(): Text
+#if CLEAN29
+    var
+        Customer: Record Customer;
+    begin
+        if Customer.Get("Sell-to Customer No.") then
+            exit(Customer.GLN);
+#else
     begin
         exit(GLN);
+#endif
     end;
 
     /// <summary>
@@ -1631,8 +1673,17 @@ table 112 "Sales Invoice Header"
     /// </summary>
     /// <returns>The field caption if customer exists, otherwise empty.</returns>
     procedure GetCustomerGlobalLocationNumberLbl(): Text
+#if CLEAN29
+    var
+        Customer: Record Customer;
+    begin
+        if Customer.Get("Sell-to Customer No.") then
+            exit(Customer.FieldCaption(GLN));
+        exit('');
+#else
     begin
         exit(FieldCaption(GLN));
+#endif
     end;
 
     /// <summary>
@@ -1724,6 +1775,8 @@ table 112 "Sales Invoice Header"
         end;
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Scope('OnPrem')]
     procedure AccountCodeLineSpecified(): Boolean
     var
@@ -1735,6 +1788,7 @@ table 112 "Sales Invoice Header"
         SalesInvLine.SetFilter("Account Code", '<>%1&<>%2', '', "Account Code");
         exit(not SalesInvLine.IsEmpty);
     end;
+#endif
 
     /// <summary>
     /// Gets the style class for displaying the document exchange status.

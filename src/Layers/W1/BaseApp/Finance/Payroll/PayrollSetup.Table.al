@@ -39,6 +39,7 @@ table 1660 "Payroll Setup"
         field(2; "General Journal Template Name"; Code[10])
         {
             Caption = 'General Journal Template Name';
+            ToolTip = 'Specifies the name of the general journal template that is used for import.';
             TableRelation = "Gen. Journal Template" where(Type = filter(General),
                                                            Recurring = const(false));
 
@@ -73,6 +74,7 @@ table 1660 "Payroll Setup"
         field(3; "General Journal Batch Name"; Code[10])
         {
             Caption = 'General Journal Batch Name';
+            ToolTip = 'Specifies the name of the general journal batch that is used for import.';
             TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("General Journal Template Name"));
 
             trigger OnValidate()
@@ -91,6 +93,7 @@ table 1660 "Payroll Setup"
         field(10; "User Name"; Code[50])
         {
             Caption = 'User Name';
+            ToolTip = 'Specifies the user account.';
             DataClassification = EndUserIdentifiableInformation;
         }
     }

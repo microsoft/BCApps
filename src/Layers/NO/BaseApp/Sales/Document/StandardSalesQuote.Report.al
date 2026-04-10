@@ -154,9 +154,11 @@ report 1304 "Standard Sales - Quote"
             column(CompanyCustomGiro_Lbl; CustomGiroLbl)
             {
             }
+#if not CLEAN29
             column(CompanyEnterpriseClassification; CompanyInfo.GetEnterpriseClassification())
             {
             }
+#endif
             column(CompanyLegalStatement; LegalStatementLbl)
             {
             }

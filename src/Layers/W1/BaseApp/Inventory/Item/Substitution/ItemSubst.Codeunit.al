@@ -24,22 +24,13 @@ codeunit 5701 "Item Subst."
     var
         Item: Record Item;
         ItemSubstitution: Record "Item Substitution";
-#if not CLEAN26
-        TempItemSubstitution: Record "Item Substitution" temporary;
-#endif
         SalesHeader: Record "Sales Header";
         NonStockItem: Record "Nonstock Item";
         TempSalesLine: Record "Sales Line" temporary;
         CompanyInfo: Record "Company Information";
-#if not CLEAN26
-        ProdOrderCompSubst: Record Microsoft.Manufacturing.Document."Prod. Order Component";
-#endif
         CatalogItemMgt: Codeunit "Catalog Item Management";
         AvailToPromise: Codeunit "Available to Promise";
         ItemCheckAvail: Codeunit "Item-Check Avail.";
-#if not CLEAN26
-        MfgItemSubstitution: Codeunit "Mfg. Item Substitution";
-#endif
         SaveDropShip: Boolean;
         SetupDataIsPresent: Boolean;
         GrossReq: Decimal;
@@ -244,31 +235,6 @@ codeunit 5701 "Item Subst."
         SetupDataIsPresent := true;
     end;
 
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Mfg. Item Substitution as GetProdOrderCompSubst()', '26.0')]
-    procedure GetCompSubst(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        ProdOrderCompSubst := ProdOrderComp;
-        MfgItemSubstitution.GetProdOrderCompSubst(ProdOrderComp);
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('Moved to codeunit Mfg. Item Substitution as UpdateProdOrderComp()', '26.0')]
-    procedure UpdateComponent(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; SubstItemNo: Code[20]; SubstVariantCode: Code[10])
-    begin
-        MfgItemSubstitution.UpdateProdOrderComp(ProdOrderComp, SubstItemNo, SubstVariantCode);
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('Replaced by procedure FindItemSubstitutions()', '26.0')]
-    procedure PrepareSubstList(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; DemandDate: Date; CalcATP: Boolean): Boolean
-    begin
-        exit(FindItemSubstitutions(TempItemSubstitution, ItemNo, VariantCode, LocationCode, DemandDate, CalcATP, GrossReq, SchedRcpt));
-    end;
-#endif
-
     procedure FindItemSubstitutions(var TempItemSubstitutions: Record "Item Substitution" temporary; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; DemandDate: Date; CalcATP: Boolean; var GrossReq: Decimal; var SchedRcpt: Decimal): Boolean
     begin
         Item.Get(ItemNo);
@@ -317,18 +283,12 @@ codeunit 5701 "Item Subst."
 
                 if CalcATP then begin
                     Item.Get(ItemSubstitution."Substitute No.");
-#if not CLEAN26
-                    OnCreateSubstListOnBeforeCalcQtyAvail(Item, ProdOrderCompSubst, TempItemSubstitutions);
-#endif
                     OnCreateSubstListOnBeforeCalcQuantityAvailable(Item, TempItemSubstitutions);
                     TempItemSubstitutions."Quantity Avail. on Shpt. Date" :=
                       AvailToPromise.CalcQtyAvailabletoPromise(
                         Item, GrossReq, SchedRcpt,
                         Item.GetRangeMax("Date Filter"), "Analysis Period Type"::Month, ODF);
                     Item.CalcFields(Inventory);
-#if not CLEAN26
-                    OnCreateSubstListOnAfterCalcQtyAvail(Item, ProdOrderCompSubst, TempItemSubstitutions);
-#endif
                     OnCreateSubstListOnAfterCalcQuantityAvailable(Item, TempItemSubstitutions);
                     TempItemSubstitutions.Inventory := Item.Inventory;
                 end;
@@ -351,21 +311,6 @@ codeunit 5701 "Item Subst."
                 end;
             until ItemSubstitution.Next() = 0;
     end;
-
-#if not CLEAN26
-    [Obsolete('Use procedure FindItemSubstitutions with parameters TempItemSubstitutions instead.', '26.0')]
-    procedure GetTempItemSubstList(var TempItemSubstitutionList: Record "Item Substitution" temporary)
-    begin
-        TempItemSubstitutionList.DeleteAll();
-
-        TempItemSubstitution.Reset();
-        if TempItemSubstitution.Find('-') then
-            repeat
-                TempItemSubstitutionList := TempItemSubstitution;
-                TempItemSubstitutionList.Insert();
-            until TempItemSubstitution.Next() = 0;
-    end;
-#endif
 
     procedure ErrorMessage(ItemNo: Code[20]; VariantCode: Code[10])
     begin
@@ -457,54 +402,15 @@ codeunit 5701 "Item Subst."
         OldSalesUOM := Item."Sales Unit of Measure";
     end;
 
-#if not CLEAN26
-    internal procedure RunOnAfterGetCompSubst(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var TempItemSubstitution: Record "Item Substitution" temporary)
-    begin
-        OnAfterGetCompSubst(ProdOrderComp, TempItemSubstitution)
-    end;
-
-    [Obsolete('Moved to codeunit Mfg. Item Substitution', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterGetCompSubst(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var TempItemSubstitution: Record "Item Substitution" temporary)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterItemSubstGet(var SalesLine: Record "Sales Line"; TempSalesLine: Record "Sales Line" temporary)
     begin
     end;
 
-#if not CLEAN26
-    internal procedure RunOnAfterUpdateComponentBeforeAssign(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var TempProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component" temporary)
-    begin
-        OnAfterUpdateComponentBeforeAssign(ProdOrderComp, TempProdOrderComp);
-    end;
-
-    [Obsolete('Moved to codeunit Mfg. Item Substitution', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateComponentBeforeAssign(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var TempProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component" temporary)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSaveItemSalesUOM(var OldSalesUOM: Code[10]; Item: Record Item; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN26
-    internal procedure RunOnBeforeUpdateComponent(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; SubstItemNo: Code[20]; SubstVariantCode: Code[10]; var IsHandled: Boolean)
-    begin
-        OnBeforeUpdateComponent(ProdOrderComp, SubstItemNo, SubstVariantCode, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit Mfg. Item Substitution', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateComponent(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; SubstItemNo: Code[20]; SubstVariantCode: Code[10]; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcCustPriceOnAfterCalcQtyAvail(var Item: Record Item; SalesLine: Record "Sales Line"; var TempItemSubstitution: Record "Item Substitution" temporary)
@@ -536,70 +442,15 @@ codeunit 5701 "Item Subst."
     begin
     end;
 
-#if not CLEAN26
-    internal procedure RunOnInsertInSubstServiceListOnAfterCalcQtyAvail(var Item: Record Item; ServiceLine: Record Microsoft.Service.Document."Service Line"; var TempItemSubstitution: Record "Item Substitution" temporary)
-    begin
-        OnInsertInSubstServiceListOnAfterCalcQtyAvail(Item, ServiceLine, TempItemSubstitution);
-    end;
-
-    [Obsolete('Moved to codeunit ServItemSubstitution', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInsertInSubstServiceListOnAfterCalcQtyAvail(var Item: Record Item; ServiceLine: Record Microsoft.Service.Document."Service Line"; var TempItemSubstitution: Record "Item Substitution" temporary)
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    internal procedure RunOnInsertInSubstServiceListOnBeforeCalcQtyAvail(var Item: Record Item; ServiceLine: Record Microsoft.Service.Document."Service Line"; var TempItemSubstitution: Record "Item Substitution" temporary)
-    begin
-        OnInsertInSubstServiceListOnBeforeCalcQtyAvail(Item, ServiceLine, TempItemSubstitution);
-    end;
-
-    [Obsolete('Moved to codeunit ServItemSubstitution', '25.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInsertInSubstServiceListOnBeforeCalcQtyAvail(var Item: Record Item; ServiceLine: Record Microsoft.Service.Document."Service Line"; var TempItemSubstitution: Record "Item Substitution" temporary)
-    begin
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('Replaced by event OnCreateSubstListOnAfterCalcQuantityAvailable', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCreateSubstListOnAfterCalcQtyAvail(var Item: Record Item; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var TempItemSubstitution: Record "Item Substitution" temporary)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnCreateSubstListOnAfterCalcQuantityAvailable(var Item: Record Item; var TempItemSubstitution: Record "Item Substitution" temporary)
     begin
     end;
 
-#if not CLEAN26
-    [Obsolete('Replaced by event OnCreateSubstListOnBeforeCalcQuantityAvailable', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCreateSubstListOnBeforeCalcQtyAvail(var Item: Record Item; ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var TempItemSubstitution: Record "Item Substitution" temporary)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnCreateSubstListOnBeforeCalcQuantityAvailable(var Item: Record Item; var TempItemSubstitution: Record "Item Substitution" temporary)
     begin
     end;
-
-#if not CLEAN26
-    internal procedure RunOnGetCompSubstOnAfterCheckPrepareSubstList(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var TempItemSubstitution: Record "Item Substitution" temporary; var Item: Record Item; var GrossReq: Decimal; var SchedRcpt: Decimal)
-    begin
-        OnGetCompSubstOnAfterCheckPrepareSubstList(ProdOrderComp, TempItemSubstitution, Item, GrossReq, SchedRcpt);
-    end;
-
-    [Obsolete('Moved to codeunit Mfg. Item Substitution', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetCompSubstOnAfterCheckPrepareSubstList(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var TempItemSubstitution: Record "Item Substitution" temporary; var Item: Record Item; var GrossReq: Decimal; var SchedRcpt: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnItemSubstGetOnAfterSubstSalesLineItem(var SalesLine: Record "Sales Line"; var SourceSalesLine: Record "Sales Line"; var TempItemSubstitution: Record "Item Substitution" temporary)

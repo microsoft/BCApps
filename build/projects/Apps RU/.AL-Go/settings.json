@@ -51,12 +51,14 @@
     "../../../src/Apps/W1/HybridBCLast/app",
     "../../../src/Apps/W1/Intrastat/app",
     "../../../src/Apps/W1/LatePaymentPredictor/app",
+    "../../../src/Apps/W1/LibraryNoTransactions/app",
     "../../../src/Apps/W1/Manufacturing/app",
     "../../../src/Apps/W1/MasterDataManagement/app",
     "../../../src/Apps/W1/MicrosoftUniversalPrint/app",
     "../../../src/Apps/W1/MSWalletPayments/app",
     "../../../src/Apps/W1/OnboardingSignals/app",
     "../../../src/Apps/W1/Onprem Permissions/app",
+    "../../../src/Apps/W1/PayablesAgent/app",
     "../../../src/Apps/W1/PaymentPractices/App",
     "../../../src/Apps/W1/PayPalPaymentsStandard/app",
     "../../../src/Apps/W1/PEPPOL/App",
@@ -74,6 +76,7 @@
     "../../../src/Apps/W1/SimplifiedBankStatementImport/App",
     "../../../src/Apps/W1/SmartList/app",
     "../../../src/Apps/W1/StatisticalAccounts/app",
+    "../../../src/Apps/W1/Subcontracting/App",
     "../../../src/Apps/W1/Subscription Billing/App",
     "../../../src/Apps/W1/Sustainability/app",
     "../../../src/Apps/W1/SustainabilityCopilotSuggestion/app",
@@ -92,7 +95,8 @@
     "../../../src/Tools/Test Framework/Test Libraries/Assert",
     "../../../src/Tools/Test Framework/Test Libraries/Permissions Mock",
     "../../../src/Tools/Test Framework/Test Libraries/Variable Storage",
-    "../../../src/Tools/Test Framework/Test Runner"
+    "../../../src/Tools/Test Framework/Test Runner",
+    "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates"
   ],
   "testFolders": [
     "../../../src/Apps/RU/CDTracking/test",
@@ -134,7 +138,6 @@
     "../../../src/Apps/W1/HybridBCLast/test",
     "../../../src/Apps/W1/Intrastat/test",
     "../../../src/Apps/W1/LatePaymentPredictor/test",
-    "../../../src/Apps/W1/LibraryNoTransactions/app",
     "../../../src/Apps/W1/Manufacturing/test",
     "../../../src/Apps/W1/MasterDataManagement/test",
     "../../../src/Apps/W1/MasterDataManagement/test library",
@@ -157,6 +160,7 @@
     "../../../src/Apps/W1/Shopify/Test",
     "../../../src/Apps/W1/SimplifiedBankStatementImport/Test",
     "../../../src/Apps/W1/StatisticalAccounts/test",
+    "../../../src/Apps/W1/Subcontracting/Test",
     "../../../src/Apps/W1/Subscription Billing/Test",
     "../../../src/Apps/W1/Sustainability/test",
     "../../../src/Apps/W1/VATGroupManagement/test",
@@ -200,8 +204,7 @@
     "../../../src/System Application/Partner Test",
     "../../../src/System Application/Test",
     "../../../src/System Application/Test Library",
-    "../../../src/Tools/Performance Toolkit/Test",
-    "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates"
+    "../../../src/Tools/Performance Toolkit/Test"
   ],
   "doNotRunTests": true,
   "useCompilerFolder": true,

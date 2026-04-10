@@ -119,6 +119,32 @@ table 5430 "Planning Error Log"
         exit(true);
     end;
 
+    /// <summary>
+    /// Gets all planning errors and inserts them into the provided record.
+    /// </summary>
+    /// <param name="PlanningErrorLog">The planning error log record to populate with errors.</param>
+    /// <returns>True if there are errors, otherwise false.</returns>
+    procedure GetErrors(var PlanningErrorLog: Record "Planning Error Log"): Boolean
+    var
+        LastEntryNo: Integer;
+    begin
+        if not Rec.FindSet() then
+            exit(false);
+
+        LastEntryNo := GetLastEntryNo(Rec."Worksheet Template Name", Rec."Journal Batch Name");
+
+        if Rec.FindSet() then
+            repeat
+                LastEntryNo += 1;
+
+                PlanningErrorLog := Rec;
+                PlanningErrorLog."Entry No." := LastEntryNo;
+                PlanningErrorLog.Insert();
+            until Rec.Next() = 0;
+
+        exit(true);
+    end;
+
     procedure ShowError()
     var
         NoSeries: Record "No. Series";
@@ -170,6 +196,16 @@ table 5430 "Planning Error Log"
             else
                 OnShowError(RecRef, "Table ID");
         end;
+    end;
+
+    local procedure GetLastEntryNo(WorksheetTemplateName: Code[10]; JournalBatchName: Code[10]): Integer
+    var
+        PlanningErrorLog: Record "Planning Error Log";
+    begin
+        PlanningErrorLog.SetRange("Worksheet Template Name", WorksheetTemplateName);
+        PlanningErrorLog.SetRange("Journal Batch Name", JournalBatchName);
+        if PlanningErrorLog.FindLast() then
+            exit(PlanningErrorLog."Entry No.");
     end;
 
     [IntegrationEvent(false, false)]

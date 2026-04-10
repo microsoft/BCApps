@@ -29,4 +29,8 @@ enum 5468 "Picture Entity Parent Type"
     {
         Caption = 'Contact';
     }
+    value(6; "Item Variant")
+    {
+        Caption = 'Item Variant';
+    }
 }

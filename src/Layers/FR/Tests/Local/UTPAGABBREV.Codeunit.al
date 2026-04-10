@@ -437,18 +437,18 @@ codeunit 144071 "UT PAG ABBREV"
     [Scope('OnPrem')]
     procedure DemandForecastWithPeriodTypeMonth()
     var
+        ProductionForecastName: Record "Production Forecast Name";
         DemandForecast: TestPage "Demand Forecast Card";
         PeriodType: Enum "Analysis Period Type";
-        Name: Code[10];
     begin
         // Purpose of the test is to verify caption on Production Forecast Matrix Page.
 
         // Setup: Create Production Forecast Name and generate Column Captions.
         Initialize();
-        Name := CreateProductionForeCastName();
+        CreateProductionForeCastName(ProductionForecastName);
         GeneratePeriodMatrixData();
         DemandForecast.OpenEdit();
-        DemandForecast.Name.SetValue(Name);
+        DemandForecast.GoToRecord(ProductionForecastName);
 
         // Exercise: Set Period Type on Production Forecast Page.
         DemandForecast."View By".SetValue(PeriodType::Month);
@@ -502,13 +502,10 @@ codeunit 144071 "UT PAG ABBREV"
         exit(Opportunity."No.");
     end;
 
-    local procedure CreateProductionForeCastName(): Code[10]
-    var
-        ProductionForecastName: Record "Production Forecast Name";
+    local procedure CreateProductionForeCastName(var ProductionForecastName: Record "Production Forecast Name")
     begin
         ProductionForecastName.Name := LibraryUTUtility.GetNewCode10();
         ProductionForecastName.Insert();
-        exit(ProductionForecastName.Name);
     end;
 
     local procedure CreateResource(): Code[20]

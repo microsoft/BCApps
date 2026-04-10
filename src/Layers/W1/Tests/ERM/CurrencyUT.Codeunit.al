@@ -16,7 +16,9 @@ codeunit 134275 "Currency UT"
         LibraryRandom: Codeunit "Library - Random";
         LibraryERM: Codeunit "Library - ERM";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibrarySales: Codeunit "Library - Sales";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        CurrencyCodeShouldNotBeClearedErr: Label 'Currency Code should not be cleared when Currency Id is blank';
 
     [Test]
     [Scope('OnPrem')]
@@ -252,6 +254,30 @@ codeunit 134275 "Currency UT"
         // [THEN] CalcTotalBalance of Foreign Currency Balance Report is equal to Amount of Bank Account Ledger Entry.
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists('CalcTotalBalance', BankAccountLedgerEntry.Amount);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ValidateCurrencyIdWithDifferentCurrencyUpdatesCurrencyCode()
+    var
+        Customer: Record Customer;
+        Currency: Record Currency;
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 615384] When Currency Id is validated with an empty GUID, the existing Currency Code must not be cleared
+
+        // [GIVEN] A customer "C" with Currency Code set and Currency Id blank
+        LibraryERM.CreateCurrency(Currency);
+        LibrarySales.CreateCustomer(Customer);
+        Customer."Currency Code" := Currency.Code;
+        Customer.Modify(false);
+
+        // [WHEN] Currency Id is validated with an empty GUID
+        Customer.Validate("Currency Id", EmptyGuid);
+
+        // [THEN] Currency Code remains unchanged
+        Assert.AreEqual(Currency.Code, Customer."Currency Code", CurrencyCodeShouldNotBeClearedErr);
     end;
 
     local procedure CreateCurrencyAndExchangeRate(): Code[10]

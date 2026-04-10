@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 9153 "My Account"
         field(2; "Account No."; Code[20])
         {
             Caption = 'Account No.';
+            ToolTip = 'Specifies the G/L account number.';
             NotBlank = true;
             TableRelation = "G/L Account";
 
@@ -48,6 +49,7 @@ table 9153 "My Account"
         field(3; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the G/L account.';
             Editable = false;
         }
 #if not CLEANSCHEMA29
@@ -59,15 +61,9 @@ table 9153 "My Account"
             AutoFormatType = 0;
             Caption = 'Account Balance (to be removed)';
             Editable = false;
-#if CLEAN26
             ObsoleteState = Removed;
             ObsoleteTag = '29.0';
             ObsoleteReason = 'Replaced by "Acc. Balance" to avoid modification in My Accounts page.';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-            ObsoleteReason = 'Replaced by "Acc. Balance" to avoid modification in My Accounts page.';
-#endif
         }
 #endif
         /// <summary>
@@ -88,6 +84,7 @@ table 9153 "My Account"
             CalcFormula = sum("G/L Entry".Amount where("G/L Account No." = field("Account No."),
                                                        "G/L Account No." = field(filter(Totaling))));
             Caption = 'Balance';
+            ToolTip = 'Specifies the balance of the G/L account.';
             Editable = false;
             FieldClass = FlowField;
         }

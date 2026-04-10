@@ -63,6 +63,7 @@
         CannotCreatePurchaseOrderWithoutVendorErr: Label 'You cannot create purchase orders without specifying a vendor for all lines.';
         CannotCreatePurchaseOrderIsAlreadyWithSalesOrderErr: Label '%1 on sales order %2 is already associated with purchase order %3.', Comment = '%1 = number of item, %2 = number of document, %3 = number of purchase order';
         NoSalesLineToRetrieveErr: Label 'There are no sales lines to retrieve.';
+        ReservedQuantityErr: Label 'Reserved Quantity is incorrect.';
 
     [Test]
     [Scope('OnPrem')]
@@ -4379,6 +4380,59 @@
         asserterror SalesOrder.CreatePurchaseOrder.Invoke();
 
         // [THEN] Verify that purchase order is not created from drop shipment sales order more than once through Handler.
+    end;
+
+    [Test]
+    procedure ReservedQtyAfterQtyChangeAndPartialShipWithAutoReserve()
+    var
+        Item: Record Item;
+        ReservationEntry: Record "Reservation Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        QtyToShip: Decimal;
+        Quantity: Decimal;
+        ReducedQuantity: Decimal;
+        TotalReservedQtyInEntries: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 625659] Reserved Quantity on Sales Line matches Reservation Entries after quantity changes and partial shipment with Reserve Always
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(4, 10);
+        ReducedQuantity := LibraryRandom.RandInt(Quantity - 1);
+        QtyToShip := LibraryRandom.RandInt(Quantity - 1);
+
+        // [GIVEN] Item "I" with Reserve = Always and inventory
+        CreateItemWithReserveAsAlways(Item);
+        CreateAndPostItemJournalLine(Item."No.", Quantity, '', LibraryRandom.RandDec(100, 2));
+
+        // [GIVEN] Sales Order "SO" with full Quantity for Item "I" (auto-reserves all)
+        CreateSalesOrder(SalesHeader, SalesLine, SalesLine.Type::Item, '', Item."No.", 0, '');
+        UpdateQuantityOnSalesLineByPage(SalesHeader, Quantity);
+
+        // [GIVEN] Reduce Quantity on Sales Line
+        UpdateQuantityOnSalesLineByPage(SalesHeader, ReducedQuantity);
+
+        // [GIVEN] Restore Quantity on Sales Line back to original creating multiple reservation entries
+        UpdateQuantityOnSalesLineByPage(SalesHeader, Quantity);
+
+        // [WHEN] Set Qty. to Ship and post shipment
+        FindSalesLine(SalesLine, SalesHeader);
+        SalesLine.Validate("Qty. to Ship", QtyToShip);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] Reserved Quantity on Sales Line matches sum of Reservation Entries
+        FindSalesLine(SalesLine, SalesHeader);
+        SalesLine.CalcFields("Reserved Quantity");
+        ReservationEntry.SetRange("Source Type", Database::"Sales Line");
+        ReservationEntry.SetRange("Source Subtype", SalesLine."Document Type".AsInteger());
+        ReservationEntry.SetRange("Source ID", SalesLine."Document No.");
+        ReservationEntry.SetRange("Source Ref. No.", SalesLine."Line No.");
+        ReservationEntry.CalcSums(Quantity);
+        TotalReservedQtyInEntries := Abs(ReservationEntry.Quantity);
+
+        Assert.AreEqual(Quantity - QtyToShip, SalesLine."Reserved Quantity", ReservedQuantityErr);
+        Assert.AreEqual(TotalReservedQtyInEntries, SalesLine."Reserved Quantity", ReservedQuantityErr);
     end;
 
     local procedure Initialize()

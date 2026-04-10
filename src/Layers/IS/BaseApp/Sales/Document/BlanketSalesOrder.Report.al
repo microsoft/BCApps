@@ -31,11 +31,10 @@ using System.Utilities;
 /// </summary>
 report 210 "Blanket Sales Order"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Sales/Document/BlanketSalesOrder.rdlc';
     Caption = 'Blanket Sales Order';
     PreviewMode = PrintLayout;
     WordMergeDataItem = "Sales Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -844,6 +843,16 @@ report 210 "Blanket Sales Order"
         trigger OnOpenPage()
         begin
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Sales/Document/BlanketSalesOrder.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

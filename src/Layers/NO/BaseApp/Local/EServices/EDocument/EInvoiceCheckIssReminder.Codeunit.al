@@ -42,7 +42,9 @@ codeunit 10618 "E-Invoice Check Iss. Reminder"
         SalesSetup: Record "Sales & Receivables Setup";
     begin
         SalesSetup.Get();
+#if not CLEAN29
         SalesSetup.TestField("E-Invoice Reminder Path");
+#endif
     end;
 
     local procedure CheckFinChargeMemoHeader(IssuedReminderHeader: Record "Issued Reminder Header")

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,7 +26,6 @@ page 1176 "User Task Group Members"
                     ApplicationArea = Basic, Suite;
                     Caption = 'User Name';
                     DrillDown = false;
-                    ToolTip = 'Specifies a user that is a member of the group.';
 
                     trigger OnAssistEdit()
                     var

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -81,13 +81,11 @@ page 99000822 "Order Tracking"
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
                     Visible = false;
                 }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the name of the line that the items are tracked from.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -97,7 +95,6 @@ page 99000822 "Order Tracking"
                 field("Demanded by"; Rec."Demanded by")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the source of the demand that the supply is tracked from.';
                     Visible = DemandedByVisible;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -108,7 +105,6 @@ page 99000822 "Order Tracking"
                 field("Supplied by"; Rec."Supplied by")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the source of the supply that fills the demand you track from, such as, a production order line.';
                     Visible = SuppliedByVisible;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -119,41 +115,34 @@ page 99000822 "Order Tracking"
                 field(Warning; Rec.Warning)
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies there is a date conflict in the order tracking entries for this line.';
                     Visible = false;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the starting date of the line that the items are tracked from.';
                 }
                 field("Ending Date"; Rec."Ending Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the ending date of the line that the items are tracked from.';
                 }
                 field(Quantity; Rec.Quantity)
                 {
                     ApplicationArea = Planning;
                     AutoFormatType = 0;
-                    ToolTip = 'Specifies the quantity, in the base unit of measure, of the item that has been tracked in this entry.';
                 }
                 field("Shipment Date"; Rec."Shipment Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies when items on the document are shipped or were shipped. A shipment date is usually calculated from a requested delivery date plus lead time.';
                     Visible = false;
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the date when the tracked items are expected to enter the inventory.';
                     Visible = false;
                 }
                 field("Item No."; Rec."Item No.")
                 {
                     ApplicationArea = Planning;
-                    ToolTip = 'Specifies the number of the item that has been tracked in this entry.';
                 }
             }
         }

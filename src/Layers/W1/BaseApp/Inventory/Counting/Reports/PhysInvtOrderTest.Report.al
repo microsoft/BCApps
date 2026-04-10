@@ -14,10 +14,9 @@ using System.Utilities;
 
 report 5877 "Phys. Invt. Order - Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Counting/Reports/PhysInvtOrderTest.rdlc';
     Caption = 'Phys. Invt. Order - Test';
     WordMergeDataItem = "Phys. Invt. Order Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -376,6 +375,16 @@ report 5877 "Phys. Invt. Order - Test"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Counting/Reports/PhysInvtOrderTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

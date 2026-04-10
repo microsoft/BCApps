@@ -16,12 +16,13 @@ codeunit 134190 "WF Demo Cust Cred Lmt Approval"
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
-        UnexpectedNoOfApprovalEntriesErr: Label 'Unexpected number of approval entries found.';
         LibraryWorkflow: Codeunit "Library - Workflow";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryJobQueue: Codeunit "Library - Job Queue";
         IsInitialized: Boolean;
+        UnexpectedNoOfApprovalEntriesErr: Label 'Unexpected number of approval entries found.';
         ApprovalEntryNotFoundErr: Label 'Approval Entry should exist when Credit Limit is changed.';
+        PaymentTermsApprovalStatusErr: Label 'Payment terms approval status should remain Created after credit limit approval.';
 
     local procedure Initialize()
     var
@@ -859,6 +860,50 @@ codeunit 134190 "WF Demo Cust Cred Lmt Approval"
         ApprovalsMgmt.OpenApprovalEntriesPage(Customer.RecordId);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure TestPaymentTermsApprovalRemainsCreatedAfterCreditLimitApproval()
+    var
+        Customer: Record Customer;
+        CreditLimitApprover: Record "User Setup";
+        CreditLimitApprover2: Record "User Setup";
+        CreditLimitApprover3: Record "User Setup";
+        PaymentTermsApprover: Record "User Setup";
+        PaymentTermsApprover3: Record "User Setup";
+        CreditLimitWorkflow: Record Workflow;
+        PaymentTermsWorkflow: Record Workflow;
+        ApprovalEntry: Record "Approval Entry";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 616644] Credit limit approval must not change payment terms approval for the same approver.
+        //  Credit limit and payment terms change workflows with ADMIN in both groups.
+        //  ADMIN approves the credit limit request.
+        //  ADMIN's payment terms approval remains Created until the first approver approves.
+
+        // [GIVEN] The Customer Credit Limit Change Approval Workflow and Customer Approval Workflow are enabled.
+        SetupCustomerForCreditLimitAndPaymentTermsWorkflow(
+            Customer, CreditLimitApprover, CreditLimitApprover2, CreditLimitApprover3,
+            PaymentTermsApprover, PaymentTermsApprover3, CreditLimitWorkflow, PaymentTermsWorkflow);
+
+        // [THEN] A user sends the customer credit limit change and payment terms change for approval and the same approver is in the approval path of both workflows.
+        VerifyWorkflowApprovalRequests(
+            Customer, CreditLimitWorkflow, CreditLimitApprover."User ID",
+            CreditLimitApprover2."User ID", CreditLimitApprover3."User ID",
+            ApprovalEntry.Status::Open, ApprovalEntry.Status::Created, ApprovalEntry.Status::Created);
+
+        VerifyWorkflowApprovalRequests(
+            Customer, PaymentTermsWorkflow, PaymentTermsApprover."User ID",
+            CreditLimitApprover."User ID", PaymentTermsApprover3."User ID",
+            ApprovalEntry.Status::Open, ApprovalEntry.Status::Created, ApprovalEntry.Status::Created);
+
+        // [WHEN] The approver approves the credit limit change request.
+        ApproveApprovalEntryForWorkflow(Customer, CreditLimitWorkflow, CreditLimitApprover);
+
+        // [THEN] The approver's payment terms change approval request remains in Created status.
+        GetApprovalEntryByApprover(Customer, PaymentTermsWorkflow, CreditLimitApprover."User ID", ApprovalEntry);
+        Assert.AreEqual(ApprovalEntry.Status::Created, ApprovalEntry.Status, PaymentTermsApprovalStatusErr);
+    end;
+
     [MessageHandler]
     [Scope('OnPrem')]
     procedure MessageHandlerValidateMessage(Message: Text[1024])
@@ -1111,6 +1156,165 @@ codeunit 134190 "WF Demo Cust Cred Lmt Approval"
         CustomerList.GotoRecord(Customer);
         Assert.AreEqual(CancelActionExpectedEnabled, CustomerList.CancelApprovalRequest.Enabled(), 'Wrong state for the Cancel action');
         CustomerList.Close();
+    end;
+
+    local procedure SetupCustomerForCreditLimitAndPaymentTermsWorkflow(
+        var Customer: Record Customer;
+        var CreditLimitApprover: Record "User Setup";
+        var CreditLimitApprover2: Record "User Setup";
+        var CreditLimitApprover3: Record "User Setup";
+        var PaymentTermsApprover: Record "User Setup";
+        var PaymentTermsApprover3: Record "User Setup";
+        var CreditLimitWorkflow: Record Workflow;
+        var PaymentTermsWorkflow: Record Workflow)
+    begin
+        SetupCustomerForCreditLimitWorkflow(Customer, CreditLimitApprover, CreditLimitApprover2, CreditLimitApprover3, CreditLimitWorkflow);
+        SetupCustomerForPaymentTermsWorkflow(Customer, PaymentTermsApprover, CreditLimitApprover, PaymentTermsApprover3, PaymentTermsWorkflow);
+    end;
+
+    local procedure SetupCustomerForCreditLimitWorkflow(
+        var Customer: Record Customer;
+        var CreditLimitApprover: Record "User Setup";
+        var CreditLimitApprover2: Record "User Setup";
+        var CreditLimitApprover3: Record "User Setup";
+        var CreditLimitWorkflow: Record Workflow)
+    var
+        CreditLimitGroup: Record "Workflow User Group";
+        AdminUserSetup: Record "User Setup";
+        WorkflowSetup: Codeunit "Workflow Setup";
+    begin
+        Initialize();
+
+        // Setup Credit Limit Change Workflow
+        LibraryWorkflow.CopyWorkflowTemplate(CreditLimitWorkflow, WorkflowSetup.CustomerCreditLimitChangeApprovalWorkflowCode());
+
+        // Create user setups
+        LibraryDocumentApprovals.CreateOrFindUserSetup(AdminUserSetup, CopyStr(UserId, 1, 208));
+        LibraryDocumentApprovals.CreateMockupUserSetup(CreditLimitApprover);
+        LibraryDocumentApprovals.CreateMockupUserSetup(CreditLimitApprover2);
+        LibraryDocumentApprovals.CreateMockupUserSetup(CreditLimitApprover3);
+
+        // Create workflow user group for credit limit
+        LibraryDocumentApprovals.CreateWorkflowUserGroup(CreditLimitGroup);
+        LibraryDocumentApprovals.CreateWorkflowUserGroupMember(CreditLimitGroup.Code, CreditLimitApprover."User ID", 1);
+        LibraryDocumentApprovals.CreateWorkflowUserGroupMember(CreditLimitGroup.Code, CreditLimitApprover2."User ID", 2);
+        LibraryDocumentApprovals.CreateWorkflowUserGroupMember(CreditLimitGroup.Code, CreditLimitApprover3."User ID", 3);
+
+        // Enable credit limit workflow
+        LibraryWorkflow.SetWorkflowGroupApprover(CreditLimitWorkflow.Code, CreditLimitGroup.Code);
+        LibraryWorkflow.EnableWorkflow(CreditLimitWorkflow);
+
+        // Create customer and change credit limit
+        CreateCustomerAndChangeCreditLimitAndSendForApproval(Customer, LibraryRandom.RandDec(1000, 2));
+    end;
+
+    local procedure SetupCustomerForPaymentTermsWorkflow(
+        var Customer: Record Customer;
+        var PaymentTermsApprover: Record "User Setup";
+        var CreditLimitApprover: Record "User Setup";
+        var PaymentTermsApprover3: Record "User Setup";
+        var PaymentTermsWorkflow: Record Workflow)
+    var
+        PaymentTermsGroup: Record "Workflow User Group";
+        PaymentTerms: Record "Payment Terms";
+        WorkFlowRule: Record "Workflow Rule";
+        AdminUserSetup: Record "User Setup";
+        WorkflowSetup: Codeunit "Workflow Setup";
+    begin
+        // Create a completely new Payment Terms Change workflow from scratch
+        LibraryWorkflow.CopyWorkflowTemplate(PaymentTermsWorkflow, WorkflowSetup.CustomerCreditLimitChangeApprovalWorkflowCode());
+
+        WorkFlowRule.SetRange("Workflow Code", PaymentTermsWorkflow.Code);
+        WorkFlowRule.SetRange("Table Id", DATABASE::Customer);
+        WorkFlowRule.FindFirst();
+        WorkFlowRule.Validate("Field No.", Customer.FieldNo("Payment Terms Code"));
+        WorkFlowRule.Validate(Operator, WorkFlowRule.Operator::Changed);
+        WorkFlowRule.Modify(true);
+
+        // Create user setups if not already created
+        LibraryDocumentApprovals.CreateOrFindUserSetup(AdminUserSetup, CopyStr(UserId, 1, 208));
+        LibraryDocumentApprovals.CreateMockupUserSetup(PaymentTermsApprover);
+        LibraryDocumentApprovals.CreateMockupUserSetup(PaymentTermsApprover3);
+
+        // Create workflow user group for payment terms
+        LibraryDocumentApprovals.CreateWorkflowUserGroup(PaymentTermsGroup);
+        LibraryDocumentApprovals.CreateWorkflowUserGroupMember(PaymentTermsGroup.Code, PaymentTermsApprover."User ID", 1);
+        LibraryDocumentApprovals.CreateWorkflowUserGroupMember(PaymentTermsGroup.Code, CreditLimitApprover."User ID", 2);
+        LibraryDocumentApprovals.CreateWorkflowUserGroupMember(PaymentTermsGroup.Code, PaymentTermsApprover3."User ID", 3);
+
+        // Set workflow approver and enable
+        LibraryWorkflow.SetWorkflowGroupApprover(PaymentTermsWorkflow.Code, PaymentTermsGroup.Code);
+        LibraryWorkflow.EnableWorkflow(PaymentTermsWorkflow);
+
+        // Change payment terms and send for approval on the existing customer
+        CreatePaymentTerms(PaymentTerms);
+        ChangePaymentTermsAndSendForApproval(Customer, PaymentTerms.Code);
+    end;
+
+    local procedure CreatePaymentTerms(var PaymentTerms: Record "Payment Terms")
+    begin
+        PaymentTerms.Init();
+        PaymentTerms.Code := LibraryUtility.GenerateRandomCode(PaymentTerms.FieldNo(Code), DATABASE::"Payment Terms");
+        PaymentTerms.Description := CopyStr(LibraryUtility.GenerateRandomText(30), 1, MaxStrLen(PaymentTerms.Description));
+        PaymentTerms.Insert(true);
+    end;
+
+    local procedure ChangePaymentTermsAndSendForApproval(var Customer: Record Customer; PaymentTermsCode: Code[10])
+    var
+        CustomerCard: TestPage "Customer Card";
+    begin
+        CustomerCard.OpenEdit();
+        CustomerCard.GotoRecord(Customer);
+        CustomerCard."Payment Terms Code".Value(PaymentTermsCode);
+        CustomerCard.OK().Invoke();
+    end;
+
+    local procedure VerifyWorkflowApprovalRequests(Customer: Record Customer; Workflow: Record Workflow; ApproverUserID1: Code[50]; ApproverUserID2: Code[50]; ApproverUserID3: Code[50]; Status1: Enum "Approval Status"; Status2: Enum "Approval Status"; Status3: Enum "Approval Status")
+    var
+        ApprovalEntry: Record "Approval Entry";
+        AdminUserSetup: Record "User Setup";
+        SenderUserID: Code[50];
+    begin
+        LibraryDocumentApprovals.CreateOrFindUserSetup(AdminUserSetup, CopyStr(UserId, 1, 208));
+        SenderUserID := AdminUserSetup."User ID";
+        ApprovalEntry.SetRange("Record ID to Approve", Customer.RecordId);
+        ApprovalEntry.SetRange("Approval Code", Workflow.Code);
+        ApprovalEntry.SetCurrentKey("Sequence No.");
+        Assert.AreEqual(3, ApprovalEntry.Count, UnexpectedNoOfApprovalEntriesErr);
+
+        ApprovalEntry.FindFirst();
+        VerifyApprovalEntry(ApprovalEntry, SenderUserID, ApproverUserID1, Status1);
+        ApprovalEntry.Next();
+        VerifyApprovalEntry(ApprovalEntry, SenderUserID, ApproverUserID2, Status2);
+        ApprovalEntry.Next();
+        VerifyApprovalEntry(ApprovalEntry, SenderUserID, ApproverUserID3, Status3);
+    end;
+
+    local procedure ApproveApprovalEntryForWorkflow(Customer: Record Customer; Workflow: Record Workflow; ApproverUserSetup: Record "User Setup")
+    var
+        AdminUserSetup: Record "User Setup";
+        ApprovalEntry: Record "Approval Entry";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+    begin
+        LibraryDocumentApprovals.CreateOrFindUserSetup(AdminUserSetup, CopyStr(UserId, 1, 208));
+        AdminUserSetup.Validate("Approval Administrator", true);
+        AdminUserSetup.Modify(true);
+
+        ApprovalEntry.SetRange("Record ID to Approve", Customer.RecordId);
+        ApprovalEntry.SetRange("Approval Code", Workflow.Code);
+        ApprovalEntry.SetRange(Status, ApprovalEntry.Status::Open);
+        ApprovalEntry.SetRange("Approver ID", ApproverUserSetup."User ID");
+        ApprovalEntry.FindFirst();
+
+        ApprovalsMgmt.ApproveApprovalRequests(ApprovalEntry);
+    end;
+
+    local procedure GetApprovalEntryByApprover(Customer: Record Customer; Workflow: Record Workflow; ApproverId: Code[50]; var ApprovalEntry: Record "Approval Entry")
+    begin
+        ApprovalEntry.SetRange("Record ID to Approve", Customer.RecordId);
+        ApprovalEntry.SetRange("Approval Code", Workflow.Code);
+        ApprovalEntry.SetRange("Approver ID", ApproverId);
+        ApprovalEntry.FindFirst();
     end;
 
     [ModalPageHandler]

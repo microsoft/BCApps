@@ -3472,6 +3472,16 @@
   {
     "codeunitId": 136121,
     "codeunitName": "Service Reservation",
+    "method": "ReservationEntryForLotWhenReserveAlways"
+  },
+  {
+    "codeunitId": 136121,
+    "codeunitName": "Service Reservation",
+    "method": "ReservationEntryForSerialAndLotWhenReserveAlways"
+  },
+  {
+    "codeunitId": 136121,
+    "codeunitName": "Service Reservation",
     "method": "ReservationEntrySummaryBeforeReserve"
   },
   {
@@ -3517,12 +3527,22 @@
   {
     "codeunitId": 136121,
     "codeunitName": "Service Reservation",
+    "method": "ReserveLotWhenReserveAlways"
+  },
+  {
+    "codeunitId": 136121,
+    "codeunitName": "Service Reservation",
     "method": "ReserveLotWhenReserveOptional"
   },
   {
     "codeunitId": 136121,
     "codeunitName": "Service Reservation",
     "method": "ReserveSerialAndLotFromAvailableItemLedgerEntries"
+  },
+  {
+    "codeunitId": 136121,
+    "codeunitName": "Service Reservation",
+    "method": "ReserveSerialAndLotWhenReserveAlways"
   },
   {
     "codeunitId": 136121,
@@ -3668,6 +3688,11 @@
     "codeunitId": 136129,
     "codeunitName": "Service Order Tracking",
     "method": "ErrorForSelectEntriesOnServiceLine"
+  },
+  {
+    "codeunitId": 136129,
+    "codeunitName": "Service Order Tracking",
+    "method": "ErrorOnServiceLineWithItemTracking"
   },
   {
     "codeunitId": 136129,
@@ -5118,6 +5143,11 @@
     "codeunitId": 136146,
     "codeunitName": "Service Item Tracking",
     "method": "ItemAvailabileWithItemTracking"
+  },
+  {
+    "codeunitId": 136146,
+    "codeunitName": "Service Item Tracking",
+    "method": "ItemTrackingCodeValidationErrorWhenOpenDocExists"
   },
   {
     "codeunitId": 136146,

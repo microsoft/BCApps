@@ -1246,20 +1246,6 @@ page 113 Budget
         exit(BudgetName);
     end;
 
-#if not CLEAN26
-    /// <summary>
-    /// Sets G/L account filter for budget data display and analysis operations.
-    /// This procedure is obsolete and will be removed. Use SetGLAccountFilter(NewGLAccFilter: Text) instead.
-    /// </summary>
-    /// <param name="NewGLAccFilter">G/L account filter code to apply to budget data</param>
-    [Obsolete('Replaced by SetGLAccountFilter(NewGLAccFilter: Text)', '26.0')]
-    procedure SetGLAccountFilter(NewGLAccFilter: Code[250])
-    begin
-        GLAccFilter := NewGLAccFilter;
-        GLAccFilterOnAfterValidate();
-    end;
-#endif
-
     /// <summary>
     /// Sets G/L account filter for budget data display and analysis operations.
     /// Applies account-based filtering to budget entries and updates page display.

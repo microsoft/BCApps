@@ -11,7 +11,9 @@ codeunit 144118 "E-Invoice Reminder"
     var
         Assert: Codeunit Assert;
         EInvoiceHelper: Codeunit "E-Invoice Helper";
+#if not CLEAN29
         EInvoiceExportCommon: Codeunit "E-Invoice Export Common";
+#endif
         LibraryERM: Codeunit "Library - ERM";
         EInvoiceReminderHelper: Codeunit "E-Invoice Reminder Helper";
         EInvoiceXMLXSDValidation: Codeunit "E-Invoice XML XSD Validation";
@@ -70,6 +72,8 @@ codeunit 144118 "E-Invoice Reminder"
         EInvoiceXMLXSDValidation.VerifyEndpointID(EInvoiceReminder());
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
     [Scope('OnPrem')]
@@ -96,6 +100,7 @@ codeunit 144118 "E-Invoice Reminder"
           EInvoiceExportCommon.WriteCompanyID(CompanyInfo."VAT Registration No."), true); // EntRegister = TRUE
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
     [Scope('OnPrem')]
@@ -121,6 +126,7 @@ codeunit 144118 "E-Invoice Reminder"
         EInvoiceXMLXSDValidation.VerifyEntRegElements(XmlFileName, IssReminderHdr.Name,
           EInvoiceExportCommon.WriteCompanyID(CompanyInfo."VAT Registration No."), false); // EntRegister = FALSE
     end;
+#endif
 
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
@@ -270,7 +276,9 @@ codeunit 144118 "E-Invoice Reminder"
 
         // [GIVEN] Reminder with GLN = '01234123456789' and 'VAT Reg. No.' = 'NO123456000'
         IssuedReminderHeader.Get(EInvoiceReminderHelper.CreateReminder());
+#if not CLEAN29
         IssuedReminderHeader.GLN := LibraryUtility.GenerateGUID();
+#endif
         IssuedReminderHeader."VAT Registration No." := LibraryUtility.GenerateGUID();
         IssuedReminderHeader.Modify();
 
@@ -284,6 +292,8 @@ codeunit 144118 "E-Invoice Reminder"
           EInvoiceDocumentEncode.GetVATRegNo(IssuedReminderHeader."VAT Registration No.", false));
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
     [Scope('OnPrem')]
@@ -309,6 +319,7 @@ codeunit 144118 "E-Invoice Reminder"
         NOXMLReadHelper.VerifyNodeValue(
           '//cac:AccountingCustomerParty/cac:Party/cbc:EndpointID', '9908:' + IssuedReminderHeader.GLN);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
@@ -424,7 +435,9 @@ codeunit 144118 "E-Invoice Reminder"
         Path: Text[250];
     begin
         Path := EInvoiceHelper.GetTempPath();
+#if not CLEAN29
         EInvoiceHelper.SetupEInvoiceForSales(Path);
+#endif
 
         IssuedReminderHeader.SetRange("No.", IssuedReminderNo);
         REPORT.Run(REPORT::"Create Electronic Reminders", false, true, IssuedReminderHeader);

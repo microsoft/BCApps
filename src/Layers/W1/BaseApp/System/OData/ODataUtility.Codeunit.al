@@ -332,18 +332,6 @@ codeunit 6710 ODataUtility
         EditinExcel.EditPageInExcel(PageCaption, ObjectId, EditinExcelFilters);
     end;
 
-#if not CLEAN26
-    [Obsolete('Replaced by EditinExcelHandler.EditPageInExcel(PageCaption: Text[240]; ObjectId: Integer; CodeUnit "Filters")', '23.0')]
-    procedure EditWorksheetInExcel(PageCaption: Text[240]; PageId: Text; "Filter": Text)
-    var
-        EditinExcel: Codeunit "Edit in Excel";
-        ObjectId: Integer;
-    begin
-        Evaluate(ObjectId, CopyStr(PageId, 5));
-        EditinExcel.EditPageInExcel(PageCaption, ObjectId);
-    end;
-#endif
-
     [Scope('OnPrem')]
     procedure GenerateExcelTemplateWorkBook(ObjectTypeParm: Option ,,,,,"Codeunit",,,"Page","Query"; ServiceNameParm: Text[50]; ShowDialogParm: Boolean; StatementType: Option BalanceSheet,SummaryTrialBalance,CashFlowStatement,StatementOfRetainedEarnings,AgedAccountsReceivable,AgedAccountsPayable,IncomeStatement)
     var

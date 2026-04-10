@@ -83,5 +83,30 @@
     "codeunitId": 148017,
     "codeunitName": "Posting Restrictions Tests",
     "method": "VerifyIBANNoWhenBranchNoAndBankAccountNotEmpty"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "Posting Restrictions Tests",
+    "method": "CannotPostToGLInProductionSaaSWhenCVRNumberIsBlank"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "Posting Restrictions Tests",
+    "method": "PostToGLInProductionSaaSWhenCVRNumberIsSpecified"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "Posting Restrictions Tests",
+    "method": "PostToGLInProductionOnPremWhenCVRNumberIsBlank"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "Posting Restrictions Tests",
+    "method": "PostToGLInProdSaaSWhenEvaluationCompanyCVRNotSpecified"
+  },
+  {
+    "codeunitId": 148017,
+    "codeunitName": "Posting Restrictions Tests",
+    "method": "PostToGLInSandboxSaaSWhenCVRNumberIsBlank"
   }
 ]

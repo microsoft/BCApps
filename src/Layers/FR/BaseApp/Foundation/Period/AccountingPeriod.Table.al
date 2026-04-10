@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,6 +25,7 @@ table 50 "Accounting Period"
         field(1; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Specifies the date that the accounting period will begin.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -35,10 +36,12 @@ table 50 "Accounting Period"
         field(2; Name; Text[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the accounting period.';
         }
         field(3; "New Fiscal Year"; Boolean)
         {
             Caption = 'New Fiscal Year';
+            ToolTip = 'Specifies whether to use the accounting period to start a fiscal year.';
 
             trigger OnValidate()
             begin
@@ -63,23 +66,27 @@ table 50 "Accounting Period"
         field(4; Closed; Boolean)
         {
             Caption = 'Closed';
+            ToolTip = 'Specifies if the accounting period belongs to a closed fiscal year.';
             Editable = false;
         }
         field(5; "Date Locked"; Boolean)
         {
             Caption = 'Date Locked';
+            ToolTip = 'Specifies if you can change the starting date for the accounting period.';
             Editable = false;
         }
         field(5804; "Average Cost Calc. Type"; Enum "Average Cost Calculation Type")
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Average Cost Calc. Type';
+            ToolTip = 'Specifies how the average cost for items in the accounting period was calculated.';
             Editable = false;
         }
         field(5805; "Average Cost Period"; Enum "Average Cost Period Type")
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Average Cost Period';
+            ToolTip = 'Specifies the period type that was used in the accounting period to calculate the average cost.';
             Editable = false;
         }
         field(10800; "Fiscally Closed"; Boolean)

@@ -52,27 +52,22 @@ page 317 "VAT Statement"
                 field("Row No."; Rec."Row No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a number that identifies the line.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the VAT statement line.';
                 }
                 field("Box No."; Rec."Box No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number on the box that the VAT statement applies to.';
                 }
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies what the VAT statement line will include.';
                 }
                 field("Account Totaling"; Rec."Account Totaling")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an account interval or a series of account numbers.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -93,17 +88,14 @@ page 317 "VAT Statement"
                 field("Gen. Posting Type"; Rec."Gen. Posting Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of transaction.';
                 }
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
                 field("Amount Type"; Rec."Amount Type")
                 {
@@ -118,12 +110,10 @@ page 317 "VAT Statement"
                 field("Row Totaling"; Rec."Row Totaling")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a row-number interval or a series of row numbers.';
                 }
                 field("Calculate with"; Rec."Calculate with")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether amounts on the VAT statement will be calculated with their original sign or with the sign reversed.';
                 }
                 field("Print on Official VAT Form"; Rec."Print on Official VAT Form")
                 {
@@ -133,18 +123,15 @@ page 317 "VAT Statement"
                 field(Control22; Rec.Print)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the VAT statement line will be printed on the report that contains the finished VAT statement.';
                     Visible = false;
                 }
                 field("Print with"; Rec."Print with")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether amounts on the VAT statement will be printed with their original sign or with the sign reversed.';
                 }
                 field("New Page"; Rec."New Page")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether a new page should begin immediately after this line when the VAT statement is printed. To start a new page after this line, place a check mark in the field.';
                 }
             }
         }

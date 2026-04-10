@@ -765,14 +765,14 @@ codeunit 7201 "CDS Integration Impl."
 
     internal procedure GetVirtualTablesAppSourceLink(): Text
     var
-        UserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings";
         Language: Codeunit Language;
         UserSettings: Codeunit "User Settings";
         LanguageID: Integer;
         CultureName: Text;
     begin
-        UserSettings.GetUserSettings(Database.UserSecurityId(), UserSettingsRecord);
-        LanguageID := UserSettingsRecord."Language ID";
+        UserSettings.GetUserSettings(Database.UserSecurityId(), TempUserSettingsRecord);
+        LanguageID := TempUserSettingsRecord."Language ID";
         if (LanguageID = 0) then
             LanguageID := 1033; // Default to EN-US
         CultureName := Language.GetCultureName(LanguageID).ToLower();
@@ -5319,14 +5319,6 @@ codeunit 7201 "CDS Integration Impl."
     local procedure OnBeforeCleanCRMIntegrationRecords(var DisableIntegrationRecordCleanup: Boolean)
     begin
     end;
-
-#if not CLEAN26
-    [Obsolete('This event is not used. Integration Sync Job records are not cleaned up.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCleanCRMIntegrationSyncJob(var DisableIntegrationSyncJobCleanup: Boolean)
-    begin
-    end;
-#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Integration Synch. Job Errors", 'OnIsDataIntegrationEnabled', '', false, false)]
     local procedure IsDataIntegrationEnabled(var IsIntegrationEnabled: Boolean)

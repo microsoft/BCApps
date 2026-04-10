@@ -27,6 +27,7 @@ table 747 "VAT Report Archive"
         field(1; "VAT Report Type"; Enum "VAT Report Configuration")
         {
             Caption = 'VAT Report Type';
+            ToolTip = 'Specifies if you want to create a new VAT report, or if you want to change a previously submitted report.';
         }
         /// <summary>
         /// Number of the VAT report being archived from the VAT Report Header.
@@ -34,6 +35,7 @@ table 747 "VAT Report Archive"
         field(2; "VAT Report No."; Code[20])
         {
             Caption = 'VAT Report No.';
+            ToolTip = 'Specifies the number of the VAT Report.';
             TableRelation = "VAT Report Header"."No.";
         }
         /// <summary>
@@ -42,6 +44,7 @@ table 747 "VAT Report Archive"
         field(4; "Submitted By"; Code[50])
         {
             Caption = 'Submitted By';
+            ToolTip = 'Specifies the name of the person who submitted the VAT Report.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
         }
@@ -58,6 +61,7 @@ table 747 "VAT Report Archive"
         field(6; "Submittion Date"; Date)
         {
             Caption = 'Submittion Date';
+            ToolTip = 'Specifies the date that the VAT Report was submitted.';
         }
         /// <summary>
         /// Compressed response message data received from tax authorities.
@@ -72,6 +76,7 @@ table 747 "VAT Report Archive"
         field(8; "Response Received Date"; DateTime)
         {
             Caption = 'Response Received Date';
+            ToolTip = 'Specifies the date when the response was received.';
         }
         field(10500; "Xml Part ID"; Guid)
         {

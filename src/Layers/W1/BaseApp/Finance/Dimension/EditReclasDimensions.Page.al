@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,33 +30,27 @@ page 484 "Edit Reclas. Dimensions"
                 field("Dimension Code"; Rec."Dimension Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies a dimension code to attach a dimension to a journal line.';
                 }
                 field("Dimension Name"; Rec."Dimension Name")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the descriptive name of the Dimension Code field.';
                     Visible = false;
                 }
                 field("Dimension Value Code"; Rec."Dimension Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the original dimension value to register the transfer of items from the original dimension value to the new dimension value.';
                 }
                 field("New Dimension Value Code"; Rec."New Dimension Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the new dimension value to register the transfer of items, from the original dimension value to the new dimension value.';
                 }
                 field("Dimension Value Name"; Rec."Dimension Value Name")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the descriptive name of the original Dimension Value Code field.';
                 }
                 field("New Dimension Value Name"; Rec."New Dimension Value Name")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the descriptive name of the New Dimension Value Code field.';
                 }
             }
         }

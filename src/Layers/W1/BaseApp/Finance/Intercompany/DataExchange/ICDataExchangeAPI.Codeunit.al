@@ -357,6 +357,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
     begin
         if not TempICPartnerICInboxTransaction.IsEmpty() then begin
             ICSetup.FindFirst();
+            // Clean up orphaned buffer records from a previous failed export of the same transaction
+            TempICPartnerICInboxTransaction.FindSet();
+            repeat
+                CleanupOrphanedBufferRecords(TempICPartnerICInboxTransaction."Transaction No.", TempICPartnerICInboxTransaction."IC Partner Code");
+            until TempICPartnerICInboxTransaction.Next() = 0;
             // Move temporary records to buffer table so it can be used with the APIs
             TempICPartnerICInboxTransaction.FindSet();
             repeat
@@ -1206,6 +1211,74 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
         JobQueueEntry."Record ID to Process" := RecordIdentification;
         JobQueueEntry.Insert(true);
         CODEUNIT.Run(CODEUNIT::"Job Queue - Enqueue", JobQueueEntry);
+    end;
+
+    local procedure CleanupOrphanedBufferRecords(TransactionNo: Integer; ICPartnerCode: Code[20])
+    var
+        BufferICInboxTransaction: Record "Buffer IC Inbox Transaction";
+        BufferICInboxJnlLine: Record "Buffer IC Inbox Jnl. Line";
+        BufferICInboxPurchHeader: Record "Buffer IC Inbox Purch Header";
+        BufferICInboxPurchaseLine: Record "Buffer IC Inbox Purchase Line";
+        BufferICInboxSalesHeader: Record "Buffer IC Inbox Sales Header";
+        BufferICInboxSalesLine: Record "Buffer IC Inbox Sales Line";
+        BufferICInOutJnlLineDim: Record "Buffer IC InOut Jnl. Line Dim.";
+        BufferICDocumentDimension: Record "Buffer IC Document Dimension";
+        BufferICCommentLine: Record "Buffer IC Comment Line";
+        ICOutgoingNotification: Record "IC Outgoing Notification";
+    begin
+        // Delete any associated IC Outgoing Notifications before removing buffer records
+        BufferICInboxTransaction.SetRange("Transaction No.", TransactionNo);
+        BufferICInboxTransaction.SetRange("IC Partner Code", ICPartnerCode);
+        if BufferICInboxTransaction.FindSet() then
+            repeat
+                if not IsNullGuid(BufferICInboxTransaction."Operation ID") then
+                    if ICOutgoingNotification.Get(BufferICInboxTransaction."Operation ID") then
+                        ICOutgoingNotification.Delete();
+            until BufferICInboxTransaction.Next() = 0
+        else
+            exit; // Nothing to clean up
+
+        BufferICInboxTransaction.DeleteAll();
+
+        BufferICInboxJnlLine.SetRange("Transaction No.", TransactionNo);
+        BufferICInboxJnlLine.SetRange("IC Partner Code", ICPartnerCode);
+        if not BufferICInboxJnlLine.IsEmpty() then
+            BufferICInboxJnlLine.DeleteAll();
+
+        BufferICInboxPurchHeader.SetRange("IC Transaction No.", TransactionNo);
+        BufferICInboxPurchHeader.SetRange("IC Partner Code", ICPartnerCode);
+        if not BufferICInboxPurchHeader.IsEmpty() then
+            BufferICInboxPurchHeader.DeleteAll();
+
+        BufferICInboxPurchaseLine.SetRange("IC Transaction No.", TransactionNo);
+        BufferICInboxPurchaseLine.SetRange("IC Partner Code", ICPartnerCode);
+        if not BufferICInboxPurchaseLine.IsEmpty() then
+            BufferICInboxPurchaseLine.DeleteAll();
+
+        BufferICInboxSalesHeader.SetRange("IC Transaction No.", TransactionNo);
+        BufferICInboxSalesHeader.SetRange("IC Partner Code", ICPartnerCode);
+        if not BufferICInboxSalesHeader.IsEmpty() then
+            BufferICInboxSalesHeader.DeleteAll();
+
+        BufferICInboxSalesLine.SetRange("IC Transaction No.", TransactionNo);
+        BufferICInboxSalesLine.SetRange("IC Partner Code", ICPartnerCode);
+        if not BufferICInboxSalesLine.IsEmpty() then
+            BufferICInboxSalesLine.DeleteAll();
+
+        BufferICInOutJnlLineDim.SetRange("Transaction No.", TransactionNo);
+        BufferICInOutJnlLineDim.SetRange("IC Partner Code", ICPartnerCode);
+        if not BufferICInOutJnlLineDim.IsEmpty() then
+            BufferICInOutJnlLineDim.DeleteAll();
+
+        BufferICDocumentDimension.SetRange("Transaction No.", TransactionNo);
+        BufferICDocumentDimension.SetRange("IC Partner Code", ICPartnerCode);
+        if not BufferICDocumentDimension.IsEmpty() then
+            BufferICDocumentDimension.DeleteAll();
+
+        BufferICCommentLine.SetRange("Transaction No.", TransactionNo);
+        BufferICCommentLine.SetRange("IC Partner Code", ICPartnerCode);
+        if not BufferICCommentLine.IsEmpty() then
+            BufferICCommentLine.DeleteAll();
     end;
 
     local procedure AssignOperationIDToBufferObjects(var ICInboxTransaction: Record "IC Inbox Transaction"; OperationID: Guid)

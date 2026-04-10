@@ -324,6 +324,12 @@ table 99000765 "Manufacturing Setup"
             ToolTip = 'Specifies the default general business posting group for production orders.';
             TableRelation = "Gen. Business Posting Group";
         }
+        field(290; "Copy Loc. to Cap. Val. Entries"; Boolean)
+        {
+            Caption = 'Copy location code into value entries linked to capacity ledger entries';
+            InitValue = true;
+            ToolTip = 'Specifies whether the Location Code from the production order is copied to value entries linked to capacity ledger entries. When enabled, Inventory Posting Setup for that specific location is used. When disabled, Location Code remains blank on capacity value entries and Inventory Posting Setup for blank location is used.';
+        }
         field(300; "Default Flushing Method"; Enum "Flushing Method")
         {
             Caption = 'Default Flushing Method';

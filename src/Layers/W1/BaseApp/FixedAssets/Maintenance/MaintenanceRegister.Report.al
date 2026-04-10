@@ -9,11 +9,10 @@ using Microsoft.FixedAssets.Ledger;
 
 report 5633 "Maintenance Register"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Maintenance/MaintenanceRegister.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Maintenance Register';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -158,6 +157,16 @@ report 5633 "Maintenance Register"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Maintenance/MaintenanceRegister.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

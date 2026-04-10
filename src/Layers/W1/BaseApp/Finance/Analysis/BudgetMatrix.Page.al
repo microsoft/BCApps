@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -48,7 +48,6 @@ page 9203 "Budget Matrix"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the code of the record.';
 
                     trigger OnAssistEdit()
                     begin
@@ -61,7 +60,6 @@ page 9203 "Budget Matrix"
                     Editable = false;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the name of the record.';
                 }
                 field(TotalBudgetedAmount; Rec.Amount)
                 {
@@ -939,70 +937,6 @@ page 9203 "Budget Matrix"
         RoundingFactorFormatString := MatrixMgt.FormatRoundingFactor(RoundingFactor, false);
         InternalDateFilter := '';
     end;
-
-#if not CLEAN26
-    /// <summary>
-    /// Loads matrix data with dimension filters and configuration for budget analysis display.
-    /// This procedure is obsolete and will be removed. Use LoadMatrix with NewGLAccFilter: Text instead.
-    /// </summary>
-    /// <param name="NewMatrixColumns">Array of column captions for matrix display</param>
-    /// <param name="NewMatrixRecords">Array of dimension code buffer records for matrix data</param>
-    /// <param name="CurrentNoOfMatrixColumns">Current number of active matrix columns</param>
-    /// <param name="NewLineDimCode">Dimension code for matrix rows</param>
-    /// <param name="NewLineDimType">Dimension type for matrix rows</param>
-    /// <param name="NewColumnDimType">Dimension type for matrix columns</param>
-    /// <param name="NewGlobalDim1Filter">Filter for global dimension 1</param>
-    /// <param name="NewGlobalDim2Filter">Filter for global dimension 2</param>
-    /// <param name="NewBudgetDim1Filter">Filter for budget dimension 1</param>
-    /// <param name="NewBudgetDim2Filter">Filter for budget dimension 2</param>
-    /// <param name="NewBudgetDim3Filter">Filter for budget dimension 3</param>
-    /// <param name="NewBudgetDim4Filter">Filter for budget dimension 4</param>
-    /// <param name="NewGLBudgetName">G/L Budget Name record for data source</param>
-    /// <param name="NewDateFilter">Date filter for budget period analysis</param>
-    /// <param name="NewGLAccFilter">G/L account filter for budget scope</param>
-    /// <param name="NewIncomeBalanceGLAccFilter">Income/balance account type filter</param>
-    /// <param name="NewGLAccCategoryFilter">G/L account category filter</param>
-    /// <param name="NewRoundingFactor">Rounding factor for amount display</param>
-    /// <param name="NewPeriodType">Period type for analysis</param>
-    [Obsolete('Replaced by LoadMatrix with NewGLAccFilter: Text instead of Code[250]', '26.0')]
-    procedure LoadMatrix(NewMatrixColumns: array[32] of Text[80]; var NewMatrixRecords: array[12] of Record "Dimension Code Buffer"; CurrentNoOfMatrixColumns: Integer; NewLineDimCode: Text[30]; NewLineDimType: Enum "G/L Budget Matrix Dimensions"; NewColumnDimType: Enum "G/L Budget Matrix Dimensions"; NewGlobalDim1Filter: Code[250]; NewGlobalDim2Filter: Code[250]; NewBudgetDim1Filter: Code[250]; NewBudgetDim2Filter: Code[250]; NewBudgetDim3Filter: Code[250]; NewBudgetDim4Filter: Code[250]; var NewGLBudgetName: Record "G/L Budget Name"; NewDateFilter: Text[30]; NewGLAccFilter: Code[250]; NewIncomeBalanceGLAccFilter: Enum "G/L Account Income/Balance"; NewGLAccCategoryFilter: Enum "G/L Account Category"; NewRoundingFactor: Enum "Analysis Rounding Factor"; NewPeriodType: Enum "Analysis Period Type")
-    var
-        i: Integer;
-    begin
-        for i := 1 to 12 do
-            MATRIX_CellData[i] := 0;
-
-        for i := 1 to 12 do begin
-            if NewMatrixColumns[i] = '' then
-                MATRIX_CaptionSet[i] := ' '
-            else
-                MATRIX_CaptionSet[i] := NewMatrixColumns[i];
-            MatrixRecords[i] := NewMatrixRecords[i];
-        end;
-        if CurrentNoOfMatrixColumns > ArrayLen(MATRIX_CellData) then
-            MATRIX_CurrentNoOfMatrixColumn := ArrayLen(MATRIX_CellData)
-        else
-            MATRIX_CurrentNoOfMatrixColumn := CurrentNoOfMatrixColumns;
-        LineDimCode := NewLineDimCode;
-        LineDimType := NewLineDimType;
-        ColumnDimType := NewColumnDimType;
-        GlobalDim1Filter := NewGlobalDim1Filter;
-        GlobalDim2Filter := NewGlobalDim2Filter;
-        BudgetDim1Filter := NewBudgetDim1Filter;
-        BudgetDim2Filter := NewBudgetDim2Filter;
-        BudgetDim3Filter := NewBudgetDim3Filter;
-        BudgetDim4Filter := NewBudgetDim4Filter;
-        GLBudgetName := NewGLBudgetName;
-        DateFilter := NewDateFilter;
-        GLAccFilter := NewGLAccFilter;
-        IncomeBalanceGLAccFilter := NewIncomeBalanceGLAccFilter;
-        GLAccCategoryFilter := NewGLAccCategoryFilter;
-        RoundingFactor := NewRoundingFactor;
-        PeriodType := NewPeriodType;
-        RoundingFactorFormatString := MatrixMgt.FormatRoundingFactor(RoundingFactor, false);
-        InternalDateFilter := '';
-    end;
-#endif
 
     local procedure MATRIX_OnDrillDown(MATRIX_ColumnOrdinal: Integer)
     begin

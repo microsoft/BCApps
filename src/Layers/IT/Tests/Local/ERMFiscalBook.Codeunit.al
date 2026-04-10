@@ -33,8 +33,11 @@ codeunit 144075 "ERM Fiscal Book"
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
+        LibraryITLocalization: Codeunit "Library - IT Localization";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
+        IsInitialized: Boolean;
         EditableErr: Label 'Field %1 must be Editable.';
         EnabledErr: Label 'Field %1 must be Enabled.';
         FieldVisibleErr: Label 'Field must be Visible.';
@@ -162,6 +165,157 @@ codeunit 144075 "ERM Fiscal Book"
 
         // Tear Down.
         GeneralLedgerSetup.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GLBookEntryAddCurrAmtCalcWithACY()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLBookEntry: Record "GL Book Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        CurrencyCode: Code[10];
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] GL Book Entry "Additional-Currency Amount" is calculated when Additional Reporting Currency is configured
+        Initialize();
+
+        // [GIVEN] Additional Reporting Currency "C" is set up in General Ledger Setup
+        CurrencyCode := LibraryERM.CreateCurrencyWithRandomExchRates();
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
+
+        // [GIVEN] A general journal line is posted with Document No. "D"
+        DocumentNo := LibraryUtility.GenerateGUID();
+        FindVATPostingSetupWithZeroVAT(VATPostingSetup);
+        CreateAndPostGeneralJournalLine(GenJournalLine, VATPostingSetup, DocumentNo, DocumentNo);
+
+        // [WHEN] GL Book Entry "Additional-Currency Amount" is calculated for "D"
+        GLBookEntry.SetRange("Document No.", DocumentNo);
+        GLBookEntry.FindFirst();
+        GLBookEntry.CalcFields("Additional-Currency Amount");
+
+        // [THEN] "Additional-Currency Amount" is non-zero
+        Assert.AreNotEqual(0, GLBookEntry."Additional-Currency Amount", 'Additional-Currency Amount should be non-zero when ACY is configured');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PeriodicVATSettlEntryAddCurrFieldsWithACY()
+    var
+#if not CLEAN27
+        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
+#else
+        PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
+#endif
+        CurrencyCode: Code[10];
+        AddCurrVATSettlement: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Periodic VAT Settlement Entry additional currency fields store values correctly when ACY is configured
+        Initialize();
+
+        // [GIVEN] Additional Reporting Currency "C" is set up in General Ledger Setup
+        CurrencyCode := LibraryERM.CreateCurrencyWithRandomExchRates();
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
+
+        // [GIVEN] A Periodic Settlement VAT Entry "E" is created
+#if not CLEAN27
+        LibraryITLocalization.CreatePeriodicVATSettlementEntry(PeriodicSettlementVATEntry, WorkDate());
+#else
+        LibraryITLocalization.CreatePeriodicSettlementVATEntry(PeriodicSettlementVATEntry, WorkDate());
+#endif
+        AddCurrVATSettlement := LibraryRandom.RandDec(1000, 2);
+
+        // [WHEN] Additional currency field is set on "E"
+        PeriodicSettlementVATEntry."Add-Curr. VAT Settlement" := AddCurrVATSettlement;
+        PeriodicSettlementVATEntry.Modify();
+
+        // [THEN] The additional currency field retains the correct value
+        PeriodicSettlementVATEntry.Get(PeriodicSettlementVATEntry."VAT Period");
+        Assert.AreEqual(AddCurrVATSettlement, PeriodicSettlementVATEntry."Add-Curr. VAT Settlement", 'Add-Curr. VAT Settlement should retain the assigned value');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GLBookEntryAddCurrAmtWithoutACY()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLBookEntry: Record "GL Book Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] GL Book Entry "Additional-Currency Amount" is zero when no Additional Reporting Currency is configured
+        Initialize();
+
+        // [GIVEN] Additional Reporting Currency is not set in General Ledger Setup
+        LibraryERM.SetAddReportingCurrency('');
+
+        // [GIVEN] A general journal line is posted with Document No. "D"
+        DocumentNo := LibraryUtility.GenerateGUID();
+        FindVATPostingSetupWithZeroVAT(VATPostingSetup);
+        CreateAndPostGeneralJournalLine(GenJournalLine, VATPostingSetup, DocumentNo, DocumentNo);
+
+        // [WHEN] GL Book Entry "Additional-Currency Amount" is calculated for "D"
+        GLBookEntry.SetRange("Document No.", DocumentNo);
+        GLBookEntry.FindFirst();
+        GLBookEntry.CalcFields("Additional-Currency Amount");
+
+        // [THEN] "Additional-Currency Amount" is zero
+        Assert.AreEqual(0, GLBookEntry."Additional-Currency Amount", 'Additional-Currency Amount should be zero when ACY is not configured');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PeriodicVATSettlEntryAddCurrFieldsWithoutACY()
+    var
+#if not CLEAN27
+        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
+#else
+        PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
+#endif
+        AddCurrVATSettlement: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Periodic VAT Settlement Entry additional currency fields store values correctly without ACY configured
+        Initialize();
+
+        // [GIVEN] Additional Reporting Currency is not set in General Ledger Setup
+        LibraryERM.SetAddReportingCurrency('');
+
+        // [GIVEN] A Periodic Settlement VAT Entry "E" is created
+#if not CLEAN27
+        LibraryITLocalization.CreatePeriodicVATSettlementEntry(PeriodicSettlementVATEntry, WorkDate());
+#else
+        LibraryITLocalization.CreatePeriodicSettlementVATEntry(PeriodicSettlementVATEntry, WorkDate());
+#endif
+        AddCurrVATSettlement := LibraryRandom.RandDec(1000, 2);
+
+        // [WHEN] Additional currency field is set on "E"
+        PeriodicSettlementVATEntry."Add-Curr. VAT Settlement" := AddCurrVATSettlement;
+        PeriodicSettlementVATEntry.Modify();
+
+        // [THEN] The additional currency field retains the correct value
+        PeriodicSettlementVATEntry.Get(PeriodicSettlementVATEntry."VAT Period");
+        Assert.AreEqual(AddCurrVATSettlement, PeriodicSettlementVATEntry."Add-Curr. VAT Settlement", 'Add-Curr. VAT Settlement should retain the assigned value');
+    end;
+
+    local procedure Initialize()
+    var
+#if not CLEAN27
+        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
+#else
+        PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
+#endif
+    begin
+        LibrarySetupStorage.Restore();
+        PeriodicSettlementVATEntry.DeleteAll();
+        if IsInitialized then
+            exit;
+
+        LibrarySetupStorage.SaveGeneralLedgerSetup();
+        IsInitialized := true;
     end;
 
     local procedure CreateAndPostGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; DocumentNo: Code[20]; DocumentNo2: Code[20])

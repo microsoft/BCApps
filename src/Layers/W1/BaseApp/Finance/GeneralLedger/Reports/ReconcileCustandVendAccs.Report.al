@@ -25,11 +25,10 @@ using System.Utilities;
 /// </remarks>
 report 33 "Reconcile Cust. and Vend. Accs"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/GeneralLedger/Reports/ReconcileCustandVendAccs.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Reconcile Customer and Vendor Accounts';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -448,6 +447,16 @@ report 33 "Reconcile Cust. and Vend. Accs"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/GeneralLedger/Reports/ReconcileCustandVendAccs.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

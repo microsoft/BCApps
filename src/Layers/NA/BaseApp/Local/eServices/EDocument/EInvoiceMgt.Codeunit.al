@@ -3749,7 +3749,7 @@ codeunit 10145 "E-Invoice Mgt."
 
     local procedure SendEmail(var TempBlobPDF: codeunit "Temp Blob"; SendToAddress: Text; Subject: Text; MessageBody: Text; FilePathEDoc: Text; FileNamePDF: Text; XMLInstream: InStream)
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         Email: Codeunit Email;
         Message: Codeunit "Email Message";
         EmailScenario: Codeunit "Email Scenario";
@@ -3769,9 +3769,9 @@ codeunit 10145 "E-Invoice Mgt."
             TempBlobPDF.CreateInStream(PDFInStream);
             Message.AddAttachment(CopyStr(FileNamePDF, 1, 250), 'PDF', PDFInStream);
         end;
-        EmailScenario.GetEmailAccount(Enum::"Email Scenario"::Default, EmailAccount);
+        EmailScenario.GetEmailAccount(Enum::"Email Scenario"::Default, TempEmailAccount);
         ClearLastError();
-        SendOK := Email.Send(Message, EmailAccount."Account Id", EmailAccount.Connector);
+        SendOK := Email.Send(Message, TempEmailAccount."Account Id", TempEmailAccount.Connector);
 
         if not SendOK then begin
             Session.LogMessage('0000C7R', StrSubstNo(SendEmailErr, GetLastErrorText()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);

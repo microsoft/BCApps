@@ -5,7 +5,9 @@
 namespace Microsoft.Sales.FinanceCharge;
 
 using Microsoft.CRM.Contact;
+#if not CLEAN29
 using Microsoft.EServices.EDocument;
+#endif
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.VAT.Calculation;
@@ -164,26 +166,40 @@ page 450 "Issued Finance Charge Memo"
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                 }
+#if not CLEAN29
                 field(GLN; Rec.GLN)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the global location number of the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 field("Account Code"; Rec."Account Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the account code of the customer.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 field("E-Invoice"; Rec."E-Invoice")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether the customer is part of the EHF system and requires an electronic issued finance charge memo.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
                 field("E-Invoice Created"; Rec."E-Invoice Created")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether an electronic issued finance charge memo has been created and copied to the location specified in Sales & Receivables Setup.';
+                    ObsoleteReason = 'This field is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
@@ -287,9 +303,13 @@ page 450 "Issued Finance Charge Memo"
         }
         area(processing)
         {
+#if not CLEAN29
             group("F&unctions")
             {
                 Caption = 'F&unctions';
+                ObsoleteReason = 'This group will be removed in a future release.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
                 action("Create Electronic Finance Charge Memo")
                 {
                     ApplicationArea = Basic, Suite;
@@ -297,6 +317,9 @@ page 450 "Issued Finance Charge Memo"
                     Ellipsis = true;
                     Image = CreateDocument;
                     ToolTip = 'Create one or more XML documents that you can send to the customer. You can run the batch job for multiple finance charge memos or you can run it for an individual finance charge memos. The document number is used as the file name. The files are stored at the location that has been specified in the Sales & Receivables Setup window.';
+                    ObsoleteReason = 'This action is deprecated and will be removed in a future release.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
 
                     trigger OnAction()
                     var
@@ -309,6 +332,7 @@ page 450 "Issued Finance Charge Memo"
                     end;
                 }
             }
+#endif
             action("&Print")
             {
                 ApplicationArea = Basic, Suite;

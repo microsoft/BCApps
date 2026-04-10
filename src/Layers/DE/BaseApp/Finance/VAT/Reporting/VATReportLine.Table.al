@@ -47,6 +47,7 @@ table 741 "VAT Report Line"
         field(3; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             Editable = false;
             TableRelation = "Gen. Product Posting Group";
         }
@@ -56,6 +57,7 @@ table 741 "VAT Report Line"
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the posting date of the document that resulted in the VAT entry.';
             Editable = false;
         }
         /// <summary>
@@ -64,6 +66,7 @@ table 741 "VAT Report Line"
         field(5; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the document number that resulted in the VAT entry.';
             Editable = false;
         }
         /// <summary>
@@ -72,6 +75,7 @@ table 741 "VAT Report Line"
         field(6; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the type of the document that resulted in the VAT entry.';
             Editable = false;
         }
         /// <summary>
@@ -80,6 +84,7 @@ table 741 "VAT Report Line"
         field(7; Type; Enum "General Posting Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the type of the VAT entry.';
             Editable = false;
         }
         /// <summary>
@@ -90,6 +95,7 @@ table 741 "VAT Report Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Base';
+            ToolTip = 'Specifies the amount that the VAT amount in the Amount is calculated from.';
 
             trigger OnValidate()
             begin
@@ -107,6 +113,7 @@ table 741 "VAT Report Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount';
+            ToolTip = 'Specifies the VAT amount for the report line. This is calculated based on the value of the Base field.';
 
             trigger OnValidate()
             begin
@@ -122,6 +129,7 @@ table 741 "VAT Report Line"
         field(10; "VAT Calculation Type"; Enum "Tax Calculation Type")
         {
             Caption = 'VAT Calculation Type';
+            ToolTip = 'Specifies how VAT will be calculated for purchases or sales of items with this particular combination of VAT business posting group and VAT product posting group.';
             Editable = false;
         }
         /// <summary>
@@ -130,6 +138,7 @@ table 741 "VAT Report Line"
         field(12; "Bill-to/Pay-to No."; Code[20])
         {
             Caption = 'Bill-to/Pay-to No.';
+            ToolTip = 'Specifies the number of the bill-to customer or pay-to vendor that the entry is linked to.';
             Editable = false;
             TableRelation = if (Type = const(Purchase)) Vendor
             else
@@ -141,6 +150,7 @@ table 741 "VAT Report Line"
         field(13; "EU 3-Party Trade"; Boolean)
         {
             Caption = 'EU 3-Party Trade';
+            ToolTip = 'Specifies if the transaction is related to trade with a third party within the EU.';
             Editable = false;
         }
         /// <summary>
@@ -149,6 +159,7 @@ table 741 "VAT Report Line"
         field(15; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             Editable = false;
             TableRelation = "Source Code";
         }
@@ -158,6 +169,7 @@ table 741 "VAT Report Line"
         field(16; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             Editable = false;
             TableRelation = "Reason Code";
         }
@@ -172,6 +184,7 @@ table 741 "VAT Report Line"
         field(19; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             Editable = false;
             TableRelation = "Country/Region";
         }
@@ -181,6 +194,7 @@ table 741 "VAT Report Line"
         field(20; "Internal Ref. No."; Text[30])
         {
             Caption = 'Internal Ref. No.';
+            ToolTip = 'Specifies the internal reference number of the VAT entry.';
             Editable = false;
         }
         /// <summary>
@@ -191,6 +205,7 @@ table 741 "VAT Report Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Unrealized Amount';
+            ToolTip = 'Specifies the unrealized VAT amount for this line if you use unrealized VAT.';
             Editable = false;
         }
         /// <summary>
@@ -201,6 +216,7 @@ table 741 "VAT Report Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Unrealized Base';
+            ToolTip = 'Specifies the unrealized base amount if you use unrealized VAT.';
             Editable = false;
         }
         field(24; "Number of Supplies"; Decimal)
@@ -223,6 +239,7 @@ table 741 "VAT Report Line"
         field(26; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
             Editable = false;
         }
         field(30; "Trade Type"; Option)
@@ -274,6 +291,7 @@ table 741 "VAT Report Line"
         field(39; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             Editable = false;
             TableRelation = "VAT Business Posting Group";
         }
@@ -283,6 +301,7 @@ table 741 "VAT Report Line"
         field(40; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             Editable = false;
             TableRelation = "VAT Product Posting Group";
         }
@@ -313,6 +332,7 @@ table 741 "VAT Report Line"
         field(55; "VAT Registration No."; Text[20])
         {
             Caption = 'VAT Registration No.';
+            ToolTip = 'Specifies the VAT registration number of the customer or vendor that the VAT entry is linked to.';
             Editable = false;
         }
         /// <summary>

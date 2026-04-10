@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -56,27 +56,23 @@ page 243 "Consolidation Setup"
                 {
                     Caption = 'Maximum number of retries';
                     ApplicationArea = All;
-                    ToolTip = 'Maximum number of retries for the complete consolidation process';
                     Visible = false;
                 }
                 field(PageSize; Rec.PageSize)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'The number of records to import in each API call';
                     Caption = 'API page size';
                     Visible = false;
                 }
                 field(MaxAttempts429; Rec.MaxAttempts429)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'The maximum number of times to retry API calls that return a 429 error';
                     Caption = 'Maximum attempts when receiving HTTP 429 responses';
                     Visible = false;
                 }
                 field(WaitMsRetries; Rec.WaitMsRetries)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'The number of milliseconds to wait between retries';
                     Caption = 'Wait between retries (ms)';
                     Visible = false;
                 }

@@ -10,11 +10,10 @@ using Microsoft.Purchases.Vendor;
 
 report 303 "Vendor Register"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/VendorRegister.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor Register';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -223,6 +222,16 @@ report 303 "Vendor Register"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/VendorRegister.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

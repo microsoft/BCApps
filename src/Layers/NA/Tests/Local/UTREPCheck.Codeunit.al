@@ -2443,6 +2443,47 @@ codeunit 141002 "UT REP Check"
         VendorLedgerEntry.Insert();
     end;
 
+    [Test]
+    [HandlerFunctions('CheckRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CheckReportMultipleInvoicesShowsVoidOnOverflowPage()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        CheckLedgerEntry: Record "Check Ledger Entry";
+        BankAccount: Record "Bank Account";
+        Vendor: Record Vendor;
+        InvoiceCount: Integer;
+    begin
+        // [FEATURE] [Check printing] [VOID] [AI test]
+        // [SCENARIO 620802] Check report with entries exceeding MaxIteration (13) shows VOID on overflow pages
+        Initialize();
+
+        // [GIVEN] Vendor with Check Date Format set
+        CreateVendor(Vendor, LibraryRandom.RandIntInRange(1, 3), LibraryRandom.RandIntInRange(0, 1));
+
+        // [GIVEN] Bank Account with Check Date Format set
+        CreateBankAccount(BankAccount, LibraryRandom.RandIntInRange(1, 3), LibraryRandom.RandIntInRange(0, 1));
+
+        // [GIVEN] 15 posted invoices for the Vendor (exceeds MaxIteration = 13)
+        InvoiceCount := 15;
+
+        // [GIVEN] Payment journal line with Applies-to ID for all invoices
+        CreateGenJournalLineWithMultipleVendorEntries(GenJournalLine, Vendor."No.", BankAccount."No.", InvoiceCount);
+
+        // [WHEN] Run Check report
+        Commit();
+        REPORT.Run(REPORT::Check);
+
+        // [THEN] First check has Entry Status = Voided (VOID page)
+        CheckLedgerEntry.SetRange("Bank Account No.", BankAccount."No.");
+        CheckLedgerEntry.SetRange("Entry Status", CheckLedgerEntry."Entry Status"::Voided);
+        Assert.RecordIsNotEmpty(CheckLedgerEntry);
+
+        // [THEN] Last check has Entry Status = Printed (actual amount)
+        CheckLedgerEntry.SetRange("Entry Status", CheckLedgerEntry."Entry Status"::Printed);
+        Assert.RecordIsNotEmpty(CheckLedgerEntry);
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
@@ -2528,6 +2569,55 @@ codeunit 141002 "UT REP Check"
         VendorLedgerEntry.Positive := true;
         VendorLedgerEntry.Insert();
         exit(VendorLedgerEntry."Entry No.");
+    end;
+
+    local procedure CreateGenJournalLineWithMultipleVendorEntries(var GenJournalLine: Record "Gen. Journal Line"; VendorNo: Code[20]; BalAccountNo: Code[20]; InvoiceCount: Integer)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        AppliesToID: Code[50];
+        TotalAmount: Decimal;
+        i: Integer;
+    begin
+        CreateGenJournalTemplateAndBatch(GenJournalBatch);
+        AppliesToID := LibraryUTUtility.GetNewCode();
+        TotalAmount := 0;
+
+        // Create vendor ledger entries
+        for i := 1 to InvoiceCount do begin
+            VendorLedgerEntry."Entry No." := SelectVendorLedgerEntryNo();
+            VendorLedgerEntry."Vendor No." := VendorNo;
+            VendorLedgerEntry."Document Type" := VendorLedgerEntry."Document Type"::Invoice;
+            VendorLedgerEntry."Document No." := LibraryUTUtility.GetNewCode();
+            VendorLedgerEntry."Applies-to ID" := AppliesToID;
+            VendorLedgerEntry.Description := 'Test Invoice ' + Format(VendorLedgerEntry."Entry No.");
+            VendorLedgerEntry."Amount to Apply" := LibraryRandom.RandIntInRange(100, 500);
+            VendorLedgerEntry.Open := true;
+            VendorLedgerEntry.Positive := true;
+            VendorLedgerEntry.Insert();
+            TotalAmount += VendorLedgerEntry."Amount to Apply";
+        end;
+
+        // Create payment journal line
+        GenJournalLine."Journal Template Name" := GenJournalBatch."Journal Template Name";
+        GenJournalLine."Journal Batch Name" := GenJournalBatch.Name;
+        GenJournalLine."Posting Date" := WorkDate();
+        GenJournalLine."Line No." := LibraryRandom.RandInt(10);
+        GenJournalLine."Account Type" := GenJournalLine."Account Type"::Vendor;
+        GenJournalLine."Account No." := VendorNo;
+        GenJournalLine."Bal. Account Type" := GenJournalLine."Bal. Account Type"::"Bank Account";
+        GenJournalLine."Bal. Account No." := BalAccountNo;
+        GenJournalLine."Document No." := LibraryUTUtility.GetNewCode();
+        GenJournalLine."Bank Payment Type" := GenJournalLine."Bank Payment Type"::"Computer Check";
+        GenJournalLine.Amount := TotalAmount;
+        GenJournalLine."Applies-to ID" := AppliesToID;
+        GenJournalLine.Description := LibraryUTUtility.GetNewCode();
+        GenJournalLine.Insert();
+
+        // Enqueue parameters for request page handler
+        // Note: BankAccount."No." is already enqueued by CreateBankAccount
+        LibraryVariableStorage.Enqueue(GenJournalLine."Journal Template Name");
+        LibraryVariableStorage.Enqueue(GenJournalLine."Journal Batch Name");
     end;
 
     local procedure UpdateVendLedgEntryDocTypeAndDisc(EntryNo: Integer; Discount: Decimal)

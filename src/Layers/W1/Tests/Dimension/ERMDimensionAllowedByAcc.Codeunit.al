@@ -1307,6 +1307,38 @@ codeunit 134234 "ERM Dimension Allowed by Acc."
         Assert.IsTrue(DimValuePerAccount.Allowed, DefDimensionIsNotAllowedMsg);
     end;
 
+    [Test]
+    procedure DeleteCustomerDeletesDimValuePerAccount()
+    var
+        Customer: Record Customer;
+        DefaultDimension: Record "Default Dimension";
+        DimensionValue: array[2] of Record "Dimension Value";
+        DimValuePerAccount: Record "Dim. Value per Account";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Deleting Customer deletes related "Dim. Value per Account" records
+        Initialize();
+
+        // [GIVEN] Create Dimensions with Values. 
+        CreateDimensionWithTwoValues(DimensionValue);
+
+        // [GIVEN] Create Customer with mandatory Default Dimension and Allowed Values Filter
+        LibrarySales.CreateCustomer(Customer);
+        CreateDefaultDimensionCodeMandatory(DefaultDimension, Database::Customer, Customer."No.", DimensionValue[1]."Dimension Code");
+
+        // [GIVEN] "Allowed Values Filter" for Customer, creating "Dim. Value per Account" records.
+        DefaultDimension.Validate("Allowed Values Filter", DimensionValue[2].Code);
+        DimValuePerAccount.SetRange("Table ID", Database::Customer);
+        DimValuePerAccount.SetRange("No.", Customer."No.");
+        Assert.RecordIsNotEmpty(DimValuePerAccount);
+
+        // [WHEN] Customer is deleted.
+        Customer.Delete(true);
+
+        // [THEN] Verify all "Dim. Value per Account" records for Customer are deleted.
+        Assert.RecordIsEmpty(DimValuePerAccount);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

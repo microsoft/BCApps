@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ table 180 "G/L Account Where-Used"
         field(2; "Table ID"; Integer)
         {
             Caption = 'Table ID';
+            ToolTip = 'Specifies the object number of the setup table where the G/L account is used.';
         }
         /// <summary>
         /// The name of the table where the G/L account is being used.
@@ -38,6 +39,7 @@ table 180 "G/L Account Where-Used"
         field(3; "Table Name"; Text[150])
         {
             Caption = 'Table Name';
+            ToolTip = 'Specifies the Table Name of the setup table where the G/L account is used.';
         }
         /// <summary>
         /// The name of the field in the table where the G/L account is being used.
@@ -45,6 +47,7 @@ table 180 "G/L Account Where-Used"
         field(5; "Field Name"; Text[150])
         {
             Caption = 'Field Name';
+            ToolTip = 'Specifies the name of the field in the setup table where the G/L account is used.';
         }
         /// <summary>
         /// A reference to the specific line or record in the setup table where the G/L account is used.
@@ -52,6 +55,7 @@ table 180 "G/L Account Where-Used"
         field(6; Line; Text[250])
         {
             Caption = 'Line';
+            ToolTip = 'Specifies a reference to Line in the setup table, where the G/L account is used. For example, the reference could be a posting group code.';
         }
         /// <summary>
         /// The G/L account number that is being referenced.

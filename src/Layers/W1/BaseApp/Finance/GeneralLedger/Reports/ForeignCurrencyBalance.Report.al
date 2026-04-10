@@ -19,11 +19,10 @@ using System.Utilities;
 /// </remarks>
 report 503 "Foreign Currency Balance"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/GeneralLedger/Reports/ForeignCurrencyBalance.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Foreign Currency Balance';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -254,6 +253,16 @@ report 503 "Foreign Currency Balance"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/GeneralLedger/Reports/ForeignCurrencyBalance.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

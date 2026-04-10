@@ -4278,6 +4278,66 @@ codeunit 137408 "SCM Warehouse VI"
         SalesOrder.Close();
     end;
 
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure OverReceiptOnInvtPutawayQtyToHandleExceedsOutstanding()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        OverReceiptCode: Record "Over-Receipt Code";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        InventoryPutaway: TestPage "Inventory Put-away";
+        OrderQty: Decimal;
+        OverReceiptQty: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Over-Receipt Quantity is correctly calculated when "Qty. to Handle" exceeds "Qty. Outstanding" on Inventory Put-away.
+
+        Initialize();
+        OrderQty := LibraryRandom.RandIntInRange(50, 100);
+        OverReceiptQty := LibraryRandom.RandIntInRange(1, 10);
+
+        // [GIVEN] Location "L" with Inventory Put-away enabled
+        LibraryWarehouse.CreateLocationWMS(Location, false, true, false, false, false);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Released Purchase Order "PO" with Quantity
+        CreatePurchaseOrder(PurchaseHeader, PurchaseLine, Location.Code, '', OrderQty);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [GIVEN] Inventory Put-away "IP" created from Purchase Order "PO"
+        LibraryWarehouse.CreateInvtPutPickPurchaseOrder(PurchaseHeader);
+        FindWarehouseActivityLine(
+            WarehouseActivityLine, WarehouseActivityLine."Source Document"::"Purchase Order",
+            PurchaseHeader."No.", WarehouseActivityLine."Activity Type"::"Invt. Put-away");
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+
+        // [WHEN] Set "Qty. to Handle" exceeding "Qty. Outstanding" on Inventory Put-away page
+        InventoryPutaway.OpenEdit();
+        InventoryPutaway.GoToRecord(WarehouseActivityHeader);
+        InventoryPutaway.WhseActivityLines.First();
+        InventoryPutaway.WhseActivityLines."Qty. to Handle".SetValue(OrderQty + OverReceiptQty);
+
+        // [THEN] "Over-Receipt Quantity" equals the excess on Warehouse Activity Line "IP"
+        InventoryPutaway.WhseActivityLines."Over-Receipt Quantity".AssertEquals(OverReceiptQty);
+
+        // [THEN] "Over-Receipt Code" is filled with default over-receipt code
+        OverReceiptCode.SetRange(Default, true);
+        OverReceiptCode.FindFirst();
+        InventoryPutaway.WhseActivityLines."Over-Receipt Code".AssertEquals(OverReceiptCode.Code);
+
+        // [THEN] Quantity on line is updated to include over-receipt
+        InventoryPutaway.WhseActivityLines.Quantity.AssertEquals(OrderQty + OverReceiptQty);
+        InventoryPutaway.Close();
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

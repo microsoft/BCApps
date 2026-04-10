@@ -223,16 +223,6 @@ codeunit 827 "Service Post Invoice Events"
     begin
     end;
 
-#if not CLEAN26
-    [Obsolete('Replaced by same procedure with parameter InvoicePostingParameters', '26.0')]
-    procedure RunOnPostLedgerEntryOnBeforeGenJnlPostLine(var GenJournalLine: Record "Gen. Journal Line"; ServiceHeader: Record "Service Header"; var TotalServiceLine: Record "Service Line"; var TotalServiceLineLCY: Record "Service Line"; PreviewMode: Boolean; SuppressCommit: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
-    var
-        DummyInvoicePostingParameters: Record "Invoice Posting Parameters";
-    begin
-        OnPostLedgerEntryOnBeforeGenJnlPostLine(GenJournalLine, ServiceHeader, TotalServiceLine, TotalServiceLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine, DummyInvoicePostingParameters);
-    end;
-#endif
-
     procedure RunOnPostLedgerEntryOnBeforeGenJnlPostLine(var GenJournalLine: Record "Gen. Journal Line"; ServiceHeader: Record "Service Header"; var TotalServiceLine: Record "Service Line"; var TotalServiceLineLCY: Record "Service Line"; PreviewMode: Boolean; SuppressCommit: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; InvoicePostingParameters: Record "Invoice Posting Parameters")
     begin
         OnPostLedgerEntryOnBeforeGenJnlPostLine(GenJournalLine, ServiceHeader, TotalServiceLine, TotalServiceLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine, InvoicePostingParameters);

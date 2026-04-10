@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -20,17 +20,14 @@ page 360 "Document Sending Profile"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to identify the document sending method in the system.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the document sending format.';
                 }
                 field(Default; Rec.Default)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if this document sending method will be used as the default method for all customers.';
                 }
             }
             group("Sending Options")
@@ -39,12 +36,10 @@ page 360 "Document Sending Profile"
                 field(Printer; Rec.Printer)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if and how the document is printed when you choose the Post and Send button. If you choose the Yes (Prompt for Settings) option, the document is printed according to settings that you must make on the printer setup dialog.';
                 }
                 field("E-Mail"; Rec."E-Mail")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if and how the document is attached as a PDF file to an email to the involved customer when you choose the Post and Send button. If you choose the Yes (Prompt for Settings) option, the document is attached to an email according to settings that you must make in the Send Email window.';
                 }
                 group(Control15)
                 {
@@ -53,7 +48,6 @@ page 360 "Document Sending Profile"
                     field("E-Mail Attachment"; Rec."E-Mail Attachment")
                     {
                         ApplicationArea = Basic, Suite;
-                        ToolTip = 'Specifies the type of file to attach.';
 
                         trigger OnValidate()
                         begin
@@ -68,7 +62,6 @@ page 360 "Document Sending Profile"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Format';
-                            ToolTip = 'Specifies how customers are set up with their preferred method of sending sales documents.';
 
                             trigger OnLookup(var Text: Text): Boolean
                             begin
@@ -89,14 +82,12 @@ page 360 "Document Sending Profile"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Combine PDF Documents';
-                            ToolTip = 'Merge selected documents into a single PDF file when you send the documents by email or print them. For example, this reduces the number of documents the recipient must process.';
                         }
                     }
                 }
                 field(Disk; Rec.Disk)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specify if the document is saved as a PDF file when you choose the Post and Send button.';
 
                     trigger OnValidate()
                     begin
@@ -127,7 +118,6 @@ page 360 "Document Sending Profile"
                 field("Electronic Document"; Rec."Electronic Document")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the document is sent as an electronic document that the customer can import into their system when you choose the Post and Send button. To use this option, you must also fill the Electronic Format field. Alternatively, the file can be saved to disk.';
                     Visible = ElectronicDocumentsVisible;
 
                     trigger OnValidate()
@@ -143,7 +133,6 @@ page 360 "Document Sending Profile"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Format';
-                        ToolTip = 'Specifies which format to use for electronic document sending. You must fill this field if you selected the Silent option in the Electronic Document field.';
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin

@@ -514,6 +514,156 @@ codeunit 139595 "Report Layouts Test"
         AlreadyUploaded := true;
     end;
 
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestNewLayoutDefaultsToDraftStatus()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] A newly created layout should default to Draft status
+        // Init
+        EnsureNewLayoutsAreCleaned();
+        BindSubscription(ReportLayoutsTest);
+
+        // Act - Create a new layout
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - Layout status should be Draft
+        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist in the Tenant Report Layout table.');
+        Assert.AreEqual(
+            Enum::"Report Layout Status"::Draft,
+            TenantReportLayout."Layout Status",
+            'New layout should default to Draft status.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler,StatusChangedMessageHandler')]
+    procedure TestSetLayoutStatusToApproved()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Setting layout status to Approved via page action updates the underlying record
+        // Init
+        EnsureNewLayoutsAreCleaned();
+        BindSubscription(ReportLayoutsTest);
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
+        ReportLayoutsPage.NewLayout.Invoke();
+
+        // Navigate to the new layout
+        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+
+        // Act - Set status to Approved
+        ReportLayoutsPage.SetApproved.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - Status should be Approved in the tenant table
+        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
+        Assert.AreEqual(
+            Enum::"Report Layout Status"::Approved,
+            TenantReportLayout."Layout Status",
+            'Layout status should be Approved after invoking SetApproved action.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler,StatusChangedMessageHandler')]
+    procedure TestSetLayoutStatusToRetired()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Setting layout status to Retired via page action updates the underlying record
+        // Init
+        EnsureNewLayoutsAreCleaned();
+        BindSubscription(ReportLayoutsTest);
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
+        ReportLayoutsPage.NewLayout.Invoke();
+
+        // Navigate to the new layout
+        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+
+        // Act - Set status to Retired
+        ReportLayoutsPage.SetRetired.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - Status should be Retired in the tenant table
+        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
+        Assert.AreEqual(
+            Enum::"Report Layout Status"::Retired,
+            TenantReportLayout."Layout Status",
+            'Layout status should be Retired after invoking SetRetired action.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler,StatusChangedMessageHandler')]
+    procedure TestSetLayoutStatusCycleDraftToApprovedToDraft()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Layout status can be cycled: Draft -> Approved -> Draft
+        // Init
+        EnsureNewLayoutsAreCleaned();
+        BindSubscription(ReportLayoutsTest);
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
+        ReportLayoutsPage.NewLayout.Invoke();
+
+        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+
+        // Act - Set to Approved then back to Draft
+        ReportLayoutsPage.SetApproved.Invoke();
+
+        // Verify intermediate state
+        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
+        Assert.AreEqual(
+            Enum::"Report Layout Status"::Approved,
+            TenantReportLayout."Layout Status",
+            'Layout status should be Approved after first transition.');
+
+        ReportLayoutsPage.SetDraft.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - Status should be back to Draft
+        Assert.IsTrue(TenantReportLayout.Get(139595, NewLayoutNameTxt, EmptyGuid), 'Layout should exist.');
+        Assert.AreEqual(
+            Enum::"Report Layout Status"::Draft,
+            TenantReportLayout."Layout Status",
+            'Layout status should be Draft after cycling back.');
+    end;
+
+    [MessageHandler]
+    procedure StatusChangedMessageHandler(Message: Text[1024])
+    begin
+    end;
+
     var
         Assert: Codeunit Assert;
         TempBlob: Codeunit "Temp Blob";

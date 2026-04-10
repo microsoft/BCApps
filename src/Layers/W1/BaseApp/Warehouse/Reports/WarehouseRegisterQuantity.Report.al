@@ -10,12 +10,11 @@ using Microsoft.Warehouse.Ledger;
 
 report 7303 "Warehouse Register - Quantity"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Warehouse/Reports/WarehouseRegisterQuantity.rdlc';
     AccessByPermission = TableData Location = R;
     ApplicationArea = Warehouse;
     Caption = 'Warehouse Register - Quantity';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -143,6 +142,16 @@ report 7303 "Warehouse Register - Quantity"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Warehouse/Reports/WarehouseRegisterQuantity.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

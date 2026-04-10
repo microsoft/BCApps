@@ -15,10 +15,9 @@ using System.Utilities;
 
 report 399 "Remittance Advice - Journal"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/RemittanceAdviceJournal.rdlc';
     Caption = 'Remittance Advice - Journal';
     WordMergeDataItem = VendLoop;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -449,6 +448,16 @@ report 399 "Remittance Advice - Journal"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/RemittanceAdviceJournal.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

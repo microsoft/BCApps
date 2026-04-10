@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,7 +28,6 @@ page 1879 "VAT Product Posting Grp Part"
                 field(Selected; Rec.Selected)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether to include the VAT product posting group on the line.';
                     Visible = VATRatesGroup;
 
                     trigger OnValidate()
@@ -45,7 +44,6 @@ page 1879 "VAT Product Posting Grp Part"
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
 
                     trigger OnValidate()
                     begin
@@ -58,7 +56,6 @@ page 1879 "VAT Product Posting Grp Part"
                 field("Application Type"; Rec."Application Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies how a cost recipient is linked to its cost source to provide cost forwarding according to the costing method.';
                     Visible = VATRatesGroup;
 
                     trigger OnValidate()
@@ -72,38 +69,32 @@ page 1879 "VAT Product Posting Grp Part"
                 field("VAT Prod. Posting Grp Desc."; Rec."VAT Prod. Posting Grp Desc.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the VAT product posting group.';
                     Visible = VATRatesGroup;
                 }
                 field("VAT %"; Rec."VAT %")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT percentage used.';
                     Visible = VATRatesGroup;
                     Width = 3;
                 }
                 field("Sales VAT Account"; Rec."Sales VAT Account")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the general ledger account number to which to post sales VAT, for the particular combination of VAT business posting group and VAT product posting group.';
                     Visible = VATAccountsGroup;
                 }
                 field("Purchase VAT Account"; Rec."Purchase VAT Account")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the general ledger account number to which to post purchase VAT.';
                     Visible = VATAccountsGroup;
                 }
                 field("Reverse Chrg. VAT Acc."; Rec."Reverse Chrg. VAT Acc.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the general ledger account number to which you want to post reverse charge VAT (purchase VAT) for this combination of VAT business posting group and VAT product posting group, if you have selected the Reverse Charge VAT option in the VAT Calculation Type field.';
                     Visible = VATAccountsGroup;
                 }
                 field("VAT Clause Desc"; Rec."VAT Clause Desc")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the VAT clause.';
                     Visible = VATClausesGroup;
                 }
             }

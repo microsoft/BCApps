@@ -49,6 +49,7 @@
         AcquisitionOptions: Option "G/L Account",Vendor,"Bank Account";
         isInitialized: Boolean;
         SalvageValueErr: Label 'There is a reclassification salvage amount that must be posted first. Open the FA Journal page, and then post the relevant reclassification entry.';
+        DepreciationAmountShouldBeRoundedErr: Label 'Depreciation amount should be rounded to whole number';
 
     [Test]
     [HandlerFunctions('AcquireFANotificationHandler,RecallNotificationHandler,ConfirmHandler')]
@@ -2963,6 +2964,121 @@
         // tear down
         FixedAssetAcqWizardPage.Close();
         LibraryNotificationMgt.RecallNotificationsForRecord(FixedAsset);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure FAReclassJournalRoundsDepreciationWhenGLIntegrationDisabled()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: array[2] of Record "Fixed Asset";
+        FADepreciationBook: array[2] of Record "FA Depreciation Book";
+        FAReclassJournalTemplate: Record "FA Reclass. Journal Template";
+        FAReclassJournalBatch: Record "FA Reclass. Journal Batch";
+        FAReclassJournalLine: Record "FA Reclass. Journal Line";
+        FAJournalLine: Record "FA Journal Line";
+        FAJournalSetup: Record "FA Journal Setup";
+        FAReclassTransferBatch: Codeunit "FA Reclass. Transfer Batch";
+        DepreciationAmount: Decimal;
+        ReclassPercent: Decimal;
+        ExpectedRoundedAmount: Decimal;
+        Index: Integer;
+        AcquisitionCostAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 626586] Depreciation amounts are rounded during FA reclassification when G/L Integration - Depreciation is disabled
+        Initialize();
+
+        // [GIVEN] Depreciation Book "DB" with "Use Rounding in Periodic Depr." = true and "G/L Integration - Depreciation" = false
+        LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
+        DepreciationBook.Validate("Use Rounding in Periodic Depr.", true);
+        DepreciationBook.Validate("G/L Integration - Acq. Cost", false);
+        DepreciationBook.Validate("G/L Integration - Depreciation", false);
+        DepreciationBook.Modify(true);
+
+        // [GIVEN] FA Journal Setup for the depreciation book
+        CreateFAJournalSetupForDepreciationBook(DepreciationBook.Code);
+
+        // [GIVEN] Two Fixed Assets "FA1" and "FA2" with FA Depreciation Books linked to "DB"
+        for Index := 1 to 2 do begin
+            LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset[Index]);
+            CreateFADepreciationBook(FADepreciationBook[Index], FixedAsset[Index]."No.", FixedAsset[Index]."FA Posting Group", DepreciationBook.Code);
+        end;
+
+
+        // [GIVEN] Posted acquisition for "FA1"
+        AcquisitionCostAmount := LibraryRandom.RandDec(1000, 2);
+        CreateAndPostFAJournalLineWithAmount(
+            FixedAsset[1]."No.", DepreciationBook.Code,
+            "FA Journal Line FA Posting Type"::"Acquisition Cost", AcquisitionCostAmount);
+
+        // [GIVEN] Posted depreciation for "FA1" (non-rounded amount)
+        DepreciationAmount := -AcquisitionCostAmount / 2;
+        CreateAndPostFAJournalLineWithAmount(
+            FixedAsset[1]."No.", DepreciationBook.Code,
+            "FA Journal Line FA Posting Type"::Depreciation, DepreciationAmount);
+
+        // [GIVEN] FA Reclass. Journal Line to reclassify "FA1" to "FA2"
+        ReclassPercent := LibraryRandom.RandDecInRange(1, 40, 2);
+        LibraryFixedAsset.CreateFAReclassJournalTemplate(FAReclassJournalTemplate);
+        LibraryFixedAsset.CreateFAReclassJournalBatch(FAReclassJournalBatch, FAReclassJournalTemplate.Name);
+        LibraryFixedAsset.CreateFAReclassJournal(FAReclassJournalLine, FAReclassJournalTemplate.Name, FAReclassJournalBatch.Name);
+        FAReclassJournalLine.Validate("FA Posting Date", WorkDate());
+        FAReclassJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
+        FAReclassJournalLine.Validate("FA No.", FixedAsset[1]."No.");
+        FAReclassJournalLine.Validate("New FA No.", FixedAsset[2]."No.");
+        FAReclassJournalLine.Validate("Depreciation Book Code", DepreciationBook.Code);
+        FAReclassJournalLine.Validate("Reclassify Acq. Cost %", ReclassPercent);
+        FAReclassJournalLine.Validate("Reclassify Acquisition Cost", true);
+        FAReclassJournalLine.Validate("Reclassify Depreciation", true);
+        FAReclassJournalLine.Modify(true);
+
+        // [WHEN] Run FA Reclass. Transfer Batch
+        FAReclassTransferBatch.Run(FAReclassJournalLine);
+
+        // [THEN] FA Journal Lines are created with rounded depreciation amounts
+        ExpectedRoundedAmount := Round(DepreciationAmount * ReclassPercent / 100, 1);
+        FAJournalSetup.Get(DepreciationBook.Code, '');
+        FAJournalLine.SetRange("Journal Template Name", FAJournalSetup."FA Jnl. Template Name");
+        FAJournalLine.SetRange("Journal Batch Name", FAJournalSetup."FA Jnl. Batch Name");
+        FAJournalLine.SetRange("FA Posting Type", FAJournalLine."FA Posting Type"::Depreciation);
+        FAJournalLine.SetRange("FA No.", FixedAsset[2]."No.");
+        FAJournalLine.FindFirst();
+        Assert.AreEqual(ExpectedRoundedAmount, FAJournalLine.Amount, DepreciationAmountShouldBeRoundedErr);
+    end;
+
+    local procedure CreateFAJournalSetupForDepreciationBook(DepreciationBookCode: Code[10])
+    var
+        FAJournalSetup: Record "FA Journal Setup";
+        FAJournalTemplate: Record "FA Journal Template";
+        FAJournalBatch: Record "FA Journal Batch";
+    begin
+        LibraryFixedAsset.CreateJournalTemplate(FAJournalTemplate);
+        LibraryFixedAsset.CreateFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
+        LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DepreciationBookCode, '');
+        FAJournalSetup.Validate("FA Jnl. Template Name", FAJournalTemplate.Name);
+        FAJournalSetup.Validate("FA Jnl. Batch Name", FAJournalBatch.Name);
+        FAJournalSetup.Modify(true);
+    end;
+
+    local procedure CreateAndPostFAJournalLineWithAmount(FANo: Code[20]; DepreciationBookCode: Code[10]; FAPostingType: Enum "FA Journal Line FA Posting Type"; Amount: Decimal)
+    var
+        FAJournalLine: Record "FA Journal Line";
+        FAJournalSetup: Record "FA Journal Setup";
+        FAJournalBatch: Record "FA Journal Batch";
+    begin
+        FAJournalSetup.Get(DepreciationBookCode, '');
+        FAJournalBatch.Get(FAJournalSetup."FA Jnl. Template Name", FAJournalSetup."FA Jnl. Batch Name");
+        LibraryFixedAsset.CreateFAJournalLine(FAJournalLine, FAJournalBatch."Journal Template Name", FAJournalBatch.Name);
+        FAJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
+        FAJournalLine.Validate("Posting Date", WorkDate());
+        FAJournalLine.Validate("FA Posting Date", WorkDate());
+        FAJournalLine.Validate("FA Posting Type", FAPostingType);
+        FAJournalLine.Validate("FA No.", FANo);
+        FAJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);
+        FAJournalLine.Validate(Amount, Amount);
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
     end;
 
     local procedure Initialize()

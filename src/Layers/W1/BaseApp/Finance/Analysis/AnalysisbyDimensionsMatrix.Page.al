@@ -49,7 +49,6 @@ page 9249 "Analysis by Dimensions Matrix"
                     ApplicationArea = Dimensions;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the code of the record.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -61,7 +60,6 @@ page 9249 "Analysis by Dimensions Matrix"
                     ApplicationArea = Dimensions;
                     Style = Strong;
                     StyleExpr = Emphasize;
-                    ToolTip = 'Specifies the name of the record.';
                 }
                 field(TotalAmount; Rec.Amount)
                 {

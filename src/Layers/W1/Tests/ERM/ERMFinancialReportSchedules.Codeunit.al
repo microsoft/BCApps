@@ -157,7 +157,7 @@ codeunit 135005 "ERM Financial Report Schedules"
     procedure ExportScheduleToEmailAndInbox()
     var
         AccScheduleName: Record "Acc. Schedule Name";
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         FinancialReportSchedule: Record "Financial Report Schedule";
         FinancialReportExportLog: Record "Financial Report Export Log";
         ReportInbox: Record "Report Inbox";
@@ -176,8 +176,8 @@ codeunit 135005 "ERM Financial Report Schedules"
         ClearScheduleJobQueueEntry();
 
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector");
-        EmailScenario.SetEmailAccount(Enum::"Email Scenario"::"Financial Report", EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount, Enum::"Email Connector"::"Test Email Connector");
+        EmailScenario.SetEmailAccount(Enum::"Email Scenario"::"Financial Report", TempEmailAccount);
 
         NewUserId := LibraryUtility.GenerateRandomCode(User.FieldNo("User Name"), Database::User);
         UserEmail := 'user@cronus.com';

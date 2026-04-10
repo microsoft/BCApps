@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,12 +25,10 @@ page 2671 "Variable Account Distribution"
                 field("Destination Account Type"; Rec."Destination Account Type")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the account type the amount will be posted to.';
                 }
                 field("Destination Account Number"; Rec."Destination Account Number")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the account number that the amount will be posted to. You can select Destination Account Number if Destination Account Type field is G/L Account or Bank Account. If Destination Account Type field is Inherit from Parent, Destination Account Number and Destination Account Type will be taken from the line when the Allocation Account No. field is set.';
                 }
                 field("Destination Account Name"; Rec.LookupDistributionAccountName())
                 {
@@ -42,12 +40,10 @@ page 2671 "Variable Account Distribution"
                 field("Breakdown Account Type"; Rec."Breakdown Account Type")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the account type the that is used to calculate percentage for the distributions.';
                 }
                 field("Breakdown Account Number"; Rec."Breakdown Account Number")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the code of the Account that is used to calculate percentage for the distributions.';
                 }
                 field("Breakdown Account Name"; Rec.LookupBreakdownAccountName())
                 {
@@ -59,7 +55,6 @@ page 2671 "Variable Account Distribution"
                 field("Calculation Period"; Rec."Calculation Period")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the period to use to calculate the account balance that is used as a percentage for the distributions.';
                 }
                 field(Filters; FiltersTxt)
                 {
@@ -77,49 +72,41 @@ page 2671 "Variable Account Distribution"
                 field("Dimension 1 Filter"; Rec."Dimension 1 Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Global Dimension 1, that will be used to filter Ledger Entries when cacluating balance.';
                     Visible = false;
                 }
                 field("Dimension 2 Filter"; Rec."Dimension 2 Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Global Dimension 2, that will be used to filter Ledger Entries when cacluating balance.';
                     Visible = false;
                 }
                 field("Dimension 3 Filter"; Rec."Dimension 3 Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 3, that will be used to filter Ledger Entries when cacluating balance.';
                     Visible = false;
                 }
                 field("Dimension 4 Filter"; Rec."Dimension 4 Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 4, that will be used to filter Ledger Entries when cacluating balance.';
                     Visible = false;
                 }
                 field("Dimension 5 Filter"; Rec."Dimension 5 Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 5, that will be used to filter Ledger Entries when cacluating balance.';
                     Visible = false;
                 }
                 field("Dimension 6 Filter"; Rec."Dimension 6 Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 6, that will be used to filter Ledger Entries when cacluating balance.';
                     Visible = false;
                 }
                 field("Dimension 7 Filter"; Rec."Dimension 7 Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 7, that will be used to filter Ledger Entries when cacluating balance.';
                     Visible = false;
                 }
                 field("Dimension 8 Filter"; Rec."Dimension 8 Filter")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 8, that will be used to filter Ledger Entries when cacluating balance.';
                     Visible = false;
                 }
             }

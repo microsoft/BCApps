@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -50,7 +50,6 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
                     AboutTitle = 'Accounts are ordered by No.';
                     AboutText = 'The account number (No.) determines where this account will appear in the chart of accounts.';
                 }
@@ -58,7 +57,6 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the name of the general ledger account.';
 
                     trigger OnValidate()
                     var
@@ -72,12 +70,10 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies whether a general ledger account is an income statement account or a balance sheet account.';
                 }
                 field("Account Category"; Rec."Account Category")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the category of the G/L account.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -105,17 +101,14 @@ page 17 "G/L Account Card"
                 field("Debit/Credit"; Rec."Debit/Credit")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of entries that will normally be posted to this general ledger account.';
                 }
                 field("Account Type"; Rec."Account Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the purpose of the account. Total: Used to total a series of balances on accounts from many different account groupings. To use Total, leave this field blank. Begin-Total: A marker for the beginning of a series of accounts to be totaled that ends with an End-Total account. End-Total: A total of a series of accounts that starts with the preceding Begin-Total account. The total is defined in the Totaling field.';
                 }
                 field(Totaling; Rec.Totaling)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an account interval or a list of account numbers. The entries of the account will be totaled to give a total balance. How entries are totaled depends on the value in the Account Type field.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -135,35 +128,29 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies the number of blank lines that you want inserted before this account in the chart of accounts.';
                 }
                 field("New Page"; Rec."New Page")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies whether you want a new page to start immediately after this general ledger account when you print the chart of accounts. Select this field to start a new page after this general ledger account.';
                 }
                 field("Search Name"; Rec."Search Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
-                    ToolTip = 'Specifies an alternate name that you can use to search for the record in question when you cannot remember the value in the Name field.';
                 }
                 field(Balance; Rec.Balance)
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the balance on this account.';
                 }
                 field("Reconciliation Account"; Rec."Reconciliation Account")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether this general ledger account will be included in the Reconciliation window in the general journal. To have the G/L account included in the window, place a check mark in the check box. You can find the Reconciliation window by clicking Actions, Posting in the General Journal window.';
                 }
                 field("Automatic Ext. Texts"; Rec."Automatic Ext. Texts")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that an extended text will be added automatically to the account.';
                 }
                 field("Direct Posting"; Rec."Direct Posting")
                 {
@@ -175,22 +162,18 @@ page 17 "G/L Account Card"
                 field(Blocked; Rec.Blocked)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the related record is blocked from being posted in transactions, for example a customer that is declared insolvent or an item that is placed in quarantine.';
                 }
                 field("Last Date Modified"; Rec."Last Date Modified")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when the G/L account was last modified.';
                 }
                 field("Omit Default Descr. in Jnl."; Rec."Omit Default Descr. in Jnl.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the default description is automatically inserted in the Description field on journal lines created for this general ledger account.';
                 }
                 field("No. 2"; Rec."No. 2")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an alternative account number which can be used internally in the company.';
                     Visible = false;
                 }
             }
@@ -200,42 +183,35 @@ page 17 "G/L Account Card"
                 field("Gen. Posting Type"; Rec."Gen. Posting Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the general posting type to use when posting to this account.';
                     ValuesAllowed = " ", Purchase, Sale;
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                 }
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                 }
                 field("Tax Group Code"; Rec."Tax Group Code")
                 {
                     ApplicationArea = SalesTax;
-                    ToolTip = 'Specifies the tax group that is used to calculate and post sales tax.';
                 }
                 field("Default IC Partner G/L Acc. No"; Rec."Default IC Partner G/L Acc. No")
                 {
                     ApplicationArea = Intercompany;
-                    ToolTip = 'Specifies accounts that you often enter in the Bal. Account No. field on intercompany journal or document lines.';
                 }
                 field("WHT Business Posting Group"; Rec."WHT Business Posting Group")
                 {
@@ -251,7 +227,6 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Default Deferral Template';
-                    ToolTip = 'Specifies the default deferral template that governs how to defer revenues and expenses to the periods when they occurred.';
                 }
             }
             group(Revaluation)
@@ -261,7 +236,6 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Source Currency Posting';
-                    ToolTip = 'Specifies how the system will validate posting of entries containing currencies. Blank will allow all currencies to be posted to the account. Same Code will only allow the currency specified in Source Currency Code. Multiple currencies will allow only posting of currencies selected in Source currency code. Local currency only allow posting without a Currency code.';
                 }
                 field("Source Currency Code"; Rec."Source Currency Code")
                 {
@@ -273,13 +247,11 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Source Currency Revaluation';
-                    ToolTip = 'Specifies if source currency revaluation should be done for this account.';
                 }
                 field("Unrealized Revaluation"; Rec."Unrealized Revaluation")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Unrealized Revaluation';
-                    ToolTip = 'Specifies if revaluation should be posted to currency realized or unrealized gains and losses accounts.';
                 }
             }
             group(Consolidation)
@@ -307,7 +279,6 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies whether the account is excluded from consolidation.';
                 }
             }
             group(Reporting)
@@ -317,7 +288,6 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = Suite;
                     Importance = Promoted;
-                    ToolTip = 'Specifies how general ledger accounts will be adjusted for exchange rate fluctuations between LCY and the additional reporting currency.';
                 }
             }
             group("Cost Accounting")
@@ -327,7 +297,6 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = CostAccounting;
                     Importance = Promoted;
-                    ToolTip = 'Specifies a cost type number to establish which cost type a general ledger account belongs to.';
                 }
             }
         }

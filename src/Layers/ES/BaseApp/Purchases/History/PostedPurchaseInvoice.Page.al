@@ -256,6 +256,14 @@ page 138 "Posted Purchase Invoice"
                         Rec.ShowCancelledCreditMemo();
                     end;
                 }
+                field("Dispute Status"; Rec."Dispute Status")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    Visible = false;
+                    Importance = Additional;
+                    ToolTip = 'Specifies if there is an ongoing dispute for this document.';
+                }
             }
             part(PurchInvLines; "Posted Purch. Invoice Subform")
             {
@@ -1300,9 +1308,9 @@ page 138 "Posted Purchase Invoice"
     begin
         DocHasMultipleRegimeCode := SIISchemeCodeMgt.PurchDocHasRegimeCodes(Rec);
     end;
-    
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateCreditMemoOnAction(var PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean)
     begin
-    end;    
+    end;
 }

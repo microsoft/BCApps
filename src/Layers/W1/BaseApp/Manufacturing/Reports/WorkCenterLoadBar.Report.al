@@ -261,6 +261,7 @@ report 99000785 "Work Center Load/Bar"
             Caption = 'Work Center Load/Bar (obsolete)';
             Type = RDLC;
             LayoutFile = './Manufacturing/Reports/WorkCenterLoadBar.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

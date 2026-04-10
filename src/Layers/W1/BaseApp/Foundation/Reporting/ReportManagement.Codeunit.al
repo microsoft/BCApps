@@ -237,33 +237,6 @@ codeunit 44 ReportManagement
         end;
     end;
 
-#if not CLEAN26
-    [Obsolete('Replaced by platform Word merge', '26.0')]
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'ApplicationReportMergeStrategy', '', false, false)]
-    local procedure ApplicationReportMergeStrategy(ObjectId: Integer; LayoutCode: Text; var InApplication: boolean)
-    var
-        IsHandled: Boolean;
-    begin
-        if InApplication = true then // Handled in another subscriber
-            exit;
-        IsHandled := false;
-        OnApplicationReportMergeStrategy(ObjectId, LayoutCode, InApplication, IsHandled);
-    end;
-#endif
-
-#if not CLEAN26
-    [Obsolete('Replaced by platform Word merge', '24.0')]
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'WordDocumentMergerAppMode', '', false, false)]
-    local procedure WordDocumentMergerAppMode(ObjectId: Integer; LayoutCode: Text; var InApplication: boolean)
-    var
-        IsHandled: Boolean;
-    begin
-        if InApplication = true then // Handled in another subscriber
-            exit;
-        IsHandled := false;
-        OnWordDocumentMergerAppMode(ObjectId, LayoutCode, InApplication, IsHandled);
-    end;
-#endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'SelectReportLayoutUI', '', false, false)]
     local procedure SelectReportLayoutUI(ObjectID: Integer; var LayoutName: Text; var LayoutAppID: Guid; var Success: Boolean)
     var
@@ -386,38 +359,6 @@ codeunit 44 ReportManagement
     local procedure OnFetchReportLayoutByCode(ObjectId: Integer; LayoutCode: Text; var TargetStream: OutStream; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN26
-    /// <summary>
-    /// Select between platform or application report rendering. 
-    /// If this trigger return InApplication = true, then run the report and layout in a custom report render using the OnCustomDocumentMergerEx event.
-    /// </summary>
-    /// <param name="ObjectId">The object id.</param>
-    /// <param name="LayoutCode">The report layout code if an application override has been set for the current run.</param>
-    /// <param name="InApplication">True if the applicaction should render the report.</param>
-    /// <param name="IsHandled">Will be set to true if the subscriber handled the action.</param>
-    [Obsolete('Replaced by customer render and layouts must be declared as custom types.', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnApplicationReportMergeStrategy(ObjectId: Integer; LayoutCode: Text; var InApplication: boolean; var IsHandled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Select between platform or application report rendering for Word reports only. 
-    /// If this trigger return InApplication = true, then run the report and layout in the legacy OnMergeDocumentReport event.
-    /// </summary>
-    /// <param name="ObjectId">The object id.</param>
-    /// <param name="LayoutCode">The report layout code if an application override has been set for the current run.</param>
-    /// <param name="InApplication">True if the applicaction should render the report.</param>
-    /// <param name="IsHandled">Will be set to true if the subscriber handled the action.</param>
-    /// <remarks>This event is for backward compatibility only and will be depricated.</remarks>
-
-    [Obsolete('Replaced by platform Word merge with version 24', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnWordDocumentMergerAppMode(ObjectId: Integer; LayoutCode: Text; var InApplication: boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnGetFilename(ReportID: Integer; Caption: Text[250]; ObjectPayload: JsonObject; FileExtension: Text[30]; ReportRecordRef: RecordRef; var Filename: Text; var Success: Boolean)

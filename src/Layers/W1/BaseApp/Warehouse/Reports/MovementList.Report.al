@@ -11,13 +11,12 @@ using System.Utilities;
 
 report 7301 "Movement List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Warehouse/Reports/MovementList.rdlc';
     AccessByPermission = TableData Location = R;
     ApplicationArea = Warehouse;
     Caption = 'Warehouse Movement';
     UsageCategory = Documents;
     WordMergeDataItem = "Warehouse Activity Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -352,6 +351,16 @@ report 7301 "Movement List"
                 SumUpLinesEditable := false;
             end;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Warehouse/Reports/MovementList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

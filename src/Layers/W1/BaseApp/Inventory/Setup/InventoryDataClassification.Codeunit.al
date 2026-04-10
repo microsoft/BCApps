@@ -63,9 +63,7 @@ codeunit 1764 "Inventory-Data Classification"
         ClassifyItemTracingBuffer();
         ClassifyItem();
         ClassifyManufacturingUserTemplate();
-#if CLEAN26
         ClassifyCapacityLedgerEntry();
-#endif
         ClassifyPhysInventoryLedgerEntry();
         ClassifyRequisitionLine();
         ClassifyReservationEntry();
@@ -695,7 +693,6 @@ codeunit 1764 "Inventory-Data Classification"
         DataClassificationMgt.SetFieldToPersonal(TableNo, DummyManufacturingUserTemplate.FieldNo("User ID"));
     end;
 
-#if CLEAN26
     local procedure ClassifyCapacityLedgerEntry()
     var
         DummyCapacityLedgerEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry";
@@ -729,5 +726,4 @@ codeunit 1764 "Inventory-Data Classification"
         DataClassificationMgt.SetFieldToCompanyConfidential(TableNo, DummyCapacityLedgerEntry.FieldNo("No."));
         DataClassificationMgt.SetFieldToCompanyConfidential(TableNo, DummyCapacityLedgerEntry.FieldNo("Entry No."));
     end;
-#endif
 }

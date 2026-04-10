@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEANSCHEMA32
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8,6 +9,14 @@ table 10604 "E-Invoice Export Header"
 {
     Caption = 'E-Invoice Export Header';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'This table is obsolete and should not be used.';
+#if CLEAN29
+    ObsoleteState = Removed;
+    ObsoleteTag = '32.0';
+#else
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+#endif
 
     fields
     {
@@ -223,4 +232,4 @@ table 10604 "E-Invoice Export Header"
     {
     }
 }
-
+#endif

@@ -40,6 +40,7 @@ codeunit 10202 "Entry Application Management"
                 PmtDtldCustLedgEntry.SetRange("Transaction No.", DtldCustLedgEntry."Transaction No.");
                 PmtDtldCustLedgEntry.SetRange("Application No.", DtldCustLedgEntry."Application No.");
                 PmtDtldCustLedgEntry.SetRange("Customer No.", DtldCustLedgEntry."Customer No.");
+                PmtDtldCustLedgEntry.SetRange("Applied Cust. Ledger Entry No.", DtldCustLedgEntry."Applied Cust. Ledger Entry No.");
                 OnGetAppliedCustEntriesOnAfterFilterPmtDtldCustLedgEntry(DtldCustLedgEntry, PmtDtldCustLedgEntry);
                 PmtDtldCustLedgEntry.FindSet();
                 repeat

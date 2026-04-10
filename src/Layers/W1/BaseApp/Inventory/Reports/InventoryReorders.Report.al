@@ -14,12 +14,11 @@ using Microsoft.Purchases.Vendor;
 
 report 717 "Inventory - Reorders"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/InventoryReorders.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Reorders';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -350,6 +349,16 @@ report 717 "Inventory - Reorders"
         begin
             TransferFromCodeEnable := true;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/InventoryReorders.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

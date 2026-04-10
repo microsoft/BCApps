@@ -89,7 +89,6 @@ codeunit 149049 "Agent Test Context Impl."
     procedure GetCopilotCreditsForLogEntry(LogEntryNo: Integer): Decimal
     var
         AgentTaskLog: Record "Agent Task Log";
-
     begin
         AgentTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
         exit(GetCopilotCredits(AgentTaskLog));
@@ -124,13 +123,13 @@ codeunit 149049 "Agent Test Context Impl."
     local procedure GetCopilotCredits(var AgentTaskLog: Record "Agent Task Log"): Decimal
     var
         AgentTask: Codeunit "Agent Task";
-        TaskIDList: List of [BigInteger];
+        TaskIDsList: List of [BigInteger];
         TotalCredits: Decimal;
     begin
         if AgentTaskLog.FindSet() then
             repeat
-                if not TaskIDList.Contains(AgentTaskLog."Agent Task ID") then begin
-                    TaskIDList.Add(AgentTaskLog."Agent Task ID");
+                if not TaskIDsList.Contains(AgentTaskLog."Agent Task ID") then begin
+                    TaskIDsList.Add(AgentTaskLog."Agent Task ID");
                     TotalCredits += AgentTask.GetCopilotCreditsConsumed(AgentTaskLog."Agent Task ID");
                 end;
             until AgentTaskLog.Next() = 0;
@@ -219,6 +218,33 @@ codeunit 149049 "Agent Test Context Impl."
                 Result += Separator + Item;
 
         exit(Result);
+    end;
+
+    procedure GetCopilotCreditsForPeriod(TestSuiteCode: Code[100]; PeriodStartDate: Date): Decimal
+    begin
+        exit(GetCopilotCreditsForPeriod(TestSuiteCode, PeriodStartDate, DT2Date(CurrentDateTime())));
+    end;
+
+    procedure GetCopilotCreditsForPeriod(TestSuiteCode: Code[100]; PeriodStartDate: Date; PeriodEndDate: Date): Decimal
+    var
+        AgentTaskLog: Record "Agent Task Log";
+    begin
+        AgentTaskLog.SetRange("Test Suite Code", TestSuiteCode);
+        AgentTaskLog.SetFilter(SystemCreatedAt, '>=%1&<=%2', CreateDateTime(PeriodStartDate, 0T), CreateDateTime(PeriodEndDate, 235959.999T));
+        exit(GetCopilotCredits(AgentTaskLog));
+    end;
+
+    procedure GetCopilotCreditsForPeriod(PeriodStartDate: Date): Decimal
+    begin
+        exit(GetCopilotCreditsForPeriod(PeriodStartDate, DT2Date(CurrentDateTime())));
+    end;
+
+    procedure GetCopilotCreditsForPeriod(PeriodStartDate: Date; PeriodEndDate: Date): Decimal
+    var
+        AgentTaskLog: Record "Agent Task Log";
+    begin
+        AgentTaskLog.SetFilter(SystemCreatedAt, '>=%1&<=%2', CreateDateTime(PeriodStartDate, 0T), CreateDateTime(PeriodEndDate, 235959.999T));
+        exit(GetCopilotCredits(AgentTaskLog));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnRunTestSuite, '', false, false)]

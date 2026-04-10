@@ -761,6 +761,7 @@ codeunit 1535 "Approvals Mgmt."
         ApprovalEntry2.SetCurrentKey("Table ID", "Document Type", "Document No.", "Sequence No.");
         ApprovalEntry2.SetRange("Record ID to Approve", ApprovalEntry."Record ID to Approve");
         ApprovalEntry2.SetRange(Status, ApprovalEntry2.Status::Created);
+        ApprovalEntry2.SetRange("Workflow Step Instance ID", ApprovalEntry."Workflow Step Instance ID");
         OnSendApprovalRequestFromApprovalEntryOnAfterSetApprovalEntry2Filters(ApprovalEntry2, ApprovalEntry);
 
         if ApprovalEntry2.FindFirst() then begin
@@ -1777,6 +1778,17 @@ codeunit 1535 "Approvals Mgmt."
         if ItemJnlTemplate.Get(Rec."Journal Template Name") then
             if not ItemJnlTemplate."Increment Batch Name" then
                 DeleteApprovalEntries(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Batch", 'OnMoveItemJournalBatch', '', false, false)]
+    procedure PostApprovalEntriesMoveItemJournalBatch(var Sender: Record "Item Journal Batch"; ToRecordID: RecordID)
+    var
+        RecordRestrictionMgt: Codeunit "Record Restriction Mgt.";
+    begin
+        if PostApprovalEntries(Sender.RecordId(), ToRecordID, '') then begin
+            RecordRestrictionMgt.AllowRecordUsage(Sender);
+            DeleteApprovalEntries(Sender.RecordId());
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Requisition Wksh. Name", 'OnAfterDeleteEvent', '', false, false)]

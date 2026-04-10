@@ -9,6 +9,7 @@ using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Reporting;
@@ -71,6 +72,7 @@ codeunit 136108 "Service Posting - Invoice"
         PostingDateBlankError: Label 'Enter the posting date.';
         ConfirmCreateEmptyPostedInvMsg: Label 'Deleting this document will cause a gap in the number series for posted invoices. An empty posted invoice %1 will be created', Comment = '%1 - Invoice No.';
         ReservationEntryNotFoundErr: Label 'Reservation Entry should be deleted.';
+        AmountInclVATNotRecalculatedErr: Label 'Amount Including VAT should be recalculated after applying Line Discount';
 
     [Test]
     [HandlerFunctions('ExpectedCostConfirmHandler,ExpectedCostMsgHandler')]
@@ -3046,6 +3048,52 @@ codeunit 136108 "Service Posting - Invoice"
 
         Assert.AreEqual(YourReference, CustLedgerEntry."Your Reference",
             'Your Reference should be transferred from Service Credit Memo to Customer Ledger Entry');
+    end;
+
+    [Test]
+    procedure AmountRecalculatedOnLineDiscountWithTaxAreaCode()
+    var
+        Customer: Record Customer;
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        TaxArea: Record "Tax Area";
+        ExpectedAmount: Decimal;
+        LineDiscountPct: Decimal;
+        Quantity: Decimal;
+        UnitPrice: Decimal;
+    begin
+        // [FEATURE] [Invoice] [Tax Area Code]
+        // [SCENARIO 624499] Amount and Amount Incl. Tax fields are recalculated on Service Invoice line when Line Discount % changes and Tax Area Code is not blank
+        Initialize();
+
+        // [GIVEN] Tax Area with a code
+        LibraryERM.CreateTaxArea(TaxArea);
+
+        // [GIVEN] Customer with "Tax Area Code"
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Tax Area Code", TaxArea.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Service Invoice for the Customer with one line: Item with random Quantity and Unit Price
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, Customer."No.");
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
+        Quantity := LibraryRandom.RandIntInRange(1, 10);
+        UnitPrice := LibraryRandom.RandDecInRange(100, 200, 2);
+        ServiceLine.Validate(Quantity, Quantity);
+        ServiceLine.Validate("Unit Price", UnitPrice);
+        ServiceLine.Modify(true);
+
+        // [WHEN] Set Line Discount % to a random value.
+        LineDiscountPct := LibraryRandom.RandDecInRange(5, 20, 2);
+        ServiceLine.Validate("Line Discount %", LineDiscountPct);
+        ServiceLine.Modify(true);
+
+        // [THEN] Amount is recalculated as Quantity * Unit Price * (1 - Line Discount % / 100)
+        ExpectedAmount := Round(Quantity * UnitPrice * (1 - LineDiscountPct / 100));
+        ServiceLine.TestField(Amount, ExpectedAmount);
+
+        // [THEN] "Amount Including VAT" is recalculated (should not remain equal to Quantity * Unit Price)
+        Assert.AreNotEqual(Quantity * UnitPrice, ServiceLine."Amount Including VAT", AmountInclVATNotRecalculatedErr);
     end;
 
     local procedure Initialize()

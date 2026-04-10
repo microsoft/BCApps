@@ -705,7 +705,7 @@ codeunit 419 "File Management"
                     Error(NotAllowedPathErr, Path);
                 end;
             end;
-        exit(true)
+        exit(true);
     end;
 
     procedure AppendFileNameWithIndex(OriginalFileName: Text; AppendIndex: Integer): Text

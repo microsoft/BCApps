@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ table 354 "Default Dimension Priority"
         field(2; "Table ID"; Integer)
         {
             Caption = 'Table ID';
+            ToolTip = 'Specifies the table ID for the account type, if you want to prioritize an account type.';
             NotBlank = true;
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
 
@@ -69,6 +70,7 @@ table 354 "Default Dimension Priority"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
                                                                            "Object ID" = field("Table ID")));
             Caption = 'Table Caption';
+            ToolTip = 'Specifies the table name for the account type you wish to prioritize.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -78,6 +80,7 @@ table 354 "Default Dimension Priority"
         field(4; Priority; Integer)
         {
             Caption = 'Priority';
+            ToolTip = 'Specifies the priority of an account type, with the highest priority being 1.';
             MinValue = 1;
         }
     }

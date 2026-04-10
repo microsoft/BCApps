@@ -23,12 +23,14 @@ table 344 "VAT Reporting Code"
         /// </summary>
         field(1; Code; Code[20])
         {
+            ToolTip = 'Specifies the VAT reporting code.';
         }
         /// <summary>
         /// Description of the VAT reporting code purpose and usage.
         /// </summary>
         field(2; Description; Text[250])
         {
+            ToolTip = 'Specifies the description of the VAT reporting code.';
         }
         field(10600; "Gen. Posting Type"; Option)
         {

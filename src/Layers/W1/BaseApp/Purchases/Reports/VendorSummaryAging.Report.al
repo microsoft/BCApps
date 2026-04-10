@@ -13,8 +13,6 @@ using System.Utilities;
 
 report 305 "Vendor - Summary Aging"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/VendorSummaryAging.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor - Summary Aging (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
@@ -22,6 +20,7 @@ report 305 "Vendor - Summary Aging"
     ObsoleteState = Pending;
     ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
     ObsoleteTag = '28.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -344,6 +343,16 @@ report 305 "Vendor - Summary Aging"
             if Format(PeriodLengthReq) = '' then
                 Evaluate(PeriodLengthReq, '<1M>');
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/VendorSummaryAging.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

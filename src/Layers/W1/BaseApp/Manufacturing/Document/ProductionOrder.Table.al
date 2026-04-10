@@ -126,6 +126,7 @@ table 5405 "Production Order"
                 Item: Record Item;
                 Family: Record Family;
                 SalesHeader: Record "Sales Header";
+                StockkeepingUnit: Record "Stockkeeping Unit";
             begin
                 if "Source No." <> xRec."Source No." then begin
                     CheckProdOrderStatus(FieldCaption("Source No."));
@@ -143,6 +144,10 @@ table 5405 "Production Order"
                             InitFromSourceNo(
                               Item.Description, Item."Description 2", Item."Routing No.",
                               Item."Inventory Posting Group", Item."Gen. Prod. Posting Group", '', Item."Unit Cost");
+                            if StockkeepingUnit.Get("Location Code", "Source No.", "Variant Code") and
+                               (StockkeepingUnit."Routing No." <> '')
+                            then
+                                "Routing No." := StockkeepingUnit."Routing No.";
                             CreateDimFromDefaultDim();
                             OnBeforeAssignItemNo(Rec, xRec, Item, CurrFieldNo);
                         end;
@@ -1145,7 +1150,7 @@ table 5405 "Production Order"
                 Rec, CurrFieldNo, DefaultDimSource, '', "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code", 0, 0);
         end;
 
-        OnAfterCreateDim(Rec, DefaultDimSource);
+        OnAfterCreateDim(Rec, DefaultDimSource, xRec);
     end;
 
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
@@ -1720,7 +1725,7 @@ table 5405 "Production Order"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCreateDim(var ProductionOrder: Record "Production Order"; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
+    local procedure OnAfterCreateDim(var ProductionOrder: Record "Production Order"; DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; xProductionOrder: Record "Production Order")
     begin
     end;
 

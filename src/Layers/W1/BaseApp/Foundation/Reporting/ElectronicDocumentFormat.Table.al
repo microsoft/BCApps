@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,20 +24,24 @@ table 61 "Electronic Document Format"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies a code to identify the electronic document format in the system.';
             NotBlank = true;
         }
         field(2; Usage; Enum "Electronic Document Format Usage")
         {
             Caption = 'Usage';
+            ToolTip = 'Specifies if the electronic document format is used for sales invoices or sales credit memos.';
         }
         field(4; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the electronic document format.';
         }
         field(5; "Codeunit ID"; Integer)
         {
             BlankZero = true;
             Caption = 'Codeunit ID';
+            ToolTip = 'Specifies which codeunit is used to manage electronic document sending for this document sending method.';
             NotBlank = true;
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Codeunit));
 
@@ -57,6 +61,7 @@ table 61 "Electronic Document Format"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
                                                                            "Object ID" = field("Codeunit ID")));
             Caption = 'Codeunit Caption';
+            ToolTip = 'Specifies the name of the codeunit.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -64,6 +69,7 @@ table 61 "Electronic Document Format"
         {
             BlankZero = true;
             Caption = 'Delivery Codeunit ID';
+            ToolTip = 'Specifies which delivery codeunit is used to manage electronic document sending for this document sending method.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Codeunit));
         }
         field(8; "Delivery Codeunit Caption"; Text[250])
@@ -71,6 +77,7 @@ table 61 "Electronic Document Format"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
                                                                            "Object ID" = field("Delivery Codeunit ID")));
             Caption = 'Delivery Codeunit Caption';
+            ToolTip = 'Specifies the name of the delivery codeunit.';
             Editable = false;
             FieldClass = FlowField;
         }

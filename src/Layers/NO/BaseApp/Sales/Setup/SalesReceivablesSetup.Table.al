@@ -10,7 +10,9 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Setup;
+#if not CLEAN29
 using Microsoft.Foundation.Company;
+#endif
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Integration.D365Sales;
@@ -1067,22 +1069,56 @@ table 311 "Sales & Receivables Setup"
                 DocumentTools.TestKIDSetup(Rec);
             end;
         }
+#if not CLEANSCHEMA32
         field(10608; "E-Invoice Sales Invoice Path"; Text[250])
         {
             Caption = 'E-Invoice Sales Invoice Path';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10609; "E-Invoice Sales Cr. Memo Path"; Text[250])
         {
             Caption = 'E-Invoice Sales Cr. Memo Path';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10610; "E-Invoice Reminder Path"; Text[250])
         {
             Caption = 'E-Invoice Reminder Path';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
         field(10611; "E-Invoice Fin. Charge Path"; Text[250])
         {
             Caption = 'E-Invoice Fin. Charge Path';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
     }
 
     keys
@@ -1119,6 +1155,7 @@ table 311 "Sales & Receivables Setup"
         RecordHasBeenRead := true;
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Returns the legal statement text to be displayed on sales documents. Base implementation returns an empty string; localized versions may override this.
     /// </summary>
@@ -1130,6 +1167,16 @@ table 311 "Sales & Receivables Setup"
         CompanyInformation.Get();
         exit(CompanyInformation.GetEnterpriseClassification());
     end;
+#else
+    /// <summary>
+    /// Returns the legal statement text to be displayed on sales documents. Base implementation returns an empty string; localized versions may override this.
+    /// </summary>
+    /// <returns>The legal statement text.</returns>
+    procedure GetLegalStatement(): Text
+    begin
+        exit('');
+    end;
+#endif
 
     /// <summary>
     /// Determines whether sales document posting is configured to use the job queue for background processing.

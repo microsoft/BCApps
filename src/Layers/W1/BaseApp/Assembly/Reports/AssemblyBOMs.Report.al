@@ -9,12 +9,11 @@ using Microsoft.Inventory.Item;
 
 report 801 "Assembly BOMs"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Assembly/Reports/AssemblyBOMs.rdlc';
     AdditionalSearchTerms = 'bill of material';
     ApplicationArea = Assembly;
     Caption = 'BOMs';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -93,6 +92,16 @@ report 801 "Assembly BOMs"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Assembly/Reports/AssemblyBOMs.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -23,6 +23,7 @@ table 321 "Tax Group"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the code you want to assign to this tax group.';
             NotBlank = true;
         }
         /// <summary>
@@ -31,6 +32,7 @@ table 321 "Tax Group"
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the tax group. For example, if the tax group code is ALCOHOL, you could enter the description Alcoholic beverages.';
         }
         /// <summary>
         /// Timestamp of the last modification to this tax group record.

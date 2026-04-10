@@ -123,37 +123,6 @@ page 1179 "Job Queue Notification Wizard"
                         Caption = 'Control notifications with business events (preview)';
                     }
                 }
-#if not CLEAN26
-                group("Para3.2")
-                {
-                    ObsoleteReason = 'This group is not used.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    ShowCaption = false;
-                    field(VTAndBEEnabled; VTAndBEEnabledLbl)
-                    {
-                        ApplicationArea = All;
-                        Editable = false;
-                        ShowCaption = false;
-                        Visible = false;
-                        StyleExpr = 'Favorable';
-                        ObsoleteReason = 'This field is not used.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '26.0';
-                    }
-                    field(VTAndBEDisabled; VTAndBEDisabledLbl)
-                    {
-                        ApplicationArea = All;
-                        Editable = false;
-                        ShowCaption = false;
-                        Visible = false;
-                        StyleExpr = 'Unfavorable';
-                        ObsoleteReason = 'This field is not used.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '26.0';
-                    }
-                }
-#endif
                 group("Para3.3")
                 {
                     ShowCaption = false;
@@ -287,23 +256,6 @@ page 1179 "Job Queue Notification Wizard"
                     NextStep(false);
                 end;
             }
-#if not CLEAN26
-            action(Refresh)
-            {
-                ApplicationArea = All;
-                Caption = '&Refresh';
-                Image = Refresh;
-                InFooterBar = true;
-                Visible = false;
-                ObsoleteReason = 'This action is not needed.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '26.0';
-                trigger OnAction()
-                begin
-                    UpdateControls();
-                end;
-            }
-#endif
             action(FinishAction)
             {
                 ApplicationArea = Jobs;
@@ -356,10 +308,6 @@ page 1179 "Job Queue Notification Wizard"
         NotifyAfterThreshold: Boolean;
         Threshold1: Integer;
         Threshold2: Integer;
-#if not CLEAN26
-        VTAndBEEnabledLbl: Label 'Virtual tables and Business Events are enabled.';
-        VTAndBEDisabledLbl: Label 'Virtual tables and Business Events are disabled.';
-#endif
         CreateFlowFromTemplateTipLbl: Label 'You can set up automated flow to be used to notify users of Job Queue issues on Job Queue Entries page.';
         CreateFlowFromTemplateLbl: Label 'Open Job Queue Entries page to create an automated flow for Job Queue failure notification.';
         Threshold1MustBeGreaterThanOrEqualTo0Err: Label 'Threshold 1 must be greater than or equal to 0.';

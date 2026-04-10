@@ -13,6 +13,7 @@ using Microsoft.CRM.Task;
 using Microsoft.Finance.Dimension;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Purchases.Payables;
+using Microsoft.Sales.Receivables;
 using System.Email;
 
 table 13 "Salesperson/Purchaser"
@@ -448,14 +449,20 @@ table 13 "Salesperson/Purchaser"
 
     trigger OnDelete()
     var
+        CustomerLedgEntry: Record "Cust. Ledger Entry";
         TeamSalesperson: Record "Team Salesperson";
         TodoTask: Record "To-do";
         Opportunity: Record Opportunity;
-        VendLedgEntry: Record "Vendor Ledger Entry";
+        VendorLedgEntry: Record "Vendor Ledger Entry";
     begin
-        VendLedgEntry.Reset();
-        VendLedgEntry.SetRange("Purchaser Code", Code);
-        if not VendLedgEntry.IsEmpty() then
+        CustomerLedgEntry.Reset();
+        CustomerLedgEntry.SetRange("Salesperson Code", Code);
+        if not CustomerLedgEntry.IsEmpty() then
+            Error(CannotDeleteBecauseCustLedgerEntriesErr, Code);
+
+        VendorLedgEntry.Reset();
+        VendorLedgEntry.SetRange("Purchaser Code", Code);
+        if not VendorLedgEntry.IsEmpty() then
             Error(CannotDeleteBecauseVendLedgerEntriesErr, Code);
 
         TodoTask.Reset();
@@ -507,6 +514,7 @@ table 13 "Salesperson/Purchaser"
         PrivacyBlockedGenericTxt: Label 'Privacy Blocked must not be true for %1 %2.', Comment = '%1 = Salesperson / Purchaser, %2 = salesperson / purchaser code.';
         CannotDeleteBecauseActiveOpportunitiesErr: Label 'You cannot delete the salesperson/purchaser with code %1 because it has open opportunities.', Comment = '%1 = Salesperson/Purchaser code.';
         CannotDeleteBecauseVendLedgerEntriesErr: Label 'The salesperson/purchaser %1 cannot be deleted because vendor ledger entries exist.', Comment = '%1 = Salesperson/Purchaser code.';
+        CannotDeleteBecauseCustLedgerEntriesErr: Label 'The salesperson/purchaser %1 cannot be deleted because customer ledger entries exist.', Comment = '%1 = Salesperson/Purchaser code.';
 
     procedure CreateInteraction()
     var

@@ -25,7 +25,6 @@ page 4 "Payment Terms"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to identify this set of payment terms.';
                 }
                 field("Payment Nos."; Rec."Payment Nos.")
                 {

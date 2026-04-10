@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,15 +21,18 @@ table 9 "Country/Region"
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the country/region of the address.';
             NotBlank = true;
         }
         field(2; Name; Text[50])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the country/region of the address.';
         }
         field(4; "ISO Code"; Code[2])
         {
             Caption = 'ISO Code';
+            ToolTip = 'Specifies a two-letter country code defined in ISO 3166-1.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -47,6 +50,7 @@ table 9 "Country/Region"
         field(5; "ISO Numeric Code"; Code[3])
         {
             Caption = 'ISO Numeric Code';
+            ToolTip = 'Specifies a three-digit code number defined in ISO 3166-1.';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -62,14 +66,17 @@ table 9 "Country/Region"
         field(6; "EU Country/Region Code"; Code[10])
         {
             Caption = 'EU Country/Region Code';
+            ToolTip = 'Specifies the EU code for the country/region you are doing business with.';
         }
         field(7; "Intrastat Code"; Code[10])
         {
             Caption = 'Intrastat Code';
+            ToolTip = 'Specifies an INTRASTAT code for the country/region you are trading with.';
         }
         field(8; "Address Format"; Enum "Country/Region Address Format")
         {
             Caption = 'Address Format';
+            ToolTip = 'Specifies the format of the address that is displayed on external-facing documents. You link an address format to a country/region code so that external-facing documents based on cards or documents with that country/region code use the specified address format. NOTE: If the County field is filled in, then the county will be printed above the country/region unless you select the City+County+Post Code option.';
             InitValue = "City+Post Code";
 
             trigger OnValidate()
@@ -85,6 +92,7 @@ table 9 "Country/Region"
         field(9; "Contact Address Format"; Option)
         {
             Caption = 'Contact Address Format';
+            ToolTip = 'Specifies where you want the contact name to appear in mailing addresses.';
             InitValue = "After Company Name";
             OptionCaption = 'First,After Company Name,Last';
             OptionMembers = First,"After Company Name",Last;
@@ -92,6 +100,7 @@ table 9 "Country/Region"
         field(10; "VAT Scheme"; Code[10])
         {
             Caption = 'VAT Scheme';
+            ToolTip = 'Specifies the national body that issues the VAT registration number for the country/region in connection with electronic document sending.';
         }
         field(11; "Last Modified Date Time"; DateTime)
         {
@@ -101,6 +110,7 @@ table 9 "Country/Region"
         field(12; "County Name"; Text[30])
         {
             Caption = 'County Name';
+            ToolTip = 'Specifies the name of the county.';
         }
     }
 

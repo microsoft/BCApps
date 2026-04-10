@@ -29,6 +29,7 @@ table 319 "Tax Area Line"
         field(2; "Tax Jurisdiction Code"; Code[10])
         {
             Caption = 'Tax Jurisdiction Code';
+            ToolTip = 'Specifies a tax jurisdiction code.';
             NotBlank = true;
             TableRelation = "Tax Jurisdiction";
         }
@@ -39,6 +40,7 @@ table 319 "Tax Area Line"
         {
             CalcFormula = lookup("Tax Jurisdiction".Description where(Code = field("Tax Jurisdiction Code")));
             Caption = 'Jurisdiction Description';
+            ToolTip = 'Specifies the description from the tax jurisdiction table when you enter the tax jurisdiction code.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -49,6 +51,7 @@ table 319 "Tax Area Line"
         field(4; "Calculation Order"; Integer)
         {
             Caption = 'Calculation Order';
+            ToolTip = 'Specifies an integer to determine the sequence the program must use when tax is calculated.';
             MinValue = 0;
         }
     }

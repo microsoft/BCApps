@@ -14,10 +14,9 @@ using System.Utilities;
 
 report 7302 "Whse. Invt.-Registering - Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Warehouse/Reports/WhseInvtRegisteringTest.rdlc';
     Caption = 'Whse. Invt.-Registering - Test';
     WordMergeDataItem = "Warehouse Journal Batch";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -295,6 +294,16 @@ report 7302 "Whse. Invt.-Registering - Test"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Warehouse/Reports/WhseInvtRegisteringTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

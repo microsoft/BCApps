@@ -139,7 +139,7 @@ codeunit 139064 "Monitor Sensitive Field Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure MonitorSensitiveFieldWithNewEmailModule()
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         FieldMonitoringSetup: Record "Field Monitoring Setup";
         User: Record User;
         ChangeLogEntry: Record "Change Log Entry";
@@ -151,7 +151,7 @@ codeunit 139064 "Monitor Sensitive Field Test"
         LibraryLowerPermissions.SetOutsideO365Scope();
         InsertUser(User, 'TESTUSER', 'test@contoso.com');
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(TempEmailAccount);
         MonitorFieldTestHelper.InitMonitor();
 
         LibraryLowerPermissions.SetSecurity();
@@ -160,8 +160,8 @@ codeunit 139064 "Monitor Sensitive Field Test"
         LibraryLowerPermissions.AddO365BusFull();
 
         MonitorSensitiveField.GetSetupTable(FieldMonitoringSetup);
-        FieldMonitoringSetup.Validate("Email Account Name", EmailAccount.Name);
-        FieldMonitoringSetup.Validate("Email Account Id", EmailAccount."Account Id");
+        FieldMonitoringSetup.Validate("Email Account Name", TempEmailAccount.Name);
+        FieldMonitoringSetup.Validate("Email Account Id", TempEmailAccount."Account Id");
         FieldMonitoringSetup.Validate("User Id", User."User Name");
         FieldMonitoringSetup.Validate("Email Connector", FieldMonitoringSetup."Email Connector"::"Test Email Connector");
         FieldMonitoringSetup.Modify();

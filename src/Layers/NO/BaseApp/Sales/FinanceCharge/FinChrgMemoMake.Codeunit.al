@@ -231,7 +231,9 @@ codeunit 394 "FinChrgMemo-Make"
                 FinChrgMemoLine."Line No." := NextLineNo;
                 FinChrgMemoLine.SetFinChrgMemoHeader(FinChrgMemoHeader);
                 FinChrgMemoLine.Type := FinChrgMemoLine.Type::"Customer Ledger Entry";
+#if not CLEAN29
                 FinChrgMemoLine."Account Code" := FinChrgMemoHeader."Account Code";
+#endif
                 FinChrgMemoLine.SetCheckingMode(Checking);
                 FinChrgMemoLine.Validate("Entry No.", CustLedgEntry."Entry No.");
                 if CurrencyCode <> '' then

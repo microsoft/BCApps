@@ -24,12 +24,10 @@ page 366 "Electronic Document Formats"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to identify the electronic document format in the system.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the electronic document format.';
                 }
             }
         }

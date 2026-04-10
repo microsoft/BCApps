@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -33,6 +33,7 @@ table 551 "VAT Rate Change Conversion"
         field(2; "From Code"; Code[20])
         {
             Caption = 'From Code';
+            ToolTip = 'Specifies the current VAT product posting group that will be changed in connection with the VAT rate conversion.';
             NotBlank = true;
             TableRelation = if (Type = const("VAT Prod. Posting Group")) "VAT Product Posting Group"
             else
@@ -49,6 +50,7 @@ table 551 "VAT Rate Change Conversion"
         field(3; "To Code"; Code[20])
         {
             Caption = 'To Code';
+            ToolTip = 'Specifies the new general product posting group that will result from the conversion in connection with the VAT rate conversion.';
             NotBlank = true;
             TableRelation = if (Type = const("VAT Prod. Posting Group")) "VAT Product Posting Group"
             else
@@ -68,6 +70,7 @@ table 551 "VAT Rate Change Conversion"
         field(10; "Converted Date"; Date)
         {
             Caption = 'Converted Date';
+            ToolTip = 'Specifies the date on which the VAT rate change conversion was performed.';
             Editable = false;
         }
     }

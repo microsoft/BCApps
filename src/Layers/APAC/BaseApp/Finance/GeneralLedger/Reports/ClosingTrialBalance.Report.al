@@ -21,12 +21,11 @@ using System.Utilities;
 /// </remarks>
 report 10 "Closing Trial Balance"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Finance/GeneralLedger/Reports/ClosingTrialBalance.rdlc';
     AdditionalSearchTerms = 'year closing balance,close accounting period balance,close fiscal year balance';
     ApplicationArea = Basic, Suite;
     Caption = 'Closing Trial Balance';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -225,6 +224,16 @@ report 10 "Closing Trial Balance"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Finance/GeneralLedger/Reports/ClosingTrialBalance.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

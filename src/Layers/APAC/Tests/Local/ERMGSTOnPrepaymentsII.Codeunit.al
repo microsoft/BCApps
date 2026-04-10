@@ -298,53 +298,6 @@ codeunit 141027 "ERM GST On Prepayments II"
           GeneralLedgerSetup."Enable GST (Australia)", GeneralLedgerSetup."GST Report", GeneralLedgerSetup."Full GST on Prepayment");
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseOrderStatisticsModalPageHandler,VATAmountLinesModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure PostPurchaseOrderAfterUpdatingVATAmtonVATAmtLine()
-    var
-        Item: Record Item;
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        PurchaseLine2: Record "Purchase Line";
-        VATPostingSetup: Record "VAT Posting Setup";
-        Vendor: Record Vendor;
-        DocumentNo: Code[20];
-        OldAllowVATDifference: Boolean;
-        VATAmount: Decimal;
-    begin
-        // [SCENARIO] G/L Entries after posting Purchase Order with Negative Lines and Update VAT Amount on VAT Amount Lines.
-
-        // [GIVEN] Update Purchases & Payable Setup, create Vendor.
-        Initialize();
-        OldAllowVATDifference := UpdateAllowVATDifferencePurchasesPayablesSetup(true);  // TRUE for Allow VAT Difference.
-        UpdateMaxVATDifferenceAllowedGeneralLedgerSetup();
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        LibraryPurchase.CreateVendor(Vendor);
-
-        // Create Purchase Order with multiple lines and update Quantity to Receive.
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        CreatePurchaseLine(PurchaseLine, PurchaseHeader, LibraryInventory.CreateItem(Item), LibraryRandom.RandDec(10, 2));  // Taking random for Quantity.
-        CreatePurchaseLine(PurchaseLine2, PurchaseHeader, PurchaseLine."No.", -LibraryRandom.RandDec(10, 2));  // Taking random for Quantity.
-        PurchaseLine2.Validate("Qty. to Receive", 0);
-        PurchaseLine2.Modify(true);
-        VATAmount := (PurchaseLine.Amount * PurchaseLine."VAT %" / 100) + LibraryRandom.RandDec(1, 2);  // Added random value to VAT Amount.
-        LibraryVariableStorage.Enqueue(VATAmount);  // Enqueue for VATAmountLinesPageHandler.
-        OpenPurchaseOrderStatisticsPage(PurchaseHeader."No.");
-
-        // Exercise.
-        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
-
-        // [THEN] Verify VAT Amount on G/L Entry.
-        VerifyAmountOnGLEntry(DocumentNo, VATPostingSetup."Purchase VAT Account", VATAmount);
-
-        // Tear Down.
-        UpdateAllowVATDifferencePurchasesPayablesSetup(OldAllowVATDifference);
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('PurchaseOrderStatisticsPageHandler,VATAmountLinesModalPageHandler')]
     [Scope('OnPrem')]
@@ -388,54 +341,6 @@ codeunit 141027 "ERM GST On Prepayments II"
         // Tear Down.
         UpdateAllowVATDifferencePurchasesPayablesSetup(OldAllowVATDifference);
     end;
-
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsModalPageHandler,VATAmountLinesModalPageHandler')]
-    [Scope('OnPrem')]
-    procedure PostSalesOrderAfterUpdatingVATAmtonVATAmtLine()
-    var
-        Customer: Record Customer;
-        Item: Record Item;
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesLine2: Record "Sales Line";
-        VATPostingSetup: Record "VAT Posting Setup";
-        DocumentNo: Code[20];
-        OldAllowVATDifference: Boolean;
-        VATAmount: Decimal;
-    begin
-        // [SCENARIO] G/L Entries after posting Sales Order with Negative Lines and Update VAT Amount on VAT Amount Lines.
-
-        // [GIVEN] Update Sales & Receivable Setup, create Item, create Customer.
-        Initialize();
-        OldAllowVATDifference := UpdateAllowVATDifferenceSalesReceivableSetup(true);  // TRUE for Allow VAT Difference.
-        UpdateMaxVATDifferenceAllowedGeneralLedgerSetup();
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        LibrarySales.CreateCustomer(Customer);
-
-        // Create Sales Order with multiple lines and update Quantity to Receive.
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
-        CreateSalesLine(
-          SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItem(Item), LibraryRandom.RandDec(10, 2));  // Taking random for Quantity.
-        CreateSalesLine(SalesLine2, SalesHeader, SalesLine2.Type::Item, SalesLine."No.", -LibraryRandom.RandDec(10, 2));  // Taking random for Quantity.
-        SalesLine2.Validate("Qty. to Ship", 0);
-        SalesLine2.Modify(true);
-        VATAmount := (SalesLine.Amount * SalesLine."VAT %" / 100) + LibraryRandom.RandDec(1, 2);
-        LibraryVariableStorage.Enqueue(VATAmount);  // Enqueue for VATAmountLinesPageHandler.
-        OpenSalesOrderStatisticsPage(SalesHeader."No.");
-
-        // Exercise.
-        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-
-        // [THEN] Verify VAT Amount on G/L Entry.
-        VerifyAmountOnGLEntry(DocumentNo, VATPostingSetup."Sales VAT Account", -VATAmount);
-
-        // Tear Down.
-        UpdateAllowVATDifferenceSalesReceivableSetup(OldAllowVATDifference);
-    end;
-#endif
 
     [Test]
     [HandlerFunctions('SalesOrderStatisticsPageHandler,VATAmountLinesModalPageHandler')]
@@ -1303,77 +1208,6 @@ codeunit 141027 "ERM GST On Prepayments II"
         VATEntry.TestField(Base, PurchaseLine."Direct Unit Cost");
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('PurchaseOrderStatisticsModalHandler')]
-    [Scope('OnPrem')]
-    procedure VerifyInvoiceRoundingOnAfterReleaseOrStats()
-    var
-        Item: Record Item;
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        VATPostingSetup: Record "VAT Posting Setup";
-        Currency: Record Currency;
-        Vendor: Record Vendor;
-        PurchaseOrder: TestPage "Purchase Order";
-        CurrencyCode: Code[10];
-        DirectUnitCost: Decimal;
-    begin
-        // [SCENARIO 447990]  The Rounding down function is not working after clicking 'Statistics' or 'Release' in PO, because the amount will be rounded up after clicking 'Statics' or 'Release' .
-        Initialize();
-
-        // [GIVEN] Save direct unit cost 
-        DirectUnitCost := 3082888;
-
-        // [GIVEN] Update Gen ledger setup
-        UpdateGenLedgerSetup();
-
-        // [GIVEN] Create currency code and update Rounding type to down
-        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(
-            DMY2Date(1, 1, 2000), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
-        Currency.Get(CurrencyCode);
-        UpdateCurrency(Currency);
-
-        // [THEN] Find vat posting setup and update percentage as 11
-        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
-        VATPostingSetup."VAT %" := 11;
-        VATPostingSetup.Modify();
-
-        // [GIVEN] Create vendor and upate VAT Bus posting group.
-        LibraryPurchase.CreateVendor(Vendor);
-        Vendor.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
-        Vendor.Modify();
-
-        // [GIVEN] Create item and update VATProd posting group.
-        LibraryInventory.CreateItem(Item);
-        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
-        Item.Validate("VAT Bus. Posting Gr. (Price)", VATPostingSetup."VAT Bus. Posting Group");
-        Item.Modify();
-
-        // [GIVEN] Create Purchase Header and update currency code
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        PurchaseHeader.Validate("Currency Code", Currency.Code);
-        PurchaseHeader.Modify();
-
-        // [GIVEN] Create purchase line and update direct unit cost.
-        CreatePurchaseLine(PurchaseLine, PurchaseHeader, Item."No.", 1);
-        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
-        PurchaseLine.Modify();
-
-        // [THEN] Open purchase order and enqueue Value 
-        PurchaseOrder.OpenEdit();
-        PurchaseOrder.GotoRecord(PurchaseHeader);
-        LibraryVariableStorage.Clear();
-        LibraryVariableStorage.Enqueue(PurchaseOrder.PurchLines."Invoice Discount Amount".AsDecimal());
-        LibraryVariableStorage.Enqueue(PurchaseOrder.PurchLines."Total Amount Incl. VAT".AsDecimal());
-        LibraryVariableStorage.Enqueue(PurchaseOrder.PurchLines."Total VAT Amount".AsDecimal());
-        PurchaseOrder.Statistics.Invoke();
-
-        // [VERIFY] Verify VAT Amount and all other value on Purchase Order Statistics handler page.
-    end;
-#endif
-
     [Test]
     [HandlerFunctions('PurchaseOrderStatsPageHandler')]
     [Scope('OnPrem')]
@@ -1713,19 +1547,6 @@ codeunit 141027 "ERM GST On Prepayments II"
         exit(SalesInvoiceLine.Amount);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure OpenPurchaseOrderStatisticsPage(No: Code[20])
-    var
-        PurchaseOrder: TestPage "Purchase Order";
-    begin
-        PurchaseOrder.OpenEdit();
-        PurchaseOrder.FILTER.SetFilter("No.", No);
-        PurchaseOrder.Statistics.Invoke();  // Invokes PurchaseOrderStatisticsModalPageHandler.
-        PurchaseOrder.Close();
-    end;
-#endif
-
     local procedure OpenPurchaseOrderStatsPage(No: Code[20])
     var
         PurchaseOrder: TestPage "Purchase Order";
@@ -1736,18 +1557,6 @@ codeunit 141027 "ERM GST On Prepayments II"
         PurchaseOrder.Close();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    local procedure OpenSalesOrderStatisticsPage(No: Code[20])
-    var
-        SalesOrder: TestPage "Sales Order";
-    begin
-        SalesOrder.OpenEdit();
-        SalesOrder.FILTER.SetFilter("No.", No);
-        SalesOrder.Statistics.Invoke();  // Invokes SalesOrderStatisticsModalPageHandler.
-        SalesOrder.Close();
-    end;
-#endif
     local procedure OpenSalesOrderStatisticsPageNM(No: Code[20])
     var
         SalesOrder: TestPage "Sales Order";
@@ -1987,16 +1796,6 @@ codeunit 141027 "ERM GST On Prepayments II"
         ApplyVendorEntries.OK().Invoke();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseOrderStatisticsModalPageHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
-    begin
-        PurchaseOrderStatistics.NoOfVATLines_Invoicing.DrillDown();  // Invokes VATAmountLinesHandler.
-    end;
-#endif
-
     [PageHandler]
     [Scope('OnPrem')]
     procedure PurchaseOrderStatisticsPageHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
@@ -2004,15 +1803,6 @@ codeunit 141027 "ERM GST On Prepayments II"
         PurchaseOrderStatistics.NoOfVATLines_Invoicing.DrillDown();  // Invokes VATAmountLinesHandler.
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesOrderStatisticsModalPageHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    begin
-        SalesOrderStatistics.NoOfVATLines_Invoicing.DrillDown();  // Invokes VATAmountLinesHandler.
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesOrderStatisticsPageHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
@@ -2030,29 +1820,6 @@ codeunit 141027 "ERM GST On Prepayments II"
         VATAmountLines."VAT Amount".SetValue(VATAmount);
         VATAmountLines.OK().Invoke();
     end;
-
-#if not CLEAN26 
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseOrderStatisticsModalHandler(var PurchaseOrderStatistics: TestPage "Purchase Order Statistics")
-    var
-        VATApplied: Variant;
-        TotalAmountInclVAT: Variant;
-        InvDiscAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(InvDiscAmount);
-        LibraryVariableStorage.Dequeue(TotalAmountInclVAT);
-        LibraryVariableStorage.Dequeue(VATApplied);
-
-        Assert.AreEqual(InvDiscAmount, PurchaseOrderStatistics.InvDiscountAmount_General.AsDecimal(),
-          'Invoice Discount Amount is not correct');
-        Assert.AreEqual(TotalAmountInclVAT, PurchaseOrderStatistics.TotalInclVAT_General.AsDecimal(),
-          'Total Amount Incl. VAT is not correct');
-        Assert.AreEqual(VATApplied, PurchaseOrderStatistics."VATAmount[1]".AsDecimal(),
-          'VAT Amount is not correct');
-    end;
-#endif
 
     [PageHandler]
     [Scope('OnPrem')]

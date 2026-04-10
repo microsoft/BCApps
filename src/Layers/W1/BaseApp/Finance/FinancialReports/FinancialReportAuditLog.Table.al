@@ -52,6 +52,16 @@ table 8390 "Financial Report Audit Log"
             Caption = 'Scheduled';
             Tooltip = 'Specifies the report was accessed as part of a scheduled export.';
         }
+        field(7; "Run at Date (UTC)"; Date)
+        {
+            Caption = 'Run at Date (UTC)';
+            Tooltip = 'Specifies the date in UTC when the report was accessed.';
+        }
+        field(8; "Run at Time (UTC)"; Time)
+        {
+            Caption = 'Run at Time (UTC)';
+            Tooltip = 'Specifies the time in UTC when the report was accessed.';
+        }
         field(100; "Date Filter Type"; Enum "Fin. Rep. Aud. Log Date Filter")
         {
             Caption = 'Date Filter Type';

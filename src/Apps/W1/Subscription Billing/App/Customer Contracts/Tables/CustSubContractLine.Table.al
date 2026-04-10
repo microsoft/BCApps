@@ -284,7 +284,7 @@ table 8062 "Cust. Sub. Contract Line"
 
     procedure LoadServiceCommitmentForContractLine(var ServiceCommitment: Record "Subscription Line")
     var
-        LocalServiceCommitment: Record "Subscription Line"; //in case the parameter is passed as temporary table
+        LocalServiceCommitment: Record "Subscription Line";
     begin
         ServiceCommitment.Init();
         if "Subscription Contract No." = '' then
@@ -292,10 +292,14 @@ table 8062 "Cust. Sub. Contract Line"
         case "Contract Line Type" of
             Enum::"Contract Line Type"::Item,
             Enum::"Contract Line Type"::"G/L Account":
-                if GetServiceCommitment(LocalServiceCommitment) then begin
-                    LocalServiceCommitment.CalcFields(Quantity);
-                    ServiceCommitment.TransferFields(LocalServiceCommitment);
-                end;
+                if ServiceCommitment.IsTemporary then begin
+                    if GetServiceCommitment(LocalServiceCommitment) then begin
+                        LocalServiceCommitment.CalcFields(Quantity);
+                        ServiceCommitment.TransferFields(LocalServiceCommitment);
+                    end;
+                end else
+                    if GetServiceCommitment(ServiceCommitment) then
+                        ServiceCommitment.CalcFields(Quantity);
         end;
         OnAfterLoadAmountsForContractLine(Rec, ServiceCommitment);
     end;

@@ -37,9 +37,7 @@ codeunit 1640 "Add-in Deployment Helper"
             else
                 if InstructionMgt.IsEnabled(InstructionMgt.OfficeUpdateNotificationCode()) then
                     PAGE.RunModal(PAGE::"Office Update Available Dlg", OfficeAddin);
-
             CanContinue := not OfficeAddin.Breaking;
         end;
     end;
 }
-

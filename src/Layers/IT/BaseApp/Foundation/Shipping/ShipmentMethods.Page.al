@@ -24,12 +24,10 @@ page 11 "Shipment Methods"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code for the shipment method.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description of the shipment method.';
                 }
                 field("Intra Shipping Code"; Rec."Intra Shipping Code")
                 {

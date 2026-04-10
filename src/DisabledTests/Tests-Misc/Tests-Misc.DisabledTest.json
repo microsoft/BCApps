@@ -445,6 +445,96 @@
     "method": "OneTaskCreatedAfterMultipleTypeValidationOnCreateTask"
   },
   {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseCrMemoOpenComments"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseCrMemoOpenDimensions"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseCrMemoOpenItemTrackingLines"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseCrMemoOpenPostedReturnShipmentLines"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseInvoiceCardCanBeOpenedFromListInEditMode"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseInvoiceOpenComments"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseInvoiceOpenDimensions"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseInvoiceOpenItemTrackingLines"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseInvoiceOpenPostedPurchaseReceiptLines"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseReceiptCardCanBeOpenedFromListInEditMode"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseReceiptOpenComments"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseReceiptOpenDimensions"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseReceiptOpenItemTrackingLines"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseReceiptOpenPostedPurchaseInvoiceLines"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseRetShipmentOpenComments"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseRetShipmentOpenDimensions"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseRetShipmentOpenItemTrackingLines"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseRetShipmentOpenPostedCreditMemoLines"
+  },
+  {
     "codeunitId": 134346,
     "codeunitName": "Skipped Document Lines",
     "method": "T100_CopySalesDocWithBlockedItem"
@@ -1683,6 +1773,11 @@
     "codeunitId": 135020,
     "codeunitName": "Data Migration Tests",
     "method": "TestGLAccountsCleared"
+  },
+  {
+    "codeunitId": 135020,
+    "codeunitName": "Data Migration Tests",
+    "method": "TestRetry"
   },
   {
     "codeunitId": 135022,
@@ -3228,5 +3323,10 @@
     "codeunitId": 139480,
     "codeunitName": "Notification Lifecycle Tests",
     "method": "TestNotificationContextUpdateRecordId"
+  },
+  {
+    "codeunitId": 134341,
+    "codeunitName": "UT Page Actions & Controls",
+    "method": "PostedPurchaseMemoCardCanBeOpenedFromListInEditMode"
   }
 ]

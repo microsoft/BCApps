@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -41,13 +41,11 @@ page 1394 "Trial Balance Setup"
                 {
                     ApplicationArea = All;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the rows definition to use to calculate the results that display in the Trial Balance chart.';
                 }
                 field("Column Layout Name"; Rec."Column Layout Name")
                 {
                     ApplicationArea = All;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the columns definition to use to determine how columns display in the Trial Balance chart.';
                 }
             }
         }

@@ -1383,6 +1383,271 @@ codeunit 134897 "ERM Source Currency"
         Assert.AreEqual(0, GLEntry."Source Currency Amount", TotalSCYAmountNotZeroErr);
     end;
 
+    [Test]
+    procedure PurchaseInvoiceFCYWithExchRateAdjmtAndPayment()
+    var
+        Vendor: Record Vendor;
+        Currency: Record Currency;
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        StartDate: Date;
+        InvoiceDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        RelationalExchRateAmt: Decimal;
+        NewRelationalExchRateAmt: Decimal;
+    begin
+        Initialize();
+
+        // [FEATURE] [AI test]
+        // [SCENARIO] Source Currency Amount balances to zero for purchase invoice in FCY after exchange rate adjustment and payment.
+
+        // [GIVEN] Start date "D" as WorkDate.
+        StartDate := WorkDate();
+
+        // [GIVEN] Currency "C" with Exchange Rate Amount = 100 and Relational Exch. Rate Amount between 1 and 29 on "D".
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        RelationalExchRateAmt := LibraryRandom.RandIntInRange(1, 29);
+        CreateCurrencyExchangeRate(Currency.Code, StartDate, 100, RelationalExchRateAmt);
+
+        // [GIVEN] New exchange rate on "D" + 1 with a higher Relational Exch. Rate Amount.
+        NewRelationalExchRateAmt := RelationalExchRateAmt + LibraryRandom.RandIntInRange(30, 50);
+        CreateCurrencyExchangeRate(Currency.Code, StartDate + 1, 100, NewRelationalExchRateAmt);
+
+        // [GIVEN] Vendor "V".
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Posted Purchase Invoice via Gen. Journal on "D" with random amount between 1 and 1000 in "C".
+        InvoiceAmount := LibraryRandom.RandIntInRange(1, 1000);
+        CreatePostGenJnlLineWithCurrency(
+            GenJournalLine, GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Vendor, Vendor."No.",
+            Currency.Code, -InvoiceAmount, StartDate);
+        InvoiceDocNo := GenJournalLine."Document No.";
+
+        // [GIVEN] Exchange Rate Adjustment is run from "D" to "D" + 1.
+#pragma warning disable AA0139
+        LibraryERM.RunExchRateAdjustment(Currency.Code, StartDate, StartDate + 1, '', StartDate + 1, UpperCase(LibraryRandom.RandText(10)), false);
+#pragma warning restore AA0139
+
+        // [WHEN] Payment is posted in "C" with the same amount as the invoice on "D" + 1, closing the invoice.
+        CreatePostGenJnlLineWithCurrencyAndApply(
+            GenJournalLine, GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Vendor, Vendor."No.",
+            Currency.Code, InvoiceAmount, StartDate + 1,
+            GenJournalLine."Applies-to Doc. Type"::Invoice, InvoiceDocNo);
+
+        // [THEN] The sum of Source Currency Amount on G/L Entries for Vendor "V" is 0.
+        GLEntry.SetRange("Source Type", GLEntry."Source Type"::Vendor);
+        GLEntry.SetRange("Source No.", Vendor."No.");
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(0, GLEntry."Source Currency Amount", TotalSCYAmountNotZeroErr);
+    end;
+
+    [Test]
+    procedure SalesInvoiceFCYWithExchRateAdjmtAndPartialPayments()
+    var
+        Customer: Record Customer;
+        Currency: Record Currency;
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        StartDate: Date;
+        InvoiceDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        FirstPaymentAmount: Decimal;
+        RelationalExchRateAmt: Decimal;
+        NewRelationalExchRateAmt: Decimal;
+    begin
+        Initialize();
+
+        // [FEATURE] [AI test]
+        // [SCENARIO] Source Currency Amount balances to zero for sales invoice in FCY after exchange rate adjustment and two partial payments.
+
+        // [GIVEN] Start date "D" as WorkDate.
+        StartDate := WorkDate();
+
+        // [GIVEN] Currency "C" with Exchange Rate Amount = 100 and Relational Exch. Rate Amount between 1 and 29 on "D".
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        RelationalExchRateAmt := LibraryRandom.RandIntInRange(1, 29);
+        CreateCurrencyExchangeRate(Currency.Code, StartDate, 100, RelationalExchRateAmt);
+
+        // [GIVEN] New exchange rate on "D" + 1 with a higher Relational Exch. Rate Amount.
+        NewRelationalExchRateAmt := RelationalExchRateAmt + LibraryRandom.RandIntInRange(30, 50);
+        CreateCurrencyExchangeRate(Currency.Code, StartDate + 1, 100, NewRelationalExchRateAmt);
+
+        // [GIVEN] Customer "CU".
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Posted Sales Invoice via Gen. Journal on "D" with random amount between 500 and 1000 in "C".
+        InvoiceAmount := LibraryRandom.RandIntInRange(500, 1000);
+        CreatePostGenJnlLineWithCurrency(
+            GenJournalLine, GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Customer, Customer."No.",
+            Currency.Code, InvoiceAmount, StartDate);
+        InvoiceDocNo := GenJournalLine."Document No.";
+
+        // [GIVEN] Exchange Rate Adjustment is run from "D" to "D" + 1.
+#pragma warning disable AA0139
+        LibraryERM.RunExchRateAdjustment(Currency.Code, StartDate, StartDate + 1, '', StartDate + 1, UpperCase(LibraryRandom.RandText(10)), false);
+#pragma warning restore AA0139
+
+        // [GIVEN] First partial payment is posted on "D" + 1 for roughly half the invoice amount.
+        FirstPaymentAmount := Round(InvoiceAmount / 2, 1);
+        CreatePostGenJnlLineWithCurrency(
+            GenJournalLine, GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Customer, Customer."No.",
+            Currency.Code, -FirstPaymentAmount, StartDate + 1);
+
+        // [WHEN] Second payment is posted on "D" + 1 for the remaining amount, closing the invoice.
+        CreatePostGenJnlLineWithCurrencyAndApply(
+            GenJournalLine, GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Customer, Customer."No.",
+            Currency.Code, -(InvoiceAmount - FirstPaymentAmount), StartDate + 1,
+            GenJournalLine."Applies-to Doc. Type"::Invoice, InvoiceDocNo);
+
+        // [THEN] The sum of Source Currency Amount on G/L Entries for Customer "CU" is 0.
+        GLEntry.SetRange("Source Type", GLEntry."Source Type"::Customer);
+        GLEntry.SetRange("Source No.", Customer."No.");
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(0, GLEntry."Source Currency Amount", TotalSCYAmountNotZeroErr);
+    end;
+
+    [Test]
+    procedure PurchaseInvoiceFCYWithExchRateAdjmtAndPartialPayments()
+    var
+        Vendor: Record Vendor;
+        Currency: Record Currency;
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        StartDate: Date;
+        InvoiceDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        FirstPaymentAmount: Decimal;
+        RelationalExchRateAmt: Decimal;
+        NewRelationalExchRateAmt: Decimal;
+    begin
+        Initialize();
+
+        // [FEATURE] [AI test]
+        // [SCENARIO] Source Currency Amount balances to zero for purchase invoice in FCY after exchange rate adjustment and two partial payments.
+
+        // [GIVEN] Start date "D" as WorkDate.
+        StartDate := WorkDate();
+
+        // [GIVEN] Currency "C" with Exchange Rate Amount = 100 and Relational Exch. Rate Amount between 1 and 29 on "D".
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        RelationalExchRateAmt := LibraryRandom.RandIntInRange(1, 29);
+        CreateCurrencyExchangeRate(Currency.Code, StartDate, 100, RelationalExchRateAmt);
+
+        // [GIVEN] New exchange rate on "D" + 1 with a higher Relational Exch. Rate Amount.
+        NewRelationalExchRateAmt := RelationalExchRateAmt + LibraryRandom.RandIntInRange(30, 50);
+        CreateCurrencyExchangeRate(Currency.Code, StartDate + 1, 100, NewRelationalExchRateAmt);
+
+        // [GIVEN] Vendor "V".
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Posted Purchase Invoice via Gen. Journal on "D" with random amount between 500 and 1000 in "C".
+        InvoiceAmount := LibraryRandom.RandIntInRange(500, 1000);
+        CreatePostGenJnlLineWithCurrency(
+            GenJournalLine, GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Vendor, Vendor."No.",
+            Currency.Code, -InvoiceAmount, StartDate);
+        InvoiceDocNo := GenJournalLine."Document No.";
+
+        // [GIVEN] Exchange Rate Adjustment is run from "D" to "D" + 1.
+#pragma warning disable AA0139
+        LibraryERM.RunExchRateAdjustment(Currency.Code, StartDate, StartDate + 1, '', StartDate + 1, UpperCase(LibraryRandom.RandText(10)), false);
+#pragma warning restore AA0139
+
+        // [GIVEN] First partial payment is posted on "D" + 1 for roughly half the invoice amount.
+        FirstPaymentAmount := Round(InvoiceAmount / 2, 1);
+        CreatePostGenJnlLineWithCurrency(
+            GenJournalLine, GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Vendor, Vendor."No.",
+            Currency.Code, FirstPaymentAmount, StartDate + 1);
+
+        // [WHEN] Second payment is posted on "D" + 1 for the remaining amount, closing the invoice.
+        CreatePostGenJnlLineWithCurrencyAndApply(
+            GenJournalLine, GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Vendor, Vendor."No.",
+            Currency.Code, InvoiceAmount - FirstPaymentAmount, StartDate + 1,
+            GenJournalLine."Applies-to Doc. Type"::Invoice, InvoiceDocNo);
+
+        // [THEN] The sum of Source Currency Amount on G/L Entries for Vendor "V" is 0.
+        GLEntry.SetRange("Source Type", GLEntry."Source Type"::Vendor);
+        GLEntry.SetRange("Source No.", Vendor."No.");
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(0, GLEntry."Source Currency Amount", TotalSCYAmountNotZeroErr);
+    end;
+
+    [Test]
+    procedure SalesInvoiceFCYWithMultipleExchRateAdjmtsAndPayment()
+    var
+        Customer: Record Customer;
+        Currency: Record Currency;
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        StartDate: Date;
+        InvoiceDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        RelationalExchRateAmt: Decimal;
+        SecondRelationalExchRateAmt: Decimal;
+        ThirdRelationalExchRateAmt: Decimal;
+    begin
+        Initialize();
+        // [FEATURE] [AI test]
+        // [SCENARIO] Source Currency Amount balances to zero for sales invoice in FCY after multiple exchange rate adjustments and payment.
+
+        // [GIVEN] Start date "D" as WorkDate.
+        StartDate := WorkDate();
+
+        // [GIVEN] Currency "C" with Exchange Rate Amount = 100 and Relational Exch. Rate Amount between 1 and 19 on "D".
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        RelationalExchRateAmt := LibraryRandom.RandIntInRange(1, 19);
+        CreateCurrencyExchangeRate(Currency.Code, StartDate, 100, RelationalExchRateAmt);
+
+        // [GIVEN] Second exchange rate on "D" + 1 with a higher Relational Exch. Rate Amount.
+        SecondRelationalExchRateAmt := RelationalExchRateAmt + LibraryRandom.RandIntInRange(20, 40);
+        CreateCurrencyExchangeRate(Currency.Code, StartDate + 1, 100, SecondRelationalExchRateAmt);
+
+        // [GIVEN] Third exchange rate on "D" + 2 with an even higher Relational Exch. Rate Amount.
+        ThirdRelationalExchRateAmt := SecondRelationalExchRateAmt + LibraryRandom.RandIntInRange(20, 40);
+        CreateCurrencyExchangeRate(Currency.Code, StartDate + 2, 100, ThirdRelationalExchRateAmt);
+
+        // [GIVEN] Customer "CU".
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Posted Sales Invoice via Gen. Journal on "D" with random amount between 1 and 1000 in "C".
+        InvoiceAmount := LibraryRandom.RandIntInRange(1, 1000);
+        CreatePostGenJnlLineWithCurrency(
+            GenJournalLine, GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Customer, Customer."No.",
+            Currency.Code, InvoiceAmount, StartDate);
+        InvoiceDocNo := GenJournalLine."Document No.";
+
+        // [GIVEN] First Exchange Rate Adjustment is run from "D" to "D" + 1.
+#pragma warning disable AA0139
+        LibraryERM.RunExchRateAdjustment(Currency.Code, StartDate, StartDate + 1, '', StartDate + 1, UpperCase(LibraryRandom.RandText(10)), false);
+#pragma warning restore AA0139
+
+        // [GIVEN] Second Exchange Rate Adjustment is run from "D" to "D" + 2.
+#pragma warning disable AA0139
+        LibraryERM.RunExchRateAdjustment(Currency.Code, StartDate, StartDate + 2, '', StartDate + 2, UpperCase(LibraryRandom.RandText(10)), false);
+#pragma warning restore AA0139
+
+        // [WHEN] Payment is posted in "C" with the same amount as the invoice on "D" + 2, closing the invoice.
+        CreatePostGenJnlLineWithCurrencyAndApply(
+            GenJournalLine, GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Customer, Customer."No.",
+            Currency.Code, -InvoiceAmount, StartDate + 2,
+            GenJournalLine."Applies-to Doc. Type"::Invoice, InvoiceDocNo);
+
+        // [THEN] The sum of Source Currency Amount on G/L Entries for Customer "CU" is 0.
+        GLEntry.SetRange("Source Type", GLEntry."Source Type"::Customer);
+        GLEntry.SetRange("Source No.", Customer."No.");
+        GLEntry.CalcSums("Source Currency Amount");
+        Assert.AreEqual(0, GLEntry."Source Currency Amount", TotalSCYAmountNotZeroErr);
+    end;
+
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
     var
         PurchaseLine: Record "Purchase Line";

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,6 +15,8 @@ page 2670 "Allocation Account"
     PageType = ListPlus;
     SourceTable = "Allocation Account";
     Caption = 'Allocation Account';
+    AboutTitle = 'About Allocation Accounts';
+    AboutText = 'Manage allocation accounts to automatically split amounts across multiple destination accounts Define fixed or variable allocation methods, set destination accounts, and control how values are distributed during posting. Use allocation accounts in journals and documents to apply consistent allocation rules without manual line splitting.';
 
     layout
     {
@@ -27,21 +29,18 @@ page 2670 "Allocation Account"
                 {
                     ApplicationArea = All;
                     Caption = 'No.';
-                    ToolTip = 'Specifies the allocation account number.';
                 }
 
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = All;
                     Caption = 'Name';
-                    ToolTip = 'Specifies the allocation account name.';
                 }
 
                 field("Account Type"; Rec."Account Type")
                 {
                     ApplicationArea = All;
                     Caption = 'Account Type';
-                    ToolTip = 'Specifies the account type for the distribution.';
 
                     trigger OnValidate()
                     begin
@@ -53,7 +52,6 @@ page 2670 "Allocation Account"
                 {
                     ApplicationArea = All;
                     Caption = 'Document Line Split';
-                    ToolTip = 'Specifies the strategy for splitting the lines when used on the documents.';
                 }
 
                 group(DistributionAccountTypeGroup)

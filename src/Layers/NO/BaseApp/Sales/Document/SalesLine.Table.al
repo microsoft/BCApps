@@ -4127,16 +4127,28 @@ table 37 "Sales Line"
             ObsoleteTag = '26.0';
         }
 #endif
+#if not CLEANSCHEMA32
         field(10605; "Account Code"; Text[30])
         {
             Caption = 'Account Code';
+            ObsoleteReason = 'This field is obsolete and should not be used.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
 
+#if not CLEAN29
             trigger OnValidate()
             begin
                 if (Type = Type::" ") and ("Account Code" <> '') then
                     Error(Text10600, FieldCaption("Account Code"), FieldCaption(Type), Type);
             end;
+#endif
         }
+#endif
         field(10610; "VAT Number"; Code[20])
         {
             TableRelation = "VAT Reporting Code".Code;
@@ -4313,12 +4325,12 @@ table 37 "Sales Line"
             SalesLineReserve.VerifyQuantity(Rec, xRec);
         end;
         LockTable();
-        SalesHeader."No." := '';
         if (Type = Type::Item) and ("No." <> '') then
             CheckInventoryPickConflict();
         OnInsertOnAfterCheckInventoryConflict(Rec, xRec, SalesLine2);
         if ("Deferral Code" <> '') and (GetDeferralAmount() <> 0) then
             UpdateDeferralAmounts();
+        SalesHeader."No." := '';
         OnAfterInsertOnAfterUpdateDeferralAmounts(Rec, CurrFieldNo);
     end;
 
@@ -4472,7 +4484,9 @@ table 37 "Sales Line"
         CanNotAddItemPickExistErr: Label 'You cannot add an item line because an open inventory pick exists for the Sales Header and because Shipping Advice is %1.\\You must first post or delete the inventory pick or change Shipping Advice to Partial.', Comment = '%1- Shipping Advice';
         ItemChargeAssignmentErr: Label 'You can only assign Item Charges for Line Types of Charge (Item).';
         SalesLineCompletelyShippedErr: Label 'You cannot change the purchasing code for a sales line that has been completely shipped.';
+#if not CLEAN29
         Text10600: Label 'You cannot enter %1 if %2 is "%3".';
+#endif
         SalesSetupRead: Boolean;
         LookupRequested: Boolean;
         FreightLineDescriptionTxt: Label 'Freight Amount';
@@ -9809,7 +9823,9 @@ table 37 "Sales Line"
         "Prepayment Tax Liable" := SalesHeader."Tax Liable";
         "Responsibility Center" := SalesHeader."Responsibility Center";
 
+#if not CLEAN29
         "Account Code" := SalesHeader."Account Code";
+#endif
         "Shipping Agent Code" := SalesHeader."Shipping Agent Code";
         "Shipping Agent Service Code" := SalesHeader."Shipping Agent Service Code";
         "Outbound Whse. Handling Time" := SalesHeader."Outbound Whse. Handling Time";

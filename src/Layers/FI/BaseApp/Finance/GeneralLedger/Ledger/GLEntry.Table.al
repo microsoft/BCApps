@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -56,6 +56,7 @@ table 17 "G/L Entry"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, which is assigned automatically when the entry is posted.';
         }
         /// <summary>
         /// G/L account number that this transaction affects.
@@ -63,6 +64,7 @@ table 17 "G/L Entry"
         field(3; "G/L Account No."; Code[20])
         {
             Caption = 'G/L Account No.';
+            ToolTip = 'Specifies the number of the account that the entry has been posted to.';
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -76,6 +78,7 @@ table 17 "G/L Entry"
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the entry''s posting date.';
             ClosingDates = true;
         }
         /// <summary>
@@ -84,6 +87,7 @@ table 17 "G/L Entry"
         field(5; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the Document Type that the entry belongs to.';
         }
         /// <summary>
         /// Number of the document that originated this G/L entry.
@@ -91,6 +95,7 @@ table 17 "G/L Entry"
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the entry''s Document No.';
 
             trigger OnLookup()
             var
@@ -105,6 +110,7 @@ table 17 "G/L Entry"
         field(7; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the entry.';
         }
         /// <summary>
         /// Balancing account number used in the original journal entry.
@@ -112,6 +118,7 @@ table 17 "G/L Entry"
         field(10; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
             TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
@@ -134,6 +141,7 @@ table 17 "G/L Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'Amount (LCY)';
+            ToolTip = 'Specifies the Amount of the entry.';
             DataClassification = CustomerContent;
         }
         /// <summary>
@@ -144,6 +152,7 @@ table 17 "G/L Entry"
             AutoFormatExpression = Rec."Source Currency Code";
             AutoFormatType = 1;
             Caption = 'Source Currency Amount';
+            ToolTip = 'Specifies the source currency amount for G/L entries.';
             DataClassification = CustomerContent;
         }
         /// <summary>
@@ -154,6 +163,7 @@ table 17 "G/L Entry"
             AutoFormatExpression = Rec."Source Currency Code";
             AutoFormatType = 1;
             Caption = 'Source VAT Currency Amount';
+            ToolTip = 'Specifies the source currency VAT amount for G/L entries.';
             DataClassification = CustomerContent;
         }
         /// <summary>
@@ -162,6 +172,7 @@ table 17 "G/L Entry"
         field(20; "Source Currency Code"; Code[10])
         {
             Caption = 'Source Currency Code';
+            ToolTip = 'Specifies the source currency code for general ledger entries.';
             TableRelation = Currency;
             DataClassification = SystemMetadata;
         }
@@ -172,6 +183,7 @@ table 17 "G/L Entry"
         {
             CaptionClass = '1,1,1';
             Caption = 'Global Dimension 1 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1));
         }
         /// <summary>
@@ -181,6 +193,7 @@ table 17 "G/L Entry"
         {
             CaptionClass = '1,1,2';
             Caption = 'Global Dimension 2 Code';
+            ToolTip = 'Specifies the code for the global dimension that is linked to the record or entry for analysis purposes. Two global dimensions, typically for the company''s most important activities, are available on all cards, documents, reports, and lists.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2));
         }
         /// <summary>
@@ -189,6 +202,7 @@ table 17 "G/L Entry"
         field(27; "User ID"; Code[50])
         {
             Caption = 'User ID';
+            ToolTip = 'Specifies the ID of the user who posted the entry, to be used, for example, in the change log.';
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = User."User Name";
             ValidateTableRelation = false;
@@ -199,6 +213,7 @@ table 17 "G/L Entry"
         field(28; "Source Code"; Code[10])
         {
             Caption = 'Source Code';
+            ToolTip = 'Specifies the source code that specifies where the entry was created.';
             TableRelation = "Source Code";
         }
         /// <summary>
@@ -221,6 +236,7 @@ table 17 "G/L Entry"
         field(41; "Job No."; Code[20])
         {
             Caption = 'Project No.';
+            ToolTip = 'Specifies the number of the related project.';
             TableRelation = Job;
         }
         /// <summary>
@@ -230,6 +246,7 @@ table 17 "G/L Entry"
         {
             AutoFormatType = 0;
             Caption = 'Quantity';
+            ToolTip = 'Specifies the quantity that was posted on the entry.';
             DecimalPlaces = 0 : 5;
         }
         /// <summary>
@@ -240,6 +257,7 @@ table 17 "G/L Entry"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'VAT Amount';
+            ToolTip = 'Specifies the amount of VAT that is included in the total amount.';
         }
         /// <summary>
         /// Business unit code for multi-company consolidation and reporting.
@@ -247,6 +265,7 @@ table 17 "G/L Entry"
         field(45; "Business Unit Code"; Code[20])
         {
             Caption = 'Business Unit Code';
+            ToolTip = 'Specifies the Business Unit code of the company from which the entry was consolidated.';
             TableRelation = "Business Unit";
         }
         /// <summary>
@@ -262,6 +281,7 @@ table 17 "G/L Entry"
         field(47; "Reason Code"; Code[10])
         {
             Caption = 'Reason Code';
+            ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
             TableRelation = "Reason Code";
         }
         /// <summary>
@@ -270,6 +290,7 @@ table 17 "G/L Entry"
         field(48; "Gen. Posting Type"; Enum "General Posting Type")
         {
             Caption = 'Gen. Posting Type';
+            ToolTip = 'Specifies the type of transaction.';
         }
         /// <summary>
         /// General business posting group for VAT and tax calculation purposes.
@@ -277,6 +298,7 @@ table 17 "G/L Entry"
         field(49; "Gen. Bus. Posting Group"; Code[20])
         {
             Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Business Posting Group";
         }
         /// <summary>
@@ -285,6 +307,7 @@ table 17 "G/L Entry"
         field(50; "Gen. Prod. Posting Group"; Code[20])
         {
             Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
         /// <summary>
@@ -293,6 +316,7 @@ table 17 "G/L Entry"
         field(51; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
+            ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
         }
         /// <summary>
         /// Transaction number grouping related G/L entries from the same posting.
@@ -310,6 +334,7 @@ table 17 "G/L Entry"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Debit Amount (LCY)';
+            ToolTip = 'Specifies the total of the ledger entries that represent debits.';
         }
         /// <summary>
         /// Credit amount in local currency when transaction decreases account balance.
@@ -320,6 +345,7 @@ table 17 "G/L Entry"
             AutoFormatExpression = '';
             BlankZero = true;
             Caption = 'Credit Amount (LCY)';
+            ToolTip = 'Specifies the total of the ledger entries that represent credits.';
         }
         /// <summary>
         /// Date of the original source document.
@@ -335,6 +361,7 @@ table 17 "G/L Entry"
         field(56; "External Document No."; Code[35])
         {
             Caption = 'External Document No.';
+            ToolTip = 'Specifies the entry''s external document number, such as a vendor''s invoice number.';
         }
         /// <summary>
         /// Type of source entity that originated this transaction.
@@ -342,6 +369,7 @@ table 17 "G/L Entry"
         field(57; "Source Type"; Enum "Gen. Journal Source Type")
         {
             Caption = 'Source Type';
+            ToolTip = 'Specifies the source type that applies to the source number that is shown in the Source No. field.';
         }
         /// <summary>
         /// Number of the source entity (customer, vendor, etc.) that originated this transaction.
@@ -349,6 +377,7 @@ table 17 "G/L Entry"
         field(58; "Source No."; Code[20])
         {
             Caption = 'Source No.';
+            ToolTip = 'Specifies the number of the source document that the entry originates from.';
             TableRelation = if ("Source Type" = const(Customer)) Customer
             else
             if ("Source Type" = const(Vendor)) Vendor
@@ -403,6 +432,7 @@ table 17 "G/L Entry"
         field(64; "VAT Bus. Posting Group"; Code[20])
         {
             Caption = 'VAT Bus. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Business Posting Group";
         }
         /// <summary>
@@ -411,6 +441,7 @@ table 17 "G/L Entry"
         field(65; "VAT Prod. Posting Group"; Code[20])
         {
             Caption = 'VAT Prod. Posting Group';
+            ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
             TableRelation = "VAT Product Posting Group";
         }
         /// <summary>
@@ -422,6 +453,7 @@ table 17 "G/L Entry"
             AutoFormatExpression = GetAdditionalReportingCurrencyCode();
             AutoFormatType = 1;
             Caption = 'Additional-Currency Amount';
+            ToolTip = 'Specifies the general ledger entry that is posted if you post in an additional reporting currency.';
         }
         /// <summary>
         /// Debit amount in additional reporting currency.
@@ -454,6 +486,7 @@ table 17 "G/L Entry"
         field(72; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
+            ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
             TableRelation = "IC Partner";
         }
         /// <summary>
@@ -462,6 +495,7 @@ table 17 "G/L Entry"
         field(73; Reversed; Boolean)
         {
             Caption = 'Reversed';
+            ToolTip = 'Specifies if the entry has been part of a reverse transaction (correction) made by the Reverse function.';
         }
         /// <summary>
         /// Entry number of the reversing entry that canceled this transaction.
@@ -470,6 +504,7 @@ table 17 "G/L Entry"
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
+            ToolTip = 'Specifies the number of the correcting entry. If the field Specifies a number, the entry cannot be reversed again.';
             TableRelation = "G/L Entry";
         }
         /// <summary>
@@ -479,6 +514,7 @@ table 17 "G/L Entry"
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
+            ToolTip = 'Specifies the number of the original entry that was undone by the reverse transaction.';
             TableRelation = "G/L Entry";
         }
         /// <summary>
@@ -488,6 +524,7 @@ table 17 "G/L Entry"
         {
             CalcFormula = lookup("G/L Account".Name where("No." = field("G/L Account No.")));
             Caption = 'G/L Account Name';
+            ToolTip = 'Specifies the name of the account that the entry has been posted to.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -504,6 +541,7 @@ table 17 "G/L Entry"
         field(79; "VAT Reporting Date"; Date)
         {
             Caption = 'VAT Date';
+            ToolTip = 'Specifies the entry''s VAT date.';
             Editable = false;
         }
         /// <summary>
@@ -512,6 +550,7 @@ table 17 "G/L Entry"
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
+            ToolTip = 'Specifies a reference to a combination of dimension values. The actual values are stored in the Dimension Set Entry table.';
             Editable = false;
             TableRelation = "Dimension Set Entry";
 
@@ -527,6 +566,7 @@ table 17 "G/L Entry"
         {
             CaptionClass = '1,2,3';
             Caption = 'Shortcut Dimension 3 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 3, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -539,6 +579,7 @@ table 17 "G/L Entry"
         {
             CaptionClass = '1,2,4';
             Caption = 'Shortcut Dimension 4 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 4, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -551,6 +592,7 @@ table 17 "G/L Entry"
         {
             CaptionClass = '1,2,5';
             Caption = 'Shortcut Dimension 5 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 5, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -563,6 +605,7 @@ table 17 "G/L Entry"
         {
             CaptionClass = '1,2,6';
             Caption = 'Shortcut Dimension 6 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 6, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -575,6 +618,7 @@ table 17 "G/L Entry"
         {
             CaptionClass = '1,2,7';
             Caption = 'Shortcut Dimension 7 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 7, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -587,6 +631,7 @@ table 17 "G/L Entry"
         {
             CaptionClass = '1,2,8';
             Caption = 'Shortcut Dimension 8 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 8, which is one of dimension codes that you set up in the General Ledger Setup window.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
@@ -652,6 +697,7 @@ table 17 "G/L Entry"
         {
             AccessByPermission = TableData "Fixed Asset" = R;
             Caption = 'FA Entry Type';
+            ToolTip = 'Specifies the number of the fixed asset entry.';
             OptionCaption = ' ,Fixed Asset,Maintenance';
             OptionMembers = " ","Fixed Asset",Maintenance;
         }
@@ -662,6 +708,7 @@ table 17 "G/L Entry"
         {
             BlankZero = true;
             Caption = 'FA Entry No.';
+            ToolTip = 'Specifies the number of the fixed asset entry.';
             TableRelation = if ("FA Entry Type" = const("Fixed Asset")) "FA Ledger Entry"
             else
             if ("FA Entry Type" = const(Maintenance)) "Maintenance Ledger Entry";
@@ -681,6 +728,7 @@ table 17 "G/L Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Non-Deductible VAT Amount';
+            ToolTip = 'Specifies the amount of the transaction for which VAT is not applied, due to the type of goods or services purchased.';
         }
         /// <summary>
         /// Non-deductible VAT amount in additional reporting currency.
@@ -697,6 +745,7 @@ table 17 "G/L Entry"
         field(6202; "Src. Curr. Non-Ded. VAT Amount"; Decimal)
         {
             Caption = 'Source Currency Non-Deductible VAT Amount';
+            ToolTip = 'Specifies the amount in source currency of the transaction for which VAT is not applied, due to the type of goods or services purchased.';
             AutoFormatExpression = Rec."Source Currency Code";
             AutoFormatType = 1;
         }

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,7 +22,6 @@ page 725 "Custom Address Format"
                 field("Field ID"; Rec."Field ID")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies reference field ID.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -34,7 +33,6 @@ page 725 "Custom Address Format"
                     ApplicationArea = Basic, Suite;
                     AssistEdit = true;
                     Editable = false;
-                    ToolTip = 'Specifies address format fields.';
 
                     trigger OnAssistEdit()
                     begin

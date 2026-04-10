@@ -29,6 +29,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.Address;
@@ -187,9 +188,6 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTemplates();
         AddPowerBIWorkspaces();
         UpgradePowerBiDisplayedElements();
-#if not CLEAN26        
-        UpgradePurchaseRcptLineOverReceiptCode();
-#endif
         UpgradeContactMobilePhoneNo();
         UpgradePostCodeServiceKey();
         UpgradeDimensionSetEntry();
@@ -252,6 +250,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeServiceShptLineFields();
         UpgradeFinancialReportAuditLogAddRetentionPolicy();
         UpgradeZeroClosedBankAccountLedgerEntries();
+        UpgradeDepreciationBooksGLIntegration();
     end;
 
     local procedure ClearTemporaryTables()
@@ -2252,13 +2251,6 @@ codeunit 104000 "Upgrade - BaseApp"
         exit(true);
     end;
 
-#if not CLEAN26
-    [Obsolete('Field "Over-Receipt Code" has been deleted in version 26.', '26.0')]
-    procedure UpgradePurchaseRcptLineOverReceiptCode()
-    begin
-    end;
-#endif
-
     local procedure UpgradePurchRcptLineDocumentId()
     var
         PurchRcptHeader: Record "Purch. Rcpt. Header";
@@ -3988,6 +3980,25 @@ codeunit 104000 "Upgrade - BaseApp"
         BankAccLedgEntryDataTransfer.CopyFields();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetZeroClosedBankAccountLedgerEntriesUpgradeTag());
+    end;
+
+    local procedure UpgradeDepreciationBooksGLIntegration()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        DepreciationBookDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetDepreciationBooksGLIntegrationUpgradeTag()) then
+            exit;
+
+        // Make sure that "G/L Integration - Bonus Depr." is initialized to the same value as "G/L Integration - Depreciation"
+        // This is a new field and should have the same value as "G/L Integration - Depreciation" to avoid issues in the ledger when bonus depreciation is calculated differently than regular depreciation
+        DepreciationBookDataTransfer.SetTables(Database::"Depreciation Book", Database::"Depreciation Book");
+        DepreciationBookDataTransfer.AddFieldValue(DepreciationBook.FieldNo("G/L Integration - Depreciation"), DepreciationBook.FieldNo("G/L Integration - Bonus Depr."));
+        DepreciationBookDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDepreciationBooksGLIntegrationUpgradeTag());
     end;
 
     local procedure SEPACAMT05300108(): Code[20]

@@ -248,6 +248,94 @@ codeunit 144527 "ECSL XML Gen. Test"
         GovTalkSetup.Password := CreateGuid();
         GovTalkSetup.Modify();
     end;
+
+    [Test]
+    [HandlerFunctions('ECSalesListRequestPageHandler,XMLSuccessMessageHandler')]
+    [Scope('OnPrem')]
+    procedure TestECSalesListXMLCreationWithoutGovTalk()
+    var
+        VATEntry: Record "VAT Entry";
+        CountryRegion: Record "Country/Region";
+        CompanyInformation: Record "Company Information";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        LibraryRandom: Codeunit "Library - Random";
+        StartDate: Date;
+        EndDate: Date;
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 621502] EC Sales List XML creation should work without GovTalk extension
+
+        // [GIVEN] Company information with VAT registration
+        CompanyInformation.Get();
+        CompanyInformation."VAT Registration No." := 'GB123456789';
+        CompanyInformation."Branch Number" := '001';
+        CompanyInformation."Contact Person" := 'Test Contact';
+        CompanyInformation.Modify();
+
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := 'GBP';
+        GeneralLedgerSetup.Modify();
+
+        // [GIVEN] Country/Region
+        if CountryRegion.Get('DE') then
+            CountryRegion.Delete();
+        CountryRegion.Init();
+        CountryRegion.Code := 'DE';
+        CountryRegion."EU Country/Region Code" := 'DE';
+        CountryRegion.Insert();
+
+        // [GIVEN] Date range for monthly period
+        StartDate := DMY2Date(1, 1, 2025);
+        EndDate := DMY2Date(31, 1, 2025);
+
+        // [GIVEN] VAT Entry with EU trade
+        VATEntry.DeleteAll();
+        VATEntry.Init();
+        VATEntry."Entry No." := 1;
+        VATEntry.Type := VATEntry.Type::Sale;
+        VATEntry."VAT Registration No." := 'GB100001';
+        VATEntry."Posting Date" := StartDate;
+        VATEntry."VAT Reporting Date" := StartDate;
+        VATEntry."Country/Region Code" := 'DE';
+        VATEntry."EU 3-Party Trade" := false;
+        VATEntry."EU Service" := false;
+        VATEntry.Base := LibraryRandom.RandIntInRange(-1000, -2000);
+        VATEntry.Insert();
+
+        Commit();
+
+        // [WHEN] Running EC Sales List report with Create XML File option
+        RunECSalesListReportWithXML(StartDate, EndDate);
+        // [THEN] Report completes successfully without DotNet error
+    end;
+
+    local procedure RunECSalesListReportWithXML(StartDate: Date; EndDate: Date)
+    var
+        VATEntry: Record "VAT Entry";
+        ECSalesList: Report "EC Sales List";
+    begin
+        VATEntry.SetRange("Posting Date", StartDate, EndDate);
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetFilter("Country/Region Code", '<>%1', '');
+        ECSalesList.SetTableView(VATEntry);
+        ECSalesList.InitializeRequest(0);
+        ECSalesList.Run();
+    end;
+
+    [RequestPageHandler]
+    procedure ECSalesListRequestPageHandler(var ECSalesList: TestRequestPage "EC Sales List")
+    var
+        LibraryReportDataset: Codeunit "Library - Report Dataset";
+    begin
+        ECSalesList."Create XML File".SetValue(true);
+        ECSalesList.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+    end;
+
+    [MessageHandler]
+    procedure XMLSuccessMessageHandler(Message: Text[1024])
+    begin
+        // Handle the "XML file successfully created" message
+    end;
 }
 #endif
 

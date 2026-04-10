@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -50,7 +50,6 @@ page 554 "Analysis by Dimensions"
                     ApplicationArea = Dimensions;
                     Caption = 'Analysis View Code';
                     TableRelation = "Analysis View";
-                    ToolTip = 'Specifies the code for the analysis view that the filter belongs to.';
                     Editable = false;
                 }
                 field(LineDimCode; LineDimCode)
@@ -126,7 +125,6 @@ page 554 "Analysis by Dimensions"
                 {
                     ApplicationArea = Dimensions;
                     Caption = 'Date Filter';
-                    ToolTip = 'Specifies the dates that will be used to filter the amounts in the window.';
 
                     trigger OnValidate()
                     var
@@ -145,7 +143,6 @@ page 554 "Analysis by Dimensions"
                 {
                     ApplicationArea = Dimensions;
                     Caption = 'Account Filter';
-                    ToolTip = 'Specifies a filter for the general ledger accounts for which entries will be shown in the matrix window.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -202,7 +199,6 @@ page 554 "Analysis by Dimensions"
                     Caption = 'Cash Flow Forecast Filter';
                     LookupPageID = "Cash Flow Forecast List";
                     TableRelation = "Cash Flow Forecast";
-                    ToolTip = 'Specifies the cash flow forecast that information in the matrix is shown for.';
                     Visible = (GLAccountSource = false);
 
                     trigger OnValidate()
@@ -217,7 +213,6 @@ page 554 "Analysis by Dimensions"
                     Caption = 'Budget Filter';
                     LookupPageID = "G/L Budget Names";
                     TableRelation = "G/L Budget Name".Name;
-                    ToolTip = 'Specifies the budget that information in the matrix is shown for.';
                     Visible = GLAccountSource;
                 }
                 field(Dim1Filter; Rec."Dimension 1 Filter")
@@ -226,7 +221,6 @@ page 554 "Analysis by Dimensions"
                     CaptionClass = GetCaptionClass(1);
                     Caption = 'Dimension 1 Filter';
                     Enabled = Dim1FilterEnable;
-                    ToolTip = 'Specifies a filter for the Dimension 1 for which entries will be shown in the matrix window.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -245,7 +239,6 @@ page 554 "Analysis by Dimensions"
                     CaptionClass = GetCaptionClass(2);
                     Caption = 'Dimension 2 Filter';
                     Enabled = Dim2FilterEnable;
-                    ToolTip = 'Specifies a filter for the Dimension 2 for which entries will be shown in the matrix window.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -264,7 +257,6 @@ page 554 "Analysis by Dimensions"
                     CaptionClass = GetCaptionClass(3);
                     Caption = 'Dimension 3 Filter';
                     Enabled = Dim3FilterEnable;
-                    ToolTip = 'Specifies a filter for the Dimension 3 for which entries will be shown in the matrix window.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -283,7 +275,6 @@ page 554 "Analysis by Dimensions"
                     CaptionClass = GetCaptionClass(4);
                     Caption = 'Dimension 4 Filter';
                     Enabled = Dim4FilterEnable;
-                    ToolTip = 'Specifies a filter for the Dimension 4 for which entries will be shown in the matrix window.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -303,14 +294,12 @@ page 554 "Analysis by Dimensions"
                 field(ShowActualBudg; Rec."Show Actual/Budgets")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies if the selected value is shown in the window.';
                     Visible = GLAccountSource;
                 }
                 field(AmountField; Rec."Show Amount Field")
                 {
                     ApplicationArea = Dimensions;
                     Caption = 'Show Amount Field';
-                    ToolTip = 'Specifies the type of entries that will be included in the matrix window. The Amount options means that amounts that are the sum of debit and credit amounts are shown.';
                 }
                 field(ClosingEntryFilter; Rec."Closing Entries")
                 {
@@ -327,7 +316,6 @@ page 554 "Analysis by Dimensions"
                 field(RoundingFactor; Rec."Rounding Factor")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the factor that is used to round the amounts.';
                 }
                 field(ShowInAddCurr; Rec."Show In Add. Currency")
                 {
@@ -339,7 +327,6 @@ page 554 "Analysis by Dimensions"
                 field(ShowColumnName; Rec."Show Column Name")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies that the names of columns are shown in the matrix window.';
 
                     trigger OnValidate()
                     begin
@@ -350,7 +337,6 @@ page 554 "Analysis by Dimensions"
                 {
                     ApplicationArea = Dimensions;
                     MultiLine = true;
-                    ToolTip = 'Specifies whether to show debits as negative amounts (with minus signs) and credits as positive amounts in the matrix window.';
                 }
             }
             group("Matrix Options")
@@ -359,7 +345,6 @@ page 554 "Analysis by Dimensions"
                 field(PeriodType; Rec."Period Type")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies by which period amounts are displayed.';
 
                     trigger OnValidate()
                     begin
@@ -372,12 +357,10 @@ page 554 "Analysis by Dimensions"
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the range of values that are displayed in the matrix window, for example, the total period. To change the contents of the field, choose Next Set or Previous Set.';
                 }
                 field(QtyType; Rec."Amount Type")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies how amounts are displayed. Net Change: The net change in the balance for the selected period. Balance at Date: The balance as of the last day in the selected period.';
                 }
             }
         }

@@ -78,9 +78,6 @@ codeunit 99000813 "Carry Out Action"
 #endif
         PrintOrder: Boolean;
         SplitTransferOrders: Boolean;
-#if not CLEAN26
-        UseTransferNo: Code[20];
-#endif
         ProductionExist: Boolean;
         AssemblyExist: Boolean;
         TrySourceType: Enum "Planning Create Source Type";
@@ -220,7 +217,7 @@ codeunit 99000813 "Carry Out Action"
                 OnCarryOutToReqWkshOnAfterPlanningCompInsert(PlanningComponent2, PlanningComponent);
             until PlanningComponent.Next() = 0;
 
-        OnAfterCarryOutToReqWksh(RequisitionLine2, RequisitionLine, ReqWkshTempName, ReqJournalName, LineNo);
+        OnAfterCarryOutToReqWksh(RequisitionLine, RequisitionLine2, ReqWkshTempName, ReqJournalName, LineNo);
     end;
 
     procedure GetTransferOrdersToPrint(var TransferHeader: Record "Transfer Header")
@@ -445,23 +442,12 @@ codeunit 99000813 "Carry Out Action"
         TempDocumentEntry."Entry No." := TempDocumentEntry.Count + 1;
         TempDocumentEntry.Insert();
 
-#if not CLEAN26
-        UseTransferNo := TransferHeader."No.";
-#endif
         if PrintOrder then begin
             TempTransferHeaderToPrint."No." := TransferHeader."No.";
             TempTransferHeaderToPrint.Insert();
         end;
     end;
 
-#if not CLEAN26
-    [Obsolete('This procedure is unused and going to be removed.', '26.0')]
-    procedure InsertTransHeaderWithNo(ReqLine: Record "Requisition Line"; TransOrderChoice: Option " ","Make Trans. Orders","Make Trans. Orders & Print","Copy to Req. Wksh"; var TransferHeader: Record "Transfer Header")
-    begin
-        InsertTransHeader(ReqLine, TransferHeader);
-        TransferHeader.Get(UseTransferNo);
-    end;
-#endif
     procedure InsertTransLine(RequisitionLine: Record "Requisition Line"; var TransferHeader: Record "Transfer Header")
     var
         TransferLine: Record "Transfer Line";

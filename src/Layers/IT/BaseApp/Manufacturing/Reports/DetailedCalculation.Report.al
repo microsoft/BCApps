@@ -19,11 +19,10 @@ using System.Utilities;
 
 report 99000756 "Detailed Calculation"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Manufacturing/Reports/DetailedCalculation.rdlc';
     ApplicationArea = Manufacturing;
     Caption = 'Detailed Calculation';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -451,6 +450,16 @@ report 99000756 "Detailed Calculation"
         begin
             CalculateDate := WorkDate();
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Manufacturing/Reports/DetailedCalculation.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

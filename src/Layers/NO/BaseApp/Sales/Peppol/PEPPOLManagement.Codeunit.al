@@ -2347,7 +2347,9 @@ codeunit 1605 "PEPPOL Management"
             TempSalesHeader."Your Reference" := IssuedReminderHeader."Your Reference";
         TempSalesHeader."Language Code" := IssuedReminderHeader."Language Code";
         TempSalesHeader."VAT Registration No." := IssuedReminderHeader."VAT Registration No.";
+#if not CLEAN29
         TempSalesHeader.GLN := IssuedReminderHeader.GLN;
+#endif
         TempSalesHeader."Doc. No. Occurrence" := GiroKIDDocType;
         TempSalesHeader."Shipment Date" := TempSalesHeader."Document Date";
         TempSalesHeader."Ship-to Address" := TempSalesHeader."Bill-to Address";

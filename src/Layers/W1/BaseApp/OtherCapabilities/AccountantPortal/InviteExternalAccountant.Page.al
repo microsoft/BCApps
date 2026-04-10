@@ -207,7 +207,7 @@ page 9033 "Invite External Accountant"
 
     trigger OnOpenPage()
     var
-        DummyEmailAccount: Record "Email Account";
+        TempDummyEmailAccount: Record "Email Account";
         EmailScenario: Codeunit "Email Scenario";
         EnvironmentInfo: Codeunit "Environment Information";
         InviteExternalAccountant: Codeunit "Invite External Accountant";
@@ -220,7 +220,7 @@ page 9033 "Invite External Accountant"
             Error(SaaSOnlyErrorErr);
 
         ProgressWindow.Open(WizardOpenValidationMsg);
-        if not EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Invite External Accountant", DummyEmailAccount) then
+        if not EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Invite External Accountant", TempDummyEmailAccount) then
             Error(NoEmailAccountDefinedErr, Enum::"Email Scenario"::"Invite External Accountant");
 
         if not InviteExternalAccountant.InvokeIsExternalAccountantLicenseAvailable(ErrorMessage, TargetLicense) then begin
@@ -413,7 +413,7 @@ page 9033 "Invite External Accountant"
 
     local procedure SendInvitationEmail(SendTo: Text): Boolean
     var
-        EmailAccount: Record "Email Account";
+        TempEmailAccount: Record "Email Account";
         Email: Codeunit Email;
         EmailMessage: Codeunit "Email Message";
         EmailScenario: Codeunit "Email Scenario";
@@ -422,8 +422,8 @@ page 9033 "Invite External Accountant"
         SendToList.Add(SendTo);
         EmailMessage.Create(SendToList, StrSubstNo(EmailSubjectTxt, PRODUCTNAME.Marketing()),
                 DefineFullEmailBody(NewUserWelcomeEmail), true);
-        EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Invite External Accountant", EmailAccount);
-        exit(Email.Send(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector));
+        EmailScenario.GetEmailAccount(Enum::"Email Scenario"::"Invite External Accountant", TempEmailAccount);
+        exit(Email.Send(EmailMessage, TempEmailAccount."Account Id", TempEmailAccount.Connector));
     end;
 
     local procedure ResetControls()

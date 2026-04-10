@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,6 @@ page 9153 "My Accounts"
                 field("Account No."; Rec."Account No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the G/L account number.';
 
                     trigger OnValidate()
                     begin
@@ -37,12 +36,10 @@ page 9153 "My Accounts"
                     Caption = 'Name';
                     DrillDown = false;
                     Lookup = false;
-                    ToolTip = 'Specifies the name of the G/L account.';
                 }
                 field(Balance; Rec."Acc. Balance")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the balance of the G/L account.';
                 }
             }
         }

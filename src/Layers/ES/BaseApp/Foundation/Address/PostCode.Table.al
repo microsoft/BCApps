@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,6 +22,7 @@ table 225 "Post Code"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the postal code that is associated with a city.';
             OptimizeForTextSearch = true;
             NotBlank = true;
 
@@ -45,6 +46,7 @@ table 225 "Post Code"
         field(2; City; Text[30])
         {
             Caption = 'City';
+            ToolTip = 'Specifies the city linked to the postal code in the Code field.';
             OptimizeForTextSearch = true;
             NotBlank = true;
 
@@ -74,15 +76,19 @@ table 225 "Post Code"
         field(4; "Country/Region Code"; Code[10])
         {
             Caption = 'Country/Region Code';
+            ToolTip = 'Specifies the country/region of the address.';
             TableRelation = "Country/Region";
         }
         field(5; County; Text[30])
         {
             Caption = 'County';
+            ToolTip = 'Specifies a county name.';
             OptimizeForTextSearch = true;
         }
         field(30; "Time Zone"; Text[180])
         {
+            Caption = 'Time Zone';
+            ToolTip = 'Specifies the time zone for the selected post code.';
 
             trigger OnLookup()
             var
@@ -392,6 +398,7 @@ table 225 "Post Code"
         PostCodes.LookupMode := true;
         if PostCodes.RunModal() = ACTION::LookupOK then begin
             PostCodes.GetRecord(PostCodeRec);
+            OnLookupPostCodeOnAfterSelectPostCode(PostCodeRec);
             PostCode := PostCodeRec.Code;
             CityTxt := PostCodeRec.City;
             CountryCode := PostCodeRec."Country/Region Code";
@@ -456,6 +463,11 @@ table 225 "Post Code"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostCodeOnAfterSelectPostCode(var PostCodeRec: Record "Post Code"; var CityTxt: Text[30]; var PostCode: Code[20]; var CountyTxt: Text[30]; var CountryCode: Code[10]; UseDialog: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnLookupPostCodeOnAfterSelectPostCode(var PostCodeRec: Record "Post Code")
     begin
     end;
 }

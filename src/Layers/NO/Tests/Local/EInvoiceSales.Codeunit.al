@@ -30,7 +30,9 @@ codeunit 144103 "E-Invoice Sales"
         MissingUnitOfMeasureCodeErr: Label 'You must specify a valid %1 for the %2 for';
         SuccessfullyCreatedMsg: Label 'Successfully created ';
         TestValueTxt: Label 'Test Value';
+#if not CLEAN29
         IncorrectFieldValueEInvoiceErr: Label 'Incorrect bool value of field E-Invoice on the Sales Header table';
+#endif
         TestFieldErrorCodeTok: Label 'TestField';
         SwiftCodeErr: Label 'SWIFT Code must have a value in Company Information: Primary Key=. It cannot be zero or empty.';
         FormatTok: Label '<Precision,%1:%1><Standard Format,2>', Locked = true;
@@ -177,7 +179,9 @@ codeunit 144103 "E-Invoice Sales"
         Initialize();
 
         // setup
+#if not CLEAN29
         LibraryERM.SetEnterpriseRegisterCompInfo(true);
+#endif
 
         SalesNo := EInvoiceSalesHelper.CreateSalesInvoice();
         CompanyInfo.Get();
@@ -205,7 +209,9 @@ codeunit 144103 "E-Invoice Sales"
         Initialize();
 
         // setup
+#if not CLEAN29
         LibraryERM.SetEnterpriseRegisterCompInfo(false);
+#endif
 
         SalesNo := EInvoiceSalesHelper.CreateSalesInvoice();
         CompanyInfo.Get();
@@ -624,7 +630,9 @@ codeunit 144103 "E-Invoice Sales"
         // [FEATURE] [Credit Memo]
         Initialize();
         // setup
+#if not CLEAN29
         LibraryERM.SetEnterpriseRegisterCompInfo(true);
+#endif
 
         SalesNo := EInvoiceSalesHelper.CreateSalesCrMemo();
         CompanyInfo.Get();
@@ -652,7 +660,9 @@ codeunit 144103 "E-Invoice Sales"
         Initialize();
 
         // setup
+#if not CLEAN29
         LibraryERM.SetEnterpriseRegisterCompInfo(false);
+#endif
 
         SalesNo := EInvoiceSalesHelper.CreateSalesCrMemo();
         CompanyInfo.Get();
@@ -964,6 +974,8 @@ codeunit 144103 "E-Invoice Sales"
         NOXMLReadHelper.VerifyNodeValue('//cbc:CustomizationID', GetCrMemoCustomizationID());
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure EInvoiceFlagOnSalesDocumentTakenFromSellTo()
@@ -986,6 +998,7 @@ codeunit 144103 "E-Invoice Sales"
         Assert.IsTrue(SalesHeader."E-Invoice", IncorrectFieldValueEInvoiceErr);
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('ChangeBillToCustomerNoConfirmHandler')]
     [Scope('OnPrem')]
@@ -1012,6 +1025,7 @@ codeunit 144103 "E-Invoice Sales"
         // [THEN] The Sales Header "E-Invoice" becomes TRUE
         Assert.IsTrue(SalesHeader."E-Invoice", IncorrectFieldValueEInvoiceErr);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
@@ -1081,6 +1095,8 @@ codeunit 144103 "E-Invoice Sales"
         NOXMLReadHelper.VerifyNodeValueByXPath('cac:AccountingCustomerParty/cac:Party/cac:Contact/cbc:ID', 'NA');
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure UT_TransferFieldAccCodeFromFromSalesInvHeaderToEInvoiceExportHeader()
@@ -1104,6 +1120,7 @@ codeunit 144103 "E-Invoice Sales"
         // [THEN] "Payment ID" in "E-Invoice Export Header" = "X"
         EInvExportHeader.TestField("Payment ID", SalesInvHeader."Account Code");
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -1156,6 +1173,8 @@ codeunit 144103 "E-Invoice Sales"
         NOXMLReadHelper.VerifyNodeValueByXPath('cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount', ExpectedAmount);
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure GetEInvoiceExportPaymentID_UT_DoNotUse()
@@ -1167,6 +1186,7 @@ codeunit 144103 "E-Invoice Sales"
         GetEInvoiceExportPaymentID_UT(true, SalesReceivablesSetup."KID Setup"::"Do not use", '12345');
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure GetEInvoiceExportPaymentID_UT_DocNo()
@@ -1178,6 +1198,7 @@ codeunit 144103 "E-Invoice Sales"
         GetEInvoiceExportPaymentID_UT(true, SalesReceivablesSetup."KID Setup"::"Document No.", '00000123455');
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure GetEInvoiceExportPaymentID_UT_DocNoCustNo()
@@ -1189,6 +1210,7 @@ codeunit 144103 "E-Invoice Sales"
         GetEInvoiceExportPaymentID_UT(true, SalesReceivablesSetup."KID Setup"::"Document No.+Customer No.", '000001234500000678909');
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure GetEInvoiceExportPaymentID_UT_DocNoDocType()
@@ -1200,6 +1222,7 @@ codeunit 144103 "E-Invoice Sales"
         GetEInvoiceExportPaymentID_UT(true, SalesReceivablesSetup."KID Setup"::"Document No.+Document Type", '000001234517');
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure GetEInvoiceExportPaymentID_UT_CustNoDocNo()
@@ -1211,6 +1234,7 @@ codeunit 144103 "E-Invoice Sales"
         GetEInvoiceExportPaymentID_UT(true, SalesReceivablesSetup."KID Setup"::"Customer No.+Document No.", '000006789000000123459');
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure GetEInvoiceExportPaymentID_UT_DocTypeDocNo()
@@ -1222,6 +1246,7 @@ codeunit 144103 "E-Invoice Sales"
         GetEInvoiceExportPaymentID_UT(true, SalesReceivablesSetup."KID Setup"::"Document Type+Document No.", '100000123453');
     end;
 
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [Scope('OnPrem')]
     procedure GetEInvoiceExportPaymentID_UT_CustomDocNo()
@@ -1232,6 +1257,7 @@ codeunit 144103 "E-Invoice Sales"
         // [SCENARIO] COD10601 DocumentTools.GetEInvoiceExportPaymentID() returns 'TEST12345' in case of "KID Setup"="Document No.", DocNo='TEST12345'
         GetEInvoiceExportPaymentID_UT(false, SalesReceivablesSetup."KID Setup"::"Document No.", 'TEST12345');
     end;
+#endif
 
     local procedure GetDefaultUnitCode(): Text
     begin
@@ -1243,6 +1269,8 @@ codeunit 144103 "E-Invoice Sales"
         exit('UNECERec20');
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
     [Scope('OnPrem')]
@@ -1274,6 +1302,7 @@ codeunit 144103 "E-Invoice Sales"
         NOXMLReadHelper.Initialize(XmlFileName);
         NOXMLReadHelper.VerifyNodeValue('//cac:PaymentMeans/cbc:PaymentID', ExpectedResult);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('SuccessMsgHandler')]
@@ -1479,6 +1508,8 @@ codeunit 144103 "E-Invoice Sales"
         Commit();
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     local procedure GetEInvoiceExportPaymentID_UT(DigitDocNo: Boolean; KIDSetup: Option; ExpectedResult: Code[30])
     var
         EInvoiceExportHeader: Record "E-Invoice Export Header";
@@ -1495,6 +1526,7 @@ codeunit 144103 "E-Invoice Sales"
           DocumentTools.GetEInvoiceExportPaymentID(EInvoiceExportHeader),
           EInvoiceExportHeader.FieldCaption("Payment ID"));
     end;
+#endif
 
     local procedure ConfigureVATPostingSetup()
     var
@@ -1581,7 +1613,9 @@ codeunit 144103 "E-Invoice Sales"
         Path: Text[250];
     begin
         Path := EInvoiceHelper.GetTempPath();
+#if not CLEAN29
         EInvoiceHelper.SetupEInvoiceForSales(Path);
+#endif
 
         SalesInvoiceHeader.SetRange("No.", SalesInvoiceNo);
         REPORT.Run(REPORT::"Create Electronic Invoices", false, true, SalesInvoiceHeader);
@@ -1595,7 +1629,9 @@ codeunit 144103 "E-Invoice Sales"
         Path: Text[250];
     begin
         Path := EInvoiceHelper.GetTempPath();
+#if not CLEAN29
         EInvoiceHelper.SetupEInvoiceForSales(Path);
+#endif
 
         SalesCrMemoHeader.SetRange("No.", SalesCrMemoNo);
         REPORT.Run(REPORT::"Create Electronic Credit Memos", false, true, SalesCrMemoHeader);
@@ -1660,6 +1696,8 @@ codeunit 144103 "E-Invoice Sales"
         exit(CustomizationID);
     end;
 
+#if not CLEAN29
+    [Obsolete('The procedure will be removed in a future release.', '29.0')]
     local procedure GetEInvoiceNo(IsDigitDocNo: Boolean): Code[20]
     begin
         // Use hardcoded values in order to verify checksum digits
@@ -1667,6 +1705,7 @@ codeunit 144103 "E-Invoice Sales"
             exit('12345');
         exit('TEST12345');
     end;
+#endif
 
     local procedure SetVATRates(NoOfGroups: Integer; var VATRate: array[5] of Decimal)
     var

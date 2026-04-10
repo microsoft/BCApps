@@ -677,6 +677,11 @@
   {
     "codeunitId": 137063,
     "codeunitName": "SCM Manufacturing 7.0",
+    "method": "FirmPlannedProdOrderFromSalesOrderUsesLocationSKURouting"
+  },
+  {
+    "codeunitId": 137063,
+    "codeunitName": "SCM Manufacturing 7.0",
     "method": "OrderDateIsCalculatedCorrectlyIfLeadTimeCalculationIsGreaterThanOneYearForItemOnCalcPlanFromReqWorksheet"
   },
   {
@@ -1288,6 +1293,11 @@
     "codeunitId": 137072,
     "codeunitName": "SCM Production Orders II",
     "method": "VerifyPlannedProdOrderForOptimizeLowLevelCodeCalculationWithCompLocationSortedBeforeSalesLocation"
+  },
+  {
+    "codeunitId": 137072,
+    "codeunitName": "SCM Production Orders II",
+    "method": "VerifyProdOrderWithItemCardDifferentManufacturingPolicy"
   },
   {
     "codeunitId": 137072,
@@ -2573,5 +2583,25 @@
     "codeunitId": 137404,
     "codeunitName": "SCM Manufacturing",
     "method": "WhsePickRequestUpdatedOnUpdatingProdOrderCompLine"
+  },
+  {
+    "codeunitId": 137079,
+    "codeunitName": "SCM Production Order III",
+    "method": "VerifyReverseCapacityLedgerEntryShouldNotBeCreatedWhenReverseIsExecuted"
+  },
+  {
+    "codeunitId": 137079,
+    "codeunitName": "SCM Production Order III",
+    "method": "ReverseCapacityLedgerEntryLastOperationWithoutOutput"
+  },
+  {
+    "codeunitId": 137404,
+    "codeunitName": "SCM Manufacturing",
+    "method": "ExpectedQuantityOnProductionOrderComponenent"
+  },
+  {
+    "codeunitId": 137404,
+    "codeunitName": "SCM Manufacturing",
+    "method": "QuantityOnProductionOrderLine"
   }
 ]

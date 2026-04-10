@@ -105,20 +105,17 @@ page 256 "Payment Journal"
                     ApplicationArea = Basic, Suite;
                     Style = Attention;
                     StyleExpr = HasPmtFileErr;
-                    ToolTip = 'Specifies the posting date for the entry.';
                 }
                 field("Document Date"; Rec."Document Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Style = Attention;
                     StyleExpr = HasPmtFileErr;
-                    ToolTip = 'Specifies the date when the related document was created.';
                     Visible = false;
                 }
                 field("Invoice Received Date"; Rec."Invoice Received Date")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date when the related document was received.';
                     Visible = false;
                 }
                 field("Document Type"; Rec."Document Type")
@@ -126,20 +123,17 @@ page 256 "Payment Journal"
                     ApplicationArea = Basic, Suite;
                     Style = Attention;
                     StyleExpr = HasPmtFileErr;
-                    ToolTip = 'Specifies the type of document that the entry on the journal line is.';
                 }
                 field("Document No."; Rec."Document No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Style = Attention;
                     StyleExpr = HasPmtFileErr;
-                    ToolTip = 'Specifies a document number for the journal line.';
                     ShowMandatory = true;
                 }
                 field("Incoming Document Entry No."; Rec."Incoming Document Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the incoming document that this general journal line is created for.';
                     Visible = false;
 
                     trigger OnAssistEdit()
@@ -151,18 +145,15 @@ page 256 "Payment Journal"
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a document number that refers to the customer''s or vendor''s numbering system.';
                 }
                 field("Applies-to Ext. Doc. No."; Rec."Applies-to Ext. Doc. No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the external document number that will be exported in the payment file.';
                     Visible = false;
                 }
                 field("Account Type"; Rec."Account Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of account that the entry on the journal line will be posted to.';
 
                     trigger OnValidate()
                     begin
@@ -177,7 +168,6 @@ page 256 "Payment Journal"
                     ShowMandatory = true;
                     Style = Attention;
                     StyleExpr = HasPmtFileErr;
-                    ToolTip = 'Specifies the account number that the entry on the journal line will be posted to.';
 
                     trigger OnValidate()
                     begin
@@ -256,12 +246,10 @@ page 256 "Payment Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = RecipientBankAccountMandatory;
-                    ToolTip = 'Specifies the bank account that the amount will be transferred to after it has been exported from the payment journal.';
                 }
                 field("Message to Recipient"; Rec."Message to Recipient")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the message exported to the payment file when you use the Export Payments to File function in the Payment Journal window.';
                 }
                 field(GenJnlLineApprovalStatus; GenJnlLineApprovalStatus)
                 {
@@ -276,25 +264,21 @@ page 256 "Payment Journal"
                     ApplicationArea = Basic, Suite;
                     Style = Attention;
                     StyleExpr = HasPmtFileErr;
-                    ToolTip = 'Specifies a description of the entry.';
                 }
                 field("Salespers./Purch. Code"; Rec."Salespers./Purch. Code")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the salesperson or purchaser who is linked to the journal line.';
                     Visible = false;
                 }
                 field("Campaign No."; Rec."Campaign No.")
                 {
                     ApplicationArea = RelationshipMgmt;
-                    ToolTip = 'Specifies the number of the campaign that the journal line is linked to.';
                     Visible = false;
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
                     AssistEdit = true;
-                    ToolTip = 'Specifies the code of the currency for the amounts on the journal line.';
 
                     trigger OnAssistEdit()
                     begin
@@ -308,45 +292,38 @@ page 256 "Payment Journal"
                 field("Gen. Posting Type"; Rec."Gen. Posting Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of transaction.';
                     Visible = false;
                 }
                 field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the vendor''s or customer''s trade type to link transactions made for this business partner with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                 }
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
                     Visible = false;
                 }
                 field("VAT Bus. Posting Group"; Rec."VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved customer or vendor to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                 }
                 field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the VAT specification of the involved item or resource to link transactions made for this record with the appropriate general ledger account according to the VAT posting setup.';
                     Visible = false;
                 }
                 field("Posting Group"; Rec."Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = IsPostingGroupEditable;
-                    ToolTip = 'Specifies the posting group that will be used in posting the journal line.The field is used only if the account type is either customer or vendor.';
                     Visible = IsPostingGroupEditable;
                 }
                 field("Allocation Account No."; Rec."Selected Alloc. Account No.")
                 {
                     ApplicationArea = All;
                     Caption = 'Allocation Account No.';
-                    ToolTip = 'Specifies the allocation account number that will be used to distribute the amounts during the posting process.';
                     Visible = UseAllocationAccountNumber;
                     trigger OnValidate()
                     var
@@ -359,17 +336,14 @@ page 256 "Payment Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
                 }
                 field("Payment Reference"; Rec."Payment Reference")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the payment of the purchase invoice.';
                 }
                 field("Creditor No."; Rec."Creditor No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor who sent the purchase invoice.';
                 }
                 field(Amount; Rec.Amount)
                 {
@@ -377,7 +351,6 @@ page 256 "Payment Journal"
                     ShowMandatory = true;
                     Style = Attention;
                     StyleExpr = HasPmtFileErr;
-                    ToolTip = 'Specifies the total amount (including VAT) that the journal line consists of.';
                     Visible = AmountVisible;
 
                     trigger OnValidate()
@@ -399,7 +372,6 @@ page 256 "Payment Journal"
                 field("Debit Amount"; Rec."Debit Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent debits.';
                     Visible = DebitCreditVisible;
 
                     trigger OnValidate()
@@ -410,7 +382,6 @@ page 256 "Payment Journal"
                 field("Credit Amount"; Rec."Credit Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total of the ledger entries that represent credits.';
                     Visible = DebitCreditVisible;
 
                     trigger OnValidate()
@@ -421,31 +392,26 @@ page 256 "Payment Journal"
                 field("VAT Amount"; Rec."VAT Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount of VAT that is included in the total amount.';
                     Visible = false;
                 }
                 field("VAT Difference"; Rec."VAT Difference")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the difference between the calculated VAT amount and a VAT amount that you have entered manually.';
                     Visible = false;
                 }
                 field("Bal. VAT Amount"; Rec."Bal. VAT Amount")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the amount of Bal. VAT included in the total amount.';
                     Visible = false;
                 }
                 field("Bal. VAT Difference"; Rec."Bal. VAT Difference")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the difference between the calculate VAT amount and the VAT amount that you have entered manually.';
                     Visible = false;
                 }
                 field("Bal. Account Type"; Rec."Bal. Account Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
 
                     trigger OnValidate()
                     begin
@@ -455,7 +421,6 @@ page 256 "Payment Journal"
                 field("Bal. Account No."; Rec."Bal. Account No.")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
 
                     trigger OnValidate()
                     begin
@@ -467,31 +432,26 @@ page 256 "Payment Journal"
                 field("Bal. Gen. Posting Type"; Rec."Bal. Gen. Posting Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the general posting type associated with the balancing account that will be used when you post the entry on the journal line.';
                     Visible = false;
                 }
                 field("Bal. Gen. Bus. Posting Group"; Rec."Bal. Gen. Bus. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the general business posting group code associated with the balancing account that will be used when you post the entry.';
                     Visible = false;
                 }
                 field("Bal. Gen. Prod. Posting Group"; Rec."Bal. Gen. Prod. Posting Group")
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies the general product posting group code associated with the balancing account that will be used when you post the entry.';
                     Visible = false;
                 }
                 field("Bal. VAT Bus. Posting Group"; Rec."Bal. VAT Bus. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code of the VAT business posting group that will be used when you post the entry on the journal line.';
                     Visible = false;
                 }
                 field("Bal. VAT Prod. Posting Group"; Rec."Bal. VAT Prod. Posting Group")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code of the VAT product posting group that will be used when you post the entry on the journal line.';
                     Visible = false;
                 }
                 field("Applied (Yes/No)"; Rec.IsApplied())
@@ -503,19 +463,16 @@ page 256 "Payment Journal"
                 field("Applies-to Doc. Type"; Rec."Applies-to Doc. Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field(AppliesToDocNo; Rec."Applies-to Doc. No.")
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies the number of the posted document that this document or journal line will be applied to when you post, for example to register payment.';
                 }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleTxt;
-                    ToolTip = 'Specifies the ID of entries that will be applied to when you choose the Apply Entries action.';
                     Visible = false;
                 }
                 field(GetAppliesToDocDueDate; Rec.GetAppliesToDocDueDate())
@@ -528,35 +485,29 @@ page 256 "Payment Journal"
                 field("Bank Payment Type"; Rec."Bank Payment Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for the payment type to be used for the entry on the journal line.';
                 }
                 field("Check Printed"; Rec."Check Printed")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether a check has been printed for the amount on the payment journal line.';
                     Visible = false;
                 }
                 field("Reason Code"; Rec."Reason Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reason code, a supplementary source code that enables you to trace the entry.';
                     Visible = false;
                 }
                 field(Correction; Rec.Correction)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the entry as a corrective entry. You can use the field if you need to post a corrective entry to an account.';
                 }
                 field(CommentField; Rec.Comment)
                 {
                     ApplicationArea = Comments;
-                    ToolTip = 'Specifies a comment about the activity on the journal line. Note that the comment is not carried forward to posted entries.';
                     Visible = false;
                 }
                 field("Exported to Payment File"; Rec."Exported to Payment File")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the payment journal line was exported to a payment file.';
                 }
                 field(TotalExportedAmount; Rec.TotalExportedAmount())
                 {
@@ -575,13 +526,11 @@ page 256 "Payment Journal"
                 field("Has Payment Export Error"; Rec."Has Payment Export Error")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that an error occurred when you used the Export Payments to File function in the Payment Journal window.';
                 }
                 field("Job Queue Status"; Rec."Job Queue Status")
                 {
                     ApplicationArea = All;
                     Importance = Additional;
-                    ToolTip = 'Specifies the status of a job queue entry or task that handles the posting of general journals.';
                     Visible = JobQueuesUsed;
 
                     trigger OnDrillDown()
@@ -596,13 +545,11 @@ page 256 "Payment Journal"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible1;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
                     Visible = DimVisible2;
                 }
                 field(ShortcutDimCode3; ShortcutDimCode[3])
@@ -704,7 +651,6 @@ page 256 "Payment Journal"
                 field("Remit-to Code"; Rec."Remit-to Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the address for the remit-to code.';
                     Visible = true;
                     TableRelation = "Remit Address".Code where("Vendor No." = field("Account No."));
                 }

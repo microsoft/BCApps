@@ -31,9 +31,12 @@ page 8390 "Financial Report Audit Logs"
                 }
                 field(SystemCreatedAt; Rec.SystemCreatedAt)
                 {
-                    Caption = 'Date and Time';
+                    Caption = 'Run at Date Time';
                     Tooltip = 'Specifies the date and time when the report was accessed.';
+                    Visible = false;
                 }
+                field("Run at Date (UTC)"; Rec."Run at Date (UTC)") { }
+                field("Run at Time (UTC)"; Rec."Run at Time (UTC)") { }
                 field("Report Definition Code"; Rec."Report Name") { }
                 field("Report Definition Name"; Rec."Report Description") { }
                 field(User; Rec.User) { }

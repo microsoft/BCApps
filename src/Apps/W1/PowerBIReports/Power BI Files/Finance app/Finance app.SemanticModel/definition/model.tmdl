@@ -38,7 +38,7 @@ queryGroup 'Parameters and Functions\Connection Parameters'
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["Balance Sheet G/L Entries","Income Statement G/L Entries","Close Income Statement G/L Entries","G/L Entries","G/L Budget Entries","ENVIRONMENT","COMPANY","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","GetDimCode","GetDimCodeCaption","GetDimNameCaption","GetParentGLAccountNo","Balance Sheet Measures","GLAccountPosting","GLAccountEndTotal","G/L Account","G/L Account Category","Dimension Sets","G/L Budget","Income Statement Measures","Activity KPIs","Liquidity KPIs","Profitability KPIs","Date Table Setup","Working Days","Standard Calendar Time Intelligence","Fiscal Calendar Time Intelligence","Weekly Calendar Time Intelligence","Customer Ledger Entries","Vendor Ledger Entries","Vendors","Customers","Power BI Account Categories","API_ENDPOINT","CheckUpgradeQuery","Close Income Statement Codes","ConvertUTC","Build Closing Entry Filter","Closing Entry Filter Table","Back Links"]
+annotation PBI_QueryOrder = ["Balance Sheet G/L Entries","Income Statement G/L Entries","Close Income Statement G/L Entries","G/L Entries","G/L Budget Entries","ENVIRONMENT","COMPANY","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","GetDimCode","GetDimCodeCaption","GetDimNameCaption","GetParentGLAccountNo","Balance Sheet Measures","GLAccountPosting","GLAccountEndTotal","G/L Account","G/L Account Category","Dimension Sets","G/L Budget","Income Statement Measures","Activity KPIs","Liquidity KPIs","Profitability KPIs","Date Table Setup","Working Days","Standard Calendar Time Intelligence","Fiscal Calendar Time Intelligence","Weekly Calendar Time Intelligence","Customer Ledger Entries","Vendor Ledger Entries","Vendors","Customers","Power BI Account Categories","API_ENDPOINT","Close Income Statement Codes","ConvertUTC","Build Closing Entry Filter","Closing Entry Filter Table","Back Links","Company Encoding","IsCloseIncomeStmtUpgraded"]
 
 annotation __BNorm = 1
 
@@ -82,6 +82,8 @@ ref table 'Closing Entry Filter Table'
 ref table ENVIRONMENT
 ref table 'Back Links'
 ref table 'Translated Localized Labels'
+ref table 'Company Encoding'
+ref table IsCloseIncomeStmtUpgraded
 
 ref cultureInfo en-US
 ref cultureInfo es-ES

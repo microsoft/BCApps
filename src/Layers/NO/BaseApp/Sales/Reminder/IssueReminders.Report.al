@@ -8,7 +8,9 @@ using Microsoft.CRM.Outlook;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
+#if not CLEAN29
 using Microsoft.Sales.Peppol;
+#endif
 using Microsoft.Sales.Setup;
 using System.Utilities;
 
@@ -28,11 +30,13 @@ report 190 "Issue Reminders"
             RequestFilterFields = "No.";
             RequestFilterHeading = 'Reminder';
 
+#if not CLEAN29
             trigger OnAfterGetRecord()
             begin
                 if "E-Invoice" then
                     PEPPOLValidation.CheckReminder("No.");
             end;
+#endif
         }
         dataitem("Reminder Header"; "Reminder Header")
         {
@@ -278,7 +282,9 @@ report 190 "Issue Reminders"
         SalesSetup: Record "Sales & Receivables Setup";
         ReminderIssue: Codeunit "Reminder-Issue";
         ConfirmManagement: Codeunit "Confirm Management";
+#if not CLEAN29
         PEPPOLValidation: Codeunit "PEPPOL Validation";
+#endif
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
         Window: Dialog;
         NoOfRecords: Integer;

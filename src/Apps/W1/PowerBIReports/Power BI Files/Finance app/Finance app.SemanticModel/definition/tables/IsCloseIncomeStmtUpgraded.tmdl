@@ -1,0 +1,26 @@
+table IsCloseIncomeStmtUpgraded
+	lineageTag: 01f9da70-4cc2-4bc6-a8da-d7ccdcf2f06e
+
+	column IsCloseIncomeStmtUpgraded
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 7de2637e-1359-4626-8420-9ef58864b6e4
+		summarizeBy: none
+		sourceColumn: IsCloseIncomeStmtUpgraded
+
+		annotation SummarizationSetBy = Automatic
+
+	partition IsCloseIncomeStmtUpgraded = m
+		mode: import
+		queryGroup: 'Parameters and Functions'
+		source =
+				let
+				  Codes = #"Close Income Statement Codes",
+				  HasRealCodes = not List.IsEmpty(List.RemoveItems(Table.Column(Codes, "sourceCode"), {""}))
+				in
+				  HasRealCodes
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Logical
+

@@ -50,16 +50,9 @@ codeunit 99000856 "Planning Transparency"
     procedure GetSurplusType(var DemandInvProfile: Record "Inventory Profile") Result: Enum "Planning Surplus Type"
     var
         SurplusType: Enum "Planning Surplus Type";
-#if not CLEAN26
-        ResultInt: Integer;
-#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
-#if not CLEAN26
-        OnBeforeFindReason(DemandInvProfile, ResultInt, IsHandled);
-        Result := "Planning Surplus Type".FromInteger(ResultInt);
-#endif
         OnBeforeGetSurplusType(DemandInvProfile, Result, IsHandled);
         if IsHandled then
             exit(Result);
@@ -83,14 +76,6 @@ codeunit 99000856 "Planning Transparency"
         end;
         exit(SurplusType);
     end;
-
-#if not CLEAN26
-    [Obsolete('Replaced by procedure LogPlanningSurplus()', '26.0')]
-    procedure LogSurplus(SupplyLineNo: Integer; DemandLineNo: Integer; SourceType: Integer; SourceID: Code[20]; Qty: Decimal; SurplusType: Option "None",Forecast,BlanketOrder,SafetyStock,ReorderPoint,MaxInventory,FixedOrderQty,MaxOrder,MinOrder,OrderMultiple,DampenerQty,PlanningFlexibility,Undefined,EmergencyOrder)
-    begin
-        LogPlanningSurplus(SupplyLineNo, DemandLineNo, SourceType, SourceID, Qty, "Planning Surplus Type".FromInteger(SurplusType));
-    end;
-#endif
 
     procedure LogPlanningSurplus(SupplyLineNo: Integer; DemandLineNo: Integer; SourceType: Integer; SourceID: Code[20]; Qty: Decimal; SurplusType: Enum "Planning Surplus Type")
     var
@@ -145,14 +130,6 @@ codeunit 99000856 "Planning Transparency"
             TempInvProfileTrack.Insert();
         end;
     end;
-
-#if not CLEAN26
-    [Obsolete('Replaced by procedure ModifyPlanningLog()', '26.0')]
-    procedure ModifyLogEntry(SupplyLineNo: Integer; DemandLineNo: Integer; SourceType: Integer; SourceID: Code[20]; Qty: Decimal; SurplusType: Option)
-    begin
-        ModifyPlanningLog(SupplyLineNo, DemandLineNo, SourceType, SourceID, Qty, "Planning Surplus Type".FromInteger(SurplusType));
-    end;
-#endif
 
     procedure ModifyPlanningLog(SupplyLineNo: Integer; DemandLineNo: Integer; SourceType: Integer; SourceID: Code[20]; Qty: Decimal; SurplusType: Enum "Planning Surplus Type")
     begin
@@ -518,14 +495,6 @@ codeunit 99000856 "Planning Transparency"
     local procedure OnAfterShowSurplusReason(SurplusType: Integer; var ReturnText: Text[50])
     begin
     end;
-
-#if not CLEAN26
-    [Obsolete('Replaced by event OnBeforeGetSurplusType', '26.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeFindReason(var DemandInvProfile: Record "Inventory Profile"; var Result: Integer; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSurplusType(var DemandInvProfile: Record "Inventory Profile"; var Result: Enum "Planning Surplus Type"; var IsHandled: Boolean)

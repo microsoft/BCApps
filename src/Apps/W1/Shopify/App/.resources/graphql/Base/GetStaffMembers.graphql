@@ -1,0 +1,2 @@
+# cost: 7
+{"query":"{ staffMembers (first: 20) { edges { node { accountType active email exists firstName id initials isShopOwner lastName locale name phone } } pageInfo { hasNextPage endCursor } } }"}

@@ -14,12 +14,11 @@ using System.Utilities;
 
 report 10139 "Inventory Valuation"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/InventoryValuation.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Inventory Valuation';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -217,6 +216,16 @@ report 10139 "Inventory Valuation"
         }
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/InventoryValuation.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

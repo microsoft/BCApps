@@ -3068,5 +3068,15 @@
     "codeunitId": 134908,
     "codeunitName": "ERM VAT Serv. Charge",
     "method": "SalesOrderWithServChargeIsUpdatedWhenPrepmtPosted"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "PurchCrMemoNonDedVATWithPositiveAndNegativeLines"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "DeductibleVATBaseNotZeroedWhenNonDedVATPctIsZero"
   }
 ]

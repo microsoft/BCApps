@@ -59,7 +59,7 @@ codeunit 10741 "Serv. No Taxable Mgt."
         if not ServiceInvoiceHeader.Get(ServInvoiceNo) then
             exit(false);
         if not FindNoTaxableLinesServiceInvoice(
-             ServiceInvoiceLine, ServiceHeader."Customer No.", ServInvoiceNo, ServiceHeader."Posting Date")
+             ServiceInvoiceLine, ServiceHeader."Bill-to Customer No.", ServInvoiceNo, ServiceHeader."Posting Date")
         then
             exit(true);
 
@@ -81,7 +81,7 @@ codeunit 10741 "Serv. No Taxable Mgt."
         if not ServiceCrMemoHeader.Get(ServCrMemoNo) then
             exit(false);
         if not FindNoTaxableLinesServiceCrMemo(
-             ServiceCrMemoLine, ServiceHeader."Customer No.", ServCrMemoNo, ServiceHeader."Posting Date")
+            ServiceCrMemoLine, ServiceHeader."Bill-to Customer No.", ServCrMemoNo, ServiceHeader."Posting Date")
         then
             exit(true);
 
@@ -169,8 +169,8 @@ codeunit 10741 "Serv. No Taxable Mgt."
         NoTaxableEntry."Document Date" := ServiceHeader."Document Date";
         NoTaxableEntry."Posting Date" := ServiceHeader."Posting Date";
         NoTaxableEntry."Currency Code" := ServiceHeader."Currency Code";
-        NoTaxableEntry."Country/Region Code" := ServiceHeader."Country/Region Code";
-        NoTaxableEntry."Source No." := ServiceHeader."Customer No.";
+        NoTaxableEntry."Country/Region Code" := ServiceHeader."Bill-to Country/Region Code";
+        NoTaxableEntry."Source No." := ServiceHeader."Bill-to Customer No.";
         NoTaxableEntry."External Document No." := ServiceHeader."No.";
         NoTaxableEntry."Currency Factor" := ServiceHeader."Currency Factor";
         NoTaxableEntry."No. Series" := ServiceHeader."Posting No. Series";

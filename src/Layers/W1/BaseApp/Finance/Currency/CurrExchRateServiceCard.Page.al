@@ -38,18 +38,15 @@ page 1651 "Curr. Exch. Rate Service Card"
                 {
                     ApplicationArea = Suite;
                     Editable = NotEnabledAndCurrPageEditable;
-                    ToolTip = 'Specifies the setup of a service to update currency exchange rates.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Suite;
                     Editable = NotEnabledAndCurrPageEditable;
-                    ToolTip = 'Specifies the setup of a service to update currency exchange rates.';
                 }
                 field(Enabled; Rec.Enabled)
                 {
                     ApplicationArea = Suite;
-                    ToolTip = 'Specifies if the currency exchange rate service is enabled.';
 
                     trigger OnValidate()
                     begin
@@ -92,19 +89,16 @@ page 1651 "Curr. Exch. Rate Service Card"
                 {
                     ApplicationArea = Suite;
                     Editable = NotEnabledAndCurrPageEditable;
-                    ToolTip = 'Specifies the name of the service provider.';
                 }
                 field("Terms of Service"; Rec."Terms of Service")
                 {
                     ApplicationArea = Suite;
                     Editable = NotEnabledAndCurrPageEditable;
-                    ToolTip = 'Specifies the URL of the service provider''s terms of service.';
                 }
                 field("Log Web Requests"; Rec."Log Web Requests")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = NotEnabledAndCurrPageEditable;
-                    ToolTip = 'Specifies whether to log exceptions that occur when connecting to the service. The log is located in the server Temp folder.';
                     Visible = not IsSoftwareAsService;
                 }
             }

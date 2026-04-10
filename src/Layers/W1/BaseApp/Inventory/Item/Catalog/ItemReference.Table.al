@@ -278,14 +278,6 @@ table 5777 "Item Reference"
         exit(not ItemReference2.IsEmpty);
     end;
 
-#if not CLEAN26
-    [Obsolete('Use another implementation of FindItemDescription.', '23.0')]
-    procedure FindItemDescription(var ItemDescription: Text[100]; var ItemDescription2: Text[50]; ItemNo: Code[20]; VariantCode: Code[10]; UnitOfMeasureCode: Code[10]; ReferenceType: Enum "Item Reference Type"; ReferenceTypeNo: Code[20]) Result: Boolean
-    begin
-        exit(FindItemDescription(ItemDescription, ItemDescription2, ItemNo, VariantCode, UnitOfMeasureCode, 0D, ReferenceType, ReferenceTypeNo));
-    end;
-#endif
-
     procedure FindItemDescription(var ItemDescription: Text[100]; var ItemDescription2: Text[50]; ItemNo: Code[20]; VariantCode: Code[10]; UnitOfMeasureCode: Code[10]; ToDate: Date; ReferenceType: Enum "Item Reference Type"; ReferenceTypeNo: Code[20]) Result: Boolean
     var
         ItemReference: Record "Item Reference";

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -46,6 +46,7 @@ table 2585 "Dim Correct Selection Criteria"
         /// </summary>
         field(4; "Filter Type"; Option)
         {
+            ToolTip = 'Specifies the type of the selection.';
             DataClassification = CustomerContent;
             OptionMembers = Manual,Excluded,"Related Entries","Custom Filter","By Dimension";
         }

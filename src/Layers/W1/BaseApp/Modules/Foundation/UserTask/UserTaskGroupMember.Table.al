@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -32,6 +32,7 @@ table 1176 "User Task Group Member"
             CalcFormula = lookup(User."User Name" where("User Security ID" = field("User Security ID"),
                                                          "License Type" = const("Full User")));
             Caption = 'User Name';
+            ToolTip = 'Specifies a user that is a member of the group.';
             Editable = false;
             FieldClass = FlowField;
         }

@@ -424,7 +424,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         if CapacityLedgerEntry.Subcontracting then
             Error(SubContractingErr);
 
-        if IsLastOperation(CapacityLedgerEntry) then begin
+        if IsLastOperation(CapacityLedgerEntry) and (CapacityLedgerEntry."Output Quantity" <> 0) then begin
             OnValidateProdOrderOnIsLastOperation(CapacityLedgerEntry);
             Error(CannotReverseLastOperationErr, CapacityLedgerEntry.FieldCaption("Entry No."), CapacityLedgerEntry."Entry No.", CapacityLedgerEntry."Order No.", ItemLedgEntry.TableCaption());
         end;

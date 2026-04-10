@@ -40,9 +40,6 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Task;
 using Microsoft.HumanResources.Employee;
-#if not CLEAN26
-using Microsoft.Integration.Entity;
-#endif
 using Microsoft.Intercompany;
 using Microsoft.Intercompany.Dimension;
 using Microsoft.Intercompany.GLAccount;
@@ -1044,61 +1041,6 @@ page 9027 "Accountant Role Center"
                 {
                     Caption = 'Excel Reports';
                     Image = Excel;
-#if not CLEAN26
-                    group(Legacy)
-                    {
-                        Caption = 'Legacy reports (will be removed)';
-                        Image = Excel;
-                        ObsoleteReason = 'These reports have been deprecated and will be removed in a future release.';
-                        ObsoleteState = Pending;
-                        ObsoleteTag = '26.0';
-
-                        action(ExcelTemplatesBalanceSheet)
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Balance Sheet';
-                            Image = "Report";
-                            RunObject = Codeunit "Run Template Balance Sheet";
-                            ToolTip = 'Open a spreadsheet that shows your company''s assets, liabilities, and equity. This report is deprecated and will be removed in a future release.';
-                            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '26.0';
-                        }
-                        action(ExcelTemplateIncomeStmt)
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Income Statement';
-                            Image = "Report";
-                            RunObject = Codeunit "Run Template Income Stmt.";
-                            ToolTip = 'Open a spreadsheet that shows your company''s income and expenses. This report is deprecated and will be removed in a future release.';
-                            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '26.0';
-                        }
-                        action(ExcelTemplateCashFlowStmt)
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Cash Flow Statement';
-                            Image = "Report";
-                            RunObject = Codeunit "Run Template CashFlow Stmt.";
-                            ToolTip = 'Open a spreadsheet that shows how changes in balance sheet accounts and income affect the company''s cash holdings. This report is deprecated and will be removed in a future release.';
-                            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '26.0';
-                        }
-                        action(ExcelTemplateRetainedEarn)
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Retained Earnings Statement';
-                            Image = "Report";
-                            RunObject = Codeunit "Run Template Retained Earn.";
-                            ToolTip = 'Open a spreadsheet that shows your company''s changes in retained earnings based on net income from the other financial statements. This report is deprecated and will be removed in a future release.';
-                            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
-                            ObsoleteState = Pending;
-                            ObsoleteTag = '26.0';
-                        }
-                    }
-#endif
                 }
                 action("Run Consolidation")
                 {

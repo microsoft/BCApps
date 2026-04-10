@@ -559,11 +559,11 @@ table 'Sustainability Ledger Entries'
 			
 			VAR BusinessCentral = "https://businesscentral.dynamics.com/"
 			VAR TenantID =
-			    VALUES ( 'Date Table Setup'[tenantID] ) //VAR TenantID = VALUES('Date Table Setup'[tenantID])
+			    VALUES ( 'Date Table Setup'[tenantID] )
 			VAR Environment =
 			    VALUES ( ENVIRONMENT[ENVIRONMENT] )
 			VAR Company =
-			    "?company=" & VALUES ( COMPANY[COMPANY] )
+			    "?company=" & VALUES ( 'Company Encoding'[Encoded Company Name] )
 			RETURN
 			    BusinessCentral & TenantID & "/" & Environment & "/" & Company
 		displayFolder: _Back Links

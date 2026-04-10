@@ -17,14 +17,13 @@ using System.Utilities;
 
 report 99001048 "Planning Availability"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/PlanningAvailability.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Planning Availability (Obsolete)';
     UsageCategory = ReportsAndAnalysis;
     ObsoleteState = Pending;
     ObsoleteReason = 'This report has been deprecated and will be removed in a future release.';
     ObsoleteTag = '27.0';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -454,6 +453,16 @@ report 99001048 "Planning Availability"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/PlanningAvailability.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

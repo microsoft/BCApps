@@ -23,6 +23,7 @@ table 746 "VAT Reports Configuration"
         field(1; "VAT Report Type"; Option)
         {
             Caption = 'VAT Report Type';
+            ToolTip = 'Specifies if you want to create a new VAT report, or if you want to change a previously submitted report.';
             OptionCaption = 'EC Sales List,VAT Return,Intrastat Report,Service Declaration';
             OptionMembers = "EC Sales List","VAT Return","Intrastat Report","Service Declaration";
         }
@@ -32,6 +33,7 @@ table 746 "VAT Reports Configuration"
         field(2; "VAT Report Version"; Code[10])
         {
             Caption = 'VAT Report Version';
+            ToolTip = 'Specifies the version of the VAT report.';
         }
         /// <summary>
         /// Codeunit ID responsible for suggesting VAT statement lines for report generation.
@@ -39,6 +41,7 @@ table 746 "VAT Reports Configuration"
         field(3; "Suggest Lines Codeunit ID"; Integer)
         {
             Caption = 'Suggest Lines Codeunit ID';
+            ToolTip = 'Specifies whether an ID is suggested automatically.';
             TableRelation = "CodeUnit Metadata".ID;
         }
         /// <summary>
@@ -49,6 +52,7 @@ table 746 "VAT Reports Configuration"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
                                                                            "Object ID" = field("Suggest Lines Codeunit ID")));
             Caption = 'Suggest Lines Codeunit Caption';
+            ToolTip = 'Specifies whether a caption is suggested automatically.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -58,6 +62,7 @@ table 746 "VAT Reports Configuration"
         field(5; "Content Codeunit ID"; Integer)
         {
             Caption = 'Content Codeunit ID';
+            ToolTip = 'Specifies the codeunit ID.';
             TableRelation = "CodeUnit Metadata".ID;
         }
         /// <summary>
@@ -68,6 +73,7 @@ table 746 "VAT Reports Configuration"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
                                                                            "Object ID" = field("Content Codeunit ID")));
             Caption = 'Content Codeunit Caption';
+            ToolTip = 'Specifies the codeunit caption code.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -77,6 +83,7 @@ table 746 "VAT Reports Configuration"
         field(7; "Submission Codeunit ID"; Integer)
         {
             Caption = 'Submission Codeunit ID';
+            ToolTip = 'Specifies the ID associated with the submission codeunit.';
             TableRelation = "CodeUnit Metadata".ID;
         }
         /// <summary>
@@ -87,6 +94,7 @@ table 746 "VAT Reports Configuration"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
                                                                            "Object ID" = field("Submission Codeunit ID")));
             Caption = 'Submission Codeunit Caption';
+            ToolTip = 'Specifies the caption associated with the submission codeunit.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -96,6 +104,7 @@ table 746 "VAT Reports Configuration"
         field(9; "Response Handler Codeunit ID"; Integer)
         {
             Caption = 'Response Handler Codeunit ID';
+            ToolTip = 'Specifies the codeunit ID of the response handler.';
             TableRelation = "CodeUnit Metadata".ID;
         }
         /// <summary>
@@ -106,6 +115,7 @@ table 746 "VAT Reports Configuration"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
                                                                            "Object ID" = field("Response Handler Codeunit ID")));
             Caption = 'Resp. Handler Codeunit Caption';
+            ToolTip = 'Specifies the name of the caption that related to the line.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -115,6 +125,7 @@ table 746 "VAT Reports Configuration"
         field(11; "Validate Codeunit ID"; Integer)
         {
             Caption = 'Validate Codeunit ID';
+            ToolTip = 'Specifies the codeunit ID for the VAT Report line.';
             TableRelation = "CodeUnit Metadata".ID;
         }
         /// <summary>
@@ -125,6 +136,7 @@ table 746 "VAT Reports Configuration"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit),
                                                                            "Object ID" = field("Validate Codeunit ID")));
             Caption = 'Validate Codeunit Caption';
+            ToolTip = 'Specifies the caption for the codeunit VAT Report.';
             Editable = false;
             FieldClass = FlowField;
         }

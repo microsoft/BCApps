@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +34,7 @@ table 1650 "Curr. Exch. Rate Update Setup"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the setup of a service to update currency exchange rates.';
             NotBlank = true;
 
             trigger OnValidate()
@@ -54,6 +55,7 @@ table 1650 "Curr. Exch. Rate Update Setup"
         field(2; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the setup of a service to update currency exchange rates.';
         }
         /// <summary>
         /// Stores the complete web service URL for the exchange rate provider endpoint.
@@ -70,6 +72,7 @@ table 1650 "Curr. Exch. Rate Update Setup"
         field(5; Enabled; Boolean)
         {
             Caption = 'Enabled';
+            ToolTip = 'Specifies if the currency exchange rate service is enabled.';
 
             trigger OnValidate()
             var
@@ -97,6 +100,7 @@ table 1650 "Curr. Exch. Rate Update Setup"
         field(10; "Service Provider"; Text[30])
         {
             Caption = 'Service Provider';
+            ToolTip = 'Specifies the name of the service provider.';
         }
         /// <summary>
         /// URL to the service provider's terms of service or usage agreement.
@@ -105,6 +109,7 @@ table 1650 "Curr. Exch. Rate Update Setup"
         field(11; "Terms of Service"; Text[250])
         {
             Caption = 'Terms of Service';
+            ToolTip = 'Specifies the URL of the service provider''s terms of service.';
             ExtendedDatatype = URL;
         }
         /// <summary>
@@ -123,6 +128,7 @@ table 1650 "Curr. Exch. Rate Update Setup"
         field(21; "Log Web Requests"; Boolean)
         {
             Caption = 'Log Web Requests';
+            ToolTip = 'Specifies whether to log exceptions that occur when connecting to the service. The log is located in the server Temp folder.';
         }
     }
 

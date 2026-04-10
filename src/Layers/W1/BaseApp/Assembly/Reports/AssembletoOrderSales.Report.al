@@ -12,12 +12,11 @@ using System.Utilities;
 
 report 915 "Assemble to Order - Sales"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Assembly/Reports/AssembletoOrderSales.rdlc';
     AdditionalSearchTerms = 'kit to order,kit sale';
     ApplicationArea = Assembly;
     Caption = 'Assemble to Order - Sales';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -202,6 +201,16 @@ report 915 "Assemble to Order - Sales"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Assembly/Reports/AssembletoOrderSales.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

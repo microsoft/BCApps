@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -30,23 +30,19 @@ page 479 "Dimension Set Entries"
                 field("Dimension Code"; Rec."Dimension Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension.';
                 }
                 field("Dimension Name"; Rec."Dimension Name")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the descriptive name of the Dimension Code field.';
                     Visible = false;
                 }
                 field(DimensionValueCode; Rec."Dimension Value Code")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the dimension value.';
                 }
                 field("Dimension Value Name"; Rec."Dimension Value Name")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the descriptive name of the Dimension Value Code field.';
                 }
             }
         }

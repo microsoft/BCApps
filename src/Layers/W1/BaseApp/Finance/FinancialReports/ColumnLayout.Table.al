@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -44,6 +44,7 @@ table 334 "Column Layout"
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the line number for the financial report column.';
         }
         /// <summary>
         /// Column identifier displayed in account schedule headers and used for formula references.
@@ -51,6 +52,7 @@ table 334 "Column Layout"
         field(3; "Column No."; Code[10])
         {
             Caption = 'Column No.';
+            ToolTip = 'Specifies a number for the column in the analysis view.';
         }
         /// <summary>
         /// Display header text shown at the top of the column in account schedule reports.
@@ -58,6 +60,7 @@ table 334 "Column Layout"
         field(4; "Column Header"; Text[30])
         {
             Caption = 'Column Header';
+            ToolTip = 'Specifies a header for the column.';
         }
         /// <summary>
         /// Column type determining calculation method and data source for the column values.
@@ -65,6 +68,7 @@ table 334 "Column Layout"
         field(5; "Column Type"; Enum "Column Layout Type")
         {
             Caption = 'Column Type';
+            ToolTip = 'Specifies the analysis column type, which determines how the amounts in the column are calculated.';
             InitValue = "Net Change";
         }
         /// <summary>
@@ -73,6 +77,7 @@ table 334 "Column Layout"
         field(6; "Ledger Entry Type"; Enum "Column Layout Entry Type")
         {
             Caption = 'Ledger Entry Type';
+            ToolTip = 'Specifies the type of ledger entries that will be included in the amounts in the financial report column.';
         }
         /// <summary>
         /// Amount type specifying whether to use net change, balance, or budget amounts in calculations.
@@ -80,6 +85,7 @@ table 334 "Column Layout"
         field(7; "Amount Type"; Enum "Account Schedule Amount Type")
         {
             Caption = 'Amount Type';
+            ToolTip = 'Specifies the type of entries that will be included in the amounts in the financial report column.';
         }
         /// <summary>
         /// Formula expression for calculating column values using references to other columns and mathematical operations.
@@ -87,6 +93,7 @@ table 334 "Column Layout"
         field(8; Formula; Code[80])
         {
             Caption = 'Formula';
+            ToolTip = 'Specifies a formula. The result of the formula will appear in the column when the financial report is printed.';
 
             trigger OnValidate()
             var
@@ -101,6 +108,7 @@ table 334 "Column Layout"
         field(9; "Comparison Date Formula"; DateFormula)
         {
             Caption = 'Comparison Date Formula';
+            ToolTip = 'Specifies a date formula that specifies which dates should be used to calculate the amount in this column.';
 
             trigger OnValidate()
             begin
@@ -114,6 +122,7 @@ table 334 "Column Layout"
         field(10; "Show Opposite Sign"; Boolean)
         {
             Caption = 'Show Opposite Sign';
+            ToolTip = 'Specifies whether to show debits in reports as negative amounts (that is, with a minus sign) and credits as positive amounts.';
         }
         /// <summary>
         /// Display option controlling when column values are shown based on positive, negative, or zero values.
@@ -121,6 +130,7 @@ table 334 "Column Layout"
         field(11; Show; Enum "Column Layout Show")
         {
             Caption = 'Show';
+            ToolTip = 'Specifies when you want the amounts in the column to be shown in reports.';
             InitValue = Always;
         }
         /// <summary>
@@ -129,6 +139,7 @@ table 334 "Column Layout"
         field(12; "Rounding Factor"; Enum "Analysis Rounding Factor")
         {
             Caption = 'Rounding Factor';
+            ToolTip = 'Specifies a rounding factor for amounts in the column.';
         }
         /// <summary>
         /// Controls display of indented account schedule lines within the column calculations.
@@ -136,6 +147,7 @@ table 334 "Column Layout"
         field(13; "Show Indented Lines"; Option)
         {
             Caption = 'Show Indented Lines';
+            ToolTip = 'Specifies that indented lines are shown.';
             OptionCaption = 'All,Indented Only,Non-Indented Only';
             OptionMembers = All,"Indented Only","Non-Indented Only";
         }
@@ -145,6 +157,7 @@ table 334 "Column Layout"
         field(14; "Comparison Period Formula"; Code[20])
         {
             Caption = 'Comparison Period Formula';
+            ToolTip = 'Specifies a period formula that specifies the accounting periods you want to use to calculate the amount in this column.';
 
             trigger OnValidate()
             var
@@ -162,6 +175,7 @@ table 334 "Column Layout"
         field(15; "Business Unit Totaling"; Text[80])
         {
             Caption = 'Business Unit Totaling';
+            ToolTip = 'Specifies which business unit amounts will be totaled in this column.';
             TableRelation = "Business Unit";
             ValidateTableRelation = false;
         }
@@ -173,6 +187,7 @@ table 334 "Column Layout"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(5);
             Caption = 'Dimension 1 Totaling';
+            ToolTip = 'Specifies which dimension value amounts will be totaled in this column. If the column type of the column is Formula, you must not enter anything in this field. Also, if you do not wish the amounts on the line to be filtered by dimension, you should leave this field blank.';
         }
         /// <summary>
         /// Dimension 2 filter for detailed financial analysis by secondary classification dimension.
@@ -182,6 +197,7 @@ table 334 "Column Layout"
             AccessByPermission = TableData Dimension = R;
             CaptionClass = GetCaptionClass(6);
             Caption = 'Dimension 2 Totaling';
+            ToolTip = 'Specifies which dimension value amounts will be totaled in this column. If the column type of the column is Formula, you must not enter anything in this field. Also, if you do not wish the amounts on the line to be filtered by dimension, you should leave this field blank.';
         }
         /// <summary>
         /// Dimension 3 filter for extended dimensional analysis using analysis view configuration.
@@ -191,6 +207,7 @@ table 334 "Column Layout"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(7);
             Caption = 'Dimension 3 Totaling';
+            ToolTip = 'Specifies which dimension value amounts will be totaled in this column. If the column type is Formula, you must not enter anything in this field. Also, if you do not wish the amounts on the line to be filtered by dimension, you should leave this field blank.';
         }
         /// <summary>
         /// Dimension 4 filter for extended dimensional analysis using analysis view configuration.
@@ -200,6 +217,7 @@ table 334 "Column Layout"
             AccessByPermission = TableData "Dimension Combination" = R;
             CaptionClass = GetCaptionClass(8);
             Caption = 'Dimension 4 Totaling';
+            ToolTip = 'Specifies which dimension value amounts will be totaled in this column. If the column type is Formula, you must not enter anything in this field. Also, if you do not wish the amounts on the line to be filtered by dimension, you should leave this field blank.';
         }
         /// <summary>
         /// Cost center filter for cost accounting analysis and departmental reporting.
@@ -207,6 +225,7 @@ table 334 "Column Layout"
         field(20; "Cost Center Totaling"; Text[80])
         {
             Caption = 'Cost Center Totaling';
+            ToolTip = 'Specifies which cost center amounts will be totaled in this column.';
         }
         /// <summary>
         /// Cost object filter for cost accounting analysis and project-based reporting.
@@ -214,6 +233,7 @@ table 334 "Column Layout"
         field(21; "Cost Object Totaling"; Text[80])
         {
             Caption = 'Cost Object Totaling';
+            ToolTip = 'Specifies which cost object amounts will be totaled in this column.';
         }
         /// <summary>
         /// Locale identifier for period formula parsing to support international date format requirements.
@@ -228,6 +248,7 @@ table 334 "Column Layout"
         field(35; "Budget Name"; Code[10])
         {
             Caption = 'Budget Name';
+            ToolTip = 'Specifies which budget amounts will be totaled in this column.';
             TableRelation = "G/L Budget Name";
         }
         /// <summary>
@@ -236,6 +257,7 @@ table 334 "Column Layout"
         field(40; "Hide Currency Symbol"; Boolean)
         {
             Caption = 'Hide Currency Symbol';
+            ToolTip = 'Specifies whether to hide currency symbols when a calculated result is not a currency.';
 
             trigger OnValidate()
             begin

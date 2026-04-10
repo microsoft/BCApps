@@ -10,11 +10,10 @@ using Microsoft.FixedAssets.Setup;
 
 report 5608 "Fixed Asset - Acquisition List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './FixedAssets/Reports/FixedAssetAcquisitionList.rdlc';
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset Acquisition List';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -144,6 +143,16 @@ report 5608 "Fixed Asset - Acquisition List"
                 DeprBookCode := FASetup."Default Depr. Book";
             end;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './FixedAssets/Reports/FixedAssetAcquisitionList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

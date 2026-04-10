@@ -165,6 +165,7 @@ report 99000757 "Where-Used (Top Level)"
             Caption = 'Where-Used (Top Level) Excel';
             LayoutFile = './Manufacturing/Reports/WhereUsedTopLevel.xlsx';
             Type = Excel;
+            Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
 #if not CLEAN27
         layout(WhereUsedTopLevelRDLC)
@@ -175,6 +176,7 @@ report 99000757 "Where-Used (Top Level)"
             ObsoleteState = Pending;
             ObsoleteReason = 'The RDLC layout has been replaced by the Excel layout and will be removed in a future release.';
             ObsoleteTag = '27.0';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
     }

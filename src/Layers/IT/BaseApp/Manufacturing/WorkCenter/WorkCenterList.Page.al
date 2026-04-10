@@ -310,19 +310,6 @@ page 99000755 "Work Center List"
         }
         area(reporting)
         {
-#if not CLEAN26
-            action("Work Center List")
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Work Center List';
-                Image = "Report";
-                RunObject = Report "Work Center List";
-                ToolTip = 'View or edit the list of work centers.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'This report has been replaced by the page Work Center List and will be removed in a future release.';
-                ObsoleteTag = '26.0';
-            }
-#endif
 #if not CLEAN27
             action("Work Center Load")
             {
@@ -388,14 +375,6 @@ page 99000755 "Work Center List"
             group(Category_Report)
             {
                 Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
-#if not CLEAN26
-                actionref("Work Center List_Promoted"; "Work Center List")
-                {
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This report has been replaced by the page Work Center List and will be removed in a future release.';
-                    ObsoleteTag = '26.0';
-                }
-#endif
 #if not CLEAN27
                 actionref("Work Center Load_Promoted"; "Work Center Load")
                 {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -105,7 +105,6 @@ page 408 "G/L Balance by Dimension"
                 {
                     ApplicationArea = Dimensions;
                     Caption = 'Date Filter';
-                    ToolTip = 'Specifies the dates that will be used to filter the amounts in the window.';
 
                     trigger OnValidate()
                     var
@@ -151,7 +150,6 @@ page 408 "G/L Balance by Dimension"
                     Caption = 'Budget Filter';
                     LookupPageID = "G/L Budget Names";
                     TableRelation = "G/L Budget Name".Name;
-                    ToolTip = 'Specifies the budget that information in the matrix is shown for.';
                 }
                 field(BusUnitFilter; Rec."Bus. Unit Filter")
                 {
@@ -217,19 +215,16 @@ page 408 "G/L Balance by Dimension"
                 field(ShowActualBudg; Rec."Show Actual/Budgets")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies if the selected value is shown in the window.';
                 }
                 field(AmountField; Rec."Show Amount Field")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies the type of entries that will be included in the matrix window. The Amount options means that amounts that are the sum of debit and credit amounts are shown.';
                 }
                 field(ClosingEntryFilter; Rec."Closing Entries")
                 {
                     ApplicationArea = Dimensions;
                     Caption = 'Closing Entries';
                     OptionCaption = 'Include,Exclude';
-                    ToolTip = 'Specifies whether the balance shown will include closing entries. If you want to see the amounts on income statement accounts in closed years, you must exclude closing entries.';
 
                     trigger OnValidate()
                     begin
@@ -240,20 +235,17 @@ page 408 "G/L Balance by Dimension"
                 {
                     ApplicationArea = Dimensions;
                     Caption = 'Rounding Factor';
-                    ToolTip = 'Specifies the factor that is used to round the amounts.';
                 }
                 field(ShowInAddCurr; Rec."Show In Add. Currency")
                 {
                     ApplicationArea = Dimensions;
                     Caption = 'Show Amounts in Add. Reporting Currency';
                     MultiLine = true;
-                    ToolTip = 'Specifies whether to show the reported amounts in the additional reporting currency.';
                 }
                 field(ShowColumnName; Rec."Show Column Name")
                 {
                     ApplicationArea = Dimensions;
                     Caption = 'Show Column Name';
-                    ToolTip = 'Specifies that the names of columns are shown in the matrix window.';
 
                     trigger OnValidate()
                     begin
@@ -267,7 +259,6 @@ page 408 "G/L Balance by Dimension"
                 field(PeriodType; Rec."Period Type")
                 {
                     ApplicationArea = Dimensions;
-                    ToolTip = 'Specifies by which period amounts are displayed.';
 
                     trigger OnValidate()
                     begin
@@ -279,7 +270,6 @@ page 408 "G/L Balance by Dimension"
                 {
                     ApplicationArea = Dimensions;
                     Caption = 'View as';
-                    ToolTip = 'Specifies how amounts are displayed. Net Change: The net change in the balance for the selected period. Balance at Date: The balance as of the last day in the selected period.';
 
                     trigger OnValidate()
                     begin
@@ -291,7 +281,6 @@ page 408 "G/L Balance by Dimension"
                 {
                     ApplicationArea = Dimensions;
                     Editable = false;
-                    ToolTip = 'Specifies the range of values that are displayed in the matrix window, for example, the total period. To change the contents of the field, choose Next Set or Previous Set.';
                 }
             }
         }

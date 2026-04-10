@@ -73,6 +73,9 @@ codeunit 5704 "TransferOrder-Post Shipment"
 
             OnBeforeTransferOrderPostShipment(TransHeader, SuppressCommit, PreviewMode);
 
+            if not SuppressCommit then
+                SuppressCommit := TransHeader.ShouldPostReceiptWithShipment();
+
             TransHeader.CheckBeforePost();
 
             WhseReference := TransHeader."Posting from Whse. Ref.";

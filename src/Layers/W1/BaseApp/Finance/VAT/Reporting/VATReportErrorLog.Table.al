@@ -22,6 +22,7 @@ table 745 "VAT Report Error Log"
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
+            ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
         /// <summary>
         /// Error message text describing the validation issue or processing error.
@@ -29,6 +30,7 @@ table 745 "VAT Report Error Log"
         field(2; "Error Message"; Text[250])
         {
             Caption = 'Error Message';
+            ToolTip = 'Specifies the error message that is the result of validating a VAT report.';
         }
     }
 

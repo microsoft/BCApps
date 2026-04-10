@@ -17,10 +17,9 @@ using Microsoft.Bank.Reconciliation;
 /// </remarks>
 report 1409 "Posted Payment Reconciliation"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Bank/Reports/PostedPaymentReconciliation.rdlc';
     Caption = 'Posted Payment Reconciliation';
     WordMergeDataItem = "Posted Payment Recon. Hdr";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -110,6 +109,16 @@ report 1409 "Posted Payment Reconciliation"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Bank/Reports/PostedPaymentReconciliation.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -28,6 +28,7 @@ table 740 "VAT Report Header"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
 
             trigger OnValidate()
             begin
@@ -43,6 +44,7 @@ table 740 "VAT Report Header"
         field(2; "VAT Report Config. Code"; Enum "VAT Report Configuration")
         {
             Caption = 'VAT Report Config. Code';
+            ToolTip = 'Specifies the appropriate configuration code for EC Sales List Reports.';
             Editable = true;
             TableRelation = "VAT Reports Configuration"."VAT Report Type";
 
@@ -57,6 +59,7 @@ table 740 "VAT Report Header"
         field(3; "VAT Report Type"; Option)
         {
             Caption = 'VAT Report Type';
+            ToolTip = 'Specifies if the VAT report is a standard report, or if it is related to a previously submitted VAT report.';
             OptionCaption = 'Standard,Corrective,Supplementary';
             OptionMembers = Standard,Corrective,Supplementary;
 
@@ -82,6 +85,7 @@ table 740 "VAT Report Header"
         field(4; "Start Date"; Date)
         {
             Caption = 'Start Date';
+            ToolTip = 'Specifies the first date of the reporting period.';
 
             trigger OnValidate()
             begin
@@ -96,6 +100,7 @@ table 740 "VAT Report Header"
         field(5; "End Date"; Date)
         {
             Caption = 'End Date';
+            ToolTip = 'Specifies the last date of the reporting period.';
 
             trigger OnValidate()
             begin
@@ -111,6 +116,7 @@ table 740 "VAT Report Header"
         field(6; Status; Enum "VAT Report Status")
         {
             Caption = 'Status';
+            ToolTip = 'Specifies whether the report is in progress, is completed, or contains errors.';
             Editable = false;
         }
         /// <summary>
@@ -119,6 +125,7 @@ table 740 "VAT Report Header"
         field(8; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
+            ToolTip = 'Specifies the number series from which entry or record numbers are assigned to new entries or records.';
 
             trigger OnValidate()
             begin
@@ -131,6 +138,7 @@ table 740 "VAT Report Header"
         field(9; "Original Report No."; Code[20])
         {
             Caption = 'Original Report No.';
+            ToolTip = 'Specifies the number of the original report.';
 
             trigger OnLookup()
             var
@@ -194,6 +202,7 @@ table 740 "VAT Report Header"
         field(10; "Period Type"; Option)
         {
             Caption = 'Period Type';
+            ToolTip = 'Specifies the length of the reporting period.';
             OptionCaption = ' ,,Month,Quarter,Year,Bi-Monthly,Half-Year,Half-Month,Weekly';
             OptionMembers = " ",,Month,Quarter,Year,"Bi-Monthly","Half-Year","Half-Month","Weekly";
 
@@ -211,6 +220,7 @@ table 740 "VAT Report Header"
         field(11; "Period No."; Integer)
         {
             Caption = 'Period No.';
+            ToolTip = 'Specifies the specific reporting period to use.';
             TableRelation = "Date Lookup Buffer"."Period No." where("Period Type" = field("Period Type"));
             ValidateTableRelation = false;
 
@@ -225,6 +235,7 @@ table 740 "VAT Report Header"
         field(12; "Period Year"; Integer)
         {
             Caption = 'Period Year';
+            ToolTip = 'Specifies the year of the reporting period.';
 
             trigger OnValidate()
             begin
@@ -237,6 +248,7 @@ table 740 "VAT Report Header"
         field(13; "Message Id"; Text[250])
         {
             Caption = 'Message Id';
+            ToolTip = 'Specifies the message ID of the report listing sales to other EU countries/regions.';
         }
         /// <summary>
         /// Template name for VAT statement used in report line generation.
@@ -244,6 +256,7 @@ table 740 "VAT Report Header"
         field(14; "Statement Template Name"; Code[10])
         {
             Caption = 'Statement Template Name';
+            ToolTip = 'Specifies the name of the statement template from the EC Sales List Report.';
             TableRelation = "VAT Statement Template";
         }
         /// <summary>
@@ -252,6 +265,7 @@ table 740 "VAT Report Header"
         field(15; "Statement Name"; Code[10])
         {
             Caption = 'Statement Name';
+            ToolTip = 'Specifies the name of the statement from the EC Sales List Report.';
             TableRelation = "VAT Statement Name".Name where("Statement Template Name" = field("Statement Template Name"));
         }
         /// <summary>
@@ -260,6 +274,7 @@ table 740 "VAT Report Header"
         field(16; "VAT Report Version"; Code[10])
         {
             Caption = 'VAT Report Version';
+            ToolTip = 'Specifies version of the report.';
 #pragma warning disable AL0603
             TableRelation = "VAT Reports Configuration"."VAT Report Version" where("VAT Report Type" = field("VAT Report Config. Code"));
 #pragma warning restore AL0603
@@ -305,6 +320,7 @@ table 740 "VAT Report Header"
         field(30; "Additional Information"; Code[50])
         {
             Caption = 'Additional Information';
+            ToolTip = 'Specifies the additional information must be added to VAT report.';
         }
         /// <summary>
         /// Timestamp when the VAT report record was created.
@@ -313,6 +329,7 @@ table 740 "VAT Report Header"
         {
             Editable = false;
             Caption = 'Created Date-Time';
+            ToolTip = 'Specifies the date when the VAT report lines were created.';
         }
         /// <summary>
         /// Country/region filter applied to VAT entries for report generation.
@@ -321,6 +338,7 @@ table 740 "VAT Report Header"
         {
             Editable = false;
             Caption = 'Country/Region Filter';
+            ToolTip = 'Specifies the country/region filter for the report.';
         }
         /// <summary>
         /// Indicates whether report amounts are calculated in additional reporting currency.
@@ -328,6 +346,7 @@ table 740 "VAT Report Header"
         field(100; "Amounts in Add. Rep. Currency"; Boolean)
         {
             Caption = 'Amounts in Add. Rep. Currency';
+            ToolTip = 'Specifies whether the amounts are in the additional reporting currency.';
             Editable = false;
         }
         field(11600; "BAS ID No."; Code[11])

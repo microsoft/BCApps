@@ -9,12 +9,11 @@ using Microsoft.Inventory.Item;
 
 report 811 "Assembly BOM - Subassemblies"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Assembly/Reports/AssemblyBOMSubassemblies.rdlc';
     AdditionalSearchTerms = 'bill of material sub-assemblies';
     ApplicationArea = Assembly;
     Caption = 'BOM - Sub-Assemblies';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -85,6 +84,16 @@ report 811 "Assembly BOM - Subassemblies"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Assembly/Reports/AssemblyBOMSubassemblies.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

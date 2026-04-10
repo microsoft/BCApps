@@ -11,12 +11,11 @@ using System.Utilities;
 
 report 1010 "Job WIP To G/L"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Projects/Project/Reports/JobWIPToGL.rdlc';
     AdditionalSearchTerms = 'work in process to general ledger,work in progress to general ledger, Job WIP To G/L';
     ApplicationArea = Jobs;
     Caption = 'Project WIP To G/L';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -183,6 +182,16 @@ report 1010 "Job WIP To G/L"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Projects/Project/Reports/JobWIPToGL.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

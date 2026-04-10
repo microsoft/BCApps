@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ table 1830 "Consolidation Process"
         {
             OptionMembers = NotStarted,InProgress,Failed,Completed;
             OptionCaption = 'Not started,In Progress,Failed,Completed';
+            ToolTip = 'Status of the consolidation process';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -45,6 +46,7 @@ table 1830 "Consolidation Process"
         field(3; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+            ToolTip = 'Starting date for the entries in the consolidation';
             ClosingDates = true;
             DataClassification = CustomerContent;
         }
@@ -54,6 +56,7 @@ table 1830 "Consolidation Process"
         field(4; "Ending Date"; Date)
         {
             Caption = 'Ending Date';
+            ToolTip = 'Ending date for the entries in the consolidation';
             ClosingDates = true;
             DataClassification = CustomerContent;
         }

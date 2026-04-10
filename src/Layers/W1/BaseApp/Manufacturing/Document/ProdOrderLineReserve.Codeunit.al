@@ -1119,9 +1119,6 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         SourceRecRef.SetTable(ProdOrderLine);
         ProdOrderLine.SetReservationEntry(CalcReservEntry);
         OnSetProdOrderLineOnBeforeUpdateReservation(CalcReservEntry, ProdOrderLine);
-#if not CLEAN26
-        ReservationManagement.RunOnSetProdOrderLineOnBeforeUpdateReservation(CalcReservEntry, ProdOrderLine);
-#endif
         EntryIsPositive := (ProdOrderLine."Remaining Qty. (Base)" < 0);
     end;
 

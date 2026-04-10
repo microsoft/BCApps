@@ -22,13 +22,17 @@ report 10643 "Create Elec. Fin. Chrg. Memos"
             RequestFilterFields = "No.", "Customer No.";
 
             trigger OnAfterGetRecord()
+#if not CLEAN29
             var
                 EInvoiceExpIssFinChrg: Codeunit "E-Invoice Exp. Iss. Fin. Chrg.";
+#endif
             begin
+#if not CLEAN29
                 EInvoiceExpIssFinChrg.Run("Issued Fin. Charge Memo Header");
                 EInvoiceExpIssFinChrg.GetExportedFileInfo(TempEInvoiceTransferFile);
                 TempEInvoiceTransferFile."Line No." := Counter + 1;
                 TempEInvoiceTransferFile.Insert();
+#endif
 
                 if LogInteraction then
                     SegManagement.LogDocument(
@@ -39,10 +43,14 @@ report 10643 "Create Elec. Fin. Chrg. Memos"
             end;
 
             trigger OnPostDataItem()
+#if not CLEAN29
             var
                 EInvoiceExportCommon: Codeunit "E-Invoice Export Common";
+#endif
             begin
+#if not CLEAN29
                 EInvoiceExportCommon.DownloadEInvoiceFile(TempEInvoiceTransferFile);
+#endif
                 Message(Text002, Counter);
             end;
 
@@ -55,24 +63,34 @@ report 10643 "Create Elec. Fin. Chrg. Memos"
                 // Any electronic finance charges?
                 IssuedFinChargeMemoHeader.Copy("Issued Fin. Charge Memo Header");
                 IssuedFinChargeMemoHeader.FilterGroup(6);
+#if not CLEAN29
                 IssuedFinChargeMemoHeader.SetRange("E-Invoice", true);
+#endif
                 if not IssuedFinChargeMemoHeader.FindFirst() then
                     Error(Text003);
 
                 // All electronic finance charges?
+#if not CLEAN29
                 IssuedFinChargeMemoHeader.SetRange("E-Invoice", false);
+#endif
                 if IssuedFinChargeMemoHeader.FindFirst() then
                     if not Confirm(Text000, true) then
                         CurrReport.Quit();
+#if not CLEAN29
                 IssuedFinChargeMemoHeader.SetRange("E-Invoice");
+#endif
 
                 // Some already sent?
+#if not CLEAN29
                 IssuedFinChargeMemoHeader.SetRange("E-Invoice Created", true);
+#endif
                 if IssuedFinChargeMemoHeader.FindFirst() then
                     if not Confirm(Text001, true) then
                         CurrReport.Quit();
 
+#if not CLEAN29
                 SetRange("E-Invoice", true);
+#endif
             end;
         }
     }
@@ -125,7 +143,9 @@ report 10643 "Create Elec. Fin. Chrg. Memos"
     end;
 
     var
+#if not CLEAN29
         TempEInvoiceTransferFile: Record "E-Invoice Transfer File" temporary;
+#endif
         SegManagement: Codeunit SegManagement;
         Counter: Integer;
         LogInteraction: Boolean;

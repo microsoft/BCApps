@@ -4363,7 +4363,6 @@ table 37 "Sales Line"
             SalesLineReserve.VerifyQuantity(Rec, xRec);
         end;
         LockTable();
-        SalesHeader."No." := '';
         if (Type = Type::Item) and ("No." <> '') then
             CheckInventoryPickConflict();
         OnInsertOnAfterCheckInventoryConflict(Rec, xRec, SalesLine2, SalesLineBuffer);
@@ -4387,6 +4386,7 @@ table 37 "Sales Line"
         end;
         if ("Deferral Code" <> '') and (GetDeferralAmount() <> 0) then
             UpdateDeferralAmounts();
+        SalesHeader."No." := '';
         OnAfterInsertOnAfterUpdateDeferralAmounts(Rec, CurrFieldNo);
     end;
 

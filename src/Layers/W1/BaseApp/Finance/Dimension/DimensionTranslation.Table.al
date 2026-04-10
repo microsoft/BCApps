@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -37,6 +37,7 @@ table 388 "Dimension Translation"
         field(2; "Language ID"; Integer)
         {
             Caption = 'Language ID';
+            ToolTip = 'Specifies a language code.';
             NotBlank = true;
             TableRelation = "Windows Language";
 
@@ -51,6 +52,7 @@ table 388 "Dimension Translation"
         field(3; Name; Text[30])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the dimension code.';
 
             trigger OnValidate()
             begin
@@ -66,6 +68,7 @@ table 388 "Dimension Translation"
         field(4; "Code Caption"; Text[80])
         {
             Caption = 'Code Caption';
+            ToolTip = 'Specifies the name of the dimension code as you want it to appear as a field name after the Language ID code is selected.';
         }
         /// <summary>
         /// Translated caption text for dimension filter fields in the specified language.
@@ -73,6 +76,7 @@ table 388 "Dimension Translation"
         field(5; "Filter Caption"; Text[80])
         {
             Caption = 'Filter Caption';
+            ToolTip = 'Specifies the dimension filter caption.';
         }
         /// <summary>
         /// Display name of the Windows language from the language table.
@@ -81,6 +85,7 @@ table 388 "Dimension Translation"
         {
             CalcFormula = lookup("Windows Language".Name where("Language ID" = field("Language ID")));
             Caption = 'Language Name';
+            ToolTip = 'Specifies the name of the language.';
             Editable = false;
             FieldClass = FlowField;
         }

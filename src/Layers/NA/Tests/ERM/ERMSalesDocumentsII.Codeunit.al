@@ -371,37 +371,6 @@ codeunit 134386 "ERM Sales Documents II"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
-#if not CLEAN26
-    [Obsolete('The sales statisticsss action opens the page non-modally.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesStatisticsHandler')]
-    [Scope('OnPrem')]
-    procedure NotEditableFieldsOnSalesInvoiceStatistics()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        SalesInvoice: TestPage "Sales Invoice";
-    begin
-        // Verify that some fields on Sales Statistics page are uneditable after calculating Invoice Discount on Sales Invoice.
-
-        // Setup: Create Sales Invoice taking random values for Amount and Unit Price and calculate Invoice Discount.
-        Initialize();
-        CreateSaleHeader(SalesHeader, SalesHeader."Document Type"::Invoice);
-        SalesHeader.Validate("Prices Including VAT", false);
-        SalesHeader.Modify(true);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(), LibraryRandom.RandDec(10, 2));
-        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
-        SalesLine.Modify(true);
-        SalesHeader.CalcInvDiscForHeader();
-
-        // Exercise: Open Sales Statistics page from Sales Invoice page.
-        SalesInvoice.OpenEdit();
-        SalesInvoice.FILTER.SetFilter("No.", SalesHeader."No.");
-        SalesInvoice.Statistics.Invoke();
-
-        // Verify: Verification is done in SalesStatisticsHandler method.
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesStatisticsPageHandler')]
     [Scope('OnPrem')]
@@ -626,30 +595,6 @@ codeunit 134386 "ERM Sales Documents II"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('SalesOrderStatisticsHandler')]
-    [Scope('OnPrem')]
-    procedure InvoiceDiscountOnStatisticsForSalesOrder()
-    var
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-    begin
-        // Check Invoice Discount Amount on Statistics when Cust. Invoice Discount are defined with Minimum Amount.
-
-        // Setup: Create Sales Order.
-        Initialize();
-        CreateSalesOrderWithReceivableSetup(SalesHeader, SalesLine);
-
-        // Exercise: Open Sales Order Statistics page.
-        LibraryVariableStorage.Enqueue(0);
-        LibraryVariableStorage.Enqueue(0);
-        OpenSalesOrderStatistics(SalesHeader."No.");
-
-        // Verify: Verification is done in 'SalesOrderStatisticsHandler' for zero amount.
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesOrderStatisticsHandlerNM')]
     [Scope('OnPrem')]
@@ -730,46 +675,6 @@ codeunit 134386 "ERM Sales Documents II"
         asserterror LibrarySales.GetShipmentLines(SalesLine);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [Test]
-    [HandlerFunctions('GetShipmentLinesHandler,SalesOrderStatisticsHandler')]
-    [Scope('OnPrem')]
-    procedure InvoiceDiscountOnStatisticsForShippedSalesOrder()
-    var
-        CustInvoiceDisc: Record "Cust. Invoice Disc.";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        Amount: Decimal;
-        InvDiscountAmountInvoicing: Decimal;
-    begin
-        // Check Program calculates the Invoice Discounts only on balance amount on General tab of Statistics.
-
-        // Setup: Update Sales & Receivable Setup, Create and Ship Sales Order, Create and Post Sales Invoice.
-        Initialize();
-        CreateSalesOrderWithReceivableSetup(SalesHeader, SalesLine);
-        CustInvoiceDisc.SetRange(Code, SalesHeader."Sell-to Customer No.");
-        CustInvoiceDisc.FindFirst();
-        Amount := Round(SalesLine."Line Amount" * CustInvoiceDisc."Discount %" / 100);
-        CreateAndPostSalesInvoice(SalesHeader);
-
-        // Add line in Shipped Sales Order.
-        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
-        LibrarySales.ReopenSalesDocument(SalesHeader);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, SalesLine."No.", LibraryRandom.RandDec(10, 2));
-        ModifySalesLineUnitPrice(SalesLine, CustInvoiceDisc."Minimum Amount" + LibraryRandom.RandDec(10, 2));
-
-        // InvDiscountAmountInvoicing and InvDiscountAmountGeneral are global variable and used in handler for verification.
-        InvDiscountAmountInvoicing := SalesLine.Quantity * SalesLine."Unit Price" * CustInvoiceDisc."Discount %" / 100;
-        LibraryVariableStorage.Enqueue(InvDiscountAmountInvoicing);
-        LibraryVariableStorage.Enqueue(InvDiscountAmountInvoicing + Amount);
-
-        // Exercise: Open Sales Order Statistics page.
-        OpenSalesOrderStatistics(SalesHeader."No.");
-
-        // Verify: Verification is done in 'SalesOrderStatisticsHandler'.
-    end;
-#endif
     [Test]
     [HandlerFunctions('GetShipmentLinesHandler,SalesOrderStatisticsHandlerNM')]
     [Scope('OnPrem')]
@@ -5915,17 +5820,6 @@ codeunit 134386 "ERM Sales Documents II"
         SalesOrder."Sell-to Customer Name".SetValue(Customer.Name);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    local procedure OpenSalesOrderStatistics(No: Code[20])
-    var
-        SalesOrder: TestPage "Sales Order";
-    begin
-        SalesOrder.OpenView();
-        SalesOrder.FILTER.SetFilter("No.", No);
-        SalesOrder.Statistics.Invoke();
-    end;
-#endif
     local procedure OpenSalesOrderStatisticsNM(No: Code[20])
     var
         SalesOrder: TestPage "Sales Order";
@@ -6517,18 +6411,6 @@ codeunit 134386 "ERM Sales Documents II"
         StandardVendorPurchaseCode.Insert(true);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesStatistics action. The new action uses RunObject and does not run the action trigger', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesStatisticsHandler(var SalesStatistics: TestPage "Sales Statistics")
-    begin
-        // Verify that fields 'VAT Amount', 'Amount Excl. VAT' and 'Total Incl. VAT' are uneditable on Sales Statistics page.
-        Assert.IsFalse(SalesStatistics.VATAmount.Editable(), StrSubstNo(EditableErr, SalesStatistics.VATAmount.Caption));
-        Assert.IsFalse(SalesStatistics.Amount.Editable(), StrSubstNo(EditableErr, SalesStatistics.Amount.Caption));
-        Assert.IsFalse(SalesStatistics.TotalAmount2.Editable(), StrSubstNo(EditableErr, SalesStatistics.TotalAmount2.Caption));
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesStatisticsPageHandler(var SalesStatistics: TestPage "Sales Statistics")
@@ -6572,25 +6454,6 @@ codeunit 134386 "ERM Sales Documents II"
         LibraryVariableStorage.Enqueue(LibraryVariableStorage.DequeueInteger() + 1);
     end;
 
-#if not CLEAN26
-    [Obsolete('The statistics action will be replaced with the SalesOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '26.0')]
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesOrderStatisticsHandler(var SalesOrderStatistics: TestPage "Sales Order Statistics")
-    var
-        InvDiscountAmountGeneral: Decimal;
-        InvDiscountAmountInvoicing: Decimal;
-    begin
-        InvDiscountAmountInvoicing := LibraryVariableStorage.DequeueDecimal();
-        InvDiscountAmountGeneral := LibraryVariableStorage.DequeueDecimal();
-        Assert.AreNearlyEqual(
-          InvDiscountAmountGeneral, SalesOrderStatistics.InvDiscountAmount_General.AsDecimal(), LibraryERM.GetAmountRoundingPrecision(),
-          StrSubstNo(InvoiceDiscountErr, SalesOrderStatistics.InvDiscountAmount_General.Caption, InvDiscountAmountGeneral));
-        Assert.AreNearlyEqual(
-          InvDiscountAmountInvoicing, SalesOrderStatistics.InvDiscountAmount_Invoicing.AsDecimal(), LibraryERM.GetAmountRoundingPrecision(),
-          StrSubstNo(InvoiceDiscountErr, SalesOrderStatistics.InvDiscountAmount_Invoicing.Caption, InvDiscountAmountInvoicing));
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesOrderStatisticsHandlerNM(var SalesOrderStatistics: TestPage "Sales Order Statistics")

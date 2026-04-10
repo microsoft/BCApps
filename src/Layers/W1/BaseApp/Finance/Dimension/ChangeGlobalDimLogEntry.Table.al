@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -244,6 +244,7 @@ table 483 "Change Global Dim. Log Entry"
         field(17; "Earliest Start Date/Time"; DateTime)
         {
             Caption = 'Earliest Start Date/Time';
+            ToolTip = 'Specifies the earliest date and time when the job should be run.';
         }
         /// <summary>
         /// Estimated remaining time to complete processing this table.
@@ -251,6 +252,7 @@ table 483 "Change Global Dim. Log Entry"
         field(18; "Remaining Duration"; Duration)
         {
             Caption = 'Remaining Duration';
+            ToolTip = 'Specifies the remaining duration of the job.';
         }
         /// <summary>
         /// Identifier of the server instance processing this table.

@@ -512,7 +512,7 @@ codeunit 161505 "Create CH G/L Account"
         K2900: Label 'Legal Reserves';
         K2910: Label 'Statutory Reserves';
         K2915: Label 'Free Reserves';
-        K2989: Label 'Ret. Earnings/Loss Carried Fwd';
+        K2989: Label 'Ret. Earnings/Loss Carried Fwd', MaxLength = 30;
         K2990: Label 'Retained Earnings/Loss';
         K2991: Label 'Annual Earnings/Loss';
         K2995: Label 'Earned Capital';

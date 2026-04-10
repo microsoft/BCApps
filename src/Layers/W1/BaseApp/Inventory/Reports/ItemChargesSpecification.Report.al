@@ -9,12 +9,11 @@ using Microsoft.Inventory.Ledger;
 
 report 5806 "Item Charges - Specification"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/ItemChargesSpecification.rdlc';
     AdditionalSearchTerms = 'fee transportation freight handling landed cost specification';
     ApplicationArea = Basic, Suite;
     Caption = 'Item Charges - Specification';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -180,6 +179,16 @@ report 5806 "Item Charges - Specification"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/ItemChargesSpecification.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

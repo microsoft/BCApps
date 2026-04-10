@@ -19,12 +19,11 @@ using System.Utilities;
 /// </remarks>
 report 1404 "Bank Acc. - Detail Trial Bal."
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Bank/Reports/BankAccDetailTrialBal.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Accounts - Detail Trial Balance';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "Bank Account";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -243,6 +242,16 @@ report 1404 "Bank Acc. - Detail Trial Bal."
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Bank/Reports/BankAccDetailTrialBal.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

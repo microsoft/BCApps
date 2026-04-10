@@ -55,6 +55,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Pricing;
 using Microsoft.Purchases.Remittance;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
@@ -83,6 +84,7 @@ permissionset 7371 "Vendor - Edit"
                   tabledata "Default Dimension" = RIMD,
                   tabledata "Detailed Matched Order Line" = Rm,
                   tabledata "Detailed Vendor Ledg. Entry" = Rim,
+                  tabledata "Dispute Status" = RIMD,
                   tabledata "Dtld. Price Calculation Setup" = Rid,
                   tabledata "Duplicate Price Line" = Rid,
                   tabledata "Duplicate Search String Setup" = R,

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,14 +38,12 @@ page 350 "G/L Acc. Balance/Budget Lines"
                     ApplicationArea = Suite;
                     Caption = 'Period Start';
                     Editable = false;
-                    ToolTip = 'Specifies the starting date of the period that you want to view.';
                 }
                 field("Period Name"; Rec."Period Name")
                 {
                     ApplicationArea = Suite;
                     Caption = 'Period Name';
                     Editable = false;
-                    ToolTip = 'Specifies the name of the period that you want to view.';
                 }
                 field(DebitAmount; Rec."Debit Amount")
                 {
@@ -55,7 +53,6 @@ page 350 "G/L Acc. Balance/Budget Lines"
                     Caption = 'Actual Debit Amount';
                     DrillDown = true;
                     Editable = false;
-                    ToolTip = 'Specifies the total of the debit entries that have been posted to the account.';
 
                     trigger OnDrillDown()
                     begin
@@ -70,7 +67,6 @@ page 350 "G/L Acc. Balance/Budget Lines"
                     Caption = 'Actual Credit Amount';
                     DrillDown = true;
                     Editable = false;
-                    ToolTip = 'Specifies the total of the credit entries that have been posted to the account.';
 
                     trigger OnDrillDown()
                     begin
@@ -85,7 +81,6 @@ page 350 "G/L Acc. Balance/Budget Lines"
                     Caption = 'Net Change';
                     DrillDown = true;
                     Editable = false;
-                    ToolTip = 'Specifies the net change in the account balance during the time period in the Date Filter field.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -100,7 +95,6 @@ page 350 "G/L Acc. Balance/Budget Lines"
                     BlankNumbers = BlankNegAndZero;
                     Caption = 'Budgeted Debit Amount';
                     DrillDown = true;
-                    ToolTip = 'Specifies the total of the budget debit entries that have been posted to the account.';
 
                     trigger OnDrillDown()
                     begin
@@ -121,7 +115,6 @@ page 350 "G/L Acc. Balance/Budget Lines"
                     BlankNumbers = BlankNegAndZero;
                     Caption = 'Budgeted Credit Amount';
                     DrillDown = true;
-                    ToolTip = 'Specifies the total of the budget credit entries that have been posted to the account.';
 
                     trigger OnDrillDown()
                     begin
@@ -142,7 +135,6 @@ page 350 "G/L Acc. Balance/Budget Lines"
                     BlankZero = true;
                     Caption = 'Budgeted Amount';
                     DrillDown = true;
-                    ToolTip = 'Specifies the total of the budget entries that have been posted to the account.';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -164,7 +156,6 @@ page 350 "G/L Acc. Balance/Budget Lines"
                     Caption = 'Balance/Budget (%)';
                     DecimalPlaces = 1 : 1;
                     Editable = false;
-                    ToolTip = 'Specifies a summary of the debit and credit balances and the budgeted amounts for different time periods for the account that you select in the chart of accounts.';
                 }
             }
         }

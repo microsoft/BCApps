@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,10 +29,12 @@ table 9650 "Custom Report Layout"
         field(1; "Code"; Code[20])
         {
             Caption = 'Code';
+            ToolTip = 'Specifies the Code.';
         }
         field(2; "Report ID"; Integer)
         {
             Caption = 'Report ID';
+            ToolTip = 'Specifies the object ID of the report.';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Report));
         }
         field(3; "Report Name"; Text[250])
@@ -40,17 +42,20 @@ table 9650 "Custom Report Layout"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Report ID")));
             Caption = 'Report Name';
+            ToolTip = 'Specifies the name of the report.';
             Editable = false;
             FieldClass = FlowField;
         }
         field(4; "Company Name"; Text[30])
         {
             Caption = 'Company Name';
+            ToolTip = 'Specifies the Business Central company that the report layout applies to. You to create report layouts that can only be used on reports when they are run for a specific to a company. If the field is blank, then the layout will be available for use in all companies.';
             TableRelation = Company;
         }
         field(6; Type; Enum "Custom Report Layout Type")
         {
             Caption = 'Type';
+            ToolTip = 'Specifies the file type of the report layout. The following table includes the types that are available:';
             InitValue = Word;
         }
         field(7; "Layout"; BLOB)
@@ -60,11 +65,13 @@ table 9650 "Custom Report Layout"
         field(8; "Last Modified"; DateTime)
         {
             Caption = 'Last Modified';
+            ToolTip = 'Specifies the date and time of the last change to the report layout entry.';
             Editable = false;
         }
         field(9; "Last Modified by User"; Code[50])
         {
             Caption = 'Last Modified by User';
+            ToolTip = 'Specifies the user who made the last change to the report layout entry.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = User."User Name";
@@ -78,6 +85,7 @@ table 9650 "Custom Report Layout"
         field(11; Description; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the report layout.';
         }
         field(12; "Custom XML Part"; BLOB)
         {
@@ -91,6 +99,7 @@ table 9650 "Custom Report Layout"
         field(14; "Built-In"; Boolean)
         {
             Caption = 'Built-In';
+            ToolTip = 'Specifies if the report layout is built-in or not.';
             Editable = false;
         }
         field(15; "Layout Last Updated"; DateTime)

@@ -11,11 +11,10 @@ using Microsoft.Utilities;
 
 report 309 "Vendor - Purchase List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Reports/VendorPurchaseList.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor Purchase List';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -142,6 +141,16 @@ report 309 "Vendor - Purchase List"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Reports/VendorPurchaseList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

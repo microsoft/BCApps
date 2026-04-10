@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -25,27 +25,22 @@ page 4 "Payment Terms"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a code to identify this set of payment terms.';
                 }
                 field("Due Date Calculation"; Rec."Due Date Calculation")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a formula that determines how to calculate the due date, for example, when you create an invoice.';
                 }
                 field("Discount Date Calculation"; Rec."Discount Date Calculation")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the date formula if the payment terms include a possible payment discount.';
                 }
                 field("Discount %"; Rec."Discount %")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the percentage of the invoice amount (amount including VAT is the default setting) that will constitute a possible payment discount.';
                 }
                 field("Calc. Pmt. Disc. on Cr. Memos"; Rec."Calc. Pmt. Disc. on Cr. Memos")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that a payment discount, cash discount, cash discount date, and due date are calculated on credit memos with these payment terms.';
                 }
                 field("Disreg. Pmt. Disc. at Full Pmt"; Rec."Disreg. Pmt. Disc. at Full Pmt")
                 {
@@ -55,7 +50,6 @@ page 4 "Payment Terms"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies an explanation of the payment terms.';
                 }
                 field("Coupled to Dataverse"; CDSIsCoupledToRecord)
                 {

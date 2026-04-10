@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 13918,
+    "codeunitName": "XRechnung XML Document Tests",
+    "method": "ExportPostedServiceInvoiceInXRechnungFormatVerifyDocumentAttachments"
+  },
+  {
+    "codeunitId": 13918,
+    "codeunitName": "XRechnung XML Document Tests",
+    "method": "ExportPostedSalesInvoiceInXRechnungFormatVerifyUnsupportedAttachmentIsSkipped"
+  }
+]

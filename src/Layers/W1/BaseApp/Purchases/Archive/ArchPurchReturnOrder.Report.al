@@ -22,10 +22,9 @@ using System.Utilities;
 
 report 417 "Arch.Purch. Return Order"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Purchases/Archive/ArchPurchReturnOrder.rdlc';
     Caption = 'Arch.Purch. Return Order';
     WordMergeDataItem = "Purchase Header Archive";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -1288,6 +1287,16 @@ report 417 "Arch.Purch. Return Order"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Purchases/Archive/ArchPurchReturnOrder.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

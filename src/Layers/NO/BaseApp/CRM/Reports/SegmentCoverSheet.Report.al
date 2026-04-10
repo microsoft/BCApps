@@ -13,10 +13,9 @@ using System.Email;
 
 report 5064 "Segment - Cover Sheet"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './CRM/Reports/SegmentCoverSheet.rdlc';
     Caption = 'Segment - Cover Sheet';
     WordMergeDataItem = "Segment Header";
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -184,9 +183,11 @@ report 5064 "Segment - Cover Sheet"
                     column(Best_regards_Caption; Best_regards_CaptionLbl)
                     {
                     }
+#if not CLEAN29
                     column(EnterpriseRegister; CompanyInfo.GetEnterpriseClassification())
                     {
                     }
+#endif
 
                     trigger OnAfterGetRecord()
                     begin
@@ -369,6 +370,16 @@ report 5064 "Segment - Cover Sheet"
             LogInteraction := SegManagement.FindInteractionTemplateCode("Interaction Log Entry Document Type"::"Cover Sheet") <> '';
             LogInteractionEnable := LogInteraction;
         end;
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './CRM/Reports/SegmentCoverSheet.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+        }
     }
 
     labels

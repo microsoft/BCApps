@@ -33,6 +33,7 @@ table 257 "VAT Statement Name"
         field(2; Name; Code[10])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the VAT statement name.';
             NotBlank = true;
         }
         /// <summary>
@@ -41,6 +42,7 @@ table 257 "VAT Statement Name"
         field(3; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description of the VAT statement name.';
         }
         /// <summary>
         /// Date filter applied to VAT calculations for this statement.

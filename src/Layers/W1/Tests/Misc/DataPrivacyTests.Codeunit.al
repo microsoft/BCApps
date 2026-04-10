@@ -623,6 +623,10 @@ codeunit 135155 "Data Privacy Tests"
             // [THEN] The Config Package Table's Table Id is the same as the Change Log Entry's ID
             Assert.AreEqual(DATABASE::"Change Log Entry", ConfigPackageTable."Table ID",
               'The Table ID is incorrect');
+
+            // [THEN] Cross-Column Filter must be FALSE so filters use AND logic instead of OR
+            Assert.IsFalse(ConfigPackageTable."Cross-Column Filter",
+              'Cross-Column Filter should be FALSE for Change Log Entry to ensure AND logic');
         end;
 
         // [THEN] The Config. Package Filter table contains exactly 2 entries
@@ -916,6 +920,78 @@ codeunit 135155 "Data Privacy Tests"
 
         // [THEN] The Data Sensitivity table should contain 1 entry
         Assert.AreEqual(1, DataSensitivity.Count, 'The Data Sensitivity table contains 1 unclassified entry');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ChangeLogEntryFilterUsesAndLogic()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        ChangeLogEntry: Record "Change Log Entry";
+        ConfigXMLExchange: Codeunit "Config. XML Exchange";
+        RecRef: RecordRef;
+        PackageCode: Code[20];
+        EntityNo: Code[50];
+        TargetTableNo: Integer;
+        OtherTableNo: Integer;
+    begin
+        // [SCENARIO] When exporting data privacy data, Change Log Entry filters use AND logic
+        // so only records matching BOTH Table No. AND Primary Key Field 1 Value are returned.
+        // With Cross-Column Filter = true (OR logic), almost all records would be returned,
+        // causing timeouts on large tables.
+
+        // [GIVEN] Clean state
+        ConfigPackage.DeleteAll();
+        ConfigPackageTable.DeleteAll();
+        ChangeLogEntry.DeleteAll();
+
+        PackageCode := LibraryUtility.GenerateGUID();
+        EntityNo := '10000';
+        TargetTableNo := DATABASE::Customer;
+        OtherTableNo := DATABASE::Vendor;
+
+        // [GIVEN] A Config Package exists
+        ConfigPackage.Init();
+        ConfigPackage.Code := PackageCode;
+        ConfigPackage.Insert();
+
+        // [GIVEN] Three Change Log Entries:
+        // Entry 1: Table No. = Customer, Primary Key Field 1 Value = '10000' -> should match
+        // Entry 2: Table No. = Customer, Primary Key Field 1 Value = '20000' -> should NOT match
+        // Entry 3: Table No. = Vendor,   Primary Key Field 1 Value = '10000' -> should NOT match
+        CreateChangeLogEntry(ChangeLogEntry, TargetTableNo, EntityNo);
+        CreateChangeLogEntry(ChangeLogEntry, TargetTableNo, '20000');
+        CreateChangeLogEntry(ChangeLogEntry, OtherTableNo, EntityNo);
+
+        // [WHEN] Creating data for Change Log Entries and applying the package filter
+        DataPrivacyMgmt.CreateDataForChangeLogEntries(PackageCode, EntityNo, TargetTableNo);
+        ConfigPackageTable.Get(PackageCode, DATABASE::"Change Log Entry");
+
+        RecRef.Open(DATABASE::"Change Log Entry");
+        ConfigXMLExchange.ApplyPackageFilter(ConfigPackageTable, RecRef);
+
+        // [THEN] Only 1 record is returned (the one matching BOTH conditions)
+        Assert.AreEqual(1, RecRef.Count(),
+          'Only the Change Log Entry matching both Table No. and Primary Key Field 1 Value should be returned');
+
+        RecRef.FindFirst();
+        Assert.AreEqual(TargetTableNo, RecRef.Field(ChangeLogEntry.FieldNo("Table No.")).Value,
+          'The returned record should have the target Table No.');
+        Assert.AreEqual(EntityNo, Format(RecRef.Field(ChangeLogEntry.FieldNo("Primary Key Field 1 Value")).Value),
+          'The returned record should have the target Primary Key Field 1 Value');
+
+        RecRef.Close();
+    end;
+
+    local procedure CreateChangeLogEntry(var ChangeLogEntry: Record "Change Log Entry"; TableNo: Integer; PrimaryKeyValue: Text[50])
+    begin
+        ChangeLogEntry.Init();
+        ChangeLogEntry."Entry No." := 0;
+        ChangeLogEntry."Table No." := TableNo;
+        ChangeLogEntry."Primary Key Field 1 Value" := PrimaryKeyValue;
+        ChangeLogEntry."Date and Time" := CurrentDateTime;
+        ChangeLogEntry.Insert();
     end;
 
     [Test]

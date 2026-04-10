@@ -1,0 +1,2 @@
+# cost: 50
+{"query": "mutation { translationsRegister(resourceId: \"gid://shopify/{{ResourceType}}/{{ResourceId}}\", translations: [{{Translations}}]) { userErrors {field, message}}}"}

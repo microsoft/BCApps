@@ -16,9 +16,8 @@ using System.Utilities;
 
 report 5812 "Revaluation Posting - Test"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Inventory/Reports/RevaluationPostingTest.rdlc';
     Caption = 'Revaluation Posting - Test';
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -326,6 +325,16 @@ report 5812 "Revaluation Posting - Test"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Inventory/Reports/RevaluationPostingTest.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

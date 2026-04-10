@@ -73,6 +73,7 @@ codeunit 5815 "Undo Sales Shipment Line"
         ItemsToAdjust: List of [Code[20]];
         ATOWindowDialog: Dialog;
         NextLineNo: Integer;
+        IsCalledFromPurchRcptLine: Boolean;
 
 #pragma warning disable AA0074
         UndoShipmentLinesQst: Label 'Do you really want to undo the selected Shipment lines?';
@@ -224,8 +225,8 @@ codeunit 5815 "Undo Sales Shipment Line"
                     UnApplyDropShipment(ItemLedgerEntry, NewSalesShptLine, SalesShptLine);
                 until ItemLedgerEntry.Next() = 0;
         end;
-
-        UndoPurchaseReceiptLineForDropShipment(PurchItemLedgerEntryToUndo);
+        if not IsCalledFromPurchRcptLine then
+            UndoPurchaseReceiptLineForDropShipment(PurchItemLedgerEntryToUndo);
     end;
 
     local procedure ApplyFilterForItemTracking(var ItemLedgerEntry: Record "Item Ledger Entry"; SalesShptLine: Record "Sales Shipment Line")
@@ -293,6 +294,7 @@ codeunit 5815 "Undo Sales Shipment Line"
         PurchaseReceiptLine.FindFirst();
 
         UndoPurchaseReceiptLine.SetHideDialog(true);
+        UndoPurchaseReceiptLine.IsUndoSalesShipmentLineForDropShipment(true);
         UndoPurchaseReceiptLine.Run(PurchaseReceiptLine)
     end;
 
@@ -738,6 +740,11 @@ codeunit 5815 "Undo Sales Shipment Line"
 
         if not ItemsToAdjust.Contains(Item2."No.") then
             ItemsToAdjust.Add(Item2."No.");
+    end;
+
+    procedure SetCalledFromUndoPurchaseReceiptLine(NewCalledFromPurchRcptLine: Boolean)
+    begin
+        IsCalledFromPurchRcptLine := NewCalledFromPurchRcptLine;
     end;
 
     /// <summary>

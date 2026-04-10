@@ -163,7 +163,8 @@ codeunit 99000830 "Create Reserv. Entry"
                 ReservEntry.UpdateItemTracking();
                 OnBeforeReservEntryInsert(ReservEntry);
                 ReservEntry.Insert();
-                CheckReservationEntryForRoundingQty(ReservEntry);
+                if TransferredFromEntryNo = 0 then
+                    CheckReservationEntryForRoundingQty(ReservEntry);
                 OnAfterReservEntryInsert(ReservEntry);
                 if (Status = Status::Reservation) or (Status = Status::Tracking) then begin
                     ReservEntry2."Entry No." := ReservEntry."Entry No.";

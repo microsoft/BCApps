@@ -3,10 +3,12 @@ codeunit 160803 "Norwegian demo-adjustments"
 
     trigger OnRun()
     begin
+#if not CLEAN29
         // Update VAT Code (forgotten in the demo objects):
         VATProdPostGrp.Get(xOUTSIDE);
         VATProdPostGrp."Outside Tax Area" := true;
         VATProdPostGrp.Modify();
+#endif
 
         // Convert G/L Account
         ImportConvertScheme.Run();
@@ -26,7 +28,7 @@ codeunit 160803 "Norwegian demo-adjustments"
         if TempInteger.Get(Database::"GL Accounts Conversion") then
             TempInteger.Delete();
         if TempInteger.Get(Database::"Analysis Conversion") then
-            TempInteger.Delete();    
+            TempInteger.Delete();
     end;
 
     var
@@ -34,7 +36,9 @@ codeunit 160803 "Norwegian demo-adjustments"
         AccSchConverted: Record "Acc. Schedules Conversion";
         TempInteger: Record Integer temporary;
         AnalysisConverted: Record "Analysis Conversion";
+#if not CLEAN29
         VATProdPostGrp: Record "VAT Product Posting Group";
+#endif
         CreateDemostrationData: Codeunit "Create Demonstration Data";
         ImportConvertScheme: Codeunit "GL Account Convert Scheme";
         IndentGLAcc: Codeunit "G/L Account conveted -Indent";
@@ -42,7 +46,9 @@ codeunit 160803 "Norwegian demo-adjustments"
         CreatePmtTypeAbroad: Codeunit "Create Payment Type (abroad)";
         ConvertGLAcc: Report "Convert GL Accounts";
         ConvertFormels: Report "Convert Formulas";
+#if not CLEAN29
         xOUTSIDE: Label 'OUTSIDE';
+#endif
 
 }
 

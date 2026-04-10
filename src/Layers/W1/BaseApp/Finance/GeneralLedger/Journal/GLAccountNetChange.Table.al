@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -29,6 +29,7 @@ table 269 "G/L Account Net Change"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the bank account that is being reconciled.';
         }
         /// <summary>
         /// G/L account name for identification and display purposes.
@@ -36,6 +37,7 @@ table 269 "G/L Account Net Change"
         field(2; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the name of the record.';
         }
         /// <summary>
         /// Net change amount that will be applied to the G/L account from pending journal entries.
@@ -45,6 +47,7 @@ table 269 "G/L Account Net Change"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Net Change in Jnl.';
+            ToolTip = 'Specifies the net change that will occur on the bank when you post the journal.';
         }
         /// <summary>
         /// Projected G/L account balance after posting the pending journal entries.
@@ -54,6 +57,7 @@ table 269 "G/L Account Net Change"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Balance after Posting';
+            ToolTip = 'Specifies the current balance on the bank account.';
         }
     }
 

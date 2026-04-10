@@ -8,6 +8,8 @@ using System.Reflection;
 
 page 865 "Report Selection - Cash Flow"
 {
+    AboutTitle = 'About report selection for cash flow';
+    AboutText = 'On this page, you set up the default reports that are used when printing cash flow forecasts. Specify which reports to use in the list below.';
     ApplicationArea = Basic, Suite;
     Caption = 'Report Selection - Cash Flow';
     PageType = Worksheet;

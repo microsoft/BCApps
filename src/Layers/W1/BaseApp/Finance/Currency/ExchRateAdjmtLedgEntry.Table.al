@@ -33,6 +33,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         field(1; "Register No."; Integer)
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the register number of the entry.';
         }
         /// <summary>
         /// Unique sequential entry number for this adjustment ledger entry.
@@ -47,6 +48,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         field(3; "Account No."; Code[20])
         {
             Caption = 'Account No.';
+            ToolTip = 'Specifies the account number that the entry is linked to.';
             TableRelation = if ("Account Type" = const(Customer)) Customer
             else
             if ("Account Type" = const(Vendor)) Vendor
@@ -59,6 +61,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         field(4; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
+            ToolTip = 'Specifies the customer entry''s posting date.';
         }
         /// <summary>
         /// Document type for the adjustment entry.
@@ -66,6 +69,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         field(5; "Document Type"; Enum "Gen. Journal Document Type")
         {
             Caption = 'Document Type';
+            ToolTip = 'Specifies the document type that the customer entry belongs to.';
         }
         /// <summary>
         /// Document number for the adjustment entry.
@@ -73,6 +77,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         field(6; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+            ToolTip = 'Specifies the entry''s document number.';
         }
         /// <summary>
         /// Due date from the original transaction being adjusted.
@@ -80,6 +85,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         field(8; "Due Date"; Date)
         {
             Caption = 'Due Date';
+            ToolTip = 'Specifies the due date on the entry.';
         }
         /// <summary>
         /// Type of account that was adjusted (Customer, Vendor, Bank Account, etc.).
@@ -94,6 +100,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         field(10; "Account Name"; Text[100])
         {
             Caption = 'Account Name';
+            ToolTip = 'Specifies the account name that the entry is linked to.';
         }
         /// <summary>
         /// Currency code for the adjustment calculation.
@@ -101,6 +108,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         field(11; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code for the amount on the line.';
             TableRelation = Currency;
         }
         /// <summary>
@@ -110,6 +118,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         {
             AutoFormatType = 0;
             Caption = 'Currency Factor';
+            ToolTip = 'Specifies the currency code for the amount on the line.';
             Editable = false;
         }
         /// <summary>
@@ -120,6 +129,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             Caption = 'Base Amount';
+            ToolTip = 'Specifies the amount that remains to be applied to before the entry has been completely applied.';
             Editable = false;
         }
         /// <summary>
@@ -140,6 +150,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Caption = 'Adjustment Amount';
+            ToolTip = 'Specifies the exchange rate adjustment amount for the entry.';
             Editable = false;
         }
         /// <summary>
@@ -156,6 +167,7 @@ table 186 "Exch. Rate Adjmt. Ledg. Entry"
         {
             AutoFormatType = 0;
             Caption = 'Detailed Ledger Entry No.';
+            ToolTip = 'Specifies the number of the detailed customer or vendor ledger entry, related to register ledger entry.';
             Editable = false;
         }
     }

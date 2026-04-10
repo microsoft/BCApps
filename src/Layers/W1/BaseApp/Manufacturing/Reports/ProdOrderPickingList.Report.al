@@ -9,11 +9,10 @@ using Microsoft.Manufacturing.Document;
 
 report 99000766 "Prod. Order - Picking List"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Manufacturing/Reports/ProdOrderPickingList.rdlc';
     ApplicationArea = Manufacturing;
     Caption = 'Prod. Order - Picking List';
     UsageCategory = ReportsAndAnalysis;
+    DefaultRenderingLayout = RDLCLayout;
 
     dataset
     {
@@ -119,6 +118,16 @@ report 99000766 "Prod. Order - Picking List"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout(RDLCLayout)
+        {
+            Type = RDLC;
+            LayoutFile = './Manufacturing/Reports/ProdOrderPickingList.rdlc';
+            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
     }
 

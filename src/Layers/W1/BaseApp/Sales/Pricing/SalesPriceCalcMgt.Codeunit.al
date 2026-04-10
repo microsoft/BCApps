@@ -565,7 +565,14 @@ codeunit 7000 "Sales Price Calc. Mgt."
     end;
 
     local procedure CopySalesDiscToSalesDisc(var FromSalesLineDisc: Record "Sales Line Discount"; var ToSalesLineDisc: Record "Sales Line Discount")
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCopySalesLineDiscToSalesLineDisc(FromSalesLineDisc, ToSalesLineDisc, IsHandled);
+        if IsHandled then
+            exit;
+
         if FromSalesLineDisc.FindSet() then
             repeat
                 ToSalesLineDisc := FromSalesLineDisc;
@@ -1993,6 +2000,11 @@ codeunit 7000 "Sales Price Calc. Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopySalesPriceToSalesPrice(var FromSalesPrice: Record "Sales Price"; var ToSalesPrice: Record "Sales Price"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCopySalesLineDiscToSalesLineDisc(var FromSalesLineDiscount: Record "Sales Line Discount"; var ToSalesLineDiscount: Record "Sales Line Discount"; var IsHandled: Boolean)
     begin
     end;
 

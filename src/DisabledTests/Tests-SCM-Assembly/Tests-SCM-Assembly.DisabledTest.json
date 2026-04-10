@@ -1977,17 +1977,17 @@
   {
     "codeunitId": 137102,
     "codeunitName": "SCM Kitting ATO in Whse",
-    "method": "ATOWhseCopyBinBMLFAS"
-  },
-  {
-    "codeunitId": 137102,
-    "codeunitName": "SCM Kitting ATO in Whse",
     "method": "ATOWhseCopyBinBMLFAAddInv"
   },
   {
     "codeunitId": 137102,
     "codeunitName": "SCM Kitting ATO in Whse",
     "method": "ATOWhseCopyBinBMLFAAddInvS"
+  },
+  {
+    "codeunitId": 137102,
+    "codeunitName": "SCM Kitting ATO in Whse",
+    "method": "ATOWhseCopyBinBMLFAS"
   },
   {
     "codeunitId": 137102,

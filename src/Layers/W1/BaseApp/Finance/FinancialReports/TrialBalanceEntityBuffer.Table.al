@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ table 5488 "Trial Balance Entity Buffer"
         field(1; "No."; Code[20])
         {
             Caption = 'No.';
+            ToolTip = 'Specifies the No..';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -32,6 +33,7 @@ table 5488 "Trial Balance Entity Buffer"
         field(2; Name; Text[100])
         {
             Caption = 'Name';
+            ToolTip = 'Specifies the Name.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -56,6 +58,7 @@ table 5488 "Trial Balance Entity Buffer"
         field(5; "Balance at Date Debit"; Text[30])
         {
             Caption = 'Balance at Date Debit';
+            ToolTip = 'Specifies the Balance at Date Debit Amount.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -64,6 +67,7 @@ table 5488 "Trial Balance Entity Buffer"
         field(6; "Balance at Date Credit"; Text[30])
         {
             Caption = 'Balance at Date Credit';
+            ToolTip = 'Specifies the Balance at Date Credit Amount.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -72,6 +76,7 @@ table 5488 "Trial Balance Entity Buffer"
         field(7; "Date Filter"; Date)
         {
             Caption = 'Date Filter';
+            ToolTip = 'Specifies the Date Filter.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -80,6 +85,7 @@ table 5488 "Trial Balance Entity Buffer"
         field(8; "Total Debit"; Text[30])
         {
             Caption = 'Total Debit';
+            ToolTip = 'Specifies the Total Debit Amount.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -88,6 +94,7 @@ table 5488 "Trial Balance Entity Buffer"
         field(9; "Total Credit"; Text[30])
         {
             Caption = 'Total Credit';
+            ToolTip = 'Specifies the Total Credit Amount.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -96,6 +103,7 @@ table 5488 "Trial Balance Entity Buffer"
         field(10; "Account Type"; Enum "G/L Account Type")
         {
             Caption = 'Account Type';
+            ToolTip = 'Specifies the Account Type.';
             DataClassification = SystemMetadata;
         }
         /// <summary>
@@ -104,6 +112,7 @@ table 5488 "Trial Balance Entity Buffer"
         field(11; "Account Id"; Guid)
         {
             Caption = 'Account Id';
+            ToolTip = 'Specifies the Account Id.';
             DataClassification = SystemMetadata;
             TableRelation = "G/L Account".SystemId;
         }

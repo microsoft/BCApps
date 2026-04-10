@@ -601,6 +601,366 @@ codeunit 144113 "ERM Close Income Statement IT"
         GeneralLedgerSetup.Modify(true);
     end;
 
+    [Test]
+    [HandlerFunctions('CloseIncomeStatementRequestPageHandler,CloseOpenBalanceSheetRequestPageHandler,ConfirmHandler,MessageHandler,GeneralJournalBatchesModalPageHandler,DimensionSelectionMultipleModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseOpenBalanceSheetDimGroupingWithMultipleEntries()
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalLine2: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        TempDimSetEntry1: Record "Dimension Set Entry" temporary;
+        TempDimSetEntry2: Record "Dimension Set Entry" temporary;
+        Dimension: Record Dimension;
+        DimensionValue1: Record "Dimension Value";
+        DimensionValue2: Record "Dimension Value";
+        SelectedDimension: Record "Selected Dimension";
+        PostingDate: Date;
+        ClosingPostingDate: Date;
+        DocumentNo: Code[20];
+        Amount1: Decimal;
+        Amount2: Decimal;
+        DimSetID1: Integer;
+        DimSetID2: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 623780] Close/Open Balance Sheet generates separate journal lines per dimension combination
+
+        Initialize();
+
+        // [GIVEN] Closed current Fiscal Year and opened new one
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+        PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
+
+        // [GIVEN] Balance Sheet G/L Account "A"
+        SelectGenJournalBatch(GenJournalBatch);
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Income/Balance", IncomeBalanceType::"Balance Sheet");
+        GLAccount.Modify();
+
+        // [GIVEN] Non-global dimension "D" with two values "DV1" and "DV2"
+        LibraryDimension.CreateDimension(Dimension);
+        LibraryDimension.CreateDimensionValue(DimensionValue1, Dimension.Code);
+        LibraryDimension.CreateDimensionValue(DimensionValue2, Dimension.Code);
+
+        // [GIVEN] Dimension set with "DV1"
+        TempDimSetEntry1.Init();
+        TempDimSetEntry1."Dimension Code" := Dimension.Code;
+        TempDimSetEntry1."Dimension Value Code" := DimensionValue1.Code;
+        TempDimSetEntry1."Dimension Value ID" := DimensionValue1."Dimension Value ID";
+        TempDimSetEntry1.Insert();
+        DimSetID1 := DimMgt.GetDimensionSetID(TempDimSetEntry1);
+
+        // [GIVEN] Dimension set with "DV2"
+        TempDimSetEntry2.Init();
+        TempDimSetEntry2."Dimension Code" := Dimension.Code;
+        TempDimSetEntry2."Dimension Value Code" := DimensionValue2.Code;
+        TempDimSetEntry2."Dimension Value ID" := DimensionValue2."Dimension Value ID";
+        TempDimSetEntry2.Insert();
+        DimSetID2 := DimMgt.GetDimensionSetID(TempDimSetEntry2);
+
+        // [GIVEN] Posted G/L entry on "A" with dimension "DV1" and amount 100
+        Amount1 := -LibraryRandom.RandDecInRange(100, 200, 2);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+          GenJournalLine."Account Type"::"G/L Account", GLAccount."No.", Amount1);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine."Dimension Set ID" := DimSetID1;
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Posted G/L entry on "A" with dimension "DV2" and amount 200
+        Amount2 := -LibraryRandom.RandDecInRange(300, 400, 2);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+          GenJournalLine."Account Type"::"G/L Account", GLAccount."No.", Amount2);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine."Dimension Set ID" := DimSetID2;
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Closed newly created Fiscal Year
+        LibraryFiscalYear.CloseFiscalYear();
+        ClosingPostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
+
+        // [GIVEN] Selected dimension "D" for Close Income Statement
+        SelectedDimension.DeleteAll();
+        SelectedDimension."User ID" := UserId;
+        SelectedDimension."Object Type" := 3;
+        SelectedDimension."Object ID" := REPORT::"Close Income Statement";
+        SelectedDimension."Dimension Code" := Dimension.Code;
+        SelectedDimension.Insert();
+
+        // [GIVEN] Ran Close Income Statement
+        DocumentNo := IncStr(GenJournalLine."Document No.");
+        RunCloseIncomeStatement(GenJournalLine, ClosingPostingDate, CreateGLAccount());
+        CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post Batch", GenJournalLine);
+
+        // [WHEN] Run Close/Open Balance Sheet Report
+        RunCloseOpenBalanceSheet(GenJournalLine, CreateGLAccount(), DocumentNo, false, ClosingPostingDate);
+
+        // [THEN] Two separate journal lines are generated for account "A" with correct amounts per dimension
+        GenJournalLine2.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
+        GenJournalLine2.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+        GenJournalLine2.SetRange("Account No.", GLAccount."No.");
+        GenJournalLine2.SetRange("Document No.", DocumentNo);
+        GenJournalLine2.SetFilter(Amount, '>%1', 0);
+        Assert.AreEqual(2, GenJournalLine2.Count(), 'Expected two journal lines for two different dimension combinations');
+
+        // [THEN] Total amount across both lines matches sum of original entries
+        GenJournalLine2.CalcSums(Amount);
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        GLEntry.SetRange("Posting Date", PostingDate);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(-GLEntry.Amount, GenJournalLine2.Amount, 'Total journal line amount must equal negated G/L entry total');
+    end;
+
+    [Test]
+    [HandlerFunctions('CloseIncomeStatementRequestPageHandler,CloseOpenBalanceSheetRequestPageHandler,ConfirmHandler,MessageHandler,GeneralJournalBatchesModalPageHandler,DimensionSelectionMultipleModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseOpenBalSheetSameGlobalDimDiffOtherDim()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalLine2: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        TempDimSetEntry1: Record "Dimension Set Entry" temporary;
+        TempDimSetEntry2: Record "Dimension Set Entry" temporary;
+        Dimension: Record Dimension;
+        DimensionValue1: Record "Dimension Value";
+        DimensionValue2: Record "Dimension Value";
+        GlobalDimValue1: Record "Dimension Value";
+        GlobalDimValue2: Record "Dimension Value";
+        SelectedDimension: Record "Selected Dimension";
+        PostingDate: Date;
+        ClosingPostingDate: Date;
+        DocumentNo: Code[20];
+        Amount1: Decimal;
+        Amount2: Decimal;
+        DimSetID1: Integer;
+        DimSetID2: Integer;
+    begin
+        // [SCENARIO 623780] Close/Open Balance Sheet generates separate journal lines when Global Dimensions 1 and 2 are the same but a non-global dimension differs
+
+        Initialize();
+
+        // [GIVEN] Closed current Fiscal Year and opened new one
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+        PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
+
+        // [GIVEN] Balance Sheet G/L Account "A"
+        SelectGenJournalBatch(GenJournalBatch);
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Income/Balance", IncomeBalanceType::"Balance Sheet");
+        GLAccount.Modify();
+
+        // [GIVEN] Shared Global Dimension 1 and 2 values
+        GeneralLedgerSetup.Get();
+        LibraryDimension.CreateDimensionValue(GlobalDimValue1, GeneralLedgerSetup."Global Dimension 1 Code");
+        LibraryDimension.CreateDimensionValue(GlobalDimValue2, GeneralLedgerSetup."Global Dimension 2 Code");
+
+        // [GIVEN] Non-global dimension "D" with two values "DV1" and "DV2"
+        LibraryDimension.CreateDimension(Dimension);
+        LibraryDimension.CreateDimensionValue(DimensionValue1, Dimension.Code);
+        LibraryDimension.CreateDimensionValue(DimensionValue2, Dimension.Code);
+
+        // [GIVEN] Dimension set 1: Global Dim 1, Global Dim 2, non-global "DV1"
+        TempDimSetEntry1.Init();
+        TempDimSetEntry1."Dimension Code" := GeneralLedgerSetup."Global Dimension 1 Code";
+        TempDimSetEntry1."Dimension Value Code" := GlobalDimValue1.Code;
+        TempDimSetEntry1."Dimension Value ID" := GlobalDimValue1."Dimension Value ID";
+        TempDimSetEntry1.Insert();
+        TempDimSetEntry1.Init();
+        TempDimSetEntry1."Dimension Code" := GeneralLedgerSetup."Global Dimension 2 Code";
+        TempDimSetEntry1."Dimension Value Code" := GlobalDimValue2.Code;
+        TempDimSetEntry1."Dimension Value ID" := GlobalDimValue2."Dimension Value ID";
+        TempDimSetEntry1.Insert();
+        TempDimSetEntry1.Init();
+        TempDimSetEntry1."Dimension Code" := Dimension.Code;
+        TempDimSetEntry1."Dimension Value Code" := DimensionValue1.Code;
+        TempDimSetEntry1."Dimension Value ID" := DimensionValue1."Dimension Value ID";
+        TempDimSetEntry1.Insert();
+        DimSetID1 := DimMgt.GetDimensionSetID(TempDimSetEntry1);
+
+        // [GIVEN] Dimension set 2: same Global Dim 1, same Global Dim 2, non-global "DV2"
+        TempDimSetEntry2.Init();
+        TempDimSetEntry2."Dimension Code" := GeneralLedgerSetup."Global Dimension 1 Code";
+        TempDimSetEntry2."Dimension Value Code" := GlobalDimValue1.Code;
+        TempDimSetEntry2."Dimension Value ID" := GlobalDimValue1."Dimension Value ID";
+        TempDimSetEntry2.Insert();
+        TempDimSetEntry2.Init();
+        TempDimSetEntry2."Dimension Code" := GeneralLedgerSetup."Global Dimension 2 Code";
+        TempDimSetEntry2."Dimension Value Code" := GlobalDimValue2.Code;
+        TempDimSetEntry2."Dimension Value ID" := GlobalDimValue2."Dimension Value ID";
+        TempDimSetEntry2.Insert();
+        TempDimSetEntry2.Init();
+        TempDimSetEntry2."Dimension Code" := Dimension.Code;
+        TempDimSetEntry2."Dimension Value Code" := DimensionValue2.Code;
+        TempDimSetEntry2."Dimension Value ID" := DimensionValue2."Dimension Value ID";
+        TempDimSetEntry2.Insert();
+        DimSetID2 := DimMgt.GetDimensionSetID(TempDimSetEntry2);
+
+        // [GIVEN] Posted G/L entry on "A" with dimension set 1 and amount 100
+        Amount1 := -LibraryRandom.RandDecInRange(100, 200, 2);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+          GenJournalLine."Account Type"::"G/L Account", GLAccount."No.", Amount1);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine."Dimension Set ID" := DimSetID1;
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Posted G/L entry on "A" with dimension set 2 and amount 200
+        Amount2 := -LibraryRandom.RandDecInRange(300, 400, 2);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+          GenJournalLine."Account Type"::"G/L Account", GLAccount."No.", Amount2);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine."Dimension Set ID" := DimSetID2;
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Closed newly created Fiscal Year
+        LibraryFiscalYear.CloseFiscalYear();
+        ClosingPostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
+
+        // [GIVEN] Selected all three dimensions for Close Income Statement
+        SelectedDimension.DeleteAll();
+        SelectedDimension."User ID" := UserId;
+        SelectedDimension."Object Type" := 3;
+        SelectedDimension."Object ID" := REPORT::"Close Income Statement";
+        SelectedDimension."Dimension Code" := GeneralLedgerSetup."Global Dimension 1 Code";
+        SelectedDimension.Insert();
+        SelectedDimension."Dimension Code" := GeneralLedgerSetup."Global Dimension 2 Code";
+        SelectedDimension.Insert();
+        SelectedDimension."Dimension Code" := Dimension.Code;
+        SelectedDimension.Insert();
+
+        // [GIVEN] Ran Close Income Statement
+        DocumentNo := IncStr(GenJournalLine."Document No.");
+        RunCloseIncomeStatement(GenJournalLine, ClosingPostingDate, CreateGLAccount());
+        CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post Batch", GenJournalLine);
+
+        // [WHEN] Run Close/Open Balance Sheet Report
+        RunCloseOpenBalanceSheet(GenJournalLine, CreateGLAccount(), DocumentNo, false, ClosingPostingDate);
+
+        // [THEN] Two separate journal lines are generated because non-global dimension differs
+        GenJournalLine2.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
+        GenJournalLine2.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+        GenJournalLine2.SetRange("Account No.", GLAccount."No.");
+        GenJournalLine2.SetRange("Document No.", DocumentNo);
+        GenJournalLine2.SetFilter(Amount, '>%1', 0);
+        Assert.AreEqual(2, GenJournalLine2.Count(), 'Expected two journal lines because non-global dimension values differ');
+
+        // [THEN] Both lines share the same Global Dimension 1 and 2 codes
+        GenJournalLine2.FindSet();
+        repeat
+            Assert.AreEqual(
+              GlobalDimValue1.Code, GenJournalLine2."Shortcut Dimension 1 Code",
+              'Global Dimension 1 Code must be the same on both lines');
+            Assert.AreEqual(
+              GlobalDimValue2.Code, GenJournalLine2."Shortcut Dimension 2 Code",
+              'Global Dimension 2 Code must be the same on both lines');
+        until GenJournalLine2.Next() = 0;
+
+        // [THEN] Total amount across both lines matches sum of original entries
+        GenJournalLine2.CalcSums(Amount);
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        GLEntry.SetRange("Posting Date", PostingDate);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(-GLEntry.Amount, GenJournalLine2.Amount, 'Total journal line amount must equal negated G/L entry total');
+    end;
+
+    [Test]
+    [HandlerFunctions('CloseIncomeStatementRequestPageHandler,CloseOpenBalanceSheetRequestPageHandler,ConfirmHandler,MessageHandler,GeneralJournalBatchesModalPageHandler,DimensionSelectionMultipleModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure CloseOpenBalanceSheetSeparateLinesForDiffDimensionSets()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLAccount: Record "G/L Account";
+        TempDimensionSetEntry: Record "Dimension Set Entry" temporary;
+        Dimension: Record Dimension;
+        DimensionValue: array[2] of Record "Dimension Value";
+        GlobalDimensionValue: array[2] of Record "Dimension Value";
+        PostingDate: Date;
+        DocumentNo: Code[20];
+        DimensionSetID: array[2] of Integer;
+        Amount: array[2] of Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 629280] Close/Open Balance Sheet keeps separate lines for entries with different Dimension Set IDs
+        Initialize();
+
+        // [GIVEN] Closed Current Fiscal Year and opened new one
+        LibraryFiscalYear.CloseFiscalYear();
+        LibraryFiscalYear.CreateFiscalYear();
+        PostingDate := LibraryFiscalYear.GetFirstPostingDate(false);
+
+        // [GIVEN] G/L Account "A" of type Balance Sheet
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Income/Balance", IncomeBalanceType::"Balance Sheet");
+        GLAccount.Modify();
+
+        // [GIVEN] Non-global dimension "D" with two different values "V1" and "V2"
+        GeneralLedgerSetup.Get();
+        LibraryDimension.CreateDimension(Dimension);
+        LibraryDimension.CreateDimensionValue(DimensionValue[1], Dimension.Code);
+        LibraryDimension.CreateDimensionValue(DimensionValue[2], Dimension.Code);
+
+        // [GIVEN] Shared global dimension values "GD1" and "GD2"
+        LibraryDimension.CreateDimensionValue(GlobalDimensionValue[1], GeneralLedgerSetup."Global Dimension 1 Code");
+        LibraryDimension.CreateDimensionValue(GlobalDimensionValue[2], GeneralLedgerSetup."Global Dimension 2 Code");
+
+        // [GIVEN] Dimension Set 1 with global dimensions and non-global dimension value "V1"
+        AddDimensionValueToDimensionSetEntry(TempDimensionSetEntry, GlobalDimensionValue[1]);
+        AddDimensionValueToDimensionSetEntry(TempDimensionSetEntry, GlobalDimensionValue[2]);
+        AddDimensionValueToDimensionSetEntry(TempDimensionSetEntry, DimensionValue[1]);
+        DimensionSetID[1] := DimMgt.GetDimensionSetID(TempDimensionSetEntry);
+        TempDimensionSetEntry.DeleteAll();
+
+        // [GIVEN] Dimension Set 2 with same global dimensions but non-global dimension value "V2"
+        AddDimensionValueToDimensionSetEntry(TempDimensionSetEntry, GlobalDimensionValue[1]);
+        AddDimensionValueToDimensionSetEntry(TempDimensionSetEntry, GlobalDimensionValue[2]);
+        AddDimensionValueToDimensionSetEntry(TempDimensionSetEntry, DimensionValue[2]);
+        DimensionSetID[2] := DimMgt.GetDimensionSetID(TempDimensionSetEntry);
+
+        // [GIVEN] Posted general journal lines for G/L Account "A" with two different Dimension Set IDs
+        SelectGenJournalBatch(GenJournalBatch);
+        Amount[1] := LibraryRandom.RandInt(100);
+        Amount[2] := LibraryRandom.RandInt(200);
+        CreateBalanceSheetGeneralJournalLineWithDimensionSetID(
+            GenJournalLine, GenJournalBatch, GLAccount."No.", PostingDate,
+            -Amount[1], DimensionSetID[1], GlobalDimensionValue[1].Code, GlobalDimensionValue[2].Code);
+        CreateBalanceSheetGeneralJournalLineWithDimensionSetID(
+            GenJournalLine, GenJournalBatch, GLAccount."No.", PostingDate,
+            -Amount[2], DimensionSetID[2], GlobalDimensionValue[1].Code, GlobalDimensionValue[2].Code);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Closed newly created Fiscal Year
+        LibraryFiscalYear.CloseFiscalYear();
+        DocumentNo := IncStr(GenJournalLine."Document No.");
+        PostingDate := CalcDate('<1M-1D>', LibraryFiscalYear.GetLastPostingDate(true));
+
+        // [GIVEN] Ran Close Income Statement Report and posted
+        SelectDimForCloseIncomeStatement(TempDimensionSetEntry);
+        RunCloseIncomeStatement(GenJournalLine, PostingDate, CreateGLAccount());
+        CODEUNIT.Run(CODEUNIT::"Gen. Jnl.-Post Batch", GenJournalLine);
+
+        // [WHEN] Run Close/Open Balance Sheet Report
+        RunCloseOpenBalanceSheet(GenJournalLine, CreateGLAccount(), DocumentNo, false, PostingDate);
+
+        // [THEN] Two separate close and two separate open journal lines are generated
+        VerifySeparateCloseBalanceSheetLines(GenJournalLine, DocumentNo, GLAccount."No.", DimensionSetID);
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
@@ -866,6 +1226,46 @@ codeunit 144113 "ERM Close Income Statement IT"
         JobQueueEntryCard.GoToRecord(JobQueueEntry);
         JobQueueEntryCard.ReportRequestPage.Invoke();
         JobQueueEntryCard.Close();
+    end;
+
+    local procedure AddDimensionValueToDimensionSetEntry(var TempDimensionSetEntry: Record "Dimension Set Entry" temporary; DimensionValue: Record "Dimension Value")
+    begin
+        TempDimensionSetEntry.Init();
+        TempDimensionSetEntry."Dimension Code" := DimensionValue."Dimension Code";
+        TempDimensionSetEntry."Dimension Value Code" := DimensionValue.Code;
+        TempDimensionSetEntry."Dimension Value ID" := DimensionValue."Dimension Value ID";
+        TempDimensionSetEntry.Insert();
+    end;
+
+    local procedure CreateBalanceSheetGeneralJournalLineWithDimensionSetID(var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch"; GLAccountNo: Code[20]; PostingDate: Date; Amount: Decimal; DimensionSetID: Integer; GlobalDimensionCode1: Code[20]; GlobalDimensionCode2: Code[20])
+    begin
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account",
+            GLAccountNo, Amount);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine."Dimension Set ID" := DimensionSetID;
+        GenJournalLine."Shortcut Dimension 1 Code" := GlobalDimensionCode1;
+        GenJournalLine."Shortcut Dimension 2 Code" := GlobalDimensionCode2;
+        GenJournalLine.Modify(true);
+    end;
+
+    local procedure VerifySeparateCloseBalanceSheetLines(GenJournalLine: Record "Gen. Journal Line"; DocumentNo: Code[20]; GLAccountNo: Code[20]; DimensionSetID: array[2] of Integer)
+    var
+        GenJournalLine2: Record "Gen. Journal Line";
+    begin
+        GenJournalLine2.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
+        GenJournalLine2.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+        GenJournalLine2.SetRange("Account No.", GLAccountNo);
+        GenJournalLine2.SetRange("Document No.", DocumentNo);
+
+        GenJournalLine2.SetRange("Dimension Set ID", DimensionSetID[1]);
+        GenJournalLine2.FindFirst();
+        Assert.AreEqual(DimensionSetID[1], GenJournalLine2."Dimension Set ID", IncorrectDimSetIDErr);
+
+        GenJournalLine2.SetRange("Dimension Set ID", DimensionSetID[2]);
+        GenJournalLine2.FindFirst();
+        Assert.AreEqual(DimensionSetID[2], GenJournalLine2."Dimension Set ID", IncorrectDimSetIDErr);
     end;
 
     [RequestPageHandler]

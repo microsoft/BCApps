@@ -32,6 +32,7 @@ page 7160 "ABC Analysis Setup"
                     begin
                         StyleExpr := GetStatusStyleExpr();
                         CalculateBoundaries();
+                        UpdateNotification();
                     end;
                 }
                 field("Category B"; Rec."Category B")
@@ -42,6 +43,7 @@ page 7160 "ABC Analysis Setup"
                     begin
                         StyleExpr := GetStatusStyleExpr();
                         CalculateBoundaries();
+                        UpdateNotification();
                     end;
                 }
                 field("Category C"; Rec."Category C")
@@ -53,6 +55,7 @@ page 7160 "ABC Analysis Setup"
                     begin
                         StyleExpr := GetStatusStyleExpr();
                         CalculateBoundaries();
+                        UpdateNotification();
                     end;
                 }
                 field(Sum; Rec."Category A" + Rec."Category B" + Rec."Category C")
@@ -135,6 +138,7 @@ page 7160 "ABC Analysis Setup"
     }
 
     var
+        SumNotification: Notification;
         CatALowerBound: Decimal;
         CatAUpperBound: Decimal;
         CatBLowerBound: Decimal;
@@ -142,6 +146,8 @@ page 7160 "ABC Analysis Setup"
         CatCLowerBound: Decimal;
         CatCUpperBound: Decimal;
         StyleExpr: Text;
+        SumNotificationMsg: Label 'The total of Category A, B, and C percentages does not equal 100%. Please adjust the values before closing the page.';
+        SumNotificationIdTok: Label '5a2f8c3e-1b4d-4e6a-9f0c-7d8e2a1b3c4d', Locked = true;
 
     trigger OnOpenPage()
     begin
@@ -152,6 +158,7 @@ page 7160 "ABC Analysis Setup"
             Rec.Insert();
         end;
         CalculateBoundaries();
+        UpdateNotification();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -182,5 +189,16 @@ page 7160 "ABC Analysis Setup"
 
         CatCLowerBound := CatBUpperBound;
         CatCUpperBound := CatCLowerBound + Rec."Category C";
+    end;
+
+    local procedure UpdateNotification()
+    begin
+        SumNotification.Id := SumNotificationIdTok;
+        SumNotification.Scope := NotificationScope::LocalScope;
+        if Rec."Category A" + Rec."Category B" + Rec."Category C" <> 100 then begin
+            SumNotification.Message := SumNotificationMsg;
+            SumNotification.Send();
+        end else
+            SumNotification.Recall();
     end;
 }
