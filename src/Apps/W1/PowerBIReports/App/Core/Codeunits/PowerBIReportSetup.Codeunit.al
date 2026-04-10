@@ -71,29 +71,14 @@ codeunit 36962 "Power BI Report Setup"
     procedure GetReportIdAndEnsureSetup(ReportName: Text; FieldId: Integer) ReportId: Guid
     var
         AssistedSetup: Page "PowerBI Assisted Setup";
-        DeploySelectionPage: Page "PBI Report Deploy. Selection";
-        ReportNotSetupErr: Label 'Your %1 Report has not been setup in PowerBI Reports Setup. You need to set up this report in order to view it.', Comment = '%1 = report name';
-        ReportDeployingQst: Label 'Your %1 report is being deployed to Power BI. Would you like to open the Power BI Report Deployments page to track the status?', Comment = '%1 = report name';
+        FinanceAppNotSetupErr: Label 'Your %1 Report has not been setup in PowerBI Reports Setup. You need to set up this report in order to view it.', Comment = '%1 = report name';
     begin
         ReportId := GetReportId(FieldId);
         if IsNullGuid(ReportId) then begin
-            if IsReportBeingDeployed(FieldId) then begin
-                if Confirm(ReportDeployingQst, true, ReportName) then
-                    Page.Run(Page::"Power BI Report Deployments");
-                Error('');
-            end;
-
-            if AssistedSetup.RunModal() = Action::OK then
-                if AssistedSetup.IsDeployOOBReportsSelected() then
-                    DeploySelectionPage.RunModal();
+            if AssistedSetup.RunModal() = Action::OK then;
             ReportId := GetReportId(FieldId);
             if IsNullGuid(ReportId) then
-                if IsReportBeingDeployed(FieldId) then begin
-                    if Confirm(ReportDeployingQst, true, ReportName) then
-                        Page.Run(Page::"Power BI Report Deployments");
-                    Error('');
-                end else
-                    Error(ReportNotSetupErr, ReportName);
+                Error(FinanceAppNotSetupErr, ReportName);
         end;
     end;
 
