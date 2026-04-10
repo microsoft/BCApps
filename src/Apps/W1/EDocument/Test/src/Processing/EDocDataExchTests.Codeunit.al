@@ -78,7 +78,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
             EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
             Assert.AreEqual(2, EDocumentPurchaseLine.Count(), 'Expected 2 lines from the invoice XML.');
 
-            EDocumentPurchaseLine.FindFirst();
+            EDocumentPurchaseLine.FindSet();
             Assert.AreNotEqual('', EDocumentPurchaseLine.Description, 'First line Description should be mapped.');
             Assert.AreEqual(7, EDocumentPurchaseLine.Quantity, 'First line Quantity should be 7.');
             Assert.AreEqual(400, EDocumentPurchaseLine."Unit Price", 'First line Unit Price should be 400.');
