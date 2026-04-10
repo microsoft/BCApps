@@ -3,7 +3,7 @@ using Microsoft.PowerBIReports;
 using System.Environment;
 using System.Integration.PowerBI;
 
-codeunit 8101 "PBI Sub. Billing App" implements "Power BI Deployable Report", "PBI Report Setup"
+codeunit 8079 "PBI Sub. Billing App" implements "Power BI Deployable Report", "PBI Report Setup"
 {
     Access = Internal;
 
