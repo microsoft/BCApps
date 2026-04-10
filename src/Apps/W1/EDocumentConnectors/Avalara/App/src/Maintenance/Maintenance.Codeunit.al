@@ -62,7 +62,12 @@ codeunit 6373 Maintenance
     var
         EDocumentService: Record "E-Document Service";
         AvalaraDocumentManagement: Codeunit "Avalara Document Management";
+        AvalaraFunctions: Codeunit "Avalara Functions";
+        SuccessCount: Integer;
+        MediaTypes: List of [Text];
         DocumentId: Text;
+        Mandate: Text;
+        MediaType: Text;
     begin
         if EDocument."Avalara Document Id" = '' then
             exit(false);
@@ -72,10 +77,15 @@ codeunit 6373 Maintenance
             exit(false);
 
         DocumentId := EDocument."Avalara Document Id";
+        Mandate := EDocumentService."Avalara Mandate";
+        MediaTypes := AvalaraFunctions.GetAvailableMediaTypesForMandate(Mandate);
 
-        // Use the new comprehensive download function that handles all media types
-        // and attachments to both E-Document and source document
-        if AvalaraDocumentManagement.DownloadDocumentWithAllMediaTypes(EDocument, EDocumentService, DocumentId) then begin
+        SuccessCount := 0;
+        foreach MediaType in MediaTypes do
+            if AvalaraDocumentManagement.DownloadDocument(EDocument, DocumentId, MediaType) then
+                SuccessCount += 1;
+
+        if SuccessCount > 0 then begin
             Session.LogMessage('',
                 StrSubstNo(SuccessfullyDownloadedDocumentMsg, DocumentId, EDocument."Entry No"),
                 Verbosity::Normal,

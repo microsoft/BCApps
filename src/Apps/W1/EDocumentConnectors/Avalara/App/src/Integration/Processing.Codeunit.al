@@ -279,10 +279,13 @@ ValueObject : JsonToken;
     end;
 
     /// <summary>
-    /// Download document XML from Avalara API
+    /// Download document from Avalara API in all available media types.
+    /// The primary XML is written to ReceiveContext for framework processing.
+    /// Additional media types (PDF, UBL, etc.) are downloaded and attached to the E-Document.
     /// </summary>
     procedure DownloadDocument(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; DocumentMetadata: Codeunit "Temp Blob"; ReceiveContext: Codeunit ReceiveContext)
     var
+        AvalaraDocumentManagement: Codeunit "Avalara Document Management";
         AvalaraFunctions: Codeunit "Avalara Functions";
         HttpExecutor: Codeunit "Http Executor";
         Request: Codeunit Requests;
@@ -291,6 +294,7 @@ ValueObject : JsonToken;
         OutStream: OutStream;
         DocumentId: Text;
         Mandate: Text;
+        MediaType: Text;
         ResponseContent: Text;
     begin
         Mandate := EDocumentService."Avalara Mandate";
@@ -307,6 +311,7 @@ ValueObject : JsonToken;
         EDocument."Avalara Document Id" := CopyStr(DocumentId, 1, MaxStrLen(EDocument."Avalara Document Id"));
         EDocument.Modify();
 
+        // Download primary XML for E-Document framework processing
         Request.Init();
         Request.Authenticate().CreateDownloadRequest(DocumentId);
         ResponseContent := HttpExecutor.ExecuteHttpRequest(Request);
@@ -315,6 +320,10 @@ ValueObject : JsonToken;
 
         ReceiveContext.GetTempBlob().CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(ResponseContent);
+
+        // Download and attach all available media types to the E-Document
+        foreach MediaType in MediaTypes do
+            AvalaraDocumentManagement.DownloadDocument(EDocument, DocumentId, MediaType);
     end;
 
     /// <summary>

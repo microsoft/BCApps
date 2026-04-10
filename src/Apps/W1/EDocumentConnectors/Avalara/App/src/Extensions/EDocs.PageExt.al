@@ -20,20 +20,18 @@ pageextension 6373 "E-Docs." extends "E-Documents"
                 ApplicationArea = All;
                 Caption = 'Receive E-Documents from Avalara';
                 Image = Import;
-                ToolTip = 'Receives available E-Documents from the Avalara service.';
+                ToolTip = 'Receives available E-Documents from the Avalara service using the standard E-Document import pipeline.';
 
                 trigger OnAction()
                 var
                     EDocService: Record "E-Document Service";
-                    AvalaraDocMgt: Codeunit "Avalara Document Management";
-                    ReceivedCount: Integer;
+                    EDocImport: Codeunit "E-Doc. Import";
                 begin
                     if not SelectAvalaraService(EDocService) then
                         exit;
 
-                    ReceivedCount := AvalaraDocMgt.ReceiveAndProcessDocuments(EDocService, Rec);
-                    if ReceivedCount > 0 then
-                        Message(DocumentsReceivedMsg, ReceivedCount);
+                    EDocImport.ReceiveAndProcessAutomatically(EDocService);
+                    CurrPage.Update(false);
                 end;
             }
 
@@ -49,11 +47,22 @@ pageextension 6373 "E-Docs." extends "E-Documents"
                 var
                     EDocService: Record "E-Document Service";
                     AvalaraDocMgt: Codeunit "Avalara Document Management";
+                    AvalaraFunctions: Codeunit "Avalara Functions";
+                    SuccessCount: Integer;
+                    MediaTypes: List of [Text];
+                    MediaType: Text;
                 begin
                     if not SelectAvalaraService(EDocService) then
                         exit;
 
-                    if AvalaraDocMgt.DownloadDocumentWithAllMediaTypes(Rec, EDocService, Rec."Avalara Document Id") then
+                    MediaTypes := AvalaraFunctions.GetAvailableMediaTypesForMandate(EDocService."Avalara Mandate");
+
+                    SuccessCount := 0;
+                    foreach MediaType in MediaTypes do
+                        if AvalaraDocMgt.DownloadDocument(Rec, Rec."Avalara Document Id", MediaType) then
+                            SuccessCount += 1;
+
+                    if SuccessCount > 0 then
                         Message(DocumentDownloadedMsg);
                 end;
             }
@@ -88,7 +97,6 @@ pageextension 6373 "E-Docs." extends "E-Documents"
 
     var
         DocumentDownloadedMsg: Label 'Document(s) downloaded successfully.';
-        DocumentsReceivedMsg: Label '%1 document(s) received from Avalara.', Comment = '%1 = number of documents';
         ServiceSelectionCaptionTxt: Label 'Select Avalara Service';
 
     /// <summary>

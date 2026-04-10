@@ -5,9 +5,6 @@
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Integration.Interfaces;
-using Microsoft.eServices.EDocument.Integration.Receive;
-using Microsoft.Foundation.Attachment;
 using System.Utilities;
 
 /// <summary>
@@ -17,20 +14,13 @@ codeunit 6371 "Avalara Document Management"
 {
     var
 
-        AttachmentAlreadyExistsMsg: Label 'Attachment with identical content already exists for table %1, skipping duplicate', Comment = '%1 = Table Number';
         // ISO 8601 DateTime parsing constants
         DateTimeSeparatorTok: Label 'T', Locked = true;
         DecimalSeparatorTok: Label '.', Locked = true;
         DefaultXmlFileNameMsg: Label '%1.xml', Comment = '%1 = Entry Number', Locked = true;
-        DocumentIdRequiredMsg: Label 'Document ID is required';
-        DownloadedMediaTypesMsg: Label 'Downloaded %1 of %2 media types for document %3', Comment = '%1 = Success Count, %2 = Total Count, %3 = Document ID';
         EmptyResponseContentErr: Label 'Empty response content';
         FailedToAttachDocumentMsg: Label 'Failed to attach document %1 to E-Document', Comment = '%1 = Document ID';
         FailedToDownloadDocumentMsg: Label 'Failed to download document %1 with media type %2', Comment = '%1 = Document ID, %2 = Media Type';
-
-        // Format strings for StrSubstNo
-        FailedToOpenSourceDocumentMsg: Label 'Failed to open source document from RecordID: %1', Comment = '%1 = RecordID';
-        FailedToSaveAttachmentToSourceMsg: Label 'Failed to save attachment to source document: Table %1', Comment = '%1 = Table Number';
 
         // Error messages
         InvalidJsonErr: Label 'The provided JSON is invalid or malformed.';
@@ -54,9 +44,6 @@ codeunit 6371 "Avalara Document Management"
         MissingValueArrayErr: Label 'The JSON response is missing the required "value" array.';
         NoResponseFromAvalaraMsg: Label 'No response received from Avalara API';
         NoXmlContentToAttachMsg: Label 'No XML content to attach';
-        ProcessedDocumentsMsg: Label 'Processed %1 of %2 documents from batch', Comment = '%1 = Processed Count, %2 = Total Count';
-        ReceivedDocumentsMsg: Label 'Received %1 documents from Avalara API', Comment = '%1 = Document Count';
-        SuccessfullyAttachedDocumentMsg: Label 'Successfully attached document to source: Table %1, File %2', Comment = '%1 = Table Number, %2 = File Name';
         SuccessfullyDownloadedMsg: Label 'Successfully downloaded and attached document %1 with media type %2', Comment = '%1 = Document ID, %2 = Media Type';
         TimeZoneMarkersTok: Label 'Z+-', Locked = true;
 
@@ -411,127 +398,6 @@ codeunit 6371 "Avalara Document Management"
     end;
 
     /// <summary>
-    /// Get list of available media types for a specific mandate.
-    /// </summary>
-    /// <param name="Mandate">Mandate code (e.g., AU-B2B-PEPPOL).</param>
-    /// <returns>List of media type strings.</returns>
-    procedure GetAvailableMediaTypes(Mandate: Text): List of [Text]
-    var
-        MediaTypesTable: Record "Media Types";
-        MediaTypes: List of [Text];
-    begin
-        MediaTypesTable.SetRange(Mandate, Mandate);
-        if MediaTypesTable.FindSet() then
-            repeat
-                MediaTypes.Add(MediaTypesTable."Invoice Available Media Types");
-            until MediaTypesTable.Next() = 0;
-
-        // Provide defaults if none configured
-        if MediaTypes.Count = 0 then begin
-            MediaTypes.Add('application/xml');
-            MediaTypes.Add('application/pdf');
-        end;
-
-        exit(MediaTypes);
-    end;
-
-    /// <summary>
-    /// Receive document batch from Avalara API using E-Document Service integration.
-    /// </summary>
-    /// <param name="EDocService">E-Document Service record with integration details.</param>
-    /// <param name="ReceivedDocuments">Output list of received document IDs.</param>
-    /// <param name="ReceiveContext">Context for the receive operation.</param>
-    /// <returns>Number of documents received.</returns>
-    procedure ReceiveDocumentBatch(var EDocService: Record "E-Document Service"; var ReceivedDocuments: Codeunit "Temp Blob List"; var ReceiveContext: Codeunit ReceiveContext): Integer
-    var
-        IDocumentReceiver: Interface IDocumentReceiver;
-    begin
-        IDocumentReceiver := EDocService."Service Integration V2";
-        IDocumentReceiver.ReceiveDocuments(EDocService, ReceivedDocuments, ReceiveContext);
-
-        Session.LogMessage('', StrSubstNo(ReceivedDocumentsMsg, ReceivedDocuments.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
-
-        exit(ReceivedDocuments.Count());
-    end;
-
-    /// <summary>
-    /// Download a specific document by ID and attach to E-Document with all available media types.
-    /// </summary>
-    /// <param name="EDocument">Target E-Document record.</param>
-    /// <param name="EDocService">E-Document Service configuration.</param>
-    /// <param name="DocumentID">Avalara document ID to download.</param>
-    /// <returns>True if at least one media type was downloaded successfully.</returns>
-    procedure DownloadDocumentWithAllMediaTypes(var EDocument: Record "E-Document"; var EDocService: Record "E-Document Service"; DocumentID: Text): Boolean
-    var
-        AvalaraFunctions: Codeunit "Avalara Functions";
-        SuccessCount: Integer;
-        MediaTypes: List of [Text];
-        Mandate: Text;
-        MediaType: Text;
-    begin
-        if DocumentID = '' then begin
-            if GuiAllowed then
-                Message(DocumentIdRequiredMsg);
-            exit(false);
-        end;
-
-        // Get mandate from service
-        Mandate := EDocService."Avalara Mandate";
-        MediaTypes := AvalaraFunctions.GetAvailableMediaTypesForMandate(Mandate);
-
-        if MediaTypes.Count = 0 then begin
-            Session.LogMessage('', 'No media types available for mandate', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
-            exit(false);
-        end;
-
-        // Download for each media type
-        SuccessCount := 0;
-        foreach MediaType in MediaTypes do
-            if DownloadDocument(EDocument, DocumentID, MediaType) then
-                SuccessCount += 1;
-
-        Session.LogMessage('', StrSubstNo(DownloadedMediaTypesMsg, SuccessCount, MediaTypes.Count, DocumentID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
-
-        exit(SuccessCount > 0);
-    end;
-
-    /// <summary>
-    /// Process a batch of received document IDs and download them.
-    /// </summary>
-    /// <param name="TempBlobList">List of document IDs in TempBlob format.</param>
-    /// <param name="EDocument">E-Document record for context (can be empty).</param>
-    /// <param name="EDocService">E-Document Service configuration.</param>
-    /// <returns>Number of documents successfully processed.</returns>
-    procedure ProcessDocumentBatch(var TempBlobList: Codeunit "Temp Blob List"; var EDocument: Record "E-Document"; var EDocService: Record "E-Document Service"): Integer
-    var
-        TempBlob: Codeunit "Temp Blob";
-        InStream: InStream;
-        i: Integer;
-        ProcessedCount: Integer;
-        DocumentID: Text;
-    begin
-        ProcessedCount := 0;
-
-        for i := 1 to TempBlobList.Count() do begin
-            TempBlobList.Get(i, TempBlob);
-            TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
-            InStream.ReadText(DocumentID);
-
-            if DocumentID <> '' then begin
-                Clear(EDocument);
-                EDocument."Avalara Document Id" := CopyStr(DocumentID, 1, MaxStrLen(EDocument."Avalara Document Id"));
-
-                if DownloadDocumentWithAllMediaTypes(EDocument, EDocService, DocumentID) then
-                    ProcessedCount += 1;
-            end;
-        end;
-
-        Session.LogMessage('', StrSubstNo(ProcessedDocumentsMsg, ProcessedCount, TempBlobList.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
-
-        exit(ProcessedCount);
-    end;
-
-    /// <summary>
     /// Attach XML text content to an E-Document record.
     /// </summary>
     /// <param name="EDocument">Target E-Document record.</param>
@@ -585,150 +451,12 @@ codeunit 6371 "Avalara Document Management"
 
     local procedure AttachToEDocument(var EDocument: Record "E-Document"; var ContentBlob: Codeunit "Temp Blob"; FileName: Text): Boolean
     var
-        RecRef: RecordRef;
-        AttachmentSuccess: Boolean;
+        EDocAttachmentProcessor: Codeunit "E-Doc. Attachment Processor";
+        InStream: InStream;
     begin
-        AttachmentSuccess := false;
-
-        // Attach to E-Document record
-        RecRef.GetTable(EDocument);
-        if SaveAttachment(ContentBlob, RecRef, FileName) then
-            AttachmentSuccess := true
-        else
-            Session.LogMessage('', 'Failed to save attachment to E-Document', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
-
-        // Attach to source document if available
-        if AttachToSourceDocument(EDocument, ContentBlob, FileName) then
-            AttachmentSuccess := true;
-
-        if not AttachmentSuccess then
-            Session.LogMessage('', 'Failed to save document attachment to any location', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
-
-        exit(AttachmentSuccess);
-    end;
-
-    local procedure AttachToSourceDocument(var EDocument: Record "E-Document"; var ContentBlob: Codeunit "Temp Blob"; FileName: Text): Boolean
-    var
-        SourceRecordID: RecordId;
-        RecRef: RecordRef;
-    begin
-        // Get source document RecordID
-        SourceRecordID := EDocument."Document Record ID";
-
-        // Validate we have a valid RecordID
-        if Format(SourceRecordID) = '' then begin
-            Session.LogMessage('', 'Source document RecordID not available on E-Document', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
-            exit(false);
-        end;
-
-        // Try to open the source document using RecordID
-        if not RecRef.Get(SourceRecordID) then begin
-            Session.LogMessage('', StrSubstNo(FailedToOpenSourceDocumentMsg, Format(SourceRecordID)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
-            exit(false);
-        end;
-
-        // Attach to source document
-        if not SaveAttachment(ContentBlob, RecRef, FileName) then begin
-            Session.LogMessage('', StrSubstNo(FailedToSaveAttachmentToSourceMsg, RecRef.Number), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
-            exit(false);
-        end;
-
-        Session.LogMessage('', StrSubstNo(SuccessfullyAttachedDocumentMsg, RecRef.Number, FileName), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+        ContentBlob.CreateInStream(InStream);
+        EDocAttachmentProcessor.Insert(EDocument, InStream, FileName);
         exit(true);
-    end;
-
-    local procedure SaveAttachment(var ContentBlob: Codeunit "Temp Blob"; var RecRef: RecordRef; FileName: Text): Boolean
-    var
-        DocumentAttachment: Record "Document Attachment";
-    begin
-        // Check if attachment with identical content already exists to prevent duplicates
-        if AttachmentExistsForRecord(RecRef, ContentBlob) then begin
-            Session.LogMessage('',
-                StrSubstNo(AttachmentAlreadyExistsMsg, RecRef.Number),
-                Verbosity::Normal,
-                DataClassification::SystemMetadata,
-                TelemetryScope::ExtensionPublisher,
-                'Category', 'Avalara Document Management');
-            exit(true); // Return true since the attachment already exists
-        end;
-
-        DocumentAttachment.SaveAttachment(RecRef, FileName, ContentBlob, true);
-        exit(true);
-    end;
-
-    local procedure AttachmentExistsForRecord(var RecRef: RecordRef; var ContentBlob: Codeunit "Temp Blob"): Boolean
-    var
-        DocumentAttachment: Record "Document Attachment";
-        TempDocAttachment: Record "Document Attachment" temporary;
-        TempBlob: Codeunit "Temp Blob";
-        OutStream: OutStream;
-    begin
-        // Create a minimal blob with content to pass validation
-        TempBlob.CreateOutStream(OutStream);
-        OutStream.WriteText('temp');
-
-        // Create a temporary attachment to determine what "No." value would be used
-        TempDocAttachment.SaveAttachment(RecRef, 'temp', TempBlob, false);
-
-        // Search for all attachments for this record
-        DocumentAttachment.SetRange("Table ID", TempDocAttachment."Table ID");
-        DocumentAttachment.SetRange("No.", TempDocAttachment."No.");
-
-        if DocumentAttachment.FindSet() then
-            repeat
-                // Compare content of each attachment with the incoming content
-                if AttachmentContentMatches(DocumentAttachment, ContentBlob) then
-                    exit(true);
-            until DocumentAttachment.Next() = 0;
-
-        exit(false);
-    end;
-
-    local procedure AttachmentContentMatches(var DocumentAttachment: Record "Document Attachment"; var ContentBlob: Codeunit "Temp Blob"): Boolean
-    var
-        TempBlob: Codeunit "Temp Blob";
-        ExistingInStream: InStream;
-        NewInStream: InStream;
-        ExistingOutStream: OutStream;
-        ExistingText: Text;
-        NewText: Text;
-    begin
-        // Export existing attachment content to TempBlob
-        TempBlob.CreateOutStream(ExistingOutStream);
-        if not DocumentAttachment."Document Reference ID".ExportStream(ExistingOutStream) then
-            exit(false);
-
-        // Compare sizes first - if different, content is different
-        if TempBlob.Length() <> ContentBlob.Length() then
-            exit(false);
-
-        // Read both streams and compare content
-        ContentBlob.CreateInStream(NewInStream);
-        TempBlob.CreateInStream(ExistingInStream);
-
-        NewInStream.Read(NewText);
-        ExistingInStream.Read(ExistingText);
-
-        exit(NewText = ExistingText);
-    end;
-
-    /// <summary>
-    /// Receives and processes E-Documents from Avalara service in a single operation.
-    /// </summary>
-    /// <param name="EDocService">The E-Document Service to use for receiving documents.</param>
-    /// <param name="EDocument">The E-Document record context.</param>
-    /// <returns>Number of documents successfully received and processed.</returns>
-    procedure ReceiveAndProcessDocuments(var EDocService: Record "E-Document Service"; var EDocument: Record "E-Document"): Integer
-    var
-        ReceiveContext: Codeunit ReceiveContext;
-        ReceivedDocuments: Codeunit "Temp Blob List";
-        DocumentCount: Integer;
-    begin
-        DocumentCount := ReceiveDocumentBatch(EDocService, ReceivedDocuments, ReceiveContext);
-        if DocumentCount = 0 then
-            exit(0);
-
-        exit(ProcessDocumentBatch(ReceivedDocuments, EDocument, EDocService));
     end;
 
     /// <summary>
