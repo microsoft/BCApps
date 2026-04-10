@@ -1124,8 +1124,7 @@ page 30101 "Shpfy Shop Card"
                         BackgroundSyncs.ProductImagesSync(Rec, '');
                         BackgroundSyncs.ProductPricesSync(Rec);
                         BackgroundSyncs.CompanySync(Rec);
-                        if Rec."Advanced Shopify Plan" then
-                            BackgroundSyncs.CatalogPricesSync(Rec, '', "Shpfy Catalog Type"::" ");
+                        BackgroundSyncs.CatalogPricesSync(Rec, '', "Shpfy Catalog Type"::" ");
                     end;
                 }
             }
