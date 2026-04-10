@@ -50,25 +50,21 @@ pageextension 36965 "PBI Report Deployments Ext." extends "Power BI Report Deplo
     local procedure GetIsSetupConfigured(): Boolean
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
+        RecRef: RecordRef;
+        FldRef: FieldRef;
+        ReportSetup: Interface "PBI Report Setup";
+        Ordinal: Integer;
     begin
         if not PowerBIReportsSetup.Get() then
             exit(false);
 
-        case Rec."Report Id" of
-            Enum::"Power BI Deployable Report"::"Finance App":
-                exit(not IsNullGuid(PowerBIReportsSetup."Finance Report Id"));
-            Enum::"Power BI Deployable Report"::"Sales App":
-                exit(not IsNullGuid(PowerBIReportsSetup."Sales Report Id"));
-            Enum::"Power BI Deployable Report"::"Purchases App":
-                exit(not IsNullGuid(PowerBIReportsSetup."Purchases Report Id"));
-            Enum::"Power BI Deployable Report"::"Inventory App":
-                exit(not IsNullGuid(PowerBIReportsSetup."Inventory Report Id"));
-            Enum::"Power BI Deployable Report"::"Inventory Valuation App":
-                exit(not IsNullGuid(PowerBIReportsSetup."Inventory Val. Report Id"));
-            Enum::"Power BI Deployable Report"::"Manufacturing App":
-                exit(not IsNullGuid(PowerBIReportsSetup."Manufacturing Report Id"));
-            Enum::"Power BI Deployable Report"::"Projects App":
-                exit(not IsNullGuid(PowerBIReportsSetup."Projects Report Id"));
+        foreach Ordinal in Enum::"PBI Report Setup".Ordinals() do begin
+            ReportSetup := Enum::"PBI Report Setup".FromInteger(Ordinal);
+            if ReportSetup.GetDeployableReportType() = Rec."Report Id" then begin
+                RecRef.GetTable(PowerBIReportsSetup);
+                FldRef := RecRef.Field(ReportSetup.GetSetupReportIdFieldNo());
+                exit(not IsNullGuid(FldRef.Value()));
+            end;
         end;
 
         exit(false);

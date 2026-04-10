@@ -1,8 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
+using Microsoft.PowerBIReports;
 using System.Environment;
 using System.Integration.PowerBI;
 
-codeunit 8101 "PBI Sub. Billing App" implements "Power BI Deployable Report"
+codeunit 8101 "PBI Sub. Billing App" implements "Power BI Deployable Report", "PBI Report Setup"
 {
     Access = Internal;
 
@@ -27,5 +28,36 @@ codeunit 8101 "PBI Sub. Billing App" implements "Power BI Deployable Report"
     begin
         Parameters.Add('COMPANY', CompanyName());
         Parameters.Add('ENVIRONMENT', EnvironmentInformation.GetEnvironmentName());
+    end;
+
+    procedure GetDeployableReportType(): Enum "Power BI Deployable Report"
+    begin
+        exit(Enum::"Power BI Deployable Report"::"Subscription Billing App");
+    end;
+
+    procedure GetSetupReportIdFieldNo(): Integer
+    var
+        PowerBIReportsSetup: Record "PowerBI Reports Setup";
+    begin
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
+        exit(PowerBIReportsSetup.FieldNo("Subscription Billing Report Id"));
+#if not CLEAN28
+#pragma warning restore AL0801
+#endif
+    end;
+
+    procedure GetSetupReportNameFieldNo(): Integer
+    var
+        PowerBIReportsSetup: Record "PowerBI Reports Setup";
+    begin
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
+        exit(PowerBIReportsSetup.FieldNo("Subs. Billing Report Name"));
+#if not CLEAN28
+#pragma warning restore AL0801
+#endif
     end;
 }

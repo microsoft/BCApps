@@ -8,52 +8,25 @@ codeunit 36959 "Power BI Subscribers"
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
         UploadTracker: Interface "Power BI Upload Tracker";
-        ReportId: Guid;
+        RecRef: RecordRef;
+        ReportSetup: Interface "PBI Report Setup";
+        Ordinal: Integer;
         ReportName: Text[200];
     begin
-        Report.GetUploadTracker(UploadTracker);
-        UploadTracker.Load(Report.GetReportKey());
-        ReportId := UploadTracker.GetUploadedReportId();
-        ReportName := CopyStr(UploadTracker.GetUploadedReportName(), 1, MaxStrLen(ReportName));
+        foreach Ordinal in Enum::"PBI Report Setup".Ordinals() do begin
+            ReportSetup := Enum::"PBI Report Setup".FromInteger(Ordinal);
+            if ReportSetup.GetDeployableReportType() = DeployableReportType then begin
+                Report.GetUploadTracker(UploadTracker);
+                UploadTracker.Load(Report.GetReportKey());
+                ReportName := CopyStr(UploadTracker.GetUploadedReportName(), 1, MaxStrLen(ReportName));
 
-        PowerBIReportsSetup.GetOrCreate();
-        case DeployableReportType of
-            DeployableReportType::"Finance App":
-                begin
-                    PowerBIReportsSetup."Finance Report Id" := ReportId;
-                    PowerBIReportsSetup."Finance Report Name" := ReportName;
-                end;
-            DeployableReportType::"Sales App":
-                begin
-                    PowerBIReportsSetup."Sales Report Id" := ReportId;
-                    PowerBIReportsSetup."Sales Report Name" := ReportName;
-                end;
-            DeployableReportType::"Purchases App":
-                begin
-                    PowerBIReportsSetup."Purchases Report Id" := ReportId;
-                    PowerBIReportsSetup."Purchases Report Name" := ReportName;
-                end;
-            DeployableReportType::"Inventory App":
-                begin
-                    PowerBIReportsSetup."Inventory Report Id" := ReportId;
-                    PowerBIReportsSetup."Inventory Report Name" := ReportName;
-                end;
-            DeployableReportType::"Inventory Valuation App":
-                begin
-                    PowerBIReportsSetup."Inventory Val. Report Id" := ReportId;
-                    PowerBIReportsSetup."Inventory Val. Report Name" := ReportName;
-                end;
-            DeployableReportType::"Manufacturing App":
-                begin
-                    PowerBIReportsSetup."Manufacturing Report Id" := ReportId;
-                    PowerBIReportsSetup."Manufacturing Report Name" := ReportName;
-                end;
-            DeployableReportType::"Projects App":
-                begin
-                    PowerBIReportsSetup."Projects Report Id" := ReportId;
-                    PowerBIReportsSetup."Projects Report Name" := ReportName;
-                end;
+                PowerBIReportsSetup.GetOrCreate();
+                RecRef.GetTable(PowerBIReportsSetup);
+                RecRef.Field(ReportSetup.GetSetupReportIdFieldNo()).Value := UploadTracker.GetUploadedReportId();
+                RecRef.Field(ReportSetup.GetSetupReportNameFieldNo()).Value := ReportName;
+                RecRef.Modify();
+                exit;
+            end;
         end;
-        PowerBIReportsSetup.Modify();
     end;
 }
