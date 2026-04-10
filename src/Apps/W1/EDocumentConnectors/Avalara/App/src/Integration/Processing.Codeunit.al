@@ -46,13 +46,12 @@ codeunit 6379 Processing
     /// <param name="AvalaraCompany">Records to contain returned compaines.</param>
     procedure GetRegistrationList(): Text;
     var
-        TempAvalaraCompany: Record "Avalara Company" temporary;
         HttpExecutor: Codeunit "Http Executor";
         Request: Codeunit Requests;
         ResponseContent: Text;
     begin
         Request.Init();
-        Request.Authenticate().CreateGetRegistrationsRequest(TempAvalaraCompany);
+        Request.Authenticate().CreateGetRegistrationsRequest();
         ResponseContent := HttpExecutor.ExecuteHttpRequest(Request);
         exit(ResponseContent);
     end;
@@ -492,7 +491,7 @@ ValueObject : JsonToken;
         ResponseMessage := RestClient.Get(RequestPath);
 
         if not ResponseMessage.GetIsSuccessStatusCode() then begin
-            Session.LogMessage('0000NHE', StrSubstNo(GetFieldsFailedErr, ResponseMessage.GetHttpStatusCode(), ResponseMessage.GetReasonPhrase()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraTok);
+            Session.LogMessage('', StrSubstNo(GetFieldsFailedErr, ResponseMessage.GetHttpStatusCode(), ResponseMessage.GetReasonPhrase()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraTok);
             exit;
         end;
 
@@ -611,8 +610,8 @@ MessageToken,
 
     procedure LoadStatusFromJson(ResponseText: Text; EDocument: Record "E-Document")
     var
-        MessageEvent: Record "Message Event";
-        MessageResponseHeader: Record "Message Response Header";
+        MessageEvent: Record "Avl Message Event";
+        MessageResponseHeader: Record "Avl Message Response Header";
         i: Integer;
         EventsArray: JsonArray;
         EventObj: JsonObject;

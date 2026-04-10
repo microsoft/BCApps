@@ -15,9 +15,9 @@ codeunit 133627 "Page Logic Tests"
     Permissions = tabledata "Activation Header" = rimd,
                   tabledata "Activation Mandate" = rimd,
                   tabledata "Avalara Input Field" = rimd,
-                  tabledata "Connection Setup" = rimd,
-                  tabledata "Message Event" = rimd,
-                  tabledata "Message Response Header" = rimd;
+                  tabledata "Avl Message Event" = rimd,
+                  tabledata "Avl Message Response Header" = rimd,
+                  tabledata "Connection Setup" = rimd;
     Subtype = Test;
     TestType = UnitTest;
 
@@ -412,8 +412,8 @@ codeunit 133627 "Page Logic Tests"
     [Test]
     procedure MessageResponseCard_DisplaysFields()
     var
-        MessageResponseHeader: Record "Message Response Header";
-        MessageResponseCardPage: TestPage "Message Response Card";
+        MessageResponseHeader: Record "Avl Message Response Header";
+        MessageResponseCardPage: TestPage "Avl Message Response Card";
     begin
         // [SCENARIO] Message Response Card should display header fields correctly
         LibraryPermission.SetOutsideO365Scope();
@@ -444,8 +444,8 @@ codeunit 133627 "Page Logic Tests"
     [Test]
     procedure MessageResponseCard_IsNotEditable()
     var
-        MessageResponseHeader: Record "Message Response Header";
-        MessageResponseCardPage: TestPage "Message Response Card";
+        MessageResponseHeader: Record "Avl Message Response Header";
+        MessageResponseCardPage: TestPage "Avl Message Response Card";
     begin
         // [SCENARIO] Message Response Card should be read-only
         LibraryPermission.SetOutsideO365Scope();
@@ -480,9 +480,9 @@ codeunit 133627 "Page Logic Tests"
     [Test]
     procedure MessageEventsSubform_DisplaysEventRecords()
     var
-        MessageEvent: Record "Message Event";
-        MessageResponseHeader: Record "Message Response Header";
-        MessageResponseCardPage: TestPage "Message Response Card";
+        MessageEvent: Record "Avl Message Event";
+        MessageResponseHeader: Record "Avl Message Response Header";
+        MessageResponseCardPage: TestPage "Avl Message Response Card";
     begin
         // [SCENARIO] Message Events Subform should display event records linked to the header
         LibraryPermission.SetOutsideO365Scope();

@@ -18,8 +18,8 @@ permissionset 6373 "Avalara Edit"
                 tabledata "Activation Header" = imd,
                 tabledata "Activation Mandate" = imd,
                 tabledata "Avalara Input Field" = imd,
+                tabledata "Avl Message Event" = imd,
+                tabledata "Avl Message Response Header" = imd,
                 tabledata "Connection Setup" = imd,
-                tabledata "Media Types" = imd,
-                tabledata "Message Event" = imd,
-                tabledata "Message Response Header" = imd;
+                tabledata "Media Types" = imd;
 }

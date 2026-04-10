@@ -24,10 +24,10 @@ permissionset 6372 Edit
                 tabledata "Activation Header" = imd,
                 tabledata "Activation Mandate" = imd,
                 tabledata "Avalara Input Field" = imd,
+                tabledata "Avl Message Event" = imd,
+                tabledata "Avl Message Response Header" = imd,
                 tabledata "Connection Setup" = imd,
-                tabledata "Media Types" = imd,
-                tabledata "Message Event" = imd,
-                tabledata "Message Response Header" = imd;
+                tabledata "Media Types" = imd;
 }
 
 #pragma warning restore AS0072 // Obsolete permission set

@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 /// <summary>
 /// Stores message response header data received from the Avalara E-Invoicing service.
 /// </summary>
-table 6379 "Message Response Header"
+table 6379 "Avl Message Response Header"
 {
     Caption = 'Message Response Header';
     DataClassification = SystemMetadata;

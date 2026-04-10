@@ -22,10 +22,10 @@ permissionset 6371 Read
                 tabledata "Activation Header" = r,
                 tabledata "Activation Mandate" = r,
                 tabledata "Avalara Input Field" = r,
+                tabledata "Avl Message Event" = r,
+                tabledata "Avl Message Response Header" = r,
                 tabledata "Connection Setup" = r,
-                tabledata "Media Types" = r,
-                tabledata "Message Event" = r,
-                tabledata "Message Response Header" = r;
+                tabledata "Media Types" = r;
 }
 #pragma warning restore AS0072 // Obsolete permission set
 #endif

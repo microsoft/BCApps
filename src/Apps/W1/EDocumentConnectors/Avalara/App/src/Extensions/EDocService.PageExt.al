@@ -182,8 +182,10 @@ pageextension 6371 "E-Doc. Service" extends "E-Document Service"
         else
             ActionText := UnblockTxt;
 
-        if not Confirm(ConfirmBlockQst, false, ActionText, Rec."Avalara Mandate") then
-            Error('');
+        if not Confirm(ConfirmBlockQst, false, ActionText, Rec."Avalara Mandate") then begin
+            MandateBlocked := not MandateBlocked;
+            exit;
+        end;
 
         AvalaraMandate.SetBlocked(ConnectionSetup, Rec."Avalara Mandate", MandateBlocked);
         RefreshActivationStatus();

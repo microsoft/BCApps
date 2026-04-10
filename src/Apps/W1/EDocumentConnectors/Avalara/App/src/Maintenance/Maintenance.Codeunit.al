@@ -12,6 +12,8 @@ using System.Utilities;
 /// </summary>
 codeunit 6373 Maintenance
 {
+    Access = Internal;
+
     var
         DocumentDownloadFailedLogMsg: Label 'Document download failed for E-Document %1, Document ID: %2', Comment = '%1 = E-Document Entry No, %2 = Document ID';
         // Error messages
@@ -39,7 +41,7 @@ codeunit 6373 Maintenance
             ProcessedCount += 1;
         until EDocument.Next() = 0;
 
-        Session.LogMessage('0000AVL015',
+        Session.LogMessage('',
             StrSubstNo(ProcessingCompletedMsg, ProcessedCount, SuccessCount),
             Verbosity::Normal,
             DataClassification::SystemMetadata,
@@ -74,7 +76,7 @@ codeunit 6373 Maintenance
         // Use the new comprehensive download function that handles all media types
         // and attachments to both E-Document and source document
         if AvalaraDocumentManagement.DownloadDocumentWithAllMediaTypes(EDocument, EDocumentService, DocumentId) then begin
-            Session.LogMessage('0000AVL016',
+            Session.LogMessage('',
                 StrSubstNo(SuccessfullyDownloadedDocumentMsg, DocumentId, EDocument."Entry No"),
                 Verbosity::Normal,
                 DataClassification::SystemMetadata,
@@ -99,7 +101,7 @@ codeunit 6373 Maintenance
 
         EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, ErrorText);
 
-        Session.LogMessage('0000AVL017',
+        Session.LogMessage('',
             StrSubstNo(DocumentDownloadFailedLogMsg, EDocument."Entry No", DocumentId),
             Verbosity::Warning,
             DataClassification::SystemMetadata,

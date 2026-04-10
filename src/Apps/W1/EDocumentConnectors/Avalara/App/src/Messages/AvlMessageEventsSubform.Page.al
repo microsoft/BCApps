@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 /// <summary>
 /// Subform page displaying message events from Avalara document processing in chronological order.
 /// </summary>
-page 6803 "Message Events Subform"
+page 6803 "Avl Message Events Subform"
 {
     ApplicationArea = All;
     Caption = 'Message Events';
@@ -16,7 +16,7 @@ page 6803 "Message Events Subform"
     InsertAllowed = false;
     ModifyAllowed = false;
     PageType = ListPart;
-    SourceTable = "Message Event";
+    SourceTable = "Avl Message Event";
 
     layout
     {
@@ -90,7 +90,7 @@ page 6803 "Message Events Subform"
 
                 trigger OnAction()
                 var
-                    FullMessageDialog: Page "Full Message Dialog";
+                    FullMessageDialog: Page "Avl Full Message Dialog";
                 begin
                     FullMessageDialog.SetMessage(Rec.GetFullMessage());
                     FullMessageDialog.RunModal();

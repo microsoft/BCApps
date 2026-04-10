@@ -18,69 +18,13 @@ codeunit 133628 "Table Tests"
     Permissions = tabledata "Activation Header" = rimd,
                   tabledata "Activation Mandate" = rimd,
                   tabledata "Avalara Input Field" = rimd,
+                  tabledata "Avl Message Event" = rimd,
+                  tabledata "Avl Message Response Header" = rimd,
                   tabledata "Connection Setup" = rimd,
                   tabledata "Media Types" = rimd,
-                  tabledata "Message Event" = rimd,
-                  tabledata "Message Response Header" = rimd,
                   tabledata "Transformation Rule" = rimd;
     Subtype = Test;
     TestType = UnitTest;
-
-    // ========================================================================
-    // Activation Header Table Tests
-    // ========================================================================
-
-    [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
-    procedure ActivationHeader_OnDelete_ConfirmYes_DeletesRecord()
-    var
-        ActivationHeader: Record "Activation Header";
-        TestId: Guid;
-    begin
-        // [SCENARIO] Deleting an Activation Header with user confirming Yes should delete the record
-        LibraryPermission.SetOutsideO365Scope();
-        TestId := CreateGuid();
-
-        // [GIVEN] An Activation Header record
-        ActivationHeader.Init();
-        ActivationHeader.ID := TestId;
-        ActivationHeader."Registration Type" := 'TEST';
-        ActivationHeader.Insert(false);
-
-        // [WHEN] Delete is called and user confirms Yes
-        ActivationHeader.Get(TestId);
-        ActivationHeader.Delete(true);
-
-        // [THEN] Record no longer exists
-        Assert.IsFalse(ActivationHeader.Get(TestId), 'Record should be deleted after confirm Yes');
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmNoHandler')]
-    procedure ActivationHeader_OnDelete_ConfirmNo_RaisesError()
-    var
-        ActivationHeader: Record "Activation Header";
-        TestId: Guid;
-    begin
-        // [SCENARIO] Deleting an Activation Header with user confirming No should raise error
-        LibraryPermission.SetOutsideO365Scope();
-        TestId := CreateGuid();
-
-        // [GIVEN] An Activation Header record
-        ActivationHeader.Init();
-        ActivationHeader.ID := TestId;
-        ActivationHeader."Registration Type" := 'TEST-NO';
-        ActivationHeader.Insert(false);
-
-        // [WHEN] Delete is called and user confirms No
-        asserterror ActivationHeader.Delete(true);
-
-        // [THEN] Error is raised about deletion cancelled
-        Assert.ExpectedError('Deletion cancelled by user.');
-
-        // Cleanup (no trigger)
-        ActivationHeader.DeleteAll(false);
-    end;
 
     // ========================================================================
     // Activation Mandate Table Tests
@@ -176,34 +120,6 @@ codeunit 133628 "Table Tests"
         Assert.IsFalse(Mandate.GetBlocked(ConnectionSetup, 'IT-B2B-SDI'), 'GetBlocked should return false for unblocked mandate');
 
         // Cleanup
-        Mandate.DeleteAll(false);
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmNoHandler')]
-    procedure ActivationMandate_OnDelete_ConfirmNo_RaisesError()
-    var
-        Mandate: Record "Activation Mandate";
-        ActivationId: Guid;
-    begin
-        // [SCENARIO] Deleting an Activation Mandate with user confirming No should raise error
-        LibraryPermission.SetOutsideO365Scope();
-        ActivationId := CreateGuid();
-
-        // [GIVEN] An Activation Mandate record
-        Mandate.Init();
-        Mandate."Activation ID" := ActivationId;
-        Mandate."Country Mandate" := 'TEST-DELETE';
-        Mandate."Mandate Type" := 'B2G';
-        Mandate.Insert(false);
-
-        // [WHEN] Delete is called and user confirms No
-        asserterror Mandate.Delete(true);
-
-        // [THEN] Error is raised about deletion cancelled
-        Assert.ExpectedError('Deletion cancelled by user.');
-
-        // Cleanup (no trigger)
         Mandate.DeleteAll(false);
     end;
 
@@ -337,7 +253,7 @@ codeunit 133628 "Table Tests"
     [Test]
     procedure MessageResponseHeader_InsertModifyRetrieve()
     var
-        Header: Record "Message Response Header";
+        Header: Record "Avl Message Response Header";
     begin
         // [SCENARIO] Message Response Header supports insert, modify, retrieve
         LibraryPermission.SetOutsideO365Scope();
@@ -369,7 +285,7 @@ codeunit 133628 "Table Tests"
     [Test]
     procedure MessageEvent_MultipleEventsPerMessage()
     var
-        MsgEvent: Record "Message Event";
+        MsgEvent: Record "Avl Message Event";
     begin
         // [SCENARIO] Message Event supports multiple events per message via composite PK (Id + MessageRow)
         LibraryPermission.SetOutsideO365Scope();

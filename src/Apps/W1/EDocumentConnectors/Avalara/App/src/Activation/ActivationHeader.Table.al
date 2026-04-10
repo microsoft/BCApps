@@ -87,14 +87,4 @@ table 6376 "Activation Header"
         {
         }
     }
-
-    trigger OnDelete()
-    var
-        ConfirmLbl: Label 'There are %1 related records. Do you really want to delete this record?', Comment = '%1 = Record Count';
-        DeletionErr: Label 'Deletion cancelled by user.';
-    begin
-        if Rec.Count > 0 then
-            if not Confirm(StrSubstNo(ConfirmLbl, Rec.Count), false) then
-                Error(DeletionErr);
-    end;
 }

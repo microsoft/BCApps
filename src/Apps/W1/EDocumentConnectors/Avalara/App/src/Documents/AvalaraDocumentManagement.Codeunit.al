@@ -22,7 +22,9 @@ codeunit 6371 "Avalara Document Management"
         DateTimeSeparatorTok: Label 'T', Locked = true;
         DecimalSeparatorTok: Label '.', Locked = true;
         DefaultXmlFileNameMsg: Label '%1.xml', Comment = '%1 = Entry Number', Locked = true;
+        DocumentIdRequiredMsg: Label 'Document ID is required';
         DownloadedMediaTypesMsg: Label 'Downloaded %1 of %2 media types for document %3', Comment = '%1 = Success Count, %2 = Total Count, %3 = Document ID';
+        EmptyResponseContentErr: Label 'Empty response content';
         FailedToAttachDocumentMsg: Label 'Failed to attach document %1 to E-Document', Comment = '%1 = Document ID';
         FailedToDownloadDocumentMsg: Label 'Failed to download document %1 with media type %2', Comment = '%1 = Document ID, %2 = Media Type';
 
@@ -50,6 +52,8 @@ codeunit 6371 "Avalara Document Management"
         // JSON field name constants
         JsonFieldValueTok: Label 'value', Locked = true;
         MissingValueArrayErr: Label 'The JSON response is missing the required "value" array.';
+        NoResponseFromAvalaraMsg: Label 'No response received from Avalara API';
+        NoXmlContentToAttachMsg: Label 'No XML content to attach';
         ProcessedDocumentsMsg: Label 'Processed %1 of %2 documents from batch', Comment = '%1 = Processed Count, %2 = Total Count';
         ReceivedDocumentsMsg: Label 'Received %1 documents from Avalara API', Comment = '%1 = Document Count';
         SuccessfullyAttachedDocumentMsg: Label 'Successfully attached document to source: Table %1, File %2', Comment = '%1 = Table Number, %2 = File Name';
@@ -142,7 +146,7 @@ codeunit 6371 "Avalara Document Management"
     local procedure InsertDocumentBuffer(var TempDocumentBuffer: Record "Avalara Document Buffer" temporary): Boolean
     begin
         if not TempDocumentBuffer.Insert(true) then begin
-            Session.LogMessage('0000AVL004', 'Failed to insert Avalara Document Buffer', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Parser');
+            Session.LogMessage('', 'Failed to insert Avalara Document Buffer', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Parser');
             exit(false);
         end;
 
@@ -333,7 +337,7 @@ codeunit 6371 "Avalara Document Management"
 
         if ResponseText = '' then begin
             if GuiAllowed then
-                Message('No response received from Avalara API');
+                Message(NoResponseFromAvalaraMsg);
             exit;
         end;
 
@@ -355,7 +359,7 @@ codeunit 6371 "Avalara Document Management"
     begin
         // Validate inputs
         if DocumentID = '' then begin
-            Session.LogMessage('0000AVL018', 'Document ID is required for download', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('', 'Document ID is required for download', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
             exit(false);
         end;
 
@@ -364,7 +368,7 @@ codeunit 6371 "Avalara Document Management"
 
         // Try to download - if it fails (e.g., 404 not found), return false without rollback
         if not TryDownloadFromApi(DocumentID, MediaType, TempBlob) then begin
-            Session.LogMessage('0000AVL019', StrSubstNo(FailedToDownloadDocumentMsg, DocumentID, MediaType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('', StrSubstNo(FailedToDownloadDocumentMsg, DocumentID, MediaType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
             exit(false);
         end;
 
@@ -372,11 +376,11 @@ codeunit 6371 "Avalara Document Management"
         FileName := GetFileNameForMediaType(DocumentID, MediaType);
 
         if not AttachToEDocument(EDocument, TempBlob, FileName) then begin
-            Session.LogMessage('0000AVL020', StrSubstNo(FailedToAttachDocumentMsg, DocumentID), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('', StrSubstNo(FailedToAttachDocumentMsg, DocumentID), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
             exit(false);
         end;
 
-        Session.LogMessage('0000AVL021', StrSubstNo(SuccessfullyDownloadedMsg, DocumentID, MediaType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+        Session.LogMessage('', StrSubstNo(SuccessfullyDownloadedMsg, DocumentID, MediaType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
         exit(true);
     end;
 
@@ -396,7 +400,7 @@ codeunit 6371 "Avalara Document Management"
         ResponseContent := HttpExec.ExecuteHttpRequest(Request);
 
         if ResponseContent = '' then
-            Error('Empty response content');
+            Error(EmptyResponseContentErr);
 
         // Get response and read content into blob
         Response := HttpExec.GetResponse();
@@ -445,7 +449,7 @@ codeunit 6371 "Avalara Document Management"
         IDocumentReceiver := EDocService."Service Integration V2";
         IDocumentReceiver.ReceiveDocuments(EDocService, ReceivedDocuments, ReceiveContext);
 
-        Session.LogMessage('0000AVL006', StrSubstNo(ReceivedDocumentsMsg, ReceivedDocuments.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+        Session.LogMessage('', StrSubstNo(ReceivedDocumentsMsg, ReceivedDocuments.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
 
         exit(ReceivedDocuments.Count());
     end;
@@ -467,7 +471,7 @@ codeunit 6371 "Avalara Document Management"
     begin
         if DocumentID = '' then begin
             if GuiAllowed then
-                Message('Document ID is required');
+                Message(DocumentIdRequiredMsg);
             exit(false);
         end;
 
@@ -476,7 +480,7 @@ codeunit 6371 "Avalara Document Management"
         MediaTypes := AvalaraFunctions.GetAvailableMediaTypesForMandate(Mandate);
 
         if MediaTypes.Count = 0 then begin
-            Session.LogMessage('0000AVL007', 'No media types available for mandate', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('', 'No media types available for mandate', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
             exit(false);
         end;
 
@@ -486,7 +490,7 @@ codeunit 6371 "Avalara Document Management"
             if DownloadDocument(EDocument, DocumentID, MediaType) then
                 SuccessCount += 1;
 
-        Session.LogMessage('0000AVL008', StrSubstNo(DownloadedMediaTypesMsg, SuccessCount, MediaTypes.Count, DocumentID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+        Session.LogMessage('', StrSubstNo(DownloadedMediaTypesMsg, SuccessCount, MediaTypes.Count, DocumentID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
 
         exit(SuccessCount > 0);
     end;
@@ -522,7 +526,7 @@ codeunit 6371 "Avalara Document Management"
             end;
         end;
 
-        Session.LogMessage('0000AVL009', StrSubstNo(ProcessedDocumentsMsg, ProcessedCount, TempBlobList.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+        Session.LogMessage('', StrSubstNo(ProcessedDocumentsMsg, ProcessedCount, TempBlobList.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
 
         exit(ProcessedCount);
     end;
@@ -541,7 +545,7 @@ codeunit 6371 "Avalara Document Management"
     begin
         if XMLText = '' then begin
             if GuiAllowed then
-                Message('No XML content to attach');
+                Message(NoXmlContentToAttachMsg);
             exit(false);
         end;
 
@@ -591,14 +595,14 @@ codeunit 6371 "Avalara Document Management"
         if SaveAttachment(ContentBlob, RecRef, FileName) then
             AttachmentSuccess := true
         else
-            Session.LogMessage('0000AVL010', 'Failed to save attachment to E-Document', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('', 'Failed to save attachment to E-Document', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
 
         // Attach to source document if available
         if AttachToSourceDocument(EDocument, ContentBlob, FileName) then
             AttachmentSuccess := true;
 
         if not AttachmentSuccess then
-            Session.LogMessage('0000AVL005', 'Failed to save document attachment to any location', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('', 'Failed to save document attachment to any location', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
 
         exit(AttachmentSuccess);
     end;
@@ -613,23 +617,23 @@ codeunit 6371 "Avalara Document Management"
 
         // Validate we have a valid RecordID
         if Format(SourceRecordID) = '' then begin
-            Session.LogMessage('0000AVL011', 'Source document RecordID not available on E-Document', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('', 'Source document RecordID not available on E-Document', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
             exit(false);
         end;
 
         // Try to open the source document using RecordID
         if not RecRef.Get(SourceRecordID) then begin
-            Session.LogMessage('0000AVL012', StrSubstNo(FailedToOpenSourceDocumentMsg, Format(SourceRecordID)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('', StrSubstNo(FailedToOpenSourceDocumentMsg, Format(SourceRecordID)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
             exit(false);
         end;
 
         // Attach to source document
         if not SaveAttachment(ContentBlob, RecRef, FileName) then begin
-            Session.LogMessage('0000AVL013', StrSubstNo(FailedToSaveAttachmentToSourceMsg, RecRef.Number), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+            Session.LogMessage('', StrSubstNo(FailedToSaveAttachmentToSourceMsg, RecRef.Number), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
             exit(false);
         end;
 
-        Session.LogMessage('0000AVL014', StrSubstNo(SuccessfullyAttachedDocumentMsg, RecRef.Number, FileName), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
+        Session.LogMessage('', StrSubstNo(SuccessfullyAttachedDocumentMsg, RecRef.Number, FileName), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Document Management');
         exit(true);
     end;
 
@@ -639,7 +643,7 @@ codeunit 6371 "Avalara Document Management"
     begin
         // Check if attachment with identical content already exists to prevent duplicates
         if AttachmentExistsForRecord(RecRef, ContentBlob) then begin
-            Session.LogMessage('0000AVL022',
+            Session.LogMessage('',
                 StrSubstNo(AttachmentAlreadyExistsMsg, RecRef.Number),
                 Verbosity::Normal,
                 DataClassification::SystemMetadata,
@@ -733,11 +737,11 @@ codeunit 6371 "Avalara Document Management"
     /// <param name="EDocument">The E-Document to retrieve status for.</param>
     procedure ShowDocumentStatus(var EDocument: Record "E-Document")
     var
-        MessageResponseHeader: Record "Message Response Header";
+        MessageResponseHeader: Record "Avl Message Response Header";
         HttpExecutor: Codeunit "Http Executor";
         Processing: Codeunit Processing;
         Request: Codeunit Requests;
-        MessageResponseCard: Page "Message Response Card";
+        MessageResponseCard: Page "Avl Message Response Card";
         ResponseContent: Text;
     begin
         EDocument.TestField("Avalara Document Id");

@@ -22,6 +22,7 @@ codeunit 6376 Requests
         ApiVersionORLTok: Label '1.0', Locked = true;
         ApiVersionSCSTok: Label '1.0', Locked = true;
         AvalaraClientTok: Label 'a0nUz00000YrkE1IAJ', Locked = true;
+        UnsupportedSendModeErr: Label 'Unsupported %1 in %2', Comment = '%1 = Field Caption, %2 = Table Caption';
         AccessToken: SecretText;
         AuthUrl,
         BaseUrl,
@@ -115,15 +116,12 @@ codeunit 6376 Requests
     /// Create request for /orl/registrations
     /// </summary>
     /// <returns>A request object that can be used for the endpoint.</returns>
-    procedure CreateGetRegistrationsRequest(var AvalaraCompany: Record "Avalara Company" temporary): Codeunit Requests
+    procedure CreateGetRegistrationsRequest(): Codeunit Requests
     var
         HttpHeaders: HttpHeaders;
-        CompanyID: Text;
     begin
-        CompanyID := AvalaraCompany."Company Id";
-
         Clear(this.HttpRequestMessage);
-        this.HttpRequestMessage.SetRequestUri(this.BaseUrl + '/orl/registrations/' + CompanyID);
+        this.HttpRequestMessage.SetRequestUri(this.BaseUrl + '/orl/registrations');
         this.HttpRequestMessage.Method := 'GET';
 
         this.HttpRequestMessage.GetHeaders(HttpHeaders);
@@ -355,7 +353,7 @@ codeunit 6376 Requests
 
                 exit(ConnectionSetup."Sandbox API URL");
             else
-                Error('Unsupported %1 in %2', ConnectionSetup.FieldCaption("Avalara Send Mode"), ConnectionSetup.TableCaption);
+                Error(UnsupportedSendModeErr, ConnectionSetup.FieldCaption("Avalara Send Mode"), ConnectionSetup.TableCaption);
         end;
     end;
 
@@ -372,7 +370,7 @@ codeunit 6376 Requests
                 exit(ConnectionSetup."Sandbox Authentication URL");
 
             else
-                Error('Unsupported %1 in %2', ConnectionSetup.FieldCaption("Avalara Send Mode"), ConnectionSetup.TableCaption);
+                Error(UnsupportedSendModeErr, ConnectionSetup.FieldCaption("Avalara Send Mode"), ConnectionSetup.TableCaption);
         end;
     end;
 }

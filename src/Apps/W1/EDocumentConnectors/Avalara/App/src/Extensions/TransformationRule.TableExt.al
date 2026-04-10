@@ -44,7 +44,7 @@ tableextension 6374 "Transformation Rule" extends "Transformation Rule"
                 FieldRec: Record Field;
             begin
                 if "Lookup Table ID" = 0 then
-                    Error('Please select a Lookup Table ID first.');
+                    Error(SelectLookupTableIdFirstErr);
 
                 FieldRec.SetRange(TableNo, "Lookup Table ID");
                 FieldRec.SetFilter(ObsoleteState, '<>%1', FieldRec.ObsoleteState::Removed);
@@ -78,7 +78,7 @@ tableextension 6374 "Transformation Rule" extends "Transformation Rule"
                 FieldRec: Record Field;
             begin
                 if "Lookup Table ID" = 0 then
-                    Error('Please select a Lookup Table ID first.');
+                    Error(SelectLookupTableIdFirstErr);
 
                 FieldRec.SetRange(TableNo, "Lookup Table ID");
                 FieldRec.SetFilter(ObsoleteState, '<>%1', FieldRec.ObsoleteState::Removed);
@@ -117,7 +117,7 @@ tableextension 6374 "Transformation Rule" extends "Transformation Rule"
                 FieldRec: Record Field;
             begin
                 if "Lookup Table ID" = 0 then
-                    Error('Please select a Lookup Table ID first.');
+                    Error(SelectLookupTableIdFirstErr);
 
                 FieldRec.SetRange(TableNo, "Lookup Table ID");
                 FieldRec.SetFilter(ObsoleteState, '<>%1', FieldRec.ObsoleteState::Removed);
@@ -141,4 +141,7 @@ tableextension 6374 "Transformation Rule" extends "Transformation Rule"
             FieldClass = FlowField;
         }
     }
+
+    var
+        SelectLookupTableIdFirstErr: Label 'Please select a Lookup Table ID first.';
 }

@@ -7,7 +7,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 /// <summary>
 /// Dialog page for viewing the full message text of a message event.
 /// </summary>
-page 6804 "Full Message Dialog"
+page 6804 "Avl Full Message Dialog"
 {
     ApplicationArea = All;
     Caption = 'Full Message';

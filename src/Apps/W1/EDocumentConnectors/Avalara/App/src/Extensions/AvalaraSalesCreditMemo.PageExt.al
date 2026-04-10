@@ -28,7 +28,7 @@ pageextension 6380 "Avalara Sales Credit Memo" extends "Sales Credit Memo"
     var
         AvalaraFunctions: Codeunit "Avalara Functions";
     begin
-        AvalaraDocIdVisible := AvalaraFunctions.IsAvalaraActive()
+        AvalaraDocIdVisible := AvalaraFunctions.IsAvalaraActive();
     end;
 
     var

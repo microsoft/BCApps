@@ -46,11 +46,12 @@ codeunit 6378 Activation
         if JsonText = '' then
             Error(InvalidJsonErr);
 
-        ClearExistingData(ActivationHeader, ActivationMandate);
+        if not ClearExistingData(ActivationHeader, ActivationMandate) then
+            exit;
         ParseAndInsertActivations(JsonText);
     end;
 
-    local procedure ClearExistingData(var ActivationHeader: Record "Activation Header"; var ActivationMandate: Record "Activation Mandate")
+    local procedure ClearExistingData(var ActivationHeader: Record "Activation Header"; var ActivationMandate: Record "Activation Mandate"): Boolean
     var
         HeaderCount: Integer;
         MandateCount: Integer;
@@ -60,13 +61,14 @@ codeunit 6378 Activation
         MandateCount := ActivationMandate.Count();
 
         if (HeaderCount = 0) and (MandateCount = 0) then
-            exit;
+            exit(true);
 
         if not Confirm(ConfirmClearDataQst, false, HeaderCount, MandateCount) then
-            Error('');
+            exit(false);
 
         ActivationHeader.DeleteAll(false);
         ActivationMandate.DeleteAll(false);
+        exit(true);
     end;
 
     local procedure ParseAndInsertActivations(JsonText: Text)
@@ -160,7 +162,7 @@ codeunit 6378 Activation
     begin
         // Use Insert(true) to trigger table triggers and validation
         if not ActivationHeader.Insert(true) then begin
-            Session.LogMessage('0000AVL002', 'Failed to insert Activation Header', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Activation');
+            Session.LogMessage('', 'Failed to insert Activation Header', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Activation');
             exit(false);
         end;
 
@@ -202,7 +204,7 @@ codeunit 6378 Activation
 
         // Use Insert(true) to trigger table triggers and validation
         if not ActivationMandate.Insert(true) then
-            Session.LogMessage('0000AVL003', 'Failed to insert Activation Mandate', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Activation');
+            Session.LogMessage('', 'Failed to insert Activation Mandate', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Avalara Activation');
     end;
 
     local procedure GetNestedJsonText(JsonObj: JsonObject; ParentFieldName: Text; ChildFieldName: Text): Text

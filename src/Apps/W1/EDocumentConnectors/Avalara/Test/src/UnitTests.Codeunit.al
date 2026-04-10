@@ -18,10 +18,10 @@ codeunit 133624 "Unit Tests"
 {
     Permissions = tabledata "Activation Header" = rimd,
                   tabledata "Activation Mandate" = rimd,
+                  tabledata "Avl Message Event" = rimd,
+                  tabledata "Avl Message Response Header" = rimd,
                   tabledata "Connection Setup" = rimd,
-                  tabledata "E-Document" = r,
-                  tabledata "Message Event" = rimd,
-                  tabledata "Message Response Header" = rimd;
+                  tabledata "E-Document" = r;
     Subtype = Test;
     TestType = UnitTest;
 
@@ -32,9 +32,9 @@ codeunit 133624 "Unit Tests"
     [Test]
     procedure LoadStatusFromJson_CompleteResponse_CreatesHeaderAndEvents()
     var
+        MessageEvent: Record "Avl Message Event";
+        MessageResponseHeader: Record "Avl Message Response Header";
         EDocument: Record "E-Document";
-        MessageEvent: Record "Message Event";
-        MessageResponseHeader: Record "Message Response Header";
         AvalaraProcessing: Codeunit Processing;
         ResponseJson: Text;
     begin
@@ -85,9 +85,9 @@ codeunit 133624 "Unit Tests"
     [Test]
     procedure LoadStatusFromJson_ErrorResponse_CreatesHeaderAndErrorEvents()
     var
+        MessageEvent: Record "Avl Message Event";
+        MessageResponseHeader: Record "Avl Message Response Header";
         EDocument: Record "E-Document";
-        MessageEvent: Record "Message Event";
-        MessageResponseHeader: Record "Message Response Header";
         AvalaraProcessing: Codeunit Processing;
         ResponseJson: Text;
     begin
@@ -128,9 +128,9 @@ codeunit 133624 "Unit Tests"
     [Test]
     procedure LoadStatusFromJson_NoEvents_CreatesHeaderOnly()
     var
+        MessageEvent: Record "Avl Message Event";
+        MessageResponseHeader: Record "Avl Message Response Header";
         EDocument: Record "E-Document";
-        MessageEvent: Record "Message Event";
-        MessageResponseHeader: Record "Message Response Header";
         AvalaraProcessing: Codeunit Processing;
         ResponseJson: Text;
     begin
@@ -225,9 +225,9 @@ codeunit 133624 "Unit Tests"
     [Test]
     procedure LoadStatusFromJson_DuplicateCall_NoDuplicate()
     var
+        MessageEvent: Record "Avl Message Event";
+        MessageResponseHeader: Record "Avl Message Response Header";
         EDocument: Record "E-Document";
-        MessageEvent: Record "Message Event";
-        MessageResponseHeader: Record "Message Response Header";
         AvalaraProcessing: Codeunit Processing;
         ResponseJson: Text;
     begin
@@ -266,9 +266,9 @@ codeunit 133624 "Unit Tests"
     [Test]
     procedure LoadStatusFromJson_EventDateTime_IsParsed()
     var
+        MessageEvent: Record "Avl Message Event";
+        MessageResponseHeader: Record "Avl Message Response Header";
         EDocument: Record "E-Document";
-        MessageEvent: Record "Message Event";
-        MessageResponseHeader: Record "Message Response Header";
         AvalaraProcessing: Codeunit Processing;
         ResponseJson: Text;
     begin
@@ -994,8 +994,8 @@ codeunit 133624 "Unit Tests"
     [Test]
     procedure LoadStatusFromJson_UpdatesExistingHeader()
     var
+        MessageResponseHeader: Record "Avl Message Response Header";
         EDocument: Record "E-Document";
-        MessageResponseHeader: Record "Message Response Header";
         AvalaraProcessing: Codeunit Processing;
         ResponseJson1: Text;
         ResponseJson2: Text;

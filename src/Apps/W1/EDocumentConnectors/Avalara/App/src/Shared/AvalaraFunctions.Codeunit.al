@@ -30,6 +30,7 @@ codeunit 6800 "Avalara Functions"
         FailedToRetrieveMediaTypesMsg: Label 'Failed to retrieve media types for mandate %1', Comment = '%1 = Mandate';
         FetchAvalaraDocsDescTxt: Label 'Fetch Avalara documents for E-Documents';
         FieldsLoadedMsg: Label 'Loaded %1 fields for mandate %2', Comment = '%1 = Field count, %2 = Mandate code';
+        InvalidJsonAtIndexErr: Label 'Invalid JSON at index %1: expected object.', Comment = '%1 = Array index';
         InvalidJsonResponseMsg: Label 'Invalid JSON response for mandate %1', Comment = '%1 = Mandate';
         JobQueueCreatedMsg: Label 'Job Queue Entry %1 created and set to Ready to run Codeunit %2 every %3 minutes.', Comment = '%1 = Job Queue Entry ID, %2 = Codeunit ID, %3 = Frequency in minutes';
         JobQueueExistsMsg: Label 'Job Queue Entry %1 already exists for Codeunit %2.', Comment = '%1 = Job Queue Entry ID, %2 = Codeunit ID';
@@ -39,11 +40,15 @@ codeunit 6800 "Avalara Functions"
         JsonFieldNamespaceTok: Label 'namespace', Locked = true;
         JsonFieldPrefixTok: Label 'prefix', Locked = true;
         JsonFieldValueTok: Label 'value', Locked = true;
+        LookupTableIdRequiredErr: Label 'Lookup Table ID must be specified for Advanced Lookup transformation %1.', Comment = '%1 = Transformation Code';
         MediaTypePdfTok: Label 'application/pdf', Locked = true;
         MediaTypeUblXmlTok: Label 'application/vnd.oasis.ubl+xml', Locked = true;
         MediaTypeXmlTok: Label 'application/xml', Locked = true;
+        PrimaryFieldNoRequiredErr: Label 'Primary Field No. must be specified for Advanced Lookup transformation %1.', Comment = '%1 = Transformation Code';
+        ResultFieldNoRequiredErr: Label 'Result Field No. must be specified for Advanced Lookup transformation %1.', Comment = '%1 = Transformation Code';
         RetrievedMediaTypesMsg: Label 'Retrieved %1 media types for mandate %2', Comment = '%1 = Count, %2 = Mandate';
         SafeFilenameFormatMsg: Label '%1-%2%3', Comment = '%1 = File ID, %2 = Normalized media type, %3 = File extension', Locked = true;
+        SetIntegerFieldTypeErr: Label 'SetIntegerField called on non-integer field %1.', Comment = '%1 = Field No.';
 
     procedure AttachFromText(EDocument: Record "E-Document"; XmlText: Text; FileName: Text)
     var
@@ -137,7 +142,7 @@ codeunit 6800 "Avalara Functions"
         for i := 0 to FieldsArray.Count() - 1 do begin
             FieldsArray.Get(i, ItemToken);
             if not ItemToken.IsObject then
-                Error('Invalid JSON at index %1: expected object.', i + 1);
+                Error(InvalidJsonAtIndexErr, i + 1);
 
             ItemObj := ItemToken.AsObject();
 
@@ -222,7 +227,7 @@ codeunit 6800 "Avalara Functions"
             AvalaraInputField.Insert();
         end;
 
-        Session.LogMessage('0000AVL', StrSubstNo(FieldsLoadedMsg, FieldsArray.Count(), MandateInput), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+        Session.LogMessage('', StrSubstNo(FieldsLoadedMsg, FieldsArray.Count(), MandateInput), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
     end;
 
     /// <summary>
@@ -242,7 +247,7 @@ codeunit 6800 "Avalara Functions"
     begin
         // Validate input
         if Mandate = '' then begin
-            Session.LogMessage('0000AVL', 'Empty mandate provided to GetAvailableMediaTypesForMandate', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+            Session.LogMessage('', 'Empty mandate provided to GetAvailableMediaTypesForMandate', Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
             exit(GetDefaultMediaTypes());
         end;
 
@@ -253,13 +258,13 @@ codeunit 6800 "Avalara Functions"
 
         // Handle API failure
         if ResponseContent = '' then begin
-            Session.LogMessage('0000AVL', StrSubstNo(FailedToRetrieveMediaTypesMsg, Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+            Session.LogMessage('', StrSubstNo(FailedToRetrieveMediaTypesMsg, Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
             exit(GetDefaultMediaTypes());
         end;
 
         // Parse JSON response
         if not TryParseMediaTypesResponse(ResponseContent, ResponseJson, ValueArray) then begin
-            Session.LogMessage('0000AVL', StrSubstNo(InvalidJsonResponseMsg, Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+            Session.LogMessage('', StrSubstNo(InvalidJsonResponseMsg, Mandate), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
             exit(GetDefaultMediaTypes());
         end;
 
@@ -270,7 +275,7 @@ codeunit 6800 "Avalara Functions"
         if MediaTypeList.Count = 0 then
             exit(GetDefaultMediaTypes());
 
-        Session.LogMessage('0000AVL', StrSubstNo(RetrievedMediaTypesMsg, MediaTypeList.Count, Mandate), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
+        Session.LogMessage('', StrSubstNo(RetrievedMediaTypesMsg, MediaTypeList.Count, Mandate), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AvalaraCategoryTok);
 
         exit(MediaTypeList);
     end;
@@ -486,7 +491,7 @@ codeunit 6800 "Avalara Functions"
             FieldType::BigInteger:
                 FRef.Value := Value;
             else
-                Error('SetIntegerField called on non-integer field %1.', FieldNo);
+                Error(SetIntegerFieldTypeErr, FieldNo);
         end;
 
         RecRef.SetTable(AvalaraInputField);
@@ -735,13 +740,13 @@ codeunit 6800 "Avalara Functions"
 
         // Validate configuration
         if TransformationRule."Lookup Table ID" = 0 then
-            Error('Lookup Table ID must be specified for Advanced Lookup transformation %1.', TransformationCode);
+            Error(LookupTableIdRequiredErr, TransformationCode);
 
         if TransformationRule."Primary Field No." = 0 then
-            Error('Primary Field No. must be specified for Advanced Lookup transformation %1.', TransformationCode);
+            Error(PrimaryFieldNoRequiredErr, TransformationCode);
 
         if TransformationRule."Result Field No." = 0 then
-            Error('Result Field No. must be specified for Advanced Lookup transformation %1.', TransformationCode);
+            Error(ResultFieldNoRequiredErr, TransformationCode);
 
         // Perform the lookup
         RecRef.Open(TransformationRule."Lookup Table ID");
@@ -797,7 +802,6 @@ codeunit 6800 "Avalara Functions"
     local procedure OnAfterValidateAppliesToDocNo(var Rec: Record "Sales Header")
     begin
         Rec."Avalara Doc. ID" := GetAvalaraDocumentId(Rec."Applies-to Doc. No.", Rec."Applies-to Doc. Type");
-        Rec.Modify();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnBeforeModifySalesHeader, '', false, false)]
@@ -820,10 +824,9 @@ codeunit 6800 "Avalara Functions"
         SalesHeader."Avalara Doc. ID" := GetAvalaraDocumentId(SalesHeader."Applies-to Doc. No.", SalesHeader."Applies-to Doc. Type");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterSalesCrMemoHeaderInsert', '', false, false)]
-    local procedure OnAfterSalesCrMemoHeaderInsert(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesHeader: Record "Sales Header")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforeSalesCrMemoHeaderInsert', '', false, false)]
+    local procedure OnBeforeSalesCrMemoHeaderInsert(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesHeader: Record "Sales Header")
     begin
         SalesCrMemoHeader."Avalara Doc. ID" := SalesHeader."Avalara Doc. ID";
-        SalesCrMemoHeader.Modify();
     end;
 }

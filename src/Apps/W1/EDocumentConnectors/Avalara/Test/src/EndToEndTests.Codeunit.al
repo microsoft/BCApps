@@ -36,7 +36,7 @@ codeunit 133625 "End-to-End Tests"
                   tabledata "E-Document" = r;
     Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
 
     // ========================================================================
     // E2E: Full Outbound Invoice Lifecycle
@@ -799,10 +799,10 @@ codeunit 133625 "End-to-End Tests"
     [HandlerFunctions('HttpSubmitHandler')]
     procedure E2E_MessageResponseHeader_PopulatedDuringGetResponse()
     var
+        MessageEvent: Record "Avl Message Event";
+        MessageResponseHeader: Record "Avl Message Response Header";
         EDocument: Record "E-Document";
         JobQueueEntry: Record "Job Queue Entry";
-        MessageEvent: Record "Message Event";
-        MessageResponseHeader: Record "Message Response Header";
     begin
         // [SCENARIO] After GetResponse with Complete, message response header and events should be populated
         Initialize();

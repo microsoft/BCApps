@@ -181,6 +181,9 @@ page 6379 "Avalara Documents"
     }
 
     var
+        DocumentDownloadedSuccessMsg: Label 'Document %1 downloaded successfully as %2', Comment = '%1 = Document Number, %2 = Media Type';
+        FailedToDownloadDocErr: Label 'Failed to download document %1', Comment = '%1 = Document Number';
+        SelectDocumentToDownloadMsg: Label 'Please select a document to download';
         CompanyID: Text;
 
     trigger OnOpenPage()
@@ -202,16 +205,16 @@ page 6379 "Avalara Documents"
         AvalaraDocumentManagement: Codeunit "Avalara Document Management";
     begin
         if Rec.Id = '' then begin
-            Message('Please select a document to download');
+            Message(SelectDocumentToDownloadMsg);
             exit;
         end;
 
         EDocument.Init();
 
         if AvalaraDocumentManagement.DownloadDocument(EDocument, Rec.Id, MediaType) then
-            Message('Document %1 downloaded successfully as %2', Rec."Document Number", MediaType)
+            Message(DocumentDownloadedSuccessMsg, Rec."Document Number", MediaType)
         else
-            Error('Failed to download document %1', Rec."Document Number");
+            Error(FailedToDownloadDocErr, Rec."Document Number");
 
         CurrPage.Update(false);
     end;

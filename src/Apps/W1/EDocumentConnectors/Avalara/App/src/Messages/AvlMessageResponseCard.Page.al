@@ -9,7 +9,7 @@ using Microsoft.eServices.EDocument;
 /// <summary>
 /// Card page displaying the details of an Avalara message response, including status and associated events.
 /// </summary>
-page 6380 "Message Response Card"
+page 6380 "Avl Message Response Card"
 {
     ApplicationArea = All;
     Caption = 'Message Response';
@@ -18,7 +18,7 @@ page 6380 "Message Response Card"
     InsertAllowed = false;
     ModifyAllowed = false;
     PageType = Card;
-    SourceTable = "Message Response Header";
+    SourceTable = "Avl Message Response Header";
     UsageCategory = None;
 
     layout
@@ -49,7 +49,7 @@ page 6380 "Message Response Card"
                 }
             }
 
-            part(Events; "Message Events Subform")
+            part(Events; "Avl Message Events Subform")
             {
                 ApplicationArea = All;
                 SubPageLink = id = field(id);
@@ -70,7 +70,7 @@ page 6380 "Message Response Card"
 
                 trigger OnAction()
                 var
-                    FullMessageDialog: Page "Full Message Dialog";
+                    FullMessageDialog: Page "Avl Full Message Dialog";
                 begin
                     FullMessageDialog.SetMessage(Rec.GetFullResponse());
                     FullMessageDialog.RunModal();

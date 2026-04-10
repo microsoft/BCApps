@@ -26,11 +26,11 @@ permissionset 6370 Objects
                 table "Avalara Company" = X,
                 table "Avalara Document Buffer" = X,
                 table "Avalara Input Field" = X,
+                table "Avl Message Event" = X,
+                table "Avl Message Response Header" = X,
                 table "Connection Setup" = X,
                 table Mandate = X,
                 table "Media Types" = X,
-                table "Message Event" = X,
-                table "Message Response Header" = X,
                 codeunit Activation = X,
                 codeunit Authenticator = X,
                 codeunit "Avalara Document Management" = X,
@@ -47,12 +47,12 @@ permissionset 6370 Objects
                 page "Activation Subform" = X,
                 page "Avalara Documents" = X,
                 page "Avalara Input Fields" = X,
+                page "Avl Full Message Dialog" = X,
+                page "Avl Message Events Subform" = X,
+                page "Avl Message Response Card" = X,
                 page "Company List" = X,
                 page "Connection Setup Card" = X,
-                page "Full Message Dialog" = X,
-                page "Mandate List" = X,
-                page "Message Events Subform" = X,
-                page "Message Response Card" = X;
+                page "Mandate List" = X;
 }
 #pragma warning restore AS0072 // Obsolete permission set
 #endif

@@ -7,10 +7,12 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 /// <summary>
 /// Stores event records from Avalara document processing, including status messages and response data.
 /// </summary>
-table 6380 "Message Event"
+table 6380 "Avl Message Event"
 {
+    Access = Internal;
     Caption = 'Message Event';
     DataClassification = SystemMetadata;
+
     fields
     {
         field(1; Id; Text[50])

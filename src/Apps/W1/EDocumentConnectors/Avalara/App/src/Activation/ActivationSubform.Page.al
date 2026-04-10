@@ -54,17 +54,4 @@ page 6375 "Activation Subform"
             }
         }
     }
-
-    procedure LoadForActivation(ActivationId: Guid; var Buffer: Record "Activation Mandate")
-    begin
-        if Buffer.FindSet() then
-            repeat
-                if Buffer."Activation ID" = ActivationId then begin
-                    Rec := Buffer;
-
-                    Rec.Insert();
-                end;
-            until Buffer.Next() = 0;
-        CurrPage.Update(false);
-    end;
 }

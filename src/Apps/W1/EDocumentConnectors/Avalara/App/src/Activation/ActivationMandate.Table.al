@@ -59,16 +59,6 @@ table 6377 "Activation Mandate"
         key(CompanyMandate; "Company Id", "Country Mandate", "Mandate Type") { }
     }
 
-    trigger OnDelete()
-    var
-        ConfirmLbl: Label 'There are %1 Mandate records. Do you really want to delete ?', Comment = '%1 = Count';
-        DeletionErr: Label 'Deletion cancelled by user.';
-    begin
-        if Rec.Count > 0 then
-            if not Confirm(StrSubstNo(ConfirmLbl, Rec.Count), false) then
-                Error(DeletionErr);
-    end;
-
     procedure SetBlocked(ConnectionSetup: Record "Connection Setup"; CountryMandate: Text; Block: Boolean)
     begin
         Rec.SetRange("Country Mandate", CountryMandate);
