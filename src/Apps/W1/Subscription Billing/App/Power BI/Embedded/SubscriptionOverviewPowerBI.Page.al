@@ -1,4 +1,4 @@
-﻿namespace Microsoft.PowerBIReports;
+namespace Microsoft.PowerBIReports;
 
 using System.Integration.PowerBI;
 
