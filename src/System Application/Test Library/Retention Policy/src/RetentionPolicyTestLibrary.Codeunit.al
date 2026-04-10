@@ -158,4 +158,16 @@ codeunit 138709 "Retention Policy Test Library"
         RetentionPolicySetupLine.SetRange(Locked, Locked);
 #pragma warning restore AA0210
     end;
+
+    /// <summary>
+    /// Sets whether truncate is allowed for a given table. Must be called from the module that owns the table.
+    /// </summary>
+    /// <param name="TableId">The ID of the table.</param>
+    /// <param name="TruncateAllowed">Whether truncate should be allowed.</param>
+    procedure SetTruncateAllowed(TableId: Integer; TruncateAllowed: Boolean)
+    var
+        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+    begin
+        RetenPolAllowedTables.SetTruncateAllowed(TableId, TruncateAllowed);
+    end;
 }

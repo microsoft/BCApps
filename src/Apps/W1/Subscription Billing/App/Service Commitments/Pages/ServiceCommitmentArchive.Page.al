@@ -136,6 +136,9 @@ page 8094 "Service Commitment Archive"
                     ToolTip = 'Specifies, whether the Planned Subscription Line has been created by a Price Update.';
                     Visible = false;
                 }
+                field(UsageBasedBilling; Rec."Usage Based Billing") { }
+                field(UsageBasedPricing; Rec."Usage Based Pricing") { }
+                field(PricingUnitCostSurcharPerc; Rec."Pricing Unit Cost Surcharge %") { }
             }
         }
     }
