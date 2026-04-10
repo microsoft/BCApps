@@ -1,8 +1,8 @@
-namespace Microsoft.PowerBIReports;
+namespace Microsoft.SubscriptionBilling;
 using System.Environment;
 using System.Integration.PowerBI;
 
-codeunit 36971 "PBI Sub. Billing App" implements "Power BI Deployable Report"
+codeunit 8101 "PBI Sub. Billing App" implements "Power BI Deployable Report"
 {
     Access = Internal;
 

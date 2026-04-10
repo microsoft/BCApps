@@ -43,9 +43,4 @@ enumextension 36950 "Power BI Deployable Report" extends "Power BI Deployable Re
         Caption = 'Sustainability';
         Implementation = "Power BI Deployable Report" = "PBI Sustainability App";
     }
-    value(36958; "Subscription Billing App")
-    {
-        Caption = 'Subscription Billing';
-        Implementation = "Power BI Deployable Report" = "PBI Sub. Billing App";
-    }
 }
