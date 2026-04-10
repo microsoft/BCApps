@@ -82,6 +82,19 @@ codeunit 36962 "Power BI Report Setup"
         end;
     end;
 
+    procedure FindReportSetup(DeployableReportType: Enum "Power BI Deployable Report"; var ReportSetup: Interface "PBI Report Setup"): Boolean
+    var
+        Ordinal: Integer;
+    begin
+        foreach Ordinal in Enum::"PBI Report Setup".Ordinals() do begin
+            ReportSetup := Enum::"PBI Report Setup".FromInteger(Ordinal);
+            if ReportSetup.GetDeployableReportType() = DeployableReportType then
+                exit(true);
+        end;
+        Clear(ReportSetup);
+        exit(false);
+    end;
+
     local procedure IsReportBeingDeployed(ReportSetup: Interface "PBI Report Setup"): Boolean
     var
         PowerBIDeployment: Record "Power BI Deployment";

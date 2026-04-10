@@ -50,23 +50,19 @@ pageextension 36965 "PBI Report Deployments Ext." extends "Power BI Report Deplo
     local procedure GetIsSetupConfigured(): Boolean
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
+        SetupHelper: Codeunit "Power BI Report Setup";
         RecRef: RecordRef;
         FldRef: FieldRef;
         ReportSetup: Interface "PBI Report Setup";
-        Ordinal: Integer;
     begin
         if not PowerBIReportsSetup.Get() then
             exit(false);
 
-        foreach Ordinal in Enum::"PBI Report Setup".Ordinals() do begin
-            ReportSetup := Enum::"PBI Report Setup".FromInteger(Ordinal);
-            if ReportSetup.GetDeployableReportType() = Rec."Report Id" then begin
-                RecRef.GetTable(PowerBIReportsSetup);
-                FldRef := RecRef.Field(ReportSetup.GetSetupReportIdFieldNo());
-                exit(not IsNullGuid(FldRef.Value()));
-            end;
-        end;
+        if not SetupHelper.FindReportSetup(Rec."Report Id", ReportSetup) then
+            exit(false);
 
-        exit(false);
+        RecRef.GetTable(PowerBIReportsSetup);
+        FldRef := RecRef.Field(ReportSetup.GetSetupReportIdFieldNo());
+        exit(not IsNullGuid(FldRef.Value()));
     end;
 }
