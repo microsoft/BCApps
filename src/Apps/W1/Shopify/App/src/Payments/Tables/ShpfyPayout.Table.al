@@ -130,9 +130,7 @@ table 30125 "Shpfy Payout"
         {
             Clustered = true;
         }
-        key(Key1; Date)
-        {
-        }
+        key(Key1; Date) { }
         key(Key2; "Shop Code") { }
     }
 
