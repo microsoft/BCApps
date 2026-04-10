@@ -10,6 +10,11 @@ function Enable-BreakingChangesCheckForWorkspace {
         [string] $CountryCode = "W1"
     )
 
+    if ($CountryCode -eq "RU") {
+        Write-Host "Breaking changes check is disabled for RU"
+        return
+    }
+
     # Load the workspace file
     $workspace = Get-Content -Path $WorkspaceFile -Raw | ConvertFrom-Json
     $projects = $workspace.folders
@@ -52,6 +57,11 @@ function Enable-BreakingChangesCheck {
         [Parameter(Mandatory = $false)]
         [string] $CountryCode = "W1"
     )
+
+    if ($CountryCode -eq "RU") {
+        Write-Host "Breaking changes check is disabled for RU"
+        return
+    }
 
     # Load the app.json
     $appJsonFilePath = Join-Path $AppProjectFolder "app.json"

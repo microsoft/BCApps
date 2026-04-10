@@ -62,9 +62,9 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
 }
 
 $env:INETROOT = $RepoRoot
-Import-Module (Join-Path $RepoRoot "build\scripts\ALAppBuild.psm1") -Force
+Import-Module (Join-Path (Join-Path $RepoRoot "build") "scripts" | Join-Path -ChildPath "ALAppBuild.psm1") -Force
 
-$countryProjectsPath = Join-Path $RepoRoot "build\projects"
+$countryProjectsPath = Join-Path (Join-Path $RepoRoot "build") "projects"
 
 function ConvertTo-SettingsRelativePath {
     <#
@@ -140,7 +140,7 @@ function Get-AppFoldersForCountry {
 function Update-CountrySettings {
     param([string]$Country)
 
-    $settingsPath = Join-Path $countryProjectsPath "Apps $Country\.AL-Go\settings.json"
+    $settingsPath = Join-Path (Join-Path (Join-Path $countryProjectsPath "Apps $Country") ".AL-Go") "settings.json"
 
     if (-not (Test-Path $settingsPath)) {
         Write-Warning "Settings file not found for $Country : $settingsPath"

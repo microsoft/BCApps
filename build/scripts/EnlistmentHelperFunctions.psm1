@@ -1,8 +1,8 @@
 function Get-BaseFolder() {
     if ($ENV:GITHUB_WORKSPACE) {
-        return $ENV:GITHUB_WORKSPACE
+        return (Resolve-Path $ENV:GITHUB_WORKSPACE).Path
     }
-    return git rev-parse --show-toplevel
+    return (Resolve-Path (git rev-parse --show-toplevel)).Path
 }
 
 function Get-BaseFolderForPath($Path) {
