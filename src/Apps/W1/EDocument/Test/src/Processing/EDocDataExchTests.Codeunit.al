@@ -326,13 +326,21 @@ codeunit 139897 "E-Doc Data Exch Tests"
     local procedure ProcessEDocumentToStep(var EDocument: Record "E-Document"; ProcessingStep: Enum "Import E-Document Steps"): Boolean
     var
         TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        ErrorMessage: Record "Error Message";
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentProcessing: Codeunit "E-Document Processing";
+        ErrorText: Text;
     begin
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::Readable);
         TempEDocImportParameters."Step to Run" := ProcessingStep;
         EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
         EDocument.CalcFields("Import Processing Status");
-        exit(EDocument."Import Processing Status" = Enum::"Import E-Doc. Proc. Status"::"Ready for draft");
+        if EDocument."Import Processing Status" <> Enum::"Import E-Doc. Proc. Status"::"Ready for draft" then begin
+            ErrorMessage.SetRange("Context Record ID", EDocument.RecordId);
+            if ErrorMessage.FindLast() then
+                ErrorText := ErrorMessage."Message";
+            Assert.Fail(StrSubstNo('Processing failed (status: %1). Error: %2', EDocument."Import Processing Status", ErrorText));
+        end;
+        exit(true);
     end;
 }
