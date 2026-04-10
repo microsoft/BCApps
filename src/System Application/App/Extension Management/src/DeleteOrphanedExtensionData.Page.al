@@ -88,6 +88,9 @@ page 2514 "Delete Orphaned Extension Data"
             actionref(PromptedDelete; DeleteData)
             {
             }
+            actionref(PromotedMarkAsReviewed; MarkAsReviewed)
+            {
+            }
         }
 
         area(Processing)
@@ -115,6 +118,21 @@ page 2514 "Delete Orphaned Extension Data"
                             Rec.SetFilter(Rec.Status, '<>Installed');
                             CurrPage.Update(false);
                         end;
+                    end;
+                }
+                action(MarkAsReviewed)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Mark All as Reviewed';
+                    Image = Approve;
+                    ToolTip = 'Mark all orphaned extension data as reviewed. This acknowledges the data has been seen and suppresses future notifications.';
+
+                    trigger OnAction()
+                    var
+                        ExtensionDatabaseManagement: Codeunit "Extension Database Management";
+                    begin
+                        ExtensionDatabaseManagement.MarkAllOrphanedExtensionDataAsReviewed();
+                        CurrPage.Update(false);
                     end;
                 }
             }
