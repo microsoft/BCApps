@@ -66,6 +66,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        LineIndex: Integer;
     begin
         // [SCENARIO] Invoice lines are created with Description, Quantity, Unit Price and sequential line numbers
         Initialize();
@@ -79,15 +80,24 @@ codeunit 139897 "E-Doc Data Exch Tests"
             Assert.AreEqual(2, EDocumentPurchaseLine.Count(), 'Expected 2 lines from the invoice XML.');
 
             EDocumentPurchaseLine.FindSet();
-            Assert.AreNotEqual('', EDocumentPurchaseLine.Description, 'First line Description should be mapped.');
-            Assert.AreEqual(7, EDocumentPurchaseLine.Quantity, 'First line Quantity should be 7.');
-            Assert.AreEqual(400, EDocumentPurchaseLine."Unit Price", 'First line Unit Price should be 400.');
-            Assert.AreNotEqual(0, EDocumentPurchaseLine."Line No.", 'First line should have a non-zero line number.');
-
-            EDocumentPurchaseLine.Next();
-            Assert.AreEqual(-3, EDocumentPurchaseLine.Quantity, 'Second line Quantity should be -3.');
-            Assert.AreEqual(500, EDocumentPurchaseLine."Unit Price", 'Second line Unit Price should be 500.');
-            Assert.IsTrue(EDocumentPurchaseLine."Line No." > 0, 'Second line should have a sequential line number.');
+            repeat
+                LineIndex += 1;
+                case LineIndex of
+                    1:
+                        begin
+                            Assert.AreNotEqual('', EDocumentPurchaseLine.Description, 'First line Description should be mapped.');
+                            Assert.AreEqual(7, EDocumentPurchaseLine.Quantity, 'First line Quantity should be 7.');
+                            Assert.AreEqual(400, EDocumentPurchaseLine."Unit Price", 'First line Unit Price should be 400.');
+                            Assert.AreNotEqual(0, EDocumentPurchaseLine."Line No.", 'First line should have a non-zero line number.');
+                        end;
+                    2:
+                        begin
+                            Assert.AreEqual(-3, EDocumentPurchaseLine.Quantity, 'Second line Quantity should be -3.');
+                            Assert.AreEqual(500, EDocumentPurchaseLine."Unit Price", 'Second line Unit Price should be 500.');
+                            Assert.IsTrue(EDocumentPurchaseLine."Line No." > 0, 'Second line should have a sequential line number.');
+                        end;
+                end;
+            until EDocumentPurchaseLine.Next() = 0;
         end
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
