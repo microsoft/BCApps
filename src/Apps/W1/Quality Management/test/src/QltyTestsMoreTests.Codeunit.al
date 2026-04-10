@@ -2151,9 +2151,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyScheduleInspection: Report "Qlty. Schedule Inspection";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
-        QltyScheduleInspection: Report "Qlty. Schedule Inspection";
         LotNo: Code[50];
         ConditionFilter: Text;
     begin
@@ -2218,9 +2218,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        QltyScheduleInspection: Report "Qlty. Schedule Inspection";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
-        QltyScheduleInspection: Report "Qlty. Schedule Inspection";
         LotNo: Code[50];
         ConditionFilter: Text;
     begin
@@ -2260,7 +2260,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyInspectSourceConfig.SetRange("From Table No.", Database::"Item Ledger Entry");
         QltyInspectSourceConfig.SetRange("To Type", QltyInspectSourceConfig."To Type"::Inspection);
         QltyInspectSourceConfig.SetRange(Enabled, true);
-        LibraryAssert.IsTrue(QltyInspectSourceConfig.FindFirst(), 'Source config for ILE→Inspection should exist.');
+        LibraryAssert.RecordIsNotEmpty(QltyInspectSourceConfig);
 
         // [WHEN] Schedule Inspection report calls CreateInspectionsThatMatchRule directly
         QltyScheduleInspection.CreateInspectionsThatMatchRule(QltyInspectionGenRule);
