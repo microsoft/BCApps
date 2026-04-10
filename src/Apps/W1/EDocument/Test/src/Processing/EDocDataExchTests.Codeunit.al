@@ -339,8 +339,8 @@ codeunit 139897 "E-Doc Data Exch Tests"
             EDocLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
             if EDocLog.FindLast() then
                 ErrorText := Format(EDocLog.Status) + ' | ' + Format(EDocLog."Processing Status");
-            Assert.Fail(StrSubstNo('Processing failed (status: %1). Log: %2. ReadIntoDraft: %3. Service: %4',
-                EDocument."Import Processing Status", ErrorText, EDocument."Read into Draft Impl.", EDocument.GetEDocumentService()."Read into Draft Impl."));
+            Assert.Fail('Processing failed (status: ' + Format(EDocument."Import Processing Status") + '). Log: ' + ErrorText +
+                '. ReadIntoDraft: ' + Format(EDocument."Read into Draft Impl.") + '. Service: ' + Format(EDocument.GetEDocumentService()."Read into Draft Impl."));
         end;
         exit(true);
     end;
