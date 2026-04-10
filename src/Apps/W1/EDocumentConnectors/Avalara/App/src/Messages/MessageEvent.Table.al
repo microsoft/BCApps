@@ -45,6 +45,10 @@ table 6380 "Message Event"
         {
             Caption = 'EDoc Entry No';
         }
+        field(9; "Full Message"; Blob)
+        {
+            Caption = 'Full Message';
+        }
     }
     keys
     {
@@ -53,4 +57,25 @@ table 6380 "Message Event"
             Clustered = true;
         }
     }
+
+    procedure SetFullMessage(MessageText: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Rec."Full Message".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(MessageText);
+    end;
+
+    procedure GetFullMessage(): Text
+    var
+        InStream: InStream;
+        MessageText: Text;
+    begin
+        Rec.CalcFields("Full Message");
+        if not Rec."Full Message".HasValue() then
+            exit(Rec.Message);
+        Rec."Full Message".CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.ReadText(MessageText);
+        exit(MessageText);
+    end;
 }

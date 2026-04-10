@@ -76,4 +76,26 @@ page 6803 "Message Events Subform"
             }
         }
     }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(ViewFullMessage)
+            {
+                ApplicationArea = All;
+                Caption = 'View Full Message';
+                Image = ShowList;
+                ToolTip = 'View the complete message text for this event.';
+
+                trigger OnAction()
+                var
+                    FullMessageDialog: Page "Full Message Dialog";
+                begin
+                    FullMessageDialog.SetMessage(Rec.GetFullMessage());
+                    FullMessageDialog.RunModal();
+                end;
+            }
+        }
+    }
 }

@@ -627,7 +627,6 @@ MessageToken,
         EventDateTimeTxt, ResponseKeyText, ResponseValueText : Text;
     begin
         MessageResponseHeader.Init();
-        MessageEvent.Init();
 
         if not JsonObj.ReadFrom(ResponseText) then
             Error(InvalidJsonResponseErr);
@@ -644,6 +643,8 @@ MessageToken,
 
         if JsonObj.Get(JsonFieldStatusTok, RootToken) and RootToken.IsValue() then
             MessageResponseHeader.Status := CopyStr(RootToken.AsValue().AsText(), 1, MaxStrLen(MessageResponseHeader.Status));
+
+        MessageResponseHeader.SetFullResponse(ResponseText);
 
         if not MessageResponseHeader.Get(MessageResponseHeader.Id) then
             MessageResponseHeader.Insert();
@@ -684,8 +685,10 @@ MessageToken,
                 end;
 
                 // message
-                if EventObj.Get(JsonFieldMessageTok, MessageToken) and MessageToken.IsValue() then
+                if EventObj.Get(JsonFieldMessageTok, MessageToken) and MessageToken.IsValue() then begin
                     MessageEvent.Message := CopyStr(MessageToken.AsValue().AsText(), 1, MaxStrLen(MessageEvent.Message));
+                    MessageEvent.SetFullMessage(MessageToken.AsValue().AsText());
+                end;
 
                 MessageEvent.PostedDocument := EDocument."Document No.";
                 MessageEvent.EDocEntryNo := EDocument."Entry No";

@@ -26,6 +26,10 @@ table 6379 "Message Response Header"
         {
             Caption = 'Status';
         }
+        field(4; "Full Response"; Blob)
+        {
+            Caption = 'Full Response';
+        }
     }
     keys
     {
@@ -34,4 +38,25 @@ table 6379 "Message Response Header"
             Clustered = true;
         }
     }
+
+    procedure SetFullResponse(ResponseText: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Rec."Full Response".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(ResponseText);
+    end;
+
+    procedure GetFullResponse(): Text
+    var
+        InStream: InStream;
+        ResponseText: Text;
+    begin
+        Rec.CalcFields("Full Response");
+        if not Rec."Full Response".HasValue() then
+            exit('');
+        Rec."Full Response".CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.ReadText(ResponseText);
+        exit(ResponseText);
+    end;
 }

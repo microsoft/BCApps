@@ -44,6 +44,7 @@ permissionset 6375 "Avalara Objects"
                 page "Avalara Input Fields" = X,
                 page "Company List" = X,
                 page "Connection Setup Card" = X,
+                page "Full Message Dialog" = X,
                 page "Mandate List" = X,
                 page "Message Events Subform" = X,
                 page "Message Response Card" = X;

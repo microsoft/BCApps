@@ -57,6 +57,28 @@ page 6380 "Message Response Card"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(ViewFullResponse)
+            {
+                ApplicationArea = All;
+                Caption = 'View Full Response';
+                Image = ShowList;
+                ToolTip = 'View the complete JSON response from Avalara.';
+
+                trigger OnAction()
+                var
+                    FullMessageDialog: Page "Full Message Dialog";
+                begin
+                    FullMessageDialog.SetMessage(Rec.GetFullResponse());
+                    FullMessageDialog.RunModal();
+                end;
+            }
+        }
+    }
+
     var
         EmptyResponseErr: Label 'Response text cannot be empty.';
 
