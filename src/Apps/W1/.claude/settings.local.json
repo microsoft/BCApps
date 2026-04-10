@@ -1,0 +1,6 @@
+{
+  "enabledMcpjsonServers": [
+    "almcp"
+  ],
+  "enableAllProjectMcpServers": true
+}
