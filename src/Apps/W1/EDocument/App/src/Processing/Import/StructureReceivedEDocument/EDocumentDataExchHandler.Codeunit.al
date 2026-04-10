@@ -96,16 +96,6 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
         exit(DataExchMapping.IsEmpty());
     end;
 
-    local procedure CreateDataExch(var DataExch: Record "Data Exch."; DataExchDef: Record "Data Exch. Def"; var TempBlob: Codeunit "Temp Blob")
-    var
-        Stream: InStream;
-    begin
-        TempBlob.CreateInStream(Stream);
-        DataExch.Init();
-        DataExch.InsertRec('', Stream, DataExchDef.Code);
-        DataExch.Modify(true);
-    end;
-
     #endregion Auto-Detection
 
     #region Pipeline and Bridge
@@ -149,7 +139,7 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);
 
         MapIntermediateHeaderFields(DataExch, EDocumentPurchaseHeader);
-        MapIntermediateLineFields(EDocument, DataExch, EDocumentPurchaseHeader);
+        MapIntermediateLineFields(EDocument, DataExch);
         ProcessAttachments(EDocument, DataExch);
         SupplementWithXPath(EDocument, EDocumentPurchaseHeader, TempBlob, DataExchDefCode);
 
@@ -280,7 +270,7 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
 
     #region Line Field Mapping
 
-    local procedure MapIntermediateLineFields(EDocument: Record "E-Document"; DataExch: Record "Data Exch."; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    local procedure MapIntermediateLineFields(EDocument: Record "E-Document"; DataExch: Record "Data Exch.")
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
@@ -427,33 +417,32 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
             exit;
 
         if EDocumentPurchaseHeader."Customer VAT Id" = '' then
-            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo("VAT Registration No."), EDocumentPurchaseHeader."Customer VAT Id");
+            EDocumentPurchaseHeader."Customer VAT Id" := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo("VAT Registration No.")), 1, MaxStrLen(EDocumentPurchaseHeader."Customer VAT Id"));
 
         if EDocumentPurchaseHeader."Customer GLN" = '' then
-            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(GLN), EDocumentPurchaseHeader."Customer GLN");
+            EDocumentPurchaseHeader."Customer GLN" := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(GLN)), 1, MaxStrLen(EDocumentPurchaseHeader."Customer GLN"));
 
         if EDocumentPurchaseHeader."Customer Company Name" = '' then
-            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(Name), EDocumentPurchaseHeader."Customer Company Name");
+            EDocumentPurchaseHeader."Customer Company Name" := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(Name)), 1, MaxStrLen(EDocumentPurchaseHeader."Customer Company Name"));
 
         if EDocumentPurchaseHeader."Customer Address" = '' then
-            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(Address), EDocumentPurchaseHeader."Customer Address");
+            EDocumentPurchaseHeader."Customer Address" := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(Address)), 1, MaxStrLen(EDocumentPurchaseHeader."Customer Address"));
 
-        if EDocumentPurchaseHeader."Sales Invoice No." = '' then begin
+        if EDocumentPurchaseHeader."Sales Invoice No." = '' then
             if EDocument."Document Type" = EDocument."Document Type"::"Purchase Invoice" then
-                ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.")
+                EDocumentPurchaseHeader."Sales Invoice No." := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Invoice No.")), 1, MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."))
             else
                 if EDocument."Document Type" = EDocument."Document Type"::"Purchase Credit Memo" then
-                    ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Cr. Memo No."), EDocumentPurchaseHeader."Sales Invoice No.");
-        end;
+                    EDocumentPurchaseHeader."Sales Invoice No." := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Cr. Memo No.")), 1, MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."));
 
         if EDocumentPurchaseHeader."Purchase Order No." = '' then
-            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Order No."), EDocumentPurchaseHeader."Purchase Order No.");
+            EDocumentPurchaseHeader."Purchase Order No." := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Order No.")), 1, MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."));
 
         if EDocumentPurchaseHeader."Vendor Company Name" = '' then
-            ExtractXPathField(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Buy-from Vendor Name"), EDocumentPurchaseHeader."Vendor Company Name");
+            EDocumentPurchaseHeader."Vendor Company Name" := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Buy-from Vendor Name")), 1, MaxStrLen(EDocumentPurchaseHeader."Vendor Company Name"));
     end;
 
-    local procedure ExtractXPathField(var xmlDoc: XmlDocument; DataExchDefCode: Code[20]; TableId: Integer; FieldNo: Integer; var TargetField: Text)
+    local procedure ExtractXPathValue(var xmlDoc: XmlDocument; DataExchDefCode: Code[20]; TableId: Integer; FieldNo: Integer): Text
     var
         DataExchLineDef: Record "Data Exch. Line Def";
         ImportXMLFileToDataExch: Codeunit "Import XML File to Data Exch.";
@@ -463,16 +452,15 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
         xmlNode: XmlNode;
         xmlElement: XmlElement;
         XPath: Text;
-        XmlValue: Text;
     begin
         DataExchLineDef.SetRange("Data Exch. Def Code", DataExchDefCode);
         DataExchLineDef.SetRange("Parent Code", '');
         if not DataExchLineDef.FindFirst() then
-            exit;
+            exit('');
 
         XPath := DataExchLineDef.GetPath(TableId, FieldNo);
         if XPath = '' then
-            exit;
+            exit('');
 
         XPath := ImportXMLFileToDataExch.EscapeMissingNamespacePrefix(XPath);
 
@@ -488,12 +476,9 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
                 xmlNsManager.AddNamespace(DelStr(xmlAttribute.Name, 1, 6), xmlAttribute.Value);
 
         if xmlDoc.SelectSingleNode(XPath, xmlNsManager, xmlNode) then
-            XmlValue := xmlNode.AsXmlElement().InnerText()
-        else
-            exit;
+            exit(xmlNode.AsXmlElement().InnerText());
 
-        if XmlValue <> '' then
-            TargetField := CopyStr(XmlValue, 1, MaxStrLen(TargetField));
+        exit('');
     end;
 
     #endregion XPath Supplement
