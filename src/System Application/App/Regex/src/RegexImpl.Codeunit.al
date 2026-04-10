@@ -327,7 +327,7 @@ codeunit 3961 "Regex Impl."
     procedure Regex(Pattern: Text; var RegexOptions: Record "Regex Options")
     var
         TimeoutDuration: DotNet TimeSpan;
-        MatchTimeoutInMs: BigInteger;
+        MatchTimeoutInMs: Decimal;
     begin
         DotNetRegexOptions := RegexOptions.GetRegexOptions();
         MatchTimeoutInMs := RegexOptions.MatchTimeoutInMs;
