@@ -1,7 +1,7 @@
 namespace Microsoft.SubscriptionBilling;
 using System.Integration.PowerBI;
 
-enumextension 8101 "PBI Sub. Billing Depl. Report" extends "Power BI Deployable Report"
+enumextension 8103 "PBI Sub. Billing Depl. Report" extends "Power BI Deployable Report"
 {
     value(8101; "Subscription Billing App")
     {
