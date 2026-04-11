@@ -220,7 +220,7 @@ page 36950 "PowerBI Assisted Setup"
                 {
                     ApplicationArea = All;
                     Caption = 'I would like to';
-                    ToolTip = 'Choose whether to manually configure report settings or deploy pre-built reports.';
+                    ToolTip = 'Specifies whether to manually configure report settings or deploy pre-built reports.';
                     OptionCaption = 'Deploy out-of-the-box reports,Configure report settings';
                 }
             }
