@@ -11,6 +11,7 @@ using System.TestLibraries.Utilities;
 codeunit 139566 "Shpfy Payments Test"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var
