@@ -204,7 +204,7 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
             PurchaseHeader.FieldNo("Currency Code"):  // 32
                 SetCurrencyIfForeign(FieldValue, EDocumentPurchaseHeader."Currency Code");
             PurchaseHeader.FieldNo("Applies-to Doc. No."):  // 53
-                EDocumentPurchaseHeader."Applies-to Doc. No." := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Applies-to Doc. No."));
+                EDocumentPurchaseHeader."Applies-to Ext. Invoice No." := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Applies-to Ext. Invoice No."));
             PurchaseHeader.FieldNo(Amount):  // 60
                 if Evaluate(DecimalVar, FieldValue, 9) then
                     EDocumentPurchaseHeader."Sub Total" := DecimalVar;

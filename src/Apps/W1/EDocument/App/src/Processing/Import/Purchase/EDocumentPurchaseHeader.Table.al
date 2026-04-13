@@ -229,9 +229,9 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Applies-to Doc. No.';
             DataClassification = CustomerContent;
         }
-        field(40; "Vendor Invoice No."; Text[100])
+        field(40; "Applies-to Ext. Invoice No."; Text[100])
         {
-            Caption = 'Vendor Invoice No.';
+            Caption = 'Applies-to Ext. Invoice No.';
             DataClassification = CustomerContent;
         }
         #endregion Purchase fields

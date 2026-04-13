@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using System.Telemetry;
 
@@ -56,6 +57,17 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
 
         PurchaseHeader.TestField("Document Type", "Purchase Document Type"::"Credit Memo");
         EDocPurchaseDocumentHelper.RevertCreatedDocument(EDocument);
+    end;
+
+    local procedure ResolveAppliesToFromExtInvoiceNo(ExtInvoiceNo: Text[100]; var PurchaseHeader: Record "Purchase Header")
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+    begin
+        PurchInvHeader.SetRange("Vendor Invoice No.", ExtInvoiceNo);
+        if PurchInvHeader.FindFirst() then begin
+            PurchaseHeader."Applies-to Doc. Type" := PurchaseHeader."Applies-to Doc. Type"::Invoice;
+            PurchaseHeader."Applies-to Doc. No." := PurchInvHeader."No.";
+        end;
     end;
 
     procedure CreatePurchaseCreditMemo(EDocument: Record "E-Document"): Record "Purchase Header"
@@ -107,7 +119,10 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
             PurchaseHeader.Validate("Currency Code", EDocumentPurchaseHeader."Currency Code");
 
         if EDocumentPurchaseHeader."Applies-to Doc. No." <> '' then
-            PurchaseHeader."Applies-to Doc. No." := CopyStr(EDocumentPurchaseHeader."Applies-to Doc. No.", 1, MaxStrLen(PurchaseHeader."Applies-to Doc. No."));
+            PurchaseHeader."Applies-to Doc. No." := CopyStr(EDocumentPurchaseHeader."Applies-to Doc. No.", 1, MaxStrLen(PurchaseHeader."Applies-to Doc. No."))
+        else
+            if EDocumentPurchaseHeader."Applies-to Ext. Invoice No." <> '' then
+                ResolveAppliesToFromExtInvoiceNo(EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", PurchaseHeader);
 
         PurchaseHeader.Modify();
 
