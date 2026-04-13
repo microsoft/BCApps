@@ -17,7 +17,7 @@ using System.IO;
 using System.Text;
 using System.Utilities;
 
-codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
+codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -29,7 +29,7 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
         BestDocType: Enum "E-Document Type";
     begin
         FindBestDataExchDef(TempBlob, BestDefCode, BestDocType);
-        RunPipelineAndBridge(EDocument, TempBlob, BestDefCode);
+        RunPipelineAndBridge(EDocument, TempBlob, BestDefCode, BestDocType);
         exit(MapDocumentTypeToProcessDraft(BestDocType));
     end;
 
@@ -105,7 +105,7 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
     /// then bridge-maps intermediate data to v2 staging tables.
     /// Does NOT call DataExchDef.ProcessDataExchange which would invoke the pre-mapping codeunit.
     /// </summary>
-    local procedure RunPipelineAndBridge(EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20])
+    local procedure RunPipelineAndBridge(EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20]; DocType: Enum "E-Document Type")
     var
         DataExch: Record "Data Exch.";
         DataExchDef: Record "Data Exch. Def";
@@ -128,11 +128,11 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
         if DataExchDef."Data Handling Codeunit" <> 0 then
             Codeunit.Run(DataExchDef."Data Handling Codeunit", DataExch);
 
-        BridgeMapToStagingTables(EDocument, DataExch, TempBlob, DataExchDefCode);
+        BridgeMapToStagingTables(EDocument, DataExch, TempBlob, DataExchDefCode, DocType);
         DeleteIntermediateData(DataExch);
     end;
 
-    local procedure BridgeMapToStagingTables(EDocument: Record "E-Document"; DataExch: Record "Data Exch."; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20])
+    local procedure BridgeMapToStagingTables(EDocument: Record "E-Document"; DataExch: Record "Data Exch."; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20]; DocType: Enum "E-Document Type")
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
@@ -141,7 +141,7 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
         MapIntermediateHeaderFields(DataExch, EDocumentPurchaseHeader);
         MapIntermediateLineFields(EDocument, DataExch);
         ProcessAttachments(EDocument, DataExch);
-        SupplementWithXPath(EDocument, EDocumentPurchaseHeader, TempBlob, DataExchDefCode);
+        SupplementWithXPath(DocType, EDocumentPurchaseHeader, TempBlob, DataExchDefCode);
 
         EDocumentPurchaseHeader.Modify();
     end;
@@ -405,7 +405,7 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
     /// Extracts fields still blank on staging header via XPath from the raw XML.
     /// Uses DataExchLineDef.GetPath() to look up the XPath for each field.
     /// </summary>
-    local procedure SupplementWithXPath(EDocument: Record "E-Document"; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20])
+    local procedure SupplementWithXPath(DocType: Enum "E-Document Type"; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20])
     var
         CompanyInformation: Record "Company Information";
         PurchaseHeader: Record "Purchase Header";
@@ -429,10 +429,10 @@ codeunit 6407 "E-Document Data Exch. Handler" implements IStructuredFormatReader
             EDocumentPurchaseHeader."Customer Address" := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(Address)), 1, MaxStrLen(EDocumentPurchaseHeader."Customer Address"));
 
         if EDocumentPurchaseHeader."Sales Invoice No." = '' then
-            if EDocument."Document Type" = EDocument."Document Type"::"Purchase Invoice" then
+            if DocType = DocType::"Purchase Invoice" then
                 EDocumentPurchaseHeader."Sales Invoice No." := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Invoice No.")), 1, MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."))
             else
-                if EDocument."Document Type" = EDocument."Document Type"::"Purchase Credit Memo" then
+                if DocType = DocType::"Purchase Credit Memo" then
                     EDocumentPurchaseHeader."Sales Invoice No." := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Cr. Memo No.")), 1, MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."));
 
         if EDocumentPurchaseHeader."Purchase Order No." = '' then

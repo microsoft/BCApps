@@ -43,6 +43,6 @@ enum 6109 "E-Doc. Read into Draft" implements IStructuredFormatReader
     value(5; "Data Exchange")
     {
         Caption = 'Data Exchange';
-        Implementation = IStructuredFormatReader = "E-Document Data Exch. Handler";
+        Implementation = IStructuredFormatReader = "E-Doc. PEPPOL DX Handler";
     }
 }
