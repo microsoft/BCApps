@@ -57,6 +57,10 @@ jobs:
         if: steps.dedup.outputs.skip != 'true'
         run: npm install -g @github/copilot
 
+      - name: Install al-docs plugin
+        if: steps.dedup.outputs.skip != 'true'
+        run: copilot plugin install ./tools/al-docs-plugin
+
       - name: Find changed apps
         if: steps.dedup.outputs.skip != 'true'
         id: scope
