@@ -1,0 +1,30 @@
+{
+  "name": "bcapps-tools",
+  "owner": {
+    "name": "BC Application Team"
+  },
+  "metadata": {
+    "description": "Business Central AL development tools",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "al-docs",
+      "source": "./",
+      "description": "AL codebase documentation generator - bootstrap, update, and audit hierarchical docs for Business Central AL apps",
+      "version": "0.1.0",
+      "category": "documentation",
+      "tags": ["al", "business-central", "documentation", "docs"],
+      "strict": true
+    },
+    {
+      "name": "create-pr",
+      "source": "./plugins/create-pr",
+      "description": "Create PRs with intelligent SME reviewer assignment, AI decision context, and structured review guidance",
+      "version": "0.1.0",
+      "category": "workflow",
+      "tags": ["pr", "pull-request", "review", "sme"],
+      "strict": true
+    }
+  ]
+}
