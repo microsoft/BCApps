@@ -1,13 +1,23 @@
 ---
 name: al-docs-audit
 description: Read-only gap analysis of AL codebase documentation - reports coverage, missing files, and scoring without writing anything
-allowed-tools: Read, Glob, Grep, Bash(*)
+allowed-tools: Read, Glob, Grep
 argument-hint: "path to AL app or folder (defaults to current directory)"
 ---
 
 # AL Documentation Audit
 
 > **Usage**: Invoke to analyze documentation coverage for an AL codebase without modifying any files. Produces a gap analysis report showing what exists, what's missing, and what should be documented.
+
+## Tool usage rules
+
+**Use ONLY the built-in Read, Glob, and Grep tools for all file operations.** Do NOT use shell commands (cat, find, head, wc, python3, etc.) to read files, count objects, or explore the codebase. The built-in tools are faster, more reliable, and work in all environments including CI.
+
+- **Read** files with the Read tool, not `cat` or `head`
+- **Find** files with the Glob tool, not `find` or `ls`
+- **Search** content with the Grep tool, not `grep` or `rg`
+- **Count** objects by using Grep with `output_mode: "count"`, not `wc -l`
+- **Parse JSON** (e.g., app.json) by reading the file with Read, not `cat | python3` or `cat | jq`
 
 ## Prerequisites
 
