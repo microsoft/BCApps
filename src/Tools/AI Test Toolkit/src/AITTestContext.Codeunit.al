@@ -57,13 +57,27 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
+    /// Get the Query from the input dataset for the current iteration.
+    /// The query represents the input to the AI agent or evaluation.
+    /// The 'question' element is also supported for backward compatibility, the 'query' syntax is recommended.
+    /// </summary>
+    /// <returns>A Test Input Json codeunit for the query element.</returns>
+    procedure GetQuery(): Codeunit "Test Input Json"
+    begin
+        exit(AITTestContextImpl.GetQuery());
+    end;
+
+#if not CLEAN29
+    /// <summary>
     /// Get the Question from the input dataset for the current iteration.
     /// </summary>
-    /// <returns>A Test Input Json codeunit for the question element.</returns>
+    /// <returns>A Test Input Json codeunit for the question/query element.</returns>
+    [Obsolete('Use GetQuery() instead.', '29.0')]
     procedure GetQuestion(): Codeunit "Test Input Json"
     begin
-        exit(AITTestContextImpl.GetQuestion());
+        exit(AITTestContextImpl.GetQuery());
     end;
+#endif
 
     /// <summary>
     /// Get the Ground Truth from the input dataset for the current iteration.

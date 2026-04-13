@@ -75,13 +75,33 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Get the Question from the input dataset for the current iteration.
+    /// Get the Query from the input dataset for the current iteration.
+    /// The query represents the input to the AI agent or evaluation.
+    /// The 'question' element is also supported for backward compatibility, the 'query' syntax is recommended.
     /// </summary>
-    /// <returns>A Test Input Json codeunit for the question element.</returns>
-    procedure GetQuestion(): Codeunit "Test Input Json"
+    /// <returns>A Test Input Json codeunit for the query element.</returns>
+    procedure GetQuery(): Codeunit "Test Input Json"
+    var
+        QueryInput: Codeunit "Test Input Json";
+        QueryFound: Boolean;
     begin
+        QueryInput := GetTestInput(QueryTok, QueryFound);
+        if QueryFound then
+            exit(QueryInput);
+
         exit(GetTestInput(QuestionTok));
     end;
+
+#if not CLEAN29
+    /// <summary>
+    /// Get the Question from the input dataset for the current iteration.
+    /// </summary>
+    /// <returns>A Test Input Json codeunit for the question/query element.</returns>
+    procedure GetQuestion(): Codeunit "Test Input Json"
+    begin
+        exit(GetQuery());
+    end;
+#endif
 
     /// <summary>
     /// Get the Ground Truth from the input dataset for the current iteration.
