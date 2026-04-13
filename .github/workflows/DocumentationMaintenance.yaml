@@ -90,6 +90,17 @@ jobs:
           echo "$APPS" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
+      - name: Generate code maps
+        if: steps.dedup.outputs.skip != 'true' && steps.scope.outputs.count != '0'
+        run: |
+          while IFS= read -r APP_PATH; do
+            [ -z "$APP_PATH" ] && continue
+            APP_NAME=$(jq -r '.name // "unknown"' "$APP_PATH/app.json" 2>/dev/null || echo "unknown")
+            MAP_FILE="/tmp/codemap-${APP_NAME// /-}.md"
+            echo "Generating code map for $APP_NAME..."
+            pwsh -File tools/al-docs-plugin/scripts/Get-ALCodeMap.ps1 -Path "$APP_PATH" > "$MAP_FILE"
+          done <<< '${{ steps.scope.outputs.apps }}'
+
       - name: Run al-docs audit
         if: steps.dedup.outputs.skip != 'true' && steps.scope.outputs.count != '0'
         id: audit
@@ -97,12 +108,13 @@ jobs:
           while IFS= read -r APP_PATH; do
             [ -z "$APP_PATH" ] && continue
             APP_NAME=$(jq -r '.name // "unknown"' "$APP_PATH/app.json" 2>/dev/null || echo "unknown")
+            MAP_FILE="/tmp/codemap-${APP_NAME// /-}.md"
             REPORT_FILE="/tmp/audit-${APP_NAME// /-}.md"
 
             echo "Auditing $APP_NAME at $APP_PATH..."
 
             timeout 600 copilot -p \
-              "Use the /al-docs skill to audit the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing." \
+              "Read $MAP_FILE — it contains the complete code map for the app at $APP_PATH (object inventory, subfolder scores, doc inventory). Using this data and the /al-docs skill, produce the audit report. Compare expected docs against existing docs and report coverage. Summarize in 2-3 sentences: coverage percentage, what is missing." \
               --model claude-sonnet-4.6 \
               --no-ask-user \
               --autopilot \
@@ -110,21 +122,6 @@ jobs:
               --allow-tool=read \
               --allow-tool=glob \
               --allow-tool=grep \
-              --allow-tool=agent \
-              --allow-tool='shell(*:read)' \
-              --allow-tool='shell(git:*)' \
-              --allow-tool='shell(cat:*)' \
-              --allow-tool='shell(find:*)' \
-              --allow-tool='shell(head:*)' \
-              --allow-tool='shell(tail:*)' \
-              --allow-tool='shell(wc:*)' \
-              --allow-tool='shell(sort:*)' \
-              --allow-tool='shell(uniq:*)' \
-              --allow-tool='shell(jq:*)' \
-              --allow-tool='shell(ls:*)' \
-              --allow-tool='shell(grep:*)' \
-              --allow-tool='shell(awk:*)' \
-              --allow-tool='shell(sed:*)' \
               --share="$REPORT_FILE" || true
 
           done <<< '${{ steps.scope.outputs.apps }}'
