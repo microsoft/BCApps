@@ -111,7 +111,20 @@ jobs:
               --allow-tool=glob \
               --allow-tool=grep \
               --allow-tool=agent \
-              --allow-tool='shell(*)' \
+              --allow-tool='shell(*:read)' \
+              --allow-tool='shell(git:*)' \
+              --allow-tool='shell(cat:*)' \
+              --allow-tool='shell(find:*)' \
+              --allow-tool='shell(head:*)' \
+              --allow-tool='shell(tail:*)' \
+              --allow-tool='shell(wc:*)' \
+              --allow-tool='shell(sort:*)' \
+              --allow-tool='shell(uniq:*)' \
+              --allow-tool='shell(jq:*)' \
+              --allow-tool='shell(ls:*)' \
+              --allow-tool='shell(grep:*)' \
+              --allow-tool='shell(awk:*)' \
+              --allow-tool='shell(sed:*)' \
               --share="$REPORT_FILE" || true
 
           done <<< '${{ steps.scope.outputs.apps }}'
