@@ -478,9 +478,15 @@ page 20406 "Qlty. Inspection"
                 ToolTip = 'Create a new re-inspection based on this inspection. If the inspection is still open, it will be finished first. Finishing may be blocked if the current result does not allow it.';
 
                 trigger OnAction()
+                var
+                    CreatedReinspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection();
+                    Rec.CreateReinspection(CreatedReinspectionHeader);
                     CurrPage.Update(false);
+                    if not IsNullGuid(CreatedReinspectionHeader.SystemId) then begin
+                        Commit();
+                        Page.Run(Page::"Qlty. Inspection", CreatedReinspectionHeader);
+                    end;
                 end;
             }
             action(ChangeStatusFinish)
@@ -863,7 +869,7 @@ page 20406 "Qlty. Inspection"
         IsOpen := Rec.Status = Rec.Status::Open;
         StatusStyleExpr := Rec.GetStatusStyleExpression();
 
-        CanReopen := not Rec.HasMoreRecentReinspection();
+        CanReopen := (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
         if IsOpen then
             if QltyPermissionMgmt.CanChangeItemTracking() then begin
