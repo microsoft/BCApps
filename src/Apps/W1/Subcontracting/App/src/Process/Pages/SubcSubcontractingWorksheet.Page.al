@@ -8,7 +8,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Planning;
 using System.Security.User;
 
 page 99001504 "Subc. Subcontracting Worksheet"
@@ -273,12 +272,12 @@ page 99001504 "Subc. Subcontracting Worksheet"
         }
         area(factboxes)
         {
-            systempart(Control1900383207; Links)
+            systempart(LinksFactbox; Links)
             {
                 ApplicationArea = RecordLinks;
                 Visible = false;
             }
-            systempart(Control1905767507; Notes)
+            systempart(NotesFactbox; Notes)
             {
                 ApplicationArea = Notes;
                 Visible = false;
