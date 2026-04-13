@@ -1,7 +1,7 @@
 ---
 name: al-docs-audit
 description: Read-only gap analysis of AL codebase documentation - reports coverage, missing files, and scoring without writing anything
-allowed-tools: Read, Glob, Grep
+allowed-tools: Read, Glob, Grep, Bash(git, cat, find, head, tail, wc, sort, uniq, jq, ls, grep, awk, sed)
 argument-hint: "path to AL app or folder (defaults to current directory)"
 ---
 
@@ -11,13 +11,14 @@ argument-hint: "path to AL app or folder (defaults to current directory)"
 
 ## Tool usage rules
 
-**Use ONLY the built-in Read, Glob, and Grep tools for all file operations.** Do NOT use shell commands (cat, find, head, wc, python3, etc.) to read files, count objects, or explore the codebase. The built-in tools are faster, more reliable, and work in all environments including CI.
+**Prefer the built-in Read, Glob, and Grep tools** for file operations — they are faster and more reliable. Shell commands are available as a fallback when needed.
 
-- **Read** files with the Read tool, not `cat` or `head`
-- **Find** files with the Glob tool, not `find` or `ls`
-- **Search** content with the Grep tool, not `grep` or `rg`
-- **Count** objects by using Grep with `output_mode: "count"`, not `wc -l`
-- **Parse JSON** (e.g., app.json) by reading the file with Read, not `cat | python3` or `cat | jq`
+Available tools:
+- **Read, Glob, Grep** -- built-in tools, prefer these
+- **Shell** -- `git`, `cat`, `find`, `head`, `tail`, `wc`, `sort`, `uniq`, `jq`, `ls`, `grep`, `awk`, `sed`
+- **Agent** -- launch subagents for parallel work
+
+**Do NOT use** `python3`, `curl`, `wget`, `nc`, or any tool not listed above — they are blocked.
 
 ## Prerequisites
 
