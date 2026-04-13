@@ -96,7 +96,7 @@ jobs:
 
             timeout 600 copilot -p \
               "Use the /al-docs skill to audit the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing." \
-              --model claude-opus-4.6 \
+              --model claude-sonnet-4.6 \
               --no-ask-user \
               --autopilot \
               --allow-tool=read \
@@ -104,6 +104,7 @@ jobs:
               --allow-tool=grep \
               --allow-tool=agent \
               --allow-tool='shell(*:read)' \
+              --allow-tool='shell(git:*)' \
               --share="$REPORT_FILE" || true
 
           done <<< '${{ steps.scope.outputs.apps }}'
