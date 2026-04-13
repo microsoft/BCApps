@@ -1,0 +1,490 @@
+table 'Customer Contract Line'
+	lineageTag: 540f4568-d4e5-47d8-8c9c-1c4a21f3b091
+
+	column 'Subscription Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 629ee0a1-242f-480c-8cad-1ee6b0564776
+		summarizeBy: sum
+		sourceColumn: Subscription Line No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column Template
+		dataType: string
+		lineageTag: a74c0fa5-293b-43ca-b021-44b1fbec3e9e
+		summarizeBy: none
+		sourceColumn: Template
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Contract Line Desc.'
+		dataType: string
+		lineageTag: 94516e49-8be0-446e-b47a-a5a15a4ea74c
+		summarizeBy: none
+		sourceColumn: Customer Contract Line Desc.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Subscription Start Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 437d1962-af85-4a9d-a8b9-98756140762d
+		summarizeBy: none
+		sourceColumn: Subscription Start Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Subscription End Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 086f2e4d-7b22-46ff-a427-71eb4a65a0dd
+		summarizeBy: none
+		sourceColumn: Subscription End Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Next Billing Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 138b795c-d660-4555-8bb2-2dd928aa1fda
+		summarizeBy: none
+		sourceColumn: Next Billing Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Analysis Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 7a69330f-6251-4009-b1ff-1f6b46cd7402
+		summarizeBy: none
+		sourceColumn: Analysis Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Billing Base Period'
+		dataType: string
+		lineageTag: be9102bd-a8f2-4fd7-9da1-dd5b21c8a239
+		summarizeBy: none
+		sourceColumn: Billing Base Period
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Invoicing Item No.'
+		dataType: string
+		lineageTag: 7a12c532-b0a2-42fb-ab5c-3d9acf805db6
+		summarizeBy: none
+		sourceColumn: Invoicing Item No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Contract Line No.'
+		dataType: int64
+		formatString: 0
+		lineageTag: 3b5bcb86-b76f-4168-bba6-a6c5884310e8
+		summarizeBy: sum
+		sourceColumn: Customer Contract Line No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Notice Period'
+		dataType: string
+		lineageTag: cb0e9a7e-5be0-4015-bdff-d7bcd0650ee2
+		summarizeBy: none
+		sourceColumn: Notice Period
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Initial Term'
+		dataType: string
+		lineageTag: e4bc9b8a-0c86-46da-9e95-8b0cf4a5c903
+		summarizeBy: none
+		sourceColumn: Initial Term
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Extension Term'
+		dataType: string
+		lineageTag: 67cb45bf-50df-491e-addb-baf97bbb3f51
+		summarizeBy: none
+		sourceColumn: Extension Term
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Billing Rhythm'
+		dataType: string
+		lineageTag: bfefd601-679a-441f-878b-8a44febbd08f
+		summarizeBy: none
+		sourceColumn: Billing Rhythm
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cancellation Possible Until'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 3853a6b4-f848-4ba4-83bc-41028ea51311
+		summarizeBy: none
+		sourceColumn: Cancellation Possible Until
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Term Until'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 464c8bde-198f-47e2-904a-7006e5a092a7
+		summarizeBy: none
+		sourceColumn: Term Until
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Quantity
+		dataType: double
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 45abeee7-981c-4a5f-b2ce-080f487e4a67
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Renewal Term'
+		dataType: string
+		lineageTag: 182f5d6d-5552-4f96-a2f8-932aa81d7c7e
+		summarizeBy: none
+		sourceColumn: Renewal Term
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Dimension Set ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		isAvailableInMdx: false
+		lineageTag: 3e8cf3c7-8f78-45a4-b9ac-745f5117cf88
+		summarizeBy: count
+		sourceColumn: Dimension Set ID
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Line Active'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: d27f2e97-a9e3-48fb-8bd2-4a2b45f84862
+		summarizeBy: none
+		sourceColumn: Line Active
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Duration Start Date'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 510e6836-7c6e-4dff-affe-63ae3b1547da
+		summarizeBy: none
+		sourceColumn: Duration Start Date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Remaining Term Months'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 87efc619-c187-46de-b955-ba40f3c7a91f
+		summarizeBy: sum
+		sourceColumn: Remaining Term Months
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Remaining Term'
+		dataType: string
+		lineageTag: da552f9a-4ca2-48a8-80cc-c316b3ef6dc8
+		summarizeBy: none
+		sourceColumn: Remaining Term
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Forecast Until'
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: aaa4aaa8-da71-4874-b185-d4d4961bbf3b
+		summarizeBy: none
+		sourceColumn: Forecast Until
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Billing Rhythm Months'
+		dataType: int64
+		formatString: 0
+		lineageTag: ccfb9c91-33d0-431c-a603-74d29500478c
+		summarizeBy: sum
+		sourceColumn: Billing Rhythm Months
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Total Contract Value LCY'
+		dataType: double
+		isHidden
+		lineageTag: b41a3724-63b7-43c4-a69e-66ca2076c6b5
+		summarizeBy: sum
+		sourceColumn: Total Contract Value LCY
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Total Contract Value UBB LCY'
+		dataType: double
+		isHidden
+		lineageTag: 24a8c46f-fc5c-4555-b60c-e6c68fd4012d
+		summarizeBy: sum
+		sourceColumn: Total Contract Value UBB LCY
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Annual Recurring Revenue LCY'
+		dataType: double
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: fa0ded71-1fc9-40aa-bcaa-e5892f1fb90d
+		summarizeBy: sum
+		sourceColumn: Annual Recurring Revenue LCY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Annual Recurring Revenue UBB LCY'
+		dataType: double
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: 3cf799f8-5251-4c54-b5dd-5595d6c3d1f4
+		summarizeBy: sum
+		sourceColumn: Annual Recurring Revenue UBB LCY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Monthly Recurring Revenue LCY'
+		dataType: double
+		isHidden
+		isAvailableInMdx: false
+		lineageTag: c1a9c296-6a4a-4ed6-8bb5-ee25a76ed9d7
+		summarizeBy: sum
+		sourceColumn: Monthly Recurring Revenue LCY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Customer No.'
+		dataType: string
+		isHidden
+		lineageTag: 6a75155b-fe27-48c6-98d5-deaf40804672
+		summarizeBy: none
+		sourceColumn: Customer No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Contract No.'
+		dataType: string
+		lineageTag: 8780ef1b-a766-4410-a222-14b42bb69d45
+		summarizeBy: none
+		sourceColumn: Customer Contract No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Contract Line Key'
+		dataType: string
+		isHidden
+		isKey
+		lineageTag: 6e4604b2-a36c-4007-a824-9351abc9a962
+		summarizeBy: none
+		sourceColumn: Customer Contract Line Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Latest Version' = ```
+			
+			calculate(max('Customer Contract Line'[Analysis Date])
+			,ALLEXCEPT('Customer Contract Line','Customer Contract Line'[Customer Contract Line No.],'Customer Contract Line'[Customer Contract No.])
+			) 
+			= 'Customer Contract Line'[Analysis Date]
+			```
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 073eb683-43e1-4114-876b-3bcf483d1164
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Usage Based Billing'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 09ddd484-4371-4e38-8b41-a86d555c982f
+		summarizeBy: none
+		sourceColumn: Is Usage Based Billing
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Subscription Package Key'
+		dataType: string
+		isHidden
+		lineageTag: b4464f92-fd36-4b77-a576-f2e01b63d2e3
+		summarizeBy: none
+		sourceColumn: Subscription Package Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source Type'
+		dataType: string
+		lineageTag: 53bbef46-039e-4881-8b85-6856cbbb3cba
+		summarizeBy: none
+		sourceColumn: Source Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source No.'
+		dataType: string
+		lineageTag: 5106eee8-6b17-416b-93cf-b1cd300d9445
+		summarizeBy: none
+		sourceColumn: Source No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Item No.'
+		dataType: string
+		isHidden
+		lineageTag: 701b05a5-36f9-4323-baab-2eb992edcf63
+		summarizeBy: none
+		sourceColumn: Item No.
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Customer Contract Line' = m
+		mode: import
+		queryGroup: 'Fact Tables'
+		source = ```
+				let
+				  Source = ContractLineBase, 
+				  #"Filtered Rows" = Table.SelectRows(Source, each ([partner] = "Customer")), 
+				  #"AddTVCPeriods" = Table.AddColumn(
+				    #"Filtered Rows", 
+				    "TVC Periods", 
+				    each 
+				      if [serviceEndDate] <> null then
+				        fncPeriodsBetween([#"Duration Start Date"], [serviceEndDate])
+				      else if [termUntil] <> null then
+				        fncPeriodsBetween([#"Duration Start Date"], [termUntil])
+				      else
+				        #"Default Contract Term", 
+				    type number
+				  ), 
+				  AddTotalContractValueLCY = Table.AddColumn(
+				    AddTVCPeriods, 
+				    "Total Contract Value LCY", 
+				    each if [TVC Periods] <= 0 then 0 else [TVC Periods] * [monthlyRecurringRevenueLCY], 
+				    type number
+				  ), 
+				  AddTotalContractValueUBBLCY = Table.AddColumn(
+				    AddTotalContractValueLCY, 
+				    "Total Contract Value UBB LCY", 
+				    each if [usageBasedBilling] = false then null // Calculate only for UBB
+				     else if [TVC Periods] <= 1 then [Total Contract Value LCY] //UBB Value can not exceed non UBB
+				     else [monthlyRecurringRevenueLCY], 
+				    type number
+				  ), 
+				  #"AddARRPeriods" = Table.AddColumn(
+				    AddTotalContractValueUBBLCY, 
+				    "ARR Periods", 
+				    each 
+				      if [Line Active] = false then
+				        0
+				      else if [serviceEndDate]
+				        <> null
+				        and [serviceEndDate] < Date.AddMonths([#"Duration Start Date"], 12)
+				      then
+				        fncPeriodsBetween([#"Duration Start Date"], [serviceEndDate])
+				      else
+				        12, 
+				    type number
+				  ), 
+				  AddAnnualRecurringRevenueLCY = Table.AddColumn(
+				    AddARRPeriods, 
+				    "Annual Recurring Revenue LCY", 
+				    each [ARR Periods] * [monthlyRecurringRevenueLCY], 
+				    type number
+				  ), 
+				  AddAnnualRecurringRevenueUBBLCY = Table.AddColumn(
+				    AddAnnualRecurringRevenueLCY, 
+				    "Annual Recurring Revenue UBB LCY", 
+				    each 
+				      if [usageBasedBilling] = false then
+				        null // Calculate only for UBB
+				      else if [ARR Periods] <= 1 then
+				        [Annual Recurring Revenue LCY] //UBB Value can not exceed non UBB
+				      else
+				        [monthlyRecurringRevenueLCY], 
+				    type number
+				  ), 
+				  #"Removed Other Columns" = Table.SelectColumns(AddAnnualRecurringRevenueUBBLCY,{"serviceObjectSourceType", "serviceObjectSourceNo", "serviceCommitmentLineNo", "template", "description", "serviceStartDate", "serviceEndDate", "nextBillingDate", "analysisDate", "monthlyRecurringRevenueLCY", "billingBasePeriod", "invoicingItemNo", "partnerNo", "contractNo", "contractLineNo", "noticePeriod", "initialTerm", "extensionTerm", "billingRhythm", "cancellationPossibleUntil", "termUntil", "quantityDecimal", "renewalTerm", "dimensionSetID", "usageBasedBilling", "Subscription Package Key", "Item No.", "Contract Line Key", "Line Active", "Duration Start Date", "Remaining Term Months", "Remaining Term", "Forecast Until", "Billing Rhythm Months", "Total Contract Value LCY", "Total Contract Value UBB LCY", "Annual Recurring Revenue LCY", "Annual Recurring Revenue UBB LCY"}), 
+				  ConvertColumnNames = Table.TransformColumnNames(#"Removed Other Columns", fctImproveColumnNames), 
+				  #"Renamed Columns2" = Table.RenameColumns(ConvertColumnNames,{{"Description", "Customer Contract Line Desc."}, {"Contract Line No.", "Customer Contract Line No."}, {"Service Commitment Line No.", "Subscription Line No."}, {"Contract No.", "Customer Contract No."}, {"Partner No.", "Customer No."}, {"Contract Line Key", "Customer Contract Line Key"}, {"Usage Based Billing", "Is Usage Based Billing"}, {"Quantity Decimal", "Quantity"}, {"Service End Date", "Subscription End Date"}, {"Service Start Date", "Subscription Start Date"},{"Service Object Source Type", "Source Type"}, {"Service Object Source No.", "Source No."}})
+				in
+				  #"Renamed Columns2"
+				```
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
