@@ -11,6 +11,7 @@ using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
@@ -77,6 +78,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ExpressionFormulaTestCodeTok: Label '[%1]', Comment = '%1=The first test code', Locked = true;
         TargetErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target inspection values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record.';
         CanOnlyBeSetWhenToTypeIsInspectionErr: Label 'This is only used when the To Type is an inspection';
+        ILEConditionFilterItemNoTok: Label 'WHERE(Item No.=FILTER(%1))', Comment = '%1 = Item No.', Locked = true;
         OrderTypeProductionConditionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         EntryTypeOutputConditionFilterTok: Label 'WHERE(Entry Type=FILTER(Output))', Locked = true;
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
@@ -2137,6 +2139,138 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [WHEN] Checking if Quality Management application area is enabled
         // [THEN] The application area is enabled
         LibraryAssert.AreEqual(true, QltyInspectionUtility.IsQualityManagementApplicationAreaEnabled(), 'Should be enabled.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ScheduleInspection_ClosedILE_ShouldNotCreateInspection()
+    var
+        Item: Record Item;
+        PosAdjItemJournalLine, NegAdjItemJournalLine : Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyScheduleInspection: Report "Qlty. Schedule Inspection";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LotNo: Code[50];
+        ConditionFilter: Text;
+    begin
+        // [SCENARIO] Schedule Inspection should not create inspections for Item Ledger Entries with 0 remaining quantity (Open=false)
+        Initialize();
+
+        // [GIVEN] Quality Management setup exists
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A lot-tracked item
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+
+        // [GIVEN] Item journal batch for posting
+        // QltyInspectionUtility.CreateItemJournalTemplateAndBatch(PosAdjItemJournalLine."Entry Type"::"Positive Adjmt.", ItemJournalBatch);
+
+        // [GIVEN] A positive adjustment of 10 units with lot tracking
+        LotNo := LibraryUtility.GenerateGUID();
+        LibraryInventory.CreateItemJournalLineInItemTemplate(PosAdjItemJournalLine, Item."No.", '', '', 10);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, PosAdjItemJournalLine, '', LotNo, PosAdjItemJournalLine.Quantity);
+        LibraryInventory.PostItemJournalLine(PosAdjItemJournalLine."Journal Template Name", PosAdjItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] A negative adjustment of 10 units for the same lot (fully consuming inventory)
+        LibraryInventory.CreateItemJournalLineInItemTemplate(NegAdjItemJournalLine, Item."No.", '', '', -10);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, NegAdjItemJournalLine, '', LotNo, NegAdjItemJournalLine.Quantity);
+        LibraryInventory.PostItemJournalLine(NegAdjItemJournalLine."Journal Template Name", NegAdjItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] A template with a test line
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+
+        // [GIVEN] A generation rule for Item Ledger Entry filtered to this specific item
+        ConditionFilter := StrSubstNo(ILEConditionFilterItemNoTok, Item."No.");
+        QltyInspectionGenRule.Init();
+        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := CopyStr(ConditionFilter, 1, MaxStrLen(QltyInspectionGenRule."Condition Filter"));
+        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic";
+        QltyInspectionGenRule.Insert(true);
+
+        // [GIVEN] No inspections exist for this item before running
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        LibraryAssert.AreEqual(0, QltyInspectionHeader.Count(), 'No inspections should exist before running the report.');
+
+        // [WHEN] Schedule Inspection report is run for the generation rule
+        QltyInspectionGenRule.SetRecFilter();
+        QltyScheduleInspection.SetTableView(QltyInspectionGenRule);
+        QltyScheduleInspection.UseRequestPage(false);
+        QltyScheduleInspection.Run();
+
+        // [THEN] No inspections should be created since all ILEs for this item are closed
+        QltyInspectionHeader.Reset();
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        LibraryAssert.AreEqual(0, QltyInspectionHeader.Count(), 'No inspections should be created for items with 0 remaining quantity.');
+    end;
+
+    [Test]
+    procedure ScheduleInspection_OpenILE_ShouldCreateInspection()
+    var
+        Item: Record Item;
+        PosAdjItemJournalLine, NegAdjItemJournalLine : Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        QltyScheduleInspection: Report "Qlty. Schedule Inspection";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LotNo: Code[50];
+        ConditionFilter: Text;
+    begin
+        // [SCENARIO] Schedule Inspection should create an inspection for Item Ledger Entries with remaining quantity > 0 (Open=true)
+        Initialize();
+
+        // [GIVEN] Quality Management setup exists
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A lot-tracked item
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+
+        // [GIVEN] A positive adjustment of 10 units with lot tracking
+        LotNo := LibraryUtility.GenerateGUID();
+        LibraryInventory.CreateItemJournalLineInItemTemplate(PosAdjItemJournalLine, Item."No.", '', '', 10);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, PosAdjItemJournalLine, '', LotNo, PosAdjItemJournalLine.Quantity);
+        LibraryInventory.PostItemJournalLine(PosAdjItemJournalLine."Journal Template Name", PosAdjItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] A negative adjustment of 9 units for the same lot (leaving 1 remaining)
+        LibraryInventory.CreateItemJournalLineInItemTemplate(NegAdjItemJournalLine, Item."No.", '', '', -9);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, NegAdjItemJournalLine, '', LotNo, NegAdjItemJournalLine.Quantity);
+        LibraryInventory.PostItemJournalLine(NegAdjItemJournalLine."Journal Template Name", NegAdjItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] A template with a test line
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+
+        // [GIVEN] A generation rule for Item Ledger Entry filtered to this specific item
+        ConditionFilter := StrSubstNo(ILEConditionFilterItemNoTok, Item."No.");
+        QltyInspectionGenRule.Init();
+        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := CopyStr(ConditionFilter, 1, MaxStrLen(QltyInspectionGenRule."Condition Filter"));
+        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic";
+        QltyInspectionGenRule.Insert(true);
+
+        // [GIVEN] Verify the source config for ILE→Inspection exists
+        QltyInspectSourceConfig.SetRange("From Table No.", Database::"Item Ledger Entry");
+        QltyInspectSourceConfig.SetRange("To Type", QltyInspectSourceConfig."To Type"::Inspection);
+        QltyInspectSourceConfig.SetRange(Enabled, true);
+        LibraryAssert.RecordIsNotEmpty(QltyInspectSourceConfig);
+
+        // [WHEN] Schedule Inspection report calls CreateInspectionsThatMatchRule directly
+        QltyScheduleInspection.CreateInspectionsThatMatchRule(QltyInspectionGenRule);
+
+        // [THEN] Exactly one inspection should be created for the open ILE with remaining quantity 1
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'Exactly one inspection should be created for the item with remaining quantity.');
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(1, QltyInspectionHeader."Source Quantity (Base)", 'Inspection should have source quantity of 1 (remaining quantity).');
+        LibraryAssert.AreEqual(LotNo, QltyInspectionHeader."Source Lot No.", 'Inspection should have the correct lot number.');
     end;
 
     local procedure Initialize()
