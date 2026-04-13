@@ -63,6 +63,7 @@ page 20408 "Qlty. Inspection List"
                 {
                     AboutTitle = 'Inspection status at a glance';
                     AboutText = '**Status** shows whether the inspection is still in progress or finished. Finished inspections are locked and can''t be changed.';
+                    StyleExpr = StatusStyleExpr;
                 }
                 field("Result Code"; Rec."Result Code")
                 {
@@ -701,10 +702,12 @@ page 20408 "Qlty. Inspection List"
         CanFinish: Boolean;
         CanReopen: Boolean;
         RowActionsAreEnabled: Boolean;
+        StatusStyleExpr: Text;
 
     trigger OnAfterGetRecord()
     begin
         ResultStyleExpr := Rec.GetResultStyle();
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
     end;
 
     trigger OnAfterGetCurrRecord()
