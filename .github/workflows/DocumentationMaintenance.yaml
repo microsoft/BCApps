@@ -59,8 +59,6 @@ jobs:
 
       - name: Verify PAT is read-only
         if: steps.dedup.outputs.skip != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.COPILOT_GH_TOKEN }}
         run: |
           echo "Verifying COPILOT_GH_TOKEN cannot write to the repo..."
           copilot -p 'Use the gh CLI to add a comment on PR #${{ github.event.pull_request.number }} in repo ${{ github.repository }} saying "copilot here".' \
