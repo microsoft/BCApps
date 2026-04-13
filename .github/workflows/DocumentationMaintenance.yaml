@@ -111,8 +111,7 @@ jobs:
               --allow-tool=glob \
               --allow-tool=grep \
               --allow-tool=agent \
-              --allow-tool='shell(*:read)' \
-              --allow-tool='shell(git:*)' \
+              --allow-tool='shell(*)' \
               --share="$REPORT_FILE" || true
 
           done <<< '${{ steps.scope.outputs.apps }}'
