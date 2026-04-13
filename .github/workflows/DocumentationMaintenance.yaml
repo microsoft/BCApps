@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 30
     env:
       COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GH_TOKEN }}
+      COPILOT_HOME: ${{ github.workspace }}/.copilot
     steps:
       - name: Check for existing docs review
         id: dedup
