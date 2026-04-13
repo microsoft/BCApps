@@ -57,24 +57,6 @@ jobs:
         if: steps.dedup.outputs.skip != 'true'
         run: npm install -g @github/copilot
 
-      - name: Verify PAT is read-only
-        if: steps.dedup.outputs.skip != 'true'
-        run: |
-          echo "Verifying COPILOT_GH_TOKEN cannot write to the repo..."
-          copilot -p 'Use the gh CLI to add a comment on PR #${{ github.event.pull_request.number }} in repo ${{ github.repository }} saying "copilot here".' \
-            --no-ask-user \
-            --autopilot \
-            --allow-tool='shell(gh:write)'
-          echo "If the comment appeared, the PAT has write access — it should be read-only!"
-
-      - name: Install al-docs plugin
-        if: steps.dedup.outputs.skip != 'true'
-        run: |
-          copilot plugin install ./tools/al-docs-plugin
-          PLUGIN_DIR="$HOME/.copilot/installed-plugins"
-          mkdir -p ~/.copilot
-          echo "{\"trusted_folders\":[\"$PLUGIN_DIR\"]}" > ~/.copilot/config.json
-
       - name: Find changed apps
         if: steps.dedup.outputs.skip != 'true'
         id: scope
@@ -113,7 +95,7 @@ jobs:
             echo "Auditing $APP_NAME at $APP_PATH..."
 
             timeout 600 copilot -p \
-              "Read the file tools/al-docs-plugin/skills/al-docs/al-docs-audit.md — it contains the full audit procedure. Follow its instructions exactly to audit the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing." \
+              "Use the /al-docs skill to audit the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing." \
               --model claude-opus-4.6 \
               --no-ask-user \
               --autopilot \
