@@ -47,6 +47,7 @@ codeunit 30169 "Shpfy Payments"
         Payout: Record "Shpfy Payout";
         SinceId: BigInteger;
     begin
+        Payout.SetRange("Shop Code", Shop.Code);
         if Payout.FindLast() then
             SinceId := Payout.Id;
         PaymentsAPI.ImportPayouts(SinceId);
@@ -58,6 +59,7 @@ codeunit 30169 "Shpfy Payments"
         PaymentTransactionIdFilter: Text;
         PaymentTransactionCount: Integer;
     begin
+        PaymentTransaction.SetRange("Shop Code", Shop.Code);
         PaymentTransaction.SetRange("Payout Id", 0);
         if PaymentTransaction.FindSet() then
             repeat
@@ -82,6 +84,7 @@ codeunit 30169 "Shpfy Payments"
         PayoutIdFilter: Text;
         PayoutCount: Integer;
     begin
+        Payout.SetRange("Shop Code", Shop.Code);
         Payout.SetFilter(Status, '<>%1&<>%2', "Shpfy Payout Status"::Paid, "Shpfy Payout Status"::Canceled);
         if Payout.FindSet() then
             repeat
@@ -112,6 +115,7 @@ codeunit 30169 "Shpfy Payments"
     var
         Dispute: Record "Shpfy Dispute";
     begin
+        Dispute.SetRange("Shop Code", Shop.Code);
         Dispute.SetFilter("Status", '<>%1&<>%2', Dispute."Status"::Won, Dispute."Status"::Lost);
         if Dispute.FindSet() then
             repeat
@@ -124,6 +128,7 @@ codeunit 30169 "Shpfy Payments"
         Dispute: Record "Shpfy Dispute";
         SinceId: BigInteger;
     begin
+        Dispute.SetRange("Shop Code", Shop.Code);
         if Dispute.FindLast() then
             SinceId := Dispute.Id;
         PaymentsAPI.ImportDisputes(SinceId);

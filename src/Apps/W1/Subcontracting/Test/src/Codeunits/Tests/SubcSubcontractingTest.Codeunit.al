@@ -708,7 +708,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubManagementSetup: Record "Subc. Management Setup";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
+#pragma warning disable AL0432
         CalculateSubContract: Report "Calculate Subcontracts";
+#pragma warning restore AL0432
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         LibraryUtility: Codeunit "Library - Utility";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
@@ -849,7 +851,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         RoutingLink: Record "Routing Link";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
+#pragma warning disable AL0432
         CalculateSubContract: Report "Calculate Subcontracts";
+#pragma warning restore AL0432
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         LibraryUtility: Codeunit "Library - Utility";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
@@ -2171,15 +2175,19 @@ Comment = '|%1 = Transfer Order No.';
         ReqWkshTemplate: Record "Req. Wksh. Template";
         LibraryUtility: Codeunit "Library - Utility";
     begin
+#pragma warning disable AL0432
         ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"For. Labor");
+#pragma warning restore AL0432
         ReqWkshTemplate.SetRange(Recurring, false);
         if not ReqWkshTemplate.FindFirst() then begin
             ReqWkshTemplate.Init();
             ReqWkshTemplate.Validate(
               Name, LibraryUtility.GenerateRandomCode(ReqWkshTemplate.FieldNo(Name), Database::"Req. Wksh. Template"));
             ReqWkshTemplate.Insert(true);
+#pragma warning disable AL0432
             ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::"For. Labor");
             ReqWkshTemplate."Page ID" := Page::"Subcontracting Worksheet";
+#pragma warning restore AL0432
             ReqWkshTemplate.Modify(true);
         end;
         exit(ReqWkshTemplate.Name);
