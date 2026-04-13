@@ -468,7 +468,9 @@ codeunit 149908 "Subc. Warehouse Library"
         PurchaseLine: Record "Purchase Line";
         RequisitionLine: Record "Requisition Line";
         ManufacturingSetup: Record "Manufacturing Setup";
+#pragma warning disable AL0432
         CalculateSubContract: Report "Calculate Subcontracts";
+#pragma warning restore AL0432
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
     begin
         // Get worksheet template and batch from setup

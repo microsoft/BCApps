@@ -47,7 +47,9 @@ codeunit 99001503 "Subcontracting Comp. Init."
         ReqWkshTempDescLbl: Label 'Subcontracting', MaxLength = 80;
         ReqWkshTempNameLbl: Label 'SUBCONTR', MaxLength = 10;
     begin
+#pragma warning disable AL0432
         ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"For. Labor");
+#pragma warning restore AL0432
         if ReqWkshTemplate.FindFirst() then
             exit;
 
@@ -55,8 +57,10 @@ codeunit 99001503 "Subcontracting Comp. Init."
         ReqWkshTemplate.Validate(Name, ReqWkshTempNameLbl);
         ReqWkshTemplate.Validate(Description, ReqWkshTempDescLbl);
         ReqWkshTemplate.Recurring := Recurring;
+#pragma warning disable AL0432
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::"For. Labor");
         ReqWkshTemplate.Validate("Page ID", Page::"Subcontracting Worksheet");
+#pragma warning restore AL0432
         ReqWkshTemplate.Insert(true);
     end;
 

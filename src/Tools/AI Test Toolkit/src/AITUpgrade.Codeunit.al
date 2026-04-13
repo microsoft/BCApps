@@ -32,7 +32,7 @@ codeunit 149031 "AIT Upgrade"
             exit;
         end;
 
-        AITEvalMonthlyCopilotCreditsLimit.InsertDefaultRecord();
+        AITEvalMonthlyCopilotCreditsLimit.GetOrCreateEnvironmentLimits();
         UpgradeTag.SetDatabaseUpgradeTag(GetDefaultCreditLimitUpgradeTag());
     end;
 

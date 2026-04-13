@@ -46,7 +46,9 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         Work_Center: Record "Work Center";
         WorkCenter: array[2] of Record "Work Center";
         ManufacturingSetup: Record "Manufacturing Setup";
+#pragma warning disable AL0432
         CalculateSubcontracts: Report "Calculate Subcontracts";
+#pragma warning restore AL0432
         ReqJnlManagement: Codeunit ReqJnlManagement;
         SubTestManSubscription: Codeunit "Subc. Test Man. Subscription";
     begin
