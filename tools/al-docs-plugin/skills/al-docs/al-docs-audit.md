@@ -1,7 +1,7 @@
 ---
 name: al-docs-audit
 description: Read-only gap analysis of AL codebase documentation - reports coverage, missing files, and scoring without writing anything
-allowed-tools: Read, Glob, Grep, Bash(git, cat, find, head, tail, wc, sort, uniq, jq, ls, grep, awk, sed)
+allowed-tools: Read, Glob, Grep, Agent, Bash(git, cat, find, head, tail, wc, sort, uniq, jq, ls, grep, awk, sed)
 argument-hint: "path to AL app or folder (defaults to current directory)"
 ---
 
@@ -14,9 +14,9 @@ argument-hint: "path to AL app or folder (defaults to current directory)"
 **Prefer the built-in Read, Glob, and Grep tools** for file operations — they are faster and more reliable. Shell commands are available as a fallback when needed.
 
 Available tools:
-- **Read, Glob, Grep** -- built-in tools, prefer these
-- **Shell** -- `git`, `cat`, `find`, `head`, `tail`, `wc`, `sort`, `uniq`, `jq`, `ls`, `grep`, `awk`, `sed`
+- **Read, Glob, Grep** -- built-in tools, prefer these for file operations
 - **Agent** -- launch subagents for parallel work
+- **Shell** -- `git`, `cat`, `find`, `head`, `tail`, `wc`, `sort`, `uniq`, `jq`, `ls`, `grep`, `awk`, `sed`
 
 **Do NOT use** `python3`, `curl`, `wget`, `nc`, or any tool not listed above — they are blocked.
 
