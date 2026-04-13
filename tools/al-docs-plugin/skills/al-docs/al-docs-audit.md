@@ -31,11 +31,11 @@ Available tools:
 
 ## Process
 
-**Maximize parallelism.** Step 1's three subagents MUST be launched in parallel in a single message. Step 2 synthesizes results after all subagents complete. Step 3 compiles the final report.
+**Maximize parallelism.** Step 1 launches two subagents in parallel. Step 2 scores subfolders using the structure data. Step 3 compiles the final report.
 
-### Step 1: Parallel discovery (launch ALL subagents at once)
+### Step 1: Parallel discovery (launch BOTH subagents at once)
 
-Launch these **three subagents simultaneously** using the Agent tool:
+Launch these **two subagents simultaneously** using the Agent tool:
 
 #### Subagent A: App structure and AL object inventory
 
@@ -46,8 +46,9 @@ Use Glob and Grep to map the codebase:
 3. **Group objects by subfolder** -- count objects per directory at all depths to identify functional areas
 4. **Identify all subfolders recursively at any depth** with 3+ AL objects as candidates for documentation
 5. **Count total source files** per subfolder at all depths
+6. **Detect events and interfaces** -- grep for `[IntegrationEvent]`, `[BusinessEvent]`, `[EventSubscriber]`, `^interface ` per subfolder
 
-Return: app metadata, object counts by type, object counts by subfolder.
+Return: app metadata, object counts by type, object counts by subfolder, event/interface presence per subfolder.
 
 #### Subagent B: Documentation inventory
 
@@ -71,9 +72,9 @@ Also check for a `.docs-updated` marker file.
 
 Return: complete list of all documentation files with metadata.
 
-#### Subagent C: Module scoring and gap detection
+### Step 2: Score subfolders
 
-Score all subfolders recursively at any depth (directories containing `.al` files) using the scoring criteria in `skills/al-docs/references/al-scoring.md`. Read that file for the full scoring table with detection methods. A subfolder can have nested subfolders that each need independent scoring and documentation.
+Using the object counts and event/interface data from Subagent A, score all subfolders using the criteria in `references/al-scoring.md`. Read that file for the full scoring table. A subfolder can have nested subfolders that each need independent scoring.
 
 Classify each as:
 
@@ -81,11 +82,9 @@ Classify each as:
 - **SHOULD_DOCUMENT** (4-6): Needs CLAUDE.md
 - **OPTIONAL** (1-3): Documentation not required
 
-Return: scored subfolder list with classifications and reasoning.
+### Step 3: Determine expected documentation
 
-### Step 2: Determine expected documentation
-
-Using results from all three subagents, build the list of expected files.
+Using results from Steps 1 and 2, build the list of expected files.
 
 #### App level (if `app.json` exists)
 
@@ -104,7 +103,7 @@ Using results from all three subagents, build the list of expected files.
 | `/[subfolder]/docs/CLAUDE.md` | Yes | If scored MUST_DOCUMENT or SHOULD_DOCUMENT |
 | `/[subfolder]/docs/[additional].md` | Yes | If scored MUST_DOCUMENT (7+)  |
 
-### Step 3: Compare expected vs actual and compile report
+### Step 4: Compare expected vs actual and compile report
 
 For each expected file, determine its status:
 
