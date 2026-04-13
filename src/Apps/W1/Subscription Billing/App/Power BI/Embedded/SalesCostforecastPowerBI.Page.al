@@ -44,8 +44,17 @@ page 8108 "Sales Cost forecast Power BI"
         ReportPageLbl: Label 'c9cd438d95e60a070e76', Locked = true;
 
     trigger OnOpenPage()
+    var
+        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Subscription Billing App");
+        SetupHelper.EnsureUserAcceptedPowerBITerms();
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
+        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Subscription Billing Report Id"));
+#if not CLEAN28
+#pragma warning restore AL0801
+#endif
     end;
 }
 

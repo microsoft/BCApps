@@ -46,8 +46,17 @@ page 8110 "Subscription Overview Power BI"
 #pragma warning restore AA0240
 
     trigger OnOpenPage()
+    var
+        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Subscription Billing App");
+        SetupHelper.EnsureUserAcceptedPowerBITerms();
+#if not CLEAN28
+#pragma warning disable AL0801
+#endif
+        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Subscription Billing Report Id"));
+#if not CLEAN28
+#pragma warning restore AL0801
+#endif
     end;
 }
 
