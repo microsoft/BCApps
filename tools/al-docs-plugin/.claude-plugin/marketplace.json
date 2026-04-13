@@ -19,7 +19,7 @@
     },
     {
       "name": "create-pr",
-      "source": "./plugins/create-pr",
+      "source": "../create-pr-plugin",
       "description": "Create PRs with intelligent SME reviewer assignment, AI decision context, and structured review guidance",
       "version": "0.1.0",
       "category": "workflow",
