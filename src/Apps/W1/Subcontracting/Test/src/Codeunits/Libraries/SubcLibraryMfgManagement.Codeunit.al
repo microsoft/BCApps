@@ -229,6 +229,7 @@ codeunit 139984 "Subc. Library Mfg. Management"
         ReqWkshTemplate.Recurring := Recurring;
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
         ReqWkshTemplate.Validate("Page ID", Page::"Subcontracting Worksheet");
+#pragma warning restore AL0432
         ReqWkshTemplate.Insert(true);
     end;
 

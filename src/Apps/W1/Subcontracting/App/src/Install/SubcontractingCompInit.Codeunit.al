@@ -54,6 +54,7 @@ codeunit 99001503 "Subcontracting Comp. Init."
         ReqWkshTemplate.Recurring := Recurring;
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
         ReqWkshTemplate.Validate("Page ID", Page::"Subcontracting Worksheet");
+#pragma warning restore AL0432
         ReqWkshTemplate.Insert(true);
     end;
 

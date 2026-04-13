@@ -708,7 +708,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubManagementSetup: Record "Subc. Management Setup";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
+#pragma warning disable AL0432
         CalculateSubContract: Report "Calculate Subcontracts";
+#pragma warning restore AL0432
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         LibraryUtility: Codeunit "Library - Utility";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
@@ -849,7 +851,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         RoutingLink: Record "Routing Link";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
+#pragma warning disable AL0432
         CalculateSubContract: Report "Calculate Subcontracts";
+#pragma warning restore AL0432
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         LibraryUtility: Codeunit "Library - Utility";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
@@ -2180,6 +2184,7 @@ Comment = '|%1 = Transfer Order No.';
             ReqWkshTemplate.Insert(true);
             ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
             ReqWkshTemplate."Page ID" := Page::"Subcontracting Worksheet";
+#pragma warning restore AL0432
             ReqWkshTemplate.Modify(true);
         end;
         exit(ReqWkshTemplate.Name);

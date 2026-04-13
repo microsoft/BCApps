@@ -154,7 +154,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
+#pragma warning disable AL0432
         PageControl.SetRange(PageNo, Page::"Subcontracting Worksheet");
+#pragma warning restore AL0432
         PageControl.SetRange(FieldNo, ReqLine.FieldNo("Base UM Qty/PL UM Qty"));
         ControlExist := not PageControl.IsEmpty();
 
@@ -177,7 +179,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
+#pragma warning disable AL0432
         PageControl.SetRange(PageNo, Page::"Subcontracting Worksheet");
+#pragma warning restore AL0432
         PageControl.SetRange(FieldNo, ReqLine.FieldNo("PL UM Qty/Base UM Qty"));
         ControlExist := not PageControl.IsEmpty();
 
@@ -200,7 +204,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
+#pragma warning disable AL0432
         PageControl.SetRange(PageNo, Page::"Subcontracting Worksheet");
+#pragma warning restore AL0432
         PageControl.SetRange(FieldNo, ReqLine.FieldNo("Pricelist Cost"));
         ControlExist := not PageControl.IsEmpty();
 
@@ -223,7 +229,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
+#pragma warning disable AL0432
         PageControl.SetRange(PageNo, Page::"Subcontracting Worksheet");
+#pragma warning restore AL0432
         PageControl.SetRange(FieldNo, ReqLine.FieldNo("Standard Task Code"));
         ControlExist := not PageControl.IsEmpty();
 
@@ -246,7 +254,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
+#pragma warning disable AL0432
         PageControl.SetRange(PageNo, Page::"Subcontracting Worksheet");
+#pragma warning restore AL0432
         PageControl.SetRange(FieldNo, ReqLine.FieldNo("UoM for Pricelist"));
         ControlExist := not PageControl.IsEmpty();
 
