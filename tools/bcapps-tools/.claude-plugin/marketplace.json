@@ -5,12 +5,12 @@
   },
   "metadata": {
     "description": "Business Central AL development tools",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "al-docs",
-      "source": "./",
+      "source": "../al-docs-plugin",
       "description": "AL codebase documentation generator - bootstrap, update, and audit hierarchical docs for Business Central AL apps",
       "version": "0.1.0",
       "category": "documentation",
