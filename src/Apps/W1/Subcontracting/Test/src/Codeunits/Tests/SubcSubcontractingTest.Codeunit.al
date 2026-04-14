@@ -112,6 +112,81 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    procedure CreateSubcOrderFromRtngLine_EmptyDefVATProdPostGrp()
+    var
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        OriginalDefVATProdPostGrp: Code[20];
+    begin
+        // [SCENARIO 618715] Creating a Subcontracting Purchase Order from Prod. Order Routing Line
+        // should succeed even when "Def. VAT Prod. Posting Group" is empty on the Gen. Product Posting Group
+        // (US/Sales Tax localization).
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
+        Initialize();
+
+        // [GIVEN] Some Parameters for Creation
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Create subcontracting Work Center (sets Def. VAT Prod. Posting Group during creation)
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        CreateAndRefreshProductionOrder(
+          ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Clear "Def. VAT Prod. Posting Group" on the Work Center's Gen. Product Posting Group
+        // to simulate US/Sales Tax localization where this field is intentionally empty.
+        // Done after all other setup to avoid committing the change during item/production order creation.
+        GenProductPostingGroup.Get(WorkCenter[2]."Gen. Prod. Posting Group");
+        OriginalDefVATProdPostGrp := GenProductPostingGroup."Def. VAT Prod. Posting Group";
+        GenProductPostingGroup."Def. VAT Prod. Posting Group" := '';
+        GenProductPostingGroup.Modify();
+
+        // [GIVEN] Create a VAT Posting Setup for the empty VAT Prod. Posting Group
+        // so the downstream purchase line validation can find a matching setup
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        if not VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", '') then begin
+            VATPostingSetup.Init();
+            VATPostingSetup."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+            VATPostingSetup."VAT Prod. Posting Group" := '';
+            VATPostingSetup."VAT Calculation Type" := VATPostingSetup."VAT Calculation Type"::"Normal VAT";
+            VATPostingSetup."VAT %" := 0;
+            VATPostingSetup.Insert();
+        end;
+
+        // [WHEN] Create Subcontracting Purchase Order from Prod. Order Routing Line
+        ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
+
+        // [THEN] Purchase Line is created successfully
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        Assert.AreEqual(false, PurchaseLine.IsEmpty(), 'Purchase Line should be created even when Def. VAT Prod. Posting Group is empty.');
+
+        // [TEARDOWN] Restore original Def. VAT Prod. Posting Group to prevent contaminating other tests
+        GenProductPostingGroup.Get(WorkCenter[2]."Gen. Prod. Posting Group");
+        GenProductPostingGroup."Def. VAT Prod. Posting Group" := OriginalDefVATProdPostGrp;
+        GenProductPostingGroup.Modify();
+    end;
+
+    [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting')]
     procedure TestCreationOfPurchOrderFromRtngLineWithSubcontractorWithAddLine()
     var
@@ -708,7 +783,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubManagementSetup: Record "Subc. Management Setup";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
+#pragma warning disable AL0432
         CalculateSubContract: Report "Calculate Subcontracts";
+#pragma warning restore AL0432
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         LibraryUtility: Codeunit "Library - Utility";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
@@ -849,7 +926,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         RoutingLink: Record "Routing Link";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
+#pragma warning disable AL0432
         CalculateSubContract: Report "Calculate Subcontracts";
+#pragma warning restore AL0432
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         LibraryUtility: Codeunit "Library - Utility";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
@@ -2171,15 +2250,19 @@ Comment = '|%1 = Transfer Order No.';
         ReqWkshTemplate: Record "Req. Wksh. Template";
         LibraryUtility: Codeunit "Library - Utility";
     begin
+#pragma warning disable AL0432
         ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"For. Labor");
+#pragma warning restore AL0432
         ReqWkshTemplate.SetRange(Recurring, false);
         if not ReqWkshTemplate.FindFirst() then begin
             ReqWkshTemplate.Init();
             ReqWkshTemplate.Validate(
               Name, LibraryUtility.GenerateRandomCode(ReqWkshTemplate.FieldNo(Name), Database::"Req. Wksh. Template"));
             ReqWkshTemplate.Insert(true);
+#pragma warning disable AL0432
             ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::"For. Labor");
             ReqWkshTemplate."Page ID" := Page::"Subcontracting Worksheet";
+#pragma warning restore AL0432
             ReqWkshTemplate.Modify(true);
         end;
         exit(ReqWkshTemplate.Name);

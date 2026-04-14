@@ -48,11 +48,8 @@ page 37119 "Sales by Projects"
         ReportPageLbl: Label '3f3a8251c4943f8c8fb2', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

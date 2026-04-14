@@ -48,11 +48,8 @@ page 37061 "Purchases Report"
         ReportPageLbl: Label '', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Purchases Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Purchases App");
     end;
 }
 

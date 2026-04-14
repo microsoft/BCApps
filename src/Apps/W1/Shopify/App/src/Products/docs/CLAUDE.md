@@ -40,6 +40,7 @@ or Vendor Item No. Unmatched products can auto-create Items via
 - `ICreateProductStatusValue` determines whether newly created products start
   as Active or Draft.
 - Max 2048 variants per product -- enforced in `ShpfyCreateProduct`.
+- Price sync silently skips items whose unit of measure is invalid (not in `Unit of Measure` table or not in `Item Unit of Measure` for that item). A `Shpfy Skipped Record` entry is logged instead of raising an error.
 - Item attributes marked "As Option" can drive Shopify product options instead
   of the default Variant/UoM scheme, with validation for uniqueness and
   completeness.
