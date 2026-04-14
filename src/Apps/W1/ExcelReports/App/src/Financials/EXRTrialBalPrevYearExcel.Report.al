@@ -205,31 +205,57 @@ report 4407 "EXR Trial Bal. Prev Year Excel"
     local procedure AddGLToDataset(var GLAccount: Record "G/L Account"; Dimension1Code: Code[20]; Dimension2Code: Code[20])
     var
         LocalGLAccount: Record "G/L Account";
+        LocalGLAccountBalance: Record "G/L Account";
         LocalGLAccountLastPeriod: Record "G/L Account";
+        LocalGLAccountLastPeriodBalance: Record "G/L Account";
     begin
         LocalGLAccount.Copy(GLAccount);
         LocalGLAccount.SetRange("Global Dimension 1 Filter", Dimension1Code);
         LocalGLAccount.SetRange("Global Dimension 2 Filter", Dimension2Code);
 
-        LocalGLAccount.CalcFields("Net Change", "Balance at Date", "Additional-Currency Net Change", "Add.-Currency Balance at Date");
+        LocalGLAccount.CalcFields("Net Change", "Balance at Date", "Additional-Currency Net Change", "Add.-Currency Balance at Date", "Debit Amount", "Credit Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount");
+        // Cumulative debit/credit for balance requires date filter ..EndDate (Debit Amount uses the full range, not upperlimit like Balance at Date)
+        LocalGLAccountBalance.Copy(LocalGLAccount);
+        LocalGLAccountBalance.SetFilter("Date Filter", '..%1', LocalGLAccount.GetRangeMax("Date Filter"));
+        LocalGLAccountBalance.CalcFields("Debit Amount", "Credit Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount");
+
         LocalGLAccountLastPeriod.Copy(LocalGLAccount);
         LocalGLAccountLastPeriod.SetRange("Date Filter", PriorFromDate, PriorToDate);
-        LocalGLAccountLastPeriod.CalcFields("Net Change", "Balance at Date", "Additional-Currency Net Change", "Add.-Currency Balance at Date");
+        LocalGLAccountLastPeriod.CalcFields("Net Change", "Balance at Date", "Additional-Currency Net Change", "Add.-Currency Balance at Date", "Debit Amount", "Credit Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount");
+        LocalGLAccountLastPeriodBalance.Copy(LocalGLAccountLastPeriod);
+        LocalGLAccountLastPeriodBalance.SetFilter("Date Filter", '..%1', PriorToDate);
+        LocalGLAccountLastPeriodBalance.CalcFields("Debit Amount", "Credit Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount");
 
         Clear(EXRTrialBalanceBuffer);
         EXRTrialBalanceBuffer."G/L Account No." := LocalGLAccount."No.";
         EXRTrialBalanceBuffer."Dimension 1 Code" := Dimension1Code;
         EXRTrialBalanceBuffer."Dimension 2 Code" := Dimension2Code;
 
-        EXRTrialBalanceBuffer.Validate("Net Change", LocalGLAccount."Net Change");
-        EXRTrialBalanceBuffer.Validate("Balance", LocalGLAccount."Balance at Date");
-        EXRTrialBalanceBuffer.Validate("Last Period Net", LocalGLAccountLastPeriod."Net Change");
-        EXRTrialBalanceBuffer.Validate("Last Period Bal.", LocalGLAccountLastPeriod."Balance at Date");
+        EXRTrialBalanceBuffer."Net Change" := LocalGLAccount."Net Change";
+        EXRTrialBalanceBuffer."Net Change (Debit)" := LocalGLAccount."Debit Amount";
+        EXRTrialBalanceBuffer."Net Change (Credit)" := LocalGLAccount."Credit Amount";
+        EXRTrialBalanceBuffer.Balance := LocalGLAccount."Balance at Date";
+        EXRTrialBalanceBuffer."Balance (Debit)" := LocalGLAccountBalance."Debit Amount";
+        EXRTrialBalanceBuffer."Balance (Credit)" := LocalGLAccountBalance."Credit Amount";
+        EXRTrialBalanceBuffer."Last Period Net" := LocalGLAccountLastPeriod."Net Change";
+        EXRTrialBalanceBuffer."Last Period Net (Debit)" := LocalGLAccountLastPeriod."Debit Amount";
+        EXRTrialBalanceBuffer."Last Period Net (Credit)" := LocalGLAccountLastPeriod."Credit Amount";
+        EXRTrialBalanceBuffer."Last Period Bal." := LocalGLAccountLastPeriod."Balance at Date";
+        EXRTrialBalanceBuffer."Last Period Bal. (Debit)" := LocalGLAccountLastPeriodBalance."Debit Amount";
+        EXRTrialBalanceBuffer."Last Period Bal. (Credit)" := LocalGLAccountLastPeriodBalance."Credit Amount";
 
-        EXRTrialBalanceBuffer.Validate("Net Change (ACY)", LocalGLAccount."Additional-Currency Net Change");
-        EXRTrialBalanceBuffer.Validate("Balance (ACY)", LocalGLAccount."Add.-Currency Balance at Date");
-        EXRTrialBalanceBuffer.Validate("Last Period Net (ACY)", LocalGLAccountLastPeriod."Additional-Currency Net Change");
-        EXRTrialBalanceBuffer.Validate("Last Period Bal. (ACY)", LocalGLAccountLastPeriod."Add.-Currency Balance at Date");
+        EXRTrialBalanceBuffer."Net Change (ACY)" := LocalGLAccount."Additional-Currency Net Change";
+        EXRTrialBalanceBuffer."Net Change (Debit) (ACY)" := LocalGLAccount."Add.-Currency Debit Amount";
+        EXRTrialBalanceBuffer."Net Change (Credit) (ACY)" := LocalGLAccount."Add.-Currency Credit Amount";
+        EXRTrialBalanceBuffer."Balance (ACY)" := LocalGLAccount."Add.-Currency Balance at Date";
+        EXRTrialBalanceBuffer."Balance (Debit) (ACY)" := LocalGLAccountBalance."Add.-Currency Debit Amount";
+        EXRTrialBalanceBuffer."Balance (Credit) (ACY)" := LocalGLAccountBalance."Add.-Currency Credit Amount";
+        EXRTrialBalanceBuffer."Last Period Net (ACY)" := LocalGLAccountLastPeriod."Additional-Currency Net Change";
+        EXRTrialBalanceBuffer."Last Period Net (Debit) (ACY)" := LocalGLAccountLastPeriod."Add.-Currency Debit Amount";
+        EXRTrialBalanceBuffer."Last Period Net (Credit) (ACY)" := LocalGLAccountLastPeriod."Add.-Currency Credit Amount";
+        EXRTrialBalanceBuffer."Last Period Bal. (ACY)" := LocalGLAccountLastPeriod."Add.-Currency Balance at Date";
+        EXRTrialBalanceBuffer."Last Period Bal. (Debit) (ACY)" := LocalGLAccountLastPeriodBalance."Add.-Currency Debit Amount";
+        EXRTrialBalanceBuffer."Last Period Bal. (Cred.) (ACY)" := LocalGLAccountLastPeriodBalance."Add.-Currency Credit Amount";
         EXRTrialBalanceBuffer.CalculateVariances();
         EXRTrialBalanceBuffer.Insert(true);
     end;

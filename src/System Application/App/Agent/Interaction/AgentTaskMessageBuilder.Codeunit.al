@@ -50,7 +50,6 @@ codeunit 4316 "Agent Task Message Builder"
     /// </summary>
     /// <param name="RequiresReview">Specifies if the user needs to review and approve message before agent starts processing the task. The default value is true.</param>
     /// <returns>This instance of the Agent Task Message Builder.</returns>
-    [Scope('OnPrem')]
     procedure SetRequiresReview(RequiresReview: Boolean): codeunit "Agent Task Message Builder"
     begin
         AgentTaskMsgBuilderImpl.SetRequiresReview(RequiresReview);

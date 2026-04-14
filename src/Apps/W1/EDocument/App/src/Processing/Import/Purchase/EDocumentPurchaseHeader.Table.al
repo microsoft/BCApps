@@ -224,7 +224,17 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Posting Description';
             DataClassification = CustomerContent;
         }
-        field(39; "Total Line Amount"; Decimal)
+        field(39; "Applies-to Doc. No."; Text[100])
+        {
+            Caption = 'Applies-to Doc. No.';
+            DataClassification = CustomerContent;
+        }
+        field(40; "Vendor Invoice No."; Text[100])
+        {
+            Caption = 'Vendor Invoice No.';
+            DataClassification = CustomerContent;
+        }
+        field(41; "Total Line Amount"; Decimal)
         {
             Caption = 'Total Line Amount';
             DataClassification = CustomerContent;

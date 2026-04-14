@@ -5,6 +5,8 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
+using Microsoft.Finance.GeneralLedger.Journal;
+
 table 4401 "EXR Aging Report Buffer"
 {
     AllowInCustomizations = Never;
@@ -34,6 +36,10 @@ table 4401 "EXR Aging Report Buffer"
         field(10; "Document No."; Code[20])
         {
             Caption = 'Document No.';
+        }
+        field(9; "Document Type"; Enum "Gen. Journal Document Type")
+        {
+            Caption = 'Document Type';
         }
         field(11; "Posting Date"; Date)
         {

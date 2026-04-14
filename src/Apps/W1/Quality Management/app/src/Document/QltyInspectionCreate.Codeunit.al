@@ -709,7 +709,6 @@ codeunit 20404 "Qlty. Inspection - Create"
     internal procedure CreateReinspection(FromThisQltyInspectionHeader: Record "Qlty. Inspection Header"; var CreatedReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header";
-        QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
         IsHandled: Boolean;
     begin
         QltyManagementSetup.Get();
@@ -732,9 +731,6 @@ codeunit 20404 "Qlty. Inspection - Create"
         CreateQualityInspectionResultLinesFromTemplate(CreatedReinspectionQltyInspectionHeader);
 
         LastCreatedQltyInspectionHeader := CreatedReinspectionQltyInspectionHeader;
-
-        if GuiAllowed() then
-            QltyNotificationMgmt.NotifyInspectionCreated(CreatedReinspectionQltyInspectionHeader);
 
         OnAfterCreateReinspection(FromThisQltyInspectionHeader, CreatedReinspectionQltyInspectionHeader);
     end;

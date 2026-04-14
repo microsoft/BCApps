@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.Dimension;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
 
@@ -98,5 +100,43 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         PurchaseLine.SetRange("Document No.", DocumentNo);
         if PurchaseLine.FindLast() then
             exit(PurchaseLine."Line No.");
+    end;
+
+    procedure FinalizeCreatedDocument(EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header")
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+    begin
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+
+        PurchaseHeader.SetRecFilter();
+        PurchaseHeader.FindFirst();
+        PurchaseHeader."Doc. Amount Incl. VAT" := EDocumentPurchaseHeader.Total;
+        PurchaseHeader."Doc. Amount VAT" := EDocumentPurchaseHeader."Total VAT";
+        PurchaseHeader.TestField("No.");
+        PurchaseHeader."E-Document Link" := EDocument.SystemId;
+        PurchaseHeader.Modify();
+
+        DocumentAttachmentMgt.CopyAttachments(EDocument, PurchaseHeader);
+        DocumentAttachmentMgt.DeleteAttachedDocuments(EDocument);
+
+        EDocImpSessionTelemetry.SetBool('Totals Validation', TryValidateDocumentTotals(PurchaseHeader));
+    end;
+
+    procedure RevertCreatedDocument(EDocument: Record "E-Document")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
+    begin
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        if not PurchaseHeader.FindFirst() then
+            exit;
+
+        DocumentAttachmentMgt.CopyAttachments(PurchaseHeader, EDocument);
+        DocumentAttachmentMgt.DeleteAttachedDocuments(PurchaseHeader);
+
+        Clear(PurchaseHeader."E-Document Link");
+        PurchaseHeader.Modify();
     end;
 }

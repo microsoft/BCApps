@@ -227,8 +227,10 @@ codeunit 139984 "Subc. Library Mfg. Management"
             LibraryUtility.GetFieldLength(Database::"Req. Wksh. Template", ReqWkshTemplate.FieldNo(Name))));
         ReqWkshTemplate.Validate(Description, ReqWkshTemplate.Name);  // Validate Description as Name because value is not important.
         ReqWkshTemplate.Recurring := Recurring;
+#pragma warning disable AL0432
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::"For. Labor");
         ReqWkshTemplate.Validate("Page ID", Page::"Subcontracting Worksheet");
+#pragma warning restore AL0432
         ReqWkshTemplate.Insert(true);
     end;
 
