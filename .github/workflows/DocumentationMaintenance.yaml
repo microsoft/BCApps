@@ -114,7 +114,7 @@ jobs:
             echo "Auditing $APP_NAME at $APP_PATH..."
 
             timeout 600 copilot -p \
-              "Read $MAP_FILE — it contains the complete code map for the app at $APP_PATH (object inventory, subfolder scores, doc inventory). Using this data and the /al-docs skill, produce the audit report. Compare expected docs against existing docs and report coverage. Summarize in 2-3 sentences: coverage percentage, what is missing." \
+              "Read $MAP_FILE — it contains the code map for $APP_PATH. Use the /al-docs skill to produce an audit report. Summarize in 2-3 sentences: coverage percentage, what is missing." \
               --model claude-sonnet-4.6 \
               --no-ask-user \
               --autopilot \
