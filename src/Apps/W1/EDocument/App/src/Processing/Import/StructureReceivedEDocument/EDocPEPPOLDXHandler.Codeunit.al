@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -41,36 +40,32 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     #region Auto-Detection
 
     /// <summary>
-    /// Finds the Data Exchange Definition that matches the document.
-    /// Matches the document's XML root namespace against each definition's configured
-    /// namespace (from DataExchLineDef). This avoids the v1 trial-and-error approach
-    /// which requires Commit() + Codeunit.Run() — incompatible with v2's try-function context.
+    /// Determines the v2 Data Exchange Definition code by matching the document's
+    /// XML root namespace against known PEPPOL BIS 3.0 namespaces.
     /// </summary>
     local procedure FindBestDataExchDef(var TempBlob: Codeunit "Temp Blob"; var BestDefCode: Code[20]; var BestDocType: Enum "E-Document Type")
     var
-        EDocumentDataExchDef: Record "E-Doc. Service Data Exch. Def.";
-        DataExchLineDef: Record "Data Exch. Line Def";
+        DataExchDef: Record "Data Exch. Def";
         DocumentNamespace: Text;
     begin
         DocumentNamespace := GetDocumentRootNamespace(TempBlob);
 
-        EDocumentDataExchDef.SetFilter("Impt. Data Exchange Def. Code", '<>%1', '');
-        if EDocumentDataExchDef.FindSet() then
-            repeat
-                if DataExchDefUsesIntermediate(EDocumentDataExchDef."Impt. Data Exchange Def. Code") then begin
-                    // Match document namespace against definition's expected namespace
-                    DataExchLineDef.SetRange("Data Exch. Def Code", EDocumentDataExchDef."Impt. Data Exchange Def. Code");
-                    DataExchLineDef.SetRange("Parent Code", '');
-                    if DataExchLineDef.FindFirst() then
-                        if (DataExchLineDef.Namespace = '') or (DataExchLineDef.Namespace = DocumentNamespace) then begin
-                            BestDefCode := EDocumentDataExchDef."Impt. Data Exchange Def. Code";
-                            BestDocType := EDocumentDataExchDef."Document Type";
-                            exit;
-                        end;
+        case DocumentNamespace of
+            InvoiceNamespaceTxt:
+                begin
+                    BestDefCode := InvoiceDefCodeTok;
+                    BestDocType := "E-Document Type"::"Purchase Invoice";
                 end;
-            until EDocumentDataExchDef.Next() = 0;
+            CreditNoteNamespaceTxt:
+                begin
+                    BestDefCode := CreditMemoDefCodeTok;
+                    BestDocType := "E-Document Type"::"Purchase Credit Memo";
+                end;
+            else
+                Error(ProcessFailedErr);
+        end;
 
-        if BestDefCode = '' then
+        if not DataExchDef.Get(BestDefCode) then
             Error(ProcessFailedErr);
     end;
 
@@ -87,23 +82,15 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         exit(RootElement.NamespaceUri());
     end;
 
-    local procedure DataExchDefUsesIntermediate(DataExchDefCode: Code[20]): Boolean
-    var
-        DataExchMapping: Record "Data Exch. Mapping";
-    begin
-        DataExchMapping.SetRange("Data Exch. Def Code", DataExchDefCode);
-        DataExchMapping.SetRange("Use as Intermediate Table", false);
-        exit(DataExchMapping.IsEmpty());
-    end;
-
     #endregion Auto-Detection
 
     #region Pipeline and Bridge
 
     /// <summary>
-    /// Runs the Data Exchange pipeline (Reading/Writing + Data Handling codeunits only),
-    /// then bridge-maps intermediate data to v2 staging tables.
-    /// Does NOT call DataExchDef.ProcessDataExchange which would invoke the pre-mapping codeunit.
+    /// Runs the full Data Exchange pipeline via ProcessDataExchange, then
+    /// bridge-maps intermediate data to v2 staging tables.
+    /// The v2 definitions have no pre-mapping codeunit, so ProcessDataExchange
+    /// runs Reading/Writing + Data Handling only — conformant with the framework.
     /// </summary>
     local procedure RunPipelineAndBridge(EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20]; DocType: Enum "E-Document Type")
     var
@@ -119,14 +106,7 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         DataExch."Related Record" := EDocument.RecordId;
         DataExch.Modify(true);
 
-        if not DataExch.ImportToDataExch(DataExchDef) then
-            Error(ProcessFailedErr);
-
-        // Run Data Handling Codeunit to map Data Exch. Field → Intermediate Data Import.
-        // Do NOT call DataExchDef.ProcessDataExchange() which also runs Pre-Mapping (6156)
-        // that does vendor/GL resolution — in v2, Prepare Draft handles that.
-        if DataExchDef."Data Handling Codeunit" <> 0 then
-            Codeunit.Run(DataExchDef."Data Handling Codeunit", DataExch);
+        DataExchDef.ProcessDataExchange(DataExch);
 
         BridgeMapToStagingTables(EDocument, DataExch, TempBlob, DataExchDefCode, DocType);
         DeleteIntermediateData(DataExch);
@@ -551,5 +531,9 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     #endregion Integration Events
 
     var
+        InvoiceDefCodeTok: Label 'EDOCPEPPOLINVIMPV2', Locked = true;
+        CreditMemoDefCodeTok: Label 'EDOCPEPPOLCRMEMOIMPV2', Locked = true;
+        InvoiceNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
+        CreditNoteNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
         ProcessFailedErr: Label 'Failed to process the file with data exchange.';
 }

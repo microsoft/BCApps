@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,6 +18,7 @@ codeunit 6161 "E-Document Install"
     trigger OnInstallAppPerCompany()
     begin
         InsertDataExch();
+        InsertDataExchV2();
     end;
 
     trigger OnInstallAppPerDatabase()
@@ -45,6 +46,19 @@ codeunit 6161 "E-Document Install"
 
         if not UpgradeTag.HasUpgradeTag(GetEDOCDataExchUpdateTag()) then
             UpgradeTag.SetUpgradeTag(GetEDOCDataExchUpdateTag());
+    end;
+
+    internal procedure InsertDataExchV2()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetEDOCDataExchV2UpdateTag()) then
+            exit;
+
+        ImportInvoiceV2XML();
+        ImportCreditMemoV2XML();
+
+        UpgradeTag.SetUpgradeTag(GetEDOCDataExchV2UpdateTag());
     end;
 
     internal procedure ImportServiceInvoiceXML()
@@ -167,15 +181,59 @@ codeunit 6161 "E-Document Install"
         Clear(TempBlob);
     end;
 
+    internal procedure ImportInvoiceV2XML()
+    var
+        DataExchDef: Record "Data Exch. Def";
+        TempBlob: Codeunit "Temp Blob";
+        XMLOutStream: OutStream;
+        XMLInStream: InStream;
+        ResInStream: InStream;
+    begin
+        if DataExchDef.Get('EDOCPEPPOLINVIMPV2') then
+            DataExchDef.Delete(true);
+
+        NavApp.GetResource('DataExchange/e-Doc PEPPOL Invoice Import V2.xml', ResInStream);
+        TempBlob.CreateOutStream(XMLOutStream);
+        CopyStream(XMLOutStream, ResInStream);
+        TempBlob.CreateInStream(XMLInStream);
+        Xmlport.Import(Xmlport::"Imp / Exp Data Exch Def & Map", XMLInStream);
+        Clear(TempBlob);
+    end;
+
+    internal procedure ImportCreditMemoV2XML()
+    var
+        DataExchDef: Record "Data Exch. Def";
+        TempBlob: Codeunit "Temp Blob";
+        XMLOutStream: OutStream;
+        XMLInStream: InStream;
+        ResInStream: InStream;
+    begin
+        if DataExchDef.Get('EDOCPEPPOLCRMEMOIMPV2') then
+            DataExchDef.Delete(true);
+
+        NavApp.GetResource('DataExchange/e-Doc PEPPOL Cr. Memo Import V2.xml', ResInStream);
+        TempBlob.CreateOutStream(XMLOutStream);
+        CopyStream(XMLOutStream, ResInStream);
+        TempBlob.CreateInStream(XMLInStream);
+        Xmlport.Import(Xmlport::"Imp / Exp Data Exch Def & Map", XMLInStream);
+        Clear(TempBlob);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetEDOCDataExchUpdateTag());
+        PerCompanyUpgradeTags.Add(GetEDOCDataExchV2UpdateTag());
     end;
 
     local procedure GetEDOCDataExchUpdateTag(): Code[250]
     begin
         exit('MS-365688-EDOCDataExchPEPPOL-20231113');
+    end;
+
+    local procedure GetEDOCDataExchV2UpdateTag(): Code[250]
+    begin
+        exit('MS-EDOCDataExchPEPPOLV2-20260414');
     end;
 
     var

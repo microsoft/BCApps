@@ -355,5 +355,9 @@ codeunit 139897 "E-Doc Data Exch Tests"
             EDocumentInstall.ImportInvoiceXML();
         if not DataExchDef.Get('EDOCPEPPOLCRMEMOIMP') then
             EDocumentInstall.ImportCreditMemoXML();
+        if not DataExchDef.Get('EDOCPEPPOLINVIMPV2') then
+            EDocumentInstall.ImportInvoiceV2XML();
+        if not DataExchDef.Get('EDOCPEPPOLCRMEMOIMPV2') then
+            EDocumentInstall.ImportCreditMemoV2XML();
     end;
 }
