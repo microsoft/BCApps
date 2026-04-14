@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.AI;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.UOM;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -72,6 +73,9 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
                     EDocumentPurchaseLine.Modify();
                 until EDocumentPurchaseLine.Next() = 0;
 
+            // Resolve VAT Product Posting Groups from extracted VAT rates
+            ResolveVATProductPostingGroups(EDocument."Entry No", EDocumentPurchaseHeader);
+
             CopilotLineMatching(EDocument."Entry No");
         end;
 
@@ -79,8 +83,12 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         if EDocumentPurchaseLine.FindSet() then
             repeat
+                // Update total line amount on the header
+                EDocumentPurchaseHeader."Total Line Amount" := Round(EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount");
+                // Log telemetry and activity sessions
                 EDocImpSessionTelemetry.SetLine(EDocumentPurchaseLine.SystemId);
             until EDocumentPurchaseLine.Next() = 0;
+        EDocumentPurchaseHeader.Modify();
 
         LogAllActivitySessionChanges(EDocActivityLogSession);
 
@@ -136,6 +144,61 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         EDocActivityLogSession.GetAll(ActivityLogName, ActivityLogList, Found);
         foreach ActivityLog in ActivityLogList do
             ActivityLog.Log();
+    end;
+
+    local procedure ResolveVATProductPostingGroups(EDocumentEntryNo: Integer; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Vendor: Record Vendor;
+        VATRate: Decimal;
+        LineCount: Integer;
+    begin
+        if EDocumentPurchaseHeader."[BC] Vendor No." = '' then
+            exit;
+        if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+            exit;
+        if Vendor."VAT Bus. Posting Group" = '' then
+            exit;
+
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        LineCount := EDocumentPurchaseLine.Count();
+        if LineCount = 0 then
+            exit;
+
+        if EDocumentPurchaseLine.FindSet() then
+            repeat
+                VATRate := EDocumentPurchaseLine."VAT Rate";
+
+                // Single-line fallback: compute from header Total VAT
+                if (VATRate = 0) and (LineCount = 1) and
+                   (EDocumentPurchaseHeader."Total VAT" > 0) and (EDocumentPurchaseHeader."Sub Total" > 0)
+                then
+                    VATRate := Round((EDocumentPurchaseHeader."Total VAT" / EDocumentPurchaseHeader."Sub Total") * 100, 0.01);
+
+                if VATRate > 0 then begin
+                    EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" :=
+                        FindVATProductPostingGroup(Vendor."VAT Bus. Posting Group", VATRate);
+                    EDocumentPurchaseLine."[BC] VAT Rate Mismatch" :=
+                        EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" = '';
+                    EDocumentPurchaseLine.Modify();
+                end;
+            until EDocumentPurchaseLine.Next() = 0;
+    end;
+
+    local procedure FindVATProductPostingGroup(VATBusPostingGroup: Code[20]; VATRate: Decimal): Code[20]
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
+        VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
+            VATPostingSetup."VAT Calculation Type"::"Normal VAT",
+            VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+        VATPostingSetup.SetRange("VAT %", VATRate);
+        if VATPostingSetup.Count() = 1 then begin
+            VATPostingSetup.FindFirst();
+            exit(VATPostingSetup."VAT Prod. Posting Group");
+        end;
+        exit('');
     end;
 
     local procedure CopilotLineMatching(EDocumentEntryNo: Integer)
