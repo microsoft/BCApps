@@ -86,9 +86,61 @@ $typeCounts = $objects | Group-Object Type | Sort-Object Name |
 
 $extensionTypes = @('tableextension','pageextension','enumextension','reportextension','permissionsetextension')
 
-$subfolders = $objects | Group-Object Dir | ForEach-Object {
-    $dirObjects = $_.Group
-    $dir = $_.Name
+function Test-TypeGrouping([string]$Dir, [hashtable]$AllDirGroups) {
+    # Collect all objects in this dir and all its descendants
+    $allObjects = [System.Collections.Generic.List[PSCustomObject]]::new()
+    foreach ($key in $AllDirGroups.Keys) {
+        if ($key -eq $Dir -or $key.StartsWith("$Dir\") -or $key.StartsWith("$Dir/")) {
+            foreach ($obj in $AllDirGroups[$key]) { $allObjects.Add($obj) }
+        }
+    }
+    if ($allObjects.Count -eq 0) { return $false }
+    # A directory is a type-grouping if 90%+ of its objects (including children) are the same type
+    $dominant = $allObjects | Group-Object Type | Sort-Object Count -Descending | Select-Object -First 1
+    return ($dominant.Count / $allObjects.Count) -ge 0.9
+}
+
+# Group objects by directory
+$dirGroups = $objects | Group-Object Dir
+
+# Build lookup of dir -> objects for type-grouping detection
+$dirGroupLookup = @{}
+foreach ($g in $dirGroups) { $dirGroupLookup[$g.Name] = $g.Group }
+
+# Identify type-grouping dirs and map them to their parent
+$typeGroupingDirs = @{}
+foreach ($g in $dirGroups) {
+    if ($g.Name -ne '.' -and (Test-TypeGrouping $g.Name $dirGroupLookup)) {
+        $parent = Split-Path $g.Name -Parent
+        if (-not $parent) { $parent = '.' }
+        $typeGroupingDirs[$g.Name] = $parent
+    }
+}
+
+# Resolve rollup chains: if a type-grouping's parent is also a type-grouping, follow up
+function Get-FunctionalParent([string]$Dir) {
+    $target = $Dir
+    while ($typeGroupingDirs.ContainsKey($target)) {
+        $target = $typeGroupingDirs[$target]
+    }
+    return $target
+}
+
+# Build functional folder object lists (rolling up type-grouping children)
+$functionalDirs = @{}
+foreach ($g in $dirGroups) {
+    $dir = $g.Name
+    $target = Get-FunctionalParent $dir
+    if (-not $functionalDirs.ContainsKey($target)) {
+        $functionalDirs[$target] = [System.Collections.Generic.List[PSCustomObject]]::new()
+    }
+    foreach ($obj in $g.Group) { $functionalDirs[$target].Add($obj) }
+}
+
+# Score each functional folder
+$subfolders = $functionalDirs.GetEnumerator() | ForEach-Object {
+    $dir = $_.Key
+    $dirObjects = $_.Value
     $dirFull = if ($dir -eq '.') { $AppPath.Path } else { Join-Path $AppPath $dir }
 
     $tables     = @($dirObjects | Where-Object { $_.Type -in 'table','tableextension' }).Count
@@ -98,13 +150,12 @@ $subfolders = $objects | Group-Object Dir | ForEach-Object {
     $extensions = @($dirObjects | Where-Object { $_.Type -in $extensionTypes }).Count
 
     # Event detection
-    $dirAlFiles = $dirObjects | ForEach-Object { $_.Path }
     $hasPublishers  = $false
     $hasSubscribers = $false
     $hasComplex     = $false
 
-    foreach ($f in $dirAlFiles) {
-        $content = [System.IO.File]::ReadAllText($f)
+    foreach ($obj in $dirObjects) {
+        $content = [System.IO.File]::ReadAllText($obj.Path)
         if (-not $hasPublishers  -and $content -match '\[(IntegrationEvent|BusinessEvent)\]') { $hasPublishers = $true }
         if (-not $hasSubscribers -and $content -match '\[EventSubscriber\]') { $hasSubscribers = $true }
         if (-not $hasComplex) {
