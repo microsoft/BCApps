@@ -112,7 +112,9 @@ permissionset 20406 "QltyMgmt - Objects"
         page "Qlty. Manager Role Center" = X,
         page "Qlty. Management Setup Guide" = X,
 #if not CLEAN29
+#pragma warning disable AL0432
         page "Qlty. Demo Data Launcher" = X,
+#pragma warning restore AL0432
 #endif
         page "Qlty. Management Setup" = X,
         page "Qlty. Most Recent Picture" = X,
