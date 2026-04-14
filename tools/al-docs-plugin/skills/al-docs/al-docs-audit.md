@@ -100,8 +100,8 @@ Using results from Steps 1 and 2, build the list of expected files.
 
 | File | Required | Condition |
 |------|----------|-----------|
-| `/[subfolder]/docs/CLAUDE.md` | Yes | If scored MUST_DOCUMENT or SHOULD_DOCUMENT |
-| `/[subfolder]/docs/[additional].md` | Yes | If scored MUST_DOCUMENT (7+)  |
+| `/[subfolder]/CLAUDE.md` | Yes | If scored MUST_DOCUMENT or SHOULD_DOCUMENT |
+| `/[subfolder]/docs/[additional].md` | Yes | If scored MUST_DOCUMENT (7+) |
 
 ### Step 4: Compare expected vs actual and compile report
 
@@ -170,7 +170,7 @@ Present the audit as a single markdown report:
 
 | File | Issue | Recommendation |
 |------|-------|----------------|
-| `/src/Sales/README.md` | Uses README.md | Rename to `/src/Sales/docs/CLAUDE.md` |
+| `/src/Sales/README.md` | Uses README.md | Rename to `/src/Sales/CLAUDE.md` |
 
 ## AL object summary by subfolder
 

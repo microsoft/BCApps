@@ -152,14 +152,14 @@ Present the documentation map to the user:
 #### Subfolder: [path] (SHOULD_DOCUMENT)
 | File | Action | Purpose |
 |------|--------|---------|
-| `/[path]/docs/CLAUDE.md` | CREATE | Subfolder overview |
+| `/[path]/CLAUDE.md` | CREATE | Subfolder overview |
 
 SHOULD_DOCUMENT subfolders only get a CLAUDE.md -- nothing more.
 
 #### Subfolder: [path] (MUST_DOCUMENT)
 | File | Action | Purpose |
 |------|--------|---------|
-| `/[path]/docs/CLAUDE.md` | CREATE | Subfolder overview and key objects |
+| `/[path]/CLAUDE.md` | CREATE | Subfolder overview and key objects |
 | `/[path]/docs/[additional].md` | CREATE | See selection criteria below |
 
 MUST_DOCUMENT subfolders always get a CLAUDE.md. Additionally, select

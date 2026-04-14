@@ -96,7 +96,7 @@ Group changed files by their documentation scope:
 
 ### Coverage gap check
 
-In addition to change-driven updates, scan recursively for **existing subfolders at any depth that should have documentation but don't**. Use the scoring criteria in `skills/al-docs/references/al-scoring.md`. Any subfolder scoring MUST_DOCUMENT (7+) or SHOULD_DOCUMENT (4-6) that lacks `docs/CLAUDE.md` must be included in the update plan as a CREATE action.
+In addition to change-driven updates, scan recursively for **existing subfolders at any depth that should have documentation but don't**. Use the scoring criteria in `skills/al-docs/references/al-scoring.md`. Any subfolder scoring MUST_DOCUMENT (7+) or SHOULD_DOCUMENT (4-6) that lacks a `CLAUDE.md` must be included in the update plan as a CREATE action.
 
 ### Produce an update plan
 
@@ -121,7 +121,7 @@ Present the update plan to the user before writing anything:
 #### Subfolder: [path] (MUST_DOCUMENT)
 | File | Action | Purpose |
 |------|--------|---------|
-| `/[path]/docs/CLAUDE.md` | CREATE | Subfolder overview and key objects |
+| `/[path]/CLAUDE.md` | CREATE | Subfolder overview and key objects |
 | `/[path]/docs/[additional].md` | CREATE | See selection criteria below |
 
 MUST_DOCUMENT subfolders always get a CLAUDE.md. Additionally, select
@@ -142,7 +142,7 @@ would be insufficient.
 #### New documentation needed
 | File | Action | Reason |
 |------|--------|--------|
-| `/[path]/docs/CLAUDE.md` | CREATE | New subfolder with 8 AL objects (score: 6) |
+| `/[path]/CLAUDE.md` | CREATE | New subfolder with 8 AL objects (score: 6) |
 
 ### No update needed
 - `/[path]/docs/` -- no changes detected in this area
@@ -208,7 +208,7 @@ After all updates complete, generate a report:
 |------|--------|---------|
 | `/docs/data-model.md` | UPDATED | Added Customer Ledger Entry table section |
 | `/docs/business-logic.md` | UPDATED | Added posting codeunit documentation |
-| `/src/Sales/docs/CLAUDE.md` | CREATED | New subfolder documentation |
+| `/src/Sales/CLAUDE.md` | CREATED | New subfolder documentation |
 
 ### Potentially stale (needs human review)
 | File | Concern |
