@@ -143,7 +143,7 @@ codeunit 20419 "Qlty. Guided Experience"
 
         // Always register demo data item - it will check if Contoso is installed when opened
         GuidedExperience.InsertApplicationFeature(DemoDataTitleTxt, DemoDataShortTitleTxt, DemoDataDescriptionTxt, 3, ObjectType::Page,
-            Page::"Qlty. Demo Data Launcher");
+            Page::"Qlty. Management Setup");
         GuidedExperience.InsertApplicationFeature(QualityResultsTitleTxt, QualityResultsShortTitleTxt, QualityResultsDescriptionTxt, 4, ObjectType::Page,
             Page::"Qlty. Inspection Result List");
         GuidedExperience.InsertApplicationFeature(QualityTestsTitleTxt, QualityTestsShortTitleTxt, QualityTestsDescriptionTxt, 3, ObjectType::Page,
@@ -167,8 +167,8 @@ codeunit 20419 "Qlty. Guided Experience"
     begin
         GetQualityManagerRole(TempAllProfileQualityManager);
 
-        if SetupExists then
-            Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Demo Data Launcher", 1000, TempAllProfileQualityManager, true);
+        if SetupExists and (not IsEvaluationCompany()) then
+            Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Management Setup", 1000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Result List", 2000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Tests", 3000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Template List", 4000, TempAllProfileQualityManager, true);
@@ -199,5 +199,13 @@ codeunit 20419 "Qlty. Guided Experience"
             TempAllProfile.TransferFields(AllProfile);
             TempAllProfile.Insert();
         end;
+    end;
+
+    local procedure IsEvaluationCompany(): Boolean
+    var
+        Company: Record Company;
+    begin
+        if Company.Get(CompanyName()) then
+            exit(Company."Evaluation Company");
     end;
 }

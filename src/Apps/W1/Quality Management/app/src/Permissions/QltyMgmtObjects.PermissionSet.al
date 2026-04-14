@@ -111,7 +111,9 @@ permissionset 20406 "QltyMgmt - Objects"
         page "Qlty. Test Lookup Values" = X,
         page "Qlty. Manager Role Center" = X,
         page "Qlty. Management Setup Guide" = X,
+#if not CLEAN29
         page "Qlty. Demo Data Launcher" = X,
+#endif
         page "Qlty. Management Setup" = X,
         page "Qlty. Most Recent Picture" = X,
         page "Qlty. Prod. Gen. Rule S. Guide" = X,
