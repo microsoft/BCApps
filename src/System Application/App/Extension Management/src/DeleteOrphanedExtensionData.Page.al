@@ -64,6 +64,12 @@ page 2514 "Delete Orphaned Extension Data"
                     Caption = 'Published As';
                     ToolTip = 'Specifies whether the extension is published as a per-tenant, development, or a global extension.';
                 }
+                field("Is Reviewed"; Rec."Is Reviewed")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Reviewed';
+                    ToolTip = 'Specifies whether the orphaned extension data has been reviewed.';
+                }
 
                 label(Spacer)
                 {
@@ -124,6 +130,7 @@ page 2514 "Delete Orphaned Extension Data"
                 {
                     ApplicationArea = All;
                     Caption = 'Mark All as Reviewed';
+                    Enabled = HasUnreviewedExtensions;
                     Image = Approve;
                     ToolTip = 'Mark all orphaned extension data as reviewed. This acknowledges the data has been seen and suppresses future notifications.';
 
@@ -132,6 +139,7 @@ page 2514 "Delete Orphaned Extension Data"
                         ExtensionDatabaseManagement: Codeunit "Extension Database Management";
                     begin
                         ExtensionDatabaseManagement.MarkAllOrphanedExtensionDataAsReviewed();
+                        HasUnreviewedExtensions := false;
                         CurrPage.Update(false);
                     end;
                 }
@@ -146,6 +154,7 @@ page 2514 "Delete Orphaned Extension Data"
 
     trigger OnOpenPage()
     begin
+        UpdateHasUnreviewedExtensions();
         CurrPage.Update(false);
         DetermineEnvironmentConfigurations();
     end;
@@ -153,6 +162,7 @@ page 2514 "Delete Orphaned Extension Data"
     var
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         VersionDisplay: Text;
+        HasUnreviewedExtensions: Boolean;
         IsSaaS: Boolean;
         VersionFormatTxt: Label 'v. %1', Comment = 'v=version abbr, %1=Version string';
         ClearExtensionSchemaOrphanMsg: Label 'The %1 extension data was deleted.', Comment = '%1=The extension which data was deleted';
@@ -176,6 +186,15 @@ page 2514 "Delete Orphaned Extension Data"
     begin
         // Getting the version display text and adding a '- NotInstalled' if in SaaS for PerTenant extensions
         exit(StrSubstNo(VersionFormatTxt, Rec."Schema Version"));
+    end;
+
+    local procedure UpdateHasUnreviewedExtensions()
+    var
+        ExtensionDatabaseSnapshot: Record "Extension Database Snapshot";
+    begin
+        ExtensionDatabaseSnapshot.SetFilter(Status, '<>%1', ExtensionDatabaseSnapshot.Status::Installed);
+        ExtensionDatabaseSnapshot.SetRange("Is Reviewed", false);
+        HasUnreviewedExtensions := not ExtensionDatabaseSnapshot.IsEmpty();
     end;
 }
 
