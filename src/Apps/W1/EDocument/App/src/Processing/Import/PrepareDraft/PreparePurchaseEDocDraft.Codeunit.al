@@ -81,13 +81,16 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
             CopilotLineMatching(EDocument."Entry No");
         end;
 
-        // Log telemetry and activity sessions
         Clear(EDocumentPurchaseLine);
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         if EDocumentPurchaseLine.FindSet() then
             repeat
+                // Update total line amount on the header
+                EDocumentPurchaseHeader."Total Line Amount" := Round(EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount");
+                // Log telemetry and activity sessions
                 EDocImpSessionTelemetry.SetLine(EDocumentPurchaseLine.SystemId);
             until EDocumentPurchaseLine.Next() = 0;
+        EDocumentPurchaseHeader.Modify();
 
         // Log all accumulated activity session changes at the end
         LogAllActivitySessionChanges(EDocActivityLogSession);

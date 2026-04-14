@@ -180,6 +180,11 @@ page 6181 "E-Document Purchase Draft"
             group("E-Document Details")
             {
                 ShowCaption = false;
+                field("Total Line Amount"; EDocumentPurchaseHeader."Total Line Amount")
+                {
+                    ToolTip = 'Specifies the total of the lines amount values from all lines of the draft.';
+                    Importance = Promoted;
+                }
                 field("Amount Excl. VAT"; EDocumentPurchaseHeader."Sub Total")
                 {
                     Caption = 'Amount Excl. VAT';

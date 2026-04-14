@@ -224,6 +224,14 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Posting Description';
             DataClassification = CustomerContent;
         }
+        field(39; "Total Line Amount"; Decimal)
+        {
+            Caption = 'Total Line Amount';
+            DataClassification = CustomerContent;
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
+            Editable = false;
+        }
         #endregion Purchase fields
 
         #region Business Central Data - Validated fields [101-200]

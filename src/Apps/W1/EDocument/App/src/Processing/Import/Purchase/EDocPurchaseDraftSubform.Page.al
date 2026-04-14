@@ -424,10 +424,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
         if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
             exit;
         EDocumentPurchaseHeader."Sub Total" := 0;
+        EDocumentPurchaseHeader."Total Line Amount" := 0;
         TotalEDocPurchaseLine.SetRange("E-Document Entry No.", Rec."E-Document Entry No.");
         if TotalEDocPurchaseLine.FindSet() then
             repeat
                 EDocumentPurchaseHeader."Sub Total" += Round(TotalEDocPurchaseLine.Quantity * TotalEDocPurchaseLine."Unit Price", EDocumentImportHelper.GetCurrencyRoundingPrecision(EDocumentPurchaseHeader."Currency Code")) - TotalEDocPurchaseLine."Total Discount";
+                EDocumentPurchaseHeader."Total Line Amount" += LineAmount;
             until TotalEDocPurchaseLine.Next() = 0;
         EDocumentPurchaseHeader.Total := EDocumentPurchaseHeader."Sub Total" + EDocumentPurchaseHeader."Total VAT" - EDocumentPurchaseHeader."Total Discount";
         EDocumentPurchaseHeader.Modify();
