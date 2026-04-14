@@ -9,10 +9,8 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
-using Microsoft.Foundation.Company;
-using Microsoft.Purchases.Document;
-using Microsoft.Purchases.Vendor;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Utilities;
 
@@ -28,7 +26,7 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         BestDocType: Enum "E-Document Type";
     begin
         FindBestDataExchDef(TempBlob, BestDefCode, BestDocType);
-        RunPipelineAndBridge(EDocument, TempBlob, BestDefCode, BestDocType);
+        RunPipelineAndBridge(EDocument, TempBlob, BestDefCode);
         exit(MapDocumentTypeToProcessDraft(BestDocType));
     end;
 
@@ -89,10 +87,10 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     /// <summary>
     /// Runs the full Data Exchange pipeline via ProcessDataExchange, then
     /// bridge-maps intermediate data to v2 staging tables.
-    /// The v2 definitions have no pre-mapping codeunit, so ProcessDataExchange
-    /// runs Reading/Writing + Data Handling only — conformant with the framework.
+    /// The v2 definitions target staging tables (6100/6101) directly and have
+    /// no pre-mapping codeunit — conformant with the Data Exchange framework.
     /// </summary>
-    local procedure RunPipelineAndBridge(EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20]; DocType: Enum "E-Document Type")
+    local procedure RunPipelineAndBridge(EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20])
     var
         DataExch: Record "Data Exch.";
         DataExchDef: Record "Data Exch. Def";
@@ -108,156 +106,92 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
 
         DataExchDef.ProcessDataExchange(DataExch);
 
-        BridgeMapToStagingTables(EDocument, DataExch, TempBlob, DataExchDefCode, DocType);
+        BridgeToStagingTables(EDocument, DataExch);
         DeleteIntermediateData(DataExch);
     end;
 
-    local procedure BridgeMapToStagingTables(EDocument: Record "E-Document"; DataExch: Record "Data Exch."; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20]; DocType: Enum "E-Document Type")
+    local procedure BridgeToStagingTables(EDocument: Record "E-Document"; DataExch: Record "Data Exch.")
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);
 
-        MapIntermediateHeaderFields(DataExch, EDocumentPurchaseHeader);
-        MapIntermediateLineFields(EDocument, DataExch);
-        ProcessAttachments(EDocument, DataExch);
-        SupplementWithXPath(DocType, EDocumentPurchaseHeader, TempBlob, DataExchDefCode);
-
+        MapIntermediateToHeader(DataExch, EDocumentPurchaseHeader);
+        PostProcessHeader(EDocumentPurchaseHeader);
         EDocumentPurchaseHeader.Modify();
+
+        MapIntermediateToLines(EDocument, DataExch);
+        ProcessAttachments(EDocument, DataExch);
+
+        OnAfterBridgeToStagingTables(DataExch."Entry No.", EDocumentPurchaseHeader);
     end;
 
     #endregion Pipeline and Bridge
 
-    #region Header Field Mapping
+    #region Header Mapping
 
-    local procedure MapIntermediateHeaderFields(DataExch: Record "Data Exch."; var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    /// <summary>
+    /// Reads intermediate data targeting table 6100 (E-Document Purchase Header)
+    /// and assigns values to the staging record using the configured field mappings.
+    /// </summary>
+    local procedure MapIntermediateToHeader(DataExch: Record "Data Exch."; var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     var
         IntermediateDataImport: Record "Intermediate Data Import";
+        RecordRef: RecordRef;
+        FieldRef: FieldRef;
         FieldValue: Text;
     begin
-        // Map Purchase Header (Table 38) fields
         IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
-        IntermediateDataImport.SetRange("Table ID", Database::"Purchase Header");
+        IntermediateDataImport.SetRange("Table ID", Database::"E-Document Purchase Header");
         IntermediateDataImport.SetRange("Parent Record No.", 0);
-        if IntermediateDataImport.FindSet() then
-            repeat
-                FieldValue := CopyStr(IntermediateDataImport.GetValue(), 1, 250);
-                MapPurchaseHeaderField(IntermediateDataImport."Field ID", FieldValue, EDocumentPurchaseHeader);
-            until IntermediateDataImport.Next() = 0;
+        if not IntermediateDataImport.FindSet() then
+            exit;
 
-        // Map Company Information (Table 79) fields
-        IntermediateDataImport.Reset();
-        IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
-        IntermediateDataImport.SetRange("Table ID", Database::"Company Information");
-        if IntermediateDataImport.FindSet() then
-            repeat
-                FieldValue := CopyStr(IntermediateDataImport.GetValue(), 1, 250);
-                MapCompanyInfoField(IntermediateDataImport."Field ID", FieldValue, EDocumentPurchaseHeader);
-            until IntermediateDataImport.Next() = 0;
-
-        // Map Vendor (Table 23) fields
-        IntermediateDataImport.Reset();
-        IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
-        IntermediateDataImport.SetRange("Table ID", Database::"Vendor");
-        if IntermediateDataImport.FindSet() then
-            repeat
-                FieldValue := CopyStr(IntermediateDataImport.GetValue(), 1, 250);
-                MapVendorField(IntermediateDataImport."Field ID", FieldValue, EDocumentPurchaseHeader);
-            until IntermediateDataImport.Next() = 0;
-
-        OnAfterMapIntermediateHeaderToStaging(DataExch."Entry No.", EDocumentPurchaseHeader);
+        RecordRef.GetTable(EDocumentPurchaseHeader);
+        repeat
+            if RecordRef.FieldExist(IntermediateDataImport."Field ID") then begin
+                FieldRef := RecordRef.Field(IntermediateDataImport."Field ID");
+                FieldValue := CopyStr(IntermediateDataImport.GetValue(), 1, GetFieldMaxLength(FieldRef));
+                if FieldValue <> '' then
+                    AssignFieldValue(FieldRef, FieldValue);
+            end;
+        until IntermediateDataImport.Next() = 0;
+        RecordRef.SetTable(EDocumentPurchaseHeader);
     end;
 
-    local procedure MapPurchaseHeaderField(FieldId: Integer; FieldValue: Text; var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
-    var
-        PurchaseHeader: Record "Purchase Header";
-        DateVar: Date;
-        DecimalVar: Decimal;
+    /// <summary>
+    /// Post-processes header fields that cannot be handled by Data Exchange alone:
+    /// - Total VAT: calculated from Total - Sub Total - Total Discount
+    /// - Amount Due: copied from Total
+    /// - Currency Code: LCY-blank convention
+    /// </summary>
+    local procedure PostProcessHeader(var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     begin
-        case FieldId of
-            PurchaseHeader.FieldNo("Pay-to Name"):  // 5
-                if EDocumentPurchaseHeader."Vendor Company Name" = '' then
-                    EDocumentPurchaseHeader."Vendor Company Name" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Vendor Company Name"));
-            PurchaseHeader.FieldNo("Due Date"):  // 24
-                if Evaluate(DateVar, FieldValue, 9) then
-                    EDocumentPurchaseHeader."Due Date" := DateVar;
-            PurchaseHeader.FieldNo("Currency Code"):  // 32
-                SetCurrencyIfForeign(FieldValue, EDocumentPurchaseHeader."Currency Code");
-            PurchaseHeader.FieldNo("Applies-to Doc. No."):  // 53
-                EDocumentPurchaseHeader."Applies-to Ext. Invoice No." := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Applies-to Ext. Invoice No."));
-            PurchaseHeader.FieldNo(Amount):  // 60
-                if Evaluate(DecimalVar, FieldValue, 9) then
-                    EDocumentPurchaseHeader."Sub Total" := DecimalVar;
-            PurchaseHeader.FieldNo("Amount Including VAT"):  // 61
-                if Evaluate(DecimalVar, FieldValue, 9) then begin
-                    EDocumentPurchaseHeader.Total := DecimalVar;
-                    EDocumentPurchaseHeader."Amount Due" := DecimalVar;
-                end;
-            PurchaseHeader.FieldNo("Vendor Order No."):  // 66
-                EDocumentPurchaseHeader."Purchase Order No." := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."));
-            PurchaseHeader.FieldNo("Vendor Invoice No."):  // 68
-                EDocumentPurchaseHeader."Sales Invoice No." := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."));
-            PurchaseHeader.FieldNo("Vendor Cr. Memo No."):  // 69
-                EDocumentPurchaseHeader."Sales Invoice No." := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."));
-            PurchaseHeader.FieldNo("VAT Registration No."):  // 70
-                EDocumentPurchaseHeader."Vendor VAT Id" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Vendor VAT Id"));
-            PurchaseHeader.FieldNo("Buy-from Vendor Name"):  // 79
-                EDocumentPurchaseHeader."Vendor Company Name" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Vendor Company Name"));
-            PurchaseHeader.FieldNo("Buy-from Address"):  // 81
-                EDocumentPurchaseHeader."Vendor Address" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Vendor Address"));
-            PurchaseHeader.FieldNo("Document Date"):  // 99
-                if Evaluate(DateVar, FieldValue, 9) then
-                    EDocumentPurchaseHeader."Document Date" := DateVar;
-            PurchaseHeader.FieldNo("Invoice Discount Value"):  // 122
-                if Evaluate(DecimalVar, FieldValue, 9) then
-                    EDocumentPurchaseHeader."Total Discount" := DecimalVar;
-        // Fields 1, 2, 4, 11, 114 - skip (not mapped to staging)
-        end;
+        EDocumentPurchaseHeader."Total VAT" := EDocumentPurchaseHeader.Total - EDocumentPurchaseHeader."Sub Total" - EDocumentPurchaseHeader."Total Discount";
+        EDocumentPurchaseHeader."Amount Due" := EDocumentPurchaseHeader.Total;
+        ApplyLCYBlankConvention(EDocumentPurchaseHeader."Currency Code");
     end;
 
-    local procedure MapCompanyInfoField(FieldId: Integer; FieldValue: Text; var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        case FieldId of
-            CompanyInformation.FieldNo(Name):  // 2
-                if EDocumentPurchaseHeader."Customer Company Name" = '' then
-                    EDocumentPurchaseHeader."Customer Company Name" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Customer Company Name"));
-            CompanyInformation.FieldNo(Address):  // 4
-                if EDocumentPurchaseHeader."Customer Address" = '' then
-                    EDocumentPurchaseHeader."Customer Address" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Customer Address"));
-            CompanyInformation.FieldNo("VAT Registration No."):  // 19
-                if EDocumentPurchaseHeader."Customer VAT Id" = '' then
-                    EDocumentPurchaseHeader."Customer VAT Id" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Customer VAT Id"));
-            CompanyInformation.FieldNo(GLN):  // 90
-                if EDocumentPurchaseHeader."Customer GLN" = '' then
-                    EDocumentPurchaseHeader."Customer GLN" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Customer GLN"));
-        end;
-    end;
+    #endregion Header Mapping
 
-    local procedure MapVendorField(FieldId: Integer; FieldValue: Text; var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
-    var
-        Vendor: Record Vendor;
-    begin
-        case FieldId of
-            Vendor.FieldNo("VAT Registration No."):  // 86
-                if EDocumentPurchaseHeader."Vendor VAT Id" = '' then
-                    EDocumentPurchaseHeader."Vendor VAT Id" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseHeader."Vendor VAT Id"));
-        end;
-    end;
+    #region Line Mapping
 
-    #endregion Header Field Mapping
-
-    #region Line Field Mapping
-
-    local procedure MapIntermediateLineFields(EDocument: Record "E-Document"; DataExch: Record "Data Exch.")
+    /// <summary>
+    /// Reads intermediate data targeting table 6101 (E-Document Purchase Line)
+    /// and creates staging line records. Each distinct Record No. in intermediate
+    /// data becomes a separate staging line.
+    /// </summary>
+    local procedure MapIntermediateToLines(EDocument: Record "E-Document"; DataExch: Record "Data Exch.")
     var
         IntermediateDataImport: Record "Intermediate Data Import";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        RecordRef: RecordRef;
+        FieldRef: FieldRef;
+        FieldValue: Text;
         CurrRecordNo: Integer;
     begin
         IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
-        IntermediateDataImport.SetRange("Table ID", Database::"Purchase Line");
+        IntermediateDataImport.SetRange("Table ID", Database::"E-Document Purchase Line");
         IntermediateDataImport.SetCurrentKey("Record No.");
 
         if not IntermediateDataImport.FindSet() then
@@ -267,61 +201,42 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         repeat
             if CurrRecordNo <> IntermediateDataImport."Record No." then begin
                 if CurrRecordNo <> -1 then begin
+                    RecordRef.SetTable(EDocumentPurchaseLine);
+                    PostProcessLine(EDocumentPurchaseLine);
                     EDocumentPurchaseLine.Insert();
-                    OnAfterMapIntermediateLineToStaging(DataExch."Entry No.", CurrRecordNo, EDocumentPurchaseLine);
+                    OnAfterMapLineToStaging(DataExch."Entry No.", CurrRecordNo, EDocumentPurchaseLine);
                 end;
 
                 Clear(EDocumentPurchaseLine);
                 EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
                 EDocumentPurchaseLine."Line No." := EDocumentPurchaseLine.GetNextLineNo(EDocument."Entry No");
+                RecordRef.GetTable(EDocumentPurchaseLine);
                 CurrRecordNo := IntermediateDataImport."Record No.";
             end;
 
-            MapPurchaseLineField(IntermediateDataImport."Field ID", CopyStr(IntermediateDataImport.GetValue(), 1, 250), EDocumentPurchaseLine);
+            if RecordRef.FieldExist(IntermediateDataImport."Field ID") then begin
+                FieldRef := RecordRef.Field(IntermediateDataImport."Field ID");
+                FieldValue := CopyStr(IntermediateDataImport.GetValue(), 1, GetFieldMaxLength(FieldRef));
+                if FieldValue <> '' then
+                    AssignFieldValue(FieldRef, FieldValue);
+                RecordRef.SetTable(EDocumentPurchaseLine);
+                RecordRef.GetTable(EDocumentPurchaseLine);
+            end;
         until IntermediateDataImport.Next() = 0;
 
         // Insert last line
+        RecordRef.SetTable(EDocumentPurchaseLine);
+        PostProcessLine(EDocumentPurchaseLine);
         EDocumentPurchaseLine.Insert();
-        OnAfterMapIntermediateLineToStaging(DataExch."Entry No.", CurrRecordNo, EDocumentPurchaseLine);
+        OnAfterMapLineToStaging(DataExch."Entry No.", CurrRecordNo, EDocumentPurchaseLine);
     end;
 
-    local procedure MapPurchaseLineField(FieldId: Integer; FieldValue: Text; var EDocumentPurchaseLine: Record "E-Document Purchase Line")
-    var
-        PurchaseLine: Record "Purchase Line";
-        DecimalVar: Decimal;
+    local procedure PostProcessLine(var EDocumentPurchaseLine: Record "E-Document Purchase Line")
     begin
-        case FieldId of
-            PurchaseLine.FieldNo("No."):  // 6
-                if EDocumentPurchaseLine."Product Code" = '' then
-                    EDocumentPurchaseLine."Product Code" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseLine."Product Code"));
-            PurchaseLine.FieldNo(Description):  // 11
-                EDocumentPurchaseLine.Description := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseLine.Description));
-            PurchaseLine.FieldNo(Quantity):  // 15
-                if Evaluate(DecimalVar, FieldValue, 9) then
-                    EDocumentPurchaseLine.Quantity := DecimalVar;
-            PurchaseLine.FieldNo("Direct Unit Cost"):  // 22
-                if Evaluate(DecimalVar, FieldValue, 9) then
-                    EDocumentPurchaseLine."Unit Price" := DecimalVar;
-            PurchaseLine.FieldNo("VAT %"):  // 25
-                if Evaluate(DecimalVar, FieldValue, 9) then
-                    EDocumentPurchaseLine."VAT Rate" := DecimalVar;
-            PurchaseLine.FieldNo("Line Discount Amount"):  // 28
-                if Evaluate(DecimalVar, FieldValue, 9) then
-                    EDocumentPurchaseLine."Total Discount" := DecimalVar;
-            PurchaseLine.FieldNo(Amount):  // 29
-                if Evaluate(DecimalVar, FieldValue, 9) then
-                    EDocumentPurchaseLine."Sub Total" := DecimalVar;
-            PurchaseLine.FieldNo("Currency Code"):  // 91
-                SetCurrencyIfForeign(FieldValue, EDocumentPurchaseLine."Currency Code");
-            PurchaseLine.FieldNo("Unit of Measure Code"):  // 5407
-                EDocumentPurchaseLine."Unit of Measure" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseLine."Unit of Measure"));
-            PurchaseLine.FieldNo("Item Reference No."):  // 5725
-                EDocumentPurchaseLine."Product Code" := CopyStr(FieldValue, 1, MaxStrLen(EDocumentPurchaseLine."Product Code"));
-        // Fields 12, 30, 5415 - skip (no staging equivalent)
-        end;
+        ApplyLCYBlankConvention(EDocumentPurchaseLine."Currency Code");
     end;
 
-    #endregion Line Field Mapping
+    #endregion Line Mapping
 
     #region Attachment Processing
 
@@ -370,7 +285,6 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
             end;
         until IntermediateDataImport.Next() = 0;
 
-        // Process last attachment if any
         if FileName <> '' then begin
             AttachmentTempBlob.CreateInStream(InStream);
             EDocAttachmentProcessor.Insert(EDocument, InStream, FileName);
@@ -379,111 +293,48 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
 
     #endregion Attachment Processing
 
-    #region XPath Supplement
+    #region Field Value Helpers
 
-    /// <summary>
-    /// Extracts fields still blank on staging header via XPath from the raw XML.
-    /// Uses DataExchLineDef.GetPath() to look up the XPath for each field.
-    /// </summary>
-    local procedure SupplementWithXPath(DocType: Enum "E-Document Type"; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var TempBlob: Codeunit "Temp Blob"; DataExchDefCode: Code[20])
+    local procedure AssignFieldValue(var FieldRef: FieldRef; FieldValue: Text)
     var
-        CompanyInformation: Record "Company Information";
-        PurchaseHeader: Record "Purchase Header";
-        xmlDoc: XmlDocument;
-        InStream: InStream;
+        DateVar: Date;
+        DecimalVar: Decimal;
     begin
-        TempBlob.CreateInStream(InStream);
-        if not XmlDocument.ReadFrom(InStream, xmlDoc) then
-            exit;
-
-        if EDocumentPurchaseHeader."Customer VAT Id" = '' then
-            EDocumentPurchaseHeader."Customer VAT Id" := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo("VAT Registration No.")), 1, MaxStrLen(EDocumentPurchaseHeader."Customer VAT Id"));
-
-        if EDocumentPurchaseHeader."Customer GLN" = '' then
-            EDocumentPurchaseHeader."Customer GLN" := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(GLN)), 1, MaxStrLen(EDocumentPurchaseHeader."Customer GLN"));
-
-        if EDocumentPurchaseHeader."Customer Company Name" = '' then
-            EDocumentPurchaseHeader."Customer Company Name" := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(Name)), 1, MaxStrLen(EDocumentPurchaseHeader."Customer Company Name"));
-
-        if EDocumentPurchaseHeader."Customer Address" = '' then
-            EDocumentPurchaseHeader."Customer Address" := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Company Information", CompanyInformation.FieldNo(Address)), 1, MaxStrLen(EDocumentPurchaseHeader."Customer Address"));
-
-        if EDocumentPurchaseHeader."Sales Invoice No." = '' then
-            if DocType = DocType::"Purchase Invoice" then
-                EDocumentPurchaseHeader."Sales Invoice No." := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Invoice No.")), 1, MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."))
-            else
-                if DocType = DocType::"Purchase Credit Memo" then
-                    EDocumentPurchaseHeader."Sales Invoice No." := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Cr. Memo No.")), 1, MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."));
-
-        if EDocumentPurchaseHeader."Purchase Order No." = '' then
-            EDocumentPurchaseHeader."Purchase Order No." := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Vendor Order No.")), 1, MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."));
-
-        if EDocumentPurchaseHeader."Vendor Company Name" = '' then
-            EDocumentPurchaseHeader."Vendor Company Name" := CopyStr(ExtractXPathValue(xmlDoc, DataExchDefCode, Database::"Purchase Header", PurchaseHeader.FieldNo("Buy-from Vendor Name")), 1, MaxStrLen(EDocumentPurchaseHeader."Vendor Company Name"));
+        case FieldRef.Type of
+            FieldType::Text, FieldType::Code:
+                FieldRef.Value := CopyStr(FieldValue, 1, FieldRef.Length);
+            FieldType::Date:
+                if Evaluate(DateVar, FieldValue, 9) then
+                    FieldRef.Value := DateVar;
+            FieldType::Decimal:
+                if Evaluate(DecimalVar, FieldValue, 9) then
+                    FieldRef.Value := DecimalVar;
+        end;
     end;
 
-    local procedure ExtractXPathValue(var xmlDoc: XmlDocument; DataExchDefCode: Code[20]; TableId: Integer; FieldNo: Integer): Text
-    var
-        DataExchLineDef: Record "Data Exch. Line Def";
-        ImportXMLFileToDataExch: Codeunit "Import XML File to Data Exch.";
-        xmlNsManager: XmlNamespaceManager;
-        xmlAttrCollection: XmlAttributeCollection;
-        xmlAttribute: XmlAttribute;
-        xmlNode: XmlNode;
-        xmlElement: XmlElement;
-        XPath: Text;
+    local procedure GetFieldMaxLength(FieldRef: FieldRef): Integer
     begin
-        DataExchLineDef.SetRange("Data Exch. Def Code", DataExchDefCode);
-        DataExchLineDef.SetRange("Parent Code", '');
-        if not DataExchLineDef.FindFirst() then
-            exit('');
-
-        XPath := DataExchLineDef.GetPath(TableId, FieldNo);
-        if XPath = '' then
-            exit('');
-
-        XPath := ImportXMLFileToDataExch.EscapeMissingNamespacePrefix(XPath);
-
-        xmlNsManager.NameTable(xmlDoc.NameTable);
-        xmlDoc.GetRoot(xmlElement);
-
-        if xmlElement.NamespaceUri <> '' then
-            xmlNsManager.AddNamespace('', xmlElement.NamespaceUri);
-
-        xmlAttrCollection := xmlElement.Attributes();
-        foreach xmlAttribute in xmlAttrCollection do
-            if StrPos(xmlAttribute.Name, 'xmlns:') = 1 then
-                xmlNsManager.AddNamespace(DelStr(xmlAttribute.Name, 1, 6), xmlAttribute.Value);
-
-        if xmlDoc.SelectSingleNode(XPath, xmlNsManager, xmlNode) then
-            exit(xmlNode.AsXmlElement().InnerText());
-
-        exit('');
+        if FieldRef.Type in [FieldType::Text, FieldType::Code] then
+            exit(FieldRef.Length);
+        exit(250);
     end;
 
-    #endregion XPath Supplement
-
-    #region Currency Helper
-
     /// <summary>
-    /// BC convention: blank Currency Code means LCY. Sets the field to the currency code
-    /// only if it differs from LCY. Explicitly blanks the field when it matches LCY.
+    /// BC convention: blank Currency Code means LCY. Blanks the field when it matches LCY.
     /// </summary>
-    local procedure SetCurrencyIfForeign(CurrencyFromXml: Text; var CurrencyCode: Code[10])
+    local procedure ApplyLCYBlankConvention(var CurrencyCode: Code[10])
     var
         GLSetup: Record "General Ledger Setup";
     begin
-        if CurrencyFromXml = '' then
+        if CurrencyCode = '' then
             exit;
 
         GLSetup.GetRecordOnce();
-        if GLSetup."LCY Code" = CopyStr(CurrencyFromXml, 1, MaxStrLen(CurrencyCode)) then
-            CurrencyCode := ''
-        else
-            CurrencyCode := CopyStr(CurrencyFromXml, 1, MaxStrLen(CurrencyCode));
+        if GLSetup."LCY Code" = CurrencyCode then
+            CurrencyCode := '';
     end;
 
-    #endregion Currency Helper
+    #endregion Field Value Helpers
 
     #region Document Type Mapping
 
@@ -519,12 +370,12 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     #region Integration Events
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterMapIntermediateHeaderToStaging(DataExchNo: Integer; var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    local procedure OnAfterBridgeToStagingTables(DataExchNo: Integer; var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterMapIntermediateLineToStaging(DataExchNo: Integer; RecordNo: Integer; var EDocumentPurchaseLine: Record "E-Document Purchase Line")
+    local procedure OnAfterMapLineToStaging(DataExchNo: Integer; RecordNo: Integer; var EDocumentPurchaseLine: Record "E-Document Purchase Line")
     begin
     end;
 
