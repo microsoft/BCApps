@@ -653,11 +653,21 @@ table 30102 "Shpfy Shop"
             DataClassification = SystemMetadata;
             InitValue = true;
         }
+#if not CLEANSCHEMA32
         field(117; "B2B Enabled"; Boolean)
         {
             Caption = 'B2B Enabled';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'B2B features are now available on all Shopify plans.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
         field(118; "Can Update Shopify Companies"; Boolean)
         {
             Caption = 'Can Update Shopify Companies';
@@ -830,6 +840,11 @@ table 30102 "Shpfy Shop"
 #endif
         }
 #endif
+        field(207; "Advanced Shopify Plan"; Boolean)
+        {
+            Caption = 'Advanced Shopify Plan';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -1034,8 +1049,8 @@ table 30102 "Shpfy Shop"
         JResponse := CommunicationMgt.ExecuteGraphQL('{"query":"query { shop { name plan { publicDisplayName partnerDevelopment shopifyPlus } weightUnit } }"}');
         if JResponse.SelectToken('$.data.shop.plan', JItem) then
             if JItem.IsObject then
-                Rec."B2B Enabled" := JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
-                                        (JsonHelper.GetValueAsText(JItem, 'publicDisplayName') in ['Plus Trial', 'Development']);
+                Rec."Advanced Shopify Plan" := JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
+                                                (JsonHelper.GetValueAsText(JItem, 'publicDisplayName') in ['Plus Trial', 'Development', 'Advanced']);
         Rec."Weight Unit" := ConvertToWeightUnit(JsonHelper.GetValueAsText(JResponse, 'data.shop.weightUnit'));
     end;
 
