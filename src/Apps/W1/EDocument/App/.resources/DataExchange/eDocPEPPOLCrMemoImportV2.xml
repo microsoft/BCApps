@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <root>
-  <DataExchDef Code="EDOCPEPPOLCRMEMOIMPV2" Name="e-Doc PEPPOL - Credit Memo Import V2" Type="3" FileType="0" ReadingWritingCodeunit="1203" DataHandlingCodeunit="1214">
+  <DataExchDef Code="EDOCPEPCRMEMOIMPV2" Name="e-Doc PEPPOL - Credit Memo Import V2" Type="3" FileType="0" ReadingWritingCodeunit="1203" DataHandlingCodeunit="1214">
     <DataExchLineDef LineType="0" Code="PEPPOLCRMEMOHEADER" Name="PEPPOL - Credit Memo Header" ColumnCount="49" DataLineTag="/CreditNote" Namespace="urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2">
       <DataExchColumnDef ColumnNo="1" Name="ID" Show="true" DataType="0" Description="Vendor Credit Memo No." Path="/CreditNote/cbc:ID" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
       <DataExchColumnDef ColumnNo="2" Name="IssueDate" Show="true" DataType="0" Description="Order Date" Path="/CreditNote/cbc:IssueDate" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />

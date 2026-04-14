@@ -10,7 +10,6 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Utilities;
 
@@ -382,8 +381,8 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     #endregion Integration Events
 
     var
-        InvoiceDefCodeTok: Label 'EDOCPEPPOLINVIMPV2', Locked = true;
-        CreditMemoDefCodeTok: Label 'EDOCPEPPOLCRMEMOIMPV2', Locked = true;
+        InvoiceDefCodeTok: Label 'EDOCPEPINVIMPV2', Locked = true;
+        CreditMemoDefCodeTok: Label 'EDOCPEPCRMEMOIMPV2', Locked = true;
         InvoiceNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
         CreditNoteNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
         ProcessFailedErr: Label 'Failed to process the file with data exchange.';

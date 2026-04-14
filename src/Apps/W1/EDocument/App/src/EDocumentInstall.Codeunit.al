@@ -189,10 +189,10 @@ codeunit 6161 "E-Document Install"
         XMLInStream: InStream;
         ResInStream: InStream;
     begin
-        if DataExchDef.Get('EDOCPEPPOLINVIMPV2') then
+        if DataExchDef.Get('EDOCPEPINVIMPV2') then
             DataExchDef.Delete(true);
 
-        NavApp.GetResource('DataExchange/e-Doc PEPPOL Invoice Import V2.xml', ResInStream);
+        NavApp.GetResource('DataExchange/eDocPEPPOLInvoiceImportV2.xml', ResInStream);
         TempBlob.CreateOutStream(XMLOutStream);
         CopyStream(XMLOutStream, ResInStream);
         TempBlob.CreateInStream(XMLInStream);
@@ -208,10 +208,10 @@ codeunit 6161 "E-Document Install"
         XMLInStream: InStream;
         ResInStream: InStream;
     begin
-        if DataExchDef.Get('EDOCPEPPOLCRMEMOIMPV2') then
+        if DataExchDef.Get('EDOCPEPCRMEMOIMPV2') then
             DataExchDef.Delete(true);
 
-        NavApp.GetResource('DataExchange/e-Doc PEPPOL Cr. Memo Import V2.xml', ResInStream);
+        NavApp.GetResource('DataExchange/eDocPEPPOLCrMemoImportV2.xml', ResInStream);
         TempBlob.CreateOutStream(XMLOutStream);
         CopyStream(XMLOutStream, ResInStream);
         TempBlob.CreateInStream(XMLInStream);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <root>
-  <DataExchDef Code="EDOCPEPPOLINVIMPV2" Name="e-Doc PEPPOL - Invoice Import V2" Type="3" FileType="0" ReadingWritingCodeunit="1203" DataHandlingCodeunit="1214">
+  <DataExchDef Code="EDOCPEPINVIMPV2" Name="e-Doc PEPPOL - Invoice Import V2" Type="3" FileType="0" ReadingWritingCodeunit="1203" DataHandlingCodeunit="1214">
     <DataExchLineDef LineType="0" Code="PEPPOLINVHEADER" Name="PEPPOL - Invoice Header" ColumnCount="48" DataLineTag="/Invoice" Namespace="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
       <DataExchColumnDef ColumnNo="1" Name="ID" Show="true" DataType="0" Description="Vendor Invoice No." Path="/Invoice/cbc:ID" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
       <DataExchColumnDef ColumnNo="2" Name="IssueDate" Show="true" DataType="0" Description="Order Date" Path="/Invoice/cbc:IssueDate" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
