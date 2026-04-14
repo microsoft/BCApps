@@ -29,19 +29,12 @@ table 99001501 "Subc. Management Setup"
         field(40; "Subcontracting Template Name"; Code[10])
         {
             Caption = 'Subcontracting Journal Template Name';
-#pragma warning disable AL0432
-#pragma warning disable AL0520
-            TableRelation = "Req. Wksh. Template" where(Type = const("For. Labor"));
-#pragma warning restore AL0520
-#pragma warning restore AL0432
+            TableRelation = "Req. Wksh. Template" where(Type = const(Subcontracting));
         }
         field(50; "Subcontracting Batch Name"; Code[10])
         {
             Caption = 'Subcontracting Journal Batch Name';
-#pragma warning disable AL0432
-#pragma warning disable AL0520
-            TableRelation = "Requisition Wksh. Name".Name where("Template Type" = const("For. Labor"),
-#pragma warning restore AL0520
+            TableRelation = "Requisition Wksh. Name".Name where("Template Type" = const(Subcontracting),
                                                                 "Worksheet Template Name" = field("Subcontracting Template Name"));
 #pragma warning restore AL0432                                                                
         }
