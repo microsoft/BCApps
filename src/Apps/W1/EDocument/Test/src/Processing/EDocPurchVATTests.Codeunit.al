@@ -6,7 +6,6 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
-using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.Currency;
@@ -20,7 +19,7 @@ using Microsoft.Sales.Customer;
 using System.IO;
 using System.TestLibraries.Utilities;
 
-codeunit 139896 "E-Doc Purch. VAT Tests"
+codeunit 139897 "E-Doc Purch. VAT Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;
