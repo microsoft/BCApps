@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-    Produces a structured code map for an AL app directory.
+    Produces a raw code map for an AL app directory.
 .DESCRIPTION
-    Scans an AL codebase and outputs a markdown report with object inventory,
-    subfolder scoring, and documentation inventory.
+    Scans an AL codebase and outputs: app metadata, object counts per folder,
+    and existing documentation files. No scoring or filtering — just data.
 .PARAMETER Path
-    Path to the AL app directory (must contain .al files).
+    Path to the AL app directory.
 .EXAMPLE
     pwsh -File Get-ALCodeMap.ps1 -Path "src/Apps/W1/Shopify/App"
 #>
@@ -19,8 +19,6 @@ $ErrorActionPreference = 'Stop'
 
 $AppPath = Resolve-Path $Path
 
-# --- Helpers ---
-
 function Get-ObjectType([string]$FilePath) {
     $keywords = 'table|tableextension|page|pageextension|codeunit|report|reportextension|enum|enumextension|interface|query|xmlport|permissionset|permissionsetextension|profile|controladdin|entitlement'
     foreach ($line in [System.IO.File]::ReadLines($FilePath)) {
@@ -31,35 +29,12 @@ function Get-ObjectType([string]$FilePath) {
     return 'unknown'
 }
 
-function Get-Score($Stats) {
-    $score = 0
-    if ($Stats.Tables -ge 3)     { $score += 3 }
-    if ($Stats.Codeunits -ge 3)  { $score += 2 }
-    if ($Stats.Interfaces -ge 3) { $score += 3 }
-    if ($Stats.HasPublishers)    { $score += 1 }
-    if ($Stats.HasSubscribers)   { $score += 1 }
-    if ($Stats.Total -ge 10)     { $score += 2 }
-    if ($Stats.HasComplex)       { $score += 1 }
-    if ($Stats.Extensions -gt 0) { $score += 1 }
-    return $score
-}
+# --- App metadata ---
 
-function Get-Classification([int]$Score) {
-    if ($Score -ge 7) { return 'MUST_DOCUMENT' }
-    if ($Score -ge 4) { return 'SHOULD_DOCUMENT' }
-    if ($Score -ge 1) { return 'OPTIONAL' }
-    return 'SKIP'
-}
-
-# --- 1. App metadata ---
-
-$appJson = $null
 $appJsonPath = Join-Path $AppPath 'app.json'
-if (Test-Path $appJsonPath) {
-    $appJson = Get-Content $appJsonPath -Raw | ConvertFrom-Json
-}
+$appJson = if (Test-Path $appJsonPath) { Get-Content $appJsonPath -Raw | ConvertFrom-Json } else { $null }
 
-# --- 2. Scan all .al files ---
+# --- Scan all .al files ---
 
 $alFiles = Get-ChildItem -Path $AppPath -Filter '*.al' -Recurse -File
 if ($alFiles.Count -eq 0) {
@@ -70,212 +45,70 @@ if ($alFiles.Count -eq 0) {
 $objects = $alFiles | ForEach-Object {
     $relDir = $_.DirectoryName.Substring($AppPath.Path.Length).TrimStart([IO.Path]::DirectorySeparatorChar, '/')
     if (-not $relDir) { $relDir = '.' }
+    [PSCustomObject]@{ Type = Get-ObjectType $_.FullName; Dir = $relDir }
+}
+
+# --- Per-folder counts ---
+
+$folders = $objects | Group-Object Dir | ForEach-Object {
+    $group = $_.Group
+    $types = $group | Group-Object Type
+    $counts = @{}
+    foreach ($t in $types) { $counts[$t.Name] = $t.Count }
     [PSCustomObject]@{
-        Type = Get-ObjectType $_.FullName
-        Dir  = $relDir
-        Path = $_.FullName
-    }
-}
-
-# --- 3. Group by type for app-level summary ---
-
-$typeCounts = $objects | Group-Object Type | Sort-Object Name |
-    ForEach-Object { [PSCustomObject]@{ Type = $_.Name; Count = $_.Count } }
-
-# --- 4. Per-subfolder stats and scoring ---
-
-$extensionTypes = @('tableextension','pageextension','enumextension','reportextension','permissionsetextension')
-
-function Test-TypeGrouping([string]$Dir, [hashtable]$AllDirGroups) {
-    # Collect all objects in this dir and all its descendants
-    $allObjects = [System.Collections.Generic.List[PSCustomObject]]::new()
-    foreach ($key in $AllDirGroups.Keys) {
-        if ($key -eq $Dir -or $key.StartsWith("$Dir\") -or $key.StartsWith("$Dir/")) {
-            foreach ($obj in $AllDirGroups[$key]) { $allObjects.Add($obj) }
-        }
-    }
-    if ($allObjects.Count -eq 0) { return $false }
-    # A directory is a type-grouping if 90%+ of its objects (including children) are the same type
-    $dominant = $allObjects | Group-Object Type | Sort-Object Count -Descending | Select-Object -First 1
-    return ($dominant.Count / $allObjects.Count) -ge 0.9
-}
-
-# Group objects by directory
-$dirGroups = $objects | Group-Object Dir
-
-# Build lookup of dir -> objects for type-grouping detection
-$dirGroupLookup = @{}
-foreach ($g in $dirGroups) { $dirGroupLookup[$g.Name] = $g.Group }
-
-# Identify type-grouping dirs and map them to their parent
-$typeGroupingDirs = @{}
-foreach ($g in $dirGroups) {
-    if ($g.Name -ne '.' -and (Test-TypeGrouping $g.Name $dirGroupLookup)) {
-        $parent = Split-Path $g.Name -Parent
-        if (-not $parent) { $parent = '.' }
-        $typeGroupingDirs[$g.Name] = $parent
-    }
-}
-
-# Resolve rollup chains: if a type-grouping's parent is also a type-grouping, follow up
-function Get-FunctionalParent([string]$Dir) {
-    $target = $Dir
-    while ($typeGroupingDirs.ContainsKey($target)) {
-        $target = $typeGroupingDirs[$target]
-    }
-    return $target
-}
-
-# Build functional folder object lists (rolling up type-grouping children)
-$functionalDirs = @{}
-foreach ($g in $dirGroups) {
-    $dir = $g.Name
-    $target = Get-FunctionalParent $dir
-    if (-not $functionalDirs.ContainsKey($target)) {
-        $functionalDirs[$target] = [System.Collections.Generic.List[PSCustomObject]]::new()
-    }
-    foreach ($obj in $g.Group) { $functionalDirs[$target].Add($obj) }
-}
-
-# Score each functional folder
-$subfolders = $functionalDirs.GetEnumerator() | ForEach-Object {
-    $dir = $_.Key
-    $dirObjects = $_.Value
-    $dirFull = if ($dir -eq '.') { $AppPath.Path } else { Join-Path $AppPath $dir }
-
-    $tables     = @($dirObjects | Where-Object { $_.Type -in 'table','tableextension' }).Count
-    $codeunits  = @($dirObjects | Where-Object { $_.Type -eq 'codeunit' }).Count
-    $pages      = @($dirObjects | Where-Object { $_.Type -in 'page','pageextension' }).Count
-    $interfaces = @($dirObjects | Where-Object { $_.Type -eq 'interface' }).Count
-    $extensions = @($dirObjects | Where-Object { $_.Type -in $extensionTypes }).Count
-
-    # Event detection
-    $hasPublishers  = $false
-    $hasSubscribers = $false
-    $hasComplex     = $false
-
-    foreach ($obj in $dirObjects) {
-        $content = [System.IO.File]::ReadAllText($obj.Path)
-        if (-not $hasPublishers  -and $content -match '\[(IntegrationEvent|BusinessEvent)\]') { $hasPublishers = $true }
-        if (-not $hasSubscribers -and $content -match '\[EventSubscriber\]') { $hasSubscribers = $true }
-        if (-not $hasComplex) {
-            $procCount = ([regex]::Matches($content, '(?m)^\s*(local |internal )?procedure ')).Count
-            if ($procCount -ge 10) { $hasComplex = $true }
-        }
-    }
-
-    $stats = [PSCustomObject]@{
-        Tables        = $tables
-        Codeunits     = $codeunits
-        Interfaces    = $interfaces
-        Extensions    = $extensions
-        Total         = $dirObjects.Count
-        HasPublishers = $hasPublishers
-        HasSubscribers= $hasSubscribers
-        HasComplex    = $hasComplex
-    }
-
-    $score = Get-Score $stats
-    $events = @()
-    if ($hasPublishers)  { $events += 'pub' }
-    if ($hasSubscribers) { $events += 'sub' }
-    $eventsStr = if ($events.Count -gt 0) { $events -join '+' } else { '-' }
-
-    [PSCustomObject]@{
-        Dir            = $dir
-        Total          = $dirObjects.Count
-        Tables         = $tables
-        Codeunits      = $codeunits
-        Pages          = $pages
-        Interfaces     = $interfaces
-        Events         = $eventsStr
-        Extensions     = $extensions
-        Score          = $score
-        Classification = Get-Classification $score
+        Dir        = $_.Name
+        Total      = $group.Count
+        Tables     = ($counts['table'] ?? 0) + ($counts['tableextension'] ?? 0)
+        Codeunits  = $counts['codeunit'] ?? 0
+        Pages      = ($counts['page'] ?? 0) + ($counts['pageextension'] ?? 0)
+        Interfaces = $counts['interface'] ?? 0
+        Enums      = ($counts['enum'] ?? 0) + ($counts['enumextension'] ?? 0)
+        Other      = $group.Count - (($counts['table'] ?? 0) + ($counts['tableextension'] ?? 0) + ($counts['codeunit'] ?? 0) + ($counts['page'] ?? 0) + ($counts['pageextension'] ?? 0) + ($counts['interface'] ?? 0) + ($counts['enum'] ?? 0) + ($counts['enumextension'] ?? 0))
     }
 } | Sort-Object Dir
 
-# --- 5. Documentation inventory ---
+# --- Documentation inventory ---
 
-$docPatterns = @('CLAUDE.md','README.md')
+$docPatterns = @('CLAUDE.md', 'README.md')
 $docFileList = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
 Get-ChildItem -Path $AppPath -Include $docPatterns -Recurse -File -ErrorAction SilentlyContinue |
     ForEach-Object { $docFileList.Add($_) }
 Get-ChildItem -Path $AppPath -Filter 'docs' -Recurse -Directory -ErrorAction SilentlyContinue |
     ForEach-Object { Get-ChildItem -Path $_.FullName -Filter '*.md' -File -ErrorAction SilentlyContinue } |
     ForEach-Object { $docFileList.Add($_) }
-$docFiles = @($docFileList | Sort-Object FullName -Unique)
-
-$docInventory = @($docFiles | ForEach-Object {
+$docFiles = @($docFileList | Sort-Object FullName -Unique | ForEach-Object {
     $rel = $_.FullName.Substring($AppPath.Path.Length).TrimStart([IO.Path]::DirectorySeparatorChar, '/')
-    [PSCustomObject]@{
-        File  = $rel
-        Lines = ([System.IO.File]::ReadAllLines($_.FullName)).Count
-    }
+    [PSCustomObject]@{ File = $rel; Lines = ([System.IO.File]::ReadAllLines($_.FullName)).Count }
 })
 
-# --- 6. Output markdown ---
-
-$mustCount   = @($subfolders | Where-Object Classification -eq 'MUST_DOCUMENT').Count
-$shouldCount = @($subfolders | Where-Object Classification -eq 'SHOULD_DOCUMENT').Count
+# --- Output ---
 
 Write-Output '# AL Code Map'
 Write-Output ''
-Write-Output "**Target**: $AppPath"
-Write-Output "**Generated**: $(Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ')"
-Write-Output ''
 
-Write-Output '## App metadata'
-Write-Output ''
 if ($appJson) {
-    Write-Output '| Field | Value |'
-    Write-Output '|-------|-------|'
-    Write-Output "| Name | $($appJson.name) |"
-    Write-Output "| Version | $($appJson.version) |"
-    Write-Output "| ID | $($appJson.id) |"
+    Write-Output "**App**: $($appJson.name) v$($appJson.version) ($($appJson.id))"
 } else {
-    Write-Output "No app.json found. Using directory name: $(Split-Path $AppPath -Leaf)"
+    Write-Output "**App**: $(Split-Path $AppPath -Leaf) (no app.json)"
+}
+Write-Output "**Total AL objects**: $($alFiles.Count)"
+Write-Output ''
+
+Write-Output '## Folders'
+Write-Output ''
+Write-Output '| Folder | Total | Tables | Codeunits | Pages | Interfaces | Enums | Other |'
+Write-Output '|--------|-------|--------|-----------|-------|------------|-------|-------|'
+foreach ($f in $folders) {
+    Write-Output "| $($f.Dir) | $($f.Total) | $($f.Tables) | $($f.Codeunits) | $($f.Pages) | $($f.Interfaces) | $($f.Enums) | $($f.Other) |"
 }
 Write-Output ''
 
-Write-Output '## Object summary'
+Write-Output '## Existing docs'
 Write-Output ''
-Write-Output '| Type | Count |'
-Write-Output '|------|-------|'
-foreach ($tc in $typeCounts) {
-    Write-Output "| $($tc.Type) | $($tc.Count) |"
-}
-Write-Output "| **Total** | **$($alFiles.Count)** |"
-Write-Output ''
-
-Write-Output '## Subfolders'
-Write-Output ''
-Write-Output '| Subfolder | Total | Tables | Codeunits | Pages | Interfaces | Events | Ext | Score | Class |'
-Write-Output '|-----------|-------|--------|-----------|-------|------------|--------|-----|-------|-------|'
-foreach ($sf in $subfolders) {
-    Write-Output "| $($sf.Dir) | $($sf.Total) | $($sf.Tables) | $($sf.Codeunits) | $($sf.Pages) | $($sf.Interfaces) | $($sf.Events) | $($sf.Extensions) | $($sf.Score) | $($sf.Classification) |"
-}
-Write-Output ''
-
-Write-Output '## Documentation inventory'
-Write-Output ''
-if ($docInventory.Count -gt 0) {
+if ($docFiles.Count -gt 0) {
     Write-Output '| File | Lines |'
     Write-Output '|------|-------|'
-    foreach ($doc in $docInventory) {
-        Write-Output "| $($doc.File) | $($doc.Lines) |"
-    }
+    foreach ($d in $docFiles) { Write-Output "| $($d.File) | $($d.Lines) |" }
 } else {
-    Write-Output '_(no documentation files found)_'
+    Write-Output '_(none)_'
 }
-Write-Output ''
-
-Write-Output '## Quick stats'
-Write-Output ''
-Write-Output '| Metric | Value |'
-Write-Output '|--------|-------|'
-Write-Output "| Total AL objects | $($alFiles.Count) |"
-Write-Output "| Subfolders | $($subfolders.Count) |"
-Write-Output "| MUST_DOCUMENT | $mustCount |"
-Write-Output "| SHOULD_DOCUMENT | $shouldCount |"
-Write-Output "| Doc files found | $($docInventory.Count) |"
