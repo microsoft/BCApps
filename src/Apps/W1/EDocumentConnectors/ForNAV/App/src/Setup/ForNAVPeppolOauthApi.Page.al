@@ -17,6 +17,7 @@ page 6411 "ForNAV Peppol Oauth API"
     DelayedInsert = true;
     Caption = 'ForNavPeppolOauth';
     Extensible = false;
+    AboutText = 'Provides access to Peppol OAuth configuration data from the ForNAV Peppol Setup table, including client credentials, tenant identifiers, scopes, and token endpoints. Supports insert operations for provisioning and updating OAuth settings to enable automated Peppol e-document exchange through the ForNAV connector.';
 
     layout
     {

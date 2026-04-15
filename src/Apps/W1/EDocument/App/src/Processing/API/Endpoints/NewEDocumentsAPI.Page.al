@@ -36,6 +36,7 @@ page 6115 "New E-Documents API"
     Extensible = false;
     DeleteAllowed = false;
     DelayedInsert = true;
+    AboutText = 'Creates new inbound electronic documents by accepting file content, file name, file type, and target service code. Supports POST operations for submitting e-documents into Business Central for processing, enabling external document exchange platforms and automation systems to push received electronic invoices and credit memos into the e-document import pipeline.';
 
     Permissions =
         tabledata "E-Document Service" = r;

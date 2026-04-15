@@ -18,6 +18,7 @@ page 30305 "API Finance - GL Budgets"
     DeleteAllowed = false;
     SourceTable = "G/L Budget Name";
     ODataKeyFields = SystemId;
+    AboutText = 'Provides access to general ledger budget name data from the G/L Budget Name table, including budget names, descriptions, blocked status, and budget dimension codes. Supports read-only GET operations for retrieving budget definitions to enable integration with external financial reporting and budgeting platforms.';
 
     layout
     {

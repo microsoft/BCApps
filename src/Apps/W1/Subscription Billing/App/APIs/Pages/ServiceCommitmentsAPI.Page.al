@@ -14,6 +14,7 @@ page 8018 "Service Commitments API"
     Extensible = false;
     Editable = false;
     DataAccessIntent = ReadOnly;
+    AboutText = 'Exposes subscription line records including pricing, billing periods, contract assignments, terms, renewal details, and currency information. Provides read-only access for integrating subscription commitment data with external billing engines, revenue forecasting tools, and subscription analytics platforms.';
 
     layout
     {

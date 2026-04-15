@@ -18,6 +18,7 @@ page 30307 "API Finance - Customer"
     DeleteAllowed = false;
     SourceTable = "Customer";
     ODataKeyFields = SystemId;
+    AboutText = 'Provides access to customer data from the Customer table, including customer numbers, names, contact types, addresses, salesperson codes, balances due, credit limits, and blocked status. Supports read-only GET operations for retrieving customer records to enable integration with external financial reporting and accounts receivable platforms.';
 
     layout
     {

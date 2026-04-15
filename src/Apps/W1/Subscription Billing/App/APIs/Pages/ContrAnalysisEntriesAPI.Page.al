@@ -15,6 +15,7 @@ page 8087 "Contr. Analysis Entries API"
     ODataKeyFields = SystemId;
     Editable = false;
     DataAccessIntent = ReadOnly;
+    AboutText = 'Exposes subscription contract analysis entries including monthly recurring revenue, recurring costs, pricing, billing periods, and contract terms. Provides read-only access for integrating contract analytics with external business intelligence tools, revenue forecasting systems, and subscription performance dashboards.';
 
     layout
     {

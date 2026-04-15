@@ -13,6 +13,7 @@ page 8050 "Sales Person API"
     PageType = API;
     SourceTable = "Salesperson/Purchaser";
     ODataKeyFields = SystemId;
+    AboutText = 'Exposes salesperson and purchaser records including their code and name. Provides read-only access for external systems to retrieve salesperson data needed for mapping sales representatives in subscription billing and contract management integrations.';
 
     layout
     {

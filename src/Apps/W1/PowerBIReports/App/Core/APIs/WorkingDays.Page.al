@@ -21,6 +21,7 @@ page 36960 "Working Days"
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
+    AboutText = 'Provides access to working day data from the Working Day table, filtered to days marked as working days. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {

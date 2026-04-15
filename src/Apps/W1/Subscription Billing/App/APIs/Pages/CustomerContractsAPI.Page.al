@@ -14,6 +14,7 @@ page 8024 "Customer Contracts API"
     Extensible = false;
     Editable = false;
     DataAccessIntent = ReadOnly;
+    AboutText = 'Exposes customer subscription contracts including sell-to and bill-to details, payment terms, billing schedules, dimensions, and contract lines. Provides read-only access for synchronizing customer contract data with external CRM systems, billing platforms, and revenue management solutions.';
 
     layout
     {

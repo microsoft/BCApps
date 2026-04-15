@@ -15,6 +15,7 @@ page 8048 "Vend. Contract Deferrals API"
     ODataKeyFields = SystemId;
     Editable = false;
     DataAccessIntent = ReadOnly;
+    AboutText = 'Exposes vendor subscription contract deferral records including posting dates, amounts, release status, and general ledger entry references. Provides read-only access for integrating deferred cost data with external financial reporting systems, expense recognition platforms, and accounts payable auditing tools.';
 
     layout
     {

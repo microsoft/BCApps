@@ -20,6 +20,7 @@ page 37083 "Close Opp. Code - PBI API"
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
+    AboutText = 'Provides access to close opportunity code data from the Close Opportunity Code table, including codes, types, and descriptions. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {
