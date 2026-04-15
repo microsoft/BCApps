@@ -20,7 +20,7 @@ codeunit 4310 "Agent Task Builder Impl."
         GlobalAgentUserSecurityId: Guid;
         GlobalTaskTitle: Text[150];
         GlobalExternalID: Text[2048];
-        GlobalBillingType: Enum "AgentTaskBillingType";
+        GlobalBillingType: Enum "Agent Task Billing Type";
 
     [Scope('OnPrem')]
     procedure Initialize(NewAgentUserSecurityId: Guid; NewTaskTitle: Text[150]): codeunit "Agent Task Builder Impl."
@@ -65,7 +65,7 @@ codeunit 4310 "Agent Task Builder Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure SetBillingType(BillingType: Enum "AgentTaskBillingType"): codeunit "Agent Task Builder Impl."
+    procedure SetBillingType(BillingType: Enum "Agent Task Billing Type"): codeunit "Agent Task Builder Impl."
     begin
         GlobalBillingType := BillingType;
         exit(this);
