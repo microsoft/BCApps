@@ -9,7 +9,6 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using System.Telemetry;
@@ -23,7 +22,6 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
 
     var
         Telemetry: Codeunit "Telemetry";
-        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         InvoiceAlreadyExistsErr: Label 'A purchase invoice with external document number %1 already exists for vendor %2.', Comment = '%1 = Vendor Invoice No., %2 = Vendor No.';
         DraftLineDoesNotConstantTypeAndNumberErr: Label 'One of the draft lines do not contain the type and number. Please, specify these fields manually.';
 
@@ -34,7 +32,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         EDocPurchaseDocumentHelper: Codeunit "E-Doc. Purch. Doc. Helper";
-        DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EmptyRecordId: RecordId;
         IEDocumentFinishPurchaseDraft: Interface IEDocumentCreatePurchaseInvoice;
         YourMatchedLinesAreNotValidErr: Label 'The purchase invoice cannot be created because one or more of its matched lines are not valid matches. Review if your configuration allows for receiving at invoice.';
@@ -63,20 +61,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
             PurchaseHeader := IEDocumentFinishPurchaseDraft.CreatePurchaseInvoice(EDocument);
 
         EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
-        PurchaseHeader.SetRecFilter();
-        PurchaseHeader.FindFirst();
-        PurchaseHeader."Doc. Amount Incl. VAT" := EDocumentPurchaseHeader.Total;
-        PurchaseHeader."Doc. Amount VAT" := EDocumentPurchaseHeader."Total VAT";
-        PurchaseHeader.TestField("No.");
-        PurchaseHeader."E-Document Link" := EDocument.SystemId;
-        PurchaseHeader.Modify();
-
-        // Post document creation
-        DocumentAttachmentMgt.CopyAttachments(EDocument, PurchaseHeader);
-        DocumentAttachmentMgt.DeleteAttachedDocuments(EDocument);
-
-        // Post document validation - Silently emit telemetry
-        EDocImpSessionTelemetry.SetBool('Totals Validation', EDocPurchaseDocumentHelper.TryValidateDocumentTotals(PurchaseHeader));
+        EDocPurchaseDocumentHelper.FinalizeCreatedDocument(EDocument, PurchaseHeader);
 
         exit(PurchaseHeader.RecordId);
     end;
@@ -85,19 +70,15 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
     var
         PurchaseHeader: Record "Purchase Header";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
-        DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
+        EDocPurchaseDocumentHelper: Codeunit "E-Doc. Purch. Doc. Helper";
     begin
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
         if not PurchaseHeader.FindFirst() then
             exit;
 
         EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader);
-        DocumentAttachmentMgt.CopyAttachments(PurchaseHeader, EDocument);
-        DocumentAttachmentMgt.DeleteAttachedDocuments(PurchaseHeader);
-
         PurchaseHeader.TestField("Document Type", "Purchase Document Type"::Invoice);
-        Clear(PurchaseHeader."E-Document Link");
-        PurchaseHeader.Modify();
+        EDocPurchaseDocumentHelper.RevertCreatedDocument(EDocument);
     end;
 
     procedure CreatePurchaseInvoice(EDocument: Record "E-Document"): Record "Purchase Header"
@@ -144,6 +125,8 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         end;
 
         PurchaseHeader.Validate("Vendor Invoice No.", VendorInvoiceNo);
+        if EDocumentPurchaseHeader."Purchase Order No." <> '' then
+            PurchaseHeader."Vendor Order No." := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseHeader."Vendor Order No."));
         PurchaseHeader.Insert(true);
 
         PurchaseHeader."Invoice Received Date" := PurchaseHeader."Document Date";

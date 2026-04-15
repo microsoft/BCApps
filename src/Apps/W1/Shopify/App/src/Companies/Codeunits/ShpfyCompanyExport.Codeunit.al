@@ -59,6 +59,7 @@ codeunit 30284 "Shpfy Company Export"
             exit;
         end;
 
+        ShopifyCompany.SetRange("Shop Code", Shop.Code);
         ShopifyCompany.SetRange("External Id", Customer."No.");
         if not ShopifyCompany.IsEmpty() then begin
             SkippedRecord.LogSkippedRecord(Customer.RecordId, StrSubstNo(CompanyWithExternalIdExistsLbl, Customer."No."), Shop);

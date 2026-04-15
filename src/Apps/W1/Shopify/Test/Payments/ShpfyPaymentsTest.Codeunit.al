@@ -11,11 +11,25 @@ using System.TestLibraries.Utilities;
 codeunit 139566 "Shpfy Payments Test"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var
+        Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
+        isInitialized: Boolean;
+
+    local procedure Initialize()
+    var
+        ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
+    begin
+        if isInitialized then
+            exit;
+
+        Shop := ShpfyInitializeTest.CreateShop();
+        isInitialized := true;
+    end;
 
     [Test]
     procedure UnitTestImportPayoutWithExternalTraceId()
@@ -27,17 +41,48 @@ codeunit 139566 "Shpfy Payments Test"
         JPayout: JsonObject;
     begin
         // [SCENARIO] Import payout correctly imports the externalTraceId field (2026-01 API)
+        Initialize();
+
         // [GIVEN] A random Generated Payout with externalTraceId
         Id := Any.IntegerInRange(10000, 99999);
         ExpectedExternalTraceId := Any.AlphanumericText(50);
         JPayout := GetRandomPayout(Id, ExpectedExternalTraceId);
 
         // [WHEN] Invoke the function ImportPayout(JPayout)
+        PaymentsAPI.SetShop(Shop);
         PaymentsAPI.ImportPayout(JPayout);
 
-        // [THEN] We must find the "Shpfy Payout" record with the correct externalTraceId
+        // [THEN] We must find the "Shpfy Payout" record with the correct externalTraceId and Shop Code
         LibraryAssert.IsTrue(Payout.Get(Id), 'Get "Shpfy Payout" record');
         LibraryAssert.AreEqual(ExpectedExternalTraceId, Payout."External Trace Id", 'External Trace Id should match');
+        LibraryAssert.AreEqual(Shop.Code, Payout."Shop Code", 'Shop Code should match');
+    end;
+
+    [Test]
+    procedure UnitTestImportPayoutBackfillsShopCode()
+    var
+        Payout: Record "Shpfy Payout";
+        PaymentsAPI: Codeunit "Shpfy Payments API";
+        Id: BigInteger;
+        JPayout: JsonObject;
+    begin
+        // [SCENARIO] Re-importing a payout that exists without Shop Code backfills the Shop Code
+        Initialize();
+
+        // [GIVEN] An existing payout record imported without a shop context (blank Shop Code)
+        Id := Any.IntegerInRange(10000, 99999);
+        JPayout := GetRandomPayout(Id, Any.AlphanumericText(50));
+        PaymentsAPI.ImportPayout(JPayout);
+        LibraryAssert.IsTrue(Payout.Get(Id), 'Payout should be created');
+        LibraryAssert.AreEqual('', Payout."Shop Code", 'Shop Code should initially be blank');
+
+        // [WHEN] The payout is re-imported with a shop context
+        PaymentsAPI.SetShop(Shop);
+        PaymentsAPI.ImportPayout(JPayout);
+
+        // [THEN] The Shop Code is backfilled on the existing record
+        Payout.Get(Id);
+        LibraryAssert.AreEqual(Shop.Code, Payout."Shop Code", 'Shop Code should be backfilled on existing payout');
     end;
 
     local procedure GetRandomPayout(Id: BigInteger; ExternalTraceId: Text): JsonObject
@@ -55,7 +100,7 @@ codeunit 139566 "Shpfy Payments Test"
         JNet.Add('amount', Any.DecimalInRange(1000, 2));
         JNet.Add('currencyCode', 'USD');
         JPayout.Add('net', JNet);
-        
+
         // Add summary with fee/gross amounts
         JAmount.Add('amount', 0);
         JSummary.Add('adjustmentsFee', JAmount);
@@ -69,7 +114,7 @@ codeunit 139566 "Shpfy Payments Test"
         JSummary.Add('retriedPayoutsFee', JAmount);
         JSummary.Add('retriedPayoutsGross', JAmount);
         JPayout.Add('summary', JSummary);
-        
+
         exit(JPayout);
     end;
 
@@ -82,15 +127,19 @@ codeunit 139566 "Shpfy Payments Test"
         JPayment: JsonObject;
     begin
         // [SCENARIO] Extract the data out json token that contains a payment info into the "Shpfy Payment Transaction" record.
+        Initialize();
+
         // [GIVEN] A random Generated Payment
         Id := Any.IntegerInRange(10000, 99999);
         JPayment := GetRandomPayment(Id);
 
         // [WHEN] Invoke the function ImportPaymentTransaction(JPayment)
+        PaymentsAPI.SetShop(Shop);
         PaymentsAPI.ImportPaymentTransaction(JPayment);
 
-        // [THEN] We must find the "Shpfy Payment" record with the same id
+        // [THEN] We must find the "Shpfy Payment" record with the same id and Shop Code
         LibraryAssert.IsTrue(PaymentTransaction.Get(Id), 'Get "Shpfy Payment Transaction" record');
+        LibraryAssert.AreEqual(Shop.Code, PaymentTransaction."Shop Code", 'Shop Code should match');
     end;
 
     [Test]
@@ -104,17 +153,21 @@ codeunit 139566 "Shpfy Payments Test"
         Id: BigInteger;
     begin
         // [SCENARIO] Extract the data out json token that contains a Dispute info into the "Shpfy Dispute" record.
+        Initialize();
+
         // [GIVEN] A random Generated Dispute
         Id := Any.IntegerInRange(10000, 99999);
         JDispute := GetRandomDispute(Id, DisputeStatus, FinalizedOn);
 
         // [WHEN] Invoke the function ImportDispute(JToken)
+        PaymentsAPI.SetShop(Shop);
         PaymentsAPI.ImportDispute(JDispute);
 
-        // // [THEN] A dispute record is created and the dispute status and finalized on should match the generated one
+        // [THEN] A dispute record is created and the dispute status, finalized on, and shop code should match
         Dispute.Get(Id);
         LibraryAssert.AreEqual(DisputeStatus, Dispute.Status, 'Dispute status should match the generated one');
         LibraryAssert.AreEqual(FinalizedOn, Dispute."Finalized On", 'Dispute finalized on should match the generated one');
+        LibraryAssert.AreEqual(Shop.Code, Dispute."Shop Code", 'Shop Code should match');
     end;
 
     local procedure GetRandomPayment(id: BigInteger): JsonObject
