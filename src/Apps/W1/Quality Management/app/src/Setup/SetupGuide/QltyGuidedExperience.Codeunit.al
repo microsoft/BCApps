@@ -167,7 +167,7 @@ codeunit 20419 "Qlty. Guided Experience"
     begin
         GetQualityManagerRole(TempAllProfileQualityManager);
 
-        if SetupExists and (not IsEvaluationCompany()) then
+        if SetupExists and (not IsCurrentCompanyEvaluationCompany()) then
             Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Management Setup", 1000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Result List", 2000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Tests", 3000, TempAllProfileQualityManager, true);
@@ -201,7 +201,7 @@ codeunit 20419 "Qlty. Guided Experience"
         end;
     end;
 
-    local procedure IsEvaluationCompany(): Boolean
+    local procedure IsCurrentCompanyEvaluationCompany(): Boolean
     var
         Company: Record Company;
     begin
