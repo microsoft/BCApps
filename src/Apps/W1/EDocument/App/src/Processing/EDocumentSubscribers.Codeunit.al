@@ -195,6 +195,28 @@ codeunit 6103 "E-Document Subscribers"
     end;
     #endregion Release events
 
+    #region After release events
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnAfterReleasePurchaseDoc', '', false, false)]
+    local procedure OnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean; SkipWhseRequestOperations: Boolean)
+    var
+        EDocumentHelper: Codeunit "E-Document Helper";
+        DocumentSendingProfile: Record "Document Sending Profile";
+        SourceDocumentHeader: RecordRef;
+    begin
+        if PreviewMode then
+            exit;
+
+        if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
+            exit;
+
+        SourceDocumentHeader.GetTable(PurchaseHeader);
+        if not EDocumentHelper.IsElectronicDocument(SourceDocumentHeader, DocumentSendingProfile) then
+            exit;
+
+        CreateEDocumentFromPostedDocument(SourceDocumentHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Purchase Order");
+    end;
+    #endregion After release events
+
     #region Posting check events
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterCheckAndUpdate', '', false, false)]
     local procedure OnAfterCheckAndUpdateSales(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean)

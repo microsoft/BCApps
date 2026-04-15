@@ -110,8 +110,11 @@ codeunit 6102 "E-Doc. Export"
         Code: Code[20];
     begin
         EDocument.SetRange("Document Record ID", DocumentHeader.RecordId);
-        if not EDocument.IsEmpty() then
+        if not EDocument.IsEmpty() then begin
+            if ReExportEDocumentFromUnpostedDocument(EDocument, DocumentHeader, EDocumentService, EDocumentType) then
+                exit(true);
             exit(false);
+        end;
 
         if EDocumentService.FindSet() then
             repeat
@@ -145,6 +148,34 @@ codeunit 6102 "E-Doc. Export"
             EDocumentProcessing.ModifyEDocumentStatus(EDocument);
         end;
 
+        exit(true);
+    end;
+
+    local procedure ReExportEDocumentFromUnpostedDocument(var EDocument: Record "E-Document"; var DocumentHeader: RecordRef; var EDocumentService: Record "E-Document Service"; EDocumentType: Enum "E-Document Type"): Boolean
+    var
+        PurchaseHeader: Record "Purchase Header";
+        SupportedServices: List of [Code[20]];
+        SupportedService: Code[20];
+    begin
+        EDocument.FindFirst();
+        if DocumentHeader.Number = Database::"Purchase Header" then begin
+            PurchaseHeader.Get(DocumentHeader.RecordId);
+            if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
+                exit(false);
+        end;
+        if EDocumentService.FindSet() then
+            repeat
+                if IsDocumentSupported(EDocumentService, DocumentHeader, EDocumentType) then
+                    SupportedServices.Add(EDocumentService.Code);
+            until EDocumentService.Next() = 0;
+
+        if SupportedServices.Count() = 0 then
+            exit(false);
+
+        foreach SupportedService in SupportedServices do begin
+            EDocumentService.Get(SupportedService);
+            EDocumentProcessing.ModifyServiceStatus(EDocument, EDocumentService, Enum::"E-Document Service Status"::Created);
+        end;
         exit(true);
     end;
 

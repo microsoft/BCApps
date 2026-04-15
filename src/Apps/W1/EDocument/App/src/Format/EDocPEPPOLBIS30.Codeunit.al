@@ -90,6 +90,8 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
                 GenerateShipmentXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
             EDocument."Document Type"::"Transfer Shipment":
                 GenerateTransferShipmentXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
+            EDocument."Document Type"::"Purchase Order":
+                GeneratePurchaseOrderXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
             else
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(DocumentTypeNotSupportedErr, EDocument.FieldCaption("Document Type"), EDocument."Document Type"));
         end;
@@ -171,6 +173,19 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         TransferShipmentExport.SetGeneratePDF(GeneratePDF);
         TransferShipmentExport.Run(TransferShipmentHeader);
         TransferShipmentExport.GetTransferShipmentXML(TempBlob);
+        CopyStream(DocOutStream, TempBlob.CreateInStream());
+    end;
+
+    local procedure GeneratePurchaseOrderXMLFile(var SourceDocumentHeader: RecordRef; DocOutStream: OutStream; GeneratePDF: Boolean)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseOrderExport: Codeunit "E-Doc. Purchase Order To XML";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        SourceDocumentHeader.SetTable(PurchaseHeader);
+        PurchaseOrderExport.SetGeneratePDF(GeneratePDF);
+        PurchaseOrderExport.Run(PurchaseHeader);
+        PurchaseOrderExport.GetPurchaseOrderXML(TempBlob);
         CopyStream(DocOutStream, TempBlob.CreateInStream());
     end;
 
