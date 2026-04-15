@@ -13,7 +13,7 @@ using System.Utilities;
 /// Helper implementation for SharePoint file operations using Microsoft Graph API.
 /// This codeunit contains the actual Graph API logic, called by the main connector based on account settings.
 /// </summary>
-codeunit 4581 "Ext. SharePoint Graph Helper"
+codeunit 4610 "Ext. SharePoint Graph Helper"
 {
     Access = Internal;
     InherentEntitlements = X;

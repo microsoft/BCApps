@@ -12,7 +12,7 @@ using System.Utilities;
 /// Helper implementation for SharePoint file operations using SharePoint REST API.
 /// This codeunit contains the actual REST API logic, called by the main connector based on account settings.
 /// </summary>
-codeunit 4582 "Ext. SharePoint REST Helper"
+codeunit 4609 "Ext. SharePoint REST Helper"
 {
     Access = Internal;
     InherentEntitlements = X;

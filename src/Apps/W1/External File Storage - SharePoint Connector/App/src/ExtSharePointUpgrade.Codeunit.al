@@ -7,7 +7,7 @@ namespace System.ExternalFileStorage;
 
 using System.Upgrade;
 
-codeunit 4583 "Ext. SharePoint Upgrade"
+codeunit 4608 "Ext. SharePoint Upgrade"
 {
     Access = Internal;
     InherentEntitlements = X;
