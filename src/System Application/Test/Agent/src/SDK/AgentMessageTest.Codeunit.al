@@ -193,6 +193,64 @@ codeunit 133963 "Agent Message Test"
         Assert.IsTrue(TempAgentTaskFile.IsEmpty(), 'No attachments should exist');
     end;
 
+#if not CLEAN30
+    [Test]
+    procedure UpdateTextDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalMessageText: Text;
+        UpdatedMessageText: Text;
+        OriginalFrom: Text[250];
+        ExternalIdTok: Label 'MSG-TEST-005', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] UpdateText with var record should only modify Content even when the caller's record has dirty field values
+
+        // [GIVEN] A test agent with a task and message that has its status set to Sent
+        OriginalFrom := 'Test User';
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalMessageText := Any.AlphanumericText(2048);
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Update Text Test Task')
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage(OriginalFrom, OriginalMessageText);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+        AgentTaskMessageRecord := AgentTaskBuilder.GetAgentTaskMessageCreated();
+
+        AgentMessage.SetStatusToSent(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID);
+
+        // Re-read the record to get the committed state
+        AgentTaskMessageRecord.Get(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID);
+
+        // Modify a field on the local record variable without saving to DB
+        AgentTaskMessageRecord.From := 'Dirty Value';
+
+        // [WHEN] UpdateText is called with the dirty record via the old var-record overload
+        UpdatedMessageText := Any.AlphanumericText(2048);
+#pragma warning disable AL0432
+        AgentMessage.UpdateText(AgentTaskMessageRecord, UpdatedMessageText);
+#pragma warning restore AL0432
+
+        // [THEN] Only the Content should be updated; the dirty From value should not be persisted
+        AgentTaskMessageRecord.Get(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID);
+        Assert.AreEqual(UpdatedMessageText, AgentMessage.GetText(AgentTaskMessageRecord), 'Message text should be updated');
+        Assert.AreEqual(OriginalFrom, AgentTaskMessageRecord.From, 'From field should not be overwritten by dirty record passed to UpdateText');
+    end;
+#endif
+
     #endregion
 
     #region Agent Task Message Builder Tests
