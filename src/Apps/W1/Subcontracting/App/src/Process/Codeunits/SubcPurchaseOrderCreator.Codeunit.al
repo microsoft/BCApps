@@ -199,7 +199,6 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
     local procedure CheckProdOrderRtngLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line")
     var
-        GenProductPostingGroup: Record "Gen. Product Posting Group";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         WorkCenter: Record "Work Center";
@@ -224,10 +223,6 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
         WorkCenter.TestField("Subcontractor No.");
         WorkCenter.TestField("Gen. Prod. Posting Group");
-
-        GenProductPostingGroup.SetLoadFields("Def. VAT Prod. Posting Group");
-        GenProductPostingGroup.Get(WorkCenter."Gen. Prod. Posting Group");
-        GenProductPostingGroup.TestField("Def. VAT Prod. Posting Group");
 
         ProdOrderLine.FindFirst();
         PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.");
