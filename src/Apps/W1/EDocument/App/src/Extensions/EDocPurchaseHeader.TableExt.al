@@ -43,6 +43,7 @@ tableextension 6169 "E-Doc. Purchase Header" extends "Purchase Header"
         if EDocument.FindFirst() then
             EDocument.TestField(Status, "E-Document Status"::Canceled);
     end;
+
     internal procedure IsLinkedToEDoc(EDocumentToExclude: Record "E-Document"): Boolean
     begin
         exit(not IsNullGuid("E-Document Link") and ("E-Document Link" <> EDocumentToExclude.SystemId));
