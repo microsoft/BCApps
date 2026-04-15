@@ -11,6 +11,7 @@ schedules:
     - releases/25.*
     - releases/26.*
     - releases/27.*
+    - releases/28.*
 
 pool:
   name: 'd365bc-agentpool-nonprod'

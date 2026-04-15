@@ -15,7 +15,6 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Configuration.Template;
-using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.Sales.Customer;
 using Microsoft.Warehouse.Structure;
 using System.IO;
@@ -74,7 +73,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="ObjectID">Input/Output: Current table ID; updated with selected table ID</param>
     /// <param name="ObjectIdFilter">Filter expression to limit table choices (e.g., "50000..99999" for custom tables)</param>
-    procedure RunModalLookupTable(var ObjectID: Integer; ObjectIdFilter: Text)
+    internal procedure RunModalLookupTable(var ObjectID: Integer; ObjectIdFilter: Text)
     var
         AllObjWithCaption: Record AllObjWithCaption;
         Objects: Page Objects;
@@ -106,7 +105,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// Common usage: User-friendly table selection where table name is stored as text rather than ID.
     /// </summary>
     /// <param name="TableReference">Input/Output: Table name or ID as text; updated with selected table's Object Name</param>
-    procedure RunModalLookupTableFromText(var TableReference: Text)
+    internal procedure RunModalLookupTableFromText(var TableReference: Text)
     var
         AllObjWithCaption: Record AllObjWithCaption;
         ConfigValidateManagement: Codeunit "Config. Validate Management";
@@ -141,7 +140,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="TableReference">Input/Output: Table name or ID; prompts for table if blank</param>
     /// <param name="FieldReference">Output: Selected field number as text (e.g., "10" for field 10)</param>
-    procedure RunModalLookupFieldFromText(var TableReference: Text; var FieldReference: Text)
+    internal procedure RunModalLookupFieldFromText(var TableReference: Text; var FieldReference: Text)
     var
         CurrentTable: Integer;
         CurrentField: Integer;
@@ -315,7 +314,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <param name="RecordRef"></param>
     /// <param name="ExpressionConditionalFilterSyntax"></param>
     /// <returns></returns>
-    procedure SetFiltersByExpressionSyntax(var RecordRef: RecordRef; ExpressionConditionalFilterSyntax: Text)
+    internal procedure SetFiltersByExpressionSyntax(var RecordRef: RecordRef; ExpressionConditionalFilterSyntax: Text)
     var
         FieldRefToSetRangeFilter: FieldRef;
         OfFields: List of [Text];
@@ -344,7 +343,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <param name="TableNo"></param>
     /// <param name="OptionalTypeFilter">Use -1 to indicate 'any' type.</param>
     /// <returns>-1 if no field selected. </returns>
-    procedure RunModalLookupAnyField(TableNo: Integer; OptionalTypeFilter: Integer; OptionalNameFilter: Text): Integer
+    internal procedure RunModalLookupAnyField(TableNo: Integer; OptionalTypeFilter: Integer; OptionalNameFilter: Text): Integer
     var
         CurrentField: Record Field;
         FieldSelection: Codeunit "Field Selection";
@@ -379,7 +378,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// <param name="LocationFilter"></param>
     /// <param name="ToZoneCodeFilter"></param>
     /// <returns></returns>
-    procedure AssistEditZone(LocationFilter: Code[20]; var ToZoneCodeFilter: Code[20]): Boolean
+    internal procedure AssistEditZone(LocationFilter: Code[20]; var ToZoneCodeFilter: Code[20]): Boolean
     var
         Zone: Record "Zone";
         ZoneList: Page "Zone List";
@@ -405,7 +404,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditBin(LocationFilter: Code[20]; ToZoneFilter: Code[20]; var ToBinCodeFilter: Code[20]): Boolean
+    internal procedure AssistEditBin(LocationFilter: Code[20]; ToZoneFilter: Code[20]; var ToBinCodeFilter: Code[20]): Boolean
     var
         Bin: Record "Bin";
         BinList: Page "Bin List";
@@ -431,7 +430,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditItemNo(var ItemNoFilter: Code[20]): Boolean
+    internal procedure AssistEditItemNo(var ItemNoFilter: Code[20]): Boolean
     var
         Item: Record "Item";
         ItemList: Page "Item List";
@@ -456,7 +455,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="ItemCategoryCodeFilter"></param>
     /// <returns></returns>
-    procedure AssistEditItemCategory(var ItemCategoryCodeFilter: Code[20]): Boolean
+    internal procedure AssistEditItemCategory(var ItemCategoryCodeFilter: Code[20]): Boolean
     var
         ItemCategory: Record "Item Category";
         ItemCategories: Page "Item Categories";
@@ -476,7 +475,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditInventoryPostingGroup(var InventoryPostingGroupCode: Code[20]): Boolean
+    internal procedure AssistEditInventoryPostingGroup(var InventoryPostingGroupCode: Code[20]): Boolean
     var
         InventoryPostingGroup: Record "Inventory Posting Group";
         InventoryPostingGroups: Page "Inventory Posting Groups";
@@ -501,7 +500,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="VendorNoFilter"></param>
     /// <returns></returns>
-    procedure AssistEditVendor(var VendorNoFilter: Code[20]): Boolean
+    internal procedure AssistEditVendor(var VendorNoFilter: Code[20]): Boolean
     var
         Vendor: Record Vendor;
         VendorList: Page "Vendor List";
@@ -526,7 +525,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="CustomerNoFilter"></param>
     /// <returns></returns>
-    procedure AssistEditCustomer(var CustomerNoFilter: Code[20]): Boolean
+    internal procedure AssistEditCustomer(var CustomerNoFilter: Code[20]): Boolean
     var
         Customer: Record Customer;
         CustomerList: Page "Customer List";
@@ -551,7 +550,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="MachineNoFilter"></param>
     /// <returns></returns>
-    procedure AssistEditMachine(var MachineNoFilter: Code[20]): Boolean
+    internal procedure AssistEditMachine(var MachineNoFilter: Code[20]): Boolean
     var
         MachineCenter: Record "Machine Center";
         MachineCenterList: Page "Machine Center List";
@@ -576,7 +575,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="RoutingNoFilter"></param>
     /// <returns></returns>
-    procedure AssistEditRouting(var RoutingNoFilter: Code[20]): Boolean
+    internal procedure AssistEditRouting(var RoutingNoFilter: Code[20]): Boolean
     var
         RoutingHeader: Record "Routing Header";
         RoutingList: Page "Routing List";
@@ -596,13 +595,12 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditRoutingOperation(InRoutingNoFilter: Code[20]; var OperationNoFilter: Code[20]): Boolean
+    internal procedure AssistEditRoutingOperation(InRoutingNoFilter: Code[20]; var OperationNoFilter: Code[20]): Boolean
     var
         RoutingLine: Record "Routing Line";
-        QltyRoutingLineLookup: Page "Qlty. Routing Line Lookup";
-
+        RoutingLineList: Page "Routing Line List";
     begin
-        QltyRoutingLineLookup.LookupMode(true);
+        RoutingLineList.LookupMode(true);
 
         if InRoutingNoFilter <> '' then
             RoutingLine.SetFilter("Routing No.", InRoutingNoFilter);
@@ -610,20 +608,20 @@ codeunit 20403 "Qlty. Filter Helpers"
         if OperationNoFilter <> '' then begin
             RoutingLine.SetFilter("Operation No.", OperationNoFilter);
             if RoutingLine.FindSet() then
-                QltyRoutingLineLookup.SetRecord(RoutingLine);
+                RoutingLineList.SetRecord(RoutingLine);
             RoutingLine.SetRange("Operation No.");
         end;
 
-        QltyRoutingLineLookup.SetTableView(RoutingLine);
+        RoutingLineList.SetTableView(RoutingLine);
 
-        if QltyRoutingLineLookup.RunModal() in [Action::LookupOK, Action::OK] then begin
-            QltyRoutingLineLookup.GetRecord(RoutingLine);
+        if RoutingLineList.RunModal() in [Action::LookupOK, Action::OK] then begin
+            RoutingLineList.GetRecord(RoutingLine);
             OperationNoFilter := RoutingLine."Operation No.";
             exit(true);
         end;
     end;
 
-    procedure AssistEditWorkCenter(var RoutingNoFilter: Code[20]): Boolean
+    internal procedure AssistEditWorkCenter(var RoutingNoFilter: Code[20]): Boolean
     var
         WorkCenter: Record "Work Center";
         WorkCenterList: Page "Work Center List";
@@ -643,7 +641,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditPurchasingCode(var PurchasingCode: Code[20]): Boolean
+    internal procedure AssistEditPurchasingCode(var PurchasingCode: Code[20]): Boolean
     var
         Purchasing: Record Purchasing;
         ListPurchasingCodes: Page "Purchasing Codes";
@@ -663,7 +661,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditReturnReasonCode(var ReturnReasonCode: Code[20]): Boolean
+    internal procedure AssistEditReturnReasonCode(var ReturnReasonCode: Code[20]): Boolean
     var
         ReturnReason: Record "Return Reason";
         ReturnReasons: Page "Return Reasons";
@@ -683,7 +681,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditQltyInspectionTemplate(var QltyInspectionTemplateCode: Code[20]): Boolean
+    internal procedure AssistEditQltyInspectionTemplate(var QltyInspectionTemplateCode: Code[20]): Boolean
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionTemplateList: Page "Qlty. Inspection Template List";
@@ -703,7 +701,7 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure AssistEditLocation(var LocationCodeFilter: Code[20]): Boolean
+    internal procedure AssistEditLocation(var LocationCodeFilter: Code[20]): Boolean
     var
         Location: Record Location;
         LocationList: Page "Location List";
@@ -744,12 +742,12 @@ codeunit 20403 "Qlty. Filter Helpers"
         end;
     end;
 
-    procedure CleanUpWhereClause2048(Input: Text) ResultText: Text[2048]
+    internal procedure CleanUpWhereClause2048(Input: Text) ResultText: Text[2048]
     begin
         ResultText := CopyStr(CleanUpWhereClause(Input), 1, MaxStrLen(ResultText));
     end;
 
-    procedure CleanUpWhereClause(Input: Text) ResultText: Text
+    internal procedure CleanUpWhereClause(Input: Text) ResultText: Text
     var
         FindWhere: Integer;
     begin
@@ -769,7 +767,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="AttributeFilter">A=Filter(B),C=Filter(D),E=Filter(F)</param>
     /// <param name="TempFilterItemAttributesBuffer"></param>
-    procedure DeserializeFilterIntoItemAttributesBuffer(AttributeFilter: Text; var TempFilterItemAttributesBuffer: Record "Filter Item Attributes Buffer" temporary)
+    internal procedure DeserializeFilterIntoItemAttributesBuffer(AttributeFilter: Text; var TempFilterItemAttributesBuffer: Record "Filter Item Attributes Buffer" temporary)
     var
         TempRegexMatches: Record Matches temporary;
         TempRegexGroups: Record Groups temporary;
@@ -799,7 +797,7 @@ codeunit 20403 "Qlty. Filter Helpers"
     /// </summary>
     /// <param name="TempFilterItemAttributesBuffer"></param>
     /// <returns>A=Filter(B),C=Filter(D),E=Filter(F)</returns>
-    procedure SerializeItemAttributesBufferIntoText(var TempFilterItemAttributesBuffer: Record "Filter Item Attributes Buffer" temporary) Result: Text
+    internal procedure SerializeItemAttributesBufferIntoText(var TempFilterItemAttributesBuffer: Record "Filter Item Attributes Buffer" temporary) Result: Text
     begin
         TempFilterItemAttributesBuffer.Reset();
         if TempFilterItemAttributesBuffer.FindSet() then

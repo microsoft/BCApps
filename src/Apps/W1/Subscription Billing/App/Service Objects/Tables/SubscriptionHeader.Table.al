@@ -3,13 +3,18 @@ namespace Microsoft.SubscriptionBilling;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
+using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
@@ -71,6 +76,8 @@ table 8057 "Subscription Header"
 
                 if not SkipEndUserContact then
                     UpdateEndUserCont("End-User Customer No.");
+
+                "Salesperson Code" := Cust."Salesperson Code";
 
                 if (xRec."End-User Customer No." <> '') and (xRec."End-User Customer No." <> "End-User Customer No.") then
                     RecallModifyAddressNotification(GetModifyCustomerAddressNotificationId());
@@ -369,14 +376,13 @@ table 8057 "Subscription Header"
         {
             Caption = 'Quantity';
             InitValue = 1;
-            NotBlank = true;
             AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
             begin
-                if Quantity <= 0 then
-                    Error(QtyZeroOrNegativeErr);
+                if Quantity < 0 then
+                    Error(QtyNegativeErr);
                 if (Quantity <> 1) and ("Serial No." <> '') then
                     Error(SerialQtyErr);
                 Rec.ArchiveServiceCommitments();
@@ -436,6 +442,7 @@ table 8057 "Subscription Header"
                                     Error(ItemBlockedOrWithoutServiceCommitmentsErr, "Source No.");
                                 Description := ContractsItemManagement.GetItemTranslation("Source No.", "Variant Code", "End-User Customer No.");
                                 Validate("Unit of Measure", Item."Sales Unit of Measure");
+                                UpdateVendorAndManufacturerFromItem(Item);
                                 if CurrFieldNo = FieldNo("Source No.") then
                                     InsertServiceCommitmentsFromStandardServCommPackages();
                                 if "Serial No." <> '' then
@@ -908,12 +915,132 @@ table 8057 "Subscription Header"
             else
             if (Type = const("G/L Account")) "Unit of Measure";
         }
+        field(8000; "Vendor No."; Code[20])
+        {
+            Caption = 'Vendor No.';
+            TableRelation = Vendor;
+            ToolTip = 'Specifies the no. of the default vendor of this item.';
+
+            trigger OnValidate()
+            begin
+                if "Vendor No." <> xRec."Vendor No." then
+                    UpdateVendorName();
+            end;
+        }
+        field(8001; "Vendor Name"; Text[100])
+        {
+            Caption = 'Vendor Name';
+            ToolTip = 'Specifies the name of the default vendor of this item.';
+            TableRelation = Vendor.Name;
+            ValidateTableRelation = false;
+
+            trigger OnValidate()
+            var
+                Vendor: Record Vendor;
+            begin
+                if "Vendor Name" <> xRec."Vendor Name" then
+                    if ShouldSearchForVendorByName("Vendor No.") then
+                        Validate("Vendor No.", Vendor.GetVendorNo("Vendor Name"));
+            end;
+
+            trigger OnLookup()
+            var
+                Vendor: Record Vendor;
+            begin
+                if Page.RunModal(Page::"Vendor List", Vendor) = Action::LookupOK then
+                    Validate("Vendor No.", Vendor."No.");
+            end;
+        }
+        field(8002; "Vendor Name 2"; Text[50])
+        {
+            Caption = 'Vendor Name 2';
+            ToolTip = 'Specifies an additional part of the name of the default vendor of this item.';
+        }
+        field(8003; "Vendor Item No."; Text[50])
+        {
+            Caption = 'Vendor Item No.';
+            Editable = false;
+            ToolTip = 'Specifies the default vendor''s item no.';
+        }
+        field(8010; "Manufacturer Code"; Code[10])
+        {
+            Caption = 'Manufacturer Code';
+            TableRelation = Manufacturer;
+            ToolTip = 'Specifies the code of the manufacturer of this item.';
+
+            trigger OnValidate()
+            begin
+                if "Manufacturer Code" <> xRec."Manufacturer Code" then
+                    UpdateManufacturerName();
+            end;
+        }
+        field(8011; "Manufacturer Name"; Text[50])
+        {
+            Caption = 'Manufacturer Name';
+            ToolTip = 'Specifies the name of the manufacturer of this item.';
+            TableRelation = Manufacturer.Name;
+            ValidateTableRelation = false;
+
+            trigger OnValidate()
+            var
+                Manufacturer: Record Manufacturer;
+            begin
+                if "Manufacturer Name" <> xRec."Manufacturer Name" then
+                    if "Manufacturer Name" <> '' then begin
+                        Manufacturer.SetRange(Name, "Manufacturer Name");
+                        if Manufacturer.FindFirst() then
+                            Validate("Manufacturer Code", Manufacturer.Code);
+                    end;
+            end;
+
+            trigger OnLookup()
+            var
+                Manufacturer: Record Manufacturer;
+            begin
+                if Page.RunModal(0, Manufacturer) = Action::LookupOK then
+                    Validate("Manufacturer Code", Manufacturer.Code);
+            end;
+        }
+        field(8020; "Salesperson Code"; Code[20])
+        {
+            Caption = 'Salesperson Code';
+            TableRelation = "Salesperson/Purchaser" where(Blocked = const(false));
+            ToolTip = 'Specifies the salesperson who is assigned to the customer.';
+
+            trigger OnValidate()
+            begin
+                if "Salesperson Code" <> xRec."Salesperson Code" then
+                    ValidateSalespersonCode();
+            end;
+        }
+        field(8021; "Sales Order No."; Code[20])
+        {
+            Caption = 'Sales Order No.';
+            Editable = false;
+            ToolTip = 'Specifies the sales order used to create the subscription.';
+        }
+        field(8022; "Item Ledger Entry No."; Integer)
+        {
+            Caption = 'Item Ledger Entry No.';
+            TableRelation = "Item Ledger Entry";
+            Editable = false;
+            ToolTip = 'Specifies the item ledger entry number that was used to create the subscription.';
+        }
+        field(8023; "Last Sales Invoice No."; Code[20])
+        {
+            Caption = 'Last Sales Invoice No.';
+            Editable = false;
+            ToolTip = 'Specifies the last sales invoice for the sales order that was used to create the subscription.';
+        }
     }
     keys
     {
         key(PK; "No.")
         {
             Clustered = true;
+        }
+        key(SK1; "Item Ledger Entry No.")
+        {
         }
     }
 
@@ -939,6 +1066,7 @@ table 8057 "Subscription Header"
         ServiceContractSetup: Record "Subscription Contract Setup";
         Cust: Record Customer;
         PostCode: Record "Post Code";
+        PurchSetup: Record "Purchases & Payables Setup";
         NoSeries: Codeunit "No. Series";
         ContractsItemManagement: Codeunit "Sub. Contracts Item Management";
         ConfirmManagement: Codeunit "Confirm Management";
@@ -948,7 +1076,7 @@ table 8057 "Subscription Header"
         SkipBillToContact: Boolean;
         SkipInsertServiceCommitments: Boolean;
         ConfirmChangeQst: Label 'Do you want to change %1?', Comment = '%1 = a Field Caption like Currency Code';
-        QtyZeroOrNegativeErr: Label 'The quantity cannot be zero or negative.';
+        QtyNegativeErr: Label 'The quantity cannot be negative.';
         EndUserCustomerTxt: Label 'End-User Customer';
         BillToCustomerTxt: Label 'Bill-to Customer';
         SerialQtyErr: Label 'Only Subscriptions with quantity 1 may have a serial number.';
@@ -1728,7 +1856,7 @@ table 8057 "Subscription Header"
             exit(true);
     end;
 
-    internal procedure InsertServiceCommitmentsFromStandardServCommPackages()
+    procedure InsertServiceCommitmentsFromStandardServCommPackages()
     begin
         if SkipInsertServiceCommitments then
             exit;
@@ -1736,7 +1864,7 @@ table 8057 "Subscription Header"
         InsertServiceCommitmentsFromStandardServCommPackages(0D)
     end;
 
-    internal procedure InsertServiceCommitmentsFromStandardServCommPackages(ServiceAndCalculationStartDate: Date)
+    procedure InsertServiceCommitmentsFromStandardServCommPackages(ServiceAndCalculationStartDate: Date)
     var
         ItemServCommitmentPackage: Record "Item Subscription Package";
         ServiceCommitmentPackage: Record "Subscription Package";
@@ -1785,10 +1913,7 @@ table 8057 "Subscription Header"
                         ServiceCommitment.Template := ServiceCommPackageLine.Template;
                         ServiceCommitment.Description := ServiceCommPackageLine.Description;
                         ServiceCommitment."Invoicing via" := ServiceCommPackageLine."Invoicing via";
-                        if Item.IsServiceCommitmentItem() then
-                            ServiceCommitment."Invoicing Item No." := Item."No."
-                        else
-                            ServiceCommitment."Invoicing Item No." := ServiceCommPackageLine."Invoicing Item No.";
+                        ServiceCommitment."Invoicing Item No." := ServiceCommPackageLine.GetInvoicingItemNo(Item);
                         ServiceCommitment."Customer Price Group" := ServiceCommitmentPackage."Price Group";
 
                         if ServiceAndCalculationStartDate <> 0D then
@@ -1910,9 +2035,10 @@ table 8057 "Subscription Header"
                     if FieldCaption(Quantity) <> ChangedFieldName then
                         ServiceCommitment.CalculateCalculationBaseAmount();
                     ServiceCommitment.Validate("Calculation Base Amount");
-                    if SkipArchiving then
-                        ServiceCommitment.SetSkipArchiving(true);
-                    ServiceCommitment.Modify(true);
+                    ServiceCommitment.SetUpdateRequiredOnBillingLines();
+                    if not SkipArchiving then
+                        ServiceCommitment.ArchiveServiceCommitment();
+                    ServiceCommitment.Modify(false);
                 until ServiceCommitment.Next() = 0;
         end else
             if (not Confirmed) and (FieldCaption("Variant Code") = ChangedFieldName) then
@@ -2093,7 +2219,7 @@ table 8057 "Subscription Header"
         SetRange("Source No.", ItemNo);
     end;
 
-    internal procedure InsertFromItemNoAndCustomerContract(var ServiceObject: Record "Subscription Header"; ItemNo: Code[20]; VariantCode: Code[10]; SourceQuantity: Decimal; ProvisionStartDate: Date; CustomerContract: Record "Customer Subscription Contract")
+    procedure InsertFromItemNoAndCustomerContract(var ServiceObject: Record "Subscription Header"; ItemNo: Code[20]; VariantCode: Code[10]; SourceQuantity: Decimal; ProvisionStartDate: Date; CustomerContract: Record "Customer Subscription Contract")
     var
         Item: Record Item;
     begin
@@ -2216,14 +2342,18 @@ table 8057 "Subscription Header"
     local procedure GetRecalculateLinesDialog(ChangedFieldName: Text): Text
     var
         RecalculateLinesQst: Label 'If you change %1, the existing Subscription Lines prices will be recalculated.\\Do you want to continue?', Comment = '%1: FieldCaption';
-        RecalculateLinesFromQuantityQst: Label 'If you change %1, only the Amount for existing service commitments will be recalculated.\\Do you want to continue?', Comment = '%1= Changed Field Name.';
+        RecalculateLinesFromQuantityQst: Label 'If you change the %1, the amount for open subscription lines will be recalculated.\\Do you want to continue?', Comment = '%1: FieldCaption';
+        PauseSubscriptionQst: Label 'If you set the %1 to 0, the billing will pause until further notice but the subscription lines are not terminated.\\Do you want to continue?', Comment = '%1: FieldCaption';
         RecalculateLinesFromVariantCodeQst: Label 'The %1 has been changed.\\Do you want to update the price?', Comment = '%1= Changed Field Name.';
     begin
         case ChangedFieldName of
             Rec.FieldName(Rec."Variant Code"):
                 exit(StrSubstNo(RecalculateLinesFromVariantCodeQst, ChangedFieldName));
             Rec.FieldName(Rec.Quantity):
-                exit(StrSubstNo(RecalculateLinesFromQuantityQst, ChangedFieldName));
+                if Rec.Quantity = 0 then
+                    exit(StrSubstNo(PauseSubscriptionQst, ChangedFieldName))
+                else
+                    exit(StrSubstNo(RecalculateLinesFromQuantityQst, ChangedFieldName));
             else
                 exit(StrSubstNo(RecalculateLinesQst, ChangedFieldName));
         end;
@@ -2262,6 +2392,69 @@ table 8057 "Subscription Header"
         PrimaryAttributeValueCaption: Text;
     begin
         Rec.SetPrimaryAttributeValueAndCaption(PrimaryAttributeValue, PrimaryAttributeValueCaption);
+    end;
+
+    internal procedure UpdateVendorAndManufacturerFromItem(Item: Record Item)
+    begin
+        "Vendor No." := Item."Vendor No.";
+        UpdateVendorName();
+        "Vendor Item No." := Item."Vendor Item No.";
+
+        "Manufacturer Code" := Item."Manufacturer Code";
+        UpdateManufacturerName();
+    end;
+
+    local procedure UpdateVendorName()
+    var
+        Vendor: Record Vendor;
+    begin
+        if ("Vendor No." <> '') and Vendor.Get("Vendor No.") then begin
+            "Vendor Name" := Vendor.Name;
+            "Vendor Name 2" := Vendor."Name 2";
+        end else begin
+            "Vendor Name" := '';
+            "Vendor Name 2" := '';
+        end;
+    end;
+
+    local procedure UpdateManufacturerName()
+    var
+        Manufacturer: Record Manufacturer;
+    begin
+        if ("Manufacturer Code" <> '') and Manufacturer.Get("Manufacturer Code") then
+            "Manufacturer Name" := Manufacturer.Name
+        else
+            "Manufacturer Name" := '';
+    end;
+
+    local procedure ValidateSalespersonCode()
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+    begin
+        if "Salesperson Code" = '' then
+            exit;
+        if not SalespersonPurchaser.Get("Salesperson Code") then
+            exit;
+        if SalespersonPurchaser.VerifySalesPersonPurchaserPrivacyBlocked(SalespersonPurchaser) then
+            Error(SalespersonPurchaser.GetPrivacyBlockedGenericText(SalespersonPurchaser, true));
+    end;
+
+    local procedure ShouldSearchForVendorByName(VendorNo: Code[20]): Boolean
+    var
+        Vendor: Record Vendor;
+    begin
+        if VendorNo = '' then
+            exit(true);
+
+        if not PurchSetup.Get() then
+            PurchSetup.Init();
+        if PurchSetup."Disable Search by Name" then
+            exit(false);
+
+        if not Vendor.Get(VendorNo) then
+            exit(true);
+
+        exit(not Vendor."Disable Search by Name");
     end;
 
     [IntegrationEvent(false, false)]

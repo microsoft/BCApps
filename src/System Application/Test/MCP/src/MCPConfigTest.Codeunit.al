@@ -808,7 +808,7 @@ codeunit 130130 "MCP Config Test"
     procedure TestFindMissingObjectWarningsForConfiguration()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -820,21 +820,21 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [THEN] Warning is created for the tool with non-existing object
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Object");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        Assert.RecordCount(MCPConfigWarning, 1);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordCount(TempMCPConfigWarning, 1);
     end;
 
     [Test]
     procedure TestApplyMissingObjectRecommendedAction()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -846,22 +846,22 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [WHEN] Apply recommended action is called
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Object");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        MCPConfigWarning.FindFirst();
-        MCPConfig.ApplyRecommendedAction(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        TempMCPConfigWarning.FindFirst();
+        MCPConfig.ApplyRecommendedAction(TempMCPConfigWarning);
 
         // [THEN] Warning is resolved after applying the recommended action
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Object");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        Assert.RecordIsEmpty(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordIsEmpty(TempMCPConfigWarning);
 
         // [THEN] Configuration tool is deleted
         MCPConfigurationTool.SetRange(SystemId, ToolId);
@@ -872,7 +872,7 @@ codeunit 130130 "MCP Config Test"
     procedure TestFindMissingReadToolWarningsForConfiguration()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -886,21 +886,21 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [THEN] Warning is created for the tool with missing read permission
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Read Tool");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        Assert.RecordCount(MCPConfigWarning, 1);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordCount(TempMCPConfigWarning, 1);
     end;
 
     [Test]
     procedure TestApplyMissingReadToolRecommendedAction()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -914,22 +914,22 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [WHEN] Apply recommended action is called
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Read Tool");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        MCPConfigWarning.FindFirst();
-        MCPConfig.ApplyRecommendedAction(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        TempMCPConfigWarning.FindFirst();
+        MCPConfig.ApplyRecommendedAction(TempMCPConfigWarning);
 
         // [THEN] Warning is resolved after applying the recommended action
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Read Tool");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        Assert.RecordIsEmpty(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordIsEmpty(TempMCPConfigWarning);
 
         // [THEN] Configuration tool has Allow Read enabled
         MCPConfigurationTool.GetBySystemId(ToolId);
@@ -940,7 +940,7 @@ codeunit 130130 "MCP Config Test"
     procedure TestNoMissingReadToolWarningWhenReadEnabled()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -954,18 +954,18 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [THEN] No Missing Read Tool warning is created
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
-        Assert.RecordIsEmpty(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Read Tool");
+        Assert.RecordIsEmpty(TempMCPConfigWarning);
     end;
 
     [Test]
     procedure TestNoMissingReadToolWarningWhenModifyDisabled()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -979,11 +979,11 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [THEN] No Missing Read Tool warning is created
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Read Tool");
-        Assert.RecordIsEmpty(MCPConfigWarning);
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Read Tool");
+        Assert.RecordIsEmpty(TempMCPConfigWarning);
     end;
 
     #endregion
@@ -1062,9 +1062,178 @@ codeunit 130130 "MCP Config Test"
         Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode mismatch');
         Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'DiscoverReadOnlyObjects mismatch');
 
-        // [THEN] Tools are imported
+        // [THEN] Tools are imported with correct API version
         MCPConfigurationTool.SetRange(ID, ImportedConfigId);
         Assert.RecordCount(MCPConfigurationTool, 2);
+        MCPConfigurationTool.FindFirst();
+        Assert.AreEqual('v2.0', MCPConfigurationTool."API Version", 'API Version mismatch');
+    end;
+
+    [Test]
+    procedure TestConnectionStringOnPremDoesNotContainTenantIdOrEnvironmentName()
+    var
+        ConfigName: Text[100];
+        ConnectionString: Text;
+    begin
+        // [GIVEN] A configuration name (test environment runs as on-prem)
+        ConfigName := CopyStr(Format(CreateGuid()), 1, 100);
+
+        // [WHEN] Connection string is generated
+        ConnectionString := MCPConfigTestLibrary.GenerateConnectionString(ConfigName);
+
+        // [THEN] Connection string contains the configuration name and company
+        Assert.IsTrue(ConnectionString.Contains('"ConfigurationName": "' + ConfigName + '"'), 'ConfigurationName not found in connection string');
+        Assert.IsTrue(ConnectionString.Contains('"Company": "' + CompanyName() + '"'), 'Company not found in connection string');
+
+        // [THEN] Connection string does not contain TenantId or EnvironmentName headers
+        Assert.IsFalse(ConnectionString.Contains('"TenantId"'), 'TenantId should not be present in on-prem connection string');
+        Assert.IsFalse(ConnectionString.Contains('"EnvironmentName"'), 'EnvironmentName should not be present in on-prem connection string');
+
+        // [THEN] Connection string URL contains /mcp suffix
+        Assert.IsTrue(ConnectionString.Contains('/mcp'), 'On-prem URL should contain /mcp suffix');
+    end;
+
+    [Test]
+    procedure TestSetAsDefaultConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        SystemDefault: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] An active configuration
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, false, false, false);
+
+        // [WHEN] Set as default is called
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [THEN] Configuration is marked as default
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.Default, 'Configuration should be marked as default');
+
+        // [THEN] System default is no longer marked as default
+        SystemDefault.Get('');
+        Assert.IsFalse(SystemDefault.Default, 'System default should not be marked as default');
+    end;
+
+    [Test]
+    procedure TestClearDefaultConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        SystemDefault: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A configuration that has been set as default
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, false, false, false);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [WHEN] Clear default is called
+        MCPConfig.ClearDefaultConfiguration();
+
+        // [THEN] Configuration is no longer marked as default
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.Default, 'Configuration should not be marked as default');
+
+        // [THEN] System default is re-marked as default
+        SystemDefault.Get('');
+        Assert.IsTrue(SystemDefault.Default, 'System default should be re-marked as default');
+    end;
+
+    [Test]
+    procedure TestOnlyOneDefaultConfiguration()
+    var
+        MCPConfiguration1: Record "MCP Configuration";
+        MCPConfiguration2: Record "MCP Configuration";
+        ConfigId1: Guid;
+        ConfigId2: Guid;
+    begin
+        // [GIVEN] Two active configurations
+        EnsureSystemDefaultExists();
+        ConfigId1 := CreateMCPConfig(true, true, true, true);
+        ConfigId2 := CreateMCPConfig(true, false, false, false);
+
+        // [WHEN] First is set as default, then second
+        MCPConfig.SetAsDefaultConfiguration(ConfigId1);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId2);
+
+        // [THEN] Only the second configuration is marked as default
+        MCPConfiguration1.GetBySystemId(ConfigId1);
+        MCPConfiguration2.GetBySystemId(ConfigId2);
+        Assert.IsFalse(MCPConfiguration1.Default, 'First config should no longer be default');
+        Assert.IsTrue(MCPConfiguration2.Default, 'Second config should be default');
+    end;
+
+    [Test]
+    procedure TestCopyConfigurationDoesNotCopyDefault()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+        CopiedConfigId: Guid;
+    begin
+        // [GIVEN] A default configuration
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, true, true, true);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [WHEN] Configuration is copied
+        CopiedConfigId := MCPConfig.CopyConfiguration(ConfigId, CopyStr(Format(CreateGuid()), 1, 100), 'Copied');
+
+        // [THEN] Copied configuration is not marked as default
+        MCPConfiguration.GetBySystemId(CopiedConfigId);
+        Assert.IsFalse(MCPConfiguration.Default, 'Copied config should not be default');
+    end;
+
+    [Test]
+    procedure TestCannotSetInactiveConfigurationAsDefault()
+    var
+        ConfigId: Guid;
+    begin
+        // [GIVEN] An inactive configuration
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(false, false, true, false);
+
+        // [WHEN] Set as default is called
+        asserterror MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [THEN] Error is raised
+        Assert.ExpectedError('Only active configurations can be set as the default.');
+    end;
+
+    [Test]
+    procedure TestCannotDeactivateDesignatedDefault()
+    var
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A configuration set as default
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, true, true, true);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [WHEN] Deactivate is called
+        asserterror MCPConfig.ActivateConfiguration(ConfigId, false);
+
+        // [THEN] Error is raised
+        Assert.ExpectedError('The designated default configuration cannot be deactivated.');
+    end;
+
+    [Test]
+    procedure TestDeleteDesignatedDefaultRestoresSystemDefault()
+    var
+        SystemDefault: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A configuration set as default
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, false, false, false);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [WHEN] The designated default is deleted
+        MCPConfig.DeleteConfiguration(ConfigId);
+
+        // [THEN] System default is re-marked as default
+        SystemDefault.Get('');
+        Assert.IsTrue(SystemDefault.Default, 'System default should be re-marked as default');
     end;
 
     #endregion
@@ -1097,6 +1266,7 @@ codeunit 130130 "MCP Config Test"
         MCPConfigurationTool."Allow Modify" := false;
         MCPConfigurationTool."Allow Delete" := false;
         MCPConfigurationTool."Allow Bound Actions" := false;
+        MCPConfigurationTool."API Version" := 'v2.0';
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
     end;
@@ -1117,9 +1287,26 @@ codeunit 130130 "MCP Config Test"
         exit(MCPConfigurationTool.SystemId);
     end;
 
+    local procedure EnsureSystemDefaultExists()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if MCPConfiguration.Get('') then
+            exit;
+        MCPConfiguration.Name := '';
+        MCPConfiguration.Description := 'Default MCP configuration';
+        MCPConfiguration.Active := true;
+        MCPConfiguration.EnableDynamicToolMode := true;
+        MCPConfiguration.DiscoverReadOnlyObjects := true;
+        MCPConfiguration.AllowProdChanges := true;
+        MCPConfiguration.Default := true;
+        MCPConfiguration.Insert();
+    end;
+
     #endregion
 
     #region Handlers
+
 
     [ModalPageHandler]
     procedure LookupAPIToolsOKHandler(var MCPAPIConfigToolLookup: TestPage "MCP API Config Tool Lookup")

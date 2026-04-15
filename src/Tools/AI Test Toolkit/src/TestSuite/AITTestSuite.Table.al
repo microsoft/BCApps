@@ -127,6 +127,7 @@ table 149030 "AIT Test Suite"
         field(16; "Base Version"; Integer)
         {
             Caption = 'Base Version';
+            ToolTip = 'Specifies the base version to compare the current eval run results against.';
             DataClassification = CustomerContent;
             MinValue = 0;
             trigger OnValidate()
@@ -137,7 +138,8 @@ table 149030 "AIT Test Suite"
         }
         field(19; RunID; Guid)
         {
-            Caption = 'Unique RunID';
+            Caption = 'Unique Run ID';
+            ToolTip = 'Specifies the unique identifier for the eval run.';
             Editable = false;
         }
         field(21; "No. of Tests Executed"; Integer)
@@ -146,7 +148,7 @@ table 149030 "AIT Test Suite"
             ToolTip = 'Specifies the number of evals executed for the eval suite.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
         }
         field(22; "No. of Tests Passed"; Integer)
         {
@@ -167,7 +169,7 @@ table 149030 "AIT Test Suite"
         field(24; "Tokens Consumed"; Integer)
         {
             Caption = 'Total Tokens Consumed';
-            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module.';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module. Tokens consumed by agent sessions are not included in this number.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -178,7 +180,7 @@ table 149030 "AIT Test Suite"
             ToolTip = 'Specifies the average accuracy of the eval suite. The accuracy is calculated as the percentage of turns that passed or can be set manually by the eval.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
             AutoFormatType = 0;
         }
         field(30; "Number of Evaluators"; Integer)
@@ -207,6 +209,7 @@ table 149030 "AIT Test Suite"
         field(41; "Run Language Tag"; Text[80])
         {
             Caption = 'Language Tag';
+            ToolTip = 'Specifies the language tag for the language in which the eval suite should be run.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("AIT Test Suite Language"."Language Tag" where("Test Suite Code" = field("Code"), "Language ID" = field("Run Language ID")));
@@ -214,6 +217,7 @@ table 149030 "AIT Test Suite"
         field(42; "Run Language Name"; Text[80])
         {
             Caption = 'Language Name';
+            ToolTip = 'Specifies the name of the language in which the eval suite should be run.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("AIT Test Suite Language"."Language Name" where("Test Suite Code" = field("Code"), "Language ID" = field("Run Language ID")));
@@ -221,6 +225,7 @@ table 149030 "AIT Test Suite"
         field(50; "Test Runner Id"; Integer)
         {
             Caption = 'Test Runner Id';
+            ToolTip = 'Specifies the ID of the test runner to be used by the evals.';
             Editable = false;
 
             trigger OnValidate()
@@ -252,6 +257,14 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Eval Type';
             ToolTip = 'Specifies the type of AI eval (Copilot, Agent, or MCP).';
+        }
+        field(82; "No. of Tests Skipped"; Integer)
+        {
+            Caption = 'No. of Tests Skipped';
+            ToolTip = 'Specifies the number of tests that were skipped due to credit limit being reached.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(2)));
         }
     }
     keys

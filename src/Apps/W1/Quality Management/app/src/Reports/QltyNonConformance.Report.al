@@ -16,12 +16,13 @@ using Microsoft.QualityManagement.Utilities;
 
 report 20403 "Qlty. Non-Conformance"
 {
-    ApplicationArea = QualityManagement;
-    UsageCategory = ReportsAndAnalysis;
     Caption = 'Quality Management - Non-Conformance Report';
+    AdditionalSearchTerms = 'NCR,CAR';
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+    UsageCategory = ReportsAndAnalysis;
+    ApplicationArea = QualityManagement;
     DefaultRenderingLayout = QltyNonConformanceDefault;
     Extensible = true;
-    AdditionalSearchTerms = 'NCR,CAR';
 
     dataset
     {
@@ -91,7 +92,7 @@ report 20403 "Qlty. Non-Conformance"
 
                 column(Field_Code; "Test Code") { }
                 column(Field_Description; Description) { }
-                column(Numeric_Value; "Numeric Value") { }
+                column(Numeric_Value; "Derived Numeric Value") { }
                 column(Field_Type; "Test Value Type") { }
                 column(Field_IsLabel; FieldIsLabel) { }
                 column(Field_HasEnteredValue; HasEnteredValue) { }
@@ -323,21 +324,7 @@ report 20403 "Qlty. Non-Conformance"
             Type = RDLC;
             Caption = 'Default Layout';
             Summary = 'The default layout for the non-conformance Report.';
-            LayoutFile = './src/Reports/QltyNonConformanceDefault.rdl';
-        }
-        layout(QltyNonConformanceAlternate)
-        {
-            Type = RDLC;
-            Caption = 'Alternate Layout';
-            Summary = 'An alternate layout for the non-conformance Report.';
             LayoutFile = './src/Reports/QltyNonConformanceAlternate.rdl';
-        }
-        layout(QualityManagement_NonConformance_Default)
-        {
-            Type = Word;
-            Caption = 'Word Layout';
-            Summary = 'Word layout for the non-conformance Report.';
-            LayoutFile = './src/Reports/QltyNonConformance.docx';
         }
     }
 

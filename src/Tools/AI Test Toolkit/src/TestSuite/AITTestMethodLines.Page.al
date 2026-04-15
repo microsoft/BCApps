@@ -69,6 +69,7 @@ page 149034 "AIT Test Method Lines"
                 }
                 field(Status; Rec.Status)
                 {
+                    StyleExpr = StatusStyle;
                 }
                 field("No. of Tests Executed"; Rec."No. of Tests Executed")
                 {
@@ -94,8 +95,19 @@ page 149034 "AIT Test Method Lines"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite.Version);
                     end;
                 }
+                field("No. of Tests Skipped"; Rec."No. of Tests Skipped")
+                {
+                    Style = Ambiguous;
+                }
                 field(Accuracy; Rec."Test Method Line Accuracy")
                 {
+                }
+                field(ExecutionRatio; ExecutionRatio)
+                {
+                    Editable = false;
+                    Caption = 'Execution';
+                    ToolTip = 'Specifies the average execution of the eval line. The execution is calculated as the percentage of evals that were executed among the total evals (excluding skipped evals).';
+                    AutoFormatType = 0;
                 }
                 field(TurnsText; TurnsText)
                 {
@@ -215,7 +227,7 @@ page 149034 "AIT Test Method Lines"
         {
             action("Run Test")
             {
-                Caption = 'Run Eval';
+                Caption = 'Run selected';
                 Image = Start;
                 ToolTip = 'Starts running the AI Eval Line.';
 
@@ -237,7 +249,7 @@ page 149034 "AIT Test Method Lines"
             }
             action(Compare)
             {
-                Caption = 'View Runs';
+                Caption = 'View runs';
                 Image = History;
                 ToolTip = 'View the run history of the suite, for the selected line.';
                 Scope = Repeater;
@@ -264,8 +276,10 @@ page 149034 "AIT Test Method Lines"
         AITTestSuite: Record "AIT Test Suite";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         NoLineSelectedErr: Label 'Select a line to compare';
+        ExecutionRatio: Decimal;
         TurnsText: Text;
         EvaluationSetupTxt: Text;
+        StatusStyle: Text;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
@@ -277,8 +291,36 @@ page 149034 "AIT Test Method Lines"
 
     trigger OnAfterGetRecord()
     begin
+        UpdateControls();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateControls();
+    end;
+
+    local procedure UpdateControls()
+    begin
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(CopyStr(Rec."Test Suite Code", 1, 10), Rec."Line No.");
         TurnsText := AITTestSuiteMgt.GetTurnsAsText(Rec);
+        ExecutionRatio := AITTestSuiteMgt.GetExecution(Rec);
+        UpdateStatusStyle();
+    end;
+
+    local procedure UpdateStatusStyle()
+    begin
+        case Rec.Status of
+            Rec.Status::Running:
+                StatusStyle := Format(PageStyle::Attention);
+            Rec.Status::Completed:
+                StatusStyle := Format(PageStyle::Favorable);
+            Rec.Status::Cancelled:
+                StatusStyle := Format(PageStyle::Unfavorable);
+            Rec.Status::Skipped:
+                StatusStyle := Format(PageStyle::Ambiguous);
+            else
+                StatusStyle := Format(PageStyle::Standard);
+        end;
     end;
 
     local procedure GetAvg(NumIterations: Integer; TotalNo: Integer): Integer

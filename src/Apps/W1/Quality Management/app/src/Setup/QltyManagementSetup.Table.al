@@ -44,6 +44,7 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Inspection Creation Option';
             ToolTip = 'Specifies whether and how a new quality inspection is created if existing inspections are found.';
+            InitValue = "Use existing open inspection if available";
         }
         field(5; "Inspection Search Criteria"; Enum "Qlty. Inspect. Search Criteria")
         {
@@ -105,6 +106,7 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Quality Inspection Selection Criteria';
             ToolTip = 'Specifies the checks the system uses to decide if a document-specific transaction should be blocked.';
+            InitValue = "Only the newest inspection/re-inspection";
         }
         field(29; "Warehouse Trigger"; Enum "Qlty. Warehouse Trigger")
         {
@@ -380,6 +382,20 @@ table 20400 "Qlty. Management Setup"
                             QltyInspectionGenRule.ModifyAll("Assembly Trigger", Rec."Assembly Trigger", false);
                 end;
             end;
+        }
+        field(102; "Checklist Items Registered"; Boolean)
+        {
+            Caption = 'Checklist Items Registered';
+            ToolTip = 'Specifies whether the guided experience checklist items have been registered. This is used internally to track setup completion.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(103; "Guided Experience Registered"; Boolean)
+        {
+            Caption = 'Guided Experience Items Registered';
+            ToolTip = 'Specifies whether the guided experience items (tours, features, links) have been registered. This is used internally to track setup completion.';
+            DataClassification = SystemMetadata;
+            Editable = false;
         }
     }
 

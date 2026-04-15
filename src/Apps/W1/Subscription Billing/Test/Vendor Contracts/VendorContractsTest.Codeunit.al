@@ -5,7 +5,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
 
 #pragma warning disable AA0210
 codeunit 148154 "Vendor Contracts Test"
@@ -22,7 +21,6 @@ codeunit 148154 "Vendor Contracts Test"
         ContractType: Record "Subscription Contract Type";
         Currency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
-        Customer: Record Customer;
         Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         ServiceCommitment: Record "Subscription Line";
@@ -53,13 +51,12 @@ codeunit 148154 "Vendor Contracts Test"
     #region Tests
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckClosedVendorContractLines()
     var
         VendorContractLine2: Record "Vend. Sub. Contract Line";
     begin
         Initialize();
-        SetupServiceObjectForNewItemWithServiceCommitment(false);
+        SetupServiceObjectForNewItemWithServiceCommitment(false, false);
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No."); // ExchangeRateSelectionModalPageHandler, MessageHandler
         ContractTestLibrary.InsertVendorContractCommentLine(VendorContract, VendorContractLine2);
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
@@ -101,14 +98,14 @@ codeunit 148154 "Vendor Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ServCommWOVendContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    [HandlerFunctions('ServCommWOVendContractPageHandler')]
     procedure CheckServiceCommitmentAssignmentToVendorContractForServiceObjectWithItem()
     var
         InvoicingViaNotManagedErr: Label 'Invoicing via %1 not managed', Locked = true;
     begin
         // [SCENARIO] Check that proper Subscription Lines are assigned to Vendor Subscription Contract Lines.
         Initialize();
-        SetupServiceObjectForNewItemWithServiceCommitment(false);
+        SetupServiceObjectForNewItemWithServiceCommitment(false, false);
         ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
 
         VendorContractPage.OpenEdit();
@@ -178,7 +175,7 @@ codeunit 148154 "Vendor Contracts Test"
     procedure CheckServiceCommitmentAssignmentToVendorContractInFCY()
     begin
         Initialize();
-        SetupServiceObjectForNewItemWithServiceCommitment(false);
+        SetupServiceObjectForNewItemWithServiceCommitment(false, true);
         ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
 
         VendorContractPage.OpenEdit();
@@ -223,7 +220,7 @@ codeunit 148154 "Vendor Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,ConfirmHandlerYes,MessageHandler')]
+    [HandlerFunctions('ConfirmHandlerYes,MessageHandler')]
     procedure CheckValueChangesOnVendorContractLines()
     var
         OldServiceCommitment: Record "Subscription Line";
@@ -438,7 +435,7 @@ codeunit 148154 "Vendor Contracts Test"
     procedure ExpectErrorOnAssignServiceCommitmentsWithMultipleCurrencies()
     begin
         Initialize();
-        SetupServiceObjectForNewItemWithServiceCommitment(false);
+        SetupServiceObjectForNewItemWithServiceCommitment(false, true);
         ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
 
         ServiceCommitment.Reset();
@@ -510,13 +507,12 @@ codeunit 148154 "Vendor Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure ExpectNoClosedVendorContractLines()
     var
         VendorContractLine2: Record "Vend. Sub. Contract Line";
     begin
         Initialize();
-        SetupServiceObjectForNewItemWithServiceCommitment(false);
+        SetupServiceObjectForNewItemWithServiceCommitment(false, false);
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
         ContractTestLibrary.InsertVendorContractCommentLine(VendorContract, VendorContractLine2);
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
@@ -604,14 +600,14 @@ codeunit 148154 "Vendor Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ConfirmHandlerYes')]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure TestDeleteServiceCommitmentLinkedToContractLineIsClosed()
     begin
         // Test: A closed Contract Line is deleted when deleting the Subscription Line
         Initialize();
         ContractTestLibrary.DeleteAllContractRecords();
-        SetupServiceObjectForNewItemWithServiceCommitment(false);
-        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Customer."No."); // ExchangeRateSelectionModalPageHandler, MessageHandler
+        SetupServiceObjectForNewItemWithServiceCommitment(false, false);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
 
         ServiceCommitment.Reset();
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
@@ -628,14 +624,13 @@ codeunit 148154 "Vendor Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure TestDeleteServiceCommitmentLinkedToContractLineNotClosed()
     begin
         // Test: Subscription Line cannot be deleted if an open contract line exists
         Initialize();
         ContractTestLibrary.DeleteAllContractRecords();
-        SetupServiceObjectForNewItemWithServiceCommitment(false);
-        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Customer."No."); // ExchangeRateSelectionModalPageHandler, MessageHandler
+        SetupServiceObjectForNewItemWithServiceCommitment(false, false);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
 
         ServiceCommitment.Reset();
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
@@ -653,7 +648,7 @@ codeunit 148154 "Vendor Contracts Test"
     begin
         Initialize();
         ContractTestLibrary.DeleteAllContractRecords();
-        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.", true);
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '', true);
 
         UpdateServiceStartDateFromVendorContractSubpage();
 
@@ -704,7 +699,7 @@ codeunit 148154 "Vendor Contracts Test"
     procedure TestRecalculateServiceCommitmentsOnChangeCurrencyCode()
     begin
         Initialize();
-        SetupServiceObjectForNewItemWithServiceCommitment(false);
+        SetupServiceObjectForNewItemWithServiceCommitment(false, true);
         ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
 
         VendorContractPage.OpenEdit();
@@ -719,11 +714,11 @@ codeunit 148154 "Vendor Contracts Test"
     end;
 
     [Test]
-    [HandlerFunctions('ServCommWOVendContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    [HandlerFunctions('ServCommWOVendContractPageHandler')]
     procedure TestResetServiceCommitmentsOnCurrencyCodeDelete()
     begin
         Initialize();
-        SetupServiceObjectForNewItemWithServiceCommitment(false);
+        SetupServiceObjectForNewItemWithServiceCommitment(false, false);
         ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
 
         VendorContractPage.OpenEdit();
@@ -808,7 +803,7 @@ codeunit 148154 "Vendor Contracts Test"
 
     local procedure CreateVendorContractSetup()
     begin
-        SetupServiceObjectForNewItemWithServiceCommitment(false);
+        SetupServiceObjectForNewItemWithServiceCommitment(false, false);
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, Vendor."No.");
     end;
 
@@ -827,18 +822,18 @@ codeunit 148154 "Vendor Contracts Test"
         ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '', CreateAdditionalLine);
     end;
 
-    local procedure SetupServiceObjectForNewItemWithServiceCommitment(SNSpecificTracking: Boolean)
+    local procedure SetupServiceObjectForNewItemWithServiceCommitment(SNSpecificTracking: Boolean; VendorWithCurrency: Boolean)
     var
         ItemServCommitmentPackage: Record "Item Subscription Package";
         ServiceCommPackageLine: Record "Subscription Package Line";
         ServiceCommitmentPackage: Record "Subscription Package";
     begin
         ClearAll();
-        ContractTestLibrary.CreateVendor(Vendor);
+        if VendorWithCurrency then
+            ContractTestLibrary.CreateVendor(Vendor)
+        else
+            ContractTestLibrary.CreateVendorInLCY(Vendor);
         ContractTestLibrary.CreateServiceObjectForItem(ServiceObject, Item, SNSpecificTracking);
-        ServiceObject.SetHideValidationDialog(true);
-        ServiceObject.Validate("End-User Customer Name", Customer.Name);
-        ServiceObject.Modify(false);
 
         ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate);
         ServiceCommitmentTemplate."Calculation Base %" := LibraryRandom.RandDec(100, 2);
@@ -895,10 +890,7 @@ codeunit 148154 "Vendor Contracts Test"
     begin
         ClearAll();
         ContractTestLibrary.InitContractsApp();
-        ContractTestLibrary.CreateCustomer(Customer);
         ContractTestLibrary.CreateServiceObjectForGLAccountWithServiceCommitments(ServiceObject, GLAccount, 0, 1, '<1Y>', '<1M>');
-        ServiceObject.Validate("End-User Customer Name", Customer.Name);
-        ServiceObject.Modify(false);
     end;
 
     local procedure TestNewServiceObject()

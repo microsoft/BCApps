@@ -6,729 +6,598 @@
 namespace Microsoft.Integration.Shopify;
 
 /// <summary>
-/// Enum Shpfy GraphQL Type (ID 70007617).
+/// Enum Shpfy GraphQL Type (ID 30111).
+/// Each value maps to a .graphql resource file in .resources/graphql/{Area}/{QueryName}.graphql.
+/// The value name must follow the convention: {Area}_{QueryName} (e.g., Customers_GetCustomer).
+///
+/// To add a new query:
+///   1. Create a .graphql file at .resources/graphql/{Area}/{QueryName}.graphql
+///      Line 1: # cost: N   (expected Shopify API cost)
+///      Line 2+: the JSON query body (e.g., {"query":"{ ... }"})
+///   2. Add a new enum value below with the name {Area}_{QueryName}.
 /// </summary>
-enum 30111 "Shpfy GraphQL Type" implements "Shpfy IGraphQL"
+enum 30111 "Shpfy GraphQL Type"
 {
     Access = Internal;
     Caption = 'Shopify GraphQL Type';
-    Extensible = true;
+    Extensible = false;
 
-    value(0; GetApiKey)
+    value(0; Base_GetApiKey)
     {
         Caption = 'Get API Key';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL ApiKey";
     }
-    value(1; GetCustomerIds)
+    value(1; Customers_GetCustomerIds)
     {
         Caption = 'Get Customer Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CustomerIds";
     }
-    value(2; GetNextCustomerIds)
+    value(2; Customers_GetNextCustomerIds)
     {
         Caption = 'Get Next Customer Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCustomerIds";
     }
-    value(3; GetCustomer)
+    value(3; Customers_GetCustomer)
     {
         Caption = 'Get Customer';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Customer";
     }
-    value(4; GetOrdersToImport)
+    value(4; Orders_GetOrdersToImport)
     {
         Caption = 'Get Orders to Import';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL OrdersToImport";
     }
-    value(5; "GetNextOrdersToImport")
+    value(5; "Orders_GetNextOrdersToImport")
     {
         Caption = 'Get Next Orders to Import';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextOrdersToImport";
     }
-    value(6; OrderRisks)
+    value(6; Orders_OrderRisks)
     {
         Caption = 'Order Risks';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL OrderRisks";
     }
-    value(7; UpdateOrderAttributes)
+    value(7; Orders_UpdateOrderAttributes)
     {
         Caption = 'Update Order Attributes';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL UpdateOrderAttr";
     }
-    value(8; GetOrderFulfillment)
+    value(8; Orders_GetOrderFulfillment)
     {
         Caption = 'Get Order Fulfillment';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL OrderFulfillment";
     }
-    value(9; GetNextOrderFulfillmentLines)
+    value(9; Orders_GetNextOrderFulfillmentLines)
     {
         Caption = 'Get Next Order Fulfillment Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextFulfillmentLines";
     }
-    value(10; GetProductImages)
+    value(10; Products_GetProductImages)
     {
         Caption = 'Get Product Images';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL ProductImages";
     }
-    value(11; GetNextProductImages)
+    value(11; Products_GetNextProductImages)
     {
         Caption = 'Get Product Images';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextProductImages";
     }
-    value(12; GetProductVariantImages)
+    value(12; Products_GetProductVariantImages)
     {
         Caption = 'Get Next Product Variant Images';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL VariantImages";
     }
-    value(13; GetNextProductVariantImages)
+    value(13; Products_GetNextProductVariantImages)
     {
         Caption = 'Get Next Product Variant Images';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextVariantImages";
     }
-    value(14; FindCustomerIdByEMail)
+    value(14; Customers_FindCustomerIdByEMail)
     {
         Caption = 'Find Customer Id By E-Mail';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL FindCustByEMail";
     }
-    value(15; FindCustomerIdByPhone)
+    value(15; Customers_FindCustomerIdByPhone)
     {
         Caption = 'Find Customer Id By Phone';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL FindCustByPhone";
     }
-    value(16; GetInventoryEntries)
+    value(16; Inventory_GetInventoryEntries)
     {
         Caption = 'Get Inventory Entries';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL InventoryEntries";
     }
-    value(17; GetNextInventoryEntries)
+    value(17; Inventory_GetNextInventoryEntries)
     {
         Caption = 'Get Next Inventory Entries';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextInvEntries";
     }
-    value(18; GetProductById)
+    value(18; Products_GetProductById)
     {
         Caption = 'Get Product By Id';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL ProductById";
     }
-    value(19; GetProductIds)
+    value(19; Products_GetProductIds)
     {
         Caption = 'Get Product Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL ProductIds";
     }
-    value(20; GetNextProductIds)
+    value(20; Products_GetNextProductIds)
     {
         Caption = 'Get Next Product Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextProductIds";
     }
-    value(21; FindVariantByBarcode)
+    value(21; Products_FindVariantByBarcode)
     {
         Caption = 'Find Variant by Barcode';
-
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL FindVariantByBarcode";
     }
-    value(22; FindVariantBySKU)
+    value(22; Products_FindVariantBySKU)
     {
         Caption = 'Find Variant by SKU';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL FindVariantBySKU";
     }
-    value(23; GetProductVariantIds)
+    value(23; Products_GetProductVariantIds)
     {
         Caption = 'Get Product Variant Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL VariantIds";
     }
-    value(24; GetNextProductVariantIds)
+    value(24; Products_GetNextProductVariantIds)
     {
         Caption = 'Get Next Product Variant Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextVariantIds";
     }
-    value(25; GetVariantById)
+    value(25; Products_GetVariantById)
     {
         Caption = 'Get Variant by Id';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL VariantById";
     }
 #if not CLEAN28
     value(26; GetLocationOfOrderLines)
     {
         Caption = 'Get Location of the Order Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL LocationOrderLines";
         ObsoleteReason = 'This request is no longer used.';
         ObsoleteState = Pending;
         ObsoleteTag = '28.0';
     }
 #endif
-    value(27; ModifyInventory)
+    value(27; Inventory_ModifyInventory)
     {
         Caption = 'Modify Inventory';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Modify Inventory";
     }
-    value(28; GetLocations)
+    value(28; Inventory_GetLocations)
     {
         Caption = 'Get Locations';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Locations";
     }
-    value(29; GetNextLocations)
+    value(29; Inventory_GetNextLocations)
     {
         Caption = 'Get Next Locations';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Next Locations";
     }
-    value(30; GetOpenOrdersToImport)
+    value(30; Orders_GetOpenOrdersToImport)
     {
         Caption = 'Get Open Orders to Import';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL OpenOrdersToImport";
     }
-    value(31; "GetNextOpenOrdersToImport")
+    value(31; "Orders_GetNextOpenOrdersToImport")
     {
         Caption = 'Get Next Open Orders to Import';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextOpenOrdToImport";
     }
-    value(32; GetOrderHeader)
+    value(32; Orders_GetOrderHeader)
     {
         Caption = 'Get Order Header';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL OrderHeader";
     }
-    value(33; GetOrderLines)
+    value(33; Orders_GetOrderLines)
     {
         Caption = 'Get Order Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL OrderLines";
     }
-    value(34; GetNextOrderLines)
+    value(34; Orders_GetNextOrderLines)
     {
         Caption = 'Get Next Order Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextOrderLines";
     }
-    value(35; GetShipmentLines)
+    value(35; Shipping_GetShipmentLines)
     {
         Caption = 'Get Shipment Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL ShipmentLines";
     }
-    value(36; GetNextShipmentLines)
+    value(36; Shipping_GetNextShipmentLines)
     {
         Caption = 'Get Next Order Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextShipmentLines";
     }
-    value(37; CloseOrder)
+    value(37; Orders_CloseOrder)
     {
         Caption = 'Close Order';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CloseOrder";
     }
-    value(38; CreateUploadUrl)
+    value(38; Products_CreateUploadUrl)
     {
         Caption = 'Create Upload URL';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CreateUploadUrl";
     }
-    value(39; AddProductImage)
+    value(39; Products_AddProductImage)
     {
         Caption = 'Add Product Image';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL AddProductImage";
     }
-    value(40; UpdateProductImage)
+    value(40; Products_UpdateProductImage)
     {
         Caption = 'Update Product Image';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL UpdateProductImage";
     }
-    value(41; CreateFulfillmentService)
+    value(41; Fulfillments_CreateFulfillmentService)
     {
         Caption = 'Create Fullfilment Service';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CreateFulfillmentSvc";
     }
-    value(44; GetOpenFulfillmentOrderLines)
+    value(44; Fulfillments_GetOpenFulfillmentOrderLines)
     {
         Caption = 'Get Open Fullfilment Orders Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL OpenFulfillmOrdLines";
     }
-    value(45; GetNextOpenFulfillmentOrderLines)
+    value(45; Fulfillments_GetNextOpenFulfillmentOrderLines)
     {
         Caption = 'Get Open Fullfilment Orders Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextOpenFFOrderLines";
     }
-    value(46; GetAllCustomerIds)
+    value(46; Customers_GetAllCustomerIds)
     {
         Caption = 'Get All Customer Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL AllCustomerIds";
     }
-    value(47; GetNextAllCustomerIds)
+    value(47; Customers_GetNextAllCustomerIds)
     {
         Caption = 'Get Next All Customer Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextAllCustomerIds";
     }
-    value(48; GetFulfillmentOrdersFromOrder)
+    value(48; Fulfillments_GetFulfillmentOrdersFromOrder)
     {
         Caption = 'Get Fulfillment Orders From Order';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL FFOrdersFromOrder";
     }
-    value(49; GetNextFulfillmentOrdersFromOrder)
+    value(49; Fulfillments_GetNextFulfillmentOrdersFromOrder)
     {
         Caption = 'Get Next Fulfillment Orders From Order';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextFFOrdersFromOrd";
     }
-    value(50; NextOrderReturns)
+    value(50; Returns_NextOrderReturns)
     {
         Caption = 'Next Order Returns';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextOrderReturns";
     }
-    value(51; GetReturnHeader)
+    value(51; Returns_GetReturnHeader)
     {
         Caption = 'Get Return Header';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL ReturnHeader";
     }
-    value(52; GetReturnLines)
+    value(52; Returns_GetReturnLines)
     {
         Caption = 'Get Return Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL ReturnLines";
     }
-    value(53; GetNextReturnLines)
+    value(53; Returns_GetNextReturnLines)
     {
         Caption = 'Get Next Return Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextReturnLines";
     }
-    value(54; GetRefundHeader)
+    value(54; Refunds_GetRefundHeader)
     {
         Caption = 'Get Refund Header';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL RefundHeader";
     }
-    value(55; GetRefundLines)
+    value(55; Refunds_GetRefundLines)
     {
         Caption = 'Get Refund Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL RefundLines";
     }
-    value(56; GetNextRefundLines)
+    value(56; Refunds_GetNextRefundLines)
     {
         Caption = 'Get Next Refund Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextRefundLines";
     }
-    value(58; RunBulkOperationMutation)
+    value(58; BulkOperations_RunBulkOperationMutation)
     {
         Caption = 'Run Bulk Operation Mutation';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL BulkOpMutation";
     }
-    value(59; GetBulkOperation)
+    value(59; BulkOperations_GetBulkOperation)
     {
         Caption = 'Get Bulk Operation';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL BulkOperation";
     }
-    value(60; CompanyAssignCustomerAsContact)
+    value(60; Companies_CompanyAssignCustomerAsContact)
     {
         Caption = 'Company Assign Customer As Contact';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CompanyAssignContact";
     }
-    value(61; CompanyAssignMainContact)
+    value(61; Companies_CompanyAssignMainContact)
     {
         Caption = 'Company Assign Main Contact';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CompanyAssignMainCon";
     }
-    value(62; CompanyAssignContactRole)
+    value(62; Companies_CompanyAssignContactRole)
     {
         Caption = 'Company Assign Contact Role';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CompanyAssignConRole";
     }
-    value(63; GetCatalogs)
+    value(63; Catalogs_GetCatalogs)
     {
         Caption = 'Get Catalogs';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Catalogs";
     }
-    value(64; GetNextCatalogs)
+    value(64; Catalogs_GetNextCatalogs)
     {
         Caption = 'Next Get Catalogs';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCatalogs";
     }
-    value(65; CreateCatalog)
+    value(65; Catalogs_CreateCatalog)
     {
         Caption = 'Create Catalog';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CreateCatalog";
     }
-    value(66; CreatePublication)
+    value(66; Catalogs_CreatePublication)
     {
         Caption = 'Create Publication';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CreatePublication";
     }
-    value(67; GetCatalogPrices)
+    value(67; Catalogs_GetCatalogPrices)
     {
         Caption = 'Get Catalog Prices';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CatalogPrices";
     }
-    value(68; GetNextCatalogPrices)
+    value(68; Catalogs_GetNextCatalogPrices)
     {
         Caption = 'Get Next Catalog Prices';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCatalogPrices";
     }
-    value(69; UpdateCatalogPrices)
+    value(69; Catalogs_UpdateCatalogPrices)
     {
         Caption = 'Update Catalog Prices';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL UpdateCatalogPrices";
     }
-    value(70; GetCompanyIds)
+    value(70; Companies_GetCompanyIds)
     {
         Caption = 'Get Company Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CompanyIds";
     }
-    value(71; GetNextCompanyIds)
+    value(71; Companies_GetNextCompanyIds)
     {
         Caption = 'Get Next Company Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCompanyIds";
     }
-    value(72; GetCompany)
+    value(72; Companies_GetCompany)
     {
         Caption = 'Get Company';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Company";
     }
-    value(73; MarkOrderAsPaid)
+    value(73; Orders_MarkOrderAsPaid)
     {
         Caption = 'Mark Order As Paid';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL MarkOrderAsPaid";
     }
-    value(74; OrderCancel)
+    value(74; Orders_OrderCancel)
     {
         Caption = 'Order Cancel';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL OrderCancel";
     }
-    value(75; CreatePriceList)
+    value(75; Catalogs_CreatePriceList)
     {
         Caption = 'Create Price List';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CreatePriceList";
     }
-    value(76; GetCatalogProducts)
+    value(76; Catalogs_GetCatalogProducts)
     {
         Caption = 'Get Catalog Products';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CatalogProducts";
     }
-    value(77; GetNextCatalogProducts)
+    value(77; Catalogs_GetNextCatalogProducts)
     {
         Caption = 'Get Next Catalog Products';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCatalogProducts";
     }
-    value(78; GetOrderTransactions)
+    value(78; Payments_GetOrderTransactions)
     {
         Caption = 'Get Order Transactions';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL OrderTransactions";
     }
-    value(80; DraftOrderComplete)
+    value(80; Orders_DraftOrderComplete)
     {
         Caption = 'Draft Order Complete';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL DraftOrderComplete";
     }
-    value(81; FulfillOrder)
+    value(81; Fulfillments_FulfillOrder)
     {
         Caption = 'Fulfill Order';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Fulfill Order";
     }
-    value(82; GetPaymentTerms)
+    value(82; Payments_GetPaymentTerms)
     {
         Caption = 'Get Payment Terms';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Payment Terms";
     }
-    value(83; GetFulfillmentOrderIds)
+    value(83; Fulfillments_GetFulfillmentOrderIds)
     {
         Caption = 'Get Fulfillments';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Get Fulfillments";
     }
-    value(84; GetNextFulfillmentOrderIds)
+    value(84; Fulfillments_GetNextFulfillmentOrderIds)
     {
         Caption = 'Get Next Fulfillments';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextGetFulfillments";
     }
-    value(86; GetProductOptions)
+    value(86; Products_GetProductOptions)
     {
         Caption = 'Get Product Options';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL GetProductOptions";
     }
-    value(87; GetReverseFulfillmentOrders)
+    value(87; Returns_GetReverseFulfillmentOrders)
     {
         Caption = 'Get Reverse Fulfillment Orders';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL RevFulfillOrders";
     }
-    value(88; GetNextReverseFulfillmentOrders)
+    value(88; Returns_GetNextReverseFulfillmentOrders)
     {
         Caption = 'Get Next Reverse Fulfillment Orders';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextRevFulfillOrders";
     }
-    value(89; GetReverseFulfillmentOrderLines)
+    value(89; Returns_GetReverseFulfillmentOrderLines)
     {
         Caption = 'Get Reverse Fulfillment Order Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL RevFulfillOrderLines";
     }
-    value(90; GetNextReverseFulfillmentOrderLines)
+    value(90; Returns_GetNextReverseFulfillmentOrderLines)
     {
         Caption = 'Get Next Reverse Fulfillment Order Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextRevFulfillOrdLns";
     }
-    value(91; TranslationsRegister)
+    value(91; Base_TranslationsRegister)
     {
         Caption = 'Translations Register';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL TranslationsRegister";
     }
-    value(92; ShopLocales)
+    value(92; Base_ShopLocales)
     {
         Caption = 'Shop Locales';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL ShopLocales";
     }
-    value(93; GetTranslResource)
+    value(93; Base_GetTranslResource)
     {
         Caption = 'Get Transl Resource';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL TranslResource";
     }
-    value(94; MetafieldSet)
+    value(94; Metafields_MetafieldSet)
     {
         Caption = 'MetfieldSet';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL MetafieldsSet";
     }
-    value(95; ProductMetafieldIds)
+    value(95; Metafields_ProductMetafieldIds)
     {
         Caption = 'Product Metafield Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL ProductMetafieldIds";
     }
-    value(96; VariantMetafieldIds)
+    value(96; Metafields_VariantMetafieldIds)
     {
         Caption = 'Variant Metafield Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL VariantMetafieldIds";
     }
-    value(97; GetProductImage)
+    value(97; Products_GetProductImage)
     {
         Caption = 'Get Product Image';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL GetProductImage";
     }
-    value(98; CreateCompanyLocationTaxId)
+    value(98; Companies_CreateCompanyLocationTaxId)
     {
         Caption = 'Create Company Location Tax Id';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CreateCompLocTaxId";
     }
-    value(99; UpdateCompanyLocationPaymentTerms)
+    value(99; Companies_UpdateCompanyLocationPaymentTerms)
     {
         Caption = 'Update Company Location Payment Terms';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL UpdateLocPmtTerms";
     }
-    value(100; GetCompanyLocations)
+    value(100; Companies_GetCompanyLocations)
     {
         Caption = 'Company Locations';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CompLocations";
     }
-    value(101; GetSalesChannels)
+    value(101; Base_GetSalesChannels)
     {
         Caption = 'Get Sales Channels';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Get SalesChannels";
     }
-    value(102; GetNextSalesChannels)
+    value(102; Base_GetNextSalesChannels)
     {
         Caption = 'Get Next Sales Channels';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Get Next S. Channels";
     }
-    value(103; CustomerMetafieldIds)
+    value(103; Metafields_CustomerMetafieldIds)
     {
         Caption = 'Customer Metafield Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CustomerMetafieldIds";
     }
-    value(104; CompanyMetafieldIds)
+    value(104; Metafields_CompanyMetafieldIds)
     {
         Caption = 'Company Metafield Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CompanyMetafieldIds";
     }
-    value(105; GetDeliveryProfiles)
+    value(105; Shipping_GetDeliveryProfiles)
     {
         Caption = 'Get Delivery Profiles';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL DeliveryProfiles";
     }
-    value(106; GetNextDeliveryProfiles)
+    value(106; Shipping_GetNextDeliveryProfiles)
     {
         Caption = 'Get Next Delivery Profiles';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextDeliveryProfiles";
     }
-    value(107; GetLocationGroups)
+    value(107; Inventory_GetLocationGroups)
     {
         Caption = 'Get Location Groups';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL LocationGroups";
     }
-    value(108; GetDeliveryMethods)
+    value(108; Shipping_GetDeliveryMethods)
     {
         Caption = 'Get Delivery Methods';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL DeliveryMethods";
     }
-    value(109; GetNextDeliveryMethods)
+    value(109; Shipping_GetNextDeliveryMethods)
     {
         Caption = 'Get Next Delivery Methods';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextDeliveryMethods";
     }
-    value(110; GetMetafieldDefinitions)
+    value(110; Metafields_GetMetafieldDefinitions)
     {
         Caption = 'Get Metafield Definitions';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL MetafieldDefinitions";
     }
-    value(111; InventoryActivate)
+    value(111; Inventory_InventoryActivate)
     {
         Caption = 'Inventory Activate';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL InventoryActivate";
     }
-    value(112; GetPaymentTransactions)
+    value(112; Payments_GetPaymentTransactions)
     {
         Caption = 'Get Payment Transactions';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL PaymentTransactions";
     }
-    value(113; GetNextPaymentTransactions)
+    value(113; Payments_GetNextPaymentTransactions)
     {
         Caption = 'Get Next Payment Transactions';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextPaymTransactions";
     }
-    value(114; GetDisputes)
+    value(114; Payments_GetDisputes)
     {
         Caption = 'Get Disputes';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Disputes";
     }
-    value(115; GetNextDisputes)
+    value(115; Payments_GetNextDisputes)
     {
         Caption = 'Get Next Disputes';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextDisputes";
     }
-    value(116; GetPayouts)
+    value(116; Payments_GetPayouts)
     {
         Caption = 'Get Payouts';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Payouts";
     }
-    value(117; GetNextPayouts)
+    value(117; Payments_GetNextPayouts)
     {
         Caption = 'Get Next Payouts';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextPayouts";
     }
-    value(118; GetDisputeById)
+    value(118; Payments_GetDisputeById)
     {
         Caption = 'Get Dispute By Id';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL DisputeById";
     }
-    value(119; CreateWebhookSubscription)
+    value(119; Base_CreateWebhookSubscription)
     {
         Caption = 'Create Webhook Subscription';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CreateWebhookSub";
     }
-    value(120; GetWebhookSubscriptions)
+    value(120; Base_GetWebhookSubscriptions)
     {
         Caption = 'Get Webhook Subscriptions';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL GetWebhookSubs";
     }
-    value(121; DeleteWebhookSubscription)
+    value(121; Base_DeleteWebhookSubscription)
     {
         Caption = 'Delete Webhook Subscription';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL DeleteWebhookSub";
     }
-    value(122; GetShipToCountries)
+    value(122; Shipping_GetShipToCountries)
     {
         Caption = 'Get Ship To Countries';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL ShipToCountries";
     }
-    value(123; GetRefundShippingLines)
+    value(123; Refunds_GetRefundShippingLines)
     {
         Caption = 'Get Refund Shipping Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL RefundShippingLines";
     }
-    value(124; GetNextRefundShippingLines)
+    value(124; Refunds_GetNextRefundShippingLines)
     {
         Caption = 'Get Next Refund Shipping Lines';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextRefundShipLines";
     }
-    value(125; GetNextCompanyLocations)
+    value(125; Companies_GetNextCompanyLocations)
     {
         Caption = 'Next Get Company Locations';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCompLocations";
     }
-    value(126; UpdateProductOption)
+    value(126; Products_UpdateProductOption)
     {
         Caption = 'Update Product Option';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL UpdateProductOption";
     }
-    value(127; GetStaffMembers)
+    value(127; Base_GetStaffMembers)
     {
         Caption = 'Get Staff Members';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL GetStaffMembers";
     }
-    value(128; GetNextStaffMembers)
+    value(128; Base_GetNextStaffMembers)
     {
         Caption = 'Get Next Staff Members';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextStaffMembers";
     }
-    value(129; GetMarketCatalogs)
+    value(129; Catalogs_GetMarketCatalogs)
     {
         Caption = 'Get Market Catalogs';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Market Catalogs";
     }
-    value(130; GetNextMarketCatalogs)
+    value(130; Catalogs_GetNextMarketCatalogs)
     {
         Caption = 'Next Get Market Catalogs';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextMarketCatalogs";
     }
-    value(131; GetCatalogMarkets)
+    value(131; Catalogs_GetCatalogMarkets)
     {
         Caption = 'Get Catalog Markets';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Catalog Markets";
     }
-    value(132; GetNextCatalogMarkets)
+    value(132; Catalogs_GetNextCatalogMarkets)
     {
         Caption = 'Next Get Catalog Markets';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCatalogMarkets";
     }
-    value(133; GetCompanyLocation)
+    value(133; Companies_GetCompanyLocation)
     {
         Caption = 'Get Company Location';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CompLocation";
     }
-    value(134; UpdateFulfillmentService)
+    value(134; Fulfillments_UpdateFulfillmentService)
     {
         Caption = 'Update Fulfillment Service';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL UpdateFulfillmentSvc";
     }
-    value(135; GetLocation)
+    value(135; Inventory_GetLocation)
     {
         Caption = 'Get Location';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL Location";
     }
-    value(136; GetAssignedFulfillmentOrders)
+    value(136; Fulfillments_GetAssignedFulfillmentOrders)
     {
         Caption = 'Get Assigned Fulfillment Orders';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL AssignedFFOrders";
     }
-    value(137; GetNextAssignedFulfillmentOrders)
+    value(137; Fulfillments_GetNextAssignedFulfillmentOrders)
     {
         Caption = 'Get Next Assigned Fulfillment Orders';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextAssignedFFOrders";
     }
-    value(138; AcceptFulfillmentRequest)
+    value(138; Fulfillments_AcceptFulfillmentRequest)
     {
         Caption = 'Accept Fulfillment Request';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL AcceptFFRequest";
     }
-    value(139; GetCustomProductCollections)
+    value(139; Products_GetCustomProductCollections)
     {
         Caption = 'Get Custom Product Collections';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL CustProdCollections";
     }
-    value(140; GetNextCustomProductCollections)
+    value(140; Products_GetNextCustomProductCollections)
     {
         Caption = 'Get Next Custom Product Collections';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL NextCustProdColls";
     }
-    value(141; GetVariantImage)
+    value(141; Products_GetVariantImage)
     {
         Caption = 'Get Variant Image';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL GetVariantImage";
     }
-    value(142; AddVariantImage)
+    value(142; Products_AddVariantImage)
     {
         Caption = 'Add Variant Image';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL AddVariantImage";
     }
-    value(143; UpdateProdWithImage)
+    value(143; Products_UpdateProdWithImage)
     {
         Caption = 'Update Product With Image';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL AddImageToProduct";
     }
-    value(144; SetVariantImage)
+    value(144; Products_SetVariantImage)
     {
         Caption = 'Set Variant Image';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL SetVariantImage";
     }
 
-    value(145; GetPaymTransByIds)
+    value(145; Payments_GetPaymTransByIds)
     {
         Caption = 'Get Payment Transactions By Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL PaymTransByIds";
     }
-    value(146; GetPayoutsByIds)
+    value(146; Payments_GetPayoutsByIds)
     {
         Caption = 'Get Payouts By Ids';
-        Implementation = "Shpfy IGraphQL" = "Shpfy GQL PayoutsByIds";
+    }
+    value(147; Fulfillments_HasFulfillmentService)
+    {
+        Caption = 'Has Fulfillment Service';
     }
 }

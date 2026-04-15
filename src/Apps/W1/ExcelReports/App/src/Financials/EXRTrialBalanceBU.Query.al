@@ -5,7 +5,6 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
-using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
@@ -33,31 +32,37 @@ query 4407 "EXR Trial Balance BU"
                 {
                     Method = sum;
                 }
+                column(DebitAmount; "Debit Amount")
+                {
+                    Method = sum;
+                }
+                column(CreditAmount; "Credit Amount")
+                {
+                    Method = sum;
+                }
                 column(ACYAmount; "Additional-Currency Amount")
+                {
+                    Method = sum;
+                }
+                column(ACYDebitAmount; "Add.-Currency Debit Amount")
+                {
+                    Method = sum;
+                }
+                column(ACYCreditAmount; "Add.-Currency Credit Amount")
                 {
                     Method = sum;
                 }
                 column(BusinessUnitCode; "Business Unit Code")
                 {
                 }
-                filter(PostingDate; "Posting Date")
+                column(DimensionValue1Code; "Global Dimension 1 Code")
                 {
                 }
-                dataitem(DimensionValue1; "Dimension Value")
+                column(DimensionValue2Code; "Global Dimension 2 Code")
                 {
-                    DataItemLink = Code = GLEntry."Global Dimension 1 Code";
-                    SqlJoinType = LeftOuterJoin;
-                    column(DimensionValue1Code; Code)
-                    {
-                    }
-                    dataitem(DimensionValue2; "Dimension Value")
-                    {
-                        DataItemLink = Code = GLEntry."Global Dimension 2 Code";
-                        SqlJoinType = LeftOuterJoin;
-                        column(DimensionValue2Code; Code)
-                        {
-                        }
-                    }
+                }
+                filter(PostingDate; "Posting Date")
+                {
                 }
             }
         }

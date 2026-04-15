@@ -85,12 +85,12 @@ page 1993 Checklist
 
                 trigger OnAction()
                 var
-                    ChecklistItemBuffer: Record "Checklist Item Buffer";
+                    TempChecklistItemBuffer: Record "Checklist Item Buffer";
                 begin
-                    ChecklistItemBuffer.ID := CreateGuid();
-                    ChecklistItemBuffer.Code := '0';
-                    ChecklistItemBuffer.Insert();
-                    Page.RunModal(Page::"Checklist Administration", ChecklistItemBuffer);
+                    TempChecklistItemBuffer.ID := CreateGuid();
+                    TempChecklistItemBuffer.Code := '0';
+                    TempChecklistItemBuffer.Insert();
+                    Page.RunModal(Page::"Checklist Administration", TempChecklistItemBuffer);
                     GetPageContent();
                 end;
             }

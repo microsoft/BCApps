@@ -5,6 +5,7 @@
 namespace Microsoft.QualityManagement.Reports;
 
 using Microsoft.Foundation.Reporting;
+using Microsoft.QualityManagement.Setup;
 using System.Reflection;
 
 page 20442 "Qlty. Report Selection - QM"
@@ -13,6 +14,7 @@ page 20442 "Qlty. Report Selection - QM"
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Report Selections";
+    AccessByPermission = tabledata "Qlty. Management Setup" = R;
     UsageCategory = Tasks;
     ApplicationArea = QualityManagement;
 

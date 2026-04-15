@@ -30,28 +30,28 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="TempFileAccountContent">A list with all files stored in the path.</param>
     procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        SharePointFile: Record "SharePoint File";
+        TempSharePointFile: Record "SharePoint File";
         SharePointClient: Codeunit "SharePoint Client";
         OrginalPath: Text;
     begin
         OrginalPath := Path;
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
-        if not SharePointClient.GetFolderFilesByServerRelativeUrl(Path, SharePointFile) then
+        if not SharePointClient.GetFolderFilesByServerRelativeUrl(Path, TempSharePointFile) then
             ShowError(SharePointClient);
 
         FilePaginationData.SetEndOfListing(true);
 
-        if not SharePointFile.FindSet() then
+        if not TempSharePointFile.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := SharePointFile.Name;
+            TempFileAccountContent.Name := TempSharePointFile.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::"File";
             TempFileAccountContent."Parent Directory" := CopyStr(OrginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
             TempFileAccountContent.Insert();
-        until SharePointFile.Next() = 0;
+        until TempSharePointFile.Next() = 0;
     end;
 
     /// <summary>
@@ -85,14 +85,14 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="Stream">The Stream were the file is read from.</param>
     procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream)
     var
-        SharePointFile: Record "SharePoint File";
+        TempSharePointFile: Record "SharePoint File";
         SharePointClient: Codeunit "SharePoint Client";
         ParentPath, FileName : Text;
     begin
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
         SplitPath(Path, ParentPath, FileName);
-        if SharePointClient.AddFileToFolder(ParentPath, FileName, Stream, SharePointFile, false) then
+        if SharePointClient.AddFileToFolder(ParentPath, FileName, Stream, TempSharePointFile, false) then
             exit;
 
         ShowError(SharePointClient);
@@ -138,16 +138,16 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <returns>Returns true if the file exists</returns>
     procedure FileExists(AccountId: Guid; Path: Text): Boolean
     var
-        SharePointFile: Record "SharePoint File";
+        TempSharePointFile: Record "SharePoint File";
         SharePointClient: Codeunit "SharePoint Client";
     begin
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
-        if not SharePointClient.GetFolderFilesByServerRelativeUrl(GetParentPath(Path), SharePointFile) then
+        if not SharePointClient.GetFolderFilesByServerRelativeUrl(GetParentPath(Path), TempSharePointFile) then
             ShowError(SharePointClient);
 
-        SharePointFile.SetRange(Name, GetFileName(Path));
-        exit(not SharePointFile.IsEmpty());
+        TempSharePointFile.SetRange(Name, GetFileName(Path));
+        exit(not TempSharePointFile.IsEmpty());
     end;
 
     /// <summary>
@@ -176,28 +176,28 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="Files">A list with all directories stored in the path.</param>
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        SharePointFolder: Record "SharePoint Folder";
+        TempSharePointFolder: Record "SharePoint Folder";
         SharePointClient: Codeunit "SharePoint Client";
         OrginalPath: Text;
     begin
         OrginalPath := Path;
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
-        if not SharePointClient.GetSubFoldersByServerRelativeUrl(Path, SharePointFolder) then
+        if not SharePointClient.GetSubFoldersByServerRelativeUrl(Path, TempSharePointFolder) then
             ShowError(SharePointClient);
 
         FilePaginationData.SetEndOfListing(true);
 
-        if not SharePointFolder.FindSet() then
+        if not TempSharePointFolder.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := SharePointFolder.Name;
+            TempFileAccountContent.Name := TempSharePointFolder.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
             TempFileAccountContent."Parent Directory" := CopyStr(OrginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
             TempFileAccountContent.Insert();
-        until SharePointFolder.Next() = 0;
+        until TempSharePointFolder.Next() = 0;
     end;
 
     /// <summary>
@@ -207,12 +207,12 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="Path">The directory path inside the file account.</param>
     procedure CreateDirectory(AccountId: Guid; Path: Text)
     var
-        SharePointFolder: Record "SharePoint Folder";
+        TempSharePointFolder: Record "SharePoint Folder";
         SharePointClient: Codeunit "SharePoint Client";
     begin
         InitPath(AccountId, Path);
         InitSharePointClient(AccountId, SharePointClient);
-        if SharePointClient.CreateFolder(Path, SharePointFolder) then
+        if SharePointClient.CreateFolder(Path, TempSharePointFolder) then
             exit;
 
         ShowError(SharePointClient);

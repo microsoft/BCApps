@@ -5,15 +5,13 @@
 
 namespace System.Agents;
 
-using System.Environment.Consumption;
-
 page 4316 "Agent List"
 {
     PageType = List;
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "Agent";
-    Caption = 'Agents';
+    Caption = 'Agents', Comment = 'Agents in this page should be translated as AI agents. It is listing the AI agents that users have setup to help with automating tasks.';
     CardPageId = "Agent Card";
     AdditionalSearchTerms = 'Agent, Agents, Copilot, Automation, AI';
     Editable = false;
@@ -101,13 +99,24 @@ page 4316 "Agent List"
 
                 trigger OnAction()
                 var
-                    UserAIConsumptionData: Record "User AI Consumption Data";
+                    AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
                 begin
                     if Rec.IsEmpty() then
                         Error(NoAgentSetupErr);
-                    UserAIConsumptionData.SetRange("User ID", Rec."User Security ID");
-                    Page.Run(Page::"Agent Consumption Overview", UserAIConsumptionData);
+
+                    AgentConsumptionOverview.OpenAgentConsumptionOverview(Rec."User Security ID");
                 end;
+            }
+        }
+        area(Navigation)
+        {
+            action(AgentConfigurationRights)
+            {
+                ApplicationArea = All;
+                Caption = 'View agent configuration rights';
+                ToolTip = 'View who can create new agents';
+                Image = Permission;
+                RunObject = Page "Agent Creation Control";
             }
         }
         area(Promoted)
