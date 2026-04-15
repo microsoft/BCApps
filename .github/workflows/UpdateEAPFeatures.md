@@ -4,13 +4,16 @@ description: >
   update the Early Access Preview features list with a new entry.
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+  pull-requests: read
 
 tools:
   bash: ["pwsh", "gh"]
 
-safe-outputs: true
+safe-outputs:
+  create-pull-request:
+    base-branch: main
+    draft: true
 
 on:
   # push:
@@ -35,8 +38,8 @@ You are an agent that evaluates AL code merges to determine if they introduce a 
 
 Determine which commit to evaluate:
 
-- For `push` triggers, use the triggering commit SHA from `${{ github.sha }}`.
-- For `workflow_dispatch`, use the `commit_sha` input if provided; otherwise use HEAD on main.
+- For `push` triggers, use the commit SHA from `${{ github.event.after }}`.
+- For `workflow_dispatch`, use the `commit_sha` input if provided (`${{ github.event.inputs.commit_sha }}`); otherwise use HEAD on main.
 
 Get the full diff:
 
@@ -217,26 +220,14 @@ Write-Output "Validation passed. $($features.Count) feature(s) found."
 
 If validation fails, fix the JSON and re-validate. Do not proceed until validation passes.
 
-## Step 8: Create a branch and PR
+## Step 8: Create a pull request
 
-Create a feature branch, commit, and open a PR:
+Output a `create-pull-request` safe output with the updated JSON file as a patch. The safe-outputs framework handles branch creation, committing, and PR creation.
 
-```bash
-git checkout -b eap/add-<short-kebab-name>
-git add "src/System Application/App/Resources/Files/EarlyAccessPreviewFeatures.json"
-git commit -m "Add EAP entry: <FeatureName>"
-git push origin eap/add-<short-kebab-name>
-```
+Use the following values:
 
-Create the PR:
-
-```bash
-gh pr create \
-  --title "Add EAP entry: <FeatureName>" \
-  --body "<PR body>" \
-  --base main \
-  --reviewer "<PM handle from step 4>"
-```
+- **title**: `Add EAP entry: <FeatureName>`
+- **reviewers**: `<PM handle from step 4>` (without the @ prefix)
 
 The PR body should include:
 
