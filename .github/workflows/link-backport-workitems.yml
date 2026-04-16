@@ -105,10 +105,10 @@ jobs:
           if [[ -z "$MASTER_WI" ]]; then
             echo "No AB# on #$ORIG_REF directly. Searching for a PR that closes issue #$ORIG_REF..."
 
-            # Use the issue timeline to find cross-referenced PRs
+            # Use the issue timeline to find cross-referenced PRs (mockingbird preview required)
             TIMELINE=$(curl -s \
               -H "Authorization: token $GH_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
+              -H "Accept: application/vnd.github.mockingbird-preview+json" \
               "https://api.github.com/repos/${REPO}/issues/${ORIG_REF}/timeline?per_page=100")
 
             # Find PRs that reference this issue (cross-referenced events with source type=issue meaning PR)
