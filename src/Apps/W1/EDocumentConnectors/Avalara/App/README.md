@@ -7,7 +7,7 @@ The **Avalara E-Document Connector** is a Microsoft Business Central extension t
 The application is designed as a connector within the Microsoft E-Document framework.
 
 *   **Foundation**: Built on top of the `E-Document Core` extension.
-*   **Integration Point**: Extends the `Service Integration V2` Enum, allowing "Avalara" to be selected as a service provider in standard E-Document Service setup.
+*   **Integration Point**: Extends the `Service Integration` Enum, allowing "Avalara" to be selected as a service provider in standard E-Document Service setup.
 *   **Pattern**: Implements the standard interfaces `IDocumentSender`, `IDocumentReceiver`, and `IDocumentResponseHandler` to handle the lifecycle of electronic documents.
 
 ## Key Components
@@ -68,7 +68,7 @@ When a user posts a document (e.g., Sales Invoice) configured for Avalara:
     *   `Integration Impl.` calls `Processing.SendEDocument`.
     *   The system validates that a valid `Activation Mandate` exists for the company and country combination, ensuring the account is "Activated" and not "Blocked".
 2.  **Payload Construction**:
-    *   **Metadata**: A JSON object is constructed containing `workflowId` (e.g., `avalara-einvoicing`), `dataFormat` (e.g., `ubl-invoice-2.1`), `countryCode`, and `mandate` (e.g., `DE-B2B-UBL`).
+    *   **Metadata**: A JSON object is constructed containing `workflowId` (e.g., `partner-einvoicing`), `dataFormat` (e.g., `ubl-invoice`), `dataFormatVersion` (e.g., `2.1`), `countryCode`, and `mandate`.
     *   **Data**: The actual UBL XML content is read from the `SendContext` (TempBlob).
 3.  **Request Construction**:
     *   A `Multipart/Form-Data` request is built in `Requests.CreateSubmitDocumentRequest`.
@@ -125,7 +125,10 @@ The `Http Executor` codeunit centralizes all HTTP response handling:
 *   **200/201 (Success)**: Logs telemetry and returns content.
 *   **400 (Bad Request)**: Parses the response body to extract the specific `message` field from Avalara (e.g., validation errors) and throws a user-friendly error.
 *   **401 (Unauthorized)**: Throws "Authentication credentials are not valid". Check Client Setup.
+*   **402–499**: Attempts to parse the `message` field from the response JSON; falls back to a generic bad request message.
 *   **500 (Internal Server Error)**: Generic error message.
+*   **503 (Service Unavailable)**: Specific service-unavailable error message.
+*   **Other**: Generic HTTP error with status code.
 *   **Retry Logic**: The current implementation relies on the standard Business Central job queue retry mechanisms for transient errors; explicit automatic retries for HTTP 5xx are not implemented at the socket level.
 
 ## Usage Guide & Setup
@@ -156,5 +159,5 @@ The application includes a robust test suite located in the `test/` folder.
 *   **Dependencies**:
     *   `E-Document Core` (Publisher: Microsoft)
 *   **Extensibility**:
-    *   **Enums**: Extends `Service Integration V2` and `Avalara Trans. Rule Type`.
+    *   **Enums**: Extends `Service Integration` and `Avalara Trans. Rule Type`.
     *   **Events**: Subscribes to `OnBeforeOpenServiceIntegrationSetupPage` to redirect users to the connector-specific setup.
