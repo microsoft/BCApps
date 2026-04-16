@@ -132,7 +132,7 @@ page 6379 "Avalara Documents"
                 begin
                     AvalaraDocumentManagement.LoadDocumentList(Rec);
                     CurrPage.Update(false);
-                    Message('%1 documents loaded', Rec.Count);
+                    Message(DocumentsLoadedMsg, Rec.Count);
                 end;
             }
 
@@ -181,9 +181,10 @@ page 6379 "Avalara Documents"
     }
 
     var
-        DocumentDownloadedSuccessMsg: Label 'Document %1 downloaded successfully as %2', Comment = '%1 = Document Number, %2 = Media Type';
-        FailedToDownloadDocErr: Label 'Failed to download document %1', Comment = '%1 = Document Number';
-        SelectDocumentToDownloadMsg: Label 'Please select a document to download';
+        DocumentDownloadedSuccessMsg: Label 'Document %1 downloaded successfully as %2.', Comment = '%1 = Document Number, %2 = Media Type';
+        DocumentsLoadedMsg: Label '%1 documents loaded.', Comment = '%1 = Document count';
+        FailedToDownloadDocErr: Label 'Failed to download document %1.', Comment = '%1 = Document Number';
+        SelectDocumentToDownloadMsg: Label 'Please select a document to download.';
         CompanyID: Text;
 
     trigger OnOpenPage()

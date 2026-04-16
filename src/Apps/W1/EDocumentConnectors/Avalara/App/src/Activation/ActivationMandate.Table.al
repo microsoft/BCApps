@@ -9,6 +9,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 /// </summary>
 table 6377 "Activation Mandate"
 {
+    Access = Internal;
     Caption = 'Activation Mandate';
     DataClassification = CustomerContent;
     DataPerCompany = true;
@@ -73,7 +74,7 @@ table 6377 "Activation Mandate"
         Rec.SetRange("Country Mandate", CountryMandate);
         Rec.SetRange("Mandate Type", GetMandateTypeFromName(CountryMandate));
         Rec.SetRange("Company Id", ConnectionSetup."Company Id");
-        if not Rec.IsEmpty then
+        if Rec.FindFirst() then
             exit(Rec.Blocked);
     end;
 

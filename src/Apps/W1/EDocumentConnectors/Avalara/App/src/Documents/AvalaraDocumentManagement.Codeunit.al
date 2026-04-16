@@ -12,11 +12,9 @@ using System.Utilities;
 /// </summary>
 codeunit 6371 "Avalara Document Management"
 {
-    var
+    Access = Internal;
 
-        // ISO 8601 DateTime parsing constants
-        DateTimeSeparatorTok: Label 'T', Locked = true;
-        DecimalSeparatorTok: Label '.', Locked = true;
+    var
         DefaultXmlFileNameMsg: Label '%1.xml', Comment = '%1 = Entry Number', Locked = true;
         EmptyResponseContentErr: Label 'Empty response content';
         FailedToAttachDocumentMsg: Label 'Failed to attach document %1 to E-Document', Comment = '%1 = Document ID';
@@ -45,7 +43,6 @@ codeunit 6371 "Avalara Document Management"
         NoResponseFromAvalaraMsg: Label 'No response received from Avalara API';
         NoXmlContentToAttachMsg: Label 'No XML content to attach';
         SuccessfullyDownloadedMsg: Label 'Successfully downloaded and attached document %1 with media type %2', Comment = '%1 = Document ID, %2 = Media Type';
-        TimeZoneMarkersTok: Label 'Z+-', Locked = true;
 
     internal procedure ParseIntoTemp(var TempDocumentBuffer: Record "Avalara Document Buffer" temporary; JsonText: Text)
     begin
@@ -161,6 +158,7 @@ codeunit 6371 "Avalara Document Management"
 
     local procedure TryGetJsonDateTime(JsonObj: JsonObject; FieldName: Text; var ResultDateTime: DateTime): Boolean
     var
+        AvalaraFunctions: Codeunit "Avalara Functions";
         FieldToken: JsonToken;
         FieldValue: JsonValue;
         DateTimeText: Text;
@@ -181,101 +179,7 @@ codeunit 6371 "Avalara Document Management"
         if DateTimeText = '' then
             exit(false);
 
-        exit(ParseIso8601DateTime(DateTimeText, ResultDateTime));
-    end;
-
-    local procedure ParseIso8601DateTime(DateTimeText: Text; var ResultDateTime: DateTime): Boolean
-    var
-        DatePart: Date;
-        DateTimeSeparatorPos: Integer;
-        CleanedTimeText: Text;
-        TimePart: Time;
-    begin
-        // Find 'T' separator between date and time
-        DateTimeSeparatorPos := StrPos(DateTimeText, DateTimeSeparatorTok);
-
-        // No time part -> parse as date only
-        if DateTimeSeparatorPos = 0 then begin
-            if not Evaluate(DatePart, CopyStr(DateTimeText, 1, 10)) then
-                exit(false);
-
-            ResultDateTime := CreateDateTime(DatePart, 0T);
-            exit(true);
-        end;
-
-        // Parse date part (YYYY-MM-DD)
-        if not Evaluate(DatePart, CopyStr(DateTimeText, 1, 10)) then
-            exit(false);
-
-        // Parse time part
-        CleanedTimeText := ExtractTimePart(DateTimeText, DateTimeSeparatorPos);
-
-        if not TryParseTime(CleanedTimeText, TimePart) then
-            exit(false);
-
-        ResultDateTime := CreateDateTime(DatePart, TimePart);
-        exit(true);
-    end;
-
-    local procedure ExtractTimePart(DateTimeText: Text; DateTimeSeparatorPos: Integer): Text
-    var
-        DecimalPos: Integer;
-        TimeZoneMarkerPos: Integer;
-        CleanedTimeText: Text;
-        TimePartText: Text;
-        TimePartWithoutTimezone: Text;
-    begin
-        // Extract everything after 'T'
-        TimePartText := CopyStr(DateTimeText, DateTimeSeparatorPos + 1);
-
-        // Remove timezone markers (Z, +, -)
-        TimeZoneMarkerPos := FindFirstIndexOfAny(TimePartText, TimeZoneMarkersTok);
-        if TimeZoneMarkerPos > 0 then
-            TimePartWithoutTimezone := CopyStr(DateTimeText, DateTimeSeparatorPos + 1, TimeZoneMarkerPos - 1)
-        else
-            TimePartWithoutTimezone := TimePartText;
-
-        // Extract time component from full string
-        CleanedTimeText := CopyStr(TimePartWithoutTimezone, 1, StrLen(TimePartWithoutTimezone));
-
-        // Remove fractional seconds (.ffffff)
-        DecimalPos := StrPos(CleanedTimeText, DecimalSeparatorTok);
-        if DecimalPos > 0 then
-            CleanedTimeText := CopyStr(CleanedTimeText, 1, DecimalPos - 1);
-
-        // Limit to HH:MM:SS format (8 characters)
-        if StrLen(CleanedTimeText) > 8 then
-            CleanedTimeText := CopyStr(CleanedTimeText, 1, 8);
-
-        exit(CleanedTimeText);
-    end;
-
-    local procedure TryParseTime(TimeText: Text; var ResultTime: Time): Boolean
-    begin
-        // Try full time format (HH:MM:SS)
-        if Evaluate(ResultTime, TimeText) then
-            exit(true);
-
-        // Fallback: Try short format (HH:MM)
-        if StrLen(TimeText) >= 5 then
-            if Evaluate(ResultTime, CopyStr(TimeText, 1, 5)) then
-                exit(true);
-
-        exit(false);
-    end;
-
-    local procedure FindFirstIndexOfAny(SourceText: Text; SearchChars: Text): Integer
-    var
-        CharIndex: Integer;
-        CurrentChar: Text[1];
-    begin
-        for CharIndex := 1 to StrLen(SourceText) do begin
-            CurrentChar := CopyStr(SourceText, CharIndex, 1);
-            if StrPos(SearchChars, CurrentChar) > 0 then
-                exit(CharIndex);
-        end;
-
-        exit(0);
+        exit(AvalaraFunctions.TryParseIsoDateTime(DateTimeText, ResultDateTime));
     end;
 
     local procedure TryGetJsonDate(JsonObj: JsonObject; FieldName: Text; var ResultDate: Date): Boolean

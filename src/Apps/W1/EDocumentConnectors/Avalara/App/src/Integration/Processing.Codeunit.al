@@ -621,6 +621,7 @@ MessageToken,
     var
         MessageEvent: Record "Avl Message Event";
         MessageResponseHeader: Record "Avl Message Response Header";
+        AvalaraFunctions: Codeunit "Avalara Functions";
         i: Integer;
         EventsArray: JsonArray;
         EventObj: JsonObject;
@@ -676,7 +677,7 @@ MessageToken,
                 // eventDateTime
                 if EventObj.Get(JsonFieldEventDateTimeTok, EventDateTimeToken) and EventDateTimeToken.IsValue() then begin
                     EventDateTimeTxt := EventDateTimeToken.AsValue().AsText();
-                    if not TryParseIsoDateTime(EventDateTimeTxt, MessageEvent.EventDateTime) then
+                    if not AvalaraFunctions.TryParseIsoDateTime(EventDateTimeTxt, MessageEvent.EventDateTime) then
                         MessageEvent.EventDateTime := 0DT;
                 end;
 
@@ -705,35 +706,6 @@ MessageToken,
             end;
         end;
     end; //end of procedure
-
-    local procedure TryParseIsoDateTime(IsoText: Text; var Result: DateTime): Boolean
-    var
-        DotPos: Integer;
-        Normalized: Text;
-    begin
-        Normalized := IsoText;
-
-        // Strip trailing 'Z' (UTC indicator) if present
-        if (StrLen(Normalized) > 0) and ((Normalized[StrLen(Normalized)] = 'Z') or (Normalized[StrLen(Normalized)] = 'z')) then
-            Normalized := CopyStr(Normalized, 1, StrLen(Normalized) - 1);
-
-        // Replace 'T' with space for BC Evaluate compatibility
-        Normalized := Normalized.Replace('T', ' ');
-
-        // First try full value (Evaluate in BC can usually handle millis with space separator)
-        if Evaluate(Result, Normalized) then
-            exit(true);
-
-        // If that failed, remove fractional seconds and try again
-        DotPos := StrPos(Normalized, '.');
-        if DotPos > 0 then begin
-            Normalized := CopyStr(Normalized, 1, DotPos - 1);
-            if Evaluate(Result, Normalized) then
-                exit(true);
-        end;
-
-        exit(false);
-    end;
 
     /// <summary>
     /// Returns id from json array

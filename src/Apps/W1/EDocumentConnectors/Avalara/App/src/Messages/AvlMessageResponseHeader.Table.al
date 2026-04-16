@@ -9,6 +9,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 /// </summary>
 table 6379 "Avl Message Response Header"
 {
+    Access = Internal;
     Caption = 'Message Response Header';
     DataClassification = SystemMetadata;
 

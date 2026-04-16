@@ -9,6 +9,7 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 /// </summary>
 table 6800 "Media Types"
 {
+    Access = Internal;
     Caption = 'Media Types';
     DataClassification = SystemMetadata;
 

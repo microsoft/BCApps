@@ -84,43 +84,6 @@ codeunit 6800 "Avalara Functions"
         exit(false);
     end;
 
-    procedure AttachToPostedSalesInvoice(SalesInvHeader: Record "Sales Invoice Header"; InStream: InStream; FileName: Text)
-    var
-        DocAttach: Record "Document Attachment";
-        RecRef: RecordRef;
-    begin
-        RecRef.GetTable(SalesInvHeader);
-        DocAttach.SaveAttachmentFromStream(
-            InStream,
-            RecRef,
-            FileName,
-            true
-        );
-    end;
-
-    procedure UpdateAttachments()
-    var
-        DocumentAttachment: Record "Document Attachment";
-        EntryNo: Integer;
-    begin
-        DocumentAttachment.Reset();
-        DocumentAttachment.SetRange("Table ID", Database::"E-Document");
-        DocumentAttachment.SetFilter("No.", '<>%1', '');
-
-        if DocumentAttachment.FindSet(true) then
-            repeat
-                if DocumentAttachment."E-Document Entry No." <> 0 then
-                    continue;
-
-                if not Evaluate(EntryNo, DocumentAttachment."No.") then
-                    continue;
-
-                DocumentAttachment.Validate("E-Document Entry No.", EntryNo);
-                DocumentAttachment.Validate("E-Document Attachment", true);
-                DocumentAttachment.Modify();
-            until DocumentAttachment.Next() = 0;
-    end;
-
     procedure LoadFieldsFromJson(FieldsArray: JsonArray; MandateInput: Text[40]; DocumentTypeInput: Text; DocumentVersionInput: Text)
     var
         AvalaraInputField: Record "Avalara Input Field";
@@ -497,23 +460,23 @@ codeunit 6800 "Avalara Functions"
         RecRef.SetTable(AvalaraInputField);
     end;
 
-    procedure CreateBoilerPlateDefs(Mandate: Text)
+    procedure CreateBaseDefinitions(Mandate: Text)
     var
         ProgressDialog: Dialog;
         CreatingDefsMsg: Label 'Creating Data Exchange Definitions...\\#1##################', Comment = '#1 = current definition name';
         DefsCreatedMsg: Label 'Data Exchange Definitions for mandate %1 have been created successfully.', Comment = '%1 = Mandate code';
-        PurchCrMemoDefCodeLbl: Label '%1PCM', Locked = true;
-        PurchCrMemoDisplayNameLbl: Label '%1 Purchase Credit Memo', Comment = '%1 = Mandate code';
-        PurchCrMemoImportResLbl: Label 'DataExchDefs/PurchaseCrMemoImport.xml', Locked = true;
-        PurchInvDefCodeLbl: Label '%1PINV', Locked = true;
-        PurchInvDisplayNameLbl: Label '%1 Purchase Invoice', Comment = '%1 = Mandate code';
-        PurchInvImportResLbl: Label 'DataExchDefs/PurchaseInvoiceImport.xml', Locked = true;
-        SalesCrMemoDefCodeLbl: Label '%1SCM', Locked = true;
-        SalesCrMemoDisplayNameLbl: Label '%1 Sales Credit Memo', Comment = '%1 = Mandate code';
-        SalesCrMemoExportResLbl: Label 'DataExchDefs/SalesCrMemoExport.xml', Locked = true;
-        SalesInvDefCodeLbl: Label '%1SINV', Locked = true;
-        SalesInvDisplayNameLbl: Label '%1 Sales Invoice', Comment = '%1 = Mandate code';
-        SalesInvExportResLbl: Label 'DataExchDefs/SalesInvoiceExport.xml', Locked = true;
+        PurchCrMemoDefCodeLbl: Label 'AVA%1PCM', Locked = true;
+        PurchCrMemoDisplayNameLbl: Label 'Avalara %1 Purchase Credit Memo', Comment = '%1 = Mandate code';
+        PurchCrMemoImportResLbl: Label 'DataExchDefs/AvalaraPurchaseCrMemoImport.xml', Locked = true;
+        PurchInvDefCodeLbl: Label 'AVA%1PINV', Locked = true;
+        PurchInvDisplayNameLbl: Label 'Avalara %1 Purchase Invoice', Comment = '%1 = Mandate code';
+        PurchInvImportResLbl: Label 'DataExchDefs/AvalaraPurchaseInvoiceImport.xml', Locked = true;
+        SalesCrMemoDefCodeLbl: Label 'AVA%1SCM', Locked = true;
+        SalesCrMemoDisplayNameLbl: Label 'Avalara %1 Sales Credit Memo', Comment = '%1 = Mandate code';
+        SalesCrMemoExportResLbl: Label 'DataExchDefs/AvalaraSalesCrMemoExport.xml', Locked = true;
+        SalesInvDefCodeLbl: Label 'AVA%1SINV', Locked = true;
+        SalesInvDisplayNameLbl: Label 'Avalara %1 Sales Invoice', Comment = '%1 = Mandate code';
+        SalesInvExportResLbl: Label 'DataExchDefs/AvalaraSalesInvoiceExport.xml', Locked = true;
     begin
         ProgressDialog.Open(CreatingDefsMsg);
 
@@ -563,32 +526,35 @@ codeunit 6800 "Avalara Functions"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnBeforeInsertAttachment, '', false, false)]
-    local procedure "Document Attachment_OnBeforeInsertAttachment"(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef)
+    local procedure DocumentAttachmentOnBeforeInsertAttachment(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef)
     var
         EDocument: Record "E-Document";
     begin
+        if RecRef.Number <> Database::"E-Document" then
+            exit;
+
+        RecRef.SetTable(EDocument);
+
+        if not IsEDocumentLinkedToAvalara(EDocument."Entry No") then
+            exit;
+
         DocumentAttachment."E-Document Attachment" := true;
-        if RecRef.Number = Database::"E-Document" then begin
-            RecRef.SetTable(EDocument);
-            DocumentAttachment."E-Document Entry No." := EDocument."Entry No";
-        end;
+        DocumentAttachment."E-Document Entry No." := EDocument."Entry No";
     end;
 
-    procedure ScheduleForEDocument(var EDocument: Record "E-Document")
+    local procedure IsEDocumentLinkedToAvalara(EDocEntryNo: Integer): Boolean
     var
-        JobQueueEntry: Record "Job Queue Entry";
+        EDocumentService: Record "E-Document Service";
+        EDocumentServiceStatus: Record "E-Document Service Status";
     begin
-        JobQueueEntry.Init();
-        JobQueueEntry."Job Queue Category Code" := '';
-        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
-        JobQueueEntry."Record ID to Process" := EDocument.RecordId;
-        JobQueueEntry."Earliest Start Date/Time" := (CreateDateTime(WorkDate(), Time) + (5 * 60000));
-        JobQueueEntry."Maximum No. of Attempts to Run" := 3;
-        JobQueueEntry."No. of Minutes between Runs" := 0;
-        JobQueueEntry."Recurring Job" := false;
-        JobQueueEntry.Insert(true);
-
-        EDocument.Modify(true);
+        EDocumentServiceStatus.SetRange("E-Document Entry No", EDocEntryNo);
+        if EDocumentServiceStatus.FindSet() then
+            repeat
+                if EDocumentService.Get(EDocumentServiceStatus."E-Document Service Code") then
+                    if EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::Avalara then
+                        exit(true);
+            until EDocumentServiceStatus.Next() = 0;
+        exit(false);
     end;
 
     procedure EnsureMaintenanceJobQueueEntry()
@@ -828,5 +794,59 @@ codeunit 6800 "Avalara Functions"
     local procedure OnBeforeSalesCrMemoHeaderInsert(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesHeader: Record "Sales Header")
     begin
         SalesCrMemoHeader."Avalara Doc. ID" := SalesHeader."Avalara Doc. ID";
+    end;
+
+    /// <summary>
+    /// Parse an ISO 8601 datetime string (e.g. 2025-04-16T14:30:00.123Z, 2025-04-16T14:30:00+02:00)
+    /// into a BC DateTime value.
+    /// </summary>
+    procedure TryParseIsoDateTime(IsoText: Text; var Result: DateTime): Boolean
+    var
+        DotPos: Integer;
+        OffsetPos: Integer;
+        Normalized: Text;
+    begin
+        Normalized := IsoText;
+
+        // Strip trailing 'Z' (UTC indicator) if present
+        if (StrLen(Normalized) > 0) and ((Normalized[StrLen(Normalized)] = 'Z') or (Normalized[StrLen(Normalized)] = 'z')) then
+            Normalized := CopyStr(Normalized, 1, StrLen(Normalized) - 1);
+
+        // Strip timezone offset (+HH:MM or -HH:MM) after the time part
+        // Look for +/- after the T separator to avoid matching the date's hyphens
+        OffsetPos := FindTimezoneOffsetPos(Normalized);
+        if OffsetPos > 0 then
+            Normalized := CopyStr(Normalized, 1, OffsetPos - 1);
+
+        // Replace 'T' with space for BC Evaluate compatibility
+        Normalized := Normalized.Replace('T', ' ');
+
+        // First try full value (Evaluate in BC can usually handle millis with space separator)
+        if Evaluate(Result, Normalized) then
+            exit(true);
+
+        // If that failed, remove fractional seconds and try again
+        DotPos := StrPos(Normalized, '.');
+        if DotPos > 0 then begin
+            Normalized := CopyStr(Normalized, 1, DotPos - 1);
+            if Evaluate(Result, Normalized) then
+                exit(true);
+        end;
+
+        exit(false);
+    end;
+
+    local procedure FindTimezoneOffsetPos(DateTimeText: Text): Integer
+    var
+        TSeparatorFound: Boolean;
+        I: Integer;
+    begin
+        for I := 1 to StrLen(DateTimeText) do begin
+            if DateTimeText[I] = 'T' then
+                TSeparatorFound := true;
+            if TSeparatorFound and ((DateTimeText[I] = '+') or (DateTimeText[I] = '-')) then
+                exit(I);
+        end;
+        exit(0);
     end;
 }

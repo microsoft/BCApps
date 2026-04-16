@@ -85,7 +85,7 @@ pageextension 6371 "E-Doc. Service" extends "E-Document Service"
                     var
                         AvalaraFunctions: Codeunit "Avalara Functions";
                     begin
-                        AvalaraFunctions.CreateBoilerPlateDefs(Rec."Avalara Mandate");
+                        AvalaraFunctions.CreateBaseDefinitions(Rec."Avalara Mandate");
                     end;
                 }
 

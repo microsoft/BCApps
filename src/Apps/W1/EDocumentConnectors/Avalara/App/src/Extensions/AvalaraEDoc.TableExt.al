@@ -24,4 +24,11 @@ tableextension 6372 "Avalara E-Doc." extends "E-Document"
             DataClassification = CustomerContent;
         }
     }
+
+    keys
+    {
+        key(AvalaraDocId; "Avalara Document Id")
+        {
+        }
+    }
 }

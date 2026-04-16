@@ -9,9 +9,11 @@ namespace Microsoft.EServices.EDocumentConnector.Avalara;
 /// </summary>
 table 6374 "Avalara Input Field"
 {
+    Access = Internal;
     Caption = 'Input Field';
     DataClassification = SystemMetadata;
     DataPerCompany = false;
+
     fields
     {
         field(1; FieldId; Integer)
