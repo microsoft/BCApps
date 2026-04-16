@@ -57,46 +57,90 @@ jobs:
           # Extract the first AB# reference (release work item)
           RELEASE_WI=$(echo "$PR_BODY" | grep -Eo 'AB#[0-9]+' | head -1 | sed 's/AB#//')
 
-          # Extract the original PR number from "backport of #NNN" or "backports #NNN"
-          ORIG_PR=$(echo "$PR_BODY" | grep -Poi 'backports?\s+(of\s+)?#\K[0-9]+' | head -1 || true)
+          # Try "backports #NNN" / "backport of #NNN" first (CrossBranchPorting pattern)
+          ORIG_REF=$(echo "$PR_BODY" | grep -Poi 'backports?\s+(of\s+)?#\K[0-9]+' | head -1 || true)
+          ORIG_REF_TYPE="pr"
+
+          # Fallback: "Fixes #NNN" / "Closes #NNN" (linked issue/PR pattern)
+          if [[ -z "$ORIG_REF" ]]; then
+            ORIG_REF=$(echo "$PR_BODY" | grep -Poi '(fix|fixes|fixed|close|closes|closed|resolve|resolves|resolved)\s+#\K[0-9]+' | head -1 || true)
+            ORIG_REF_TYPE="issue"
+          fi
 
           echo "RELEASE_WI=$RELEASE_WI" >> "$GITHUB_OUTPUT"
-          echo "ORIG_PR=$ORIG_PR" >> "$GITHUB_OUTPUT"
+          echo "ORIG_REF=$ORIG_REF" >> "$GITHUB_OUTPUT"
+          echo "ORIG_REF_TYPE=$ORIG_REF_TYPE" >> "$GITHUB_OUTPUT"
 
           if [[ -z "$RELEASE_WI" ]]; then
             echo "::warning::No AB# reference found in PR description. Skipping."
           fi
-          if [[ -z "$ORIG_PR" ]]; then
-            echo "::warning::No backport reference found in PR description. Skipping."
+          if [[ -z "$ORIG_REF" ]]; then
+            echo "::warning::No backport or issue reference found in PR description. Skipping."
           fi
         shell: bash
 
-      - name: Fetch original PR and extract master work item
+      - name: Fetch original issue/PR and extract master work item
         id: resolve_master
-        if: steps.parse_pr.outputs.ORIG_PR != '' && steps.parse_pr.outputs.RELEASE_WI != ''
+        if: steps.parse_pr.outputs.ORIG_REF != '' && steps.parse_pr.outputs.RELEASE_WI != ''
         env:
-          ORIG_PR: ${{ steps.parse_pr.outputs.ORIG_PR }}
+          ORIG_REF: ${{ steps.parse_pr.outputs.ORIG_REF }}
+          ORIG_REF_TYPE: ${{ steps.parse_pr.outputs.ORIG_REF_TYPE }}
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: |
-          ORIG_BODY=$(curl -s \
+          MASTER_WI=""
+
+          # 1. Try fetching as a PR — AB# may be directly on it
+          PR_RESP=$(curl -s \
             -H "Authorization: token $GH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${REPO}/pulls/${ORIG_PR}" \
-            | jq -r '.body // empty')
+            "https://api.github.com/repos/${REPO}/pulls/${ORIG_REF}")
 
-          if [[ -z "$ORIG_BODY" ]]; then
-            echo "::error::Could not fetch body for original PR #$ORIG_PR"
-            exit 1
+          PR_BODY=$(echo "$PR_RESP" | jq -r '.body // empty')
+          if [[ -n "$PR_BODY" ]]; then
+            MASTER_WI=$(echo "$PR_BODY" | grep -Eo 'AB#[0-9]+' | head -1 | sed 's/AB#//')
           fi
 
-          MASTER_WI=$(echo "$ORIG_BODY" | grep -Eo 'AB#[0-9]+' | head -1 | sed 's/AB#//')
+          # 2. If #ORIG_REF is an issue (or PR had no AB#), find the PR that closes it
+          if [[ -z "$MASTER_WI" ]]; then
+            echo "No AB# on #$ORIG_REF directly. Searching for a PR that closes issue #$ORIG_REF..."
+
+            # Use the issue timeline to find cross-referenced PRs
+            TIMELINE=$(curl -s \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${REPO}/issues/${ORIG_REF}/timeline?per_page=100")
+
+            # Find PRs that reference this issue (cross-referenced events with source type=issue meaning PR)
+            CANDIDATE_PRS=$(echo "$TIMELINE" | jq -r '
+              [.[] | select(.event == "cross-referenced" and .source.issue.pull_request != null)
+                   | .source.issue.number] | unique | .[]')
+
+            for PR_NUM in $CANDIDATE_PRS; do
+              echo "Checking PR #$PR_NUM for AB# reference..."
+              CANDIDATE_BODY=$(curl -s \
+                -H "Authorization: token $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/${REPO}/pulls/${PR_NUM}" \
+                | jq -r '.body // empty')
+
+              CANDIDATE_WI=$(echo "$CANDIDATE_BODY" | grep -Eo 'AB#[0-9]+' | head -1 | sed 's/AB#//')
+              if [[ -n "$CANDIDATE_WI" ]]; then
+                MASTER_WI="$CANDIDATE_WI"
+                echo "Found AB#$MASTER_WI on PR #$PR_NUM"
+                break
+              fi
+            done
+          fi
+
           echo "MASTER_WI=$MASTER_WI" >> "$GITHUB_OUTPUT"
 
           if [[ -z "$MASTER_WI" ]]; then
-            echo "::error::No AB# found in original PR #$ORIG_PR"
+            echo "::error::No AB# found on #$ORIG_REF or any PR that references it"
             exit 1
           fi
+
+          echo "✅ Master (parent) work item: AB#$MASTER_WI"
         shell: bash
 
       - name: Add parent link in Azure DevOps
