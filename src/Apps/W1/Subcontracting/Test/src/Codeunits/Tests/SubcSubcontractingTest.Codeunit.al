@@ -20,7 +20,6 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.Planning;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
@@ -1514,7 +1513,7 @@ Comment = '|%1 = Transfer Order No.';
         // [GIVEN] Create Item for Production include Routing and Prod. BOM
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
 
-        SubcontractingMgmtLibrary.CreateSubcontractorPrice(Item, WorkCenter[2]."No.", SubcontractorPrice);
+        SubcManagementLibrary.CreateSubcontractorPrice(Item, WorkCenter[2]."No.", SubcontractorPrice);
 
         CreateAndRefreshProductionOrder(
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -1978,7 +1977,7 @@ Comment = '|%1 = Transfer Order No.';
             GenProductPostingGroup.FindFirst();
             GenProductPostingGroup.Validate("Def. VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
             GenProductPostingGroup.Modify(true);
-            WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(CurrencyCode));
+            WorkCenter.Validate("Subcontractor No.", SubcManagementLibrary.CreateSubcontractorWithCurrency(CurrencyCode));
         end;
         WorkCenter.Modify(true);
         WorkCenterNo := WorkCenter."No.";
@@ -2060,7 +2059,7 @@ Comment = '|%1 = Transfer Order No.';
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting Test");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
+        SubcManagementLibrary.Initialize();
         UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Purchase);
         LibraryMfgManagement.Initialize();
 
@@ -2087,7 +2086,7 @@ Comment = '|%1 = Transfer Order No.';
 
     local procedure UpdateSubMgmtSetupWithReqWkshTemplate()
     begin
-        LibraryMfgManagement.CreateLaborReqWkshTemplateAndNameAndUpdateSetup();
+        LibraryMfgManagement.CreateSubcontrReqWkshTemplateAndNameAndUpdateSetup();
     end;
 
     local procedure UpdateSubMgmtSetupTransferInfoLine(Update: Boolean)
@@ -2153,7 +2152,7 @@ Comment = '|%1 = Transfer Order No.';
 
         LibraryInventory.NoSeriesSetup(InventorySetup);
         InventorySetup."Inventory Put-away Nos." := LibraryUtility.GetGlobalNoSeriesCode();
-        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
+        // InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
         LibraryInventory.UpdateInventoryPostingSetup(Location);
     end;
@@ -2272,7 +2271,7 @@ Comment = '|%1 = Transfer Order No.';
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
-        SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubcManagementLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
         Subcontracting: Boolean;

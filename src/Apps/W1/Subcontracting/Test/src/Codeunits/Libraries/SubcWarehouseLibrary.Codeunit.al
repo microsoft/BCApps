@@ -13,7 +13,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.Planning;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
@@ -425,7 +424,7 @@ codeunit 149908 "Subc. Warehouse Library"
     /// </summary>
     procedure UpdateSubMgmtSetupWithReqWkshTemplate()
     begin
-        SubcLibraryMfgManagement.CreateLaborReqWkshTemplateAndNameAndUpdateSetup();
+        SubcLibraryMfgManagement.CreateSubcontrReqWkshTemplateAndNameAndUpdateSetup();
     end;
 
     // ========================================

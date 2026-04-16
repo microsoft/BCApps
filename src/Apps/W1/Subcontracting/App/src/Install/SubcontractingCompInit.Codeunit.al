@@ -19,7 +19,7 @@ codeunit 99001503 "Subcontracting Comp. Init."
     begin
         if not SubcManagementSetup.Get() then begin
             SubcManagementSetup.Init();
-            CreateLaborReqWkshTemplateAndNameAndUpdateSetup(SubcManagementSetup);
+            CreateSubcontrReqWkshTemplateAndNameAndUpdateSetup(SubcManagementSetup);
             SubcManagementSetup."Direct Transfer" := true;
             SubcManagementSetup."Create Prod. Order Info Line" := true;
             Evaluate(SubcManagementSetup."Subc. Inb. Whse. Handling Time", GetDefaultInboundWhseHandlingTime());
@@ -27,7 +27,7 @@ codeunit 99001503 "Subcontracting Comp. Init."
         end;
     end;
 
-    procedure CreateLaborReqWkshTemplateAndNameAndUpdateSetup(var SubcManagementSetup: Record "Subc. Management Setup")
+    procedure CreateSubcontrReqWkshTemplateAndNameAndUpdateSetup(var SubcManagementSetup: Record "Subc. Management Setup")
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";
