@@ -105,10 +105,10 @@ jobs:
           if [[ -z "$MASTER_WI" ]]; then
             echo "No AB# on #$ORIG_REF directly. Searching for a PR that closes issue #$ORIG_REF..."
 
-            # Use the issue timeline to find cross-referenced PRs
+            # Use the issue timeline to find cross-referenced PRs (mockingbird preview required)
             TIMELINE=$(curl -s \
               -H "Authorization: token $GH_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
+              -H "Accept: application/vnd.github.mockingbird-preview+json" \
               "https://api.github.com/repos/${REPO}/issues/${ORIG_REF}/timeline?per_page=100")
 
             # Find PRs that reference this issue (cross-referenced events with source type=issue meaning PR)
@@ -143,6 +143,29 @@ jobs:
           echo "✅ Master (parent) work item: AB#$MASTER_WI"
         shell: bash
 
+      - name: Fetch issue title for KB fields
+        id: issue_title
+        if: steps.parse_pr.outputs.ORIG_REF != '' && steps.parse_pr.outputs.RELEASE_WI != ''
+        env:
+          ORIG_REF: ${{ steps.parse_pr.outputs.ORIG_REF }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          TITLE=$(curl -s \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/issues/${ORIG_REF}" \
+            | jq -r '.title // empty')
+
+          echo "ISSUE_TITLE=$TITLE" >> "$GITHUB_OUTPUT"
+
+          if [[ -z "$TITLE" ]]; then
+            echo "::warning::Could not fetch title for #$ORIG_REF. KB fields will not be updated."
+          else
+            echo "Issue #$ORIG_REF title: $TITLE"
+          fi
+        shell: bash
+
       - name: Add parent link in Azure DevOps
         if: >-
           steps.resolve_master.outputs.MASTER_WI != '' &&
@@ -152,6 +175,7 @@ jobs:
           AZURE_DEVOPS_PAT: ${{ secrets.ADO_PAT }}
           RELEASE_WI: ${{ steps.parse_pr.outputs.RELEASE_WI }}
           MASTER_WI: ${{ steps.resolve_master.outputs.MASTER_WI }}
+          ISSUE_TITLE: ${{ steps.issue_title.outputs.ISSUE_TITLE }}
         run: |
           ADO_ORG="dynamicssmb2"
           ADO_PROJECT="Dynamics%20SMB"
@@ -173,23 +197,20 @@ jobs:
             exit 0
           fi
 
-          # Add Hierarchy-Reverse (Parent) relation
-          JSON=$(cat <<EOF
-          [
-            {
-              "op": "add",
-              "path": "/relations/-",
-              "value": {
-                "rel": "System.LinkTypes.Hierarchy-Reverse",
-                "url": "${PARENT_URL}",
-                "attributes": {
-                  "comment": "Auto-linked by link-backport-workitems: release bug #${RELEASE_WI} → master bug #${MASTER_WI}"
-                }
-              }
-            }
-          ]
-          EOF
-          )
+          # Build JSON Patch: parent link + KB fields
+          # Escape the issue title for JSON
+          ESCAPED_TITLE=$(echo "$ISSUE_TITLE" | jq -Rs '.' | sed 's/^"//;s/"$//')
+
+          JSON='[{"op":"add","path":"/relations/-","value":{"rel":"System.LinkTypes.Hierarchy-Reverse","url":"'"${PARENT_URL}"'","attributes":{"comment":"Auto-linked by link-backport-workitems: release bug #'"${RELEASE_WI}"' → master bug #'"${MASTER_WI}"'"}}}'
+
+          # Add KB fields if issue title is available
+          if [[ -n "$ISSUE_TITLE" ]]; then
+            JSON="${JSON},{\"op\":\"add\",\"path\":\"/fields/KB Article\",\"value\":\"${ESCAPED_TITLE}\"}"
+            JSON="${JSON},{\"op\":\"add\",\"path\":\"/fields/KB Title\",\"value\":\"${ESCAPED_TITLE}\"}"
+            echo "Will set KB Article and KB Title to: $ISSUE_TITLE"
+          fi
+
+          JSON="${JSON}]"
 
           HTTP_CODE=$(curl -s -o resp.json -w "%{http_code}" -X PATCH \
             -H "Content-Type: application/json-patch+json" \
