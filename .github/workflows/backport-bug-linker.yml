@@ -3,9 +3,10 @@ name: Backport Bug Linker
 # ──────────────────────────────────────────────────────────────────────
 # STEP 1 — Trigger and idempotency guard
 # ──────────────────────────────────────────────────────────────────────
-on:
-  pull_request_target:
-    types: [labeled]
+on: { pull_request_target: 
+    { types: [labeled] }, 
+    pull_request: 
+        { types: [opened, synchronize] } }
 
 permissions:
   pull-requests: write   # Required to edit PR description (Step 3) and post comments (Step 7)
