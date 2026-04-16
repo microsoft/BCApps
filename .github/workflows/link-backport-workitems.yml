@@ -1,0 +1,163 @@
+name: Link Backport Work Items
+
+on:
+  pull_request_target:
+    types: [opened, edited, labeled]
+    branches:
+      - 'releases/**'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to test against (must target a releases/** branch)'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  link-backport:
+    if: >-
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event.pull_request.state == 'open' &&
+       contains(github.event.pull_request.body, 'AB#'))
+    runs-on: ubuntu-latest
+
+    steps:
+      # For workflow_dispatch: fetch the PR details via API
+      - name: Resolve PR details
+        id: pr_details
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            PR_NUM="${{ inputs.pr_number }}"
+            BODY=$(curl -s \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${REPO}/pulls/${PR_NUM}" \
+              | jq -r '.body // empty')
+            echo "PR_BODY<<GHEOF" >> "$GITHUB_OUTPUT"
+            echo "$BODY" >> "$GITHUB_OUTPUT"
+            echo "GHEOF" >> "$GITHUB_OUTPUT"
+          else
+            echo "PR_BODY<<GHEOF" >> "$GITHUB_OUTPUT"
+            echo "${{ github.event.pull_request.body }}" >> "$GITHUB_OUTPUT"
+            echo "GHEOF" >> "$GITHUB_OUTPUT"
+          fi
+        shell: bash
+
+      - name: Parse backport PR description
+        id: parse_pr
+        env:
+          PR_BODY: ${{ steps.pr_details.outputs.PR_BODY }}
+        run: |
+          # Extract the first AB# reference (release work item)
+          RELEASE_WI=$(echo "$PR_BODY" | grep -Eo 'AB#[0-9]+' | head -1 | sed 's/AB#//')
+
+          # Extract the original PR number from "backport of #NNN" or "backports #NNN"
+          ORIG_PR=$(echo "$PR_BODY" | grep -Poi 'backports?\s+(of\s+)?#\K[0-9]+' | head -1 || true)
+
+          echo "RELEASE_WI=$RELEASE_WI" >> "$GITHUB_OUTPUT"
+          echo "ORIG_PR=$ORIG_PR" >> "$GITHUB_OUTPUT"
+
+          if [[ -z "$RELEASE_WI" ]]; then
+            echo "::warning::No AB# reference found in PR description. Skipping."
+          fi
+          if [[ -z "$ORIG_PR" ]]; then
+            echo "::warning::No backport reference found in PR description. Skipping."
+          fi
+        shell: bash
+
+      - name: Fetch original PR and extract master work item
+        id: resolve_master
+        if: steps.parse_pr.outputs.ORIG_PR != '' && steps.parse_pr.outputs.RELEASE_WI != ''
+        env:
+          ORIG_PR: ${{ steps.parse_pr.outputs.ORIG_PR }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          ORIG_BODY=$(curl -s \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/pulls/${ORIG_PR}" \
+            | jq -r '.body // empty')
+
+          if [[ -z "$ORIG_BODY" ]]; then
+            echo "::error::Could not fetch body for original PR #$ORIG_PR"
+            exit 1
+          fi
+
+          MASTER_WI=$(echo "$ORIG_BODY" | grep -Eo 'AB#[0-9]+' | head -1 | sed 's/AB#//')
+          echo "MASTER_WI=$MASTER_WI" >> "$GITHUB_OUTPUT"
+
+          if [[ -z "$MASTER_WI" ]]; then
+            echo "::error::No AB# found in original PR #$ORIG_PR"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Add parent link in Azure DevOps
+        if: >-
+          steps.resolve_master.outputs.MASTER_WI != '' &&
+          steps.parse_pr.outputs.RELEASE_WI != '' &&
+          steps.resolve_master.outputs.MASTER_WI != steps.parse_pr.outputs.RELEASE_WI
+        env:
+          AZURE_DEVOPS_PAT: ${{ secrets.ADO_PAT }}
+          RELEASE_WI: ${{ steps.parse_pr.outputs.RELEASE_WI }}
+          MASTER_WI: ${{ steps.resolve_master.outputs.MASTER_WI }}
+        run: |
+          ADO_ORG="dynamicssmb2"
+          ADO_PROJECT="Dynamics%20SMB"
+          ADO_BASE="https://dev.azure.com/${ADO_ORG}/${ADO_PROJECT}"
+          AUTH_HEADER=$(printf ":%s" "$AZURE_DEVOPS_PAT" | base64)
+
+          # Check if the parent link already exists (idempotency)
+          EXISTING_RELS=$(curl -s \
+            -H "Authorization: Basic $AUTH_HEADER" \
+            "${ADO_BASE}/_apis/wit/workitems/${RELEASE_WI}?\$expand=relations&api-version=7.1")
+
+          PARENT_URL="${ADO_BASE}/_apis/wit/workItems/${MASTER_WI}"
+          ALREADY_LINKED=$(echo "$EXISTING_RELS" | jq -r \
+            --arg url "$PARENT_URL" \
+            '[.relations // [] | .[] | select(.rel == "System.LinkTypes.Hierarchy-Reverse" and .url == $url)] | length')
+
+          if [[ "$ALREADY_LINKED" -gt 0 ]]; then
+            echo "Parent link already exists ($RELEASE_WI → $MASTER_WI). Skipping."
+            exit 0
+          fi
+
+          # Add Hierarchy-Reverse (Parent) relation
+          JSON=$(cat <<EOF
+          [
+            {
+              "op": "add",
+              "path": "/relations/-",
+              "value": {
+                "rel": "System.LinkTypes.Hierarchy-Reverse",
+                "url": "${PARENT_URL}",
+                "attributes": {
+                  "comment": "Auto-linked by link-backport-workitems: release bug #${RELEASE_WI} → master bug #${MASTER_WI}"
+                }
+              }
+            }
+          ]
+          EOF
+          )
+
+          HTTP_CODE=$(curl -s -o resp.json -w "%{http_code}" -X PATCH \
+            -H "Content-Type: application/json-patch+json" \
+            -H "Authorization: Basic $AUTH_HEADER" \
+            -d "$JSON" \
+            "${ADO_BASE}/_apis/wit/workitems/${RELEASE_WI}?api-version=7.1")
+
+          if [[ "$HTTP_CODE" != "200" ]]; then
+            echo "::error::ADO API returned $HTTP_CODE"
+            cat resp.json | jq . 2>/dev/null || cat resp.json
+            exit 1
+          fi
+
+          echo "✅ Linked ADO #${RELEASE_WI} (child) → #${MASTER_WI} (parent)"
+        shell: bash
