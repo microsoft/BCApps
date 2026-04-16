@@ -1,0 +1,110 @@
+name: Backport Bug Linker
+
+# ──────────────────────────────────────────────────────────────────────
+# STEP 1 — Trigger and idempotency guard
+# ──────────────────────────────────────────────────────────────────────
+on:
+  pull_request_target:
+    types: [labeled]
+
+permissions:
+  pull-requests: write   # Required to edit PR description (Step 3) and post comments (Step 7)
+  issues: write          # GitHub uses the Issues API endpoint for PR comments
+
+jobs:
+  link-bug:
+    # Only run when the "Linked" label is applied AND no AB# reference exists yet
+    if: >-
+      github.event.label.name == 'Linked' &&
+      !contains(github.event.pull_request.body, 'AB#')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log trigger details
+        run: |
+          echo "PR #${{ github.event.pull_request.number }} received 'Linked' label."
+          echo "Target branch: ${{ github.event.pull_request.base.ref }}"
+          echo "Head branch: ${{ github.event.pull_request.head.ref }}"
+          echo "No AB# reference found in PR description. Starting automation..."
+
+      # ──────────────────────────────────────────────────────────────
+      # STEP 2 — Poll Azure DevOps for the newly created bug
+      # ──────────────────────────────────────────────────────────────
+      - name: Poll ADO for newly created bug
+        id: find-bug
+        env:
+          ADO_PAT: ${{ secrets.ADO_PAT }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          # Construct auth header (Basic auth with PAT, no username)
+          AUTH_HEADER=$(printf ":%s" "$ADO_PAT" | base64)
+
+          # ADO WIQL endpoint for the Dynamics SMB project
+          WIQL_ENDPOINT="https://dev.azure.com/dynamicssmb2/Dynamics%20SMB/_apis/wit/wiql?api-version=7.0"
+
+          # WIQL query: find the bug by title pattern and creator
+          WIQL_JSON=$(cat <<EOF
+          {
+            "query": "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = 'Dynamics SMB' AND [System.WorkItemType] = 'Bug' AND [System.Title] CONTAINS '[BCApps #${PR_NUMBER}]' AND [System.CreatedBy] = 'bcbuild-dmedaemon-agent' ORDER BY [System.CreatedDate] DESC"
+          }
+          EOF
+          )
+
+          # Poll with exponential backoff (max ~3 minutes)
+          MAX_TRIES=5
+          DELAY=10
+          bugId=""
+
+          for ((i=1; i<=MAX_TRIES; i++)); do
+            echo "Polling ADO for Bug (attempt $i of $MAX_TRIES)..."
+            sleep $DELAY
+
+            RESPONSE=$(curl -s -X POST \
+              -H "Authorization: Basic $AUTH_HEADER" \
+              -H "Content-Type: application/json" \
+              -d "$WIQL_JSON" \
+              "$WIQL_ENDPOINT")
+
+            COUNT=$(echo "$RESPONSE" | jq ".workItems | length")
+
+            if [[ "$COUNT" -gt 0 ]]; then
+              bugId=$(echo "$RESPONSE" | jq -r ".workItems[0].id")
+              echo "✅ Found ADO Bug ID: $bugId"
+              break
+            fi
+
+            echo "Bug not found yet. Will retry in ${DELAY}s..."
+            DELAY=$(( DELAY * 2 ))
+          done
+
+          if [[ -z "$bugId" ]]; then
+            echo "##[error] ADO bug for PR #${PR_NUMBER} not found within 3 minutes."
+            exit 1
+          fi
+
+          # Export Bug ID and browser URL for use in later steps
+          echo "BUG_ID=$bugId" >> $GITHUB_ENV
+          echo "BUG_URL=https://dev.azure.com/dynamicssmb2/Dynamics%20SMB/_workitems/edit/$bugId" >> $GITHUB_ENV
+
+      # ──────────────────────────────────────────────────────────────
+      # STEP 3: Update PR description with AB#${{ env.BUG_ID }}
+      #         (to be implemented)
+      # ──────────────────────────────────────────────────────────────
+
+      # ──────────────────────────────────────────────────────────────
+      # STEP 4: Identify master ADO bug via PR description parsing
+      #         (to be implemented)
+      # ──────────────────────────────────────────────────────────────
+
+      # ──────────────────────────────────────────────────────────────
+      # STEP 5: Link backport bug to master bug in ADO
+      #         (to be implemented)
+      # ──────────────────────────────────────────────────────────────
+
+      # ──────────────────────────────────────────────────────────────
+      # STEP 6: Copy fields from master bug to new bug
+      #         (to be implemented)
+      # ──────────────────────────────────────────────────────────────
+
+      # ──────────────────────────────────────────────────────────────
+      # STEP 7: Post confirmation comment on PR
