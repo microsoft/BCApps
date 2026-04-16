@@ -115,6 +115,15 @@ if ($masterWI -eq $releaseWI) {
     exit 1
 }
 
+# Fetch issue title for KB fields
+$issueTitle = gh issue view $origRef --repo $repo --json title --jq ".title" 2>$null
+if ($issueTitle) {
+    Write-Host "  Issue #$origRef title: $issueTitle" -ForegroundColor Green
+}
+else {
+    Write-Host "  WARNING: Could not fetch title for #$origRef. KB fields will not be updated." -ForegroundColor Yellow
+}
+
 # ── STEP 3: Summary and link ──
 Write-Host "`n========================================" -ForegroundColor Cyan
 Write-Host " RESULT" -ForegroundColor Cyan
@@ -123,13 +132,24 @@ Write-Host "  Release PR:     #$ReleasePR" -ForegroundColor White
 Write-Host "  Release WI:     AB#$releaseWI (child)" -ForegroundColor White
 Write-Host "  Master WI:      AB#$masterWI (parent)" -ForegroundColor White
 Write-Host "  ADO Link:       $releaseWI -> $masterWI (Parent-Child)" -ForegroundColor White
+if ($issueTitle) {
+    Write-Host "  KB Article:     $issueTitle" -ForegroundColor White
+    Write-Host "  KB Title:       $issueTitle" -ForegroundColor White
+}
 Write-Host "  ADO Child URL:  https://dev.azure.com/dynamicssmb2/Dynamics%20SMB/_workitems/edit/$releaseWI" -ForegroundColor Gray
 Write-Host "  ADO Parent URL: https://dev.azure.com/dynamicssmb2/Dynamics%20SMB/_workitems/edit/$masterWI" -ForegroundColor Gray
 
 if ($DryRun) {
     Write-Host "`n  [DRY RUN] Would call ADO REST API:" -ForegroundColor Yellow
     Write-Host "  PATCH https://dev.azure.com/dynamicssmb2/Dynamics%20SMB/_apis/wit/workitems/$releaseWI`?api-version=7.1" -ForegroundColor Yellow
-    Write-Host '  Body: [{"op":"add","path":"/relations/-","value":{"rel":"System.LinkTypes.Hierarchy-Reverse","url":"https://dev.azure.com/dynamicssmb2/Dynamics%20SMB/_apis/wit/workItems/' + $masterWI + '"}}]' -ForegroundColor Yellow
+    Write-Host '  Body: [{"op":"add","path":"/relations/-","value":{"rel":"System.LinkTypes.Hierarchy-Reverse","url":"https://dev.azure.com/dynamicssmb2/Dynamics%20SMB/_apis/wit/workItems/' + $masterWI + '"}}' -ForegroundColor Yellow
+    if ($issueTitle) {
+        Write-Host "        ,{`"op`":`"add`",`"path`":`"/fields/KB Article`",`"value`":`"$issueTitle`"}" -ForegroundColor Yellow
+        Write-Host "        ,{`"op`":`"add`",`"path`":`"/fields/KB Title`",`"value`":`"$issueTitle`"}]" -ForegroundColor Yellow
+    }
+    else {
+        Write-Host '       ]' -ForegroundColor Yellow
+    }
     Write-Host "`n  Rerun without -DryRun to create the link." -ForegroundColor Gray
 }
 else {
@@ -163,6 +183,20 @@ else {
                     }
                 }
             )
+
+            # Add KB fields if issue title is available
+            if ($issueTitle) {
+                $patchArray += @{
+                    op    = "add"
+                    path  = "/fields/KB Article"
+                    value = $issueTitle
+                }
+                $patchArray += @{
+                    op    = "add"
+                    path  = "/fields/KB Title"
+                    value = $issueTitle
+                }
+            }
             # Force array serialization even for single element
             $patchBody = "[$( ($patchArray | ForEach-Object { $_ | ConvertTo-Json -Depth 5 -Compress }) -join ',' )]"
 
