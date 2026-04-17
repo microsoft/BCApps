@@ -127,7 +127,6 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         ClearBOMTables();
         GetManufacturingSetup();
 
-        ManufacturingSetup.Get();
         ManufacturingSetup.TestField("Production BOM Nos.");
 
         Item.SetLoadFields(Description, "Base Unit of Measure", "No.");
@@ -181,8 +180,6 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         ClearRoutingTables();
         GetManufacturingSetup();
 
-        ManufacturingSetup.SetLoadFields("Routing Nos.");
-        ManufacturingSetup.Get();
         ManufacturingSetup.TestField("Routing Nos.");
 
         Item.SetLoadFields(Description, "Base Unit of Measure", "No.");

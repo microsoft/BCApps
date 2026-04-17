@@ -291,7 +291,7 @@ codeunit 139981 "Subc. Location Handler Test"
         Initialize();
 
         // [GIVEN] Sub Management Setup "Component at Location" is Manufacturing
-        UpdateSubManagementSetup(ManufacturingSetup."Subc. Comp. at Location"::Manufacturing);
+        UpdateSubManagementSetup("Components at Location"::Manufacturing);
 
         // [GIVEN] Manufacturing Setup with a specific Location Code
         LibraryWarehouse.CreateLocation(LocationMfg);
