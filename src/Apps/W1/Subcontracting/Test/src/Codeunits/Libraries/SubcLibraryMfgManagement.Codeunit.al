@@ -202,7 +202,7 @@ codeunit 139984 "Subc. Library Mfg. Management"
         exit(ProdOrderRoutingLine."Routing Reference No.");
     end;
 
-    procedure CreateLaborReqWkshTemplateAndNameAndUpdateSetup()
+    procedure CreateSubcontrReqWkshTemplateAndNameAndUpdateSetup()
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";
