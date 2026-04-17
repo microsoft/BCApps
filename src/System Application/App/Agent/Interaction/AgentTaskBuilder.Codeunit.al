@@ -94,6 +94,19 @@ codeunit 4315 "Agent Task Builder"
     end;
 
     /// <summary>
+    /// Set the billing type for the task.
+    /// </summary>
+    /// <param name="BillingType">The billing type to set on the task.</param>
+    /// <returns>This instance of the Agent Task Builder.</returns>
+    [Scope('OnPrem')]
+    procedure SetBillingType(BillingType: Enum "Agent Task Billing Type"): codeunit "Agent Task Builder"
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentTaskBuilderImpl.SetBillingType(BillingType);
+        exit(this);
+    end;
+
+    /// <summary>
     /// Add a task message to the task.
     /// Only a single message can be added to the task.
     /// </summary>
