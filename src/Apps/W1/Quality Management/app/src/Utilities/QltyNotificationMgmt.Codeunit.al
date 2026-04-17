@@ -143,6 +143,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         MyNotifications: Record "My Notifications";
         CountNotification: Notification;
         Message: Text;
+        NotificationOptions: Dictionary of [Text, Text];
     begin
         if not GuiAllowed() then
             exit;
@@ -152,9 +153,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
             exit;
 
         Message := StrSubstNo(MultipleInspectionsCreatedMsg, InspectionCount);
-        CountNotification.Message := Message;
-        CountNotification.Scope := NotificationScope::LocalScope;
-        CountNotification.Send();
+        NotificationOptions.Add(DontShowAgainLbl, HandleDontShowInspectionCreatedTok);
+        CreateActionNotification(CountNotification, Message, NotificationOptions);
     end;
 
     /// <summary>
