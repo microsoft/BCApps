@@ -1,0 +1,247 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Tooling;
+
+using System.PerformanceProfile;
+using System.Security.User;
+using System.Telemetry;
+
+/// <summary>
+/// Implementation behind "Perf. Analysis Mgt." Contains the state machine and the
+/// wizard-to-scheduler mapping.
+/// </summary>
+codeunit 5481 "Perf. Analysis Mgt. Impl."
+{
+    Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata "Performance Analysis" = RIMD,
+                  tabledata "Performance Analysis Line" = RIMD,
+                  tabledata "Performance Profile Scheduler" = RIMD;
+
+    var
+        CannotScheduleForOthersErr: Label 'Only administrators can request a performance analysis for another user.';
+        AnalysisNotActiveErr: Label 'This action is not available in the current state (%1).', Comment = '%1 = current state caption';
+        TelemetryCategoryTok: Label 'Performance Center', Locked = true;
+        RequestedTelemetryLbl: Label 'Performance Analysis requested. State=%1, Activity=%2, Frequency=%3.', Locked = true;
+        StateChangedTelemetryLbl: Label 'Performance Analysis state changed from %1 to %2.', Locked = true;
+
+    procedure RequestAnalysis(var Analysis: Record "Performance Analysis")
+    var
+        Scheduler: Record "Performance Profile Scheduler";
+        ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
+        PerfAnalysisMgt: Codeunit "Perf. Analysis Mgt.";
+        Telemetry: Codeunit Telemetry;
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        ValidateTarget(Analysis);
+
+        if IsNullGuid(Analysis."Id") then
+            Analysis."Id" := CreateGuid();
+        if IsNullGuid(Analysis."Requested By") then
+            Analysis."Requested By" := UserSecurityId();
+        if Analysis."Requested At" = 0DT then
+            Analysis."Requested At" := CurrentDateTime();
+        if IsNullGuid(Analysis."Target User") then
+            Analysis."Target User" := Analysis."Requested By";
+        if Analysis."Title" = '' then
+            Analysis."Title" := BuildAutoTitle(Analysis);
+
+        Analysis."State" := Analysis."State"::Requested;
+        Analysis.Insert(true);
+
+        InitSchedulerFromAnalysis(Analysis, Scheduler);
+        PerfAnalysisMgt.OnBeforeCreateSchedule(Analysis, Scheduler);
+        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Scheduler, Analysis."Scenario Activity Type");
+        Scheduler.Insert(true);
+        PerfAnalysisMgt.OnAfterCreateSchedule(Analysis, Scheduler);
+
+        Analysis."Related Schedule Id" := Scheduler."Schedule ID";
+        Analysis."Monitoring Starts At" := Scheduler."Starting Date-Time";
+        Analysis."Monitoring Ends At" := Scheduler."Ending Date-Time";
+        Analysis."Profile Threshold (ms)" := Scheduler."Profile Creation Threshold";
+        SetState(Analysis, Analysis."State"::Scheduled);
+
+        Dimensions.Add('Category', TelemetryCategoryTok);
+        Dimensions.Add('State', Format(Analysis."State"));
+        Dimensions.Add('Activity', Format(Analysis."Scenario Activity Type"));
+        Dimensions.Add('Frequency', Format(Analysis."Frequency"));
+        Telemetry.LogMessage('PC-0001', StrSubstNo(RequestedTelemetryLbl, Analysis."State", Analysis."Scenario Activity Type", Analysis."Frequency"),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
+    end;
+
+    procedure StopCapture(var Analysis: Record "Performance Analysis")
+    var
+        Scheduler: Record "Performance Profile Scheduler";
+    begin
+        if not (Analysis."State" in [Analysis."State"::Scheduled, Analysis."State"::Capturing]) then
+            Error(AnalysisNotActiveErr, Analysis."State");
+        if TryGetSchedule(Analysis, Scheduler) then begin
+            Scheduler."Ending Date-Time" := CurrentDateTime();
+            Scheduler.Enabled := false;
+            Scheduler.Modify(true);
+        end;
+        SetState(Analysis, Analysis."State"::CaptureEnded);
+    end;
+
+    procedure CancelAnalysis(var Analysis: Record "Performance Analysis")
+    var
+        Scheduler: Record "Performance Profile Scheduler";
+    begin
+        if Analysis."State" in [Analysis."State"::Concluded, Analysis."State"::Cancelled, Analysis."State"::Failed] then
+            exit;
+        if TryGetSchedule(Analysis, Scheduler) then begin
+            Scheduler.Enabled := false;
+            Scheduler."Ending Date-Time" := CurrentDateTime();
+            Scheduler.Modify(true);
+        end;
+        SetState(Analysis, Analysis."State"::Cancelled);
+    end;
+
+    procedure RunAiFiltering(var Analysis: Record "Performance Analysis")
+    var
+        Ai: Codeunit "Perf. Analysis AI";
+    begin
+        if not (Analysis."State" in [Analysis."State"::CaptureEnded, Analysis."State"::AiFiltering]) then
+            Error(AnalysisNotActiveErr, Analysis."State");
+        SetState(Analysis, Analysis."State"::AiFiltering);
+        if Ai.FilterProfiles(Analysis) then
+            SetState(Analysis, Analysis."State"::CaptureEnded)
+        else
+            FailAnalysis(Analysis, Ai.GetLastError());
+    end;
+
+    procedure RunAiAnalysis(var Analysis: Record "Performance Analysis")
+    var
+        Gatherer: Codeunit "Perf. Analysis Signal Gath.";
+        Ai: Codeunit "Perf. Analysis AI";
+        PerfAnalysisMgt: Codeunit "Perf. Analysis Mgt.";
+    begin
+        if not (Analysis."State" in [Analysis."State"::CaptureEnded, Analysis."State"::AiAnalyzing]) then
+            Error(AnalysisNotActiveErr, Analysis."State");
+        SetState(Analysis, Analysis."State"::AiAnalyzing);
+
+        Gatherer.GatherAll(Analysis);
+        PerfAnalysisMgt.OnBeforeRunAiAnalysis(Analysis);
+
+        if Ai.Analyze(Analysis) then begin
+            SetState(Analysis, Analysis."State"::Concluded);
+            PerfAnalysisMgt.OnAfterConcludeAnalysis(Analysis);
+        end else
+            FailAnalysis(Analysis, Ai.GetLastError());
+    end;
+
+    procedure RunFullAiPipeline(var Analysis: Record "Performance Analysis")
+    begin
+        RunAiFiltering(Analysis);
+        if Analysis."State" = Analysis."State"::CaptureEnded then
+            RunAiAnalysis(Analysis);
+    end;
+
+    procedure TryGetSchedule(var Analysis: Record "Performance Analysis"; var Scheduler: Record "Performance Profile Scheduler"): Boolean
+    begin
+        if IsNullGuid(Analysis."Related Schedule Id") then
+            exit(false);
+        exit(Scheduler.Get(Analysis."Related Schedule Id"));
+    end;
+
+    internal procedure SetState(var Analysis: Record "Performance Analysis"; NewState: Enum "Perf. Analysis State")
+    var
+        Telemetry: Codeunit Telemetry;
+        Dimensions: Dictionary of [Text, Text];
+        OldState: Enum "Perf. Analysis State";
+    begin
+        OldState := Analysis."State";
+        if OldState = NewState then
+            exit;
+        Analysis."State" := NewState;
+        Analysis.Modify(true);
+
+        Dimensions.Add('Category', TelemetryCategoryTok);
+        Dimensions.Add('AnalysisId', Format(Analysis."Id"));
+        Dimensions.Add('From', Format(OldState));
+        Dimensions.Add('To', Format(NewState));
+        Telemetry.LogMessage('PC-0002', StrSubstNo(StateChangedTelemetryLbl, OldState, NewState),
+            Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
+    end;
+
+    internal procedure FailAnalysis(var Analysis: Record "Performance Analysis"; Reason: Text)
+    begin
+        Analysis."Last Error" := CopyStr(Reason, 1, MaxStrLen(Analysis."Last Error"));
+        SetState(Analysis, Analysis."State"::Failed);
+    end;
+
+    local procedure ValidateTarget(var Analysis: Record "Performance Analysis")
+    var
+        UserPermissions: Codeunit "User Permissions";
+    begin
+        if IsNullGuid(Analysis."Target User") then
+            exit;
+        if Analysis."Target User" = UserSecurityId() then
+            exit;
+        if not UserPermissions.CanManageUsersOnTenant(UserSecurityId()) then
+            Error(CannotScheduleForOthersErr);
+    end;
+
+    local procedure InitSchedulerFromAnalysis(var Analysis: Record "Performance Analysis"; var Scheduler: Record "Performance Profile Scheduler")
+    var
+        ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
+        ActivityType: Enum "Perf. Profile Activity Type";
+        Window: Duration;
+    begin
+        ActivityType := Analysis."Scenario Activity Type";
+        ScheduledPerfProfiler.InitializeFields(Scheduler, ActivityType);
+
+        Scheduler."Schedule ID" := CreateGuid();
+        Scheduler."User ID" := Analysis."Target User";
+        Scheduler.Description := CopyStr(Analysis."Title", 1, MaxStrLen(Scheduler.Description));
+        Scheduler."Starting Date-Time" := CurrentDateTime();
+
+        Window := MonitoringWindowFor(Analysis."Frequency");
+        Scheduler."Ending Date-Time" := Scheduler."Starting Date-Time" + Window;
+        Scheduler."Profile Creation Threshold" := ThresholdFor(Analysis);
+
+        ScheduledPerfProfiler.MapActivityTypeToRecord(Scheduler, ActivityType);
+    end;
+
+    local procedure MonitoringWindowFor(Frequency: Enum "Perf. Analysis Frequency") Window: Duration
+    begin
+        case Frequency of
+            Frequency::Always:
+                Window := 60 * 60 * 1000; // 1 hour
+            Frequency::ComesAndGoes:
+                Window := 8 * 60 * 60 * 1000; // 8 hours
+            Frequency::Sometimes:
+                Window := 24 * 60 * 60 * 1000; // 1 day
+            Frequency::Unknown:
+                Window := 24 * 60 * 60 * 1000; // 1 day
+        end;
+    end;
+
+    local procedure ThresholdFor(Analysis: Record "Performance Analysis") Threshold: Integer
+    begin
+        // Use observed duration minus a small buffer, clamped to a sensible floor/ceiling.
+        Threshold := Analysis."Observed Duration (ms)" - 100;
+        if Threshold < 200 then
+            Threshold := 200;
+        if Threshold > 60000 then
+            Threshold := 60000;
+        if (Analysis."Expected Duration (ms)" > 0) and (Analysis."Expected Duration (ms)" < Threshold) then
+            Threshold := Analysis."Expected Duration (ms)";
+    end;
+
+    local procedure BuildAutoTitle(Analysis: Record "Performance Analysis"): Text[250]
+    var
+        TitleTxt: Label 'Slow %1 (%2)', Comment = '%1 = trigger description, %2 = requested date';
+        TriggerTxt: Text;
+    begin
+        if Analysis."Trigger Object Name" <> '' then
+            TriggerTxt := Analysis."Trigger Object Name"
+        else
+            TriggerTxt := Format(Analysis."Trigger Kind");
+        exit(CopyStr(StrSubstNo(TitleTxt, TriggerTxt, Format(Today())), 1, 250));
+    end;
+}
