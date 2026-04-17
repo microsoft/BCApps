@@ -112,6 +112,17 @@ table 30125 "Shpfy Payout"
             AutoFormatType = 1;
             AutoFormatExpression = Currency;
         }
+        field(16; "External Trace Id"; Text[250])
+        {
+            Caption = 'External Trace Id';
+            DataClassification = CustomerContent;
+        }
+        field(101; "Shop Code"; Code[20])
+        {
+            Caption = 'Shop Code';
+            DataClassification = SystemMetadata;
+            TableRelation = "Shpfy Shop";
+        }
     }
     keys
     {
@@ -119,9 +130,8 @@ table 30125 "Shpfy Payout"
         {
             Clustered = true;
         }
-        key(Key1; Date)
-        {
-        }
+        key(Key1; Date) { }
+        key(Key2; "Shop Code") { }
     }
 
 }
