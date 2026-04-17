@@ -48,7 +48,6 @@ codeunit 139636 "Shpfy Company Export Test"
         ShopifyShop."Name 2 Source" := Enum::"Shpfy Name Source"::None;
         ShopifyShop."Contact Source" := Enum::"Shpfy Name Source"::None;
         ShopifyShop."County Source" := Enum::"Shpfy County Source"::Name;
-        ShopifyShop."B2B Enabled" := true;
         ShopifyCompany.Init();
         CompanyLocation.Init();
         ShopifyPaymentTermsId := 0;
@@ -131,7 +130,6 @@ codeunit 139636 "Shpfy Company Export Test"
         ShopifyShop."Name 2 Source" := Enum::"Shpfy Name Source"::None;
         ShopifyShop."Contact Source" := Enum::"Shpfy Name Source"::None;
         ShopifyShop."County Source" := Enum::"Shpfy County Source"::Name;
-        ShopifyShop."B2B Enabled" := true;
         CompanyLocation.Init();
 
         // [GIVEN] Shop

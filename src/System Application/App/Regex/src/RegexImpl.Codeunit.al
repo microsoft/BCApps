@@ -327,7 +327,7 @@ codeunit 3961 "Regex Impl."
     procedure Regex(Pattern: Text; var RegexOptions: Record "Regex Options")
     var
         TimeoutDuration: DotNet TimeSpan;
-        MatchTimeoutInMs: Decimal;
+        MatchTimeoutInMs: BigInteger;
     begin
         DotNetRegexOptions := RegexOptions.GetRegexOptions();
         MatchTimeoutInMs := RegexOptions.MatchTimeoutInMs;
@@ -336,7 +336,7 @@ codeunit 3961 "Regex Impl."
         if MatchTimeoutInMs > 10000 then
             Error(TimeoutTooHighErr);
 
-        DotNetRegex := DotNetRegex.Regex(Pattern, DotNetRegexOptions, TimeoutDuration.FromMilliseconds(MatchTimeoutInMs));
+        DotNetRegex := DotNetRegex.Regex(Pattern, DotNetRegexOptions, TimeoutDuration.FromTicks(MatchTimeoutInMs * 10000));
     end;
 
     local procedure CheckIfInstantiated()

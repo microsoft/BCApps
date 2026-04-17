@@ -468,9 +468,7 @@ codeunit 149908 "Subc. Warehouse Library"
         PurchaseLine: Record "Purchase Line";
         RequisitionLine: Record "Requisition Line";
         ManufacturingSetup: Record "Manufacturing Setup";
-#pragma warning disable AL0432
-        CalculateSubContract: Report "Calculate Subcontracts";
-#pragma warning restore AL0432
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
     begin
         // Get worksheet template and batch from setup
@@ -481,9 +479,9 @@ codeunit 149908 "Subc. Warehouse Library"
         RequisitionLine."Journal Batch Name" := ManufacturingSetup."Subcontracting Batch Name";
 
         // Calculate subcontracting lines to fill the worksheet
-        CalculateSubContract.SetWkShLine(RequisitionLine);
-        CalculateSubContract.UseRequestPage(false);
-        CalculateSubContract.RunModal();
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
 
         // Find requisition lines for the production order
         RequisitionLine.SetRange("Worksheet Template Name", ManufacturingSetup."Subcontracting Template Name");
