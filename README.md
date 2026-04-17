@@ -7,6 +7,7 @@ The source code in this repository is available to everyone under the standard [
 
 ✨ **BCApps run on [AL-Go for GitHub](https://github.com/microsoft/AL-Go)** ✨
 
+
 ## Contributing
 
 In this repository, we welcome contributions to the **System Application**, **Business Foundation** and the **Developer Tools**, such as **Test Runner**, **Performance Toolkit** and others.
