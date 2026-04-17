@@ -23,7 +23,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
-codeunit 149910 "Subc SCM Costing Rollup Sev 2"
+codeunit 149910 "Subc SCM Costing Rollup Sev"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -55,12 +55,12 @@ codeunit 149910 "Subc SCM Costing Rollup Sev 2"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Subc SCM Costing Rollup Sev 2");
+        LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Subc SCM Costing Rollup Sev");
         LibrarySetupStorage.Restore();
 
         if isInitialized then
             exit;
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Subc SCM Costing Rollup Sev 2");
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Subc SCM Costing Rollup Sev");
 
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
@@ -72,7 +72,7 @@ codeunit 149910 "Subc SCM Costing Rollup Sev 2"
 
         isInitialized := true;
         Commit();
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Subc SCM Costing Rollup Sev 2");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Subc SCM Costing Rollup Sev");
     end;
 
     [Test]
