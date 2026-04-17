@@ -395,87 +395,26 @@
     <div class="slide" id="slide-2">
         <h2><span class="danger">Problem</span></h2>
         <p>When a bug is fixed on <code>main</code> and backported to a release branch, <strong>two separate ADO work
-                items</strong> are created.</p>
-        <p style="margin-top: 16px;">Today, developers must <strong class="danger">manually</strong> open ADO and create
-            a Parent-Child link between them.</p>
+                items</strong> are created. Today, developers must <strong class="danger">manually</strong> link them
+            and fill KB fields.</p>
         <div class="card-row">
             <div class="card red">
-                <h3 class="danger">Tedious</h3>
-                <p>Open ADO, find both work items, manually add the relation. For every single backport.</p>
-            </div>
-            <div class="card red">
-                <h3 class="danger">Error-Prone</h3>
-                <p>Wrong parent, wrong link type, or linking to the wrong work item — no validation.</p>
+                <h3 class="danger">Tedious &amp; Error-Prone</h3>
+                <p>Open ADO, find both work items, manually add the Parent-Child relation. Wrong parent, wrong link
+                    type — no validation.</p>
             </div>
             <div class="card red">
                 <h3 class="danger">Often Forgotten</h3>
-                <p>No enforcement. Work items end up orphaned with no traceability between main and release fixes.</p>
+                <p>No enforcement. Work items end up orphaned. KB Article and KB Title left blank.</p>
             </div>
         </div>
     </div>
 
-    <!-- SLIDE 3: The Manual Process -->
+    <!-- SLIDE 3: Solution Overview -->
     <div class="slide" id="slide-3">
-        <h2>The Manual Process Today</h2>
-        <div class="flow">
-            <div class="flow-step">
-                <div class="num">1</div>
-                <div class="label">Fix bug on <code>main</code><br>AB#631296</div>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step">
-                <div class="num">2</div>
-                <div class="label">Backport to<br><code>releases/28.x</code><br>AB#631297</div>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step" style="border-color: #f85149;">
-                <div class="num" style="color: #f85149;">3</div>
-                <div class="label"><strong class="danger">Manually</strong> open ADO<br>Link 631297 → 631296<br>as
-                    Parent-Child</div>
-            </div>
-            <div class="flow-arrow">→</div>
-            <div class="flow-step" style="border-color: #f8514966;">
-                <div class="num" style="color: #f85149;">?</div>
-                <div class="label">Often skipped<br><span class="danger">No traceability</span></div>
-            </div>
-        </div>
-        <p style="margin-top: 40px; font-size: 18px; color: #8b949e;">Step 3 is where things break down. It's manual,
-            easy to forget, and there's no automation to catch it.</p>
-    </div>
-
-    <!-- SLIDE 4: Concerns -->
-    <div class="slide" id="slide-4">
-        <h2><span class="warn">Concerns &amp; Constraints</span></h2>
-        <div class="card-row">
-            <div class="card yellow">
-                <h3 class="warn">Different PR Patterns</h3>
-                <p>Automated backports use <code>backports #NNN</code>.<br>Manual PRs use
-                    <code>Fixes #NNN</code>.<br>Both must be supported.</p>
-            </div>
-            <div class="card yellow">
-                <h3 class="warn">AB# Is on PRs, Not Issues</h3>
-                <p>The work item reference (<code>AB#</code>) lives in the PR description, not the issue. We need to
-                    follow the chain: issue → timeline → find the PR.</p>
-            </div>
-        </div>
-        <div class="card-row">
-            <div class="card yellow">
-                <h3 class="warn">Idempotency</h3>
-                <p>Workflow can trigger multiple times (PR edited, labeled). Must not create duplicate links.</p>
-            </div>
-            <div class="card yellow">
-                <h3 class="warn">Two Separate Issues</h3>
-                <p>If main and release PRs reference different issues, there's no chain to follow. Requires a shared
-                    issue or direct PR reference.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- SLIDE 5: Solution Overview -->
-    <div class="slide" id="slide-5">
         <h2><span class="success">Solution</span></h2>
         <p>A GitHub Actions workflow — <code>link-backport-workitems.yml</code> — that <strong>automatically</strong>
-            detects backport PRs on release branches and creates the Parent-Child link in ADO.</p>
+            detects backport PRs on release branches, creates the Parent-Child link, and fills KB fields.</p>
         <div class="flow" style="margin-top: 40px;">
             <div class="flow-step" style="border-color: #58a6ff;">
                 <div class="num">1</div>
@@ -491,33 +430,20 @@
                 <div class="num" style="color: #3fb950;">3</div>
                 <div class="label"><strong>Link</strong><br>ADO REST API<br>Parent-Child relation</div>
             </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step" style="border-color: #3fb950;">
+                <div class="num" style="color: #3fb950;">4</div>
+                <div class="label"><strong>Update KB</strong><br>Set KB Article &amp;<br>KB Title from issue</div>
+            </div>
         </div>
-        <p style="margin-top: 40px; color: #8b949e; font-size: 17px;">Zero developer action needed. Runs automatically
-            when a PR is opened against <code>releases/**</code>.</p>
+        <p style="margin-top: 40px; color: #8b949e; font-size: 17px;">Zero developer action needed. Runs on
+            <code>pull_request_target</code> (opened/edited/labeled) against <code>releases/**</code>.
+        </p>
     </div>
 
-    <!-- SLIDE 6: Data Flow -->
-    <div class="slide" id="slide-6">
-        <h2>Data Flow</h2>
-        <div class="diagram"><span class="pr">PR #7734 (releases/28.x)</span> <span class="pr">PR #7733 (main)</span>
-            ┌──────────────────────────┐ ┌──────────────────────────┐
-            │ Fixes #7732 │ │ Fixes #7732 │
-            │ Fixes <span class="wi">AB#631297</span> │ │ Fixes <span class="wi">AB#631296</span> │
-            └────────────┬─────────────┘ └────────────┬─────────────┘
-            │ │
-            ▼ ▼
-            <span class="wi">RELEASE_WI = 631297</span> <span class="wi">MASTER_WI = 631296</span>
-            │ │
-            └──────────── <span class="action">ADO REST API</span> ───────────┘
-            │
-            <span class="action">631297 (child) → 631296 (parent)</span>
-        </div>
-    </div>
-
-    <!-- SLIDE 7: Resolution Chain -->
-    <div class="slide" id="slide-7">
-        <h2>How Resolution Works</h2>
-        <p>The workflow follows a chain to connect the release PR back to the main PR's work item:</p>
+    <!-- SLIDE 4: How Resolution Works -->
+    <div class="slide" id="slide-4">
+        <h2>How It Works</h2>
         <div class="diagram"><span class="pr">Release PR #7734</span>
             │
             ├── body contains <span class="wi">AB#631297</span> ← release work item (child)
@@ -525,7 +451,6 @@
             │
             ▼
             <span class="pr">Issue #7732 Timeline API</span>
-            (mockingbird preview header)
             │
             ├── cross-referenced by PR #7733 ← <span class="action">found it!</span>
             └── cross-referenced by PR #7734 ← (skip, that's us)
@@ -535,191 +460,95 @@
             │
             ▼
             <span class="action">PATCH: 631297.parent = 631296</span>
+            <span class="action"> + KB Article = KB Title = issue title</span>
         </div>
     </div>
 
-    <!-- SLIDE 8: Supported Patterns -->
-    <div class="slide" id="slide-8">
-        <h2>Supported Patterns</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Pattern</th>
-                    <th>Source</th>
-                    <th>Example</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><code>backports #NNN</code></td>
-                    <td><span class="badge auto">Automated</span> CrossBranchPorting</td>
-                    <td>"This pull request backports #7729 to releases/28.x"</td>
-                </tr>
-                <tr>
-                    <td><code>backport of #NNN</code></td>
-                    <td><span class="badge auto">Automated</span> CrossBranchPorting</td>
-                    <td>"backport of #7729"</td>
-                </tr>
-                <tr>
-                    <td><code>Fixes #NNN</code></td>
-                    <td><span class="badge manual">Manual</span> Developer PRs</td>
-                    <td>"Fixes #7732"</td>
-                </tr>
-                <tr>
-                    <td><code>Closes #NNN</code></td>
-                    <td><span class="badge manual">Manual</span> Developer PRs</td>
-                    <td>"Closes #7732"</td>
-                </tr>
-                <tr>
-                    <td><code>Resolves #NNN</code></td>
-                    <td><span class="badge manual">Manual</span> Developer PRs</td>
-                    <td>"Resolves #7732"</td>
-                </tr>
-            </tbody>
-        </table>
-        <p style="margin-top: 24px; color: #8b949e; font-size: 17px;">The backport pattern takes priority. Both PRs must
-            share a common issue or the release PR must directly reference the main PR number.</p>
-    </div>
-
-    <!-- SLIDE 9: Safety -->
-    <div class="slide" id="slide-9">
-        <h2>Safety Guarantees</h2>
-        <div class="card-row">
-            <div class="card green">
-                <h3 class="success">Idempotent</h3>
-                <p>Checks if the parent link already exists before creating. Safe to re-run on edits, labels, or manual
-                    dispatch.</p>
-            </div>
-            <div class="card green">
-                <h3 class="success">Self-Link Guard</h3>
-                <p>Skips if release and master work item IDs are the same. No accidental self-referencing.</p>
-            </div>
-        </div>
-        <div class="card-row">
-            <div class="card green">
-                <h3 class="success">Graceful Degradation</h3>
-                <p>If no <code>AB#</code> or issue reference is found, logs a warning and exits cleanly. No failures, no
-                    noise.</p>
-            </div>
-            <div class="card green">
-                <h3 class="success">Read-Only GitHub</h3>
-                <p>Only reads PR descriptions and issue timelines from GitHub. Write access is limited to ADO work item
-                    relations.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- SLIDE 10: Trigger Conditions -->
-    <div class="slide" id="slide-10">
-        <h2>When Does It Run?</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Event</th>
-                    <th>Condition</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><code>pull_request_target: opened</code></td>
-                    <td>New PR opened against <code>releases/**</code></td>
-                </tr>
-                <tr>
-                    <td><code>pull_request_target: edited</code></td>
-                    <td>PR description edited (e.g., AB# added later)</td>
-                </tr>
-                <tr>
-                    <td><code>pull_request_target: labeled</code></td>
-                    <td>Label applied (e.g., "Linked" from WorkitemValidation)</td>
-                </tr>
-                <tr>
-                    <td><code>workflow_dispatch</code></td>
-                    <td>Manual trigger with PR number (for testing)</td>
-                </tr>
-            </tbody>
-        </table>
-        <p style="margin-top: 24px;">The job <strong>only executes</strong> if the PR body contains <code>AB#</code> —
-            otherwise it skips immediately.</p>
-        <p style="color: #8b949e; font-size: 17px; margin-top: 8px;">PRs targeting <code>main</code> are not affected.
-            This workflow only handles <code>releases/**</code> branches.</p>
-    </div>
-
-    <!-- SLIDE 11: Limitation -->
-    <div class="slide" id="slide-11">
-        <h2><span class="warn">Known Limitation</span></h2>
-        <div class="card" style="max-width: 700px; border-color: #d2992266; margin-top: 16px;">
-            <h3 class="warn">Two Different Issues</h3>
-            <p>If the main PR references <code>Fixes #100</code> and the release PR references <code>Fixes #200</code>
-                (different issues), the workflow <strong>cannot find the connection</strong>.</p>
-            <p style="margin-top: 16px;">The workflow needs a shared link between the two PRs:</p>
-            <ul class="checks">
-                <li>Both PRs reference the <strong>same issue</strong></li>
-                <li>Release PR uses <code>backports #&lt;main_PR&gt;</code> (direct reference)</li>
-            </ul>
-            <p style="margin-top: 16px; color: #8b949e;">The <code>CrossBranchPorting</code> tool always writes
-                <code>backports #NNN</code>, so this only affects fully manual backport PRs with different issues.</p>
-        </div>
-    </div>
-
-    <!-- SLIDE 12: Configuration -->
-    <div class="slide" id="slide-12">
-        <h2>Configuration (One-Time Setup)</h2>
+    <!-- SLIDE 5: Patterns & Safety -->
+    <div class="slide" id="slide-5">
+        <h2>Patterns &amp; Safety</h2>
         <div class="card-row">
             <div class="card blue">
-                <h3 style="color: #58a6ff;">1. ADO Personal Access Token</h3>
+                <h3 style="color: #58a6ff;">Supported Patterns</h3>
+                <p><span class="badge auto">Auto</span> <code>backports #NNN</code> / <code>backport of #NNN</code>
+                    from CrossBranchPorting</p>
+                <p style="margin-top: 8px;"><span class="badge manual">Manual</span>
+                    <code>Fixes</code> / <code>Closes</code> / <code>Resolves</code> <code>#NNN</code> from developer
+                    PRs
+                </p>
+            </div>
+            <div class="card green">
+                <h3 class="success">Safety</h3>
+                <p><strong>Idempotent</strong> — checks if link exists before creating</p>
+                <p><strong>Self-link guard</strong> — skips if both WI IDs match</p>
+                <p><strong>Graceful</strong> — no AB# or issue? Logs warning, exits cleanly</p>
+                <p><strong>Read-only GitHub</strong> — only writes to ADO</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: KB Fields -->
+    <div class="slide" id="slide-6">
+        <h2>KB Field Updates</h2>
+        <p>The workflow populates <strong>KB Article</strong> and <strong>KB Title</strong> on the release work item
+            from the GitHub issue title.</p>
+        <div class="card-row">
+            <div class="card blue">
+                <h3 style="color: #58a6ff;">How</h3>
+                <p>Fetches the issue title via GitHub API. Sets both KB Article and KB Title to the same value.</p>
+                <p style="margin-top: 12px; color: #8b949e;">If unavailable, KB fields are skipped — link still
+                    created.</p>
+            </div>
+            <div class="card blue">
+                <h3 style="color: #58a6ff;">Example</h3>
+                <table style="margin-top: 8px;">
+                    <tr>
+                        <td style="color: #8b949e;">Issue title</td>
+                        <td><code>Fix for posting error in Sales Invoice</code></td>
+                    </tr>
+                    <tr>
+                        <td style="color: #8b949e;">KB Article</td>
+                        <td><code>Fix for posting error in Sales Invoice</code></td>
+                    </tr>
+                    <tr>
+                        <td style="color: #8b949e;">KB Title</td>
+                        <td><code>Fix for posting error in Sales Invoice</code></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: Configuration -->
+    <div class="slide" id="slide-7">
+        <h2>Configuration (One-Time)</h2>
+        <div class="card-row">
+            <div class="card blue">
+                <h3 style="color: #58a6ff;">1. ADO PAT</h3>
                 <ul>
-                    <li>Organization: <code>dynamicssmb2</code></li>
+                    <li>Org: <code>dynamicssmb2</code></li>
                     <li>Scope: <strong>Work Items → Read &amp; Write</strong></li>
-                    <li>Create at dev.azure.com → Profile → Personal access tokens</li>
                 </ul>
             </div>
             <div class="card blue">
-                <h3 style="color: #58a6ff;">2. GitHub Repository Secret</h3>
+                <h3 style="color: #58a6ff;">2. GitHub Secret</h3>
                 <ul>
                     <li>Name: <code>ADO_PAT</code></li>
-                    <li>Value: the PAT from step 1</li>
-                    <li>Add at GitHub → Settings → Secrets → Actions</li>
+                    <li>Settings → Secrets → Actions</li>
+                </ul>
+            </div>
+            <div class="card blue">
+                <h3 style="color: #58a6ff;">3. Release Branches</h3>
+                <ul>
+                    <li>Workflow file must exist on each <code>releases/**</code> branch</li>
+                    <li>Future branches inherit from <code>main</code></li>
                 </ul>
             </div>
         </div>
-        <div class="card" style="margin-top: 24px; border-color: #58a6ff66;">
-            <h3 style="color: #58a6ff;">3. Workflow File on Release Branches</h3>
-            <p>The file must exist on each <code>releases/**</code> branch. Future branches cut from <code>main</code>
-                inherit it automatically. For existing branches:</p>
-            <p style="margin-top: 10px;">
-                <code>git checkout releases/28.x &amp;&amp; git checkout main -- .github/workflows/link-backport-workitems.yml</code>
-            </p>
-        </div>
     </div>
 
-    <!-- SLIDE 13: Architecture -->
-    <div class="slide" id="slide-13">
-        <h2>Where It Fits</h2>
-        <div class="diagram"><span class="pr">Developer opens PR on main</span> ──→ <span
-                class="action">WorkitemValidation.yaml</span>
-            │ ├─ Validates issues
-            │ ├─ Links AB# from issue to PR
-            │ └─ Adds "Linked" label
-            │
-            ├─ PR merged to main
-            │
-            ├─ <span class="action">CrossBranchPorting</span> (New-BCAppsBackport)
-            │ └─ Creates backport PR on releases/28.x
-            │ body: "backports #NNN\nFixes AB#&lt;release_WI&gt;"
-            │
-            └─ OR developer manually creates release PR
-            body: "Fixes #NNN\nFixes AB#&lt;release_WI&gt;"
-            │
-            ▼
-            <span class="action" style="font-weight:bold;">link-backport-workitems.yml ◀── NEW</span>
-            ├─ Parses release PR
-            ├─ Resolves master WI via issue timeline
-            └─ Creates Parent-Child link in ADO
-        </div>
-    </div>
-
-    <!-- SLIDE 14: Summary -->
-    <div class="slide" id="slide-14">
+    <!-- SLIDE 8: Summary -->
+    <div class="slide" id="slide-8">
         <h2>Summary</h2>
         <div class="card-row">
             <div class="card red">
@@ -727,7 +556,7 @@
                 <ul class="cross">
                     <li>Manual ADO linking for every backport</li>
                     <li>Often forgotten — no traceability</li>
-                    <li>Error-prone — wrong parent or link type</li>
+                    <li>KB Article &amp; KB Title left empty</li>
                 </ul>
             </div>
             <div class="card green">
@@ -735,7 +564,7 @@
                 <ul class="checks">
                     <li>Automatic — zero developer action</li>
                     <li>Idempotent — safe to re-trigger</li>
-                    <li>Works with both automated and manual backports</li>
+                    <li>KB fields populated from issue title</li>
                 </ul>
             </div>
         </div>
@@ -747,7 +576,7 @@
     <!-- Navigation -->
     <div class="nav">
         <button onclick="prev()" id="btn-prev">← Prev</button>
-        <span class="counter" id="counter">1 / 14</span>
+        <span class="counter" id="counter">1 / 8</span>
         <button onclick="next()" id="btn-next">Next →</button>
     </div>
     <div class="kb-hint"><kbd>←</kbd> <kbd>→</kbd> arrow keys to navigate</div>
