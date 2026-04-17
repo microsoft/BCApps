@@ -38,7 +38,6 @@ page 30100 "Shpfy Activities"
                     ApplicationArea = All;
                     DrillDownPageId = "Shpfy Companies";
                     ToolTip = 'Specifies the number of imported companoes that aren''t mapped.';
-                    Visible = B2BEnabled;
                 }
                 field(UnmappedProducts; Rec."Unmapped Products")
                 {
@@ -154,10 +153,6 @@ page 30100 "Shpfy Activities"
                 Commit();
             end;
 
-        Shop.SetRange("B2B Enabled", true);
-        B2BEnabled := not Shop.IsEmpty();
-
-        Shop.Reset();
         Shop.SetRange(Enabled, true);
         if Shop.FindFirst() then begin
             ApiVersion := CommunicationMgt.GetApiVersion();
@@ -166,6 +161,4 @@ page 30100 "Shpfy Activities"
         end;
     end;
 
-    var
-        B2BEnabled: Boolean;
 }

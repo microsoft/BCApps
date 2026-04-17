@@ -51,6 +51,9 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         HistoricalMatchingExperimentTok: Label 'EDocHistoricalMatchingExperiment', Locked = true;
         HistoricalMatchingConfig: Text;
     begin
+        if DirectHistoricalMatch(Rec) then
+            exit;
+
         // Get experiment configuration
         HistoricalMatchingConfig := FeatureConfiguration.GetConfiguration(HistoricalMatchingExperimentTok);
 
@@ -88,6 +91,44 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         TelemetryDimensions.Add('Matched lines', Format(MatchedCount));
         TelemetryDimensions.Add('Processing mistakes', Format(MistakesCount));
         FeatureTelemetry.LogUsage('0000PUP', EDocumentAIProcessor.GetEDocumentMatchingAssistanceName(), GetFeatureName(), TelemetryDimensions);
+    end;
+
+    local procedure DirectHistoricalMatch(var SourceEDocumentPurchaseLine: Record "E-Document Purchase Line"): Boolean
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocPurchaseLineHistory: Record "E-Doc. Purchase Line History";
+        PurchInvLine: Record "Purch. Inv. Line";
+        EDocPurchaseHistMapping: Codeunit "E-Doc. Purchase Hist. Mapping";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        VendorNo: Code[20];
+        DirectHistoricalMatchEventTok: Label 'Direct Historical Match', Locked = true;
+    begin
+        EDocumentPurchaseLine.Copy(SourceEDocumentPurchaseLine);
+        if not EDocumentPurchaseLine.FindFirst() then
+            exit(false);
+
+        EDocumentPurchaseHeader.SetRange("E-Document Entry No.", EDocumentPurchaseLine."E-Document Entry No.");
+        if EDocumentPurchaseHeader.FindFirst() then
+            VendorNo := EDocumentPurchaseHeader."[BC] Vendor No.";
+        if VendorNo = '' then
+            exit(false);
+
+        if EDocumentPurchaseLine.FindSet() then
+            repeat
+                if EDocumentPurchaseLine."[BC] Purchase Type No." = '' then
+                    if EDocPurchaseHistMapping.FindRelatedPurchaseLineInHistory(VendorNo, EDocumentPurchaseLine, EDocPurchaseLineHistory) then
+                        if PurchInvLine.GetBySystemId(EDocPurchaseLineHistory."Purch. Inv. Line SystemId") then begin
+                            EDocPurchaseHistMapping.UpdateMissingLineValuesFromHistory(PurchInvLine, EDocumentPurchaseLine, '', 'High');
+                            EDocumentPurchaseLine."E-Doc. Purch. Line History Id" := EDocPurchaseLineHistory."Entry No.";
+                            EDocumentPurchaseLine.Modify(true);
+                            EDocImpSessionTelemetry.SetLineBool(EDocumentPurchaseLine.SystemId, DirectHistoricalMatchEventTok, true);
+                        end;
+            until EDocumentPurchaseLine.Next() = 0;
+
+        // If no unmatched lines remain, all lines were resolved directly
+        EDocumentPurchaseLine.SetRange("[BC] Purchase Type No.", '');
+        exit(EDocumentPurchaseLine.IsEmpty());
     end;
 
     local procedure GetConfidenceScore(ExperimentConfig: Text): Text

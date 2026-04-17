@@ -41,7 +41,6 @@ codeunit 139647 "Shpfy Company Import Test"
         // [SCENARIO] Importing a company record that is already mapped to a customer record via email.
         Initialize();
         ShopifyShop := InitializeTest.CreateShop();
-        ShopifyShop."B2B Enabled" := true;
 
         // [GIVEN] Shop, Shopify company and Shopify customer
         CompanyMapping.SetShop(ShopifyShop);
