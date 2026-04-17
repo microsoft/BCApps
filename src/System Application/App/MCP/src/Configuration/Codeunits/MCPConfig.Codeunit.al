@@ -178,7 +178,7 @@ codeunit 8350 "MCP Config"
     /// <param name="ObjectId">The ID of the API page or query.</param>
     /// <param name="ObjectType">The object type (Page or Query).</param>
     /// <returns>The SystemId (GUID) of the tool if found; otherwise, an empty GUID.</returns>
-    procedure GetAPIToolId(ConfigId: Guid; ObjectId: Integer; ObjectType: Option): Guid
+    procedure GetAPIToolId(ConfigId: Guid; ObjectId: Integer; ObjectType: Option Page,Query): Guid
     begin
         exit(MCPConfigImplementation.GetAPIToolId(ConfigId, ObjectId, ObjectType));
     end;
