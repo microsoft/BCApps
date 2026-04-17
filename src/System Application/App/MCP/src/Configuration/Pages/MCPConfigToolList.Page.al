@@ -70,7 +70,6 @@ page 8352 "MCP Config Tool List"
                                 end;
                         end;
 
-
                         if not IsNullGuid(Rec.SystemId) then
                             Rec.Delete();
                         CurrPage.Update();

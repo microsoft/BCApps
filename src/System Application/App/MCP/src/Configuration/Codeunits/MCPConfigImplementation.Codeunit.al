@@ -461,7 +461,7 @@ codeunit 8351 "MCP Config Implementation"
         QueryMetadata: Record "Query Metadata";
     begin
         if not MCPConfiguration.GetBySystemId(ConfigId) then
-            exit;
+            Error(ConfigurationNotFoundErr);
 
         if IsDefaultConfiguration(MCPConfiguration) then
             Error(ToolsCannotBeAddedToDefaultConfigErr);
