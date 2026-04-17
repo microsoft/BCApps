@@ -73,9 +73,10 @@ codeunit 99001511 "Subc. Synchronize Management"
                 if ProdOrderLine.Quantity <> PurchLineBaseQuantity then begin
                     ProdOrderLine.Validate(Quantity, PurchLineBaseQuantity);
                     ProdOrderLine.Modify();
-                    ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+
                     ProdOrderComponent.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
                     ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+                    ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
                     if not ProdOrderComponent.IsEmpty() then begin
                         ProdOrderComponent.FindSet();
                         repeat
@@ -90,10 +91,9 @@ codeunit 99001511 "Subc. Synchronize Management"
     procedure DeleteEnhancedDocumentsByChangeOfVendorNo(var PurchaseHeader: Record "Purchase Header"; var xPurchaseHeader: Record "Purchase Header")
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
-        ItemLedgerEntry, ItemLedgerEntry2 : Record "Item Ledger Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
         ProductionOrder: Record "Production Order";
-        PurchaseLine, PurchaseLine2, PurchaseLineModify : Record "Purchase Line";
-        TransferHeader: Record "Transfer Header";
+        PurchaseLine, PurchaseLineModify : Record "Purchase Line";
     begin
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
@@ -101,13 +101,6 @@ codeunit 99001511 "Subc. Synchronize Management"
         PurchaseLine.SetFilter("No.", '<>%1', '');
         PurchaseLine.SetFilter("Prod. Order No.", '<>%1', '');
         PurchaseLine.SetRange("Qty. Received (Base)", 0);
-
-        PurchaseLine2.SetRange("Document Type", PurchaseHeader."Document Type");
-        PurchaseLine2.SetRange("Document No.", PurchaseHeader."No.");
-        PurchaseLine2.SetRange(Type, "Purchase Line Type"::Item);
-        PurchaseLine2.SetFilter("No.", '<>%1', '');
-        PurchaseLine2.SetRange("Prod. Order No.", '');
-        PurchaseLine2.SetRange("Qty. Received (Base)", 0);
 
         if not PurchaseLine.IsEmpty() then begin
             PurchaseLine.FindSet();
@@ -136,23 +129,10 @@ codeunit 99001511 "Subc. Synchronize Management"
                                     PurchaseLineModify.ModifyAll("Prod. Order No.", '');
                                 end;
 
-                                // Delete Subcontracting dependent Purchase Lines
-                                PurchaseLine2.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
-                                if not PurchaseLine2.IsEmpty() then
-                                    PurchaseLine2.DeleteAll(true);
+                                DeleteSubcontractingDependentPurchaseLines(ProductionOrder, PurchaseLine);
 
-                                TransferHeader.SetCurrentKey("Source ID", "Source Type", "Source Subtype");
-                                TransferHeader.SetRange("Source ID", PurchaseHeader."Buy-from Vendor No.");
-                                TransferHeader.SetRange("Source Type", "Transfer Source Type"::Subcontracting);
-                                TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
-                                TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
-                                if not TransferHeader.IsEmpty() then begin
-                                    TransferHeader.FindFirst();
-                                    ItemLedgerEntry2.SetRange("Order Type", "Inventory Order Type"::Production);
-                                    ItemLedgerEntry2.SetRange("Order No.", ProductionOrder."No.");
-                                    if ItemLedgerEntry.IsEmpty() then
-                                        TransferHeader.Delete(true);
-                                end;
+                                DeleteSubcontractingDependentTransferOrders(PurchaseLine);
+
                                 ProductionOrder.Delete();
                             end;
                         end;
@@ -164,10 +144,8 @@ codeunit 99001511 "Subc. Synchronize Management"
     procedure DeleteEnhancedDocumentsByDeletePurchLine(var PurchaseLine: Record "Purchase Line")
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
-        ItemLedgerEntry, ItemLedgerEntry2 : Record "Item Ledger Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
         ProductionOrder: Record "Production Order";
-        PurchaseLine2: Record "Purchase Line";
-        TransferHeader: Record "Transfer Header";
     begin
         if not IsSubcontractingLine(PurchaseLine) then
             exit;
@@ -186,27 +164,50 @@ codeunit 99001511 "Subc. Synchronize Management"
                 if CapacityLedgerEntry.IsEmpty() then begin
                     ProductionOrder.DeleteProdOrderRelations();
 
-                    // Delete Subcontracting dependent Purchase Lines
-                    PurchaseLine2.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
-                    if PurchaseLine2.FindSet() then
-                        PurchaseLine2.DeleteAll(true);
+                    DeleteSubcontractingDependentPurchaseLines(ProductionOrder, PurchaseLine);
 
-                    TransferHeader.SetCurrentKey("Source ID", "Source Type", "Source Subtype");
-                    TransferHeader.SetRange("Source ID", PurchaseLine."Buy-from Vendor No.");
-                    TransferHeader.SetRange("Source Type", "Transfer Source Type"::Subcontracting);
-                    TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
-                    TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
-                    if not TransferHeader.IsEmpty() then begin
-                        TransferHeader.FindFirst();
-                        ItemLedgerEntry2.SetRange("Order Type", "Inventory Order Type"::Production);
-                        ItemLedgerEntry2.SetRange("Order No.", ProductionOrder."No.");
-                        if ItemLedgerEntry.IsEmpty() then
-                            TransferHeader.Delete(true);
-                    end;
+                    DeleteSubcontractingDependentTransferOrders(PurchaseLine);
+
                     ProductionOrder.Delete();
                 end
             end;
         end;
+    end;
+
+    local procedure DeleteSubcontractingDependentTransferOrders(var PurchaseLine: Record "Purchase Line")
+    var
+        TransferHeader: Record "Transfer Header";
+        ItemLedgerEntry2: Record "Item Ledger Entry";
+    begin
+        TransferHeader.SetCurrentKey("Source ID", "Source Type", "Source Subtype");
+        TransferHeader.SetRange("Source ID", PurchaseLine."Buy-from Vendor No.");
+        TransferHeader.SetRange("Source Type", "Transfer Source Type"::Subcontracting);
+        TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        if not TransferHeader.IsEmpty() then begin
+            TransferHeader.FindFirst();
+            ItemLedgerEntry2.SetRange("Order Type", "Inventory Order Type"::Production);
+            ItemLedgerEntry2.SetRange("Order No.", PurchaseLine."Document No.");
+            if ItemLedgerEntry2.IsEmpty() then
+                TransferHeader.Delete(true);
+        end;
+    end;
+
+    local procedure DeleteSubcontractingDependentPurchaseLines(ProductionOrder: Record "Production Order"; var PurchaseLine: Record "Purchase Line")
+    var
+        PurchaseLineDelete: Record "Purchase Line";
+    begin
+        PurchaseLineDelete.SetRange("Document Type", PurchaseLine."Document Type");
+        PurchaseLineDelete.SetRange("Document No.", PurchaseLine."Document No.");
+        PurchaseLineDelete.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLineDelete.SetFilter("No.", '<>%1', '');
+        PurchaseLineDelete.SetRange("Prod. Order No.", '');
+        PurchaseLineDelete.SetRange("Qty. Received (Base)", 0);
+
+        // Delete Subcontracting dependent Purchase Lines
+        PurchaseLineDelete.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        if not PurchaseLineDelete.IsEmpty() then
+            PurchaseLineDelete.DeleteAll(true);
     end;
 
     local procedure IsSubcontractingLine(var PurchaseLine: Record "Purchase Line") IsSubcontracting: Boolean
