@@ -10,11 +10,11 @@ permissionset 99001501 "Subcontract. - Objs"
     Assignable = true;
     Access = Internal;
     Permissions =
-        // Tables
+    // Tables
         table "Subc. Management Setup" = X,
         table "Subcontractor Price" = X,
 
-        // Codeunits
+    // Codeunits
         codeunit "Single Instance Dictionary" = X,
         codeunit "Subc. Business Setup Ext." = X,
         codeunit "Subc. Calc. Prod. Order Ext." = X,
@@ -66,7 +66,7 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Work Center Extension" = X,
         codeunit "Subcontracting Install" = X,
 
-        // Pages
+    // Pages
         page "Subc. Management Setup" = X,
         page "Subc. Prod. Order Components" = X,
         page "Subc. Purchase Line Factbox" = X,
@@ -79,10 +79,24 @@ permissionset 99001501 "Subcontract. - Objs"
         page "Subc. Transfer Line Factbox" = X,
         page "Subcontractor Prices" = X,
 
-        // Reports
+    // Reports
         report "Subc. Create Prod. Routing" = X,
         report "Subc. Create Transf. Order" = X,
         report "Subc. Create SubCReturnOrder" = X,
         report "Subc. Detailed Calculation" = X,
-        report "Subc. Dispatching List" = X;
+        report "Subc. Dispatching List" = X,
+        tabledata "Subc. Management Setup" = RIMD,
+        tabledata "Subcontractor Price" = RIMD,
+        tabledata "Subcontractor WIP Ledger Entry" = RIMD,
+        table "Subcontractor WIP Ledger Entry" = X,
+        codeunit "Subc. Change Prod.Order Status" = X,
+        codeunit "Subc. Posting Preview Binding" = X,
+        codeunit "Subc. Posting Preview Subscr." = X,
+        codeunit "Subc. Pst. Prev. Event Handler" = X,
+        codeunit "Subc. Purchase Order Creator" = X,
+        codeunit "Subc. Transfer WIP Posting" = X,
+        codeunit "Subc. WhsePostShipment Ext" = X,
+        codeunit "Subc. WIP Item Ledg Find Entry" = X,
+        page "WIP Adjustment" = X,
+        page "WIP Ledger Entries" = X;
 }

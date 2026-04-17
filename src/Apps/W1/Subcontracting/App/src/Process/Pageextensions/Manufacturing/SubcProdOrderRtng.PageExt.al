@@ -11,11 +11,51 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
 {
     layout
     {
+        modify(Type)
+        {
+            trigger OnAfterValidate()
+            begin
+                UpdateWIPEnabled();
+            end;
+        }
+        modify("No.")
+        {
+            trigger OnAfterValidate()
+            begin
+                UpdateWIPEnabled();
+            end;
+        }
         addafter(Description)
         {
             field(Subcontracting; Rec.Subcontracting)
             {
                 ApplicationArea = Manufacturing;
+            }
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Manufacturing;
+                Enabled = TransferWIPItemEnabled;
+            }
+            field("Transfer Description"; Rec."Transfer Description")
+            {
+                ApplicationArea = Manufacturing;
+                Enabled = Rec."Transfer WIP Item";
+            }
+            field("Transfer Description 2"; Rec."Transfer Description 2")
+            {
+                ApplicationArea = Manufacturing;
+                Enabled = Rec."Transfer WIP Item";
+                Visible = false;
+            }
+            field("WIP Qty. (Base) at Subc."; Rec."WIP Qty. (Base) at Subc.")
+            {
+                ApplicationArea = Manufacturing;
+                Visible = false;
+            }
+            field("WIP Qty. (Base) in Transit"; Rec."WIP Qty. (Base) in Transit")
+            {
+                ApplicationArea = Manufacturing;
+                Visible = false;
             }
         }
         addbefore(Control1900383207)
@@ -40,14 +80,47 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                 RunPageLink = "Document Type" = const(Order), "Prod. Order No." = field("Prod. Order No."), "Routing No." = field("Routing No."), "Routing Reference No." = field("Routing Reference No."), "Operation No." = field("Operation No.");
                 ToolTip = 'Shows Purchase Order Lines for Subcontracting.';
             }
+            action("WIP Ledger Entries")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'WIP Ledger Entries';
+                Image = LedgerEntries;
+                RunObject = page "WIP Ledger Entries";
+                RunPageLink = "Prod. Order Status" = field(Status),
+                              "Prod. Order No." = field("Prod. Order No."),
+                              "Routing Reference No." = field("Routing Reference No."),
+                              "Routing No." = field("Routing No."),
+                              "Operation No." = field("Operation No.");
+                ToolTip = 'View the Subcontractor WIP Ledger Entries for this routing line.';
+            }
         }
         addlast("F&unctions")
         {
+            action("WIP Adjustment")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'WIP Adjustment';
+                Image = AdjustEntries;
+                ToolTip = 'Manually adjust the WIP quantity for the selected prod. order routing line.';
+
+                trigger OnAction()
+                var
+                    WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+                    WIPAdjustmentPage: Page "WIP Adjustment";
+                begin
+                    WIPLedgerEntry.SetProductionOrderRoutingFilter(Rec, true);
+                    WIPAdjustmentPage.SetWIPLedgerEntry(WIPLedgerEntry);
+                    WIPAdjustmentPage.SetDocumentNo(Rec."Prod. Order No.");
+                    WIPAdjustmentPage.RunModal();
+                end;
+            }
             action(CreateSubcontracting)
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Create Subcontracting Order';
                 Image = CreateDocument;
+                Enabled = CreateSubcontractingEnabled;
+                Visible = CreateSubcontractingVisible;
                 ToolTip = 'Create Purchase Orders for Subcontracting directly from the Production Routing Line.';
                 trigger OnAction()
                 var
@@ -83,4 +156,36 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
             }
         }
     }
+    var
+        TransferWIPItemEnabled: Boolean;
+        CreateSubcontractingEnabled: Boolean;
+        CreateSubcontractingVisible: Boolean;
+
+    trigger OnOpenPage()
+    var
+        StatusFilter: Text;
+    begin
+        StatusFilter := Rec.GetFilter(Rec.Status);
+        if StatusFilter.Contains(Format("Production Order Status"::Released)) then
+            CreateSubcontractingVisible := true
+        else
+            CreateSubcontractingVisible := false;
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateWIPEnabled();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateWIPEnabled();
+        CreateSubcontractingEnabled := Rec.Subcontracting and (Rec.Status = "Production Order Status"::Released);
+    end;
+
+    local procedure UpdateWIPEnabled()
+    begin
+        Rec.Calcfields(Subcontracting);
+        TransferWIPItemEnabled := Rec.Subcontracting;
+    end;
 }

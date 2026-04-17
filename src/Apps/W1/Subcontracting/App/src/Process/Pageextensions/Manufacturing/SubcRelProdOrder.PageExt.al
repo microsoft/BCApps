@@ -36,6 +36,36 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
                 RunPageView = sorting("Order Type", "Order No.");
                 ToolTip = 'View the list of subcontracting transfers.';
             }
+            action("WIP Ledger Entries")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'WIP Ledger Entries';
+                Image = LedgerEntries;
+                RunObject = page "WIP Ledger Entries";
+                RunPageLink = "Prod. Order Status" = field(Status), "Prod. Order No." = field("No.");
+                ToolTip = 'View the Subcontractor WIP Ledger Entries for this production order.';
+            }
+        }
+        addlast("F&unctions")
+        {
+            action("WIP Adjustment")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'WIP Adjustment';
+                Image = AdjustEntries;
+                ToolTip = 'Manually adjust the WIP quantities for all routing operations of this production order.';
+
+                trigger OnAction()
+                var
+                    WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+                    WIPAdjustmentPage: Page "WIP Adjustment";
+                begin
+                    WIPLedgerEntry.SetProductionOrderFilter(Rec, true);
+                    WIPAdjustmentPage.SetWIPLedgerEntry(WIPLedgerEntry);
+                    WIPAdjustmentPage.SetDocumentNo(Rec."No.");
+                    WIPAdjustmentPage.RunModal();
+                end;
+            }
         }
     }
 }

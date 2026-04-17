@@ -33,4 +33,9 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
             TableRelation = "Work Center" where("Subcontractor No." = field("No."));
         }
     }
+
+    keys
+    {
+        key(SubcLocationCode; "Subcontr. Location Code") { }
+    }
 }

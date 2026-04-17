@@ -14,6 +14,23 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
         {
             Visible = true;
         }
+        addafter("Routing Link Code")
+        {
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Manufacturing;
+            }
+            field("Transfer Description"; Rec."Transfer Description")
+            {
+                ApplicationArea = Manufacturing;
+                Enabled = Rec."Transfer WIP Item";
+            }
+            field("Transfer Description 2"; Rec."Transfer Description 2")
+            {
+                ApplicationArea = Manufacturing;
+                Enabled = Rec."Transfer WIP Item";
+            }
+        }
     }
     actions
     {

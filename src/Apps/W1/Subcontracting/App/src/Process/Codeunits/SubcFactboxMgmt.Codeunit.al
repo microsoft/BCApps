@@ -606,12 +606,13 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
         PurchaseLine: Record "Purchase Line";
-        TempTransferHeader: Record "Transfer Header" temporary;
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         DataTypeManagement: Codeunit "Data Type Management";
         RecRef: RecordRef;
+        NoOfTransferHeaders: Integer;
         NoTransferExistsTxt: Label 'No transfer order exists for this purchase order.';
     begin
         if not RecRelatedVariant.IsRecord() then
@@ -623,6 +624,8 @@ codeunit 99001507 "Subc. Factbox Mgmt."
             Database::"Prod. Order Component":
                 begin
                     RecRef.SetTable(ProdOrderComponent);
+                    if not ProductionOrder.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.") then
+                        exit;
                     if not ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.") then
                         exit;
 
@@ -631,54 +634,60 @@ codeunit 99001507 "Subc. Factbox Mgmt."
             Database::"Purchase Line":
                 begin
                     RecRef.SetTable(PurchaseLine);
-                    GetProdOrderRtngLineFromPurchaseLine(ProdOrderRoutingLine, PurchaseLine);
-                    if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
+                    if not ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then
                         exit;
+                    GetProdOrderRtngLineFromPurchaseLine(ProdOrderRoutingLine, PurchaseLine);
+                    if ProductionOrder."Source Type" <> "Prod. Order Source Type"::Family then
+                        if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
+                            exit;
                 end;
             Database::"Prod. Order Routing Line":
                 begin
                     RecRef.SetTable(ProdOrderRoutingLine);
-                    if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.") then
+                    if not ProductionOrder.Get(ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.") then
                         exit;
+                    if ProductionOrder."Source Type" <> "Prod. Order Source Type"::Family then
+                        if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.") then
+                            exit;
                 end;
             else
                 exit;
         end;
 
         TransferLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.");
-        TransferLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        TransferLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
-        if IsReturn then begin
-            TransferLine.SetRange("Routing Reference No.", 0);
-            TransferLine.SetRange("Routing No.", '');
-            TransferLine.SetRange("Operation No.", '');
-        end else begin
+        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        if ProductionOrder."Source Type" <> "Prod. Order Source Type"::Family then begin
+            TransferLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
             TransferLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
-            TransferLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
-            TransferLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        end else begin
+            TransferLine.SetRange("Prod. Order Line No.");
+            TransferLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         end;
+        TransferLine.SetRange("Return Order", IsReturn);
+        TransferLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        TransferLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
 
         if not TransferLine.IsEmpty() then
-            if TransferLine.FindSet() then begin
-                if not TempTransferHeader.IsEmpty() then
-                    TempTransferHeader.DeleteAll();
+            if TransferLine.FindSet() then
                 repeat
-                    if TransferHeader.Get(TransferLine."Document No.") then begin
-                        TempTransferHeader.Init();
-                        TempTransferHeader.TransferFields(TransferHeader);
-                        if TempTransferHeader.Insert() then;
-                    end;
+                    if TransferHeader.Get(TransferLine."Document No.") then
+                        TransferHeader.Mark(true);
                 until TransferLine.Next() = 0;
-            end;
+        TransferHeader.MarkedOnly(true);
 
-        if LookUpPage then
-            if TempTransferHeader.Count() > 1 then
-                Page.Run(Page::"Transfer Orders", TempTransferHeader)
-            else
-                if TempTransferHeader.FindSet() then
-                    Page.Run(Page::"Transfer Order", TempTransferHeader)
-                else
+        if LookUpPage then begin
+            NoOfTransferHeaders := TransferHeader.Count();
+            case true of
+                NoOfTransferHeaders = 0:
                     Message(NoTransferExistsTxt);
+                NoOfTransferHeaders = 1:
+                    if TransferHeader.FindFirst() then
+                        Page.Run(Page::"Transfer Order", TransferHeader);
+                NoOfTransferHeaders > 1:
+                    Page.Run(Page::"Transfer Orders", TransferHeader);
+            end;
+        end;
     end;
 
     procedure GetSubcontractorNo(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Code[20]
@@ -710,7 +719,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
     begin
         PurchaseLine.SetRange(PurchaseLine."Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange(PurchaseLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange(PurchaseLine."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange(PurchaseLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchaseLine.SetRange(PurchaseLine."Operation No.", ProdOrderRoutingLine."Operation No.");
         PurchaseLine.CalcSums(PurchaseLine.Quantity);
         exit(PurchaseLine.Quantity);
@@ -722,7 +731,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
     begin
         PurchaseLine.SetRange(PurchaseLine."Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange(PurchaseLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange(PurchaseLine."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange(PurchaseLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchaseLine.SetRange(PurchaseLine."Operation No.", ProdOrderRoutingLine."Operation No.");
 
         Page.Run(Page::"Purchase Lines", PurchaseLine);
@@ -733,7 +742,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         PurchRcptLine.SetRange(PurchRcptLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchRcptLine.SetRange(PurchRcptLine."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchRcptLine.SetRange(PurchRcptLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchRcptLine.SetRange(PurchRcptLine."Operation No.", ProdOrderRoutingLine."Operation No.");
         PurchRcptLine.CalcSums(PurchRcptLine.Quantity);
         exit(PurchRcptLine.Quantity);
@@ -744,7 +753,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         PurchRcptLine.SetRange(PurchRcptLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchRcptLine.SetRange(PurchRcptLine."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchRcptLine.SetRange(PurchRcptLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchRcptLine.SetRange(PurchRcptLine."Operation No.", ProdOrderRoutingLine."Operation No.");
 
         Page.Run(Page::"Purch. Receipt Lines", PurchRcptLine);
@@ -755,7 +764,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         PurchInvLine: Record "Purch. Inv. Line";
     begin
         PurchInvLine.SetRange(PurchInvLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchInvLine.SetRange(PurchInvLine."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchInvLine.SetRange(PurchInvLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchInvLine.SetRange(PurchInvLine."Operation No.", ProdOrderRoutingLine."Operation No.");
         PurchInvLine.CalcSums(PurchInvLine.Quantity);
         exit(PurchInvLine.Quantity);
@@ -767,7 +776,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
     begin
         PurchInvLine.SetCurrentKey(PurchInvLine.Type, PurchInvLine."Prod. Order No.", PurchInvLine."Prod. Order Line No.");
         PurchInvLine.SetRange(PurchInvLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchInvLine.SetRange(PurchInvLine."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchInvLine.SetRange(PurchInvLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchInvLine.SetRange(PurchInvLine."Operation No.", ProdOrderRoutingLine."Operation No.");
 
         Page.Run(Page::"Posted Purchase Invoice Lines", PurchInvLine);
@@ -779,9 +788,10 @@ codeunit 99001507 "Subc. Factbox Mgmt."
     begin
         TransferLine.SetCurrentKey(TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Routing Reference No.", TransferLine."Routing No.", TransferLine."Operation No.");
         TransferLine.SetRange(TransferLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        TransferLine.SetRange(TransferLine."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        TransferLine.SetRange(TransferLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         TransferLine.SetRange(TransferLine."Routing No.", ProdOrderRoutingLine."Routing No.");
         TransferLine.SetRange(TransferLine."Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
         exit(TransferLine.Count());
     end;
 
@@ -793,6 +803,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         TransferLine.SetRange(TransferLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         TransferLine.SetRange(TransferLine."Routing Reference No.", 0);
         TransferLine.SetRange(TransferLine."Operation No.", '');
+        TransferLine.SetRange("Derived From Line No.", 0);
         exit(TransferLine.Count());
     end;
 
@@ -802,9 +813,10 @@ codeunit 99001507 "Subc. Factbox Mgmt."
     begin
         TransferLine.SetCurrentKey(TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Routing Reference No.", TransferLine."Routing No.", TransferLine."Operation No.");
         TransferLine.SetRange(TransferLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        TransferLine.SetRange(TransferLine."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        TransferLine.SetRange(TransferLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         TransferLine.SetRange(TransferLine."Routing No.", ProdOrderRoutingLine."Routing No.");
         TransferLine.SetRange(TransferLine."Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
         Page.Run(Page::"Transfer Lines", TransferLine);
     end;
 
@@ -816,6 +828,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         TransferLine.SetRange(TransferLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         TransferLine.SetRange(TransferLine."Routing Reference No.", 0);
         TransferLine.SetRange(TransferLine."Operation No.", '');
+        TransferLine.SetRange("Derived From Line No.", 0);
         Page.Run(Page::"Transfer Lines", TransferLine);
     end;
 

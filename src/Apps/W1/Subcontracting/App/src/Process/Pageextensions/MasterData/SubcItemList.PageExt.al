@@ -23,5 +23,17 @@ pageextension 99001519 "Subc. Item List" extends "Item List"
                 ToolTip = 'Set up different prices for the item in subcontracting.';
             }
         }
+        addlast(History)
+        {
+            action("WIP Ledger Entries")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'WIP Ledger Entries';
+                Image = LedgerEntries;
+                RunObject = page "WIP Ledger Entries";
+                RunPageLink = "Item No." = field("No.");
+                ToolTip = 'View the Subcontractor WIP Ledger Entries that track work-in-progress quantities for this item across subcontracting locations.';
+            }
+        }
     }
 }

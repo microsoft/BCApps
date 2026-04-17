@@ -35,8 +35,7 @@ table 99001501 "Subc. Management Setup"
         {
             Caption = 'Subcontracting Journal Batch Name';
             TableRelation = "Requisition Wksh. Name".Name where("Template Type" = const(Subcontracting),
-                                                                "Worksheet Template Name" = field("Subcontracting Template Name"));
-#pragma warning restore AL0432                                                                
+                                                                "Worksheet Template Name" = field("Subcontracting Template Name"));                                                             
         }
         field(60; "Direct Transfer"; Boolean)
         {

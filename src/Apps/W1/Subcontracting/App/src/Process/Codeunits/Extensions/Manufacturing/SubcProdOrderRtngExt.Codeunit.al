@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using System.Utilities;
 
@@ -58,6 +59,14 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
         SubcPriceManagement.GetSubcPriceList(ProdOrderRoutingLine);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnAfterCopyFromRoutingLine, '', false, false)]
+    local procedure OnAfterCopyFromRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; RoutingLine: Record "Routing Line")
+    begin
+        ProdOrderRoutingLine."Transfer WIP Item" := RoutingLine."Transfer WIP Item";
+        ProdOrderRoutingLine."Transfer Description" := RoutingLine."Transfer Description";
+        ProdOrderRoutingLine."Transfer Description 2" := RoutingLine."Transfer Description 2";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Route Management", OnCalculateOnBeforeProdOrderRtngLineLoopIteration, '', false, false)]

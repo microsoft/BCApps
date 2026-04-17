@@ -34,6 +34,15 @@ pageextension 99001507 "Subc. Work Center List" extends "Work Center List"
                         end;
                     end;
                 }
+                action("WIP Ledger Entries")
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'WIP Ledger Entries';
+                    Image = LedgerEntries;
+                    RunObject = page "WIP Ledger Entries";
+                    RunPageLink = "Work Center No." = field("No.");
+                    ToolTip = 'View the Subcontractor WIP Ledger Entries that track work-in-progress quantities at this work center''s subcontracting location.';
+                }
             }
         }
     }

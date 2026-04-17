@@ -77,5 +77,17 @@ permissionset 99001500 "Subc. Permissionset"
         report "Subc. Create Transf. Order" = X,
         report "Subc. Create SubCReturnOrder" = X,
         report "Subc. Detailed Calculation" = X,
-        report "Subc. Dispatching List" = X;
+        report "Subc. Dispatching List" = X,
+        tabledata "Subcontractor WIP Ledger Entry" = RIMD,
+        table "Subcontractor WIP Ledger Entry" = X,
+        codeunit "Subc. Purchase Order Creator" = X,
+        page "WIP Ledger Entries" = X,
+        codeunit "Subc. Change Prod.Order Status" = X,
+        codeunit "Subc. Posting Preview Binding" = X,
+        codeunit "Subc. Posting Preview Subscr." = X,
+        codeunit "Subc. Pst. Prev. Event Handler" = X,
+        codeunit "Subc. Transfer WIP Posting" = X,
+        codeunit "Subc. WhsePostShipment Ext" = X,
+        codeunit "Subc. WIP Item Ledg Find Entry" = X,
+        page "WIP Adjustment" = X;
 }
