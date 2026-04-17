@@ -113,7 +113,9 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         if PurchaseLine.FindSet() then
             repeat
                 TempPurchaseLine.Init();
-                TempPurchaseLine.TransferFields(PurchaseLine);
+                TempPurchaseLine."Document Type" := PurchaseLine."Document Type";
+                TempPurchaseLine."Document No." := PurchaseLine."Document No.";
+                TempPurchaseLine."Line No." := PurchaseLine."Line No.";
                 TempPurchaseLine.Insert();
             until PurchaseLine.Next() = 0;
 
