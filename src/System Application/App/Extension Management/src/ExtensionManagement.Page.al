@@ -381,6 +381,22 @@ page 2500 "Extension Management"
         ActionsEnabled := false;
 
         HelpActionVisible := false;
+        ShowUninstalledExtensionsNotification();
+    end;
+
+    local procedure ShowUninstalledExtensionsNotification()
+    var
+        Uninstalled: Record "Extension Database Snapshot";
+        Notif: Notification;
+    begin
+        Uninstalled.SetFilter(Status, '<>%1', Uninstalled.Status::Installed);
+        Uninstalled.SetFilter("Is Reviewed", '%1', false);
+        if not Uninstalled.IsEmpty() then begin
+            Notif.Message(UninstalledExtensionsMsg);
+            Notif.AddAction('Show', Codeunit::"Extension Operation Impl", 'HandleOrphanedDataNotification');
+            Notif.AddAction('Mark All as Reviewed', Codeunit::"Extension Operation Impl", 'MarkOrphanedDataAsReviewed');
+            Notif.Send();
+        end;
     end;
 
     var
@@ -403,6 +419,7 @@ page 2500 "Extension Management"
         InfoStyle: Boolean;
         HelpActionVisible: Boolean;
         IsSourceSpecificationAvailable: Boolean;
+        UninstalledExtensionsMsg: Label 'There''s orphaned data from uninstalled extensions. Use the Delete Orphaned Extension Data page to review';
 
     protected procedure IsSaasEnvironment(): boolean
     begin
