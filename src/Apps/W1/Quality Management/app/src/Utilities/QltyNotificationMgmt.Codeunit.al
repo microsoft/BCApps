@@ -112,7 +112,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
     /// Creates a notification that multiple inspections have been created.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>
-    internal procedure NotifyMultipleInspectionsCreated(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    internal procedure NotifyMultipleInspectionsCreated(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         MyNotifications: Record "My Notifications";
         NotificationTestCreated: Notification;
