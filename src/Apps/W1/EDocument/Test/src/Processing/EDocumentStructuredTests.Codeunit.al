@@ -24,14 +24,14 @@ codeunit 139891 "E-Document Structured Tests"
 
     var
         Customer: Record Customer;
-        Vendor: Record Vendor;
         EDocumentService: Record "E-Document Service";
+        Vendor: Record Vendor;
         Assert: Codeunit Assert;
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryEDoc: Codeunit "Library - E-Document";
         EDocImplState: Codeunit "E-Doc. Impl. State";
-        LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         StructuredValidations: Codeunit "EDoc Structured Validations";
+        LibraryEDoc: Codeunit "Library - E-Document";
+        LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         EDocumentStatusNotUpdatedErr: Label 'The status of the EDocument was not updated to the expected status after the step was executed.';
 
@@ -95,6 +95,191 @@ codeunit 139891 "E-Document Structured Tests"
         CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-0.xml');
         if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
             StructuredValidations.AssertFullPEPPOLDocumentExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+    [Test]
+    procedure TestPEPPOLCreditNote_ValidDocument()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] A valid PEPPOL CreditNote XML is parsed into the staging tables with correct header, lines, and BillingReference
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-creditnote-0.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            StructuredValidations.AssertFullPEPPOLCreditNoteExtracted(EDocument."Entry No");
+            EDocument.Get(EDocument."Entry No");
+            Assert.AreEqual(Enum::"E-Doc. Process Draft"::"Purchase Credit Memo", EDocument."Process Draft Impl.", 'The process draft implementation should be set to Purchase Credit Memo for credit notes.');
+        end
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_ReturnsInvoiceProcessDraftImpl()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] After parsing a PEPPOL Invoice, the Process Draft Impl. is set to "Purchase Invoice" (not the obsoleted "Purchase Document")
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-0.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            EDocument.Get(EDocument."Entry No");
+            Assert.AreEqual(Enum::"E-Doc. Process Draft"::"Purchase Invoice", EDocument."Process Draft Impl.", 'The process draft implementation should be set to Purchase Invoice for invoices.');
+        end
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_BaseExample()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] A basic PEPPOL invoice with 2 lines and a document-level charge is parsed correctly.
+        // Covers: vendor GLN (schemeID=0088), customer non-0088 endpoint (no GLN), charge line creation.
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-basic.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertPEPPOLBaseExampleExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_WithCharges()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] Document-level charges (ChargeIndicator=true) create purchase lines; allowances (ChargeIndicator=false) do not.
+        // Covers: completeness item "Document-level AllowanceCharge lines not created"
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-charges.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertPEPPOLInvoiceWithChargesExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_VatCategoryS()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] Invoice with multiple VAT rates (25% and 15%), StandardItemIdentification priority over SellersItemIdentification.
+        // Covers: completeness item "SellersItemIdentification vs StandardItemIdentification merged"
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-vat-category-s.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertPEPPOLVatCategorySExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_VatCategoryZ()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] Invoice with zero-rated VAT (category Z), no DueDate, GBP currency.
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-vat-category-z.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertPEPPOLVatCategoryZExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_AllowanceExample()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] Full PEPPOL example with both charge and allowance at document level, SellersItemIdentification only, 3 invoice lines.
+        // Covers: allowance does NOT create line, charge DOES, SellersItemIdentification as product code fallback.
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-allowance.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertPEPPOLAllowanceExampleExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLCreditNote_CorrectionNoDueDate()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] CreditNote without PaymentMeans/PaymentDueDate results in blank Due Date.
+        // Covers: completeness item "CreditNote DueDate uses wrong XPath" (negative case - no DueDate at all)
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-creditnote-no-duedate.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            StructuredValidations.AssertPEPPOLCreditNoteCorrectionExtracted(EDocument."Entry No");
+            EDocument.Get(EDocument."Entry No");
+            Assert.AreEqual(Enum::"E-Doc. Process Draft"::"Purchase Credit Memo", EDocument."Process Draft Impl.", 'The process draft implementation should be set to Purchase Credit Memo for credit notes.');
+        end
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_EmbeddedAttachments()
+    var
+        EDocument: Record "E-Document";
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] Embedded base64 attachments are extracted; external URI and bare references are skipped.
+        // Test XML: 1 valid PDF, 1 valid PNG, 1 external URI (no embedded content), 1 bare reference (no attachment node).
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-attachment.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            StructuredValidations.AssertPEPPOLAttachmentHeaderExtracted(EDocument."Entry No");
+            // Verify exactly 2 attachments were created (embedded PDF + embedded PNG); external URI and bare ref skipped
+            DocumentAttachment.SetRange("E-Document Entry No.", EDocument."Entry No");
+            Assert.AreEqual(2, DocumentAttachment.Count(), 'Expected 2 embedded attachments (PDF + PNG). External URI and bare references should be skipped.');
+        end
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_DescriptionFallback()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] When Item/Name is absent, Description is used as fallback. When both exist, Name takes priority.
+        // Covers: completeness item "Description cascade vs separate fields"
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-description-fallback.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertPEPPOLDescriptionFallbackExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestPEPPOLInvoice_PayeePartyOverride()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] When PayeeParty is present, it overrides vendor company name and VAT ID from AccountingSupplierParty.
+        // Covers: completeness item "PayeeParty/PartyIdentification fallback missing"
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-payee-party.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertPEPPOLPayeePartyOverrideExtracted(EDocument."Entry No")
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
     end;
@@ -193,18 +378,31 @@ codeunit 139891 "E-Document Structured Tests"
             Assert.Fail(EDocumentStatusNotUpdatedErr);
     end;
 
+    [Test]
+    procedure TestPEPPOLInvoice_NamespacePrefixedRootElement()
+    var
+        EDocument: Record "E-Document";
+    begin
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-prefixed-ns.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertFullPEPPOLDocumentExtracted(EDocument."Entry No")            
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
     #endregion
 
     local procedure Initialize(Integration: Enum "Service Integration")
     var
-        TransformationRule: Record "Transformation Rule";
-        EDocument: Record "E-Document";
+        Currency: Record Currency;
+        DocumentAttachment: Record "Document Attachment";
         EDocDataStorage: Record "E-Doc. Data Storage";
-        EDocumentServiceStatus: Record "E-Document Service Status";
+        EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        DocumentAttachment: Record "Document Attachment";
-        Currency: Record Currency;
+        EDocumentServiceStatus: Record "E-Document Service Status";
+        TransformationRule: Record "Transformation Rule";
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
         LibraryVariableStorage.Clear();

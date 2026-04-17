@@ -11,6 +11,7 @@ enumextension 133501 "E-Doc. Mock Customizations" extends "E-Doc. Proc. Customiz
 {
     value(133501; "Mock Create Purchase Invoice")
     {
-        Implementation = IEDocumentCreatePurchaseInvoice = "E-Doc. Processing Mocks";
+        Implementation = IEDocumentCreatePurchaseInvoice = "E-Doc. Processing Mocks",
+                         IEDocumentCreatePurchaseCreditMemo = "E-Doc. Processing Mocks";
     }
 }

@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,9 +14,11 @@ page 20463 "Qlty. Routing Line Lookup"
     SourceTable = "Routing Line";
     UsageCategory = None;
     ApplicationArea = Manufacturing;
+#pragma warning disable AS0072
     ObsoleteReason = 'Unused and replaced with "Routing Line List" page.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '28.0';
+#pragma warning restore AS0072
 
     layout
     {
