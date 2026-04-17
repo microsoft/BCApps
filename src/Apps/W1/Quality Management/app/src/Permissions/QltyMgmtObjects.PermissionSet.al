@@ -91,6 +91,7 @@ permissionset 20406 "QltyMgmt - Objects"
         codeunit "Qlty. Assembly Integration" = X,
         codeunit "Qlty. Batch Notif. Helper" = X,
         codeunit "Qlty. Demo Data Mgmt." = X,
+        codeunit "Qlty. Demo Data Runner" = X,
         codeunit "Qlty. Receiving Integration" = X,
         codeunit "Qlty. Report Mgmt." = X,
         codeunit "Qlty. Session Helper" = X,
