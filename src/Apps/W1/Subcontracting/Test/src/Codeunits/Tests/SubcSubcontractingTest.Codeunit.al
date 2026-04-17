@@ -1637,7 +1637,7 @@ Comment = '|%1 = Transfer Order No.';
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Purchase);
+        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::InventoryByVendor);
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
