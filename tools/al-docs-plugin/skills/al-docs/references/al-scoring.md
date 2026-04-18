@@ -16,9 +16,19 @@ When scanning `.al` files, identify the object type from the first line of each 
 | `xmlport` | Data import/export |
 | `permissionset`, `permissionsetextension` | Security model |
 
+## Which subfolders to score
+
+Only score subfolders that represent **functional boundaries** — areas of the app organized by business domain or feature (e.g., `src/Products/`, `src/Order handling/`, `src/Customers/`).
+
+**Skip type-grouping directories** that organize files by AL object type rather than by function (e.g., `Codeunits/`, `Tables/`, `Page Extensions/`). These exist purely for file organization — their parent functional folder is the correct documentation target.
+
+How to detect a type-grouping directory: **90%+ of AL objects in the directory (including all descendants) are the same object type.** This heuristic works regardless of naming conventions.
+
+When a type-grouping directory is skipped, its objects still count toward the **parent functional folder's** score. Apply this recursively — if a type-grouping dir contains another type-grouping dir, both roll up to the nearest functional ancestor.
+
 ## Subfolder scoring criteria
 
-Score each subfolder (directory containing `.al` files) on a 0-10 scale:
+Score each functional subfolder on a 0-10 scale (including objects in child type-grouping directories):
 
 | Factor | Points | How to detect |
 |--------|--------|---------------|

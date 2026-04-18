@@ -82,13 +82,14 @@ Subfolders are scored 0-10 based on AL object count, table count, codeunit count
 
 ```
 al-docs-plugin/
-├── .claude-plugin/
-│   └── plugin.json
+├── plugin.json
 ├── README.md
 └── skills/
     └── al-docs/
         ├── SKILL.md              # Router -- dispatches to the correct mode
         ├── al-docs-init.md       # Mode 1: full bootstrap
         ├── al-docs-update.md     # Mode 2: incremental update
-        └── al-docs-audit.md      # Mode 3: read-only audit
+        ├── al-docs-audit.md      # Mode 3: read-only audit
+        └── references/
+            └── al-scoring.md     # Subfolder scoring criteria
 ```
