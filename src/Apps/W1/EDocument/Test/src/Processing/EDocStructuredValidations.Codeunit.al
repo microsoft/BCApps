@@ -165,7 +165,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual(DMY2Date(15, 03, 2026), EDocumentPurchaseHeader."Due Date", 'The due date does not match the mock data.');
         Assert.AreEqual('XYZ', EDocumentPurchaseHeader."Currency Code", 'The currency code does not match the mock data.');
         Assert.AreEqual('5', EDocumentPurchaseHeader."Purchase Order No.", 'The order reference does not match the mock data.');
-        Assert.AreEqual('103033', EDocumentPurchaseHeader."Vendor Invoice No.", 'The billing reference (vendor invoice no.) does not match the mock data.');
+        Assert.AreEqual('103033', EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", 'The billing reference (vendor invoice no.) does not match the mock data.');
         Assert.AreEqual('CRONUS International', EDocumentPurchaseHeader."Vendor Company Name", 'The vendor name does not match the mock data.');
         Assert.AreEqual('Main Street, 14', EDocumentPurchaseHeader."Vendor Address", 'The vendor street does not match the mock data.');
         Assert.AreEqual('GB123456789', EDocumentPurchaseHeader."Vendor VAT Id", 'The vendor VAT id does not match the mock data.');
@@ -439,7 +439,7 @@ codeunit 139894 "EDoc Structured Validations"
         // CreditNote without PaymentMeans/PaymentDueDate: DueDate should be blank
         Assert.AreEqual(0D, EDocumentPurchaseHeader."Due Date", 'Due Date should be blank when CreditNote has no PaymentMeans/PaymentDueDate.');
         Assert.AreEqual(ExpectedCurrencyCode('EUR', GLSetup."LCY Code"), EDocumentPurchaseHeader."Currency Code", 'The currency code does not match.');
-        Assert.AreEqual('Snippet1', EDocumentPurchaseHeader."Vendor Invoice No.", 'The BillingReference (Vendor Invoice No.) does not match.');
+        Assert.AreEqual('Snippet1', EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", 'The BillingReference (Vendor Invoice No.) does not match.');
         Assert.AreEqual('SupplierTradingName Ltd.', EDocumentPurchaseHeader."Vendor Company Name", 'The vendor name does not match.');
         Assert.AreEqual('GB1232434', EDocumentPurchaseHeader."Vendor VAT Id", 'The vendor VAT id does not match.');
         Assert.AreEqual(1656.25, EDocumentPurchaseHeader.Total, 'The total does not match.');
