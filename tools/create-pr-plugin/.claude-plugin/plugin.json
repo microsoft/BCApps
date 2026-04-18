@@ -1,0 +1,9 @@
+{
+  "name": "create-pr",
+  "version": "0.1.0",
+  "description": "Create PRs with intelligent SME reviewer assignment, AI decision context, and structured review guidance",
+  "author": {
+    "name": "BC Application Team"
+  },
+  "keywords": ["pr", "pull-request", "review", "sme", "workflow"]
+}
