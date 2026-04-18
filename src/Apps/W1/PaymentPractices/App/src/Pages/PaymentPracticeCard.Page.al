@@ -25,6 +25,18 @@ page 687 "Payment Practice Card"
                 {
                     ToolTip = 'Specifies the number of the payment practice header.';
                 }
+                field("Reporting Scheme"; Rec."Reporting Scheme")
+                {
+                    trigger OnValidate()
+                    begin
+                        UpdateVisibility();
+                        CurrPage.Update(true);
+                    end;
+                }
+                field("Payment Period Code"; Rec."Payment Period Code")
+                {
+                    ShowMandatory = true;
+                }
                 field("Aggregation Type"; Rec."Aggregation Type")
                 {
                     ToolTip = 'Specifies the aggregation type of the payment practice.';
@@ -33,7 +45,7 @@ page 687 "Payment Practice Card"
                 {
                     ToolTip = 'Specifies the source for entries in the payment practice.';
                 }
-                field("Startind Date"; Rec."Starting Date")
+                field("Starting Date"; Rec."Starting Date")
                 {
                     ToolTip = 'Specifies the starting date of the payment practice.';
                 }
@@ -63,9 +75,9 @@ page 687 "Payment Practice Card"
                     ToolTip = 'Specifies whether the payment practice was modified manually.';
                 }
             }
-            group("Statistics")
+            group("Payment Statistics")
             {
-                Caption = 'Statistics';
+                Caption = 'Payment Statistics';
                 field("Average Agreed Payment Period"; Rec."Average Agreed Payment Period")
                 {
                     ToolTip = 'Specifies the average agreed payment period.';
@@ -91,6 +103,45 @@ page 687 "Payment Practice Card"
                     trigger OnDrillDown()
                     begin
                         ShowHeaderDataLines();
+                    end;
+                }
+                field("Total Number of Payments"; Rec."Total Number of Payments")
+                {
+                    Visible = IsDisputeRetention;
+                }
+                field("Total Amount of Payments"; Rec."Total Amount of Payments")
+                {
+                    Visible = IsDisputeRetention;
+                }
+                field("Total Amt. of Overdue Payments"; Rec."Total Amt. of Overdue Payments")
+                {
+                    Visible = IsDisputeRetention;
+                }
+                field("Pct Overdue Due to Dispute"; Rec."Pct Overdue Due to Dispute")
+                {
+                    Visible = IsDisputeRetention;
+                }
+            }
+            group("Dispute & Retention")
+            {
+                Caption = 'Dispute & Retention';
+                Visible = IsDisputeRetention;
+                field(DisputeRetentionLink; DisputeRetentionLinkTxt)
+                {
+                    Caption = 'Dispute & Retention Details';
+#pragma warning disable AA0219
+                    ToolTip = 'Opens the Dispute & Retention details page for this payment practice.';
+#pragma warning restore AA0219
+                    Editable = false;
+                    Style = StandardAccent;
+                    ShowCaption = false;
+
+                    trigger OnDrillDown()
+                    var
+                        DisputeRetData: Record "Paym. Prac. Dispute Ret. Data";
+                    begin
+                        if DisputeRetData.Get(Rec."No.") then
+                            Page.RunModal(Page::"Paym. Prac. Dispute Ret. Card", DisputeRetData);
                     end;
                 }
             }
@@ -144,6 +195,34 @@ page 687 "Payment Practice Card"
                     FeatureTelemetry.LogUptake('0000KSV', 'Payment Practices', "Feature Uptake Status"::Used);
                 end;
             }
+            action(ExportGBCSV)
+            {
+                Caption = 'Export CSV';
+                ToolTip = 'Exports the Dispute/Retention scheme data in CSV format.';
+                Image = Export;
+                Visible = IsDisputeRetention;
+
+                trigger OnAction()
+                var
+                    PaymPracGBCSVExport: Codeunit "Paym. Prac. GB CSV Export";
+                begin
+                    PaymPracGBCSVExport.Export(Rec);
+                end;
+            }
+            action(ExportAUCSV)
+            {
+                Caption = 'Export CSV';
+                ToolTip = 'Exports the Small Business scheme data in CSV format.';
+                Image = Export;
+                Visible = IsSmallBusiness;
+
+                trigger OnAction()
+                var
+                    PaymPracAUCSVExport: Codeunit "Paym. Prac. AU CSV Export";
+                begin
+                    PaymPracAUCSVExport.Export(Rec);
+                end;
+            }
         }
         area(Promoted)
         {
@@ -153,12 +232,23 @@ page 687 "Payment Practice Card"
             actionref(Print_Promoted; Print)
             {
             }
+            actionref(ExportGBCSV_Promoted; ExportGBCSV)
+            {
+            }
+            actionref(ExportAUCSV_Promoted; ExportAUCSV)
+            {
+            }
         }
     }
 
     trigger OnOpenPage()
     begin
+        UpdateVisibility();
         CurrPage.Update();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
         UpdateVisibility();
     end;
 
@@ -166,6 +256,9 @@ page 687 "Payment Practice Card"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         LinesWillBeDeletedQst: Label 'All previously generated lines will be deleted. Do you want to continue?';
         NoEntriesFoundMsg: Label 'The payment practice generator found no entries corresponding to the header type, starting and ending date.';
+        IsDisputeRetention: Boolean;
+        IsSmallBusiness: Boolean;
+        DisputeRetentionLinkTxt: Label 'View or edit Dispute & Retention details';
 
     local procedure PrepareLayout(PaymentPracticeLinesAggregator: Interface PaymentPracticeLinesAggregator)
     begin
@@ -182,7 +275,8 @@ page 687 "Payment Practice Card"
 
     local procedure UpdateVisibility()
     begin
-        CurrPage.Lines.Page.UpdateVisibility(Rec."Aggregation Type", Rec."Header Type");
-        CurrPage.Update();
+        IsDisputeRetention := Rec."Reporting Scheme" = Rec."Reporting Scheme"::"Dispute & Retention";
+        IsSmallBusiness := Rec."Reporting Scheme" = Rec."Reporting Scheme"::"Small Business";
+        CurrPage.Lines.Page.UpdateVisibility(Rec."Aggregation Type", Rec."Header Type", Rec."Reporting Scheme");
     end;
 }

@@ -78,6 +78,19 @@ table 686 "Payment Practice Data"
             AutoFormatType = 1;
             AutoFormatExpression = '';
         }
+        field(20; "Dispute Status"; Boolean)
+        {
+            ToolTip = 'Specifies whether the invoice is in dispute.';
+        }
+        field(21; "Overdue Due to Dispute"; Boolean)
+        {
+            Editable = false;
+            ToolTip = 'Specifies whether the overdue status is due to a dispute.';
+        }
+        field(22; "SCF Payment Date"; Date)
+        {
+            ToolTip = 'Specifies the supply chain finance payment date.';
+        }
 
     }
 
@@ -112,6 +125,7 @@ table 686 "Payment Practice Data"
         "Invoice Amount" := -VendorLedgerEntry.Amount;
         "Pmt. Posting Date" := VendorLedgerEntry."Closed at Date";
         "Pmt. Entry No." := VendorLedgerEntry."Closed by Entry No.";
+        "SCF Payment Date" := VendorLedgerEntry."SCF Payment Date";
         if "Invoice Posting Date" <> 0D then
             "Agreed Payment Days" := "Due Date" - "Invoice Received Date";
         if "Pmt. Posting Date" <> 0D then
@@ -141,7 +155,7 @@ table 686 "Payment Practice Data"
 
     procedure SetFilterForLine(PaymentPracticeLine: Record "Payment Practice Line")
     var
-        PaymentPeriod: Record "Payment Period";
+        PaymentPeriodLine: Record "Payment Period Line";
     begin
         Rec.SetRange("Header No.", PaymentPracticeLine."Header No.");
         Rec.SetRange("Source Type", PaymentPracticeLine."Source Type");
@@ -150,11 +164,13 @@ table 686 "Payment Practice Data"
                 Rec.SetRange("Company Size Code", PaymentPracticeLine."Company Size Code");
             PaymentPracticeLine."Aggregation Type"::Period:
                 begin
-                    PaymentPeriod.Get(PaymentPracticeLine."Payment Period Code");
-                    if PaymentPeriod."Days To" <> 0 then
-                        Rec.SetRange("Actual Payment Days", PaymentPeriod."Days From", PaymentPeriod."Days To")
-                    else
-                        Rec.SetFilter("Actual Payment Days", '>=%1', PaymentPeriod."Days From");
+                    PaymentPeriodLine.SetRange("Period Header Code", PaymentPracticeLine."Payment Period Code");
+                    PaymentPeriodLine.SetRange(Description, PaymentPracticeLine."Payment Period Description");
+                    if PaymentPeriodLine.FindFirst() then
+                        if PaymentPeriodLine."Days To" <> 0 then
+                            Rec.SetRange("Actual Payment Days", PaymentPeriodLine."Days From", PaymentPeriodLine."Days To")
+                        else
+                            Rec.SetFilter("Actual Payment Days", '>=%1', PaymentPeriodLine."Days From");
                     Rec.SetRange("Invoice Is Open", false);
                 end;
         end;
