@@ -14,6 +14,7 @@ page 8019 "Sales Service Commitments API"
     Extensible = false;
     Editable = false;
     DataAccessIntent = ReadOnly;
+    AboutText = 'Exposes sales subscription line records linked to sales documents, including pricing, billing rhythms, terms, and subscription package details. Provides read-only access for integrating sales-originated subscription commitments with external order management and quoting systems.';
 
     layout
     {

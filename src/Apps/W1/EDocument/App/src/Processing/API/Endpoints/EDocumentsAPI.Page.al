@@ -29,7 +29,7 @@ page 6112 "E-Documents API"
     Editable = false;
     DataAccessIntent = ReadOnly;
     DelayedInsert = true;
-
+    AboutText = 'Provides read-only access to electronic document records, including document type, status, direction, source document references, and processing details. Supports GET operations for retrieving e-document data, enabling external systems to monitor document exchange status, track processing progress, and integrate with compliance or document management workflows.';
 
     layout
     {

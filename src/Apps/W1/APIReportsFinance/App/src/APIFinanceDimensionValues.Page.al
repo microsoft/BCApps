@@ -18,6 +18,7 @@ page 30302 "API Finance - Dimension Values"
     DataAccessIntent = ReadOnly;
     ODataKeyFields = SystemId;
     SourceTable = "Dimension Value";
+    AboutText = 'Provides access to dimension value data from the Dimension Value table, including dimension codes, value codes and names, value types, consolidation codes, and blocked status. Supports read-only GET operations for retrieving dimension value hierarchies to enable integration with external financial reporting and analytics platforms.';
 
     layout
     {

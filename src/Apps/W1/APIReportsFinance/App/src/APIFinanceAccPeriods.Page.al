@@ -19,6 +19,7 @@ page 30300 "API Finance - Acc Periods"
     SourceTable = "Accounting Period";
     ODataKeyFields = SystemId;
     SourceTableView = sorting("Starting Date");
+    AboutText = 'Provides access to accounting period data from the Accounting Period table, including period start and end dates, fiscal year boundaries, and closure status. Supports read-only GET operations for retrieving period structures to enable integration with external financial reporting and consolidation platforms.';
 
     layout
     {

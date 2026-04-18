@@ -14,6 +14,7 @@ page 8021 "Billing Lines API"
     Extensible = false;
     Editable = false;
     DataAccessIntent = ReadOnly;
+    AboutText = 'Exposes billing line records including billing periods, amounts, document references, discounts, and correction details for subscription contracts. Provides read-only access for integrating billing data with external invoicing platforms, financial reporting tools, and revenue reconciliation systems.';
 
     layout
     {

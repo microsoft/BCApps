@@ -18,6 +18,7 @@ page 30304 "API Finance - GL Account"
     DeleteAllowed = false;
     SourceTable = "G/L Account";
     ODataKeyFields = SystemId;
+    AboutText = 'Provides access to general ledger account data from the G/L Account table, including account numbers, names, types, categories, subcategories, net change, income/balance classification, and parent account hierarchy. Supports read-only GET operations for retrieving chart of accounts structures to enable integration with external financial reporting and consolidation platforms.';
 
     layout
     {

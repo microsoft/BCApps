@@ -25,6 +25,8 @@ page 6417 "ForNAV Incoming E-Docs Api"
     Permissions = TableData "Job Queue Entry" = rimd,
                   TableData "Job Queue Log Entry" = RIMD,
                   TableData "Job Queue Category" = rimd;
+    AboutText = 'Provides access to incoming e-document data from the ForNAV Incoming E-Document table, including document numbers, types, statuses, and Peppol endpoint identifiers. Supports insert-only operations for receiving invoices, credit notes, application responses, and evidence documents to enable automated Peppol e-document processing through the ForNAV connector.';
+
     layout
     {
         area(Content)

@@ -19,6 +19,7 @@ page 36967 "Item Category - PBI API"
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
+    AboutText = 'Provides access to item category data from the Item Category table, including category codes, descriptions, and parent category relationships. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {

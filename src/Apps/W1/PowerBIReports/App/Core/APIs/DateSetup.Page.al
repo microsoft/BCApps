@@ -24,6 +24,7 @@ page 36955 "Date Setup"
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
+    AboutText = 'Provides access to Power BI date setup configuration from the PowerBI Reports Setup table, including fiscal calendar settings, weekly and quarterly period types, calendar ranges, date table boundaries, and time zone information. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {

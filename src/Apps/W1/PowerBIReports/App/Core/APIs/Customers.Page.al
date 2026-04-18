@@ -20,6 +20,7 @@ page 36954 Customers
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
+    AboutText = 'Provides access to customer data from the Customer table, including customer numbers, names, addresses, posting groups, price groups, and discount groups. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {

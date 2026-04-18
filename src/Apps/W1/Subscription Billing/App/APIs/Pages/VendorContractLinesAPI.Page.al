@@ -11,6 +11,7 @@ page 8047 "Vendor Contract Lines API"
     SourceTable = "Vend. Sub. Contract Line";
     Editable = false;
     DataAccessIntent = ReadOnly;
+    AboutText = 'Exposes vendor subscription contract line records linking contracts to subscription headers and subscription line entries. Provides read-only access with nested vendor contract deferrals, enabling integration with external cost tracking and accounts payable reconciliation systems.';
 
     layout
     {
