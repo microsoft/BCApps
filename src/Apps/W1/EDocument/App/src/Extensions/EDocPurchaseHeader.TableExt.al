@@ -39,6 +39,7 @@ tableextension 6169 "E-Doc. Purchase Header" extends "Purchase Header"
     begin
         if Rec."Document Type" <> Rec."Document Type"::Order then
             exit;
+            
         EDocument.SetRange("Document Record ID", Rec.RecordId());
         if EDocument.FindFirst() then
             EDocument.TestField(Status, "E-Document Status"::Canceled);
