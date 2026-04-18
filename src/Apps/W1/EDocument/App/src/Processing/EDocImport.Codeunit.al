@@ -136,13 +136,16 @@ codeunit 6140 "E-Doc. Import"
     var
         EDocDraftSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        EDocImportContext: Codeunit "E-Doc. Import Context";
         LastErrorText: Text;
     begin
         EDocumentErrorHelper.ClearErrorMessages(EDocument);
         Commit();
+        EDocImportContext.Bind();
         if not ImportEDocumentProcess.Run() then begin
             LastErrorText := GetLastErrorText();
             if LastErrorText <> '' then begin // We don't insert an error when empty, following the convention of empty error meaning "operation cancelled by user"
+                LastErrorText := EDocImportContext.WrapErrorMessage(LastErrorText);
                 EDocument.SetRecFilter();
                 EDocument.FindFirst();
 
@@ -154,8 +157,12 @@ codeunit 6140 "E-Doc. Import"
             end;
             EDocDraftSessionTelemetry.SetText('Step', Format(ImportEDocumentProcess.GetStep()));
             EDocDraftSessionTelemetry.SetBool('Success', false);
+            EDocImportContext.Unbind();
+            Clear(EDocImportContext);
             exit(false);
         end;
+        EDocImportContext.Unbind();
+        Clear(EDocImportContext);
         exit(true);
     end;
 
