@@ -37,6 +37,9 @@ table 687 "Payment Practice Header"
 
             trigger OnValidate()
             begin
+                if Rec."Aggregation Type" <> Rec."Aggregation Type"::Period then
+                    Rec."Only Small Businesses" := false;
+
                 ValidateFieldChange(Rec."Aggregation Type");
                 Rec.CalcFields("Lines Exist");
                 if not Rec."Lines Exist" then
@@ -54,6 +57,9 @@ table 687 "Payment Practice Header"
 
             trigger OnValidate()
             begin
+                if Rec."Header Type" <> Rec."Header Type"::Vendor then
+                    Rec."Only Small Businesses" := false;
+
                 ValidateFieldChange(Rec."Aggregation Type");
                 Rec.CalcFields("Lines Exist");
                 if not Rec."Lines Exist" then
@@ -104,6 +110,79 @@ table 687 "Payment Practice Header"
         field(12; "Modified Manually"; Boolean)
         {
 
+        }
+        field(13; "Mode Payment Time"; Integer)
+        {
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(14; "Mode Payment Time Min."; Integer)
+        {
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(15; "Mode Payment Time Max."; Integer)
+        {
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(16; "Median Payment Time"; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 2;
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(17; "80th Percentile Payment Time"; Integer)
+        {
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(18; "95th Percentile Payment Time"; Integer)
+        {
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(19; "Only Small Businesses"; Boolean)
+        {
+
+        }
+        field(20; "Reporting Scheme"; Enum "Paym. Prac. Reporting Scheme")
+        {
+
+        }
+        field(21; "Pct Peppol Enabled"; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 2;
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(22; "Pct Small Business Payments"; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 2;
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
         }
     }
 
