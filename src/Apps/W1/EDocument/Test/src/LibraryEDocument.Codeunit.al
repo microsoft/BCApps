@@ -715,6 +715,50 @@ codeunit 139629 "Library - E-Document"
         exit(Workflow.Code);
     end;
 
+    procedure CreateFlowWithServiceAndEmail(DocSendingProfile: Code[20]; ServiceCode: Code[20]): Code[20]
+    var
+        Workflow: Record Workflow;
+        WorkflowStepResponse: Record "Workflow Step";
+        WorkflowStepArgument: Record "Workflow Step Argument";
+        EDocWorkflowSetup: Codeunit "E-Document Workflow Setup";
+        EDocCreatedEventID, SendEDocResponseEventID, EmailResponseEventID : Integer;
+        EventConditions: Text;
+    begin
+        LibraryWorkflow.CreateWorkflow(Workflow);
+        EventConditions := CreateWorkflowEventConditionDocSendingProfileFilter(DocSendingProfile);
+
+        EDocCreatedEventID := LibraryWorkflow.InsertEntryPointEventStep(Workflow, EDocWorkflowSetup.EDocCreated());
+        LibraryWorkflow.InsertEventArgument(EDocCreatedEventID, EventConditions);
+        SendEDocResponseEventID := LibraryWorkflow.InsertResponseStep(Workflow, EDocWorkflowSetup.EDocSendEDocResponseCode(), EDocCreatedEventID);
+        EmailResponseEventID := LibraryWorkflow.InsertResponseStep(Workflow, EDocWorkflowSetup.ResponseSendEDocByEmail(), SendEDocResponseEventID);
+
+        WorkflowStepResponse.Get(Workflow.Code, SendEDocResponseEventID);
+        WorkflowStepArgument.Get(WorkflowStepResponse.Argument);
+        WorkflowStepArgument.Validate("E-Document Service", ServiceCode);
+        WorkflowStepArgument.Modify();
+
+        LibraryWorkflow.EnableWorkflow(Workflow);
+        exit(Workflow.Code);
+    end;
+
+    procedure CreateFlowWithEmailOnly(DocSendingProfile: Code[20]): Code[20]
+    var
+        Workflow: Record Workflow;
+        EDocWorkflowSetup: Codeunit "E-Document Workflow Setup";
+        EDocCreatedEventID: Integer;
+        EventConditions: Text;
+    begin
+        LibraryWorkflow.CreateWorkflow(Workflow);
+        EventConditions := CreateWorkflowEventConditionDocSendingProfileFilter(DocSendingProfile);
+
+        EDocCreatedEventID := LibraryWorkflow.InsertEntryPointEventStep(Workflow, EDocWorkflowSetup.EDocCreated());
+        LibraryWorkflow.InsertEventArgument(EDocCreatedEventID, EventConditions);
+        LibraryWorkflow.InsertResponseStep(Workflow, EDocWorkflowSetup.ResponseSendEDocByEmail(), EDocCreatedEventID);
+
+        LibraryWorkflow.EnableWorkflow(Workflow);
+        exit(Workflow.Code);
+    end;
+
     local procedure DeleteEDocumentRelatedEntities()
     var
         DynamicRequestPageEntity: Record "Dynamic Request Page Entity";

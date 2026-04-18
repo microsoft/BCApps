@@ -149,11 +149,13 @@ codeunit 6139 "E-Document Workflow Setup"
                 end;
             ResponseSendEDocByEmail():
                 begin
+                    WorkflowResponseHandling.AddResponsePredecessor(ResponseSendEDocByEmail(), EDocCreated());
                     WorkflowResponseHandling.AddResponsePredecessor(ResponseSendEDocByEmail(), EventEDocStatusChanged());
                     WorkflowResponseHandling.AddResponsePredecessor(ResponseSendEDocByEmail(), EventEDocExported());
                 end;
             ResponseSendEDocAndPDFByEmail():
                 begin
+                    WorkflowResponseHandling.AddResponsePredecessor(ResponseSendEDocAndPDFByEmail(), EDocCreated());
                     WorkflowResponseHandling.AddResponsePredecessor(ResponseSendEDocAndPDFByEmail(), EventEDocStatusChanged());
                     WorkflowResponseHandling.AddResponsePredecessor(ResponseSendEDocAndPDFByEmail(), EventEDocExported());
                 end;

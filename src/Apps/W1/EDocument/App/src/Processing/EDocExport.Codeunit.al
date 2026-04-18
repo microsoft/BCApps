@@ -65,6 +65,7 @@ codeunit 6102 "E-Doc. Export"
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocWorkFlowProcessing: Codeunit "E-Document WorkFlow Processing";
         EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
+        HasServiceResponses: Boolean;
     begin
         if not WorkFlow.Get(DocumentSendingProfile."Electronic Service Flow") then
             Error(DocumentSendingProfileWithWorkflowErr, DocumentSendingProfile."Electronic Service Flow", Format(DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow"), DocumentSendingProfile.Code);
@@ -73,14 +74,30 @@ codeunit 6102 "E-Doc. Export"
         if DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow" then
             exit;
 
-        if not EDocWorkFlowProcessing.GetServicesFromEntryPointResponseInWorkflow(WorkFlow, EDocumentService) then
+        HasServiceResponses := EDocWorkFlowProcessing.GetServicesFromEntryPointResponseInWorkflow(WorkFlow, EDocumentService);
+
+        if not HasServiceResponses then begin
+            if not EDocWorkFlowProcessing.WorkflowHasNonServiceResponses(WorkFlow) then
+                exit;
+            // Create E-Document for non-service workflow processing (e.g., email-only)
+            CreateEDocumentForNonServiceWorkflow(EDocument, DocumentHeader, EDocumentType, WorkFlow.Code, DocumentSendingProfile.Code);
+            if EDocument."Entry No" <> 0 then
+                EDocumentBackgroundJobs.StartEDocumentCreatedFlow(EDocument);
             exit;
+        end;
 
         EDocument."Workflow Code" := WorkFlow.Code;
         EDocument."Document Sending Profile" := DocumentSendingProfile.Code;
 
-        if not CreateEDocument(EDocument, DocumentHeader, EDocumentService, EDocumentType) then
+        if not CreateEDocument(EDocument, DocumentHeader, EDocumentService, EDocumentType) then begin
+            // No services support the document type. Check for non-service responses (e.g., email).
+            if not EDocWorkFlowProcessing.WorkflowHasNonServiceResponses(WorkFlow) then
+                exit;
+            CreateEDocumentForNonServiceWorkflow(EDocument, DocumentHeader, EDocumentType, WorkFlow.Code, DocumentSendingProfile.Code);
+            if EDocument."Entry No" <> 0 then
+                EDocumentBackgroundJobs.StartEDocumentCreatedFlow(EDocument);
             exit;
+        end;
 
         // For each service supporting the document type, export it before creating E-Document Created Flow
         EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
@@ -498,6 +515,34 @@ codeunit 6102 "E-Doc. Export"
 
         IExportEligibilityEvaluator := EDocumentService."Export Eligibility Evaluator";
         exit(IExportEligibilityEvaluator.ShouldExport(EDocumentService, SourceDocumentHeader, DocumentType));
+    end;
+
+    local procedure CreateEDocumentForNonServiceWorkflow(var EDocument: Record "E-Document"; var DocumentHeader: RecordRef; EDocumentType: Enum "E-Document Type"; WorkflowCode: Code[20]; DocSendingProfile: Code[20])
+    var
+        EDocumentLog: Codeunit "E-Document Log";
+    begin
+        EDocument.SetRange("Document Record ID", DocumentHeader.RecordId);
+        if not EDocument.IsEmpty() then
+            exit;
+
+        EDocument.Init();
+        EDocument."Workflow Code" := WorkflowCode;
+        EDocument."Document Sending Profile" := DocSendingProfile;
+
+        OnBeforeCreateEDocument(EDocument, DocumentHeader);
+
+        EDocument.Validate("Document Record ID", DocumentHeader.RecordId);
+        EDocument.Validate("Document Type", EDocumentType);
+        EDocument.Validate(Status, EDocument.Status::"In Progress");
+        EDocument.Validate(Direction, EDocument.Direction::Outgoing);
+        EDocument.Insert();
+
+        PopulateEDocument(EDocument, DocumentHeader);
+        EDocument.Modify();
+
+        OnAfterCreateEDocument(EDocument, DocumentHeader);
+
+        EDocumentLog.InsertLog(EDocument, Enum::"E-Document Service Status"::Created);
     end;
 
     var
