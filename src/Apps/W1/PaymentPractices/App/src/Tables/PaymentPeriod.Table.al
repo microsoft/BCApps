@@ -87,8 +87,6 @@ table 685 "Payment Period"
                 InsertDefaultPeriods_GB();
             'FR':
                 InsertDefaultPeriods_FR();
-            'AU', 'NZ':
-                InsertDefaultPeriods_AUNZ();
             else
                 InsertDefaultPeriods();
         end;
@@ -137,15 +135,6 @@ table 685 "Payment Period"
     local procedure InsertDefaultPeriods_GB()
     begin
         InsertPeriod('P0_30', 0, 30);
-        InsertPeriod('P31_60', 31, 60);
-        InsertPeriod('P61_90', 61, 120);
-        InsertPeriod('P121+', 121, 0);
-    end;
-
-    local procedure InsertDefaultPeriods_AUNZ()
-    begin
-        InsertPeriod('P0_21', 0, 21);
-        InsertPeriod('P22_30', 22, 30);
         InsertPeriod('P31_60', 31, 60);
         InsertPeriod('P61_90', 61, 120);
         InsertPeriod('P121+', 121, 0);
