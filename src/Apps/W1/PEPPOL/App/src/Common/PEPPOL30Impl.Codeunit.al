@@ -884,7 +884,6 @@ codeunit 37201 "PEPPOL30 Impl."
 
         AllowanceTotalAmount := Format(Round(VATAmtLine."Invoice Discount Amount" + VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
         AllowanceTotalAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
-        TaxInclusiveAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
 
         ChargeTotalAmount := '';
         ChargeTotalAmountCurrencyID := '';
@@ -905,13 +904,13 @@ codeunit 37201 "PEPPOL30 Impl."
 
     procedure GetLineGeneralInfo(PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; var InvoiceLineID: Text; var InvoiceLineNote: Text; var InvoicedQuantity: Text; var InvoiceLineExtensionAmount: Text; var LineExtensionAmountCurrencyID: Text; var InvoiceLineAccountingCost: Text)
     var
-        SalesLineLineAmount: Decimal;
+        PurchaseLineLineAmount: Decimal;
     begin
         InvoiceLineID := Format(PurchaseLine."Line No.", 0, 9);
         InvoiceLineNote := DelChr(Format(PurchaseLine.Type), '<>');
         InvoicedQuantity := Format(PurchaseLine.Quantity, 0, 9);
-        SalesLineLineAmount := PurchaseLine."Line Amount";
-        InvoiceLineExtensionAmount := Format(SalesLineLineAmount, 0, 9);
+        PurchaseLineLineAmount := PurchaseLine."Line Amount";
+        InvoiceLineExtensionAmount := Format(PurchaseLineLineAmount, 0, 9);
         LineExtensionAmountCurrencyID := GetPurchaseDocCurrencyCode(PurchaseHeader);
         InvoiceLineAccountingCost := '';
     end;
