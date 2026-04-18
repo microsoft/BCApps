@@ -110,6 +110,8 @@ codeunit 30174 "Shpfy Create Product"
                                 TempShopifyVariant.SKU := GetVariantSKU(TempShopifyVariant.Barcode, Item."No.", ItemVariant.Code, Item."Vendor Item No.");
                                 TempShopifyVariant.Taxable := true;
                                 TempShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
+                                TempShopifyVariant."Tariff No." := Item."Tariff No.";
+                                TempShopifyVariant."Country/Region of Origin Code" := ProductExport.GetCountryISOCode(Item."Country/Region of Origin Code");
                                 TempShopifyVariant."Option 1 Name" := 'Variant';
                                 TempShopifyVariant."Option 1 Value" := ItemVariant.Code;
                                 TempShopifyVariant."Option 2 Name" := Shop."Option Name for UoM";
@@ -132,6 +134,8 @@ codeunit 30174 "Shpfy Create Product"
                         TempShopifyVariant.SKU := GetVariantSKU(TempShopifyVariant.Barcode, Item."No.", ItemVariant.Code, GetVendorItemNo(Item."No.", ItemVariant.Code, Item."Sales Unit of Measure"));
                         TempShopifyVariant.Taxable := true;
                         TempShopifyVariant.Weight := Item."Gross Weight";
+                        TempShopifyVariant."Tariff No." := Item."Tariff No.";
+                        TempShopifyVariant."Country/Region of Origin Code" := ProductExport.GetCountryISOCode(Item."Country/Region of Origin Code");
                         TempShopifyVariant."Option 1 Name" := 'Variant';
                         TempShopifyVariant."Option 1 Value" := ItemVariant.Code;
                         TempShopifyVariant."Shop Code" := Shop.Code;
@@ -158,6 +162,8 @@ codeunit 30174 "Shpfy Create Product"
                         TempShopifyVariant.SKU := GetVariantSKU(TempShopifyVariant.Barcode, Item."No.", '', Item."Vendor Item No.");
                         TempShopifyVariant.Taxable := true;
                         TempShopifyVariant.Weight := ItemUnitofMeasure."Qty. per Unit of Measure" > 0 ? Item."Gross Weight" * ItemUnitofMeasure."Qty. per Unit of Measure" : Item."Gross Weight";
+                        TempShopifyVariant."Tariff No." := Item."Tariff No.";
+                        TempShopifyVariant."Country/Region of Origin Code" := ProductExport.GetCountryISOCode(Item."Country/Region of Origin Code");
                         TempShopifyVariant."Option 1 Name" := Shop."Option Name for UoM";
                         TempShopifyVariant."Option 1 Value" := ItemUnitofMeasure.Code;
                         TempShopifyVariant."Shop Code" := Shop.Code;
@@ -239,6 +245,8 @@ codeunit 30174 "Shpfy Create Product"
         TempShopifyVariant.SKU := GetVariantSKU(TempShopifyVariant.Barcode, Item."No.", '', Item."Vendor Item No.");
         TempShopifyVariant.Taxable := true;
         TempShopifyVariant.Weight := Item."Gross Weight";
+        TempShopifyVariant."Tariff No." := Item."Tariff No.";
+        TempShopifyVariant."Country/Region of Origin Code" := ProductExport.GetCountryISOCode(Item."Country/Region of Origin Code");
         TempShopifyVariant."Shop Code" := Shop.Code;
         TempShopifyVariant."Item SystemId" := Item.SystemId;
         TempShopifyVariant.Insert(false);
@@ -285,4 +293,5 @@ codeunit 30174 "Shpfy Create Product"
             Page.Run(Page::"Shpfy Shop Locations Mapping", ShopLocation);
         end;
     end;
+
 }
