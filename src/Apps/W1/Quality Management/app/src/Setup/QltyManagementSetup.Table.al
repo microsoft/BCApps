@@ -105,6 +105,7 @@ table 20400 "Qlty. Management Setup"
         field(28; "Inspection Selection Criteria"; Enum "Qlty. Insp. Selection Criteria")
         {
             Caption = 'Quality Inspection Selection Criteria';
+            InitValue = "Only the newest inspection/re-inspection";
             ToolTip = 'Specifies the checks the system uses to decide if a document-specific transaction should be blocked.';
             InitValue = "Only the newest inspection/re-inspection";
         }
