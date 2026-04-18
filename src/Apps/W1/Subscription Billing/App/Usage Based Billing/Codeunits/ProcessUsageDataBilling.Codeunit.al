@@ -313,7 +313,9 @@ codeunit 8026 "Process Usage Data Billing"
             Amount := 0;
             exit;
         end;
+        OnBeforeCalculateUsageDataUnitPriceForPeriod(UnitPrice, ServiceCommitment, UsageDataBilling);
         UnitPrice := ServiceCommitment.UnitPriceForPeriod(UsageDataBilling."Charge Start Date", UsageDataBilling."Charge End Date");
+        OnAfterCalculateUsageDataUnitPriceForPeriod(UnitPrice, ServiceCommitment, UsageDataBilling);
         Amount := UnitPrice * Quantity;
     end;
 
@@ -373,9 +375,34 @@ codeunit 8026 "Process Usage Data Billing"
     begin
     end;
 
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before UnitPriceForPeriod is called in CalculateUsageDataPrices.
+    /// Passes the UnitPrice that was calculated prior to the period scaling (for example, a tier-calculated
+    /// per-unit price from GetSalesPriceForItem). Subscribers can observe this value and store it for later use.
+    /// No code is skipped - UnitPriceForPeriod always runs after this event.
+    /// </summary>
+    /// <param name="UnitPrice">The unit price before period scaling (read-only for subscribers).</param>
+    /// <param name="ServiceCommitment">The subscription line for the current billing.</param>
+    /// <param name="UsageDataBilling">The usage data billing record for the current period.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCalculateUsageDataUnitPriceForPeriod(UnitPrice: Decimal; var ServiceCommitment: Record "Subscription Line"; var UsageDataBilling: Record "Usage Data Billing")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after the unit price for the billing period has been calculated via UnitPriceForPeriod.
+    /// Subscribers can override UnitPrice with a custom value (for example, a price from a different source or price list).
+    /// </summary>
+    /// <param name="UnitPrice">The calculated unit price for the period. Subscribers can override this value.</param>
+    /// <param name="ServiceCommitment">The subscription line for the current billing.</param>
+    /// <param name="UsageDataBilling">The usage data billing record for the current period.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalculateUsageDataUnitPriceForPeriod(var UnitPrice: Decimal; var ServiceCommitment: Record "Subscription Line"; var UsageDataBilling: Record "Usage Data Billing")
     begin
     end;
 }
