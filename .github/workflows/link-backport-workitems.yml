@@ -1,0 +1,228 @@
+name: Link Backport Work Items
+
+on:
+  pull_request_target:
+    types: [opened, edited, labeled]
+    branches:
+      - 'releases/**'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to test against (must target a releases/** branch)'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  link-backport:
+    if: >-
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event.pull_request.state == 'open' &&
+       contains(github.event.pull_request.body, 'AB#'))
+    runs-on: ubuntu-latest
+
+    steps:
+      # For workflow_dispatch: fetch the PR details via API
+      - name: Resolve PR details
+        id: pr_details
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            PR_NUM="${{ inputs.pr_number }}"
+            BODY=$(curl -s \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${REPO}/pulls/${PR_NUM}" \
+              | jq -r '.body // empty')
+            echo "PR_BODY<<GHEOF" >> "$GITHUB_OUTPUT"
+            echo "$BODY" >> "$GITHUB_OUTPUT"
+            echo "GHEOF" >> "$GITHUB_OUTPUT"
+          else
+            echo "PR_BODY<<GHEOF" >> "$GITHUB_OUTPUT"
+            echo "${{ github.event.pull_request.body }}" >> "$GITHUB_OUTPUT"
+            echo "GHEOF" >> "$GITHUB_OUTPUT"
+          fi
+        shell: bash
+
+      - name: Parse backport PR description
+        id: parse_pr
+        env:
+          PR_BODY: ${{ steps.pr_details.outputs.PR_BODY }}
+        run: |
+          # Extract the first AB# reference (release work item)
+          RELEASE_WI=$(echo "$PR_BODY" | grep -Eo 'AB#[0-9]+' | head -1 | sed 's/AB#//')
+
+          # Try "backports #NNN" / "backport of #NNN" first (CrossBranchPorting pattern)
+          ORIG_REF=$(echo "$PR_BODY" | grep -Poi 'backports?\s+(of\s+)?#\K[0-9]+' | head -1 || true)
+          ORIG_REF_TYPE="pr"
+
+          # Fallback: "Fixes #NNN" / "Closes #NNN" (linked issue/PR pattern)
+          if [[ -z "$ORIG_REF" ]]; then
+            ORIG_REF=$(echo "$PR_BODY" | grep -Poi '(fix|fixes|fixed|close|closes|closed|resolve|resolves|resolved)\s+#\K[0-9]+' | head -1 || true)
+            ORIG_REF_TYPE="issue"
+          fi
+
+          echo "RELEASE_WI=$RELEASE_WI" >> "$GITHUB_OUTPUT"
+          echo "ORIG_REF=$ORIG_REF" >> "$GITHUB_OUTPUT"
+          echo "ORIG_REF_TYPE=$ORIG_REF_TYPE" >> "$GITHUB_OUTPUT"
+
+          if [[ -z "$RELEASE_WI" ]]; then
+            echo "::warning::No AB# reference found in PR description. Skipping."
+          fi
+          if [[ -z "$ORIG_REF" ]]; then
+            echo "::warning::No backport or issue reference found in PR description. Skipping."
+          fi
+        shell: bash
+
+      - name: Fetch original issue/PR and extract master work item
+        id: resolve_master
+        if: steps.parse_pr.outputs.ORIG_REF != '' && steps.parse_pr.outputs.RELEASE_WI != ''
+        env:
+          ORIG_REF: ${{ steps.parse_pr.outputs.ORIG_REF }}
+          ORIG_REF_TYPE: ${{ steps.parse_pr.outputs.ORIG_REF_TYPE }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          MASTER_WI=""
+
+          # 1. Try fetching as a PR — AB# may be directly on it
+          PR_RESP=$(curl -s \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/pulls/${ORIG_REF}")
+
+          PR_BODY=$(echo "$PR_RESP" | jq -r '.body // empty')
+          if [[ -n "$PR_BODY" ]]; then
+            MASTER_WI=$(echo "$PR_BODY" | grep -Eo 'AB#[0-9]+' | head -1 | sed 's/AB#//')
+          fi
+
+          # 2. If #ORIG_REF is an issue (or PR had no AB#), find the PR that closes it
+          if [[ -z "$MASTER_WI" ]]; then
+            echo "No AB# on #$ORIG_REF directly. Searching for a PR that closes issue #$ORIG_REF..."
+
+            # Use the issue timeline to find cross-referenced PRs (mockingbird preview required)
+            TIMELINE=$(curl -s \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github.mockingbird-preview+json" \
+              "https://api.github.com/repos/${REPO}/issues/${ORIG_REF}/timeline?per_page=100")
+
+            # Find PRs that reference this issue (cross-referenced events with source type=issue meaning PR)
+            CANDIDATE_PRS=$(echo "$TIMELINE" | jq -r '
+              [.[] | select(.event == "cross-referenced" and .source.issue.pull_request != null)
+                   | .source.issue.number] | unique | .[]')
+
+            for PR_NUM in $CANDIDATE_PRS; do
+              echo "Checking PR #$PR_NUM for AB# reference..."
+              CANDIDATE_BODY=$(curl -s \
+                -H "Authorization: token $GH_TOKEN" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/${REPO}/pulls/${PR_NUM}" \
+                | jq -r '.body // empty')
+
+              CANDIDATE_WI=$(echo "$CANDIDATE_BODY" | grep -Eo 'AB#[0-9]+' | head -1 | sed 's/AB#//')
+              if [[ -n "$CANDIDATE_WI" ]]; then
+                MASTER_WI="$CANDIDATE_WI"
+                echo "Found AB#$MASTER_WI on PR #$PR_NUM"
+                break
+              fi
+            done
+          fi
+
+          echo "MASTER_WI=$MASTER_WI" >> "$GITHUB_OUTPUT"
+
+          if [[ -z "$MASTER_WI" ]]; then
+            echo "::error::No AB# found on #$ORIG_REF or any PR that references it"
+            exit 1
+          fi
+
+          echo "✅ Master (parent) work item: AB#$MASTER_WI"
+        shell: bash
+
+      - name: Fetch issue title for KB fields
+        id: issue_title
+        if: steps.parse_pr.outputs.ORIG_REF != '' && steps.parse_pr.outputs.RELEASE_WI != ''
+        env:
+          ORIG_REF: ${{ steps.parse_pr.outputs.ORIG_REF }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          TITLE=$(curl -s \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/issues/${ORIG_REF}" \
+            | jq -r '.title // empty')
+
+          echo "ISSUE_TITLE=$TITLE" >> "$GITHUB_OUTPUT"
+
+          if [[ -z "$TITLE" ]]; then
+            echo "::warning::Could not fetch title for #$ORIG_REF. KB fields will not be updated."
+          else
+            echo "Issue #$ORIG_REF title: $TITLE"
+          fi
+        shell: bash
+
+      - name: Add parent link in Azure DevOps
+        if: >-
+          steps.resolve_master.outputs.MASTER_WI != '' &&
+          steps.parse_pr.outputs.RELEASE_WI != '' &&
+          steps.resolve_master.outputs.MASTER_WI != steps.parse_pr.outputs.RELEASE_WI
+        env:
+          AZURE_DEVOPS_PAT: ${{ secrets.ADO_PAT }}
+          RELEASE_WI: ${{ steps.parse_pr.outputs.RELEASE_WI }}
+          MASTER_WI: ${{ steps.resolve_master.outputs.MASTER_WI }}
+          ISSUE_TITLE: ${{ steps.issue_title.outputs.ISSUE_TITLE }}
+        run: |
+          ADO_ORG="dynamicssmb2"
+          ADO_PROJECT="Dynamics%20SMB"
+          ADO_BASE="https://dev.azure.com/${ADO_ORG}/${ADO_PROJECT}"
+          AUTH_HEADER=$(printf ":%s" "$AZURE_DEVOPS_PAT" | base64)
+
+          # Check if the parent link already exists (idempotency)
+          EXISTING_RELS=$(curl -s \
+            -H "Authorization: Basic $AUTH_HEADER" \
+            "${ADO_BASE}/_apis/wit/workitems/${RELEASE_WI}?\$expand=relations&api-version=7.1")
+
+          PARENT_URL="${ADO_BASE}/_apis/wit/workItems/${MASTER_WI}"
+          ALREADY_LINKED=$(echo "$EXISTING_RELS" | jq -r \
+            --arg url "$PARENT_URL" \
+            '[.relations // [] | .[] | select(.rel == "System.LinkTypes.Hierarchy-Reverse" and .url == $url)] | length')
+
+          if [[ "$ALREADY_LINKED" -gt 0 ]]; then
+            echo "Parent link already exists ($RELEASE_WI → $MASTER_WI). Skipping."
+            exit 0
+          fi
+
+          # Build JSON Patch: parent link + KB fields
+          # Escape the issue title for JSON
+          ESCAPED_TITLE=$(echo "$ISSUE_TITLE" | jq -Rs '.' | sed 's/^"//;s/"$//')
+
+          JSON='[{"op":"add","path":"/relations/-","value":{"rel":"System.LinkTypes.Hierarchy-Reverse","url":"'"${PARENT_URL}"'","attributes":{"comment":"Auto-linked by link-backport-workitems: release bug #'"${RELEASE_WI}"' → master bug #'"${MASTER_WI}"'"}}}'
+
+          # Add KB fields if issue title is available
+          if [[ -n "$ISSUE_TITLE" ]]; then
+            JSON="${JSON},{\"op\":\"add\",\"path\":\"/fields/KB Article\",\"value\":\"${ESCAPED_TITLE}\"}"
+            JSON="${JSON},{\"op\":\"add\",\"path\":\"/fields/KB Title\",\"value\":\"${ESCAPED_TITLE}\"}"
+            echo "Will set KB Article and KB Title to: $ISSUE_TITLE"
+          fi
+
+          JSON="${JSON}]"
+
+          HTTP_CODE=$(curl -s -o resp.json -w "%{http_code}" -X PATCH \
+            -H "Content-Type: application/json-patch+json" \
+            -H "Authorization: Basic $AUTH_HEADER" \
+            -d "$JSON" \
+            "${ADO_BASE}/_apis/wit/workitems/${RELEASE_WI}?api-version=7.1")
+
+          if [[ "$HTTP_CODE" != "200" ]]; then
+            echo "::error::ADO API returned $HTTP_CODE"
+            cat resp.json | jq . 2>/dev/null || cat resp.json
+            exit 1
+          fi
+
+          echo "✅ Linked ADO #${RELEASE_WI} (child) → #${MASTER_WI} (parent)"
+        shell: bash
