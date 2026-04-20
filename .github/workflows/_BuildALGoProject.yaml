@@ -98,7 +98,7 @@ jobs:
     name: ${{ inputs.projectName }} (${{ inputs.buildMode }})
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
@@ -109,7 +109,7 @@ jobs:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
           buildMode: ${{ inputs.buildMode }}
-          get: useCompilerFolder,keyVaultCodesignCertificateName,doNotSignApps,doNotRunTests,doNotRunBcptTests,doNotRunpageScriptingTests,artifact,generateDependencyArtifact,trustedSigning,useGitSubmodules,trackALAlertsInGitHub
+          get: useCompilerFolder,workspaceCompilation,keyVaultCodesignCertificateName,doNotSignApps,doNotRunTests,doNotRunBcptTests,doNotRunpageScriptingTests,artifact,generateDependencyArtifact,trustedSigning,useGitSubmodules,trackALAlertsInGitHub
 
       - name: Determine whether to build project
         id: DetermineBuildProject
@@ -122,7 +122,7 @@ jobs:
 
       - name: Read secrets
         id: ReadSecrets
-        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && github.event_name != 'pull_request'
+        if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
         uses: spetersenms/AL-Go/Actions/ReadSecrets@CodeCoverage
         with:
           shell: ${{ inputs.shell }}
@@ -131,7 +131,7 @@ jobs:
 
       - name: Checkout Submodules
         if: env.useGitSubmodules != 'false' && env.useGitSubmodules != ''
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
@@ -148,7 +148,7 @@ jobs:
 
       - name: Cache Business Central Artifacts
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && env.useCompilerFolder == 'True' && inputs.useArtifactCache && env.artifactCacheKey
-        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7 # v5.0.2
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: ${{ runner.temp }}/.artifactcache
           key: ${{ env.artifactCacheKey }}
@@ -166,13 +166,40 @@ jobs:
           projectDependenciesJson: ${{ inputs.projectDependenciesJson }}
           baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
 
+      - name: Compile Apps
+        id: compile
+        uses: spetersenms/AL-Go/Actions/CompileApps@CodeCoverage
+        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && fromJson(env.workspaceCompilation).enabled == true
+        env:
+          Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
+          BuildMode: ${{ inputs.buildMode }}
+        with:
+          shell: ${{ inputs.shell }}
+          artifact: ${{ env.artifact }}
+          project: ${{ inputs.project }}
+          buildMode: ${{ inputs.buildMode }}
+          dependencyAppsJson: ${{ steps.DownloadProjectDependencies.outputs.DownloadedApps }}
+          dependencyTestAppsJson: ${{ steps.DownloadProjectDependencies.outputs.DownloadedTestApps }}
+          baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
+          baselineWorkflowSHA: ${{ inputs.baselineWorkflowSHA }}
+
+      - name: Save needs context to file
+        shell: pwsh
+        run: |
+          $nc = @'
+          ${{ inputs.needsContext }}
+          '@
+          $needsContextPath = Join-Path $ENV:RUNNER_TEMP 'needsContext.json'
+          [System.IO.File]::WriteAllText($needsContextPath, $nc.Trim())
+          Add-Content -Encoding UTF8 -Path $env:GITHUB_ENV -Value "NeedsContext=$needsContextPath"
+
       - name: Build
         uses: spetersenms/AL-Go/Actions/RunPipeline@CodeCoverage
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
           BuildMode: ${{ inputs.buildMode }}
-          NeedsContext: ${{ inputs.needsContext }}
+          NeedsContext: ${{ env.NeedsContext }}
         with:
           shell: ${{ inputs.shell }}
           artifact: ${{ env.artifact }}
@@ -204,7 +231,7 @@ jobs:
           suffix: ${{ inputs.artifactsNameSuffix }}
 
       - name: Publish artifacts - apps
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: inputs.artifactsRetentionDays >= 0 && (hashFiles(format('{0}/.buildartifacts/Apps/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.AppsArtifactsName }}
@@ -213,7 +240,7 @@ jobs:
           retention-days: ${{ inputs.artifactsRetentionDays }}
 
       - name: Publish artifacts - dependencies
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: inputs.artifactsRetentionDays >= 0 && env.generateDependencyArtifact == 'True' && (hashFiles(format('{0}/.buildartifacts/Dependencies/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.DependenciesArtifactsName }}
@@ -222,7 +249,7 @@ jobs:
           retention-days: ${{ inputs.artifactsRetentionDays }}
 
       - name: Publish artifacts - test apps
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: inputs.artifactsRetentionDays >= 0 && (hashFiles(format('{0}/.buildartifacts/TestApps/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.TestAppsArtifactsName }}
@@ -231,7 +258,7 @@ jobs:
           retention-days: ${{ inputs.artifactsRetentionDays }}
 
       - name: Publish artifacts - build output
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: (success() || failure()) && (hashFiles(format('{0}/BuildOutput.txt',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.BuildOutputArtifactsName }}
@@ -239,7 +266,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - container event log
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: (failure()) && (hashFiles(format('{0}/ContainerEventLog.evtx',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.ContainerEventLogArtifactsName }}
@@ -247,7 +274,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - test results
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/TestResults.xml',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.TestResultsArtifactsName }}
@@ -255,7 +282,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - code coverage
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/CodeCoverage/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.CodeCoverageArtifactsName }}
@@ -263,7 +290,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - bcpt test results
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/bcptTestResults.json',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.BcptTestResultsArtifactsName }}
@@ -271,7 +298,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - page scripting test results
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/PageScriptingTestResults.xml',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.PageScriptingTestResultsArtifactsName }}
@@ -279,7 +306,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - page scripting test result details
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: (success() || failure()) && (hashFiles(format('{0}/.buildartifacts/PageScriptingTestResultDetails/*',inputs.project)) != '')
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.PageScriptingTestResultDetailsArtifactsName }}
@@ -287,7 +314,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish artifacts - ErrorLogs
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: (success() || failure()) && inputs.artifactsRetentionDays >= 0 && (hashFiles(format('{0}/.buildartifacts/ErrorLogs/*',inputs.project)) != '') && env.trackALAlertsInGitHub == 'True'
         with:
           name: ${{ steps.calculateArtifactsNames.outputs.ErrorLogsArtifactsName }}

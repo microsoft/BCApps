@@ -56,7 +56,7 @@ jobs:
           shell: powershell
 
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           lfs: true
 
@@ -90,7 +90,7 @@ jobs:
 
       - name: Checkout Submodules
         if: env.useGitSubmodules != 'false' && env.useGitSubmodules != ''
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           lfs: true
           submodules: ${{ env.useGitSubmodules }}
@@ -155,7 +155,7 @@ jobs:
     runs-on: [ windows-latest ]
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Read settings
         uses: spetersenms/AL-Go/Actions/ReadSettings@CodeCoverage
@@ -238,10 +238,10 @@ jobs:
     name: Code Analysis Processing
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download artifacts - ErrorLogs
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         if: (success() || failure())
         with:
           pattern: '*-*ErrorLogs-*'
@@ -263,31 +263,33 @@ jobs:
           category: "ALCodeAnalysis"
 
   MergeCoverage:
+    # Runs unconditionally (steps are gated by hashFiles). Job-level gating would require
+    # passing enableCodeCoverage through Initialization outputs — not worth the complexity for ~20s savings.
     needs: [ Initialization, Build ]
     if: (!cancelled()) && (needs.Build.result == 'success' || needs.Build.result == 'skipped' || needs.Build.result == 'failure')
     runs-on: [ windows-latest ]
     name: Merge Code Coverage
     env:
-      BUILD_RESULT: ${{ needs.Build.result }}
+      _BUILD_RESULT: ${{ needs.Build.result }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download coverage artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: '*CodeCoverage*'
+          pattern: '*-CodeCoverage-*'
           path: '${{ github.workspace }}/.coverage-inputs/'
 
       - name: Merge Coverage Summaries
         if: hashFiles('.coverage-inputs/**/cobertura.xml') != ''
         uses: spetersenms/AL-Go/Actions/MergeCoverageSummaries@CodeCoverage
         with:
-          shell: powershell
+          shell: pwsh
           coveragePath: '${{ github.workspace }}/.coverage-inputs'
 
       - name: Publish merged coverage artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: hashFiles('.coverage-inputs/_merged/cobertura.xml') != ''
         with:
           name: MergedCodeCoverage
@@ -309,10 +311,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: '.artifacts'
 
@@ -329,7 +331,7 @@ jobs:
 
       - name: Setup Pages
         if: needs.Initialization.outputs.deployALDocArtifact == 1
-        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       - name: Build Reference Documentation
         uses: spetersenms/AL-Go/Actions/BuildReferenceDocumentation@CodeCoverage
@@ -339,14 +341,14 @@ jobs:
           artifactUrl: ${{ env.artifact }}
 
       - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: ".aldoc/_site/"
 
       - name: Deploy to GitHub Pages
         if: needs.Initialization.outputs.deployALDocArtifact == 1
         id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
 
   Deploy:
     needs: [ Initialization, Build1, Build ]
@@ -365,10 +367,10 @@ jobs:
       ALGoEnvName: ${{ matrix.environment }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: '.artifacts'
 
@@ -427,10 +429,10 @@ jobs:
     name: Deliver to ${{ matrix.deliveryTarget }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Download artifacts
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           path: '.artifacts'
 
@@ -464,7 +466,7 @@ jobs:
     runs-on: [ windows-latest ]
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Finalize the workflow
         id: PostProcess

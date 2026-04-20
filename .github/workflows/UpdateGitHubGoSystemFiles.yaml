@@ -21,6 +21,10 @@ on:
         default: ''
   workflow_call:
     inputs:
+      caller:
+        description: Name of the calling workflow (use github.workflow as value when calling)
+        type: string
+        required: true
       templateUrl:
         description: Template Repository URL (current is https://github.com/spetersenms/AL-Go@CodeCoverage)
         type: string
@@ -52,6 +56,7 @@ defaults:
     shell: powershell
 
 env:
+  WorkflowEventName: ${{ inputs.caller && 'workflow_call' || github.event_name }}
   ALGoOrgSettings: ${{ vars.ALGoOrgSettings }}
   ALGoRepoSettings: ${{ vars.ALGoRepoSettings }}
 
@@ -64,7 +69,7 @@ jobs:
       TemplateUrl: ${{ steps.DetermineTemplateUrl.outputs.TemplateUrl }}
     steps:
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Read settings
         id: ReadSettings
@@ -78,12 +83,13 @@ jobs:
         uses: spetersenms/AL-Go/Actions/GetWorkflowMultiRunBranches@CodeCoverage
         with:
           shell: powershell
-          includeBranches: ${{ github.event.inputs.includeBranches }}
+          workflowEventName: ${{ env.WorkflowEventName }}
+          includeBranches: ${{ inputs.includeBranches }}
 
       - name: Determine Template URL
         id: DetermineTemplateUrl
         env:
-          TemplateUrlAsInput: '${{ github.event.inputs.templateUrl }}'
+          TemplateUrlAsInput: '${{ inputs.templateUrl }}'
         run: |
             $templateUrl = $env:templateUrl # Available from ReadSettings step
             if ($ENV:TemplateUrlAsInput) {
@@ -110,7 +116,7 @@ jobs:
           shell: powershell
 
       - name: Checkout
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ matrix.branch }}
 
@@ -136,12 +142,12 @@ jobs:
 
       - name: Calculate Commit Options
         env:
-          directCommit: '${{ github.event.inputs.directCommit }}'
-          downloadLatest: '${{ github.event.inputs.downloadLatest }}'
+          directCommit: '${{ inputs.directCommit }}'
+          downloadLatest: '${{ inputs.downloadLatest }}'
         run: |
           $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
-          if('${{ github.event_name }}' -in 'workflow_dispatch', 'workflow_call') {
-            Write-Host "Using inputs from ${{ github.event_name }} event"
+          if($env:WorkflowEventName -in 'workflow_dispatch', 'workflow_call') {
+            Write-Host "Using inputs from $($env:WorkflowEventName) event"
             $directCommit = $env:directCommit
             $downloadLatest = $env:downloadLatest
           }

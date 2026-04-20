@@ -110,7 +110,10 @@
   "enableCodeCop": true,
   "enableCodeCoverage": true,
   "codeCoverageSetup": {
-    "excludeFilesPattern": ["*.PermissionSet.al", "*.PermissionSetExtension.al"]
+    "excludeFilesPattern": [
+      "*.PermissionSet.al",
+      "*.PermissionSetExtension.al"
+    ]
   },
   "enableAppSourceCop": true,
   "enablePerTenantExtensionCop": true,
@@ -134,7 +137,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "01ea3e53cffccf68cc3418cb2779ac349586a9a4",
+  "templateSha": "187d6759b08a728449639b7a9f387cfcd15d153d",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,
