@@ -77,6 +77,22 @@ codeunit 149914 "Subc SCM WIP Costing Prod."
     [Test]
     [HandlerFunctions('CalcStdCostMenuHandler,ConfirmHandler,MessageHandler')]
     [Scope('OnPrem')]
+    procedure StdSubconManCostDiff()
+    begin
+        // [FEATURE] [Cost Standard]
+        // [SCENARIO] Test Standard Costing of Subcontracting Order with Flushing method - Manual. Subcontract and Output Cost different from Expected.
+        SCMWIPCostingProductionII(
+            Enum::"Unit Cost Calculation Type"::Units,
+#pragma warning disable AL0432
+            "Flushing Method"::Manual, "Flushing Method"::Manual,
+#pragma warning restore AL0432
+            "Costing Method"::Standard,
+            "Production Order Status"::Released, true, false, false, true, true, false, false, false, false, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('CalcStdCostMenuHandler,ConfirmHandler,MessageHandler')]
+    [Scope('OnPrem')]
     procedure StdSubconBackward()
     begin
         // [FEATURE] [Cost Standard]
