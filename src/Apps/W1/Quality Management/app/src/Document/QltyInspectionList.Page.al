@@ -222,9 +222,15 @@ page 20408 "Qlty. Inspection List"
                 Enabled = CanCreateReinspection;
 
                 trigger OnAction()
+                var
+                    CreatedReinspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection();
+                    Rec.CreateReinspection(CreatedReinspectionHeader);
                     CurrPage.Update(false);
+                    if not IsNullGuid(CreatedReinspectionHeader.SystemId) then begin
+                        Commit();
+                        Page.Run(Page::"Qlty. Inspection", CreatedReinspectionHeader);
+                    end;
                 end;
             }
             action(TakePicture)
@@ -709,6 +715,7 @@ page 20408 "Qlty. Inspection List"
     trigger OnAfterGetRecord()
     begin
         ResultStyleExpr := Rec.GetResultStyle();
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -717,7 +724,7 @@ page 20408 "Qlty. Inspection List"
         CanUnassign := false;
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
         CanCreateReinspection := RowActionsAreEnabled;
-        CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
+        CanReopen := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
         CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
         StatusStyleExpr := Rec.GetStatusStyleExpression();
 

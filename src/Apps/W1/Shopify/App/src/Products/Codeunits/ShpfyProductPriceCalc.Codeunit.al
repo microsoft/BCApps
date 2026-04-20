@@ -6,6 +6,7 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -42,9 +43,10 @@ codeunit 30182 "Shpfy Product Price Calc."
         CurrencyCode: Code[10];
         PricesIncludingVAT: Boolean;
         AllowLineDisc: Boolean;
+        ItemPriceNotSyncedUoMLbl: Label 'Item price is not synchronized because the unit of measure %1 is not valid for item %2.', Comment = '%1 - Unit of Measure Code, %2 - Item No.';
 
 
-    /// <summary> 
+    /// <summary>
     /// Calc Price.
     /// </summary>
     /// <param name="Item">Parameter of type Record Item.</param>
@@ -57,9 +59,14 @@ codeunit 30182 "Shpfy Product Price Calc."
     var
         ItemUnitofMeasure: Record "Item Unit of Measure";
         TempSalesLine: Record "Sales Line" temporary;
+        SkippedRecord: Codeunit "Shpfy Skipped Record";
         ShpfyUpdatePriceSouce: codeunit "Shpfy Update Price Source";
         IsHandled: Boolean;
     begin
+        if not IsValidUoM(Item."No.", UnitOfMeasure) then begin
+            SkippedRecord.LogSkippedRecord(Item.RecordId, StrSubstNo(ItemPriceNotSyncedUoMLbl, UnitOfMeasure, Item."No."), Shop);
+            exit;
+        end;
         ProductEvents.OnBeforeCalculateUnitPrice(Item, ItemVariant, UnitOfMeasure, Shop, Catalog, UnitCost, Price, ComparePrice, IsHandled);
         if not IsHandled then begin
             BindSubscription(ShpfyUpdatePriceSouce);
@@ -224,5 +231,20 @@ codeunit 30182 "Shpfy Product Price Calc."
                     CurrencyCode := ShopifyCatalog."Currency Code";
                 end;
         end;
+    end;
+
+    local procedure IsValidUoM(ItemNo: Code[20]; UoMCode: Code[20]): Boolean
+    var
+        UnitofMeasure: Record "Unit of Measure";
+        ItemUnitofMeasure: Record "Item Unit of Measure";
+    begin
+        if UoMCode = '' then
+            exit(true);
+        UnitofMeasure.SetRange(Code, UoMCode);
+        if UnitofMeasure.IsEmpty() then
+            exit(false);
+        ItemUnitofMeasure.SetRange("Item No.", ItemNo);
+        ItemUnitofMeasure.SetRange(Code, UoMCode);
+        exit(not ItemUnitofMeasure.IsEmpty());
     end;
 }
