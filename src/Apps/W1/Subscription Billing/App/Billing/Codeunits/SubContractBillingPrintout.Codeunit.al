@@ -17,6 +17,9 @@ codeunit 8064 "Sub. Contract Billing Printout"
         SalesDocuments: Codeunit "Sales Documents";
         EntryNo: Integer;
     begin
+        TempJobLedgerEntryBuffer.Reset();
+        TempJobLedgerEntryBuffer.DeleteAll();
+        Clear(ColumnHeaders);
         if not SalesInvoiceHeader."Recurring Billing" then
             exit;
 

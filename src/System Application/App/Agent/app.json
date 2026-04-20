@@ -86,6 +86,19 @@
       "name": "AI SDK",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
+    },
+    {
+      "id": "93b83ef6-9666-4c1d-b130-c232f4047621",
+      "name": "Upgrade Tags",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "internalsVisibleTo": [
+    {
+      "id": "a8c7f9d2-4e5b-4a1c-9f8e-6d3b2a1c4e5f",
+      "name": "Agent Test",
+      "publisher": "Microsoft"
     }
   ],
   "propagateDependencies": true,

@@ -5,7 +5,6 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
-using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
@@ -67,7 +66,9 @@ codeunit 139687 "Recurring Billing Docs Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
+        NextToDateBeforeFromDateErr: Label 'CalculateNextToDate returned %1 which is before FromDate %2. This would cause billing to get stuck.', Locked = true;
         NoContractLinesFoundErr: Label 'No contract lines were found that can be billed with the specified parameters.', Locked = true;
+        ItemDeletedErr: Label 'Item created from catalog item should not be deleted when the billing invoice is deleted.', Locked = true;
         StrMenuHandlerStep: Integer;
 
     #region Tests
@@ -2372,84 +2373,110 @@ codeunit 139687 "Recurring Billing Docs Test"
         Assert.ExpectedError(StrSubstNo(ItemUOMDoesNotExistErr, MockServiceObject."No.", MockServiceObject."Unit of Measure", Item."No."));
     end;
 
-    // [Test] Disabled - test is broken, tracked for fix. See: https://github.com/microsoft/BCApps/issues/
-    [HandlerFunctions('MessageHandler,CreateBillingDocumentPageHandler')]
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,CreateBillingDocumentPageHandler')]
     procedure CatalogSubscriptionItemNotDeletedOnInvoiceDeletion()
     var
-        ItemTempl: Record "Item Templ.";
-        NonstockItem: Record "Nonstock Item";
-        CatalogItem: Record Item;
-        Customer: Record Customer;
-        ItemServCommitmentPackage: Record "Item Subscription Package";
-        ServiceCommPackageLine: Record "Subscription Package Line";
-        ServiceCommitmentPackage2: Record "Subscription Package";
-        ServiceCommitmentTemplate2: Record "Sub. Package Line Template";
-        InvoicingItem: Record Item;
-        LibraryTemplates: Codeunit "Library - Templates";
+        Salesline2: Record "Sales Line";
+        Item: Record Item;
         NextBillingToDate: Date;
         ItemNo: Code[20];
     begin
-        // [SCENARIO] When an item is created from a catalog item and used in a subscription contract,
+        // [SCENARIO 625680] When an item is created from a catalog item and used in a subscription contract,
         // deleting the invoice draft should NOT automatically delete the item.
         Initialize();
+
+        // [GIVEN] Create a subscription contract with an item created from catalog, and create a billing proposal to generate an invoice. Then delete the invoice.
         ContractTestLibrary.DeleteAllContractRecords();
-
-        // [GIVEN] Create a Non-Inventory Item Template with Subscription Option = "Service Commitment Item"
-        LibraryTemplates.CreateItemTemplateWithData(ItemTempl);
-        ItemTempl.Validate("Inventory Posting Group", '');
-        ItemTempl.Validate(Type, "Item Type"::"Non-Inventory");
-        ItemTempl.Validate("Subscription Option", "Item Service Commitment Type"::"Service Commitment Item");
-        ItemTempl.Modify(false);
-
-        // [GIVEN] Create a catalog item (Nonstock Item) using the template - this creates an Item automatically
-        LibraryInventory.CreateNonStockItemWithItemTemplateCode(NonstockItem, ItemTempl.Code);
-        NonstockItem.Get(NonstockItem."Entry No.");
-        CatalogItem.Get(NonstockItem."Item No.");
-        ItemNo := CatalogItem."No.";
-        CatalogItem.TestField("Subscription Option", "Item Service Commitment Type"::"Service Commitment Item");
-
-        // [GIVEN] Create Subscription Package with invoicing item and assign to the catalog item
-        ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate2, '', LibraryRandom.RandDec(100, 2),
-            Enum::"Invoicing Via"::Contract, Enum::"Calculation Base Type"::"Item Price", false);
-        ContractTestLibrary.CreateItemWithServiceCommitmentOption(InvoicingItem, Enum::"Item Service Commitment Type"::"Invoicing Item");
-        ServiceCommitmentTemplate2.Validate("Invoicing Item No.", InvoicingItem."No.");
-        ServiceCommitmentTemplate2.Modify(false);
-        ContractTestLibrary.CreateServiceCommitmentPackage(ServiceCommitmentPackage2);
-        ContractTestLibrary.CreateServiceCommitmentPackageLine(ServiceCommitmentPackage2.Code, ServiceCommitmentTemplate2.Code,
-            ServiceCommPackageLine, '<1Y>', '<1M>', Enum::"Service Partner"::Customer, '<1M>');
-        ContractTestLibrary.AssignItemToServiceCommitmentPackage(CatalogItem, ServiceCommitmentPackage2.Code);
-
-        // [GIVEN] Create Service Object for the catalog item with subscription commitments
-        ContractTestLibrary.CreateServiceObjectForItem(ServiceObject, CatalogItem, false);
-        ServiceCommitmentPackage2.SetFilter(Code, ContractTestLibrary.GetPackageFilterForItem(ItemServCommitmentPackage, ServiceObject."Source No."));
-        ContractTestLibrary.InsertServiceCommitmentsFromServCommPackage(ServiceObject, WorkDate(), ServiceCommitmentPackage2);
-
-        // [GIVEN] Set up Customer and assign service object to Customer Subscription Contract
-        LibrarySales.CreateCustomer(Customer);
-        ContractTestLibrary.SetGeneralPostingSetup(Customer."Gen. Bus. Posting Group", CatalogItem."Gen. Prod. Posting Group", false, Enum::"Service Partner"::Customer);
-        ContractTestLibrary.SetGeneralPostingSetup(Customer."Gen. Bus. Posting Group", InvoicingItem."Gen. Prod. Posting Group", false, Enum::"Service Partner"::Customer);
-        ServiceObject.SetHideValidationDialog(true);
-        ServiceObject.Validate("End-User Customer No.", Customer."No.");
-        ServiceObject.Modify(false);
-        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
-        ContractTestLibrary.AssignServiceObjectForItemToCustomerContract(CustomerContract, ServiceObject, false);
-
-        // [GIVEN] Create billing proposal and billing document (invoice)
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '', false);
         GetCustomerContractServiceCommitment(CustomerContract."No.");
         NextBillingToDate := ServiceCommitment."Next Billing Date";
         LibraryVariableStorage.Enqueue(NextBillingToDate);
+
+        // [GIVEN] Create a billing proposal to generate an invoice for the subscription contract. This will create an item from catalog and link it to the invoice line.
         BillingProposal.CreateBillingProposalFromContract(CustomerContract."No.", CustomerContract.GetFilter("Billing Rhythm Filter"), "Service Partner"::Customer);
         BillingLine.Reset();
         BillingLine.SetRange("Billing Template Code", '');
         BillingLine.FindLast();
         SalesHeader.Get(Enum::"Sales Document Type"::Invoice, BillingLine."Document No.");
+        Salesline2.Get(Salesline2."Document Type"::Invoice, SalesHeader."No.", BillingLine."Document Line No.");
+        Item.Get(Salesline2."No.");
+        ItemNo := Item."No.";
+        SalesHeader.Delete(true);
+        Item.Validate("Subscription Option", Item."Subscription Option"::"Service Commitment Item");
+        Item.Validate("Created From Nonstock Item", true);
+        Item.Modify(true);
 
-        // [WHEN] Delete the sales invoice
+        // [GIVEN] Create a new billing proposal with the same subscription contract which will recreate the invoice and link it to the same item created from catalog.
+        LibraryVariableStorage.Enqueue(NextBillingToDate);
+        BillingProposal.CreateBillingProposalFromContract(CustomerContract."No.", CustomerContract.GetFilter("Billing Rhythm Filter"), "Service Partner"::Customer);
+
+        // [WHEN] Delete the invoice created from the billing proposal.
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", '');
+        BillingLine.FindLast();
+        SalesHeader.Get(Enum::"Sales Document Type"::Invoice, BillingLine."Document No.");
         SalesHeader.Delete(true);
 
-        // [THEN] The item created from catalog should NOT be deleted
-        Assert.IsTrue(CatalogItem.Get(ItemNo), 'Item created from catalog item should not be deleted when the billing invoice is deleted.');
-        CatalogItem.TestField("Subscription Option", "Item Service Commitment Type"::"Service Commitment Item");
+        // [THEN] The item created from catalog should NOT be deleted.
+        Item.Reset();
+        Assert.IsTrue(Item.Get(ItemNo), ItemDeletedErr);
+    end;
+
+    [Test]
+    procedure CalculateNextToDateAlignEndOfMonthDoesNotReturnDateBeforeFromDate()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        PeriodFormula: DateFormula;
+        FromDate: Date;
+        NextToDate: Date;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 623011] CalculateNextToDate with "Align to End of Month" does not return date before FromDate
+        Initialize();
+
+        // [GIVEN] Subscription Line "SL" with Period Calculation = "Align to End of Month" and start date Jan 29
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
+        SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(29, 1, 2025));
+        SubscriptionLine.Modify();
+
+        // [WHEN] CalculateNextToDate is called with period formula <1D> from Feb 27
+        Evaluate(PeriodFormula, '<1D>');
+        FromDate := DMY2Date(27, 2, 2025);
+        NextToDate := SubscriptionLine.CalculateNextToDate(PeriodFormula, FromDate);
+
+        // [THEN] NextToDate is not before FromDate
+        Assert.IsTrue(NextToDate >= FromDate,
+            StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
+    end;
+
+    [Test]
+    procedure CalculateNextToDateMonthFormulaLeapYearDoesNotReturnDateBeforeFromDate()
+    var
+        SubscriptionLine: Record "Subscription Line";
+        PeriodFormula: DateFormula;
+        FromDate: Date;
+        NextToDate: Date;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 623011] CalculateNextToDate with monthly formula and leap year Feb 29 to Mar transition does not return date before FromDate
+        Initialize();
+
+        // [GIVEN] Subscription Line "SL" with Period Calculation = "Align to End of Month" and start date Jan 30 (leap year 2024)
+        MockSubscriptionLine(SubscriptionLine);
+        SubscriptionLine.Validate("Period Calculation", SubscriptionLine."Period Calculation"::"Align to End of Month");
+        SubscriptionLine.Validate("Subscription Line Start Date", DMY2Date(30, 1, 2024));
+        SubscriptionLine.Modify();
+
+        // [WHEN] CalculateNextToDate is called with period formula <1M> from Feb 29 (leap year)
+        Evaluate(PeriodFormula, '<1M>');
+        FromDate := DMY2Date(29, 2, 2024);
+        NextToDate := SubscriptionLine.CalculateNextToDate(PeriodFormula, FromDate);
+
+        // [THEN] NextToDate is not before FromDate
+        Assert.IsTrue(NextToDate >= FromDate,
+            StrSubstNo(NextToDateBeforeFromDateErr, NextToDate, FromDate));
     end;
 
     #endregion Tests
@@ -2539,7 +2566,10 @@ codeunit 139687 "Recurring Billing Docs Test"
             until BillingLine.Next() = 0;
     end;
 
-    local procedure CountBillingArchiveLinesOnDocument(DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20]; ServicePartner: Enum "Service Partner"; ContractNo: Code[20]; ContractLineNo: Integer): Integer
+    local procedure CountBillingArchiveLinesOnDocument(DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20];
+                                                                         ServicePartner: Enum "Service Partner";
+                                                                         ContractNo: Code[20];
+                                                                         ContractLineNo: Integer): Integer
     var
         BillingArchiveLine: Record "Billing Line Archive";
     begin
@@ -2622,14 +2652,16 @@ codeunit 139687 "Recurring Billing Docs Test"
         SalesHeader.DeleteAll();
     end;
 
-    local procedure FilterPurchaseLineOnDocumentLine(PurchaseDocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20]; LineNo: Integer)
+    local procedure FilterPurchaseLineOnDocumentLine(PurchaseDocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20];
+                                                                               LineNo: Integer)
     begin
         PurchaseLine.SetRange("Document Type", PurchaseDocumentType);
         PurchaseLine.SetRange("Document No.", DocumentNo);
         PurchaseLine.SetRange("Line No.", LineNo);
     end;
 
-    local procedure FilterSalesLineOnDocumentLine(SalesDocumentType: Enum "Sales Document Type"; DocumentNo: Code[20]; LineNo: Integer)
+    local procedure FilterSalesLineOnDocumentLine(SalesDocumentType: Enum "Sales Document Type"; DocumentNo: Code[20];
+                                                                         LineNo: Integer)
     begin
         SalesLine.SetRange("Document Type", SalesDocumentType);
         SalesLine.SetRange("Document No.", DocumentNo);
@@ -2923,6 +2955,17 @@ codeunit 139687 "Recurring Billing Docs Test"
             FieldType::Boolean:
                 FRef.Value(not FRef.Value);
         end;
+    end;
+
+    local procedure MockSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
+    var
+        ServiceCommitmentPackage: Record "Subscription Package";
+    begin
+        ContractTestLibrary.CreateServiceCommitmentPackage(ServiceCommitmentPackage);
+        SubscriptionLine.Init();
+        SubscriptionLine."Invoicing via" := SubscriptionLine."Invoicing via"::Contract;
+        SubscriptionLine."Subscription Package Code" := ServiceCommitmentPackage.Code;
+        SubscriptionLine.Insert(true);
     end;
 
     #endregion Procedures

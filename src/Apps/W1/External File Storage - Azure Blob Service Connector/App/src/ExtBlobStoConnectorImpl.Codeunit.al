@@ -31,7 +31,7 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
     /// <param name="TempFileAccountContent">A list with all files stored in the path.</param>
     procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        ABSContainerContent: Record "ABS Container Content";
+        TempABSContainerContent: Record "ABS Container Content";
         ABSBlobClient: Codeunit "ABS Blob Client";
         ABSOperationResponse: Codeunit "ABS Operation Response";
         ABSOptionalParameters: Codeunit "ABS Optional Parameters";
@@ -40,21 +40,21 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
         CheckPath(Path);
         InitOptionalParameters(Path, FilePaginationData, ABSOptionalParameters);
         ABSOptionalParameters.Delimiter('/');
-        ABSOperationResponse := ABSBlobClient.ListBlobs(ABSContainerContent, ABSOptionalParameters);
+        ABSOperationResponse := ABSBlobClient.ListBlobs(TempABSContainerContent, ABSOptionalParameters);
         ValidateListingResponse(FilePaginationData, ABSOperationResponse);
 
-        ABSContainerContent.SetFilter("Blob Type", '<>%1', '');
-        ABSContainerContent.SetFilter(Name, '<>%1', MarkerFileNameTok);
-        if not ABSContainerContent.FindSet() then
+        TempABSContainerContent.SetFilter("Blob Type", '<>%1', '');
+        TempABSContainerContent.SetFilter(Name, '<>%1', MarkerFileNameTok);
+        if not TempABSContainerContent.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := ABSContainerContent.Name;
+            TempFileAccountContent.Name := TempABSContainerContent.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::"File";
-            TempFileAccountContent."Parent Directory" := ABSContainerContent."Parent Directory";
+            TempFileAccountContent."Parent Directory" := TempABSContainerContent."Parent Directory";
             TempFileAccountContent.Insert();
-        until ABSContainerContent.Next() = 0;
+        until TempABSContainerContent.Next() = 0;
     end;
 
     /// <summary>
@@ -144,7 +144,7 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
     /// <returns>Returns true if the file exists</returns>
     procedure FileExists(AccountId: Guid; Path: Text): Boolean
     var
-        ABSContainerContent: Record "ABS Container Content";
+        TempABSContainerContent: Record "ABS Container Content";
         ABSBlobClient: Codeunit "ABS Blob Client";
         ABSOperationResponse: Codeunit "ABS Operation Response";
         ABSOptionalParameters: Codeunit "ABS Optional Parameters";
@@ -154,11 +154,11 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
 
         InitBlobClient(AccountId, ABSBlobClient);
         ABSOptionalParameters.Prefix(Path);
-        ABSOperationResponse := ABSBlobClient.ListBlobs(ABSContainerContent, ABSOptionalParameters);
+        ABSOperationResponse := ABSBlobClient.ListBlobs(TempABSContainerContent, ABSOptionalParameters);
         if not ABSOperationResponse.IsSuccessful() then
             Error(ABSOperationResponse.GetError());
 
-        exit(not ABSContainerContent.IsEmpty());
+        exit(not TempABSContainerContent.IsEmpty());
     end;
 
     /// <summary>
@@ -189,7 +189,7 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
     /// <param name="Files">A list with all directories stored in the path.</param>
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        ABSContainerContent: Record "ABS Container Content";
+        TempABSContainerContent: Record "ABS Container Content";
         ABSBlobClient: Codeunit "ABS Blob Client";
         ABSOperationResponse: Codeunit "ABS Operation Response";
         ABSOptionalParameters: Codeunit "ABS Optional Parameters";
@@ -197,21 +197,21 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
         InitBlobClient(AccountId, ABSBlobClient);
         CheckPath(Path);
         InitOptionalParameters(Path, FilePaginationData, ABSOptionalParameters);
-        ABSOperationResponse := ABSBlobClient.ListBlobs(ABSContainerContent, ABSOptionalParameters);
+        ABSOperationResponse := ABSBlobClient.ListBlobs(TempABSContainerContent, ABSOptionalParameters);
         ValidateListingResponse(FilePaginationData, ABSOperationResponse);
 
-        ABSContainerContent.SetRange("Parent Directory", Path);
-        ABSContainerContent.SetRange("Resource Type", ABSContainerContent."Resource Type"::Directory);
-        if not ABSContainerContent.FindSet() then
+        TempABSContainerContent.SetRange("Parent Directory", Path);
+        TempABSContainerContent.SetRange("Resource Type", TempABSContainerContent."Resource Type"::Directory);
+        if not TempABSContainerContent.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := ABSContainerContent.Name;
+            TempFileAccountContent.Name := TempABSContainerContent.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
-            TempFileAccountContent."Parent Directory" := ABSContainerContent."Parent Directory";
+            TempFileAccountContent."Parent Directory" := TempABSContainerContent."Parent Directory";
             TempFileAccountContent.Insert();
-        until ABSContainerContent.Next() = 0;
+        until TempABSContainerContent.Next() = 0;
     end;
 
     /// <summary>
@@ -246,7 +246,7 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
     /// <returns>Returns true if the directory exists</returns>
     procedure DirectoryExists(AccountId: Guid; Path: Text): Boolean
     var
-        ABSContainerContent: Record "ABS Container Content";
+        TempABSContainerContent: Record "ABS Container Content";
         ABSBlobClient: Codeunit "ABS Blob Client";
         ABSOperationResponse: Codeunit "ABS Operation Response";
         ABSOptionalParameters: Codeunit "ABS Optional Parameters";
@@ -257,11 +257,11 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
         InitBlobClient(AccountId, ABSBlobClient);
         ABSOptionalParameters.Prefix(Path);
         ABSOptionalParameters.MaxResults(1);
-        ABSOperationResponse := ABSBlobClient.ListBlobs(ABSContainerContent, ABSOptionalParameters);
+        ABSOperationResponse := ABSBlobClient.ListBlobs(TempABSContainerContent, ABSOptionalParameters);
         if not ABSOperationResponse.IsSuccessful() then
             Error(ABSOperationResponse.GetError());
 
-        exit(not ABSContainerContent.IsEmpty());
+        exit(not TempABSContainerContent.IsEmpty());
     end;
 
     /// <summary>
@@ -401,7 +401,7 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
 
     internal procedure LookUpContainer(var Account: Record "Ext. Blob Storage Account"; AuthType: Enum "Ext. Blob Storage Auth. Type"; Secret: SecretText; var NewContainerName: Text[2048])
     var
-        ABSContainers: Record "ABS Container";
+        TempABSContainers: Record "ABS Container";
         ABSContainerClient: Codeunit "ABS Container Client";
         StorageServiceAuthorization: Codeunit "Storage Service Authorization";
         ABSOperationResponse: Codeunit "ABS Operation Response";
@@ -416,17 +416,17 @@ codeunit 4560 "Ext. Blob Sto. Connector Impl." implements "External File Storage
         end;
 
         ABSContainerClient.Initialize(Account."Storage Account Name", Authorization);
-        ABSOperationResponse := ABSContainerClient.ListContainers(ABSContainers);
+        ABSOperationResponse := ABSContainerClient.ListContainers(TempABSContainers);
         if not ABSOperationResponse.IsSuccessful() then
             Error(ABSOperationResponse.GetError());
 
-        if not ABSContainers.Get(NewContainerName) then
-            if ABSContainers.FindFirst() then;
+        if not TempABSContainers.Get(NewContainerName) then
+            if TempABSContainers.FindFirst() then;
 
-        if (Page.RunModal(Page::"Ext. Blob Sto Container Lookup", ABSContainers) <> Action::LookupOK) then
+        if (Page.RunModal(Page::"Ext. Blob Sto Container Lookup", TempABSContainers) <> Action::LookupOK) then
             exit;
 
-        NewContainerName := ABSContainers.Name;
+        NewContainerName := TempABSContainers.Name;
     end;
 
     local procedure InitBlobClient(var AccountId: Guid; var ABSBlobClient: Codeunit "ABS Blob Client")

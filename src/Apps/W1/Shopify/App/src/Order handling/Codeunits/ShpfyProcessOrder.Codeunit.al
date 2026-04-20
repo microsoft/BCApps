@@ -160,6 +160,7 @@ codeunit 30166 "Shpfy Process Order"
             if ShopifyOrderHeader."Work Description".HasValue then
                 SalesHeader.SetWorkDescription(ShopifyOrderHeader.GetWorkDescription());
         end;
+        SalesHeader.TestField("No.");
         if ShopifyShop."Order Attributes To Shopify" then
             OrdersAPI.AddOrderAttribute(ShopifyOrderHeader, 'BC Doc. No.', SalesHeader."No.", ShopifyShop);
         DocLinkToBCDoc.Init();
@@ -460,6 +461,7 @@ codeunit 30166 "Shpfy Process Order"
     var
         SalesLine: Record "Sales Line";
     begin
+        SalesLine.SetLoadFields("Document Type", "Document No.", "Line No.");
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         if SalesLine.IsEmpty() then

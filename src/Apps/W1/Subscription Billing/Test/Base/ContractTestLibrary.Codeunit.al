@@ -368,6 +368,14 @@ codeunit 139685 "Contract Test Library"
         ContractType.Insert(true)
     end;
 
+    procedure CreateContractTypeAllowingDiffCurrency(var ContractType: Record "Subscription Contract Type")
+    begin
+        CreateContractType(ContractType);
+        ContractType."Allow Diff. Curr. in Vend. UD" := true;
+        ContractType."Allow Diff. Curr. in Cust. UD" := true;
+        ContractType.Modify(false);
+    end;
+
     procedure CreateCustomerContract(var CustomerContract: Record "Customer Subscription Contract"; CustomerNo: Code[20])
     var
         CustomerContractNo: Code[20];

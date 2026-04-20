@@ -31,12 +31,13 @@ expression 'Balance Sheet G/L Entries' = ```
 		            {"description", "Description"}
 		        }
 		    ),
+		    ClosingCodes = List.Buffer(Table.Column(#"Close Income Statement Codes", "sourceCode")),
 		    // Add Closing Entry flag
 		    #"Added Closing Entry column" = 
-		        if  CheckUpgradeQuery("closeIncomeStmtSourceCodes") 
+		        if  IsCloseIncomeStmtUpgraded
 		        then 
 		            // Set Closing Entry to True or False if the record's source code exists in the mappping table
-		            Table.AddColumn(#"Renamed Columns", "Closing Entry", each List.Contains( Table.ToList(#"Close Income Statement Codes") ,[Source Code]), type logical)
+		            Table.AddColumn(#"Renamed Columns", "Closing Entry", each List.Contains(ClosingCodes, [Source Code]), type logical)
 		        else 
 		            let 
 		                #"Added Custom" = Table.AddColumn(#"Renamed Columns", "Closing Entry", each false, type logical),
@@ -58,7 +59,7 @@ expression 'Income Statement G/L Entries' = ```
 		let
 		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
 		    TableData = 
-		        if  CheckUpgradeQuery("closeIncomeStmtSourceCodes")
+		        if  IsCloseIncomeStmtUpgraded
 		        then 
 		            Source{[Name="incomeStmtGeneralLedgerEntries",Signature="table"]}[Data]
 		        else 
@@ -80,11 +81,12 @@ expression 'Income Statement G/L Entries' = ```
 		        }
 		    ),
 		    #"Renamed Columns" = Table.RenameColumns(#"Changed Type",{{"accountNo", "G/L Account No."}, {"postingDate", "Posting Date"}, {"amount", "Amt."},{"sourceCode","Source Code"},{"sourceNo","Source No."},{"sourceType","Source Type"},{"entryNo","Entry No."},{"description","Description"}}),
+		    ClosingCodes = List.Buffer(Table.Column(#"Close Income Statement Codes", "sourceCode")),
 		    // Add Closing Entry flag
 		    #"Added Closing Entry column" = 
-		        if  CheckUpgradeQuery("closeIncomeStmtSourceCodes")
+		        if  IsCloseIncomeStmtUpgraded
 		        then 
-		            Table.AddColumn(#"Renamed Columns", "Closing Entry", each List.Contains( Table.ToList(#"Close Income Statement Codes") ,[Source Code]), type logical)
+		            Table.AddColumn(#"Renamed Columns", "Closing Entry", each List.Contains(ClosingCodes, [Source Code]), type logical)
 		        else 
 		            Table.AddColumn(#"Renamed Columns", "Closing Entry", each false, type logical),
 		    #"Removed Columns" = Table.RemoveColumns(#"Added Closing Entry column",{"ETag"})
@@ -468,25 +470,6 @@ expression 'Build Closing Entry Filter' =
 		in
 		    ConcatenateWithDelimiter
 	lineageTag: 48dfbe80-b12f-448b-8686-527397d3a832
-	queryGroup: 'Parameters and Functions\Functions'
-
-	annotation PBI_NavigationStepName = Navigation
-
-	annotation PBI_ResultType = Function
-
-expression CheckUpgradeQuery =
-		let
-		    IsQueryValid = (upgradeQuery as text) as logical =>
-		    let
-		        Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
-		        upgradeQuerySource = Source{[Name=upgradeQuery,Signature="table"]}[Data],
-		        result = try upgradeQuerySource otherwise null,
-		        isValid = result <> null
-		    in
-		        isValid
-		in
-		    IsQueryValid
-	lineageTag: 2c1614f9-b893-40fa-8fc5-7646ff11f549
 	queryGroup: 'Parameters and Functions\Functions'
 
 	annotation PBI_NavigationStepName = Navigation

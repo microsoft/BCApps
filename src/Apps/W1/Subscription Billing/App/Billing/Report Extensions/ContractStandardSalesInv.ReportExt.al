@@ -221,6 +221,8 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
 
     local procedure FillTempContractBillingDetailsGroupingBuffer()
     begin
+        TempContractBillingDetailsGroupingBuffer.Reset();
+        TempContractBillingDetailsGroupingBuffer.DeleteAll();
         TempContractBillingDetailsBuffer.Reset();
         if TempContractBillingDetailsBuffer.FindSet() then
             repeat

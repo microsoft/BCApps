@@ -128,11 +128,11 @@ codeunit 5429 "Contoso Inbound E-Document"
 
     local procedure ProcessEDocument(EDocument: Record "E-Document")
     var
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
     begin
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
     end;
 
     local procedure PostPurchaseInvoice(EDocEntryNo: Integer)

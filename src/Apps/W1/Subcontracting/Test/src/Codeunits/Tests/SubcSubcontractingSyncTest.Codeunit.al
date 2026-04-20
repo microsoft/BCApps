@@ -45,7 +45,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         SubcontractingManagementSetup: Record "Subc. Management Setup";
         Work_Center: Record "Work Center";
         WorkCenter: array[2] of Record "Work Center";
-        CalculateSubcontracts: Report "Calculate Subcontracts";
+        SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
         ReqJnlManagement: Codeunit ReqJnlManagement;
         SubTestManSubscription: Codeunit "Subc. Test Man. Subscription";
     begin
@@ -98,11 +98,11 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         RequisitionLine.FilterGroup := 0;
         ReqJnlManagement.OpenJnl(RequisitionLine."Journal Batch Name", RequisitionLine);
 
-        CalculateSubcontracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
         Work_Center.SetRange("No.", WorkCenter[2]."No.");
-        CalculateSubcontracts.SetTableView(WorkCenter[2]);
-        CalculateSubcontracts.UseRequestPage(false);
-        CalculateSubcontracts.RunModal();
+        SubcCalculateSubcontracts.SetTableView(WorkCenter[2]);
+        SubcCalculateSubcontracts.UseRequestPage(false);
+        SubcCalculateSubcontracts.RunModal();
 
         MakeSubconPurchOrder(ProductionOrder."No.", WorkCenter[2]."No.");
 
@@ -470,6 +470,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPlanning: Codeunit "Library - Planning";
@@ -481,7 +482,6 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         IsInitialized: Boolean;
         Subcontracting: Boolean;
         UnitCostCalculation: Option Time,Units;

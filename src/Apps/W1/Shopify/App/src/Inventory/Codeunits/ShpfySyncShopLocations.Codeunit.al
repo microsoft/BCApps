@@ -89,13 +89,13 @@ codeunit 30198 "Shpfy Sync Shop Locations"
                 TempShopLocation.Insert(false);
             until ShopLocation.Next() = 0;
 
-        GraphQLType := "Shpfy GraphQL Type"::GetLocations;
+        GraphQLType := "Shpfy GraphQL Type"::Inventory_GetLocations;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             Clear(Cursor);
             if JsonHelper.GetJsonObject(JResponse, JPageInfo, 'data.locations.pageInfo') then begin
                 Cursor := JsonHelper.GetValueAsText(JPageInfo, 'endCursor');
-                GraphQLType := GraphQLType::GetNextLocations;
+                GraphQLType := GraphQLType::Inventory_GetNextLocations;
                 if Parameters.ContainsKey('After') then
                     Parameters.Set('After', Cursor)
                 else
@@ -135,7 +135,7 @@ codeunit 30198 "Shpfy Sync Shop Locations"
         if ShopLocation."Fulfillment Srv. Callback Url" = GetFulfillmentServiceCallbackUrl() then
             exit;
 
-        GraphQLType := "Shpfy GraphQL Type"::UpdateFulfillmentService;
+        GraphQLType := "Shpfy GraphQL Type"::Fulfillments_UpdateFulfillmentService;
         Parameters.Add('Id', Format(ShopLocation."Fulfillment Service Id"));
         Parameters.Add('CallbackUrl', GetFulfillmentServiceCallbackUrl());
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -154,7 +154,7 @@ codeunit 30198 "Shpfy Sync Shop Locations"
         JLocation: JsonObject;
         JFulfillmentService: JsonObject;
     begin
-        GraphQLType := "Shpfy GraphQL Type"::GetLocation;
+        GraphQLType := "Shpfy GraphQL Type"::Inventory_GetLocation;
         Parameters.Add('Id', Format(ShopLocation.Id));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
 

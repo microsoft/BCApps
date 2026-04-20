@@ -32,22 +32,22 @@ codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage
     /// <param name="TempFileAccountContent">A list with all files stored in the path.</param>
     procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        AFSDirectoryContent: Record "AFS Directory Content";
+        TempAFSDirectoryContent: Record "AFS Directory Content";
     begin
-        GetDirectoryContent(AccountId, Path, FilePaginationData, AFSDirectoryContent);
+        GetDirectoryContent(AccountId, Path, FilePaginationData, TempAFSDirectoryContent);
 
-        AFSDirectoryContent.SetRange("Parent Directory", Path);
-        AFSDirectoryContent.SetRange("Resource Type", AFSDirectoryContent."Resource Type"::File);
-        if not AFSDirectoryContent.FindSet() then
+        TempAFSDirectoryContent.SetRange("Parent Directory", Path);
+        TempAFSDirectoryContent.SetRange("Resource Type", TempAFSDirectoryContent."Resource Type"::File);
+        if not TempAFSDirectoryContent.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := AFSDirectoryContent.Name;
+            TempFileAccountContent.Name := TempAFSDirectoryContent.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::"File";
-            TempFileAccountContent."Parent Directory" := AFSDirectoryContent."Parent Directory";
+            TempFileAccountContent."Parent Directory" := TempAFSDirectoryContent."Parent Directory";
             TempFileAccountContent.Insert();
-        until AFSDirectoryContent.Next() = 0;
+        until TempAFSDirectoryContent.Next() = 0;
     end;
 
     /// <summary>
@@ -180,22 +180,22 @@ codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage
     /// <param name="Files">A list with all directories stored in the path.</param>
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        AFSDirectoryContent: Record "AFS Directory Content";
+        TempAFSDirectoryContent: Record "AFS Directory Content";
     begin
-        GetDirectoryContent(AccountId, Path, FilePaginationData, AFSDirectoryContent);
+        GetDirectoryContent(AccountId, Path, FilePaginationData, TempAFSDirectoryContent);
 
-        AFSDirectoryContent.SetRange("Parent Directory", Path);
-        AFSDirectoryContent.SetRange("Resource Type", AFSDirectoryContent."Resource Type"::Directory);
-        if not AFSDirectoryContent.FindSet() then
+        TempAFSDirectoryContent.SetRange("Parent Directory", Path);
+        TempAFSDirectoryContent.SetRange("Resource Type", TempAFSDirectoryContent."Resource Type"::Directory);
+        if not TempAFSDirectoryContent.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := AFSDirectoryContent.Name;
+            TempFileAccountContent.Name := TempAFSDirectoryContent.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
-            TempFileAccountContent."Parent Directory" := AFSDirectoryContent."Parent Directory";
+            TempFileAccountContent."Parent Directory" := TempAFSDirectoryContent."Parent Directory";
             TempFileAccountContent.Insert();
-        until AFSDirectoryContent.Next() = 0;
+        until TempAFSDirectoryContent.Next() = 0;
     end;
 
     /// <summary>
@@ -226,7 +226,7 @@ codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage
     /// <returns>Returns true if the directory exists</returns>
     procedure DirectoryExists(AccountId: Guid; Path: Text): Boolean
     var
-        AFSDirectoryContent: Record "AFS Directory Content";
+        TempAFSDirectoryContent: Record "AFS Directory Content";
         AFSFileClient: Codeunit "AFS File Client";
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOptionalParameters: Codeunit "AFS Optional Parameters";
@@ -236,7 +236,7 @@ codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage
 
         InitFileClient(AccountId, AFSFileClient);
         AFSOptionalParameters.MaxResults(1);
-        AFSOperationResponse := AFSFileClient.ListDirectory(CopyStr(Path, 1, 2048), AFSDirectoryContent, AFSOptionalParameters);
+        AFSOperationResponse := AFSFileClient.ListDirectory(CopyStr(Path, 1, 2048), TempAFSDirectoryContent, AFSOptionalParameters);
         if AFSOperationResponse.IsSuccessful() then
             exit(true);
 
@@ -416,19 +416,19 @@ codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage
         AFSOptionalParameters.Marker(FilePaginationData.GetMarker());
     end;
 
-    local procedure ValidateListingResponse(var FilePaginationData: Codeunit "File Pagination Data"; var AFSDirectoryContent: Record "AFS Directory Content"; var AFSOperationResponse: Codeunit "AFS Operation Response")
+    local procedure ValidateListingResponse(var FilePaginationData: Codeunit "File Pagination Data"; var TempAFSDirectoryContent: Record "AFS Directory Content"; var AFSOperationResponse: Codeunit "AFS Operation Response")
     begin
         if not AFSOperationResponse.IsSuccessful() then
             Error(AFSOperationResponse.GetError());
 
-        if not AFSDirectoryContent.FindLast() then
+        if not TempAFSDirectoryContent.FindLast() then
             FilePaginationData.SetEndOfListing(true);
 
-        FilePaginationData.SetMarker(AFSDirectoryContent."Next Marker");
-        FilePaginationData.SetEndOfListing(AFSDirectoryContent."Next Marker" = '');
+        FilePaginationData.SetMarker(TempAFSDirectoryContent."Next Marker");
+        FilePaginationData.SetEndOfListing(TempAFSDirectoryContent."Next Marker" = '');
     end;
 
-    local procedure GetDirectoryContent(var AccountId: Guid; var PassedPath: Text; var FilePaginationData: Codeunit "File Pagination Data"; var AFSDirectoryContent: Record "AFS Directory Content")
+    local procedure GetDirectoryContent(var AccountId: Guid; var PassedPath: Text; var FilePaginationData: Codeunit "File Pagination Data"; var TempAFSDirectoryContent: Record "AFS Directory Content")
     var
         AFSFileClient: Codeunit "AFS File Client";
         AFSOperationResponse: Codeunit "AFS Operation Response";
@@ -439,9 +439,9 @@ codeunit 4570 "Ext. File Share Connector Impl" implements "External File Storage
         CheckPath(PassedPath);
         InitOptionalParameters(FilePaginationData, AFSOptionalParameters);
         Path := CopyStr(PassedPath, 1, MaxStrLen(Path));
-        AFSOperationResponse := AFSFileClient.ListDirectory(Path, AFSDirectoryContent, AFSOptionalParameters);
+        AFSOperationResponse := AFSFileClient.ListDirectory(Path, TempAFSDirectoryContent, AFSOptionalParameters);
         PassedPath := Path;
-        ValidateListingResponse(FilePaginationData, AFSDirectoryContent, AFSOperationResponse);
+        ValidateListingResponse(FilePaginationData, TempAFSDirectoryContent, AFSOperationResponse);
     end;
 
     local procedure SetReadySAS(var StorageServiceAuthorization: Codeunit "Storage Service Authorization"; Secret: SecretText): Interface System.Azure.Storage."Storage Service Authorization"
