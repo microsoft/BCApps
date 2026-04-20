@@ -89,7 +89,7 @@ codeunit 8064 "Sub. Contract Billing Printout"
                                 TempJobLedgerEntryBuffer."Line Discount Amount" := Round(BillingLineArchive.Amount * BillingLineArchive."Discount %" / 100, Currency."Amount Rounding Precision");
                                 TempJobLedgerEntryBuffer."Line Amount" := BillingLineArchive.Amount;
                             end;
-                            onBeforeInsertBillingLineArchiv(TempJobLedgerEntryBuffer, CustomerContract, BillingLineArchive, SalesInvoiceHeader, SalesInvoiceLine);
+                            OnBeforeInsertBillingLineArchive(TempJobLedgerEntryBuffer, CustomerContract, BillingLineArchive, SalesInvoiceHeader, SalesInvoiceLine);
                             TempJobLedgerEntryBuffer.Insert(false);
                         until BillingLineArchive.Next() = 0;
                 end;
