@@ -12,9 +12,13 @@ The `Shpfy Payment Method Mapping` table is the central configuration point -- u
 
 ## Things to know
 
+- The `Shop` field (108) is a direct Code[20] field with TableRelation to `Shpfy Shop`, populated via an upgrade DataTransfer from the order header's `Shop Code`. This replaces the old `Shop Code` FlowField (103), which is now obsoleted (CLEAN28/CLEANSCHEMA31). The `Payment Method` FlowField uses the `Shop` field for its lookup key.
+- The `Shpfy Order No.` FlowField (109) provides a quick lookup to the Shopify order number from the order header.
 - The `Parent Id` field on `Shpfy Order Transaction` links refund transactions back to their original charge, enabling refund-to-charge tracing.
 - Payment method mapping is keyed on shop + gateway + credit card company -- the same gateway can map to different BC payment methods depending on the card brand.
 - The `Gift Card Id` is extracted from the transaction's receipt JSON, not from a direct GraphQL field.
 - Transaction amounts include both shop money and presentment money, plus separate rounding amounts for each currency.
 - The `Manual Payment Gateway` boolean distinguishes manual payment methods (like COD or bank transfer) from automated gateways.
-- FlowFields on the transaction table provide quick lookups to Sales Document No. and Posted Invoice No. for the related order.
+- FlowFields on the transaction table provide quick lookups to Sales Document No., Posted Invoice No., and Shopify Order No. for the related order.
+
+*Updated: 2026-04-08 -- New Shop field (direct, via DataTransfer upgrade) replaces obsoleted Shop Code FlowField; Shpfy Order No. FlowField added*
