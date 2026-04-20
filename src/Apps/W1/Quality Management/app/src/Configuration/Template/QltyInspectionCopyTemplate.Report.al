@@ -24,7 +24,7 @@ report 20402 "Qlty. Inspection Copy Template"
         {
             MaxIteration = 1;
             RequestFilterFields = Code, Description;
-            RequestFilterHeading = 'Quality Inspection Template to copy from';
+            RequestFilterHeading = 'Source Template';
 
             trigger OnPreDataItem()
             begin
@@ -42,7 +42,7 @@ report 20402 "Qlty. Inspection Copy Template"
         {
             RequestFilterFields = "No.", Description, "Description 2", "Lot Nos.";
             DataItemTableView = sorting("No.") where("No." = filter(<> ''));
-            RequestFilterHeading = 'Item numbers to use for creating template codes';
+            RequestFilterHeading = 'Items (for Bulk Copy)';
 
             trigger OnAfterGetRecord()
             begin
@@ -66,19 +66,20 @@ report 20402 "Qlty. Inspection Copy Template"
             {
                 group(General)
                 {
-                    Caption = 'General';
+                    Caption = 'Options';
+                    InstructionalText = 'Choose how to create the new template(s). Use Bulk Copy to create one template per item, or specify a single target code and description below.';
 
                     field(ChooseFromItems; CreateFromItems)
                     {
                         ApplicationArea = All;
-                        Caption = 'Create from Item Nos.';
-                        ToolTip = 'Specifies whether to create templates from items.';
+                        Caption = 'Bulk Copy from Items';
+                        ToolTip = 'Specifies whether to create multiple templates based on items. When enabled, a new template is created for each item selected in the Items tab, using the item number as the template code. When disabled, a single template is created using the target code and description specified below.';
                     }
                 }
                 group(NonItem)
                 {
-                    Caption = 'Code and Description for duplicating not based on an item';
-                    InstructionalText = 'Use this with Create From Item Nos. turned off.';
+                    Caption = 'Target Template';
+                    InstructionalText = 'Specify the code and description for the new template.';
                     Visible = not CreateFromItems;
 
                     field(ChooseTargetName; TargetDestinationName)
@@ -86,14 +87,14 @@ report 20402 "Qlty. Inspection Copy Template"
                         ApplicationArea = All;
                         Enabled = not CreateFromItems;
                         Caption = 'Target Code';
-                        ToolTip = 'Specifies whether to name a specific template target';
+                        ToolTip = 'Specifies the code for the new template. This must be unique and will identify the copied template.';
                     }
                     field(ChooseTargetDescription; Description)
                     {
                         ApplicationArea = All;
                         Enabled = not CreateFromItems;
                         Caption = 'Target Description';
-                        ToolTip = 'Specifies the description of the target template inspection';
+                        ToolTip = 'Specifies the description for the new template.';
                     }
                 }
             }
@@ -106,7 +107,7 @@ report 20402 "Qlty. Inspection Copy Template"
         Description: Text[100];
         ThisWillReplaceTemplateConfigQst: Label 'This will duplicates the source template to %1 templates for %1 items.\\Target template names will use the item no. as their name.\\ If an existing template exists then template lines will be added, but will not be removed. Any removal of template lines must be done manually, or via a process such as a configuration package. \\ Do you want to proceed?', Comment = '%1=how many templates will be added/updated';
         ASingleTemplateErr: Label 'A single template must be chosen. The filters supplied result in %1 templates.', Comment = '%1=the expected number of templates';
-        MustSpecifyACodeAndDescriptionErr: Label 'When using this report and not copying items you must specify a destination code and description.';
+        MustSpecifyACodeAndDescriptionErr: Label 'You must specify a target code and description when Bulk Copy from Items is disabled.';
 
     local procedure CopyTemplateFromItem(CopyFromQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; Item: Record Item)
     var
