@@ -20,13 +20,14 @@ codeunit 4310 "Agent Task Builder Impl."
         GlobalAgentUserSecurityId: Guid;
         GlobalTaskTitle: Text[150];
         GlobalExternalID: Text[2048];
-        GlobalBillingType: Enum "Agent Task Billing Type";
+        GlobalBillingContext: Enum "Agent Task Billing Context";
 
     [Scope('OnPrem')]
     procedure Initialize(NewAgentUserSecurityId: Guid; NewTaskTitle: Text[150]): codeunit "Agent Task Builder Impl."
     begin
         GlobalAgentUserSecurityId := NewAgentUserSecurityId;
         GlobalTaskTitle := NewTaskTitle;
+        GlobalBillingContext := Enum::"Agent Task Billing Context"::Default;
         exit(this);
     end;
 
@@ -39,7 +40,7 @@ codeunit 4310 "Agent Task Builder Impl."
         VerifyMandatoryFieldsSet();
         VerifyTaskCanBeCreated(RequiresMessage);
 
-        AgentTaskImpl.CreateTask(GlobalAgentUserSecurityId, GlobalTaskTitle, GlobalExternalID, GlobalBillingType, AgentTaskRecord);
+        AgentTaskImpl.CreateTask(GlobalAgentUserSecurityId, GlobalTaskTitle, GlobalExternalID, GlobalBillingContext, AgentTaskRecord);
         if MessageSet then begin
             GlobalAgentTaskMessageBuilder.SetAgentTask(AgentTaskRecord);
             GlobalAgentTaskMessageBuilder.Create(false);
@@ -65,9 +66,9 @@ codeunit 4310 "Agent Task Builder Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure SetBillingType(BillingType: Enum "Agent Task Billing Type"): codeunit "Agent Task Builder Impl."
+    procedure SetBillingContext(BillingContext: Enum "Agent Task Billing Context"): codeunit "Agent Task Builder Impl."
     begin
-        GlobalBillingType := BillingType;
+        GlobalBillingContext := BillingContext;
         exit(this);
     end;
 
