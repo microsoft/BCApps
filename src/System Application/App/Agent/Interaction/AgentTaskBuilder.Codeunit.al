@@ -94,15 +94,15 @@ codeunit 4315 "Agent Task Builder"
     end;
 
     /// <summary>
-    /// Set the billing type for the task.
+    /// Set the billing context for the task.
     /// </summary>
-    /// <param name="BillingType">The billing type to set on the task.</param>
+    /// <param name="BillingContext">The billing context to set on the task.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
     [Scope('OnPrem')]
-    procedure SetBillingType(BillingType: Enum "Agent Task Billing Context"): codeunit "Agent Task Builder"
+    procedure SetBillingContext(BillingContext: Enum "Agent Task Billing Context"): codeunit "Agent Task Builder"
     begin
         FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
-        AgentTaskBuilderImpl.SetBillingContext(BillingType);
+        AgentTaskBuilderImpl.SetBillingContext(BillingContext);
         exit(this);
     end;
 
