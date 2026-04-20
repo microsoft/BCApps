@@ -8,6 +8,9 @@ page 8054 "Contract Types"
     SourceTable = "Subscription Contract Type";
     Caption = 'Subscription Contract Types';
     LinksAllowed = false;
+    AdditionalSearchTerms = 'Contract Type, Contract Category, Contract Classification, Deferral Settings, Contract Categorization, Type Setup';
+    AboutTitle = 'About Subscription Contract Types';
+    AboutText = 'Here you overview all contract types available. You can use them to categorize contracts and to default certain details, like creating deferrals.';
 
     layout
     {
@@ -42,6 +45,8 @@ page 8054 "Contract Types"
                 {
                     ToolTip = 'Specifies the default value for the associated field in the contract.';
                 }
+                field(AllowDiffCurrInVendUD; Rec."Allow Diff. Curr. in Vend. UD") { }
+                field(AllowDiffCurrInCustUD; Rec."Allow Diff. Curr. in Cust. UD") { }
                 field(NoOfTranslationsCtrl; FieldTranslation.GetNumberOfTranslations(Rec, Rec.FieldNo(Description)))
                 {
                     BlankZero = true;

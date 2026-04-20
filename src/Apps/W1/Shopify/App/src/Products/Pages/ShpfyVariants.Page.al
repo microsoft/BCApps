@@ -144,11 +144,17 @@ page 30127 "Shpfy Variants"
                     ApplicationArea = All;
                     ToolTip = 'Specifies whether a tax is charged when the product variant is sold.';
                 }
+#if not CLEAN28
                 field(TaxCode; Rec."Tax Code")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Avalara tax code for the product variant. This parameter applies only to the stores that have the Avalara AvaTax app installed.';
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Shopify API 2025-10 deprecated taxCode on ProductVariant. This field is no longer available in the API.';
+                    ObsoleteTag = '28.0';
                 }
+#endif
                 field(UnitCost; Rec."Unit Cost")
                 {
                     ApplicationArea = All;

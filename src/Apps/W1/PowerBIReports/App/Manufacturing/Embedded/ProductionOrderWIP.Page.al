@@ -9,7 +9,7 @@ using System.Integration.PowerBI;
 page 37107 "Production Order WIP"
 {
     UsageCategory = ReportsAndAnalysis;
-    ApplicationArea = All;
+    ApplicationArea = Manufacturing;
     PageType = UserControlHost;
     Caption = 'Production Order WIP';
     AboutTitle = 'About Production Order WIP';
@@ -48,11 +48,8 @@ page 37107 "Production Order WIP"
         ReportPageLbl: Label '6acf7a1bcebe65700b22', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Manufacturing Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Manufacturing App");
     end;
 }
 

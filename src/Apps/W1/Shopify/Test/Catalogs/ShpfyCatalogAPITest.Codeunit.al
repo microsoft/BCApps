@@ -14,10 +14,16 @@ codeunit 139645 "Shpfy Catalog API Test"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
+        Shop: Record "Shpfy Shop";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         LibraryAssert: Codeunit "Library Assert";
         LibraryRandom: Codeunit "Library - Random";
+        Any: Codeunit Any;
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
+        IsInitialized: Boolean;
 
     [Test]
     procedure UnitTestExtractShopifyCatalogs()
@@ -31,6 +37,8 @@ codeunit 139645 "Shpfy Catalog API Test"
         Result: Boolean;
         Cursor: Text;
     begin
+        Initialize();
+
         // Creating Test data.
         CompanyInitialize.CreateShopifyCompany(ShopifyCompany);
         JResponse := CatalogInitialize.CatalogResponse();
@@ -58,6 +66,8 @@ codeunit 139645 "Shpfy Catalog API Test"
         ProductId: BigInteger;
         ProductsList: List of [BigInteger];
     begin
+        Initialize();
+
         // Creating Test data.
         ProductId := LibraryRandom.RandIntInRange(100000, 999999);
         ProductsList.Add(ProductId);
@@ -75,35 +85,75 @@ codeunit 139645 "Shpfy Catalog API Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateCatalogHandler')]
     procedure UnitTestCreateCatalog()
     var
-        Shop: Record "Shpfy Shop";
         Customer: Record Customer;
         ShopifyCompany: Record "Shpfy Company";
         Catalog: Record "Shpfy Catalog";
         CatalogAPI: Codeunit "Shpfy Catalog API";
-        ShopifyInitializeTest: Codeunit "Shpfy Initialize Test";
-        CatalogAPISubscribers: Codeunit "Shpfy Catalog API Subscribers";
         LibrarySales: Codeunit "Library - Sales";
     begin
+        Initialize();
+
         // [SCENARIO] Create a catalog for a company.
 
-        // [GIVEN] Shop
-        Shop := ShopifyInitializeTest.CreateShop();
         // [GIVEN] Customer
         LibrarySales.CreateCustomer(Customer);
         // [GIVEN] A company record.
         CreateCompany(ShopifyCompany, Customer.SystemId);
 
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('CreateCatalog');
+        OutboundHttpRequests.Enqueue('CreatePublication');
+        OutboundHttpRequests.Enqueue('CreatePriceList');
+
         // [WHEN] Invoke CatalogAPI.CreateCatalog
-        BindSubscription(CatalogAPISubscribers);
         CatalogAPI.CreateCatalog(ShopifyCompany, Customer);
-        UnbindSubscription(CatalogAPISubscribers);
 
         // [THEN] A catalog is created.
         Catalog.SetRange("Company SystemId", ShopifyCompany.SystemId);
         Catalog.FindFirst();
         LibraryAssert.AreEqual(Customer."No.", Catalog."Customer No.", 'Customer No. is not transferred to catalog');
+    end;
+
+    [HttpClientHandler]
+    internal procedure CreateCatalogHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        Body: Text;
+        ResponseKey: Text;
+        CatalogResultLbl: Label '{"data": {"catalogCreate": {"catalog": {"id": %1}}}}', Comment = '%1 - catalogId', Locked = true;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        ResponseKey := OutboundHttpRequests.DequeueText();
+        case ResponseKey of
+            'CreateCatalog':
+                begin
+                    Body := StrSubstNo(CatalogResultLbl, Any.IntegerInRange(100000, 999999));
+                    Response.Content.WriteFrom(Body);
+                end;
+            'CreatePublication':
+                Response.Content.WriteFrom('{}');
+            'CreatePriceList':
+                Response.Content.WriteFrom('{}');
+        end;
+        exit(false);
+    end;
+
+    local procedure Initialize()
+    var
+        AccessToken: SecretText;
+    begin
+        if IsInitialized then
+            exit;
+        IsInitialized := true;
+        Shop := InitializeTest.CreateShop();
+        AccessToken := Any.AlphanumericText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
+        Commit();
     end;
 
     local procedure CreateCompany(var ShopifyCompany: Record "Shpfy Company"; CustomerSystemId: Guid)

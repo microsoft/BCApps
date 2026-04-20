@@ -31,9 +31,9 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
     var
         ReUsedProdOrderLine: Record "Prod. Order Line";
         LibraryAssert: Codeunit "Library Assert";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         GenQltyProdOrderGenerator: Codeunit "Qlty. Prod. Order Generator";
-        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         IsInitialized: Boolean;
@@ -76,11 +76,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyOutput
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyOutput;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with 5 units of output quantity
@@ -141,11 +141,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyOutput
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyOutput;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with scrap quantity of 5 and no output quantity
@@ -207,11 +207,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyOutput
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyOutput;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with no output quantity and no scrap quantity
@@ -265,11 +265,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyOutput
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyOutput
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyOutput;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyOutput;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with output quantity 5 and scrap quantity 3
@@ -331,11 +331,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyQuantity;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with 5 units of output quantity
@@ -396,11 +396,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyQuantity;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with scrap quantity of 5 and no output quantity
@@ -463,11 +463,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyQuantity;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with output quantity 5 and scrap quantity 3
@@ -528,11 +528,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnAnyQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnAnyQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnAnyQuantity;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnAnyQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with no output quantity and no scrap quantity
@@ -585,11 +585,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithQuantity;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with only scrap quantity of 5
@@ -644,11 +644,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithQuantity;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with output quantity of 5
@@ -710,11 +710,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithQuantity;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with output quantity 5 and scrap quantity 3
@@ -776,11 +776,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithQuantity
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithQuantity
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithQuantity;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithQuantity;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with no output quantity and no scrap quantity
@@ -833,11 +833,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithScrap
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithScrap;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with only output quantity of 5
@@ -890,11 +890,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Modify();
 
         // [GIVEN] Generation rule trigger is set to OnProductionOutputPost
-        // [GIVEN] Setup Auto Output Configuration is set to OnlyWithScrap
+        // [GIVEN] Setup Prod. trigger output condition is set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithScrap;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with scrap quantity of 5 and no output quantity
@@ -958,11 +958,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] Quality management setup has Auto Output Configuration set to OnlyWithScrap
+        // [GIVEN] Quality management setup has Prod. trigger output condition set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithScrap;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with output quantity 5 and scrap quantity 3
@@ -1027,11 +1027,11 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         ProdOrderLine.Validate(Quantity, 10);
         ProdOrderLine.Modify();
 
-        // [GIVEN] Quality management setup has Auto Output Configuration set to OnlyWithScrap
+        // [GIVEN] Quality management setup has Prod. trigger output condition set to OnlyWithScrap
         QltyManagementSetup.Get();
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOutputPost;
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost;
         QltyInspectionGenRule.Modify();
-        QltyManagementSetup."Auto Output Configuration" := QltyManagementSetup."Auto Output Configuration"::OnlyWithScrap;
+        QltyManagementSetup."Prod. trigger output condition" := QltyManagementSetup."Prod. trigger output condition"::OnlyWithScrap;
         QltyManagementSetup.Modify();
 
         // [GIVEN] An output journal is created with no output quantity and no scrap quantity
@@ -1102,8 +1102,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
@@ -1168,8 +1168,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
@@ -1228,8 +1228,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
@@ -1294,8 +1294,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
             ManufacturingSetup.Modify();
         end;
 
-        // [GIVEN] Inspection generation rule has Production Trigger set to OnProductionOrderRelease
-        QltyInspectionGenRule."Production Trigger" := QltyInspectionGenRule."Production Trigger"::OnProductionOrderRelease;
+        // [GIVEN] Inspection generation rule has Production Order Trigger set to OnProductionOrderRelease
+        QltyInspectionGenRule."Production Order Trigger" := QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease;
         QltyInspectionGenRule.Modify();
 
         // [WHEN] The production order status is changed to Released
@@ -1344,8 +1344,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderLine, ProdOrderRoutingLine, ProdProductionOrder, UnusedVariant, false, '', QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1414,8 +1413,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdProductionOrder, ProdOrderLine, ProdOrderRoutingLine, UnusedVariant, false, '', QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1484,8 +1482,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] All source record IDs have "Released" status (note: third ID is not checked due to variant ordering)
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '', QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1553,8 +1550,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, UnusedVariant, false, '', QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1623,8 +1619,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] All three source record IDs have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, UnusedVariant, false, '', QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
@@ -1704,8 +1699,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdProductionOrder, ProdOrderLine, false, '', QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1785,8 +1779,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderRoutingLine, ProdOrderLine, ProdProductionOrder, false, '', QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -1866,8 +1859,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         // [GIVEN] A quality inspection is created with variants in order: ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine
         // [GIVEN] Source record IDs 2, 3, and 4 have "Released" status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine, false, '');
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspectionWithMultiVariantsAndTemplate(ItemJournalLine, ProdOrderLine, ProdProductionOrder, ProdOrderRoutingLine, false, '', QltyInspectionHeader);
         RecordIdSecond := Format(QltyInspectionHeader."Source RecordId 2");
         RecordIdThird := Format(QltyInspectionHeader."Source RecordId 3");
         RecordIdFourth := Format(QltyInspectionHeader."Source RecordId 4");
@@ -2079,6 +2071,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
         Item: Record Item;
         ProdProductionOrder: Record "Production Order";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        QltyManagementSetup: Record "Qlty. Management Setup";
         BeforeCount: Integer;
         CountOfRoutingLines: Integer;
     begin
@@ -2087,6 +2080,10 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] Quality management setup exists
         QltyInspectionUtility.EnsureSetupExists();
+        LibrarySetupStorage.Save(Database::"Qlty. Management Setup");
+        QltyManagementSetup.Get();
+        QltyManagementSetup."Inspection Creation Option" := QltyManagementSetup."Inspection Creation Option"::"Always create new inspection";
+        QltyManagementSetup.Modify();
 
         // [GIVEN] A quality inspection template is created with 3 lines
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 3);
@@ -2094,7 +2091,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] An inspection generation rule is created for Prod. Order Routing Line with OnReleasedProductionOrderRefresh trigger
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Prod. Order Routing Line", QltyInspectionGenRule);
-        QltyInspectionGenRule.Validate("Production Trigger", QltyInspectionGenRule."Production Trigger"::OnReleasedProductionOrderRefresh);
+        QltyInspectionGenRule.Validate("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnReleasedProductionOrderRefresh);
         QltyInspectionGenRule.Modify(true);
 
         // [GIVEN] An item and production order are created with routing lines
@@ -2116,6 +2113,8 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [THEN] Inspections are created for each routing line
         LibraryAssert.AreEqual(BeforeCount + CountOfRoutingLines, QltyInspectionHeader.Count(), 'Inspection(s) was not created.');
+
+        LibrarySetupStorage.Restore();
     end;
 
     [Test]
@@ -2152,8 +2151,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] A quality inspection is created for the production order with Released status
         RecordRef.GetTable(ProdProductionOrder);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
@@ -2213,8 +2211,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] A quality inspection is created for the production order line with Released status
         RecordRef.GetTable(ProdOrderLine);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');
@@ -2274,8 +2271,7 @@ codeunit 139966 "Qlty. Tests - Prod. Integr."
 
         // [GIVEN] A quality inspection is created for the production order routing line with Released status
         RecordRef.GetTable(ProdOrderRoutingLine);
-        QltyInspectionCreate.CreateInspection(RecordRef, false);
-        QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+        QltyInspectionUtility.CreateInspection(RecordRef, false, QltyInspectionHeader);
         RecordId := Format(QltyInspectionHeader."Source RecordId");
 
         LibraryAssert.IsTrue(RecordId.IndexOf('Released') > 0, 'The source record ID should have the "released" status.');

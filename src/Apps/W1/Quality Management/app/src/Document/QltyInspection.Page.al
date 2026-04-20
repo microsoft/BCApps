@@ -21,7 +21,7 @@ using Microsoft.Warehouse.Structure;
 using System.Device;
 
 /// <summary>
-/// Primary location to enter Quality Inspection information.
+/// Quality Inspection document.
 /// </summary>
 page 20406 "Qlty. Inspection"
 {
@@ -41,6 +41,7 @@ page 20406 "Qlty. Inspection"
             group(General)
             {
                 Caption = 'General';
+                Editable = IsOpen;
 
                 field("No."; Rec."No.")
                 {
@@ -50,9 +51,13 @@ page 20406 "Qlty. Inspection"
                 {
                     Editable = false;
                 }
-                field("Template Code"; Rec."Template Code")
+                field("Most Recent Re-inspection"; Rec."Most Recent Re-inspection")
                 {
                     Editable = false;
+                    Importance = Additional;
+                }
+                field("Template Code"; Rec."Template Code")
+                {
                 }
                 field(Description; Rec.Description)
                 {
@@ -61,11 +66,11 @@ page 20406 "Qlty. Inspection"
                 {
                     Importance = Additional;
                 }
-                group(SettingsForPassAndFailQty)
+                group(PassAndFailQty)
                 {
                     ShowCaption = false;
 
-                    group(SettingsForSourceQuantityNonAQL)
+                    group(SourceQuantityNonAQL)
                     {
                         Caption = 'Quantity';
 
@@ -90,13 +95,14 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForGradingAndStatus)
+                group(GradingAndStatus)
                 {
                     Caption = 'Status';
 
                     field(Status; Rec.Status)
                     {
                         Editable = false;
+                        StyleExpr = StatusStyleExpr;
                     }
                     field("Finished Date"; Rec."Finished Date")
                     {
@@ -110,9 +116,11 @@ page 20406 "Qlty. Inspection"
                     field("Result Code"; Rec."Result Code")
                     {
                         Importance = Additional;
+                        StyleExpr = ResultStyleExpr;
                     }
                     field("Result Description"; Rec."Result Description")
                     {
+                        StyleExpr = ResultStyleExpr;
                     }
                     field("Evaluation Sequence"; Rec."Evaluation Sequence")
                     {
@@ -120,7 +128,7 @@ page 20406 "Qlty. Inspection"
                         Visible = false;
                     }
                 }
-                group(SettingsForItemTracking)
+                group(ItemTracking)
                 {
                     Caption = 'Item Tracking';
 
@@ -132,22 +140,22 @@ page 20406 "Qlty. Inspection"
                     {
                         Editable = false;
                     }
-                    field("Serial No."; Rec."Source Serial No.")
-                    {
-                        Editable = CanChangeSerialTracking;
-
-                        trigger OnAssistEdit()
-                        begin
-                            Rec.AssistEditSerialNo();
-                        end;
-                    }
-                    field("Lot No."; Rec."Source Lot No.")
+                    field("Source Lot No."; Rec."Source Lot No.")
                     {
                         Editable = CanChangeLotTracking;
 
                         trigger OnAssistEdit()
                         begin
                             Rec.AssistEditLotNo();
+                        end;
+                    }
+                    field("Source Serial No."; Rec."Source Serial No.")
+                    {
+                        Editable = CanChangeSerialTracking;
+
+                        trigger OnAssistEdit()
+                        begin
+                            Rec.AssistEditSerialNo();
                         end;
                     }
                     field("Source Package No."; Rec."Source Package No.")
@@ -160,7 +168,7 @@ page 20406 "Qlty. Inspection"
                         end;
                     }
                 }
-                group(SettingsForStatistics)
+                group(Statistics)
                 {
                     Caption = 'Statistics';
 
@@ -213,6 +221,7 @@ page 20406 "Qlty. Inspection"
             }
             part(Lines; "Qlty. Inspection Subform")
             {
+                Editable = IsOpen;
                 Caption = 'Lines';
                 SubPageLink = "Inspection No." = field("No."),
                               "Re-inspection No." = field("Re-inspection No.");
@@ -220,13 +229,12 @@ page 20406 "Qlty. Inspection"
             group(ControlInfo)
             {
                 Caption = 'Control Information';
-
                 field("Source Table No."; Rec."Source Table No.")
                 {
                     Editable = false;
                     Importance = Additional;
                 }
-                field("Table Name"; Rec."Table Name")
+                field("Table Name"; Rec."Source Table Name")
                 {
                     Editable = false;
                     Importance = Additional;
@@ -246,7 +254,7 @@ page 20406 "Qlty. Inspection"
                     ToolTip = 'Specifies the triggering record that caused this Quality Inspection to be created.';
                     Importance = Additional;
                 }
-                group(SettingsForSourceTypeVisibility)
+                group(SourceTypeVisibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleSourceType;
@@ -258,7 +266,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Type');
                     }
                 }
-                group(SettingsForSourceSubTypeVisibility)
+                group(SourceSubTypeVisibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleSourceSubType;
@@ -270,7 +278,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Sub Type');
                     }
                 }
-                group(SettingsForSourceDocNoVisibility)
+                group(SourceDocNoVisibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleDocumentNo;
@@ -281,7 +289,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Document No.');
                     }
                 }
-                group(SettingsForSourceDocLineNoVisibility)
+                group(SourceDocLineNoVisibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleDocumentLineNo;
@@ -292,7 +300,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Document Line No.');
                     }
                 }
-                group(SettingsForSourceTaskNoVisibility)
+                group(SourceTaskNoVisibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleSourceTaskNo;
@@ -303,7 +311,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Task No.');
                     }
                 }
-                group(SettingsForSourceCustom1Visibility)
+                group(SourceCustom1Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom1;
@@ -314,7 +322,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Custom 1');
                     }
                 }
-                group(SettingsForSourceCustom2Visibility)
+                group(SourceCustom2Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom2;
@@ -325,7 +333,7 @@ page 20406 "Qlty. Inspection"
                         CaptionClass = '3,' + Rec.GetControlCaptionClass('Source Custom 2');
                     }
                 }
-                group(SettingsForSourceCustom3Visibility)
+                group(SourceCustom3Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom3;
@@ -337,7 +345,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom4Visibility)
+                group(SourceCustom4Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom4;
@@ -349,7 +357,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom5Visibility)
+                group(SourceCustom5Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom5;
@@ -361,7 +369,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom6Visibility)
+                group(SourceCustom6Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom6;
@@ -373,7 +381,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom7Visibility)
+                group(SourceCustom7Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom7;
@@ -385,7 +393,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom8Visibility)
+                group(SourceCustom8Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom8;
@@ -397,7 +405,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom9Visibility)
+                group(SourceCustom9Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom9;
@@ -409,7 +417,7 @@ page 20406 "Qlty. Inspection"
                         Importance = Additional;
                     }
                 }
-                group(SettingsForSourceCustom10Visibility)
+                group(SourceCustom10Visibility)
                 {
                     ShowCaption = false;
                     Visible = VisibleCustom10;
@@ -460,23 +468,30 @@ page 20406 "Qlty. Inspection"
         {
             action("Create Re-inspection")
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Re-inspection';
                 Image = Reuse;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Create Re-inspection';
-                Enabled = CanCreateReinspection;
+                ToolTip = 'Create a new re-inspection based on this inspection. If the inspection is still open, it will be finished first. Finishing may be blocked if the current result does not allow it.';
 
                 trigger OnAction()
+                var
+                    CreatedReinspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection();
+                    Rec.CreateReinspection(CreatedReinspectionHeader);
                     CurrPage.Update(false);
+                    if not IsNullGuid(CreatedReinspectionHeader.SystemId) then begin
+                        Commit();
+                        Page.Run(Page::"Qlty. Inspection", CreatedReinspectionHeader);
+                    end;
                 end;
             }
             action(ChangeStatusFinish)
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Finish';
                 Image = ReleaseDoc;
                 Promoted = true;
@@ -494,6 +509,7 @@ page 20406 "Qlty. Inspection"
             }
             action(ChangeStatusReopen)
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Reopen';
                 Image = ReOpen;
                 Promoted = true;
@@ -518,7 +534,7 @@ page 20406 "Qlty. Inspection"
 
                 trigger OnAction()
                 begin
-                    Rec.TakeNewPicture();
+                    Rec.TakeNewMostRecentPicture();
                 end;
             }
             action(MoveToBin)
@@ -554,7 +570,7 @@ page 20406 "Qlty. Inspection"
             action(Transfer)
             {
                 Caption = 'Create Transfer Order';
-                Image = NewShipment;
+                Image = NewTransferOrder;
                 ToolTip = 'Transfer related inventory to a different location.';
 
                 trigger OnAction()
@@ -569,7 +585,7 @@ page 20406 "Qlty. Inspection"
             action(CreateNegativeAdjustment)
             {
                 Caption = 'Create Negative Adjustment';
-                Image = CalculateWarehouseAdjustment;
+                Image = MoveNegativeLines;
                 ToolTip = 'Reduce inventory quantity, for disposal after performing destructive testing or doing a stock write-off for damage or spoilage.';
 
                 trigger OnAction()
@@ -584,7 +600,7 @@ page 20406 "Qlty. Inspection"
             action(ChangeItemTracking)
             {
                 Caption = 'Change Item Tracking';
-                Image = CalculateWarehouseAdjustment;
+                Image = ItemTrackingLedger;
                 ToolTip = 'Change Item Tracking Information.';
 
                 trigger OnAction()
@@ -599,7 +615,7 @@ page 20406 "Qlty. Inspection"
             action(CreatePurchaseReturnOrder)
             {
                 Caption = 'Create Purchase Return Order';
-                Image = PurchaseCreditMemo;
+                Image = ReturnOrder;
                 ToolTip = 'Create a Purchase Return Order.';
 
                 trigger OnAction()
@@ -639,7 +655,7 @@ page 20406 "Qlty. Inspection"
                 PromotedCategory = Report;
                 Caption = 'Non Conformance Report';
                 ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
-                Image = Certificate;
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -659,7 +675,7 @@ page 20406 "Qlty. Inspection"
                 PromotedCategory = Report;
                 Caption = 'Inspection Report';
                 ToolTip = 'General purpose inspection report.';
-                Image = Certificate;
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -701,9 +717,9 @@ page 20406 "Qlty. Inspection"
 
                 trigger OnAction()
                 var
-                    QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+                    QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
                 begin
-                    QltyMiscHelpers.NavigateToSourceDocument(Rec);
+                    QltyDocumentNavigation.NavigateToSourceDocument(Rec);
                 end;
             }
             action(FindEntries)
@@ -716,16 +732,18 @@ page 20406 "Qlty. Inspection"
 
                 trigger OnAction()
                 var
-                    QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+                    QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
                 begin
-                    QltyMiscHelpers.NavigateToFindEntries(Rec);
+                    QltyDocumentNavigation.NavigateToFindEntries(Rec);
                 end;
             }
-            group(SettingsForItemAvailabilityBy)
+#pragma warning disable AS0031
+#pragma warning disable AS0032
+            group(ItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
                 Image = ItemAvailability;
-                action(tItemAvailabilityByEvent)
+                action(ItemAvailabilityByEvent)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Event';
@@ -741,7 +759,7 @@ page 20406 "Qlty. Inspection"
                         AvailItemAvailabilityFormsMgt.ShowItemAvailabilityFromItem(Item, "Item Availability Type"::"Event");
                     end;
                 }
-                action(Period)
+                action(ItemAvailabilityByPeriod)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Period';
@@ -752,7 +770,7 @@ page 20406 "Qlty. Inspection"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'Show the projected quantity of the item over time according to time periods, such as day, week, or month.';
                 }
-                action(Variant)
+                action(ItemAvailabilityByVariant)
                 {
                     ApplicationArea = Planning;
                     Caption = 'Variant';
@@ -763,7 +781,7 @@ page 20406 "Qlty. Inspection"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'View the current and projected quantity of the item for each variant.';
                 }
-                action(Location)
+                action(ItemAvailabilityByLocation)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Location';
@@ -774,7 +792,7 @@ page 20406 "Qlty. Inspection"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'View the actual and projected quantity of the item per location.';
                 }
-                action(Lot)
+                action(ItemAvailabilityByLot)
                 {
                     ApplicationArea = ItemTracking;
                     Caption = 'Lot';
@@ -783,7 +801,7 @@ page 20406 "Qlty. Inspection"
                     RunPageLink = "No." = field("Source Item No.");
                     ToolTip = 'View the current and projected quantity of the item for each lot.';
                 }
-                action(BinContents)
+                action(ItemAvailabilityByBinContents)
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Bin Contents';
@@ -794,10 +812,10 @@ page 20406 "Qlty. Inspection"
                     ToolTip = 'View the quantities of the item in each bin where it exists. You can see all the important parameters relating to bin content, and you can modify certain bin content parameters in this window.';
                 }
             }
-            action(tShowTransfers)
+            action(ShowRelatedTransferDocuments)
             {
                 Caption = 'Show Related Transfer Documents';
-                Image = View;
+                Image = TransferOrder;
                 ApplicationArea = All;
                 ToolTip = 'Show all related transfer documents for this inspection.';
 
@@ -806,36 +824,26 @@ page 20406 "Qlty. Inspection"
                     Rec.RunModalRelatedTransfers();
                 end;
             }
+#pragma warning restore AS0032
+#pragma warning restore AS0031
         }
     }
 
-    protected var
+    var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         Camera: Codeunit Camera;
+        ResultStyleExpr: Text;
         CameraAvailable: Boolean;
+        IsOpen: Boolean;
         CanReopen: Boolean;
         CanFinish: Boolean;
-        CanCreateReinspection: Boolean;
-        CanChangeLotTracking: Boolean;
-        CanChangeSerialTracking: Boolean;
-        CanChangePackageTracking: Boolean;
-        VisibleCustom10: Boolean;
-        VisibleCustom9: Boolean;
-        VisibleCustom8: Boolean;
-        VisibleCustom7: Boolean;
-        VisibleCustom6: Boolean;
-        VisibleCustom5: Boolean;
-        VisibleCustom4: Boolean;
-        VisibleCustom3: Boolean;
-        VisibleCustom2: Boolean;
-        VisibleCustom1: Boolean;
-        VisibleDocumentNo: Boolean;
-        VisibleDocumentLineNo: Boolean;
-        VisibleSourceTaskNo: Boolean;
-        VisibleSourceSubType: Boolean;
-        VisibleSourceType: Boolean;
+        CanChangeLotTracking, CanChangeSerialTracking, CanChangePackageTracking : Boolean;
+        VisibleCustom1, VisibleCustom2, VisibleCustom3, VisibleCustom4, VisibleCustom5, VisibleCustom6, VisibleCustom7, VisibleCustom8, VisibleCustom9, VisibleCustom10 : Boolean;
+        VisibleDocumentNo, VisibleDocumentLineNo : Boolean;
+        VisibleSourceTaskNo, VisibleSourceType, VisibleSourceSubType : Boolean;
         CanChangeQuantity: Boolean;
+        StatusStyleExpr: Text;
 
     trigger OnOpenPage()
     begin
@@ -845,6 +853,8 @@ page 20406 "Qlty. Inspection"
     trigger OnAfterGetRecord()
     begin
         UpdateControlVisibilityStates(true);
+
+        ResultStyleExpr := Rec.GetResultStyle();
     end;
 
     trigger OnModifyRecord(): Boolean
@@ -856,11 +866,13 @@ page 20406 "Qlty. Inspection"
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
-        CanReopen := QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
-        CanFinish := QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
-        CanCreateReinspection := QltyPermissionMgmt.CanCreateReinspection();
-        if Rec.Status = Rec.Status::Open then
-            if QltyPermissionMgmt.CanChangeTrackingNo() then begin
+        IsOpen := Rec.Status = Rec.Status::Open;
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
+
+        CanReopen := (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
+        CanFinish := Rec.Status <> Rec.Status::Finished;
+        if IsOpen then
+            if QltyPermissionMgmt.CanChangeItemTracking() then begin
                 TempItemTrackingSetup."Lot No. Required" := true;
                 TempItemTrackingSetup."Serial No. Required" := true;
                 TempItemTrackingSetup."Package No. Required" := true;
@@ -871,7 +883,7 @@ page 20406 "Qlty. Inspection"
             end;
         CanChangeQuantity := QltyPermissionMgmt.CanChangeSourceQuantity();
 
-        Rec.CalcFields("Table Name");
+        Rec.CalcFields("Source Table Name");
         Rec.DetermineControlInformation(Rec.FieldName("Source Custom 1"));
         Rec.DetermineControlInformation(Rec.FieldName("Source Custom 2"));
         Rec.DetermineControlInformation(Rec.FieldName("Source Custom 3"));
@@ -916,7 +928,7 @@ page 20406 "Qlty. Inspection"
             if Rec."Source Item No." <> '' then
                 exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Source Item No." + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Result Description") + ' - ' + Format(Rec.Status))
             else
-                exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Table Name" + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Result Description") + ' - ' + Format(Rec.Status));
+                exit(Rec."No." + ' - ' + Rec."Template Code" + ' - ' + Rec."Source Table Name" + ' - ' + Rec."Source Document No." + ' - ' + Format(Rec."Result Description") + ' - ' + Format(Rec.Status));
         end else begin
             DataCaptionExpression := QltyExpressionMgmt.EvaluateTextExpression(DataCaptionExpression, Rec);
             exit(DataCaptionExpression);

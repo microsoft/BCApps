@@ -18,6 +18,7 @@ codeunit 7788 "AOAI Policy Params Impl"
         IsXPIADetectionEnabled: Boolean;
         CustomAOAIPolicy: Text;
         Initialized: Boolean;
+        IsDefault: Boolean;
         TelemetryCouldNotResolveAOAIPolicyParamsLbl: Label 'Unable to resolve the AOAI Policy params. Returned the default AOAI Policy instead.', Locked = true;
 
     procedure GetHarmsSeverity(): Enum "AOAI Policy Harms Severity"
@@ -41,6 +42,8 @@ codeunit 7788 "AOAI Policy Params Impl"
         if not Initialized then
             InitializeDefaults();
 
+        IsDefault := false;
+
         HarmsSeverity := NewHarmsSeverity;
     end;
 
@@ -48,6 +51,8 @@ codeunit 7788 "AOAI Policy Params Impl"
     begin
         if not Initialized then
             InitializeDefaults();
+
+        IsDefault := false;
 
         IsXPIADetectionEnabled := IsEnabled;
     end;
@@ -64,6 +69,8 @@ codeunit 7788 "AOAI Policy Params Impl"
     begin
         if not Initialized then
             InitializeDefaults();
+
+        IsDefault := false;
 
         CustomAOAIPolicy := NewCustomAOAIPolicy;
     end;
@@ -105,9 +112,18 @@ codeunit 7788 "AOAI Policy Params Impl"
 
     procedure InitializeDefaults()
     begin
+        IsDefault := true;
         Initialized := true;
         HarmsSeverity := "AOAI Policy Harms Severity"::Low;
         IsXPIADetectionEnabled := true;
         CustomAOAIPolicy := '';
+    end;
+
+    procedure IsDefaultPolicy(): Boolean
+    begin
+        if not Initialized then
+            exit(true);
+
+        exit(IsDefault);
     end;
 }

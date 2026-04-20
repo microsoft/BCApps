@@ -5,7 +5,6 @@
 
 namespace System.DataAdministration;
 
-using System.Environment.Configuration;
 
 /// <summary>
 /// This codeunit contains helper methods for retention policy setups.
@@ -140,16 +139,18 @@ codeunit 3902 "Retention Policy Setup"
         exit(RetentionPolicySetupImpl.FindOrCreateRetentionPeriod(RetentionPeriodCode, RetentionPeriodEnum, RetPeriodCalc))
     end;
 
-    // these event subscribers are here because the Impl. codeunit has a manual subscriber
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", OnRegisterManualSetup, '', true, true)]
-    local procedure AddRetentionPolicyOnRegisterManualSetup(sender: Codeunit "Guided Experience")
+    /// <summary>
+    /// Truncates all records in the table specified by the retention policy setup.
+    /// </summary>
+    /// <param name="RetentionPolicySetup">The retention policy setup record that specifies the table to truncate.</param>
+    procedure TruncateTableRecords(RetentionPolicySetup: Record "Retention Policy Setup")
     var
         RetentionPolicySetupImpl: Codeunit "Retention Policy Setup Impl.";
     begin
-        RetentionPolicySetupImpl.AddRetentionPolicyOnRegisterManualSetup(sender)
+        RetentionPolicySetupImpl.TruncateTableRecords(RetentionPolicySetup);
     end;
 
+    // these event subscribers are here because the Impl. codeunit has a manual subscriber
     [EventSubscriber(ObjectType::Table, Database::"Retention Period", OnBeforeDeleteEvent, '', true, true)]
     local procedure VerifyRetentionPolicySetupOnbeforeDeleteRetentionPeriod(var Rec: Record "Retention Period")
     var

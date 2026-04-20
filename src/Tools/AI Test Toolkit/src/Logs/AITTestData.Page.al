@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149041 "AIT Test Data"
 {
-    Caption = 'AI Test Data';
+    Caption = 'AI Eval Data';
     PageType = CardPart;
     ApplicationArea = All;
     Editable = false;

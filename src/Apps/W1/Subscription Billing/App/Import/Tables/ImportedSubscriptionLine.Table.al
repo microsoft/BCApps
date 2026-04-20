@@ -314,4 +314,17 @@ table 8009 "Imported Subscription Line"
                 "Currency Factor" := CurrExchRate.ExchangeRate("Currency Factor Date", "Currency Code");
         end
     end;
+
+    internal procedure GetInvoicingItemNo(): Code[20]
+    var
+        SubscriptionHeader: Record "Subscription Header";
+        ContractsItemManagement: Codeunit "Sub. Contracts Item Management";
+    begin
+        if Rec."Invoicing Item No." <> '' then
+            exit(Rec."Invoicing Item No.");
+        if SubscriptionHeader.Get(Rec."Subscription Header No.") then
+            if SubscriptionHeader.IsItem() then
+                if ContractsItemManagement.IsServiceCommitmentItem(SubscriptionHeader."Source No.") then
+                    exit(SubscriptionHeader."Source No.");
+    end;
 }

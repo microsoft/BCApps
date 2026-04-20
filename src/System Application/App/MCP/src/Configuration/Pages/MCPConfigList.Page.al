@@ -5,10 +5,6 @@
 
 namespace System.MCP;
 
-#if not CLEAN28
-using System.Environment.Configuration;
-#endif
-
 page 8350 "MCP Config List"
 {
     PageType = List;
@@ -32,11 +28,31 @@ page 8350 "MCP Config List"
         {
             repeater(Control1)
             {
-                field(Name; Rec.Name) { }
-                field(Description; Rec.Description) { }
-                field(Active; Rec.Active) { }
-                field(EnableDynamicToolMode; Rec.EnableDynamicToolMode) { }
-                field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects) { }
+                field(Name; Rec.Name)
+                {
+                    ToolTip = 'Specifies the name of the MCP configuration.';
+                }
+                field(Description; Rec.Description)
+                {
+                    ToolTip = 'Specifies the description of the MCP configuration.';
+                }
+                field(Active; Rec.Active)
+                {
+                    ToolTip = 'Specifies whether the MCP configuration is active.';
+                }
+                field(Default; Rec.Default)
+                {
+                    ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection.';
+                    Editable = false;
+                }
+                field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
+                {
+                    ToolTip = 'Specifies whether to enable dynamic tool mode for this MCP configuration. When enabled, clients can search for tools within the configuration dynamically.';
+                }
+                field(DiscoverReadOnlyObjects; Rec.DiscoverReadOnlyObjects)
+                {
+                    ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration. Only supported with dynamic tool mode.';
+                }
             }
         }
     }
@@ -50,10 +66,10 @@ page 8350 "MCP Config List"
                 Caption = 'Copy';
                 ToolTip = 'Creates a copy of the current MCP configuration, including its tools and permissions.';
                 Image = Copy;
+                AccessByPermission = tabledata "MCP Configuration" = IM;
+                Scope = Repeater;
 
                 trigger OnAction()
-                var
-                    MCPConfigImplementation: Codeunit "MCP Config Implementation";
                 begin
                     MCPConfigImplementation.CopyConfiguration(Rec.SystemId);
                 end;
@@ -61,32 +77,117 @@ page 8350 "MCP Config List"
         }
         area(Processing)
         {
-            action(MCPEntraApplications)
+            action(GiveFeedback)
             {
-                Caption = 'Entra Applications';
-                ToolTip = 'View registered Entra applications and their Client IDs for MCP client configuration.';
-                Image = Setup;
-                RunObject = page "MCP Entra Application List";
-            }
-            action(GenerateConnectionString)
-            {
-                Caption = 'Connection String';
-                ToolTip = 'Generate a connection string for this MCP configuration to use in your MCP client.';
-                Image = Export;
+                Caption = 'Give Feedback';
+                ToolTip = 'Share your feedback about the MCP server experience.';
+                Image = Comment;
 
                 trigger OnAction()
-                var
-                    MCPConfigImplementation: Codeunit "MCP Config Implementation";
                 begin
-                    MCPConfigImplementation.ShowConnectionString(Rec.Name);
+                    MCPConfigImplementation.TriggerGeneralFeedback();
                 end;
+            }
+            group(Advanced)
+            {
+                Caption = 'Advanced';
+                Image = Setup;
+
+                action(GenerateConnectionString)
+                {
+                    Caption = 'Connection String';
+                    ToolTip = 'Generate a connection string for this MCP configuration to use in your MCP client.';
+                    Image = Link;
+                    Scope = Repeater;
+
+                    trigger OnAction()
+                    begin
+                        MCPConfigImplementation.ShowConnectionString(Rec.Name);
+                    end;
+                }
+                action(MCPEntraApplications)
+                {
+                    Caption = 'Entra Applications';
+                    ToolTip = 'View registered Entra applications and their Client IDs for MCP client configuration.';
+                    Image = Setup;
+                    RunObject = page "MCP Entra Application List";
+                }
+                action(ExportConfiguration)
+                {
+                    Caption = 'Export';
+                    ToolTip = 'Export the selected MCP configuration and its tools to a JSON file.';
+                    Image = Export;
+                    Scope = Repeater;
+
+                    trigger OnAction()
+                    begin
+                        MCPConfigImplementation.ExportConfigurationToFile(Rec.SystemId, Rec.Name);
+                    end;
+                }
+                action(ImportConfiguration)
+                {
+                    Caption = 'Import';
+                    ToolTip = 'Import an MCP configuration and its tools from a JSON file.';
+                    Image = Import;
+                    AccessByPermission = tabledata "MCP Configuration" = IM;
+
+                    trigger OnAction()
+                    begin
+                        MCPConfigImplementation.ImportConfigurationFromFile();
+                        CurrPage.Update(false);
+                    end;
+                }
+                action(SetAsDefault)
+                {
+                    Caption = 'Set as Default';
+                    ToolTip = 'Set this configuration as the default. It will be used when no configuration is specified by a connection.';
+                    Image = Approve;
+                    AccessByPermission = tabledata "MCP Configuration" = M;
+                    Scope = Repeater;
+                    Enabled = not Rec.Default;
+
+                    trigger OnAction()
+                    var
+                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                    begin
+                        MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId);
+                        CurrPage.Update(false);
+                    end;
+                }
+                action(ClearDefault)
+                {
+                    Caption = 'Clear Default';
+                    ToolTip = 'Remove the default designation from this configuration. The system will revert to built-in default settings.';
+                    Image = Undo;
+                    AccessByPermission = tabledata "MCP Configuration" = M;
+                    Scope = Repeater;
+                    Enabled = Rec.Default;
+
+                    trigger OnAction()
+                    var
+                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                    begin
+                        MCPConfigImplementation.ClearDefaultConfiguration();
+                        CurrPage.Update(false);
+                    end;
+                }
             }
         }
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
-            actionref(Promoted_MCPEntraApplications; MCPEntraApplications) { }
-            actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
+            actionref(Promoted_SetAsDefault; SetAsDefault) { }
+            actionref(Promoted_ClearDefault; ClearDefault) { }
+            actionref(Promoted_GiveFeedback; GiveFeedback) { }
+            group(Promoted_Advanced)
+            {
+                Caption = 'Advanced';
+
+                actionref(Promoted_GenerateConnectionString; GenerateConnectionString) { }
+                actionref(Promoted_MCPEntraApplications; MCPEntraApplications) { }
+                actionref(Promoted_ExportConfiguration; ExportConfiguration) { }
+                actionref(Promoted_ImportConfiguration; ImportConfiguration) { }
+            }
         }
     }
 
@@ -99,23 +200,22 @@ page 8350 "MCP Config List"
         }
     }
 
-#if not CLEAN28
     trigger OnOpenPage()
-    var
-        MCPConfigImplementation: Codeunit "MCP Config Implementation";
-        FeatureNotEnabledErrorInfo: ErrorInfo;
     begin
-        if MCPConfigImplementation.IsFeatureEnabled() then
+        HadActiveConfigsOnOpen := not MCPConfigImplementation.HasNoActiveConfigurations();
+    end;
+
+    trigger OnQueryClosePage(CloseAction: Action): Boolean
+    begin
+        if not HadActiveConfigsOnOpen then
             exit;
 
-        FeatureNotEnabledErrorInfo.Message := FeatureNotEnabledErr;
-        FeatureNotEnabledErrorInfo.AddNavigationAction(GoToFeatureManagementLbl);
-        FeatureNotEnabledErrorInfo.PageNo := Page::"Feature Management";
-        Error(FeatureNotEnabledErrorInfo);
+        if MCPConfigImplementation.HasNoActiveConfigurations() then
+            MCPConfigImplementation.TriggerNoActiveConfigsFeedback();
     end;
 
     var
-        FeatureNotEnabledErr: Label 'MCP server feature is not enabled. Please contact your system administrator to enable the feature.';
-        GoToFeatureManagementLbl: Label 'Go to Feature Management';
-#endif
+        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+        HadActiveConfigsOnOpen: Boolean;
+
 }

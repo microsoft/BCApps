@@ -6,14 +6,15 @@
 namespace System.TestTools.AITestToolkit;
 
 /// <summary>
-/// Specifies the type of AI test.
+/// Specifies the type of AI eval.
 /// </summary>
-enum 149041 "AIT Test Type"
+enum 149041 "AIT Test Type" implements "AIT Eval Limit Provider"
 {
     Extensible = false;
+    DefaultImplementation = "AIT Eval Limit Provider" = "AIT Eval No Limit";
 
     /// <summary>
-    /// Copilot test type.
+    /// Copilot eval type.
     /// </summary>
     value(0; Copilot)
     {
@@ -21,15 +22,16 @@ enum 149041 "AIT Test Type"
     }
 
     /// <summary>
-    /// Agent test type.
+    /// Agent eval type.
     /// </summary>
     value(1; Agent)
     {
         Caption = 'Agent';
+        Implementation = "AIT Eval Limit Provider" = "AIT Eval Monthly Copilot Cred.";
     }
 
     /// <summary>
-    /// MCP test type.
+    /// MCP eval type.
     /// </summary>
     value(2; MCP)
     {

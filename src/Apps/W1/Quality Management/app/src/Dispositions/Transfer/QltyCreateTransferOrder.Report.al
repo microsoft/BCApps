@@ -12,12 +12,12 @@ using Microsoft.Warehouse.Structure;
 report 20410 "Qlty. Create Transfer Order"
 {
     Caption = 'Quality Management - Create Transfer Order';
-    ApplicationArea = QualityManagement;
-    AdditionalSearchTerms = 'transfer, external, lab, laboratory';
+    ToolTip = 'Use this to transfer items to another location.';
     ProcessingOnly = true;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = Tasks;
+    ApplicationArea = QualityManagement;
     AllowScheduling = false;
-    Description = 'Use this to transfer items to another location.';
 
     dataset
     {
@@ -43,7 +43,7 @@ report 20410 "Qlty. Create Transfer Order"
         {
             area(Content)
             {
-                group(SettingsForQuantity)
+                group(Quantity)
                 {
                     Caption = 'Quantity';
                     InstructionalText = 'The quantity of the item that will be transferred to another location.';
@@ -90,7 +90,7 @@ report 20410 "Qlty. Create Transfer Order"
                             CurrReport.RequestOptionsPage.Update(true);
                         end;
                     }
-                    group(SettingsForSpecificQty)
+                    group(SpecificQty)
                     {
                         ShowCaption = false;
                         Visible = MoveSpecific;
@@ -170,7 +170,7 @@ report 20410 "Qlty. Create Transfer Order"
                         end;
                     }
                 }
-                group(SettingsForSource)
+                group(Source)
                 {
                     Caption = 'Source (optional)';
                     InstructionalText = 'Optional filters that limit where the inventory is transferred from if the inspection covers more than one bin.';
@@ -190,7 +190,7 @@ report 20410 "Qlty. Create Transfer Order"
                         ToolTip = 'Specifies to optionally restrict the bin from which the inventory will be transferred.';
                     }
                 }
-                group(SettingsForDestination)
+                group(GroupDestination)
                 {
                     Caption = 'Destination';
                     InstructionalText = 'The location where the inventory will be transferred.';
@@ -204,7 +204,7 @@ report 20410 "Qlty. Create Transfer Order"
                         ShowMandatory = true;
                     }
                 }
-                group(SettingsForTransfer)
+                group(Transfer)
                 {
                     Caption = 'Transfer Details';
                     InstructionalText = 'If the in-transit code is blank and no Transfer Route between the locations has been defined, the transfer will be direct. If the in-transit code is blank and a Transfer Route is defined, the Transfer Route''s in-transit location will be used.';

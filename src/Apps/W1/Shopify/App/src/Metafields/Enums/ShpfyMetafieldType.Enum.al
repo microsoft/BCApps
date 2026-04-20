@@ -172,4 +172,10 @@ enum 30159 "Shpfy Metafield Type" implements "Shpfy IMetafield Type"
         Caption = 'Company';
         Implementation = "Shpfy IMetafield Type" = "Shpfy Mtfld Type Company Ref";
     }
+
+    value(27; article_reference)
+    {
+        Caption = 'Article';
+        Implementation = "Shpfy IMetafield Type" = "Shpfy Mtfld Type Article Ref";
+    }
 }

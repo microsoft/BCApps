@@ -16,6 +16,9 @@ page 8067 "Recurring Billing"
     SourceTable = "Billing Line";
     SourceTableTemporary = true;
     UsageCategory = Tasks;
+    AdditionalSearchTerms = 'Recurring Billing, Create Invoice, Billing Proposal, Contract Billing, Subscription Billing, Invoice Generation';
+    AboutTitle = 'About Recurring Billing';
+    AboutText = 'Use this page to prepare the billing of subscriptions and contracts. It creates a billing proposal before actual invoicing.';
 
     layout
     {
@@ -28,6 +31,8 @@ page 8067 "Recurring Billing"
                 {
                     Caption = 'Billing Template';
                     ToolTip = 'Specifies the name of the template that is used to calculate billable Subscription Lines.';
+                    AboutTitle = 'Defined views';
+                    AboutText = 'Personalized views help to create billing proposals.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
@@ -124,6 +129,8 @@ page 8067 "Recurring Billing"
                 {
                     ToolTip = 'Specifies the amount for the Subscription Line including discount.';
                     StyleExpr = LineStyleExpr;
+                    AboutTitle = 'What''s the amount to be invoiced?';
+                    AboutText = 'The overview shows what is supposed to be invoiced per subscription and contract.';
                 }
                 field("Unit Cost (LCY)"; Rec."Unit Cost (LCY)")
                 {
@@ -234,6 +241,8 @@ page 8067 "Recurring Billing"
                 Caption = 'Create Billing Proposal';
                 Image = Process;
                 ToolTip = 'Suggests the Subscription Lines to be billed based on the selected billing template. The billing proposal can be supplemented by changing the billing template and calling it up again.';
+                AboutTitle = 'Suggest contract lines to be billed based on the selected criteria.';
+                AboutText = 'The contract lines to be invoiced are proposed before the invoice is issued.';
 
                 trigger OnAction()
                 begin
@@ -247,6 +256,8 @@ page 8067 "Recurring Billing"
                 Image = CreateDocuments;
                 Scope = Page;
                 ToolTip = 'The action creates contract invoices or credit memos for the billing lines displayed on this page.';
+                AboutTitle = 'How to create invoices?';
+                AboutText = 'Invoices can be created in batches and posted immediately if required.';
 
                 trigger OnAction()
                 var

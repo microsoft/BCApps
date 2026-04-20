@@ -12,17 +12,17 @@ using Microsoft.Warehouse.Structure;
 report 20406 "Qlty. Create Internal Put-away"
 {
     Caption = 'Quality Management - Create Internal Put-away';
-    AdditionalSearchTerms = 'Create Internal Put-away,putaway,create internal putaway';
     ProcessingOnly = true;
-    ApplicationArea = Warehouse;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = Tasks;
+    ApplicationArea = Warehouse;
     AllowScheduling = false;
 
     dataset
     {
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "No.", "Re-inspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "Template Code";
+            RequestFilterFields = "No.", "Re-inspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
 
             trigger OnAfterGetRecord()
             var
@@ -52,7 +52,7 @@ report 20406 "Qlty. Create Internal Put-away"
         {
             area(Content)
             {
-                group(SettingsForQuantity)
+                group(Quantity)
                 {
                     Caption = 'Quantity';
                     InstructionalText = 'In most scenarios you will want to move the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the inspection itself.';
@@ -99,7 +99,7 @@ report 20406 "Qlty. Create Internal Put-away"
                             CurrReport.RequestOptionsPage.Update(true);
                         end;
                     }
-                    group(SettingsForSpecificQty)
+                    group(SpecificQty)
                     {
                         ShowCaption = false;
                         Visible = MoveSpecific;
@@ -179,10 +179,10 @@ report 20406 "Qlty. Create Internal Put-away"
                         end;
                     }
                 }
-                group(SettingsForSource)
+                group(Source)
                 {
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit where the inventory is moved from. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire lots you can leave this blank to move all existing inventory regardless of where it currently is.';
+                    InstructionalText = 'Optional filters that limit where the inventory is moved from. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire item tracking combinations you can leave this blank to move all existing inventory regardless of where it currently is.';
 
                     field(ChooseSourceLocationFilter; FilterOfSourceLocation)
                     {
@@ -199,7 +199,7 @@ report 20406 "Qlty. Create Internal Put-away"
                         ToolTip = 'Specifies to optionally limit which bins will be used to pull the inventory from.';
                     }
                 }
-                group(SettingsForReleaseImmediately)
+                group(ReleaseOptions)
                 {
                     Caption = 'Release Now or Later';
 

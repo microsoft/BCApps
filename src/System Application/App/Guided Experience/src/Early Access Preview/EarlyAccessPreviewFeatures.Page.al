@@ -34,7 +34,7 @@ page 1965 "Early Access Preview Features"
             }
             repeater(Features)
             {
-                field("Feature Name"; Rec."Short Title")
+                field("Feature Name"; Rec.Title)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name of the new feature.';
@@ -51,6 +51,16 @@ page 1965 "Early Access Preview Features"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies a description of the new feature.';
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(Rec.Description);
+                    end;
+                }
+                field(Category; Rec.Keywords)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the category of the new feature.';
                 }
                 field("Help URL"; Rec."Help URL")
                 {
@@ -105,7 +115,7 @@ page 1965 "Early Access Preview Features"
                 var
                     Feedback: Codeunit "Microsoft User Feedback";
                 begin
-                    Feedback.RequestFeedback(Rec."Short Title");
+                    Feedback.RequestFeedback(Rec.Title);
                 end;
             }
             action(ViewHelp)

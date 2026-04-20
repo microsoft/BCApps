@@ -25,7 +25,7 @@ codeunit 1965 "Early Access Preview Mgt."
         FeatureNo := 0;
 
         // Load JSON from resource file
-        NavApp.GetResource('EarlyAccessPreviewFeatures.json', InStr);
+        NavApp.GetResource('EarlyAccessPreviewFeatures.json', InStr, TextEncoding::UTF8);
         InStr.Read(FeatureText);
 
         // Parse JSON array
@@ -39,10 +39,13 @@ codeunit 1965 "Early Access Preview Mgt."
                     GuidedExperienceItem.Code := Format(FeatureNo);
 
                     if FeatureObject.Get('FeatureName', FeatureToken) then
-                        GuidedExperienceItem."Short Title" := CopyStr(FeatureToken.AsValue().AsText(), 1, MaxStrLen(GuidedExperienceItem."Short Title"));
+                        GuidedExperienceItem.Title := CopyStr(FeatureToken.AsValue().AsText(), 1, MaxStrLen(GuidedExperienceItem.Title));
 
                     if FeatureObject.Get('Description', FeatureToken) then
                         GuidedExperienceItem.Description := CopyStr(FeatureToken.AsValue().AsText(), 1, MaxStrLen(GuidedExperienceItem.Description));
+
+                    if FeatureObject.Get('Category', FeatureToken) then
+                        GuidedExperienceItem.Keywords := CopyStr(FeatureToken.AsValue().AsText(), 1, MaxStrLen(GuidedExperienceItem.Keywords));
 
                     if FeatureObject.Get('HelpURL', FeatureToken) then
                         GuidedExperienceItem."Help URL" := CopyStr(FeatureToken.AsValue().AsText(), 1, MaxStrLen(GuidedExperienceItem."Help URL"));

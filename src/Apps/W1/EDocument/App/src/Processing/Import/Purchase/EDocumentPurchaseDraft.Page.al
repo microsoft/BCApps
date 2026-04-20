@@ -160,6 +160,26 @@ page 6181 "E-Document Purchase Draft"
                             CurrPage.Update();
                         end;
                     }
+                    field("Vendor Invoice No."; EDocumentPurchaseHeader."Vendor Invoice No.")
+                    {
+                        Caption = 'Vendor Invoice No.';
+                        ToolTip = 'Specifies the vendor''s invoice number referenced in the credit memo billing reference.';
+                        Visible = IsCreditMemo;
+                        Editable = false;
+                    }
+                    field("Applies-to Doc. No."; EDocumentPurchaseHeader."Applies-to Doc. No.")
+                    {
+                        Caption = 'Applies-to Doc. No.';
+                        ToolTip = 'Specifies the posted purchase invoice number in Business Central that this credit memo applies to.';
+                        Visible = IsCreditMemo;
+                        Editable = PageEditable;
+
+                        trigger OnValidate()
+                        begin
+                            EDocumentPurchaseHeader.Modify();
+                            CurrPage.Update();
+                        end;
+                    }
                 }
                 field("Status"; Rec.Status)
                 {
@@ -272,7 +292,7 @@ page 6181 "E-Document Purchase Draft"
             }
             part(ErrorMessagesFactBox; "Error Messages Part")
             {
-                Visible = false;
+                Visible = HasErrorsOrWarnings;
                 ShowFilter = false;
                 UpdatePropagation = Both;
             }
@@ -297,10 +317,16 @@ page 6181 "E-Document Purchase Draft"
 
                     trigger OnAction()
                     var
-                        EDocImportParameters: Record "E-Doc. Import Parameters";
+                        TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     begin
                         Session.LogMessage('0000PCO', FinalizeDraftInvokedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EDocumentPurchaseHeader.FeatureName());
-                        FinalizeEDocument(EDocImportParameters);
+                        Rec.SetAutoCalcFields("Import Processing Status");
+                        if Rec.Get(Rec."Entry No") then
+                            if Rec."Import Processing Status" = "Import E-Doc. Proc. Status"::Processed then begin
+                                Rec.ShowRecord();
+                                exit;
+                            end;
+                        FinalizeEDocument(TempEDocImportParameters);
                     end;
                 }
                 action(ResetDraftDocument)
@@ -385,7 +411,7 @@ page 6181 "E-Document Purchase Draft"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Provide feedback';
                     ToolTip = 'Provide feedback on the Payables Agent experience.';
-                    Image = Help;
+                    Image = Comment;
 
                     trigger OnAction()
                     begin
@@ -477,14 +503,11 @@ page 6181 "E-Document Purchase Draft"
 
     trigger OnOpenPage()
     var
-        EDocumentsSetup: Record "E-Documents Setup";
         EDocumentDataStorage: Record "E-Doc. Data Storage";
         EDocumentNotification: Codeunit "E-Document Notification";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
     begin
-        if not EDocumentsSetup.IsNewEDocumentExperienceActive() then
-            Error('');
         if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
         if not EDocPOMatching.IsPOMatchConsistent(EDocumentPurchaseHeader) then begin
             EDocPOMatching.RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);
@@ -499,6 +522,7 @@ page 6181 "E-Document Purchase Draft"
         HasErrorsOrWarnings := false;
         HasErrors := false;
         PageEditable := IsEditable();
+        IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
         EDocumentNotification.SendPurchaseDocumentDraftNotifications(Rec."Entry No");
 
         if Rec."Entry No" <> 0 then
@@ -524,12 +548,13 @@ page 6181 "E-Document Purchase Draft"
         SetPageCaption();
 
         Rec.CalcFields("Import Processing Status");
-        ShowFinalizeDraftAction := Rec."Import Processing Status" = Enum::"Import E-Doc. Proc. Status"::"Draft Ready";
+        ShowFinalizeDraftAction := Rec."Import Processing Status" in [Enum::"Import E-Doc. Proc. Status"::"Ready for draft", Enum::"Import E-Doc. Proc. Status"::"Draft Ready"];
         ShowAnalyzeDocumentAction :=
             (Rec."Import Processing Status" = Enum::"Import E-Document Steps"::"Structure received data") and
             (Rec.Status = Enum::"E-Document Status"::Error);
 
         PageEditable := IsEditable();
+        IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
     end;
 
     local procedure SetPageCaption()
@@ -638,7 +663,7 @@ page 6181 "E-Document Purchase Draft"
 
     local procedure ResetDraft()
     var
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         ConfirmDialogMgt: Codeunit "Confirm Management";
         Progress: Dialog;
@@ -651,10 +676,10 @@ page 6181 "E-Document Purchase Draft"
             Progress.Open(ProcessingDocumentMsg);
 
         // Regardless of document state, we re-run the read data into IR, then prepare draft step.
-        EDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Read into Draft";
-        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
-        EDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Prepare draft";
-        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Read into Draft";
+        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
+        TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
 
         Rec.Get(Rec."Entry No");
         if GuiAllowed() then
@@ -663,7 +688,7 @@ page 6181 "E-Document Purchase Draft"
 
     local procedure PrepareDraft()
     var
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentHelper: Codeunit "E-Document Helper";
         Progress: Dialog;
@@ -673,8 +698,8 @@ page 6181 "E-Document Purchase Draft"
         if GuiAllowed() then
             Progress.Open(ProcessingDocumentMsg);
 
-        EDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Prepare draft";
-        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
 
         Rec.Get(Rec."Entry No");
         if GuiAllowed() then
@@ -683,7 +708,7 @@ page 6181 "E-Document Purchase Draft"
 
     local procedure AnalyzeEDocument()
     var
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         Progress: Dialog;
     begin
@@ -693,10 +718,10 @@ page 6181 "E-Document Purchase Draft"
             Progress.Open(ProcessingDocumentMsg);
 
         // Regardless of document state, we re-run the structure received data, then prepare draft step.
-        EDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Structure received data";
-        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
-        EDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Prepare draft";
-        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
+        TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
 
         Rec.Get(Rec."Entry No");
         if GuiAllowed() then
@@ -726,7 +751,7 @@ page 6181 "E-Document Purchase Draft"
     local procedure DoLinkToExistingDocument()
     var
         PurchaseHeader: Record "Purchase Header";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         ConfirmDialogMgt: Codeunit "Confirm Management";
         LinkToExistingDocumentQst: Label 'Do you want to link this e-document to %1 %2?', Comment = '%1 = Document Type, %2 = Document No.';
         RelinkToExistingDocumentQst: Label 'This e-document is already linked to a document. Linking to %1 %2 will unlink the currently linked document. You will need to manually clean up that document. Do you want to continue?', Comment = '%1 = Document Type, %2 = Document No.';
@@ -742,8 +767,8 @@ page 6181 "E-Document Purchase Draft"
         if not ConfirmDialogMgt.GetResponseOrDefault(ConfirmQst, Rec.Status <> Rec.Status::Processed) then
             exit;
 
-        EDocImportParameters."Existing Doc. RecordId" := PurchaseHeader.RecordId();
-        FinalizeEDocument(EDocImportParameters);
+        TempEDocImportParameters."Existing Doc. RecordId" := PurchaseHeader.RecordId();
+        FinalizeEDocument(TempEDocImportParameters);
     end;
 
     var
@@ -757,9 +782,9 @@ page 6181 "E-Document Purchase Draft"
         HasErrorsOrWarnings, HasErrors : Boolean;
         ShowFinalizeDraftAction: Boolean;
         ShowAnalyzeDocumentAction: Boolean;
-        FinalizeDraftInvokedTxt: Label 'User invoked Finalize Draft action.';
-        FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.';
+        FinalizeDraftInvokedTxt: Label 'User invoked Finalize Draft action.', Locked = true;
+        FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.', Locked = true;
         ProcessingDocumentMsg: Label 'Processing document...';
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
-        PageEditable, HasPDFSource : Boolean;
+        PageEditable, HasPDFSource, IsCreditMemo : Boolean;
 }

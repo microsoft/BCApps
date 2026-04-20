@@ -13,6 +13,9 @@ page 8025 "Contract Price Update"
     SourceTable = "Sub. Contr. Price Update Line";
     SourceTableTemporary = true;
     UsageCategory = Tasks;
+    AdditionalSearchTerms = 'Price Update, Contract Price, Price Proposal, Update Prices, Price Change, Price Adjustment, Contract Pricing';
+    AboutTitle = 'About Subscription Contract Price Update';
+    AboutText = 'Use this worksheet to create a proposal for the price update of contract lines. Review this proposal before applying the new prices to the contract lines.';
 
     layout
     {

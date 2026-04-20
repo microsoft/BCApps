@@ -10,7 +10,7 @@ using System.TestTools.TestRunner;
 
 table 149032 "AIT Test Method Line"
 {
-    Caption = 'AI Test Method Line';
+    Caption = 'AI Eval Method Line';
     DataClassification = SystemMetadata;
     Extensible = true;
     Access = Public;
@@ -20,23 +20,23 @@ table 149032 "AIT Test Method Line"
     {
         field(1; "Test Suite Code"; Code[100])
         {
-            Caption = 'Test Suite Code';
+            Caption = 'Eval Suite Code';
             Editable = false;
             NotBlank = true;
             TableRelation = "AIT Test Suite";
-            ToolTip = 'Specifies the Test Suite Code for the test line.';
+            ToolTip = 'Specifies the Eval Suite Code for the eval line.';
         }
         field(2; "Line No."; Integer)
         {
             Editable = false;
             Caption = 'Line No.';
-            ToolTip = 'Specifies the line number for the test line.';
+            ToolTip = 'Specifies the line number for the eval line.';
         }
         field(3; "Codeunit ID"; Integer)
         {
             Caption = 'Codeunit ID';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Codeunit));
-            ToolTip = 'Specifies the codeunit id to run for the test line.';
+            ToolTip = 'Specifies the codeunit id to run for the eval line.';
             trigger OnLookup()
             var
                 AllObjWithCaption: Record AllObjWithCaption;
@@ -67,14 +67,14 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit), "Object ID" = field("Codeunit ID")));
-            ToolTip = 'Specifies the name of the codeunit for the test line.';
+            ToolTip = 'Specifies the name of the codeunit for the eval line.';
         }
 
         field(6; "Description"; Text[250])
         {
             Caption = 'Description';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the description for the test line.';
+            ToolTip = 'Specifies the description for the eval line.';
         }
         field(7; "Input Dataset"; Code[100])
         {
@@ -98,7 +98,7 @@ table 149032 "AIT Test Method Line"
         {
             Caption = 'Status';
             Editable = false;
-            ToolTip = 'Specifies the status for the test line.';
+            ToolTip = 'Specifies the status for the eval line.';
         }
         field(14; "Version Filter"; Integer)
         {
@@ -107,11 +107,11 @@ table 149032 "AIT Test Method Line"
         }
         field(15; "No. of Tests Executed"; Integer)
         {
-            Caption = 'No. of Tests Executed';
-            ToolTip = 'Specifies the number of tests executed for the test line.';
+            Caption = 'No. of Evals Executed';
+            ToolTip = 'Specifies the number of evals executed for the eval line.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
         }
 #pragma warning disable AA0232
         field(16; "Total Duration (ms)"; Integer)
@@ -121,7 +121,7 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
-            ToolTip = 'Specifies the time taken to execute the test line.';
+            ToolTip = 'Specifies the time taken to execute the eval line.';
         }
         field(25; "Base Version Filter"; Integer)
         {
@@ -130,11 +130,11 @@ table 149032 "AIT Test Method Line"
         }
         field(26; "No. of Tests Executed - Base"; Integer)
         {
-            Caption = 'No. of Tests Executed - Base';
-            ToolTip = 'Specifies the number of tests executed for the base version of the test line.';
+            Caption = 'No. of Evals Executed - Base';
+            ToolTip = 'Specifies the number of evals executed for the base version of the eval line.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
         }
         field(27; "Total Duration - Base (ms)"; Integer)
         {
@@ -142,12 +142,12 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
-            ToolTip = 'Specifies the time taken to execute the base version of the test line.';
+            ToolTip = 'Specifies the time taken to execute the base version of the eval line.';
         }
         field(22; "No. of Tests Passed"; Integer)
         {
-            Caption = 'No. of Tests Passed';
-            ToolTip = 'Specifies the number of tests passed for the test line.';
+            Caption = 'No. of Evals Passed';
+            ToolTip = 'Specifies the number of evals passed for the eval line.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
@@ -155,15 +155,23 @@ table 149032 "AIT Test Method Line"
         field(23; "No. of Operations"; Integer)
         {
             Caption = 'No. of Operations';
-            ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the test line.';
+            ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the eval line.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter")));
         }
+        field(24; "No. of Tests Skipped"; Integer)
+        {
+            Caption = 'No. of Evals Skipped';
+            ToolTip = 'Specifies the number of evals skipped for the eval line.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(2)));
+        }
         field(30; "No. of Tests Passed - Base"; Integer)
         {
-            Caption = 'No. of Tests Passed - Base';
-            ToolTip = 'Specifies the number of tests passed for the base version of the test line.';
+            Caption = 'No. of Evals Passed - Base';
+            ToolTip = 'Specifies the number of evals passed for the base version of the eval line.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
@@ -171,7 +179,7 @@ table 149032 "AIT Test Method Line"
         field(31; "No. of Operations - Base"; Integer)
         {
             Caption = 'No. of Operations - Base';
-            ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the base version of the test line.';
+            ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the base version of the eval line.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter")));
@@ -179,7 +187,7 @@ table 149032 "AIT Test Method Line"
         field(40; "No. of Turns"; Integer)
         {
             Caption = 'No. of Turns Executed';
-            ToolTip = 'Specifies the total number of turns for the test line.';
+            ToolTip = 'Specifies the total number of turns for the eval line.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."No. of Turns" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -187,7 +195,7 @@ table 149032 "AIT Test Method Line"
         field(41; "No. of Turns Passed"; Integer)
         {
             Caption = 'No. of Turns Passed';
-            ToolTip = 'Specifies the total number of passed turns for the test line.';
+            ToolTip = 'Specifies the total number of passed turns for the eval line.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."No. of Turns Passed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -195,10 +203,10 @@ table 149032 "AIT Test Method Line"
         field(45; "Test Method Line Accuracy"; Decimal)
         {
             Caption = 'Accuracy';
-            ToolTip = 'Specifies the average accuracy of the test line. The accuracy is calculated as the percentage of turns that passed or can be set manually by the test.';
+            ToolTip = 'Specifies the average accuracy of the eval line. The accuracy is calculated as the percentage of turns that passed or can be set manually by the eval.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = average("AIT Log Entry"."Test Method Line Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = filter(<> 2)));
             AutoFormatType = 0;
         }
         field(101; "AL Test Suite"; Code[10])
@@ -209,21 +217,27 @@ table 149032 "AIT Test Method Line"
         field(120; "Tokens Consumed"; Integer)
         {
             Caption = 'Total Tokens Consumed';
-            ToolTip = 'Specifies the number of tokens consumed by the test in the current version. This is applicable only when using Microsoft AI Module.';
+            ToolTip = 'Specifies the number of tokens consumed by the eval in the current version. This is applicable only when using Microsoft AI Module. Tokens consumed by agent sessions are not included in this number.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
+#if not CLEAN26
+#pragma warning disable AS0072
         field(121; "Tokens Consumed - Base"; Integer)
         {
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This field is deprecated as it is not used in any page or calculation. It will be removed in future versions.';
+            ObsoleteTag = '26.0';
             Caption = 'Tokens Consumed - Base';
-            ToolTip = 'Specifies the number of tokens consumed by the test in the base version. This is applicable only when using Microsoft AI Module.';
+            ToolTip = 'Specifies the number of tokens consumed by the eval in the base version. This is applicable only when using Microsoft AI Module. Tokens consumed by agent sessions are not included in this number.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
+#pragma warning restore AS0072
+#endif
     }
-
     keys
     {
         key(Key1; "Test Suite Code", "Line No.")
@@ -279,6 +293,6 @@ table 149032 "AIT Test Method Line"
     end;
 
     var
-        NotSupportedCodeunitErr: Label 'Codeunit %1 can not be used for testing.', Comment = '%1 = codeunit name';
+        NotSupportedCodeunitErr: Label 'Codeunit %1 can not be used for evaluation.', Comment = '%1 = codeunit name';
 
 }

@@ -29,7 +29,7 @@ codeunit 30385 "Shpfy Payments API"
         Cursor: Text;
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := GraphQLType::GetPaymentTransactions;
+        GraphQLType := GraphQLType::Payments_GetPaymentTransactions;
         Parameters.Add('SinceId', Format(SinceId + 1));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -44,7 +44,7 @@ codeunit 30385 "Shpfy Payments API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := GraphQLType::GetNextPaymentTransactions;
+                    GraphQLType := GraphQLType::Payments_GetNextPaymentTransactions;
                 end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.shopifyPaymentsAccount.balanceTransactions.pageInfo.hasNextPage');
     end;
@@ -95,7 +95,7 @@ codeunit 30385 "Shpfy Payments API"
         Cursor: Text;
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := GraphQLType::GetPayouts;
+        GraphQLType := GraphQLType::Payments_GetPayouts;
         Parameters.Add('SinceId', Format(SinceId + 1));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -110,12 +110,12 @@ codeunit 30385 "Shpfy Payments API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := GraphQLType::GetNextPayouts;
+                    GraphQLType := GraphQLType::Payments_GetNextPayouts;
                 end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.shopifyPaymentsAccount.payouts.pageInfo.hasNextPage');
     end;
 
-    local procedure ImportPayout(JPayout: JsonObject)
+    internal procedure ImportPayout(JPayout: JsonObject)
     var
         DataCapture: Record "Shpfy Data Capture";
         Payout: Record "Shpfy Payout";
@@ -125,6 +125,7 @@ codeunit 30385 "Shpfy Payments API"
         Id := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JPayout, 'id'));
         if Payout.Get(Id) then begin
             Payout.Status := ConvertToPayoutStatus(JsonHelper.GetValueAsText(JPayout, 'status'));
+            Payout."Shop Code" := Shop.Code;
             Payout.Modify();
         end else begin
             RecordRef.Open(Database::"Shpfy Payout");
@@ -142,10 +143,12 @@ codeunit 30385 "Shpfy Payments API"
             JsonHelper.GetValueIntoField(JPayout, 'summary.reservedFundsGross.amount', RecordRef, Payout.FieldNo("Reserved Funds Gross Amount"));
             JsonHelper.GetValueIntoField(JPayout, 'summary.retriedPayoutsFee.amount', RecordRef, Payout.FieldNo("Retried Payouts Fee Amount"));
             JsonHelper.GetValueIntoField(JPayout, 'summary.retriedPayoutsGross.amount', RecordRef, Payout.FieldNo("Retried Payouts Gross Amount"));
+            JsonHelper.GetValueIntoField(JPayout, 'externalTraceId', RecordRef, Payout.FieldNo("External Trace Id"));
             RecordRef.SetTable(Payout);
             RecordRef.Close();
             Payout.Id := Id;
             Payout.Status := ConvertToPayoutStatus(JsonHelper.GetValueAsText(JPayout, 'status'));
+            Payout."Shop Code" := Shop.Code;
             Payout.Insert();
         end;
         DataCapture.Add(Database::"Shpfy Payout", Payout.SystemId, JPayout);
@@ -163,7 +166,7 @@ codeunit 30385 "Shpfy Payments API"
         Id: BigInteger;
         PayoutId: BigInteger;
     begin
-        GraphQLType := GraphQLType::GetPaymTransByIds;
+        GraphQLType := GraphQLType::Payments_GetPaymTransByIds;
         Parameters.Add('IdFilter', IdFilter);
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JPaymentsAccount, 'data.shopifyPaymentsAccount') then
@@ -190,7 +193,7 @@ codeunit 30385 "Shpfy Payments API"
         Parameters: Dictionary of [Text, Text];
         Id: BigInteger;
     begin
-        GraphQLType := GraphQLType::GetPayoutsByIds;
+        GraphQLType := GraphQLType::Payments_GetPayoutsByIds;
         Parameters.Add('IdFilter', IdFilter);
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JPaymentsAccount, 'data.shopifyPaymentsAccount') then
@@ -235,7 +238,7 @@ codeunit 30385 "Shpfy Payments API"
         Cursor: Text;
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := GraphQLType::GetDisputes;
+        GraphQLType := GraphQLType::Payments_GetDisputes;
         Parameters.Add('SinceId', Format(SinceId + 1));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -250,7 +253,7 @@ codeunit 30385 "Shpfy Payments API"
                         Parameters.Set('After', Cursor)
                     else
                         Parameters.Add('After', Cursor);
-                    GraphQLType := GraphQLType::GetNextDisputes;
+                    GraphQLType := GraphQLType::Payments_GetNextDisputes;
                 end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.shopifyPaymentsAccount.disputes.pageInfo.hasNextPage');
     end;
@@ -265,7 +268,7 @@ codeunit 30385 "Shpfy Payments API"
         JResponse: JsonToken;
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := GraphQLType::GetDisputeById;
+        GraphQLType := GraphQLType::Payments_GetDisputeById;
         Parameters.Add('Id', Format(Id));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JPaymentsAccount, 'data.shopifyPaymentsAccount') then
@@ -288,6 +291,7 @@ codeunit 30385 "Shpfy Payments API"
             Dispute.Status := ConvertToDisputeStatus(JsonHelper.GetValueAsText(JDispute, 'status'));
             Dispute."Evidence Sent On" := JsonHelper.GetValueAsDateTime(JDispute, 'evidenceDueBy');
             Dispute."Finalized On" := JsonHelper.GetValueAsDateTime(JDispute, 'finalizedOn');
+            Dispute."Shop Code" := Shop.Code;
             Dispute.Modify();
         end else begin
             RecordRef.Open(Database::"Shpfy Dispute");
@@ -305,6 +309,7 @@ codeunit 30385 "Shpfy Payments API"
             Dispute.Type := ConvertToDisputeType(JsonHelper.GetValueAsText(JDispute, 'type'));
             Dispute.Reason := ConvertToDisputeReason(JsonHelper.GetValueAsText(JDispute, 'reasonDetails.reason'));
             Dispute."Source Order Id" := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JDispute, 'order.id'));
+            Dispute."Shop Code" := Shop.Code;
             Dispute.Insert();
         end;
     end;

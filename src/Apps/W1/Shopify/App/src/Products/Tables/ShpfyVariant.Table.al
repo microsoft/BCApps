@@ -81,11 +81,21 @@ table 30129 "Shpfy Variant"
             Caption = 'SKU';
             DataClassification = CustomerContent;
         }
+#if not CLEANSCHEMA31
         field(13; "Tax Code"; Code[20])
         {
             Caption = 'Tax Code';
             DataClassification = CustomerContent;
+            ObsoleteReason = 'Shopify API 2025-10 deprecated taxCode on ProductVariant. This field is no longer available in the API.';
+#if not CLEAN28
+            ObsoleteState = Pending;
+            ObsoleteTag = '28.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#endif
         }
+#endif
         field(14; Taxable; Boolean)
         {
             Caption = 'Taxable';

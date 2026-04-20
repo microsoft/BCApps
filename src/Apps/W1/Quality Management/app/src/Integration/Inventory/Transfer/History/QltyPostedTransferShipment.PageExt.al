@@ -12,7 +12,7 @@ pageextension 20425 "Qlty. Posted Transfer Shipment" extends "Posted Transfer Sh
     {
         addlast(General)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 ShowCaption = false;
                 Visible = (Rec."Qlty. Inspection No." <> '');

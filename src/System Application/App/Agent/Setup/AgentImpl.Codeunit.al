@@ -5,9 +5,9 @@
 
 namespace System.Agents;
 
+using System.AI;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Environment.Consumption;
 using System.Reflection;
 using System.Security.AccessControl;
 
@@ -19,6 +19,7 @@ codeunit 4301 "Agent Impl."
     Permissions = tabledata Agent = rim,
                   tabledata "All Profile" = r,
                   tabledata Company = r,
+                  tabledata "Copilot Settings" = r,
                   tabledata "Agent Access Control" = d,
                   tabledata "Application User Settings" = rim,
                   tabledata User = r,
@@ -124,12 +125,12 @@ codeunit 4301 "Agent Impl."
 
     local procedure SetProfile(Agent: Record Agent; var AllProfile: Record "All Profile")
     var
-        UserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
-        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
-        UpdateUserSettingsWithProfile(AllProfile, UserSettingsRecord);
-        UpdateAgentUserSettings(UserSettingsRecord);
+        UserSettings.GetUserSettings(Agent."User Security ID", TempUserSettingsRecord);
+        UpdateUserSettingsWithProfile(AllProfile, TempUserSettingsRecord);
+        UpdateAgentUserSettings(TempUserSettingsRecord);
     end;
 
     procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; LanguageID: Integer; LocaleID: Integer; TimeZone: Text[180])
@@ -145,16 +146,16 @@ codeunit 4301 "Agent Impl."
     procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
     var
         Agent: Record Agent;
-        UserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
         GetAgent(Agent, AgentUserSecurityID);
 
-        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
-        UserSettingsRecord."Language ID" := NewUserSettingsRec."Language ID";
-        UserSettingsRecord."Locale ID" := NewUserSettingsRec."Locale ID";
-        UserSettingsRecord."Time Zone" := NewUserSettingsRec."Time Zone";
-        UpdateAgentUserSettings(UserSettingsRecord);
+        UserSettings.GetUserSettings(Agent."User Security ID", TempUserSettingsRecord);
+        TempUserSettingsRecord."Language ID" := NewUserSettingsRec."Language ID";
+        TempUserSettingsRecord."Locale ID" := NewUserSettingsRec."Locale ID";
+        TempUserSettingsRecord."Time Zone" := NewUserSettingsRec."Time Zone";
+        UpdateAgentUserSettings(TempUserSettingsRecord);
     end;
 
     procedure GetUserSettings(AgentUserSecurityID: Guid; var UserSettingsRec: Record "User Settings")
@@ -174,16 +175,16 @@ codeunit 4301 "Agent Impl."
     local procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
     var
         Agent: Record Agent;
-        UserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
         GetAgent(Agent, AgentUserSecurityID);
 
-        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
+        UserSettings.GetUserSettings(Agent."User Security ID", TempUserSettingsRecord);
 #pragma warning disable AA0139
-        UserSettingsRecord.Company := CompanyName;
+        TempUserSettingsRecord.Company := CompanyName;
 #pragma warning restore AA0139
-        UpdateAgentUserSettings(UserSettingsRecord);
+        UpdateAgentUserSettings(TempUserSettingsRecord);
     end;
 
     procedure GetUserName(AgentUserSecurityID: Guid): Code[50]
@@ -264,13 +265,6 @@ codeunit 4301 "Agent Impl."
             exit(true);
         end;
         exit(false);
-    end;
-
-    procedure CanShowMonetizationData(): Boolean
-    var
-        DummyUserAIConsumptionData: Record "User AI Consumption Data";
-    begin
-        exit(DummyUserAIConsumptionData.ReadPermission());
     end;
 
     local procedure UpdateUserSettingsWithProfile(var TempAllProfile: Record "All Profile" temporary; var UserSettingsRec: Record "User Settings")
@@ -397,11 +391,16 @@ codeunit 4301 "Agent Impl."
 
     procedure SelectAgent(var Agent: Record "Agent")
     begin
+        SelectAgent(Agent, false);
+    end;
+
+    procedure SelectAgent(var Agent: Record "Agent"; AlwaysShowUI: Boolean)
+    begin
         Agent.SetRange(State, Agent.State::Enabled);
         if Agent.Count() = 0 then
             Error(NoActiveAgentsErr);
 
-        if Agent.Count() = 1 then begin
+        if (Agent.Count() = 1) and (not AlwaysShowUI) then begin
             Agent.FindFirst();
             exit;
         end;
@@ -525,6 +524,20 @@ codeunit 4301 "Agent Impl."
         exit(true);
     end;
 
+    procedure GetCopilotAvailabilityDisplayText(Agent: Record Agent) CopilotAvailabilityTxt: Text
+    var
+        CopilotSettings: Record "Copilot Settings";
+        IAgentFactory: Interface IAgentFactory;
+        CopilotCapability: Enum "Copilot Capability";
+    begin
+        IAgentFactory := Agent."Agent Metadata Provider";
+        CopilotCapability := IAgentFactory.GetCopilotCapability();
+
+        CopilotAvailabilityTxt := CopilotSettings.Get(CopilotCapability, Agent."App ID")
+            ? Format(CopilotSettings.Availability)
+            : UnknownCopilotAvailabilityLbl;
+    end;
+
     var
         AgentDoesNotExistErr: Label 'Agent does not exist.';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
@@ -535,4 +548,5 @@ codeunit 4301 "Agent Impl."
         SetupPageMissingSourceTableErr: Label 'Setup page with ID %1 must specify a source table.', Comment = '%1 = Setup page ID.';
         SetupPageSourceTableMissingFieldErr: Label 'The source table for setup page %1 must include a field named ''%2''.', Comment = '%1 = Setup page ID, %2 = Required field name.';
         SetupPageSourceTableFieldWrongTypeErr: Label 'Field ''%1'' on the source table for setup page %2 must be of type %3.', Comment = '%1 = Field name, %2 = Setup page ID, %3 = Required field type.';
+        UnknownCopilotAvailabilityLbl: Label 'Unknown';
 }

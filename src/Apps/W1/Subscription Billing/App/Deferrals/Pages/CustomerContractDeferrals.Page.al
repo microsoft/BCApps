@@ -9,6 +9,9 @@ page 8079 "Customer Contract Deferrals"
     Editable = false;
     SourceTable = "Cust. Sub. Contract Deferral";
     UsageCategory = History;
+    AdditionalSearchTerms = 'Customer Deferrals, Contract Deferrals, Deferred Revenue, Deferral Release, Revenue Deferral, Contract Revenue';
+    AboutTitle = 'About Customer Subscription Contract Deferrals';
+    AboutText = 'Details to deferred revenue per contract are shown here. This page also provides insights into which deferrals have been released and which have not.';
 
     layout
     {
@@ -91,6 +94,12 @@ page 8079 "Customer Contract Deferrals"
                 field(Discount; Rec.Discount)
                 {
                     ToolTip = 'Specifies whether the Subscription Line is used as a basis for periodic invoicing or discounts.';
+                }
+                field("Gen. Bus. Posting Group"; Rec."Gen. Bus. Posting Group")
+                {
+                }
+                field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
+                {
                 }
                 field("G/L Entry No."; Rec."G/L Entry No.")
                 {

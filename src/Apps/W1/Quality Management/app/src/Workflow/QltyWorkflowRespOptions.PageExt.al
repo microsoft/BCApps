@@ -337,7 +337,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                 {
                     Visible = QltyShouldShowGrpSource;
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit the inventory source. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire lots you can leave this blank to move all existing inventory regardless of where it currently is.';
+                    InstructionalText = 'Optional filters that limit the inventory source. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire item tracking combinations you can leave this blank to move all existing inventory regardless of where it currently is.';
 
                     field(Qlty_SourceLocationCodeFilter; OptionalSourceLocationCodeFilter)
                     {
@@ -404,9 +404,9 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ToolTip = 'Specifies the destination bin to use.';
                         ShowMandatory = true;
                         Enabled = QltyShowBinCode;
-                        AssistEdit = true;
+                        Lookup = true;
 
-                        trigger OnAssistEdit()
+                        trigger OnLookup(var Text: Text): Boolean
                         var
                             Bin: Record Bin;
                             QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
@@ -423,7 +423,10 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                                     Rec,
                                     QltyWorkflowResponse.GetWellKnownKeyBin(),
                                     QltyBinCode);
+                                Text := QltyBinCode;
+                                exit(true);
                             end;
+                            exit(false);
                         end;
 
                         trigger OnValidate()
@@ -431,10 +434,9 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Bin: Record Bin;
                             QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
                         begin
-                            // After the table relation is removed to change from a drop-down to an assist-edit
-                            // to allow the bins to be filtered by the location code, there needs to be an ability
-                            // to validate the bin is still valid.  We do this by fetching the record and 
-                            // letting it fail if it doesn't exist.
+                            // There is no table relation on this field because the bins need to be filtered
+                            // by the selected location code via the OnLookup trigger. We validate the bin
+                            // by fetching the record and letting it fail if it doesn't exist.
                             Bin.Get(QltyLocationCode, QltyBinCode);
                             QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyBin(), QltyBinCode);
                         end;
@@ -616,7 +618,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that blocks purchases on the item card.';
 
                         trigger OnDrillDown()
                         var
@@ -635,7 +637,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that blocks a vendor.';
 
                         trigger OnDrillDown()
                         var
@@ -654,7 +656,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that flags a BOM as under development.';
 
                         trigger OnDrillDown()
                         var
@@ -828,9 +830,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
         QltyShouldShowReasonCode: Boolean;
         QltyItemAdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior";
         QltyShouldShowGrpItemTrackingChange: Boolean;
-        NewLotNoExpression: Text;
-        NewSerialNoExpression: Text;
-        NewPackageNoExpression: Text;
+        NewLotNoExpression, NewSerialNoExpression, NewPackageNoExpression : Text;
         NewExpirationDate: Date;
         QltyReasonCode: Code[10];
         QltyReturnReasonCode: Code[10];

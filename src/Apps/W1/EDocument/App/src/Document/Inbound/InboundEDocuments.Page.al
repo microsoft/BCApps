@@ -10,6 +10,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using System.Agents;
 using System.Agents.TaskPane;
+using System.Environment;
 
 page 6105 "Inbound E-Documents"
 {
@@ -264,11 +265,11 @@ page 6105 "Inbound E-Documents"
 
                 trigger OnAction()
                 var
-                    EDocImportParameters: Record "E-Doc. Import Parameters";
+                    TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     EDocImport: Codeunit "E-Doc. Import";
                 begin
-                    EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
-                    EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+                    TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+                    EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
                 end;
             }
             action(PrepareDraftDocument)
@@ -281,13 +282,13 @@ page 6105 "Inbound E-Documents"
 
                 trigger OnAction()
                 var
-                    EDocImportParameters: Record "E-Doc. Import Parameters";
+                    TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     EDocImport: Codeunit "E-Doc. Import";
                     ImportEDocumentProcess: Codeunit "Import E-Document Process";
                 begin
-                    EDocImportParameters := Rec.GetEDocumentService().GetDefaultImportParameters();
-                    EDocImportParameters."Desired E-Document Status" := EDocImportParameters."Desired E-Document Status"::"Draft Ready";
-                    EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+                    TempEDocImportParameters := Rec.GetEDocumentService().GetDefaultImportParameters();
+                    TempEDocImportParameters."Desired E-Document Status" := TempEDocImportParameters."Desired E-Document Status"::"Draft Ready";
+                    EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
                     if ImportEDocumentProcess.IsEDocumentInStateGE(Rec, Enum::"Import E-Doc. Proc. Status"::"Ready for draft") then
                         EDocumentHelper.OpenDraftPage(Rec)
                 end;
@@ -302,15 +303,15 @@ page 6105 "Inbound E-Documents"
 
                 trigger OnAction()
                 var
-                    EDocImportParameters: Record "E-Doc. Import Parameters";
+                    TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     EDocImport: Codeunit "E-Doc. Import";
                     ImportEDocumentProcess: Codeunit "Import E-Document Process";
                 begin
                     if ImportEDocumentProcess.IsEDocumentInStateGE(Rec, Enum::"Import E-Doc. Proc. Status"::"Ready for draft") then
                         EDocumentHelper.OpenDraftPage(Rec)
                     else begin
-                        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-                        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+                        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+                        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
                     end;
                 end;
             }
@@ -444,22 +445,19 @@ page 6105 "Inbound E-Documents"
     end;
 
     local procedure PopulateTaskInfo()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
+        Clear(AgentTask);
+        AgentTaskStatus := '';
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit;
+        if not AgentTask.ReadPermission() then
+            exit;
         AgentTask.SetRange("Company Name", CompanyName());
         AgentTask.SetRange("External ID", Format(Rec."Entry No"));
-        if not AgentTask.FindFirst() then
-            Clear(AgentTask);
-        AgentTaskStatus := '';
-        if AgentTask.ID <> 0 then
+        if AgentTask.FindFirst() and (AgentTask.ID <> 0) then
             AgentTaskStatus := Format(AgentTask.Status);
-    end;
-
-    trigger OnOpenPage()
-    var
-        EDocumentsSetup: Record "E-Documents Setup";
-    begin
-        if not EDocumentsSetup.IsNewEDocumentExperienceActive() then
-            Error('');
     end;
 
     #region File Upload Actions

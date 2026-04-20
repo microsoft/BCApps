@@ -6,6 +6,7 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Sales.History;
+using Microsoft.Service.History;
 using System.IO;
 using System.Text;
 using System.Utilities;
@@ -18,12 +19,14 @@ codeunit 6197 "EDocument QR Code Management"
         TempQRBuf: Record "EDoc QR Buffer" temporary;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         SrcInStr: InStream;
         DstOutStr: OutStream;
         DocumentType: Text[30];
     begin
         case SourceTable.Number of
-            DATABASE::"Sales Invoice Header":
+            Database::"Sales Invoice Header":
                 begin
                     DocumentType := SalesInvoiceLbl;
                     SourceTable.SetTable(SalesInvoiceHeader);
@@ -41,7 +44,7 @@ codeunit 6197 "EDocument QR Code Management"
                     SalesInvoiceHeader."QR Code Base64".CreateInStream(SrcInStr);
                 end;
 
-            DATABASE::"Sales Cr.Memo Header":
+            Database::"Sales Cr.Memo Header":
                 begin
                     DocumentType := SalesCreditMemoLbl;
                     SourceTable.SetTable(SalesCrMemoHeader);
@@ -57,6 +60,42 @@ codeunit 6197 "EDocument QR Code Management"
                     TempQRBuf."Document No." := SalesCrMemoHeader."No.";
 
                     SalesCrMemoHeader."QR Code Base64".CreateInStream(SrcInStr);
+                end;
+
+            Database::"Service Invoice Header":
+                begin
+                    DocumentType := ServiceInvoiceLbl;
+                    SourceTable.SetTable(ServiceInvoiceHeader);
+                    ServiceInvoiceHeader.CalcFields("QR Code Base64");
+
+                    if not ServiceInvoiceHeader."QR Code Base64".HasValue then begin
+                        Message(NoQRDCodeAvailableLbl, DocumentType, ServiceInvoiceHeader."No.");
+                        exit;
+                    end;
+
+                    TempQRBuf.Init();
+                    TempQRBuf."Document Type" := DocumentType;
+                    TempQRBuf."Document No." := ServiceInvoiceHeader."No.";
+
+                    ServiceInvoiceHeader."QR Code Base64".CreateInStream(SrcInStr);
+                end;
+
+            Database::"Service Cr.Memo Header":
+                begin
+                    DocumentType := ServiceCreditMemoLbl;
+                    SourceTable.SetTable(ServiceCrMemoHeader);
+                    ServiceCrMemoHeader.CalcFields("QR Code Base64");
+
+                    if not ServiceCrMemoHeader."QR Code Base64".HasValue then begin
+                        Message(NoQRDCodeAvailableLbl, DocumentType, ServiceCrMemoHeader."No.");
+                        exit;
+                    end;
+
+                    TempQRBuf.Init();
+                    TempQRBuf."Document Type" := DocumentType;
+                    TempQRBuf."Document No." := ServiceCrMemoHeader."No.";
+
+                    ServiceCrMemoHeader."QR Code Base64".CreateInStream(SrcInStr);
                 end;
 
             else
@@ -127,4 +166,6 @@ codeunit 6197 "EDocument QR Code Management"
         NoQRDCodeAvailableLbl: Label 'No QR Base64 content available for %1 %2.', Comment = '%1 the document type, %2 the document number';
         SalesInvoiceLbl: Label 'Sales Invoice';
         SalesCreditMemoLbl: Label 'Sales Credit Memo';
+        ServiceInvoiceLbl: Label 'Service Invoice';
+        ServiceCreditMemoLbl: Label 'Service Credit Memo';
 }

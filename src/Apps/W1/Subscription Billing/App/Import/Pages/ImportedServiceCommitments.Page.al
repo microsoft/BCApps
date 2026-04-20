@@ -115,7 +115,7 @@ page 8009 "Imported Service Commitments"
                 }
                 field("Extension Term"; Rec."Extension Term")
                 {
-                    ToolTip = 'Specifies a date formula for automatic renewal after initial term and the rhythm of the update of "Notice possible to" and "Term Until". If the field is empty and the initial term or notice period is filled, the end of Subscription Line is automatically set to the end of the initial term or notice period.';
+                    ToolTip = 'Specifies a date formula for automatic renewal after initial term and the rhythm of the update of "Notice possible to" and "Term Until".';
                 }
                 field("Billing Rhythm"; Rec."Billing Rhythm")
                 {
@@ -167,7 +167,7 @@ page 8009 "Imported Service Commitments"
                 field(PricingUnitCostSurcharPerc; Rec."Pricing Unit Cost Surcharge %")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the surcharge in percent for the debit-side price calculation, if a EK surcharge is to be used.';
+                    ToolTip = 'Specifies the surcharge in percent for the debit-side price calculation, if a unit cost surcharge is to be used.';
                     Visible = false;
                 }
                 field(SupplierReferenceEntryNo; Rec."Supplier Reference Entry No.")

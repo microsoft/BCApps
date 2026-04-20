@@ -53,14 +53,14 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                 var
                     ProdOrderRoutingLine: Record "Prod. Order Routing Line";
                     PurchaseLine: Record "Purchase Line";
-                    SubcontractingManagement: Codeunit "Subcontracting Management";
+                    SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
                     NoOfCreatedPurchOrder: Integer;
                     NoPurchOrderCreatedMsg: Label 'No subcontracting order was created for the selected operations in production order %1. Please check whether the operation or operations have already been completed.', Comment = '%1=Production Order No.';
                 begin
                     CurrPage.SetSelectionFilter(ProdOrderRoutingLine);
                     ProdOrderRoutingLine.FindSet();
                     repeat
-                        NoOfCreatedPurchOrder += SubcontractingManagement.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
+                        NoOfCreatedPurchOrder += SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
                     until ProdOrderRoutingLine.Next() = 0;
 
                     if NoOfCreatedPurchOrder = 0 then begin
@@ -74,10 +74,10 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                             Message(NoPurchOrderCreatedMsg, ProdOrderRoutingLine."Prod. Order No.")
                     end else begin
                         if NoOfCreatedPurchOrder = 1 then begin
-                            SubcontractingManagement.ClearOperationNoForCreatedPurchaseOrder();
-                            SubcontractingManagement.SetOperationNoForCreatedPurchaseOrder(Rec."Operation No.");
+                            SubcPurchaseOrderCreator.ClearOperationNoForCreatedPurchaseOrder();
+                            SubcPurchaseOrderCreator.SetOperationNoForCreatedPurchaseOrder(Rec."Operation No.");
                         end;
-                        SubcontractingManagement.ShowCreatedPurchaseOrder(Rec."Prod. Order No.", NoOfCreatedPurchOrder);
+                        SubcPurchaseOrderCreator.ShowCreatedPurchaseOrder(Rec."Prod. Order No.", NoOfCreatedPurchOrder);
                     end;
                 end;
             }

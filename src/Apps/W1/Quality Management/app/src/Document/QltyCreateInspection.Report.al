@@ -15,8 +15,9 @@ report 20400 "Qlty. Create Inspection"
 {
     Caption = 'Create Quality Inspection';
     ProcessingOnly = true;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = ReportsAndAnalysis;
-    ApplicationArea = All;
+    ApplicationArea = QualityManagement;
     Permissions =
         tabledata "Qlty. Inspection Header" = Rim,
         tabledata "Qlty. Inspection Line" = Rim;
@@ -40,11 +41,6 @@ report 20400 "Qlty. Create Inspection"
         {
             area(Content)
             {
-                group(DidYouKnow)
-                {
-                    Caption = 'Did you know';
-                    InstructionalText = 'Did you know that you can create inspections from many subforms in Business Central already? You can create inspections from the output journal, production order routing lines, consumption journal, purchase order sub form, sales return subform, and item tracking lines. You can also use power automate or easily extend existing pages to create inspections.';
-                }
                 group(Parameters)
                 {
                     Caption = 'Parameters';
@@ -127,19 +123,6 @@ report 20400 "Qlty. Create Inspection"
                         ToolTip = 'Specifies the Item No.';
                         Editable = false;
                     }
-                    field(ChooseSerialNo; TempQltyInspectionHeader."Source Serial No.")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Serial No.';
-                        ToolTip = 'Specifies the Serial No.';
-                        Editable = EditSerialNo;
-                        Visible = VisibleSerialNo;
-
-                        trigger OnAssistEdit()
-                        begin
-                            TempQltyInspectionHeader.AssistEditSerialNo();
-                        end;
-                    }
                     field(ChooseLotNo; TempQltyInspectionHeader."Source Lot No.")
                     {
                         ApplicationArea = All;
@@ -151,6 +134,19 @@ report 20400 "Qlty. Create Inspection"
                         trigger OnAssistEdit()
                         begin
                             TempQltyInspectionHeader.AssistEditLotNo();
+                        end;
+                    }
+                    field(ChooseSerialNo; TempQltyInspectionHeader."Source Serial No.")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Serial No.';
+                        ToolTip = 'Specifies the Serial No.';
+                        Editable = EditSerialNo;
+                        Visible = VisibleSerialNo;
+
+                        trigger OnAssistEdit()
+                        begin
+                            TempQltyInspectionHeader.AssistEditSerialNo();
                         end;
                     }
                     field(ChoosePackageNo; TempQltyInspectionHeader."Source Package No.")
@@ -170,7 +166,7 @@ report 20400 "Qlty. Create Inspection"
                     {
                         ApplicationArea = All;
                         Caption = 'Source Quantity (base)';
-                        ToolTip = 'Specifies the lot size used to create the inspection with.';
+                        ToolTip = 'Specifies the quantity used to create the inspection with.';
                         AutoFormatType = 0;
                         DecimalPlaces = 0 : 5;
                         Editable = EditSourceQuantity;
@@ -217,13 +213,9 @@ report 20400 "Qlty. Create Inspection"
         VariantForRecordRef: Variant;
         SourceTable: Code[20];
         CustomFilter: Text;
-        VisibleSerialNo: Boolean;
-        VisibleLotNo: Boolean;
-        VisiblePackageNo: Boolean;
+        VisibleLotNo, VisibleSerialNo, VisiblePackageNo : Boolean;
         VisibleGetRecord: Boolean;
-        EditSerialNo: Boolean;
-        EditLotNo: Boolean;
-        EditPackageNo: Boolean;
+        EditLotNo, EditSerialNo, EditPackageNo : Boolean;
         EditSourceQuantity: Boolean;
         VisibleSourceQuantity: Boolean;
         DidChangeSourceQuantity: Boolean;
@@ -291,8 +283,8 @@ report 20400 "Qlty. Create Inspection"
 
     local procedure SetRequestPageControlVisibility()
     begin
-        VisibleSerialNo := true;
         VisibleLotNo := true;
+        VisibleSerialNo := true;
         VisiblePackageNo := true;
         VisibleGetRecord := true;
     end;

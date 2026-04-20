@@ -12,6 +12,7 @@ using System.Environment.Configuration;
 using System.ExternalFileStorage;
 using System.Integration;
 using System.Integration.Excel;
+using System.MCP;
 using System.Privacy;
 using System.SFTPClient;
 
@@ -31,6 +32,7 @@ permissionset 154 "System Application - Admin"
                              "Edit in Excel-Admin",
                              "Feature Key - Admin",
                              "File Storage - Admin",
+                             "MCP - Admin",
                              "Permissions & Licenses - Edit",
                              "Priv. Notice - Admin",
                              "Retention Policy - Admin",

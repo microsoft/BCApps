@@ -64,7 +64,7 @@ codeunit 5405 "E-Doc. From Resource Helper"
 
     local procedure ImportDocument(EDocumentService: Record "E-Document Service"; DocumentPath: Text) EDocument: Record "E-Document";
     var
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         ResInStream: InStream;
         FileName: Text;
@@ -80,9 +80,9 @@ codeunit 5405 "E-Doc. From Resource Helper"
             Enum::"E-Doc. File Format"::PDF, FileName, ResInStream);
         EDocument."Structure Data Impl." := Enum::"Structure Received E-Doc."::"ADI Mock";
         EDocument.Modify();
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
         EDocImport.ProcessIncomingEDocument(
-            EDocument, EDocumentService, EDocImportParameters);
+            EDocument, EDocumentService, TempEDocImportParameters);
     end;
 
     local procedure MapPurchaseDocumentDraftLines(EDocument: Record "E-Document")
@@ -147,12 +147,12 @@ codeunit 5405 "E-Doc. From Resource Helper"
 
     local procedure FinalizeDraft(EDocumentService: Record "E-Document Service"; EDocument: Record "E-Document")
     var
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
     begin
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
         EDocImport.ProcessIncomingEDocument(
-            EDocument, EDocumentService, EDocImportParameters);
+            EDocument, EDocumentService, TempEDocImportParameters);
     end;
 
     local procedure PostPurchInvoice(EDocument: Record "E-Document") PurchInvHeader: Record "Purch. Inv. Header";

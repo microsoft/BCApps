@@ -58,6 +58,7 @@ table 8059 "Subscription Line"
                 CheckServiceDates();
                 RecalculateHarmonizedBillingFieldsOnCustomerContract();
                 UpdateNextPriceUpdate();
+                CalculateSubscriptionDates();
             end;
         }
         field(7; "Subscription Line End Date"; Date)
@@ -230,7 +231,7 @@ table 8059 "Subscription Line"
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Notice Period");
 
                 if "Term until" <> 0D then
-                    UpdateCancellationPossibleUntil();
+                    CalculateCancellationPossibleUntil();
             end;
         }
         field(21; "Initial Term"; DateFormula)
@@ -270,7 +271,7 @@ table 8059 "Subscription Line"
 
             trigger OnValidate()
             begin
-                UpdateTermUntilUsingNoticePeriod();
+                CalculateTermUntilFromCancellationPossibleUntil();
             end;
         }
         field(25; "Term Until"; Date)
@@ -279,7 +280,7 @@ table 8059 "Subscription Line"
 
             trigger OnValidate()
             begin
-                UpdateCancellationPossibleUntil();
+                CalculateCancellationPossibleUntil();
             end;
         }
         field(26; "Sub. Header Customer No."; Code[20])
@@ -299,6 +300,7 @@ table 8059 "Subscription Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -311,6 +313,7 @@ table 8059 "Subscription Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -739,11 +742,15 @@ table 8059 "Subscription Line"
         end;
     end;
 
-    internal procedure CalculateInitialServiceEndDate()
+    internal procedure CalculateSubscriptionDates()
+    begin
+        CalculateServiceEndDate();
+        CalculateTermUntilDate();
+    end;
+
+    internal procedure CalculateServiceEndDate()
     begin
         if IsInitialTermEmpty() then
-            exit;
-        if not IsExtensionTermEmpty() then
             exit;
 
         TestField("Subscription Line Start Date");
@@ -752,58 +759,20 @@ table 8059 "Subscription Line"
         RefreshRenewalTerm();
     end;
 
-    internal procedure CalculateInitialCancellationPossibleUntilDate()
+    internal procedure CalculateTermUntilDate()
     begin
-        if IsExtensionTermEmpty() then
-            exit;
-        if IsNoticePeriodEmpty() then
-            exit;
-        if IsInitialTermEmpty() then
-            exit;
-
-        TestField("Subscription Line Start Date");
-        "Cancellation Possible Until" := CalcDate("Initial Term", "Subscription Line Start Date");
-        CalendarManagement.ReverseDateFormula(NegativeDateFormula, "Notice Period");
-        "Cancellation Possible Until" := CalcDate(NegativeDateFormula, "Cancellation Possible Until");
-        "Cancellation Possible Until" := CalcDate('<-1D>', "Cancellation Possible Until");
+        if "Subscription Line End Date" <> 0D then
+            "Term Until" := "Subscription Line End Date"
+        else
+            if not IsNoticePeriodEmpty() then begin
+                TestField("Subscription Line Start Date");
+                "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
+                "Term Until" := CalcDate('<-1D>', "Term Until");
+            end;
+        CalculateCancellationPossibleUntil();
     end;
 
-    internal procedure CalculateInitialTermUntilDate()
-    begin
-        if "Subscription Line End Date" <> 0D then begin
-            "Term Until" := "Subscription Line End Date";
-            exit;
-        end;
-
-        if IsExtensionTermEmpty() then
-            exit;
-        if IsNoticePeriodEmpty() and IsInitialTermEmpty() then
-            exit;
-
-        TestField("Subscription Line Start Date");
-        if IsInitialTermEmpty() then begin
-            "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
-            "Term Until" := CalcDate('<-1D>', "Term Until");
-            UpdateCancellationPossibleUntil();
-        end else begin
-            "Term Until" := CalcDate("Initial Term", "Subscription Line Start Date");
-            "Term Until" := CalcDate('<-1D>', "Term Until");
-        end;
-    end;
-
-    internal procedure GetReferenceDate(): Date
-    begin
-        case true of
-            "Cancellation Possible Until" <> 0D:
-                exit("Cancellation Possible Until");
-            "Term Until" <> 0D:
-                exit("Term Until");
-            "Subscription Line Start Date" <> 0D:
-                exit("Subscription Line Start Date");
-        end;
-    end;
-
-    internal procedure UpdateTermUntilUsingExtensionTerm(): Boolean
+    internal procedure CalculateTermUntilUsingExtensionTerm(): Boolean
     var
         PreviousTermUntil: Date;
     begin
@@ -823,7 +792,7 @@ table 8059 "Subscription Line"
         exit(true);
     end;
 
-    local procedure UpdateTermUntilUsingNoticePeriod()
+    local procedure CalculateTermUntilFromCancellationPossibleUntil()
     begin
         if IsNoticePeriodEmpty() then
             exit;
@@ -835,7 +804,7 @@ table 8059 "Subscription Line"
             DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
     end;
 
-    internal procedure UpdateCancellationPossibleUntil(): Boolean
+    internal procedure CalculateCancellationPossibleUntil(): Boolean
     begin
         if IsNoticePeriodEmpty() or ("Term until" = 0D) then
             exit(false);
@@ -845,6 +814,18 @@ table 8059 "Subscription Line"
             DateTimeManagement.MoveDateToLastDayOfMonth("Cancellation possible until");
 
         exit(true);
+    end;
+
+    internal procedure GetReferenceDate(): Date
+    begin
+        case true of
+            "Cancellation Possible Until" <> 0D:
+                exit("Cancellation Possible Until");
+            "Term Until" <> 0D:
+                exit("Term Until");
+            "Subscription Line Start Date" <> 0D:
+                exit("Subscription Line Start Date");
+        end;
     end;
 
     internal procedure CalculatePrice()
@@ -878,7 +859,6 @@ table 8059 "Subscription Line"
             if MaxServiceAmount <> 0 then
                 "Discount %" := Round(100 - (Amount / MaxServiceAmount * 100), 0.00001);
         end else begin
-            ServiceObject.TestField(Quantity);
             Amount := Price * ServiceObject.Quantity;
             if not "Usage Based Billing" then
                 Amount := Round(Amount, Currency."Amount Rounding Precision");
@@ -888,7 +868,10 @@ table 8059 "Subscription Line"
                     "Discount Amount" := Round("Discount Amount", Currency."Amount Rounding Precision");
             end;
             if CalledByFieldNo = FieldNo("Discount Amount") then
-                "Discount %" := Round("Discount Amount" / Amount * 100, 0.00001);
+                if Amount <> 0 then
+                    "Discount %" := Round("Discount Amount" / Amount * 100, 0.00001)
+                else
+                    "Discount %" := 0;
             if ("Discount Amount" > MaxServiceAmount) and ("Discount Amount" <> 0) then
                 Error(CannotBeGreaterThanErr, FieldCaption("Discount Amount"), Format(MaxServiceAmount));
             Amount := Amount - "Discount Amount";
@@ -899,7 +882,7 @@ table 8059 "Subscription Line"
         OnAfterCalculateServiceAmount(Rec, CalledByFieldNo);
     end;
 
-    local procedure SetUpdateRequiredOnBillingLines()
+    internal procedure SetUpdateRequiredOnBillingLines()
     var
         BillingLine: Record "Billing Line";
     begin
@@ -1070,6 +1053,10 @@ table 8059 "Subscription Line"
                         Validate("Unit Cost (LCY)", "Unit Cost (LCY)");
                     FieldNo("Create Contract Deferrals"):
                         Validate("Create Contract Deferrals", "Create Contract Deferrals");
+                    FieldNo("Shortcut Dimension 1 Code"):
+                        Validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+                    FieldNo("Shortcut Dimension 2 Code"):
+                        Validate("Shortcut Dimension 2 Code", "Shortcut Dimension 2 Code");
                 end;
                 Modify(true);
             end;
@@ -1085,7 +1072,7 @@ table 8059 "Subscription Line"
 
         OldDimSetID := "Dimension Set ID";
         "Dimension Set ID" := DimMgt.EditDimensionSet(
-            "Dimension Set ID", "Subscription Header No." + '' + Format("Entry No."),
+            "Dimension Set ID", "Subscription Header No." + ' ' + FieldCaption("Entry No.") + ' ' + Format("Entry No."),
             "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
 
         if OldDimSetID <> "Dimension Set ID" then begin
@@ -1102,8 +1089,10 @@ table 8059 "Subscription Line"
         OnBeforeValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
         OldDimSetID := "Dimension Set ID";
         DimMgt.ValidateShortcutDimValues(FieldNumber, ShortcutDimCode, "Dimension Set ID");
-        if OldDimSetID <> "Dimension Set ID" then
+        if OldDimSetID <> "Dimension Set ID" then begin
             Modify();
+            UpdateRelatedVendorServiceCommDimensions(OldDimSetID, "Dimension Set ID");
+        end;
 
         OnAfterValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
     end;
@@ -1358,7 +1347,9 @@ table 8059 "Subscription Line"
             repeat
 #pragma warning disable AA0214
                 ServiceCommitment.ResetAmountsAndCurrencyFromLCY();
-                ServiceCommitment.Modify(true);
+                ServiceCommitment.SetUpdateRequiredOnBillingLines();
+                ServiceCommitment.ArchiveServiceCommitment();
+                ServiceCommitment.Modify(false);
 #pragma warning restore AA0214
             until ServiceCommitment.Next() = 0;
     end;
@@ -1382,7 +1373,9 @@ table 8059 "Subscription Line"
                     CurrencyCode := ServiceCommitment."Currency Code";
                 ServiceCommitment.SetCurrencyData(CurrencyFactor, CurrencyFactorDate, CurrencyCode);
                 ServiceCommitment.RecalculateAmountsFromCurrencyData();
-                ServiceCommitment.Modify(true);
+                ServiceCommitment.SetUpdateRequiredOnBillingLines();
+                ServiceCommitment.ArchiveServiceCommitment();
+                ServiceCommitment.Modify(false);
             until ServiceCommitment.Next() = 0;
     end;
 
@@ -1547,7 +1540,7 @@ table 8059 "Subscription Line"
         end;
     end;
 
-    local procedure RefreshRenewalTerm()
+    internal procedure RefreshRenewalTerm()
     var
         BlankDateFormula: DateFormula;
     begin
@@ -1849,7 +1842,7 @@ table 8059 "Subscription Line"
         Page.RunModal(Page::"Usage Data Billing Metadata", UsageDataBillingMetadata);
     end;
 
-    internal procedure UnitPriceForPeriod(ChargePeriodStart: Date; ChargePeriodEnd: Date) UnitPrice: Decimal
+    procedure UnitPriceForPeriod(ChargePeriodStart: Date; ChargePeriodEnd: Date) UnitPrice: Decimal
     var
         UnitCost: Decimal;
         UnitCostLCY: Decimal;
@@ -1917,7 +1910,10 @@ table 8059 "Subscription Line"
         until LastDayInNextPeriod >= EndDate;
         if FollowUpDaysExist then begin
             FollowUpDays := EndDate - LastDayInPreviousPeriod;
-            FollowUpPeriodDays := LastDayInNextPeriod - LastDayInPreviousPeriod;
+            if SinglePeriodDaysCount(StartDate, EndDate, PeriodFormula) then
+                FollowUpPeriodDays := Date2DMY(CalcDate('<CM>', EndDate), 1)
+            else
+                FollowUpPeriodDays := LastDayInNextPeriod - LastDayInPreviousPeriod;
         end;
     end;
 
@@ -1950,6 +1946,8 @@ table 8059 "Subscription Line"
                         LastDateInLastMonth := CalcDate(PeriodFormula, FromDate);
                         LastDateInLastMonth := CalcDate('<CM>', LastDateInLastMonth);
                         NextToDate := LastDateInLastMonth - DistanceToEndOfMonth - 1;
+                        if NextToDate < FromDate then
+                            NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
                     end;
                 end;
         end;
@@ -2033,6 +2031,15 @@ table 8059 "Subscription Line"
                 if VendorContractLine.FindFirstSubscriptionLine(Rec) then
                     exit(VendorContractLine.Closed);
         end;
+    end;
+
+    local procedure SinglePeriodDaysCount(StartDate: Date; EndDate: Date; PeriodFormula: DateFormula): Boolean
+    begin
+        if Format(PeriodFormula) <> '1M' then
+            exit(false);
+
+        if (Date2DMY(StartDate, 2) = Date2DMY(EndDate, 2)) and (Date2DMY(StartDate, 3) = Date2DMY(EndDate, 3)) then
+            exit(true);
     end;
 
     [IntegrationEvent(false, false)]

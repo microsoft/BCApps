@@ -11,7 +11,7 @@ using System.Utilities;
 
 page 149042 "AIT CommandLine Card"
 {
-    Caption = 'AI Test Command Line Runner';
+    Caption = 'AI Eval Command Line Runner';
     PageType = Card;
     Extensible = false;
     ApplicationArea = All;
@@ -27,7 +27,7 @@ page 149042 "AIT CommandLine Card"
                 Caption = 'General';
                 field("AIT Suite Code"; AITCode)
                 {
-                    Caption = 'Test Suite Code';
+                    Caption = 'Eval Suite Code';
                     ToolTip = 'Specifies the ID of the suite.';
                     TableRelation = "AIT Test Suite".Code;
                     ShowMandatory = true;
@@ -39,7 +39,7 @@ page 149042 "AIT CommandLine Card"
                         if not AITTestSuite.Get(AITCode) then
                             Error(CannotFindAITSuiteErr, AITCode);
 
-                        // Clear the filter on the test lines
+                        // Clear the filter on the eval lines
                         if AITCode <> xRec."Test Suite Code" then
                             Clear(LineNoFilter);
 
@@ -70,7 +70,7 @@ page 149042 "AIT CommandLine Card"
                 field("Line No. Filter"; LineNoFilter)
                 {
                     Caption = 'Line No. Filter';
-                    ToolTip = 'Specifies the line number to filter the test method lines.';
+                    ToolTip = 'Specifies the line number to filter the eval method lines.';
                     TableRelation = "AIT Test Method Line"."Line No." where("Test Suite Code" = field("Test Suite Code"));
                     BlankZero = true;
 
@@ -81,8 +81,8 @@ page 149042 "AIT CommandLine Card"
                 }
                 field("No. of Pending Tests"; NoOfPendingTests)
                 {
-                    Caption = 'No. of Pending Tests';
-                    ToolTip = 'Specifies the number of test suite lines in the test suite that are yet to be run.';
+                    Caption = 'No. of Pending Evals';
+                    ToolTip = 'Specifies the number of eval suite lines in the eval suite that are yet to be run.';
                     Editable = false;
                 }
             }
@@ -93,14 +93,14 @@ page 149042 "AIT CommandLine Card"
                 field("Input Dataset Filename"; InputDatasetFilename)
                 {
                     Caption = 'Import Input Dataset Filename';
-                    ToolTip = 'Specifies the input dataset filename to import for running the test suite.';
+                    ToolTip = 'Specifies the input dataset filename to import for running the eval suite.';
                     ShowMandatory = InputDataset <> '';
                 }
                 field("Input Dataset"; InputDataset)
                 {
                     Caption = 'Import Input Dataset';
                     MultiLine = true;
-                    ToolTip = 'Specifies the input dataset to import for running the test suite.';
+                    ToolTip = 'Specifies the input dataset to import for running the eval suite.';
 
                     trigger OnValidate()
                     var
@@ -162,7 +162,7 @@ page 149042 "AIT CommandLine Card"
             group("Test Method Lines Group")
             {
                 Editable = false;
-                Caption = 'Test Method Lines';
+                Caption = 'Eval Method Lines';
 
                 repeater("Test Method Lines")
                 {
@@ -195,8 +195,8 @@ page 149042 "AIT CommandLine Card"
                     }
                     field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                     {
-                        Caption = 'No. of Tests Failed';
-                        ToolTip = 'Specifies the number of failed tests for the test line.';
+                        Caption = 'No. of Evals Failed';
+                        ToolTip = 'Specifies the number of failed evals for the eval line.';
                     }
                 }
             }
@@ -210,7 +210,7 @@ page 149042 "AIT CommandLine Card"
             {
                 Caption = 'Run Suite';
                 Image = Start;
-                ToolTip = 'Starts running the AI test suite. This action ignores the line number filter and runs all the test lines in the suite.';
+                ToolTip = 'Starts running the AI eval suite. This action ignores the line number filter and runs all the eval lines in the suite.';
 
                 trigger OnAction()
                 begin
@@ -219,9 +219,9 @@ page 149042 "AIT CommandLine Card"
             }
             action(RunNextTest)
             {
-                Caption = 'Run Next Test';
+                Caption = 'Run Next Eval';
                 Image = TestReport;
-                ToolTip = 'Starts running the next test from the Test Method Lines for the given suite.';
+                ToolTip = 'Starts running the next eval from the Eval Method Lines for the given suite.';
 
                 trigger OnAction()
                 begin
@@ -230,9 +230,9 @@ page 149042 "AIT CommandLine Card"
             }
             action(ResetTestSuite)
             {
-                Caption = 'Reset Test Suite';
+                Caption = 'Reset Eval Suite';
                 Image = Restore;
-                ToolTip = 'Resets the test method lines status to run them again. This action ignores the line number filter and resets all the test lines in the suite.';
+                ToolTip = 'Resets the eval method lines status to run them again. This action ignores the line number filter and resets all the eval lines in the suite.';
 
                 trigger OnAction()
                 var
@@ -249,10 +249,10 @@ page 149042 "AIT CommandLine Card"
         {
             action("AI Test Suite")
             {
-                Caption = 'AI Test Suite';
+                Caption = 'AI Eval Suite';
                 ApplicationArea = All;
                 Image = Setup;
-                ToolTip = 'Opens the AI Test Suite page.';
+                ToolTip = 'Opens the AI Eval Suite page.';
 
                 trigger OnAction()
                 var
@@ -292,7 +292,7 @@ page 149042 "AIT CommandLine Card"
     end;
 
     var
-        CannotFindAITSuiteErr: Label 'The specified Test Suite with code %1 cannot be found.', Comment = '%1 = Test Suite id.';
+        CannotFindAITSuiteErr: Label 'The specified Eval Suite with code %1 cannot be found.', Comment = '%1 = Eval Suite id.';
         AITCode: Code[100];
         LineNoFilter: Integer;
         LanguageTagFilter: Text[80];
@@ -305,7 +305,7 @@ page 149042 "AIT CommandLine Card"
     var
         AITTestSuite: Record "AIT Test Suite";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        TestSuiteCodeNotFoundErr: Label 'Test Suite with code %1 not found.', Comment = '%1 = Test Suite id.';
+        TestSuiteCodeNotFoundErr: Label 'Eval Suite with code %1 not found.', Comment = '%1 = Eval Suite id.';
     begin
         VerifyTestSuiteCode();
         if not AITTestSuite.Get(AITCode) then
@@ -331,7 +331,7 @@ page 149042 "AIT CommandLine Card"
 
     local procedure VerifyTestSuiteCode()
     var
-        TestSuiteCodeRequiredErr: Label 'Test Suite Code is required to run the suite.';
+        TestSuiteCodeRequiredErr: Label 'Eval Suite Code is required to run the suite.';
     begin
         if AITCode = '' then
             Error(TestSuiteCodeRequiredErr);

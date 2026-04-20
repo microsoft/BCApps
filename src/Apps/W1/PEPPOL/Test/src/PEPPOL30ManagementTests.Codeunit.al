@@ -1008,7 +1008,13 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Assert.AreEqual('UNCL4461', PaymentMeansListID, '');
         Assert.AreEqual(Format(DummySalesHeader."Due Date", 0, 9), PaymentDueDate, '');
         Assert.AreEqual('', PaymentChannelCode, '');
-        Assert.AreEqual('', PaymentID, '');
+        case true of
+            // 37350 = PEPPOL 3.0 - Sales NO: NO format sets PaymentID to a KID number
+            GetFormat().AsInteger() = 37350:
+                Assert.AreEqual('00000000000', PaymentID, '');
+            else
+                Assert.AreEqual('', PaymentID, '');
+        end;
         Assert.AreEqual('', PrimaryAccountNumberID, '');
         Assert.AreEqual('', NetworkID, '');
     end;
@@ -1182,7 +1188,13 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Assert.AreEqual('UNCL4461', PaymentMeansListID, '');
         Assert.AreEqual(Format(DummySalesHeader."Due Date", 0, 9), PaymentDueDate, '');
         Assert.AreEqual('', PaymentChannelCode, '');
-        Assert.AreEqual('', PaymentID, '');
+        case true of
+            // 37350 = PEPPOL 3.0 - Sales NO: NO format sets PaymentID to a KID number
+            GetFormat().AsInteger() = 37350:
+                Assert.AreEqual('00000000000', PaymentID, '');
+            else
+                Assert.AreEqual('', PaymentID, '');
+        end;
         Assert.AreEqual('', PrimaryAccountNumberID, '');
         Assert.AreEqual('', NetworkID, '');
     end;
@@ -1475,6 +1487,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         TaxTotalTaxSchemeID: Text;
         TransactionCurrencyTaxAmount: Text;
         TransCurrTaxAmtCurrencyID: Text;
+        ActualTaxableAmount: Decimal;
     begin
         // Setup
         Initialize();
@@ -1518,7 +1531,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
           TaxTotalTaxSchemeID);
 
         // Verify
-        Assert.AreEqual(Format(TempVATAmtLine."VAT Base", 0, 9), TaxableAmount, 'TaxableAmount has unexpected value.');
+        Evaluate(ActualTaxableAmount, TaxableAmount);
+        Assert.AreEqual(TempVATAmtLine."VAT Base", ActualTaxableAmount, 'TaxableAmount has unexpected value.');
         Assert.AreEqual(LibraryERM.GetLCYCode(), TaxAmountCurrencyID, 'TaxAmountCurrencyID has unexpected value.');
         Assert.AreEqual(Format(TempVATAmtLine."VAT Amount", 0, 9), SubtotalTaxAmount, 'SubtotalTaxAmount has unexpected value.');
         Assert.AreEqual(LibraryERM.GetLCYCode(), TaxSubtotalCurrencyID, 'TaxSubtotalCurrencyID has unexpected value.');
@@ -3253,7 +3267,6 @@ codeunit 139235 "PEPPOL30 Management Tests"
 #pragma warning disable AL0432
         TempVATAmtLine: Record "VAT Amount Line" temporary;
 #pragma warning restore AL0432
-        PEPPOLMgt: Codeunit "PEPPOL30";
         PEPPOLPartyInfoProvider: Interface "PEPPOL Party Info Provider";
         CustPartyTaxSchemeCompanyID: Text;
         CustPartyTaxSchemeCompIDSchID: Text;
@@ -3283,7 +3296,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
             TempVATAmtLine);
 
         // [THEN] Correct values are returned
-        Assert.AreEqual(PEPPOLMgt.FormatVATRegistrationNo(Cust.GetVATRegistrationNo(), Cust."Country/Region Code", true, true), CustPartyTaxSchemeCompanyID, 'Cutomer Party Tax Scheme Company ID should match VAT Registration No.');
+        Assert.AreEqual(Cust.FormatVATRegistrationNo(Cust.GetVATRegistrationNo(), Cust."Country/Region Code"), CustPartyTaxSchemeCompanyID, 'Cutomer Party Tax Scheme Company ID should match VAT Registration No.');
         Assert.AreEqual('', CustPartyTaxSchemeCompIDSchID, 'Company ID''s Scheme ID should be empty.');
         Assert.AreEqual('VAT', CustTaxSchemeID, 'Wrong Tax Scheme ID.');
     end;
@@ -3768,8 +3781,11 @@ codeunit 139235 "PEPPOL30 Management Tests"
     end;
 
     local procedure GetFormat(): Enum "PEPPOL 3.0 Format";
+    var
+        Peppol30Setup: Record "PEPPOL 3.0 Setup";
     begin
-        exit(Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
+        Peppol30Setup.GetSetup();
+        exit(Peppol30Setup."PEPPOL 3.0 Sales Format");
     end;
 
     local procedure PEPPOLXMLExport(DocumentVariant: Variant; FormatCode: Code[20]) Data: Text
@@ -3954,6 +3970,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LineExtensionAmountCurrencyID: Text;
         unitCode: Text;
         unitCodeListID: Text;
+        SalesInvoiceLineLineAmount: Decimal;
     begin
         SalesInvoiceHeader.Get(PostedInvoiceNo);
         SalesHeader.TransferFields(SalesInvoiceHeader);
@@ -3975,9 +3992,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Assert.AreEqual(Format(SalesInvoiceLine.Quantity, 0, 9), InvoicedQuantity, '');
         Assert.AreEqual(UnitOfMeasure."International Standard Code", unitCode, '');
         Assert.AreEqual('UNECERec20', unitCodeListID, '');
-        Assert.AreEqual(
-          Format(SalesInvoiceLine."VAT Base Amount" + SalesInvoiceLine."Inv. Discount Amount", 0, 9),
-          InvoiceLineExtensionAmount, '');
+        SalesInvoiceLineLineAmount := SalesInvoiceLine."Line Amount";
+        Assert.AreEqual(Format(SalesInvoiceLineLineAmount, 0, 9), InvoiceLineExtensionAmount, '');
         Assert.AreEqual(SalesHeader."Currency Code", LineExtensionAmountCurrencyID, '');
         Assert.AreEqual('', InvoiceLineAccountingCost, '');
     end;
