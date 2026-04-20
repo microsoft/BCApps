@@ -56,7 +56,7 @@ codeunit 8064 "Sub. Contract Billing Printout"
                                 TempJobLedgerEntryBuffer."Currency Code" := SalesInvoiceHeader."Currency Code";
                                 TempJobLedgerEntryBuffer."Line Amount" := UsageDataBilling.Amount;
                             end;
-                            onBeforeInsertUsageDataBilling(TempJobLedgerEntryBuffer, UsageDataBilling, SalesInvoiceHeader, SalesInvoiceLine);
+                            OnBeforeInsertUsageDataBilling(TempJobLedgerEntryBuffer, UsageDataBilling, SalesInvoiceHeader, SalesInvoiceLine);
                             TempJobLedgerEntryBuffer.Insert(false);
                         until UsageDataBilling.Next() = 0;
                 end else begin
