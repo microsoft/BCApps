@@ -1,0 +1,184 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "dcbf6433020742aa41b8",
+  "position": {
+    "x": 26,
+    "y": 64,
+    "z": 0,
+    "height": 630,
+    "width": 1228,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Date"
+                    }
+                  },
+                  "Property": "Date"
+                }
+              },
+              "queryRef": "Date.Date",
+              "nativeQueryRef": "Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Contract Deferrals"
+                    }
+                  },
+                  "Property": "Document Type"
+                }
+              },
+              "queryRef": "Vendor Contract Deferrals.Document Type",
+              "nativeQueryRef": "Document Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Contract Deferrals"
+                    }
+                  },
+                  "Property": "Document No."
+                }
+              },
+              "queryRef": "Vendor Contract Deferrals.Document No.",
+              "nativeQueryRef": "Document No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Contract Deferrals"
+                    }
+                  },
+                  "Property": "Document Line No."
+                }
+              },
+              "queryRef": "Vendor Contract Deferrals.Document Line No.",
+              "nativeQueryRef": "Line No.",
+              "displayName": "Line No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Contract Deferrals"
+                    }
+                  },
+                  "Property": "Contract No."
+                }
+              },
+              "queryRef": "Vendor Contract Deferrals.Contract No.",
+              "nativeQueryRef": "Contract No."
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Contract Deferrals"
+                    }
+                  },
+                  "Property": "Contract Line No."
+                }
+              },
+              "queryRef": "Vendor Contract Deferrals.Contract Line No.",
+              "nativeQueryRef": "Contract Line No."
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Vendor Deferrals"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Vendor Deferrals",
+              "nativeQueryRef": "Vendor Deferrals"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Is Released"
+                    }
+                  },
+                  "Property": "Is Released"
+                }
+              },
+              "queryRef": "Is Released.Is Released",
+              "nativeQueryRef": "Is Released"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Contract Deferrals"
+                    }
+                  },
+                  "Property": "Release Posting Date"
+                }
+              },
+              "queryRef": "Vendor Contract Deferrals.Release Posting Date",
+              "nativeQueryRef": "Release Posting Date"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Contract Deferrals"
+                    }
+                  },
+                  "Property": "G LEntry No."
+                }
+              },
+              "queryRef": "Vendor Contract Deferrals.G LEntry No.",
+              "nativeQueryRef": "G LEntry No."
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Vendor Contract Deferrals Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

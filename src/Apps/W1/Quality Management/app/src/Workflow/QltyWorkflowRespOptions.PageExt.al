@@ -618,7 +618,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that blocks purchases on the item card.';
 
                         trigger OnDrillDown()
                         var
@@ -637,7 +637,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that blocks a vendor.';
 
                         trigger OnDrillDown()
                         var
@@ -656,7 +656,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that flags a BOM as under development.';
 
                         trigger OnDrillDown()
                         var

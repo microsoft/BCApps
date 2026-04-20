@@ -943,6 +943,13 @@ table 30102 "Shpfy Shop"
             Caption = 'Advanced Shopify Plan';
             DataClassification = SystemMetadata;
         }
+        field(208; "Find Mapping by Barcode"; Boolean)
+        {
+            Caption = 'Find Mapping by Barcode';
+            ToolTip = 'Specifies whether to use the barcode as a fallback when the primary SKU mapping strategy does not find a match.';
+            DataClassification = SystemMetadata;
+            InitValue = true;
+        }
     }
 
     keys
