@@ -97,12 +97,10 @@ page 30101 "Shpfy Shop Card"
                 field(LoggingMode; Rec."Logging Mode")
                 {
                     ApplicationArea = All;
-                    Importance = Additional;
                 }
                 field(AllowBackgroudSyncs; Rec."Allow Background Syncs")
                 {
                     ApplicationArea = All;
-                    Importance = Additional;
                 }
                 field("Allow Outgoing Requests"; Rec."Allow Outgoing Requests")
                 {
@@ -196,6 +194,11 @@ page 30101 "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                     Editable = Rec."SKU Mapping" = Rec."SKU Mapping"::"Item No. + Variant Code";
+                }
+                field(FindMappingByBarcode; Rec."Find Mapping by Barcode")
+                {
+                    ApplicationArea = All;
+                    Visible = false;
                 }
                 field(InventoryTracket; Rec."Inventory Tracked")
                 {

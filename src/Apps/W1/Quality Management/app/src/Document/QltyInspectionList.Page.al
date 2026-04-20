@@ -711,6 +711,7 @@ page 20408 "Qlty. Inspection List"
     trigger OnAfterGetRecord()
     begin
         ResultStyleExpr := Rec.GetResultStyle();
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
     end;
 
     trigger OnAfterGetCurrRecord()

@@ -1,0 +1,876 @@
+cultureInfo de-DE
+	translations
+		model Model
+			table 'Dimension Sets'
+				caption: Dimensionssätze
+				column 'Global Dimension 1'
+					caption: Globale Dimension 1
+				column 'Global Dimension 2'
+					caption: Globale Dimension 2
+				column 'Shortcut Dimension 3'
+					caption: Shortcutdimension 3
+				column 'Shortcut Dimension 4'
+					caption: Shortcutdimension 4
+				column 'Shortcut Dimension 5'
+					caption: Shortcutdimension 5
+				column 'Shortcut Dimension 6'
+					caption: Shortcutdimension 6
+				column 'Shortcut Dimension 7'
+					caption: Shortcutdimension 7
+				column 'Shortcut Dimension 8'
+					caption: Shortcutdimension 8
+				column id
+					caption: id
+			table Vendors
+				caption: Kreditoren
+				column 'Vendor No.'
+					caption: Kreditornr.
+				column 'Vendor Name'
+					caption: Kreditorenname
+				column Address
+					caption: Adresse
+				column 'Address 2'
+					caption: Adresse 2
+				column City
+					caption: Ort
+				column 'Post Code'
+					caption: PLZ-Code
+				column State
+					caption: Bundesland
+				column 'Country/Region Code'
+					caption: Länder-/Regionscode
+				column 'Vendor Posting Group'
+					caption: Kreditorenbuchungsgruppe
+				column 'Vendor No. & Name'
+					caption: Kreditornr. und -name
+			table Customers
+				caption: Debitoren
+				column 'Customer No.'
+					caption: Debitorennummer
+				column 'Customer Name'
+					caption: Debitorname
+				column Address
+					caption: Adresse
+				column 'Address 2'
+					caption: Adresse 2
+				column City
+					caption: Ort
+				column 'Post Code'
+					caption: PLZ-Code
+				column State
+					caption: Bundesland
+				column 'Country/Region Code'
+					caption: Länder-/Regionscode
+				column 'Customer Posting Group'
+					caption: Debitorenbuchungsgruppe
+				column 'Customer Price Group'
+					caption: Debitorenpreisgruppe
+				column 'Customer Discount Group'
+					caption: Debitorenrabattgruppe
+				column 'Customer No. & Name'
+					caption: Debitorennr. und -name
+			table Date
+				caption: Datum
+				column Date
+					caption: Datum
+				column 'Week Day'
+					caption: Woche Tag
+				column 'Day Type'
+					caption: Tagestyp
+				column 'Calendar Year'
+					caption: Kalender Jahr
+					displayFolder: _Standard Kalender
+				column 'Calendar Quarter'
+					caption: Kalenderquartal
+					displayFolder: _Standard Kalender
+				column 'Calendar Quarter Year'
+					caption: Kalender Quartal Jahr
+					displayFolder: _Standard Kalender
+				column 'Calendar Month'
+					caption: Kalendermonat
+					displayFolder: _Standard Kalender
+				column 'Calendar Month Year'
+					caption: Kalender Monat Jahr
+					displayFolder: _Standard Kalender
+				column 'Calendar Week'
+					caption: Kalender Woche
+					displayFolder: _Standard Kalender
+				column 'Calendar Week Year'
+					caption: Kalender Woche Jahr
+					displayFolder: _Standard Kalender
+				column 'Calendar WeekYearOrder'
+					displayFolder: _Standard Kalender
+				column 'Calendar RelativeWeekPos'
+					caption: Kalender RelativeWochenPos
+					displayFolder: _Standard Kalender
+				column 'Calendar RelativeMonthPos'
+					caption: Kalender RelativeMonatsPos
+					displayFolder: _Standard Kalender
+				column 'Calendar RelativeQuarterPos'
+					caption: Kalender RelativeQuartalsPos
+					displayFolder: _Standard Kalender
+				column 'Calendar RelativeYearPos'
+					caption: Kalender RelativeJahresPos
+					displayFolder: _Standard Kalender
+				column 'Calendar StartOfMonth'
+					caption: Kalender BeginnDesMonats
+					displayFolder: _Standard Kalender
+				column 'Calendar EndOfMonth'
+					caption: Kalender EndeDesMonats
+					displayFolder: _Standard Kalender
+				column 'Calendar StartOfQuarter'
+					caption: Kalender BeginnDesQuartals
+					displayFolder: _Standard Kalender
+				column 'Calendar EndOfQuarter'
+					caption: Kalender EndeDesQuartals
+					displayFolder: _Standard Kalender
+				column 'Calendar StartOfYear'
+					caption: Kalender BeginnDesJahres
+					displayFolder: _Standard Kalender
+				column 'Calendar EndOfYear'
+					caption: Kalender EndeDesJahres
+					displayFolder: _Standard Kalender
+				column 'Calendar MonthDays'
+					caption: Kalender MonatTage
+					displayFolder: _Standard Kalender
+				column 'Calendar QuarterDays'
+					caption: Kalender QuartalTage
+					displayFolder: _Standard Kalender
+				column 'Calendar YearDays'
+					caption: Kalender JahrTage
+					displayFolder: _Standard Kalender
+				column 'Calendar DayOfMonthNumber'
+					caption: Kalender TagDesMonatsZahl
+					displayFolder: _Standard Kalender
+				column 'Calendar DayOfQuarterNumber'
+					caption: Kalender TagDesQuartalsZahl
+					displayFolder: _Standard Kalender
+				column 'Calendar DayOfYearNumber'
+					caption: Kalender TagDesJahresZahl
+					displayFolder: _Standard Kalender
+				column 'Calendar DatePreviousWeek'
+					caption: Kalender DatumVorigeWoche
+					displayFolder: _Standard Kalender
+				column 'Calendar DatePreviousMonth'
+					caption: Kalender DatumVorigerMonat
+					displayFolder: _Standard Kalender
+				column 'Calendar DatePreviousQuarter'
+					caption: Kalender DatumVorigesQuartal
+					displayFolder: _Standard Kalender
+				column 'Calendar DatePreviousYear'
+					caption: Kalender DatumVorigesJahr
+					displayFolder: _Standard Kalender
+				column 'Fiscal Year'
+					caption: Geschäftlich Jahr
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Quarter'
+					caption: Geschäftsquartal
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Quarter Year'
+					caption: Geschäftlich Quartal Jahr
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal MonthInQuarterNumber'
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Month'
+					caption: Geschäftlich Monat
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Month Year'
+					caption: Geschäftlich Monat Jahr
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Week'
+					caption: Geschäftswoche
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal Week Year'
+					caption: Geschäftlich Woche Jahr
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal WeekYearOrder'
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal RelativeWeekPos'
+					caption: Geschäftlich RelativeWochenPos
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal RelativeMonthPos'
+					caption: Geschäftlich RelativeMonatsPos
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal RelativeQuarterPos'
+					caption: Geschäftlich RelativeQuartalsPos
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal RelativeYearPos'
+					caption: Geschäftlich RelativeJahresPos
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal StartOfMonth'
+					caption: Geschäftlich BeginnDesMonats
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal EndOfMonth'
+					caption: Geschäftlich EndeDesMonats
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal StartOfQuarter'
+					caption: Geschäftlich BeginnDesQuartals
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal EndOfQuarter'
+					caption: Geschäftlich EndeDesQuartals
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal StartOfYear'
+					caption: Geschäftlich BeginnDesJahres
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal EndOfYear'
+					caption: Geschäftlich EndeDesJahres
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal MonthDays'
+					caption: Geschäftlich MonatTage
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal QuarterDays'
+					caption: Geschäftlich QuartalTage
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal YearDays'
+					caption: Geschäftlich JahrTage
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DayOfMonthNumber'
+					caption: Geschäftlich TagDesMonatsZahl
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Geschäftlich TagDesQuartalsZahl
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DayOfYearNumber'
+					caption: Geschäftlich TagDesJahresZahl
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DatePreviousWeek'
+					caption: Geschäftlich DatumVorigeWoche
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DatePreviousMonth'
+					caption: Geschäftlich DatumVorigerMonat
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DatePreviousQuarter'
+					caption: Geschäftlich DatumVorigesQuartal
+					displayFolder: _Fiscal Kalender
+				column 'Fiscal DatePreviousYear'
+					caption: Geschäftlich DatumVorigesJahr
+					displayFolder: _Fiscal Kalender
+				column 'FW Year'
+					caption: GW Jahr
+					displayFolder: _Weekly Kalender
+				column 'FW Quarter'
+					caption: GW Quartal
+					displayFolder: _Weekly Kalender
+				column 'FW Quarter Year'
+					caption: GW Quartal Jahr
+					displayFolder: _Weekly Kalender
+				column 'FW Month'
+					caption: GW Monat
+					displayFolder: _Weekly Kalender
+				column 'FW Month Year'
+					caption: GW Monat Jahr
+					displayFolder: _Weekly Kalender
+				column 'FW Week'
+					caption: GW Woche
+					displayFolder: _Weekly Kalender
+				column 'FW Period'
+					caption: GW Periode
+					displayFolder: _Weekly Kalender
+				column 'FW Week Year'
+					caption: GW Woche Jahr
+					displayFolder: _Weekly Kalender
+				column 'FW StartOfWeek'
+					caption: GW BeginnDerWoche
+					displayFolder: _Weekly Kalender
+				column 'FW EndOfWeek'
+					caption: GW EndeDerWoche
+					displayFolder: _Weekly Kalender
+				column 'FW RelativeWeekPos'
+					caption: GW RelativeWochenPos
+					displayFolder: _Weekly Kalender
+				column 'FW RelativeMonthPos'
+					caption: GW RelativeMonatsPos
+					displayFolder: _Weekly Kalender
+				column 'FW RelativeQuarterPos'
+					caption: GW RelativeQuartalsPos
+					displayFolder: _Weekly Kalender
+				column 'FW RelativeYearPos'
+					caption: GW RelativeJahresPos
+					displayFolder: _Weekly Kalender
+				column 'FW StartOfMonth'
+					caption: GW BeginnDesMonats
+					displayFolder: _Weekly Kalender
+				column 'FW EndOfMonth'
+					caption: GW EndeDesMonats
+					displayFolder: _Weekly Kalender
+				column 'FW StartOfQuarter'
+					caption: GW BeginnDesQuartals
+					displayFolder: _Weekly Kalender
+				column 'FW EndOfQuarter'
+					caption: GW EndeDesQuartals
+					displayFolder: _Weekly Kalender
+				column 'FW StartOfYear'
+					caption: GW BeginnDesJahres
+					displayFolder: _Weekly Kalender
+				column 'FW EndOfYear'
+					caption: GW EndeDesJahres
+					displayFolder: _Weekly Kalender
+				column 'FW MonthDays'
+					caption: GW MonatTage
+					displayFolder: _Weekly Kalender
+				column 'FW QuarterDays'
+					caption: GW QuartalTage
+					displayFolder: _Weekly Kalender
+				column 'FW YearDays'
+					caption: GW JahrTage
+					displayFolder: _Weekly Kalender
+				column 'FW DayOfMonthNumber'
+					caption: GW TagDesMonatsZahl
+					displayFolder: _Weekly Kalender
+				column 'FW DayOfQuarterNumber'
+					caption: GW TagDesQuartalsZahl
+					displayFolder: _Weekly Kalender
+				column 'FW DayOfYearNumber'
+					caption: GW TagDesJahresZahl
+					displayFolder: _Weekly Kalender
+				column 'FW DatePreviousWeek'
+					caption: GW DatumVorigeWoche
+					displayFolder: _Weekly Kalender
+				column 'FW DatePreviousMonth'
+					caption: GW DatumVorigerMonat
+					displayFolder: _Weekly Kalender
+				column 'FW DatePreviousQuarter'
+					caption: GW DatumVorigesQuartal
+					displayFolder: _Weekly Kalender
+				column 'FW DatePreviousYear'
+					caption: GW DatumVorigesJahr
+					displayFolder: _Weekly Kalender
+				column 'Relative Day'
+					caption: Relativ Tag
+				column Sequential365DayNumber
+					caption: Fortlaufend 365 TagNummer
+				column 'Data Range Deferrals'
+					caption: Datenbereichsabgrenzungen
+				measure 'No. of Days'
+					caption: Anzahl der Tage
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Geschäftlich Jahr-Quartal-Monat-Woche
+					displayFolder: _Fiscal Kalender
+					level 'Fiscal Year'
+						caption: Geschäftlich Jahr
+					level 'Fiscal Quarter Year'
+						caption: Geschäftlich Quartal Jahr
+					level 'Fiscal Month Year'
+						caption: Geschäftlich Monat Jahr
+					level 'Fiscal Week Year'
+						caption: Geschäftlich Woche Jahr
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Kalender Jahr-Quartal-Monat-Woche
+					displayFolder: _Standard Kalender
+					level 'Calendar Year'
+						caption: Kalender Jahr
+					level 'Calendar Quarter Year'
+						caption: Kalender Quartal Jahr
+					level 'Calendar Month Year'
+						caption: Kalender Monat Jahr
+					level 'Calendar Week Year'
+						caption: Kalender Woche Jahr
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: GW Jahr-Quartal-Monat-Woche
+					displayFolder: _Weekly Kalender
+					level 'FW Year'
+						caption: GW Jahr
+					level 'FW Quarter Year'
+						caption: GW Quartal Jahr
+					level 'FW Month Year'
+						caption: GW Monat Jahr
+					level 'FW Week Year'
+						caption: GW Woche Jahr
+				hierarchy 'Fiscal Year-Month'
+					caption: Geschäftlich Jahr-Monat
+					displayFolder: _Fiscal Kalender
+					level 'Fiscal Year'
+						caption: Geschäftlich Jahr
+					level 'Fiscal Month Year'
+						caption: Geschäftlich Monat Jahr
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Geschäftlich Jahr-Monat-Woche
+					displayFolder: _Fiscal Kalender
+					level 'Fiscal Year'
+						caption: Geschäftlich Jahr
+					level 'Fiscal Month Year'
+						caption: Geschäftlich Monat Jahr
+					level 'Fiscal Week Year'
+						caption: Geschäftlich Woche Jahr
+				hierarchy 'Calendar Year-Month'
+					caption: Kalender Jahr-Monat
+					displayFolder: _Standard Kalender
+					level 'Calendar Year'
+						caption: Kalender Jahr
+					level 'Calendar Month Year'
+						caption: Kalender Monat Jahr
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Kalender Jahr-Monat-Woche
+					displayFolder: _Standard Kalender
+					level 'Calendar Year'
+						caption: Kalender Jahr
+					level 'Calendar Month Year'
+						caption: Kalender Monat Jahr
+					level 'Calendar Week Year'
+						caption: Kalender Woche Jahr
+				hierarchy 'FW Year-Month-Week'
+					caption: GW Jahr-Monat-Woche
+					displayFolder: _Weekly Kalender
+					level 'FW Year'
+						caption: GW Jahr
+					level 'FW Month Year'
+						caption: GW Monat Jahr
+					level 'FW Week Year'
+						caption: GW Woche Jahr
+				hierarchy 'FW Year-Quarter-Week'
+					caption: GW Jahr-Quartal-Woche
+					displayFolder: _Weekly Kalender
+					level 'FW Year'
+						caption: GW Jahr
+					level 'FW Quarter Year'
+						caption: GW Quartal Jahr
+					level 'FW Week Year'
+						caption: GW Woche Jahr
+				hierarchy 'FW Year-Week'
+					caption: GW Jahr-Woche
+					displayFolder: _Weekly Kalender
+					level 'FW Year'
+						caption: GW Jahr
+					level 'FW Week Year'
+						caption: GW Woche Jahr
+			table 'Localized Labels'
+				caption: Lokalisierte Etiketten
+				measure 'CONNECT YOUR DATA'
+					caption: MIT EIGENEN DATEN VERBINDEN
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Finance Connector for Power BI herunterladen
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Dynamics 365 Business Central konfigurieren
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Finanzen enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können. Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.
+				measure 'HELP AND SUPPORT'
+					caption: HILFE UND SUPPORT
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.
+				measure 'for Business Central'
+					caption: für Business Central
+				measure 'Last Refreshed'
+					caption: Zuletzt aktualisiert
+				measure 'Company Name'
+					caption: Mandantenname
+				measure 'Analysis Entries as of'
+					caption: Analyseposten zum
+				measure 'Billing Forecast by Billing Period, Customer and Contract No.'
+					caption: Abrechnungsplanung nach Abrechnungsperiode, Debitor und Vertragsnr.
+				measure 'Billing Forecast by Year and Month'
+					caption: Abrechnungsplanung nach Kalenderjahr und Monat
+				measure 'Billing Schedule'
+					caption: Abrechnungszeitplan
+				measure 'Change of Mon. Recurring Revenue by Year and Month'
+					caption: Änderung dermon. wiederkehrenden Umsätze nach Jahr und Monat
+				measure 'Current Date Range:'
+					caption: Aktueller Datumsbereich:
+				measure 'Customer Contract Deferrals'
+					caption: Abgrenzungen von Debitorenverträgen
+				measure 'Customer Contract Lines'
+					caption: Debitorenvertragszeilen
+				measure 'Customer Deferrals (Caption)'
+					caption: Debitorenabgrenzungen
+				measure 'Mon. Recurring Revenue Analysis'
+					caption: Mon. wiederkehrende Umsatzanalyse
+				measure 'Mon. Recurring Revenue and Mon. Recurring Revenue PY by Month'
+					caption: Mon. wiederkehrende Umsätze und monatlich wiederkehrende Umsätze VJ nach Kalendermonat
+				measure 'Mon. Recurring Revenue and Year-Over-Year Growth by Year and Month'
+					caption: Mon. wiederkehrende Umsätze und Wachstum gegenüber dem Vorjahr nach Kalenderjahr und Monat
+				measure 'Mon. Recurring Revenue by Customer'
+					caption: Mon. wiederkehrende Umsätze nach Debitor
+				measure 'Mon. Recurring Revenue by Salesperson'
+					caption: Mon. wiederkehrende Umsätze nach Verkäufer
+				measure 'Mon. Recurring Revenue by Year and Month'
+					caption: Mon. wiederkehrende Umsätze nach Kalenderjahr und Monat
+				measure 'Mon. Recurring Revenue by Item'
+					caption: Mon. wiederkehrende Umsätze nach Artikel
+				measure 'Mon. Recurring Revenue by Item Category'
+					caption: Mon. wiederkehrende Umsätze nach Kategorie
+				measure 'Mon. Recurring Revenue Churn and Downgrade by Customer Contract'
+					caption: Mon. wiederkehrende Umsatzabwanderung und Downgrade nach Debitorenvertrag
+				measure 'Mon. Recurring Revenue New and Upgrade by Customer Contract'
+					caption: Mon. wiederkehrende Neuumsätze und Upgrade nach Debitorenvertrag
+				measure 'Monthly Sales and Cost Forecast by Year and Month'
+					caption: Monatliche Umsatz- und Kostenplanung nach Kalenderjahr und Monat
+				measure 'Monthly Sales and Cost Forecast by Salesperson, Customer and Contract No.'
+					caption: Monatliche Umsatz- und Kostenplanung nach Verkäufer, Debitor und Vertragsnr.
+				measure 'Released and Deferred Amount by Year and Month'
+					caption: Freigegebener und abgegrenzter Betrag nach Kalenderjahr und Monat
+				measure 'Revenue Analysis'
+					caption: Umsatzanalyse
+				measure 'Revenue by Customer'
+					caption: Umsatz nach Debitor
+				measure 'Revenue by Item'
+					caption: Umsatz nach Artikel
+				measure 'Revenue by Salesperson'
+					caption: Umsatz nach Verkäufer
+				measure 'Revenue Development'
+					caption: Umsatzentwicklung
+				measure 'Sales and Cost Forecast'
+					caption: Umsatzplanung
+				measure 'Revenue Year-Over-Year Growth'
+					caption: Umsatzwachstum im Vergleich zum Vorjahr
+				measure 'Subscription Billing Analysis'
+					caption: Subscription Billing-Analyse
+				measure 'Subscription Billing Overview'
+					caption: Übersicht über Subscription Billing
+				measure 'Top 5 Customers by Mon. Recurring Revenue'
+					caption: Top-5-Debitoren nach mon. wiederkehrenden Umsätzen
+				measure 'Top 5 Vendors by Mon. Recurring Cost'
+					caption: Top-5-Kreditoren nach mon. wiederkehrenden Kosten
+				measure 'Total Contract Value Analysis'
+					caption: Gesamtvertragswertanalyse
+				measure 'Total Contract Value and Total Contract Value PY by Month'
+					caption: Gesamtvertragswert und Gesamtvertragswert VJ nach Kalendermonat
+				measure 'Total Contract Value and Year-Over-Year Growth by Year and Month'
+					caption: Gesamtvertragswert und Wachstum gegenüber dem Vorjahr nach Kalenderjahr und Monat
+				measure 'Total Contract Value by Year and Month'
+					caption: Gesamtvertragswert nach Kalenderjahr und Monat
+				measure 'Total Contract Value Year-Over-Year Growth'
+					caption: Wachstum des Gesamtvertragswerts gegenüber dem Vorjahr
+				measure 'Vendor Contract Deferrals'
+					caption: Kreditorenvertragsabgrenzungen
+				measure 'Vendor Deferrals (Caption)'
+					caption: Kreditorenabgrenzungen
+				measure 'Back button'
+					caption: Schaltfläche „Zurück“
+				measure 'Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue'
+					caption: Mon. wiederkehrende Umsätze, Monatlich wiederkehrende Kosten, monatlicher Nettogewinn, aktive Debitoren, Gesamtvertragswert, Veränderung der monatlich wiederkehrenden Umsätze
+				measure 'Churn Analysis'
+					caption: Abwanderungsanalyse
+				measure 'Avg. Mon. Churn Rate % by Year and Month'
+					caption: Durchschn. mon. Abwanderungsrate % nach Jahr und Monat
+			table 'Meta Information'
+				caption: MANDANT
+			table Subscription
+				caption: Serviceobjekt
+				column 'Subscription No.'
+					caption: Serviceobjektnr.
+				column 'Package Code'
+					caption: Paketcode
+				column 'Subscription Desc.'
+					caption: Serviceobjektbeschreibung
+				column 'Analysis Date'
+					caption: Analysedatum
+				column 'Subscription No. Desc.'
+					caption: Beschreibung Subscription-Nr.
+			table 'Vendor Contract Deferrals'
+				caption: Kreditorenvertragsabgrenzungen
+				column 'Document Type'
+					caption: Belegtyp
+				column 'Document No.'
+					caption: Belegnummer
+				column 'Posting Date'
+					caption: Buchungsdatum
+				column Amount
+					caption: Betrag
+				column 'Document Posting Date'
+					caption: Belegbuchungsdatum
+				column 'Release Posting Date'
+					caption: Buchungsdatum freigeben
+				column 'G LEntry No.'
+					caption: Sachposten-Nr.
+				column Discount
+					caption: Rabatt
+				column 'Document Line No.'
+					caption: Belegzeilennr.
+			table 'Customer Contract Line'
+				caption: Debitorenvertragszeilen
+				column 'Subscription Line No.'
+					caption: Zusagezeilennr.
+				column Template
+					caption: Vorlage
+				column 'Customer Contract Line Desc.'
+					caption: Debitorenvertragszeilen-Beschreibung
+				column 'Subscription Start Date'
+					caption: Servicestartdatum
+				column 'Subscription End Date'
+					caption: Serviceenddatum
+				column 'Next Billing Date'
+					caption: Nächstes Abrechnungsdatum
+				column 'Analysis Date'
+					caption: Analysedatum
+				column 'Billing Base Period'
+					caption: Abrechnungsbasiszeitraum
+				column 'Invoicing Item No.'
+					caption: Rechnungsartikelnr.
+				column 'Customer Contract Line No.'
+					caption: Debitorenvertragszeilennr.
+				column 'Notice Period'
+					caption: Kündigungsfrist
+				column 'Initial Term'
+					caption: Anfangslaufzeit
+				column 'Extension Term'
+					caption: Erweiterungsbedingung
+				column 'Billing Rhythm'
+					caption: Abrechnungsrhythmus
+				column 'Cancellation Possible Until'
+					caption: Stornierung möglich bis
+				column 'Term Until'
+					caption: Laufzeit bis
+				column 'Renewal Term'
+					caption: Verlängerungszeitraum
+				column 'Line Active'
+					caption: Zeile aktiv
+				column 'Remaining Term'
+					caption: Verbleibende Bedingung
+				column 'Billing Rhythm Months'
+					caption: Abrechnungsrhythmus (Monate)
+				column 'Total Contract Value LCY'
+					caption: Gesamtvertragswert (lokale Währung)
+				column 'Total Contract Value UBB LCY'
+					caption: Gesamtvertragswert UBB (lokale Währung)
+				column 'Customer Contract No.'
+					caption: Debitorenvertragsnr.
+				column 'Is Usage Based Billing'
+					caption: Ist nutzungsbasierte Abrechnung
+				column 'Source Type'
+					caption: Herkunftsart
+				column 'Source No.'
+					caption: Herkunftsnr.
+			table 'Vendor Contract Line'
+				caption: Kreditorenvertragszeile
+				column 'Subscription Line No.'
+					caption: Zusagezeilennr.
+				column Template
+					caption: Vorlage
+				column 'Vendor Contract Line Desc.'
+					caption: Kreditorenvertragszeilen-Beschreibung
+				column 'Subscription Start Date'
+					caption: Servicestartdatum
+				column 'Subscription End Date'
+					caption: Serviceenddatum
+				column 'Next Billing Date'
+					caption: Nächstes Abrechnungsdatum
+				column 'Monthly Recurring Cost LCY'
+					caption: Monatlich wiederkehrende Kosten (lokale Währung)
+				column 'Vendor Contract Line No.'
+					caption: Kreditorenvertragszeilennr.
+				column 'Notice Period'
+					caption: Kündigungsfrist
+				column 'Initial Term'
+					caption: Anfangslaufzeit
+				column 'Extension Term'
+					caption: Erweiterungsbedingung
+				column 'Billing Rhythm'
+					caption: Abrechnungsrhythmus
+				column 'Cancellation Possible Until'
+					caption: Stornierung möglich bis
+				column 'Term Until'
+					caption: Laufzeit bis
+				column 'Renewal Term'
+					caption: Verlängerungszeitraum
+				column 'Line Active'
+					caption: Zeile aktiv
+				column 'Remaining Term'
+					caption: Verbleibende Bedingung
+				column 'Billing Rhythm Months'
+					caption: Abrechnungsrhythmus (Monate)
+				column 'Vendor Contract No.'
+					caption: Kreditorenvertragsnr.
+				column 'Is Latest Version'
+					caption: Ist neueste Version
+				column 'Is Usage Based Billing'
+					caption: Ist nutzungsbasierte Abrechnung
+				column 'Source Type'
+					caption: Herkunftsart
+				column 'Source No.'
+					caption: Herkunftsnr.
+			table 'Customer Contract Deferrals'
+				caption: Abgrenzungen von Debitorenverträgen
+				column 'Document Type'
+					caption: Belegtyp
+				column 'Document No.'
+					caption: Belegnummer
+				column 'Posting Date'
+					caption: Buchungsdatum
+				column 'Document Line No.'
+					caption: Belegzeilennr.
+				column 'Document Posting Date'
+					caption: Belegbuchungsdatum
+				column 'Release Posting Date'
+					caption: Buchungsdatum freigeben
+				column 'G LEntry No.'
+					caption: Sachposten-Nr.
+			table 'Customer Contract'
+				caption: Debitorenvertrag
+				column 'Customer Contract No.'
+					caption: Debitorenvertragsnr.
+				column 'Customer Contract Type'
+					caption: Debitorenvertragstyp
+				column 'Customer Contract Description'
+					caption: Debitorenvertragsbeschreibung
+				column 'Customer Contract No. Desc.'
+					caption: Beschreibung der Debitorenvertragsnr.
+			table 'Vendor Contract'
+				caption: Kreditorenvertrag
+				column 'Vendor Contract No.'
+					caption: Kreditorenvertragsnr.
+				column 'Vendor Contract Type'
+					caption: Kreditorenvertragstyp
+				column 'Vendor Contract Description'
+					caption: Kreditorenvertragsbeschreibung
+				column 'Vendor Contract No. Desc.'
+					caption: Beschreibung der Kreditorenvertragsnr.
+			table 'UBB handling'
+				caption: NBA-Verarbeitung
+				column 'Treat Usage Based Billing as constant'
+					caption: NBA als Konstante behandeln
+			table 'Is Released'
+				caption: Ist freigegeben
+			table Item
+				caption: Artikel
+				column 'Item No.'
+					caption: Artikelnr.
+				column 'Item Name'
+					caption: Artikelname
+				column 'Item Category Code'
+					caption: Artikelkategoriencode
+				column 'Item Category Description'
+					caption: Beschreibung der Artikelkategorie
+				column 'Inventory Posting Group'
+					caption: Lagerbuchungsgruppe
+				column 'Base Unit of Measure'
+					caption: Basiseinheit
+				column 'Item No. & Description'
+					caption: Artikelnr. und -Beschreibung
+			table 'Analysis Date'
+				caption: Analysedatum
+				column 'Is Initial Version'
+					caption: Ist ursprüngliche Version
+				column 'Is Current Version'
+					caption: Ist aktuelle Version
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Berech. Gruppe – Zeitinformationen für Kalender (Geschäftlich)
+				column Perspective
+					caption: Perspektive
+			table 'Subscription Billing KPIs'
+				caption: Subscription Billing-KPIs
+				measure 'Mon. Recurring Revenue'
+					caption: MWU
+				measure 'Mon. Recurring Cost'
+					caption: MWK
+				measure 'Customer Deferrals'
+					caption: Debitorenabgrenzungen
+				measure 'Vendor Deferrals'
+					caption: Kreditorenabgrenzungen
+				measure 'Annual Recurring Revenue'
+					caption: DBUCH
+				measure 'Total Contract Value'
+					caption: GVW
+				measure 'Count Cust. Deferrals'
+					caption: Anzahl Kundenrückstellungen
+				measure 'Count Vend. Deferrals'
+					caption: Anzahl Lieferantenrückstellungen
+				measure 'Forecast Sales'
+					caption: Planungsverkäufe
+				measure 'Mon. Recurring Cost PY'
+					caption: MWK VJ
+				measure 'Mon. Recurring Cost Δ vs. PY'
+					caption: MWK Δ gegenüber VJ
+				measure 'Mon. Recurring Revenue Churn'
+					caption: Mon. wiederkehrende Umsätze Abwanderung
+				measure 'Mon. Recurring Revenue PY'
+					caption: MWU VJ
+				measure 'Mon. Recurring Revenue New'
+					caption: Mon. wiederkehrende Umsätze Neu
+				measure 'Mon. Recurring Revenue Δ vs. PY'
+					caption: Mon. wiederkehrende Umsätze Δ gegenüber VJ
+				measure 'Mon. Net Profit Amount'
+					caption: NMWU
+				measure 'Mon. Net Profit %'
+					caption: NMWU % der MWU
+				measure 'Mon. Net Profit PY'
+					caption: NMWU VJ
+				measure 'Mon. Net Profit Δ vs. PY'
+					caption: NMWU Δ gegenüber VJ
+				measure 'Change in Mon. Recurring Revenue'
+					caption: MWU-Gesamtveränderung
+				measure 'Total Contract Value PY'
+					caption: GVW VJ
+				measure 'Total Contract Value Δ vs. PY'
+					caption: GVW Δ gegenüber VJ
+				measure 'Last Update Analysis Entries'
+					caption: Letzte Aktualisierung Analyseposten
+				measure 'Last Update Semantic Model'
+					caption: Letzte Aktualisierung des semantischen Modells
+				measure 'Param Environment'
+					caption: Parameterumgebung
+				measure 'Param Company'
+					caption: Paramater Mandant
+				measure 'Mon. Recurring Revenue Upgrade'
+					caption: Mon. wiederkehrende Umsätze Upgrade
+				measure 'Mon. Recurring Revenue Change UBB'
+					caption: Mon. wiederkehrende Umsätze NBA-Änderung
+				measure 'Reporting Currency'
+					caption: Berichtswährung
+				measure 'Active Customers'
+					caption: Aktive Debitoren
+				measure 'Active Customers PY'
+					caption: Aktive Debitoren VJ
+				measure 'Active Customers Δ vs. PY'
+					caption: Aktive Debitoren Δ gegenüber VJ
+				measure 'Base KPI Customer Billing Forecast'
+					caption: Grund-KPI Kundenabrechnungsprognose
+				measure 'Base KPI Customer Billing Forecast UBB'
+					caption: Grund-KPI Kundenabrechnungsprognose UBB
+				measure 'Customer Billing Forecast'
+					caption: Debitorenabrechnungsplanung
+				measure 'Base KPI ARR UBB handling'
+					caption: Grund-KPI ARR UBB-Verarbeitung
+				measure 'Base KPI TCV UBB handling'
+					caption: Grund-KPI Gesamtvertragswert UBB-Verarbeitung
+				measure 'Base KPI Customer Billing Forecast UBB handling'
+					caption: Grund-KPI Kundenabrechnungsprognose UBB-Verarbeitung
+				measure 'Base KPI Vendor Billing Forecast'
+					caption: Grund-KPI Lieferantenabrechnungsprognose
+				measure 'Base KPI Vendor Billing Forecast UBB'
+					caption: Grund-KPI Lieferantenabrechnungsprognose UBB
+				measure 'Base KPI Vendor Billing Forecast UBB handling'
+					caption: Grund-KPI Lieferantenabrechnungsprognose UBB-Verarbeitung
+				measure 'Vendor Billing Forecast'
+					caption: Kreditorenabrechnungsplanung
+				measure 'Forecast Costs'
+					caption: Geplante Kosten
+				measure 'Mon. Recurring Revenue Downgrade'
+					caption: Mon. wiederkehrende Umsätze Downgrade
+				measure 'Churn (-)'
+					caption: Abwanderung
+				measure 'Downgrade (-)'
+					caption: Downgrade
+				measure 'Usage Based Billing Change'
+					caption: Änderung der nutzungsbasierten Abrechnung
+				measure Upgrade
+					caption: Upgrade
+				measure New
+					caption: Neu
+				measure 'Total Change'
+					caption: Gesamtänderung
+				measure 'Selected Date Range'
+					caption: Ausgewählter Datumsbereich
+				measure 'Avg. Mon. Churn Rate %'
+					caption: Durchschn. mon. Abwanderungsrate %
+				measure 'Mon. Avg. Downgrade Rate %'
+					caption: Durchschn. mon. Downgraderate %
+				measure 'Mon. Recurring Revenue Downgrade & Churn'
+					caption: Mon. wiederkehrende Umsätze Downgrade und Abwanderung
+			table Salesperson
+				caption: Verkäufer
+				column 'Salesperson Code'
+					caption: Verkäufercode
+				column 'Salesperson Name'
+					caption: Verkäufername
+			table 'Customer Contract Changes'
+				caption: Änderungen des Debitorenvertrags
+				column 'Customer Contract Line Key'
+					caption: Debitorenvertragszeilen-Schlüssel
+				column Date
+					caption: Datum
+				column 'Change Type'
+					caption: Typ ändern
+				column 'MRR Delta'
+					caption: MWU-Delta
+
