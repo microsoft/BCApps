@@ -115,7 +115,7 @@ codeunit 8064 "Sub. Contract Billing Printout"
     end;
 
     [IntegrationEvent(false, false)]
-    procedure onBeforeInsertUsageDataBilling(var TempJobLedgerEntryBuffer: Record "Job Ledger Entry"; UsageDataBilling: Record "Usage Data Billing"; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesInvoiceLine: Record "Sales Invoice Line")
+    procedure OnBeforeInsertUsageDataBilling(var TempJobLedgerEntryBuffer: Record "Job Ledger Entry"; UsageDataBilling: Record "Usage Data Billing"; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesInvoiceLine: Record "Sales Invoice Line")
     begin
     end;
 
