@@ -1,0 +1,731 @@
+cultureInfo is-IS
+	translations
+		model Model
+			table 'Dimension Sets'
+				caption: Víddasamstæður
+				column 'Global Dimension 1'
+					caption: Altæk vídd 1
+				column 'Global Dimension 2'
+					caption: Altæk vídd 2
+				column 'Shortcut Dimension 3'
+					caption: Flýtivídd 3
+				column 'Shortcut Dimension 4'
+					caption: Flýtivídd 4
+				column 'Shortcut Dimension 5'
+					caption: Flýtivídd 5
+				column 'Shortcut Dimension 6'
+					caption: Flýtivídd 6
+				column 'Shortcut Dimension 7'
+					caption: Flýtivídd 7
+				column 'Shortcut Dimension 8'
+					caption: Flýtivídd 8
+				column id
+					caption: kenni
+			table Vendors
+				caption: Lánardrottnar
+				column 'Vendor No.'
+					caption: Nr. lánardrottins
+				column 'Vendor Name'
+					caption: Nafn lánardrottins
+				column Address
+					caption: Netfang
+				column 'Address 2'
+					caption: Aðsetur 2
+				column City
+					caption: Borg
+				column 'Post Code'
+					caption: Póstnúmer
+				column State
+					caption: Fylki
+				column 'Country/Region Code'
+					caption: Lands-/svæðiskóði
+				column 'Vendor Posting Group'
+					caption: Bókunarflokkur lánardrottins
+				column 'Vendor No. & Name'
+					caption: Númer og nafn lánardrottins
+			table Customers
+				caption: Viðskiptavinir
+				column 'Customer No.'
+					caption: Nr. viðskiptavinar
+				column 'Customer Name'
+					caption: Nafn viðskiptavinar
+				column Address
+					caption: Netfang
+				column 'Address 2'
+					caption: Aðsetur 2
+				column City
+					caption: Borg
+				column 'Post Code'
+					caption: Póstnúmer
+				column State
+					caption: Fylki
+				column 'Country/Region Code'
+					caption: Lands-/svæðiskóði
+				column 'Customer Posting Group'
+					caption: Bókunarflokkur viðskiptamanns
+				column 'Customer Price Group'
+					caption: Verðflokkur viðskiptavinar
+				column 'Customer Discount Group'
+					caption: Afsláttarflokkur viðskiptavinar
+				column 'Customer No. & Name'
+					caption: Númer og nafn viðskiptamanns
+			table Date
+				caption: Dagsetning
+				column 'Week Day'
+					caption: Vika Dagur
+				column 'Day Type'
+					caption: Dagsgerð
+				column 'Calendar Year'
+					caption: Almanaksár
+				column 'Calendar Quarter'
+					caption: Dagatal Ársfjórðungur
+				column 'Calendar Quarter Year'
+					caption: Dagatal Ársfjórðungur Ár
+				column 'Calendar Month'
+					caption: Almanaksmánuður
+				column 'Calendar Month Year'
+					caption: Dagatal Mánuður Ár
+				column 'Calendar Week'
+					caption: Almanaksvika
+				column 'Calendar Week Year'
+					caption: Dagatal Vika Ár
+				column 'Calendar RelativeWeekPos'
+					caption: Dagatal Staða samsvarandi viku
+				column 'Calendar RelativeMonthPos'
+					caption: Dagatal Staða samsvarandi mánaðar
+				column 'Calendar RelativeQuarterPos'
+					caption: Dagatal Staða samsvarandi ársfjórðungs
+				column 'Calendar RelativeYearPos'
+					caption: Dagatal Staða samsvarandi árs
+				column 'Calendar StartOfMonth'
+					caption: Dagatal Upphaf mánaðar
+				column 'Calendar EndOfMonth'
+					caption: Dagatal Mánaðarlok
+				column 'Calendar StartOfQuarter'
+					caption: Dagatal Upphaf ársfjórðungs
+				column 'Calendar EndOfQuarter'
+					caption: Dagatal Ársfjórðungslok
+				column 'Calendar StartOfYear'
+					caption: Dagatal Upphaf árs
+				column 'Calendar EndOfYear'
+					caption: Dagatal Árslok
+				column 'Calendar MonthDays'
+					caption: Dagatal Dagar mánaðar
+				column 'Calendar QuarterDays'
+					caption: Dagatal Dagar ársfjórðungs
+				column 'Calendar YearDays'
+					caption: Dagatal Dagar árs
+				column 'Calendar DayOfMonthNumber'
+					caption: Dagatal Númer mánaðardags
+				column 'Calendar DayOfQuarterNumber'
+					caption: Dagatal Númer dags innan ársfjórðungs
+				column 'Calendar DayOfYearNumber'
+					caption: Dagatal Númer dags innan árs
+				column 'Calendar DatePreviousWeek'
+					caption: Dagatal Dagsetning fyrri viku
+				column 'Calendar DatePreviousMonth'
+					caption: Dagatal Dagsetning fyrri mánaðar
+				column 'Calendar DatePreviousQuarter'
+					caption: Dagatal Dagsetning fyrri ársfjórðungs
+				column 'Calendar DatePreviousYear'
+					caption: Dagatal Dagsetning fyrra árs
+				column 'Fiscal Year'
+					caption: Fjárhagur Ár
+				column 'Fiscal Quarter'
+					caption: Fjórðungur Ársfjórðungur
+				column 'Fiscal Quarter Year'
+					caption: Fjárhagur Ársfjórðungur og ár
+				column 'Fiscal Month'
+					caption: Fjárhagur Mánuður
+				column 'Fiscal Month Year'
+					caption: Fjárhagur Mánuður og ár
+				column 'Fiscal Week'
+					caption: Vika fjárhagsárs
+				column 'Fiscal Week Year'
+					caption: Fjárhagur Vika ár
+				column 'Fiscal RelativeWeekPos'
+					caption: Fjárhagur Staða samsvarandi viku
+				column 'Fiscal RelativeMonthPos'
+					caption: Fjárhagur Staða samsvarandi mánaðar
+				column 'Fiscal RelativeQuarterPos'
+					caption: Fjárhagur Staða samsvarandi ársfjórðungs
+				column 'Fiscal RelativeYearPos'
+					caption: Fjárhagur Staða samsvarandi árs
+				column 'Fiscal StartOfMonth'
+					caption: Fjárhagur Upphaf mánaðar
+				column 'Fiscal EndOfMonth'
+					caption: Fjárhagur Mánaðarlok
+				column 'Fiscal StartOfQuarter'
+					caption: Fjárhagur Upphaf ársfjórðungs
+				column 'Fiscal EndOfQuarter'
+					caption: Fjárhagur Ársfjórðungslok
+				column 'Fiscal StartOfYear'
+					caption: Fjárhagur Upphaf árs
+				column 'Fiscal EndOfYear'
+					caption: Fjárhagur Árslok
+				column 'Fiscal MonthDays'
+					caption: Fjárhagur Dagar mánaðar
+				column 'Fiscal QuarterDays'
+					caption: Fjárhagur Dagar ársfjórðungs
+				column 'Fiscal YearDays'
+					caption: Fjárhagur Dagar árs
+				column 'Fiscal DayOfMonthNumber'
+					caption: Fjárhagur Númer mánaðardags
+				column 'Fiscal DayOfQuarterNumber'
+					caption: Fjárhagur Númer dags innan ársfjórðungs
+				column 'Fiscal DayOfYearNumber'
+					caption: Fjárhagur Númer dags innan árs
+				column 'Fiscal DatePreviousWeek'
+					caption: Fjárhagur Dagsetning fyrri viku
+				column 'Fiscal DatePreviousMonth'
+					caption: Fjárhagur Dagsetning fyrri mánaðar
+				column 'Fiscal DatePreviousQuarter'
+					caption: Fjárhagur Dagsetning fyrri ársfjórðungs
+				column 'Fiscal DatePreviousYear'
+					caption: Fjárhagur Dagsetning fyrra árs
+				column 'FW Year'
+					caption: Fjárhagsvika Ár
+				column 'FW Quarter'
+					caption: Fjárhagsvika Ársfjórðungur
+				column 'FW Quarter Year'
+					caption: Fjárhagsvika Ársfjórðungur Ár
+				column 'FW Month'
+					caption: Fjárhagsvika Mánuður
+				column 'FW Month Year'
+					caption: Fjárhagsvika Mánuður Ár
+				column 'FW Week'
+					caption: Fjárhagsvika Vika
+				column 'FW Period'
+					caption: Fjárhagsvika Tímabil
+				column 'FW Week Year'
+					caption: Fjárhagsvika Vika Ár
+				column 'FW StartOfWeek'
+					caption: Fjárhagsvika Upphaf viku
+				column 'FW EndOfWeek'
+					caption: Fjárhagsvika Vikulok
+				column 'FW RelativeWeekPos'
+					caption: Fjárhagsvika Staða samsvarandi viku
+				column 'FW RelativeMonthPos'
+					caption: Fjárhagsvika Staða samsvarandi mánaðar
+				column 'FW RelativeQuarterPos'
+					caption: Fjárhagsvika Staða samsvarandi ársfjórðungs
+				column 'FW RelativeYearPos'
+					caption: Fjárhagsvika Staða samsvarandi árs
+				column 'FW StartOfMonth'
+					caption: Fjárhagsvika Upphaf mánaðar
+				column 'FW EndOfMonth'
+					caption: Fjárhagsvika Mánaðarlok
+				column 'FW StartOfQuarter'
+					caption: Fjárhagsvika Upphaf ársfjórðungs
+				column 'FW EndOfQuarter'
+					caption: Fjárhagsvika Ársfjórðungslok
+				column 'FW StartOfYear'
+					caption: Fjárhagsvika Upphaf árs
+				column 'FW EndOfYear'
+					caption: Fjárhagsvika Árslok
+				column 'FW MonthDays'
+					caption: Fjárhagsvika Dagar mánaðar
+				column 'FW QuarterDays'
+					caption: Fjárhagsvika Dagar ársfjórðungs
+				column 'FW YearDays'
+					caption: Fjárhagsvika Dagar árs
+				column 'FW DayOfMonthNumber'
+					caption: Fjárhagsvika Númer mánaðardags
+				column 'FW DayOfQuarterNumber'
+					caption: Fjárhagsvika Númer dags innan ársfjórðungs
+				column 'FW DayOfYearNumber'
+					caption: Fjárhagsvika Númer dags innan árs
+				column 'FW DatePreviousWeek'
+					caption: Fjárhagsvika Dagsetning fyrri viku
+				column 'FW DatePreviousMonth'
+					caption: Fjárhagsvika Dagsetning fyrri mánaðar
+				column 'FW DatePreviousQuarter'
+					caption: Fjárhagsvika Dagsetning fyrri ársfjórðungs
+				column 'FW DatePreviousYear'
+					caption: Fjárhagsvika Dagsetning fyrra árs
+				column 'Relative Day'
+					caption: Samsvarandi dagur
+				column Sequential365DayNumber
+					caption: 365 daga raðnúmer
+				column 'Data Range Deferrals'
+					caption: Frestun á gagnasviði
+				measure 'No. of Days'
+					caption: Fjöldi daga
+				hierarchy 'Fiscal Year-Quarter-Month-Week'
+					caption: Fjárhagur Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Quarter Year'
+						caption: Fjárhagur Ársfjórðungur og ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður og ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagur Vika ár
+				hierarchy 'Calendar Year-Quarter-Month-Week'
+					caption: Dagatal Ár-Ársfjórðungur-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Quarter Year'
+						caption: Dagatal Ársfjórðungur Ár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+					level 'Calendar Week Year'
+						caption: Dagatal Vika Ár
+				hierarchy 'FW Year-Quarter-Month-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'Fiscal Year-Month'
+					caption: Fjárhagur Ár-Mánuður
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður og ár
+				hierarchy 'Fiscal Year-Month-Week'
+					caption: Fjárhagur Ár-Mánuður-Vika
+					level 'Fiscal Year'
+						caption: Fjárhagur Ár
+					level 'Fiscal Month Year'
+						caption: Fjárhagur Mánuður og ár
+					level 'Fiscal Week Year'
+						caption: Fjárhagur Vika ár
+				hierarchy 'Calendar Year-Month'
+					caption: Dagatal Ár-Mánuður
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+				hierarchy 'Calendar Year-Month-Week'
+					caption: Dagatal Ár-Mánuður-Vika
+					level 'Calendar Year'
+						caption: Almanaksár
+					level 'Calendar Month Year'
+						caption: Dagatal Mánuður Ár
+					level 'Calendar Week Year'
+						caption: Dagatal Vika Ár
+				hierarchy 'FW Year-Month-Week'
+					caption: Fjárhagsvika Ár-Mánuður-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Month Year'
+						caption: Fjárhagsvika Mánuður Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Quarter-Week'
+					caption: Fjárhagsvika Ár-Ársfjórðungur-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Quarter Year'
+						caption: Fjárhagsvika Ársfjórðungur Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+				hierarchy 'FW Year-Week'
+					caption: Fjárhagsvika Ár-Vika
+					level 'FW Year'
+						caption: Fjárhagsvika Ár
+					level 'FW Week Year'
+						caption: Fjárhagsvika Vika Ár
+			table 'Localized Labels'
+				measure 'CONNECT YOUR DATA'
+					caption: TENGIÐ GÖGN
+				measure '1. Download the Finance Connector for Power BI'
+					caption: 1. Sækja Finance Connector for Power BI
+				measure '2. Configure Dynamics 365 Business Central'
+					caption: 2. Grunnstillið Dynamics 365 Business Central
+				measure 'USE, EDIT AND BUILD YOUR OWN REPORTS'
+					caption: NOTIÐ, BREYTIÐ OG BÚIÐ TIL EIGIN SKÝRSLUR
+				measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.'
+					caption: Fjármál bjóða upp á innbyggðar skýrslur til að skoða gögn samstundis. Hægt er að breyta skýrslunum eða búa til eigin skýrslur frá grunni.
+				measure 'HELP AND SUPPORT'
+					caption: HJÁLP OG STUÐNINGUR
+				measure 'For help and support with your new report please visit the Analytics overview documentation.'
+					caption: Lesið fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð við nýju skýrsluna.
+				measure 'for Business Central'
+					caption: fyrir Business Central
+				measure 'Last Refreshed'
+					caption: Síðast uppfært
+				measure 'Company Name'
+					caption: Heiti fyrirtækis
+				measure 'Analysis Entries as of'
+					caption: Greiningarfærslur frá og með
+				measure 'Billing Forecast by Billing Period, Customer and Contract No.'
+					caption: Reikningsspá eftir reikningstímabili, viðskiptavini og samningsnúmeri.
+				measure 'Billing Forecast by Year and Month'
+					caption: Reikningsspá eftir almanaksári og -mánuði
+				measure 'Billing Schedule'
+					caption: Greiðsluáætlun
+				measure 'Change of Mon. Recurring Revenue by Year and Month'
+					caption: Breyting á mán. endurteknum tekjum eftir ári og mánuði
+				measure 'Current Date Range:'
+					caption: Núverandi dagsetningabil:
+				measure 'Customer Contract Deferrals'
+					caption: Samningsfrestanir viðskiptavinar
+				measure 'Customer Contract Lines'
+					caption: Samningslínur viðskiptavinar
+				measure 'Customer Deferrals (Caption)'
+					caption: Frestanir viðskiptamanns
+				measure 'Mon. Recurring Revenue Analysis'
+					caption: Mán. endurtekin tekjugreining
+				measure 'Mon. Recurring Revenue and Mon. Recurring Revenue PY by Month'
+					caption: Mán. endurteknar tekjur og mán. endurteknar tekjur fyrra árs eftir almanaksmánuði
+				measure 'Mon. Recurring Revenue and Year-Over-Year Growth by Year and Month'
+					caption: Mán. endurteknar tekjur og vöxtur milli ára eftir almanaksári og -mánuði
+				measure 'Mon. Recurring Revenue by Customer'
+					caption: Mán. endurteknar tekjur eftir viðskiptavini
+				measure 'Mon. Recurring Revenue by Salesperson'
+					caption: Mán. endurteknar tekjur eftir sölumanni
+				measure 'Mon. Recurring Revenue by Year and Month'
+					caption: Mán. endurteknar tekjur eftir almanaksári og -mánuði
+				measure 'Mon. Recurring Revenue by Item'
+					caption: Mán. endurteknar tekjur eftir vöru
+				measure 'Mon. Recurring Revenue by Item Category'
+					caption: Mán. endurteknar tekjur eftir vöruflokkum
+				measure 'Mon. Recurring Revenue Churn and Downgrade by Customer Contract'
+					caption: Mán uppsögn endurtekinna tekna og niðurfærsla eftir samningi við viðskiptavin
+				measure 'Mon. Recurring Revenue New and Upgrade by Customer Contract'
+					caption: Mán. Endurteknar tekjur nýjar og uppfærðar eftir samningi við viðskiptavin
+				measure 'Monthly Sales and Cost Forecast by Year and Month'
+					caption: Mánaðarleg tekju- og kostnaðarspá eftir almanaksári og -mánuði
+				measure 'Monthly Sales and Cost Forecast by Salesperson, Customer and Contract No.'
+					caption: Mánaðarleg tekju- og kostnaðarspá sölumanns, viðskiptavinar og samnings nr.
+				measure 'Released and Deferred Amount by Year and Month'
+					caption: Losuð og frestuð upphæð eftir almanaksári og -mánuði
+				measure 'Revenue Analysis'
+					caption: Greining tekja
+				measure 'Revenue by Customer'
+					caption: Tekjur eftir viðskiptamanni
+				measure 'Revenue by Item'
+					caption: Tekjur eftir vöru
+				measure 'Revenue by Salesperson'
+					caption: Tekjur eftir sölumanni
+				measure 'Revenue Development'
+					caption: Tekjuþróun
+				measure 'Sales and Cost Forecast'
+					caption: Tekjuspá
+				measure 'Revenue Year-Over-Year Growth'
+					caption: Tekjuvöxtur milli ára
+				measure 'Subscription Billing Analysis'
+					caption: Subscription Billing greining
+				measure 'Subscription Billing Overview'
+					caption: Subscription Billing yfirlit
+				measure 'Top 5 Customers by Mon. Recurring Revenue'
+					caption: 5 hæstu viðskiptavinirnir eftir mán. endurteknum tekjum
+				measure 'Top 5 Vendors by Mon. Recurring Cost'
+					caption: 5 hæstu lánardrottnar fyrir mán. endurtekinn kostnað
+				measure 'Total Contract Value Analysis'
+					caption: Heildargreining samningsvirðis
+				measure 'Total Contract Value and Total Contract Value PY by Month'
+					caption: Heildarsamningsvirði og heildarsamningsvirði fyrra árs eftir almanaksmánuði
+				measure 'Total Contract Value and Year-Over-Year Growth by Year and Month'
+					caption: Heildarvirði samnings og vöxtur milli ára eftir almanaksári og -mánuði
+				measure 'Total Contract Value by Year and Month'
+					caption: Heildarverðmæti samnings eftir almanaksári og -mánuði
+				measure 'Total Contract Value Year-Over-Year Growth'
+					caption: Heildarvöxtur samningsvirðis á milli ára
+				measure 'Vendor Contract Deferrals'
+					caption: Frestanir lánardrottnasamnings
+				measure 'Vendor Deferrals (Caption)'
+					caption: Frestun lánardrottins
+				measure 'Back button'
+					caption: Bakkhnappur
+				measure 'Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue'
+					caption: Mánaðarlegar endurteknar tekjur, mánaðarlegur endurtekinn kostnaður, mánaðarlegur hreinn hagnaður, virkir viðskiptavinir, heildarvirði samnings, breyting á mánaðarlegum endurteknum tekjum
+				measure 'Churn Analysis'
+					caption: Greining á uppsögnum
+				measure 'Avg. Mon. Churn Rate % by Year and Month'
+					caption: Meðaltími mán. uppsagna % eftir ári og mánuði
+			table 'Meta Information'
+				caption: FYRIRTÆKI
+			table Subscription
+				caption: Þjónustuhlutur
+				column 'Subscription No.'
+					caption: Nr. þjónustuhlutar
+				column 'Package Code'
+					caption: Sendingarkóði
+				column 'Subscription Desc.'
+					caption: Afsláttur þjónustuhluta
+				column 'Analysis Date'
+					caption: Greiningardagsetning
+				column 'Subscription No. Desc.'
+					caption: Afsláttur Subscription-nr.
+			table 'Vendor Contract Deferrals'
+				caption: Frestanir lánardrottnasamnings
+				column 'Document Type'
+					caption: Gerð skjals
+				column 'Document No.'
+					caption: Nr. skjals
+				column 'Posting Date'
+					caption: Bókunardagsetning
+				column 'Document Posting Date'
+					caption: Bókunardagur skjals
+				column 'Release Posting Date'
+					caption: Losa bókunardagsetningu
+				column 'G LEntry No.'
+					caption: Fjárhagsbókarfærslunr.
+				column Discount
+					caption: Afsláttur
+				column 'Document Line No.'
+					caption: Línunr. fylgiskjals
+			table 'Customer Contract Line'
+				caption: Samningslína viðskiptavinar
+				column 'Subscription Line No.'
+					caption: Ráðstöfunarlínunr.
+				column Template
+					caption: Sniðmát
+				column 'Customer Contract Line Desc.'
+					caption: Afsláttur samningslýsingar viðskiptavinar
+				column 'Subscription Start Date'
+					caption: Upphafsdagur þjónustu
+				column 'Subscription End Date'
+					caption: Lokadagsetning þjónustu
+				column 'Next Billing Date'
+					caption: Næsta greiðsludagsetning
+				column 'Billing Base Period'
+					caption: Grunntímabil innheimtu
+				column 'Invoicing Item No.'
+					caption: Vörunr. reikningsfærslu
+				column 'Customer Contract Line No.'
+					caption: Samningslínunr. viðskiptavinar
+				column 'Notice Period'
+					caption: Uppsagnarfrestur
+				column 'Initial Term'
+					caption: Fyrsta tímabil
+				column 'Extension Term'
+					caption: Skilmálar viðbótar
+				column 'Billing Rhythm'
+					caption: Innheimtutíðni
+				column 'Cancellation Possible Until'
+					caption: Afbókun möguleg til
+				column 'Term Until'
+					caption: Liður til
+				column 'Renewal Term'
+					caption: Endurnýjunartímabil
+				column 'Line Active'
+					caption: Lína virk
+				column 'Remaining Term'
+					caption: Eftirstandandi skilmálar
+				column 'Billing Rhythm Months'
+					caption: Mánuðir innheimtutíðni
+				column 'Customer Contract No.'
+					caption: Samningsnr. viðskiptavinar
+				column 'Is Usage Based Billing'
+					caption: Er greitt samkvæmt notkun
+				column 'Source Type'
+					caption: Upprunagerð
+				column 'Source No.'
+					caption: Upprunanúmer
+			table 'Vendor Contract Line'
+				caption: Lánardrottnasamningslína
+				column 'Subscription Line No.'
+					caption: Ráðstöfunarlínunr.
+				column Template
+					caption: Sniðmát
+				column 'Vendor Contract Line Desc.'
+					caption: Afsláttur lánardrottnasamningslínu
+				column 'Subscription Start Date'
+					caption: Upphafsdagur þjónustu
+				column 'Subscription End Date'
+					caption: Lokadagsetning þjónustu
+				column 'Next Billing Date'
+					caption: Næsta greiðsludagsetning
+				column 'Vendor Contract Line No.'
+					caption: Nr. lánardrottnasamningslínu
+				column 'Notice Period'
+					caption: Uppsagnarfrestur
+				column 'Initial Term'
+					caption: Fyrsta tímabil
+				column 'Extension Term'
+					caption: Skilmálar viðbótar
+				column 'Billing Rhythm'
+					caption: Innheimtutíðni
+				column 'Cancellation Possible Until'
+					caption: Afbókun möguleg til
+				column 'Term Until'
+					caption: Liður til
+				column 'Renewal Term'
+					caption: Endurnýjunartímabil
+				column 'Line Active'
+					caption: Lína virk
+				column 'Remaining Term'
+					caption: Eftirstandandi skilmálar
+				column 'Billing Rhythm Months'
+					caption: Mánuðir innheimtutíðni
+				column 'Vendor Contract No.'
+					caption: Nr. lánardrottinssamnings
+				column 'Is Latest Version'
+					caption: Er nýjasta útgáfa
+				column 'Is Usage Based Billing'
+					caption: Er greitt samkvæmt notkun
+				column 'Source Type'
+					caption: Upprunagerð
+				column 'Source No.'
+					caption: Upprunanúmer
+			table 'Customer Contract Deferrals'
+				caption: Samningsfrestanir viðskiptavinar
+				column 'Document Type'
+					caption: Gerð skjals
+				column 'Document No.'
+					caption: Nr. skjals
+				column 'Posting Date'
+					caption: Bókunardagsetning
+				column 'Document Line No.'
+					caption: Línunr. fylgiskjals
+				column 'Document Posting Date'
+					caption: Bókunardagur skjals
+				column 'Release Posting Date'
+					caption: Losa bókunardagsetningu
+				column 'G LEntry No.'
+					caption: Fjárhagsbókarfærslunr.
+			table 'Customer Contract'
+				caption: Samningur viðskiptamanns
+				column 'Customer Contract No.'
+					caption: Samningsnr. viðskiptavinar
+				column 'Customer Contract Type'
+					caption: Gerð samnings viðskiptavinar
+				column 'Customer Contract Description'
+					caption: Lýsing á samningi viðskiptavinar
+				column 'Customer Contract No. Desc.'
+					caption: Afsláttarnr. samnings viðskiptavinar
+			table 'Vendor Contract'
+				caption: Lánardrottnasamningur
+				column 'Vendor Contract No.'
+					caption: Nr. lánardrottinssamnings
+				column 'Vendor Contract Type'
+					caption: Gerð lánardrottnasamnings
+				column 'Vendor Contract Description'
+					caption: Lýsing lánardrottnasamnings
+				column 'Vendor Contract No. Desc.'
+					caption: Afsláttarnr. lánardrottinssamnings
+			table 'UBB handling'
+				caption: Meðhöndlun innheimtu byggðri á notkun
+				column 'Treat Usage Based Billing as constant'
+					caption: Meðhöndla innheimtu byggða á notkun sem fasta
+			table 'Is Released'
+				caption: Er losað
+			table Item
+				caption: Vara
+				column 'Item No.'
+					caption: Vörunr.
+				column 'Item Name'
+					caption: Vöruheiti
+				column 'Item Category Code'
+					caption: Kóði yfirflokks vöru
+				column 'Item Category Description'
+					caption: Lýsing vöruflokks
+				column 'Inventory Posting Group'
+					caption: Birgðabókunarflokkur
+				column 'Base Unit of Measure'
+					caption: Grunnmælieining
+				column 'Item No. & Description'
+					caption: Vörunr. og lýsing
+			table 'Analysis Date'
+				caption: Greiningardagsetning
+				column 'Is Initial Version'
+					caption: Er upprunaleg útgáfa
+				column 'Is Current Version'
+					caption: Er núverandi útgáfa
+			table 'Calc. Group - Time Intelligence for Calendar (Fiscal)'
+				caption: Útreikningshópur - Tímagreind dagatals (fjárhagur)
+				column Perspective
+					caption: Sjónarhorn
+			table 'Subscription Billing KPIs'
+				caption: Subscription Billing afkastavísar
+				measure 'Mon. Recurring Revenue'
+					caption: Mánaðarlegar endurteknar tekjur
+				measure 'Mon. Recurring Cost'
+					caption: Mánaðarlegur endurtekinn kostnaður
+				measure 'Customer Deferrals'
+					caption: Frestanir viðskiptamanns
+				measure 'Vendor Deferrals'
+					caption: Frestun lánardrottins
+				measure 'Annual Recurring Revenue'
+					caption: ÁBMKR
+				measure 'Total Contract Value'
+					caption: Heildarvirði samnings
+				measure 'Forecast Sales'
+					caption: Spársala
+				measure 'Mon. Recurring Cost PY'
+					caption: Mánaðarlegur endurtekinn kostnaður fyrra ár
+				measure 'Mon. Recurring Cost Δ vs. PY'
+					caption: Mánaðarlegur endurtekinn kostnaður Δ samanborið við fyrra ár
+				measure 'Mon. Recurring Revenue Churn'
+					caption: Mán. uppsagnir endurtekinna tekna
+				measure 'Mon. Recurring Revenue PY'
+					caption: Mánaðarlegar endurteknar tekjur fyrra ár
+				measure 'Mon. Recurring Revenue New'
+					caption: Mán. endurteknar nýjar tekjur
+				measure 'Mon. Recurring Revenue Δ vs. PY'
+					caption: Mán. endurteknar tekjur Δ sbr. fyrra ár
+				measure 'Mon. Net Profit Amount'
+					caption: Nýjar mánaðarlega endurteknar tekjur
+				measure 'Mon. Net Profit %'
+					caption: Nýjar mánaðarlega endurteknar tekjur % af mánaðarlegum endurteknum tekjum
+				measure 'Mon. Net Profit PY'
+					caption: Nýjar mánaðarlega endurteknar tekjur fyrra ár
+				measure 'Mon. Net Profit Δ vs. PY'
+					caption: Nýjar mánaðarlega endurteknar tekjur Δ samanborið við fyrra ár
+				measure 'Change in Mon. Recurring Revenue'
+					caption: Mánaðarlegar endurteknar tekjur heildarbreyting
+				measure 'Total Contract Value PY'
+					caption: Heildarvirði samnings fyrra ár
+				measure 'Total Contract Value Δ vs. PY'
+					caption: Heildarvirði samnings Δ samanborið við fyrra ár
+				measure 'Last Update Analysis Entries'
+					caption: Síðast uppfærðu greiningarfærslur
+				measure 'Last Update Semantic Model'
+					caption: Síðasta uppfærsla á merkingarlíkani
+				measure 'Param Environment'
+					caption: Umhverfisbreytur
+				measure 'Param Company'
+					caption: Param fyrirtæki
+				measure 'Mon. Recurring Revenue Upgrade'
+					caption: Mán. endurteknar uppfærslur tekna
+				measure 'Mon. Recurring Revenue Change UBB'
+					caption: Mán. endurteknar tekjubreytingar innheimtu byggðri á notkun
+				measure 'Reporting Currency'
+					caption: Skýrslugjaldmiðill
+				measure 'Active Customers'
+					caption: Virkir viðskiptavinir
+				measure 'Active Customers PY'
+					caption: Virkir viðskiptavinir fyrra ár
+				measure 'Active Customers Δ vs. PY'
+					caption: Virkir viðskiptavinir Δ sbr. fyrra ár
+				measure 'Customer Billing Forecast'
+					caption: Innheimtuspá viðskiptavinar
+				measure 'Vendor Billing Forecast'
+					caption: Spá um greiðslur lánardrottins
+				measure 'Forecast Costs'
+					caption: Kostnaðarspár
+				measure 'Mon. Recurring Revenue Downgrade'
+					caption: Mán. endurtekin niðurfærsla tekna
+				measure 'Selected Date Range'
+					caption: Valið dagabil
+				measure 'Avg. Mon. Churn Rate %'
+					caption: Meðaltími mán. uppsagna %
+				measure 'Mon. Avg. Downgrade Rate %'
+					caption: Mán. meðalt. niðurfærsla %
+				measure 'Mon. Recurring Revenue Downgrade & Churn'
+					caption: Mán. niðurfærslur og uppsagnir endurtekinna tekna
+			table Salesperson
+				caption: Sölumaður
+				column 'Salesperson Code'
+					caption: Kóði sölumanns
+				column 'Salesperson Name'
+					caption: Nafn sölumanns
+			table 'Customer Contract Changes'
+				caption: Breytingar á samningi viðskiptavinar
+				column 'Customer Contract Line Key'
+					caption: Línulykill samnings viðskiptavinar
+				column Date
+					caption: Dagsetning
+				column 'Change Type'
+					caption: Breyta tegund
+				column 'MRR Delta'
+					caption: Mánaðarlegar endurteknar tekjur Delta
+

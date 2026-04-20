@@ -1,0 +1,57 @@
+table 'Meta Information'
+	isHidden
+	lineageTag: d4a507c0-3b24-4242-a536-0cca34435194
+
+	measure 'Company Label' = VALUES('Meta Information'[COMPANY])
+		isHidden
+		lineageTag: 30c88211-52e8-42f3-bd11-f26b28ec29a4
+
+		changedProperty = IsHidden
+
+	column COMPANY
+		dataType: string
+		isHidden
+		lineageTag: 68f933ef-dd5d-4a1a-aa91-2de2ae22a652
+		summarizeBy: none
+		sourceColumn: COMPANY
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Currency Code'
+		dataType: string
+		lineageTag: aee818fe-5e1c-45a0-affb-1f6b9e494fd0
+		summarizeBy: none
+		sourceColumn: Currency Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column Environment
+		dataType: string
+		lineageTag: 1c0950a9-6e5b-4696-b519-6f344924bf2b
+		summarizeBy: none
+		sourceColumn: Environment
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Meta Information' = m
+		mode: import
+		queryGroup: 'Parameters and Functions\Connection Parameters'
+		source =
+				let
+				    Source = BCConnectionSubscriptionBilling,
+				    TableData = Source{[Name="generalLedgerSetup",Signature="table"]}[Data],
+				    #"Removed Other Columns" = Table.SelectColumns(TableData,{"lcyCode"}),
+				    #"Renamed Columns" = Table.RenameColumns(#"Removed Other Columns",{{"lcyCode", "Currency Code"}}),
+				    #"Added Company" = Table.AddColumn(#"Renamed Columns", "COMPANY", each COMPANY, type text),
+				    #"Added Environment" = Table.AddColumn(#"Added Company", "Environment", each ENVIRONMENT, type text)
+				in
+				    #"Added Environment"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
