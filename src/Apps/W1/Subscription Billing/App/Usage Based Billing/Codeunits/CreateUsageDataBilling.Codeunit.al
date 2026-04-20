@@ -91,7 +91,7 @@ codeunit 8023 "Create Usage Data Billing"
         UsageDataBilling.UpdateRebilling();
         UsageDataBilling."Entry No." := 0;
 
-        onBeforInsertUsageDataBilling(UsageDataBilling, UsageDataGenericImportGlobal);
+        OnBeforInsertUsageDataBilling(UsageDataBilling, UsageDataGenericImportGlobal);
 
         UsageDataBilling.Insert(true);
         UsageDataBilling.InsertMetadata();
