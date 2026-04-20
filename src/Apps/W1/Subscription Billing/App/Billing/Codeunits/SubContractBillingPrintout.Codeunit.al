@@ -120,7 +120,7 @@ codeunit 8064 "Sub. Contract Billing Printout"
     end;
 
     [IntegrationEvent(false, false)]
-    procedure onBeforeInsertBillingLineArchiv(var TempJobLedgerEntryBuffer: Record "Job Ledger Entry"; CustomerContract: Record "Customer Subscription Contract"; BillingLineArchive: Record "Billing Line Archive"; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesInvoiceLine: Record "Sales Invoice Line")
+    procedure onBeforeInsertBillingLineArchive(var TempJobLedgerEntryBuffer: Record "Job Ledger Entry"; CustomerContract: Record "Customer Subscription Contract"; BillingLineArchive: Record "Billing Line Archive"; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesInvoiceLine: Record "Sales Invoice Line")
     begin
     end;
 
