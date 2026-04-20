@@ -15,7 +15,7 @@ permissionset 99001501 "Subcontract. - Objs"
         table "Subcontractor Price" = X,
 
         // Codeunits
-        codeunit "Single Instance Dictionary" = X,
+        codeunit "Subc. Session State" = X,
         codeunit "Subc. Business Setup Ext." = X,
         codeunit "Subc. Calc. Prod. Order Ext." = X,
         codeunit "Subc. Calc.StandardCost Ext." = X,
