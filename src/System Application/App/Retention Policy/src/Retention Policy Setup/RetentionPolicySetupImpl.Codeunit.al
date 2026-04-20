@@ -6,6 +6,8 @@
 namespace System.DataAdministration;
 
 using System.Reflection;
+using System.Security.AccessControl;
+using System.Security.User;
 using System.Telemetry;
 
 codeunit 3903 "Retention Policy Setup Impl."
@@ -39,6 +41,7 @@ codeunit 3903 "Retention Policy Setup Impl."
         TruncateTableInfoLbl: Label 'Table %1, %2 was truncated.', Comment = '%1 = Table Id, %2 = Table caption';
         TruncateFirstConfirmDeclinedLbl: Label 'The first truncate confirmation was declined for table %1, %2.', Comment = '%1 = Table Id, %2 = Table caption';
         TruncateSecondConfirmDeclinedLbl: Label 'The final truncate confirmation was declined for table %1, %2.', Comment = '%1 = Table Id, %2 = Table caption';
+        IndirectPermissionsRequiredErr: Label 'A subscriber with indirect permissions is required to truncate records in table %1, %2. Contact your Microsoft Partner for assistance.', Comment = '%1 = a id of a table (integer), %2 = the caption of the table.';
 
     procedure SetTableFilterView(var RetentionPolicySetupLine: Record "Retention Policy Setup Line"): Text
     var
@@ -477,10 +480,14 @@ codeunit 3903 "Retention Policy Setup Impl."
 
     procedure TruncateTableRecords(RetentionPolicySetup: Record "Retention Policy Setup")
     var
+        TempExpandedPermission: Record "Expanded Permission" temporary;
         RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
         RetentionPolicyLog: Codeunit "Retention Policy Log";
+        ApplyRetentionPolicyFacade: Codeunit "Apply Retention Policy";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        UserPermissions: Codeunit "User Permissions";
         RecRef: RecordRef;
+        Handled: Boolean;
     begin
         if not RetenPolAllowedTblImpl.IsTruncateAllowed(RetentionPolicySetup."Table Id") then
             Error(TruncateNotAllowedForTableErr, RetentionPolicySetup."Table Caption");
@@ -498,7 +505,15 @@ codeunit 3903 "Retention Policy Setup Impl."
         end;
 
         RecRef.Open(RetentionPolicySetup."Table Id");
-        RecRef.Truncate(true);
+
+        TempExpandedPermission := UserPermissions.GetEffectivePermission(TempExpandedPermission."Object Type"::"Table Data", RetentionPolicySetup."Table Id");
+        if TempExpandedPermission."Delete Permission" = TempExpandedPermission."Delete Permission"::Indirect then begin
+            ApplyRetentionPolicyFacade.OnTruncateRecordsIndirectPermissionRequired(RecRef, Handled);
+            if not Handled then
+                RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(IndirectPermissionsRequiredErr, RecRef.Number, RecRef.Caption));
+        end else
+            RecRef.Truncate(true);
+
         RecRef.Close();
 
         RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(TruncateTableInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));

@@ -138,4 +138,17 @@ codeunit 3910 "Apply Retention Policy"
     begin
     end;
 #pragma warning restore
+
+    /// <summary>
+    /// This event is raised when the user truncating the table has indirect permissions to delete records in the table.
+    /// A subscriber to this event with indirect permissions can truncate the records on behalf of the user.
+    /// </summary>
+    /// <param name="RecRef">The record reference for the table to be truncated.</param>
+    /// <param name="Handled">Indicates whether the event has been handled.</param>
+#pragma warning disable AA0072
+    [IntegrationEvent(false, false)]
+    internal procedure OnTruncateRecordsIndirectPermissionRequired(var RecRef: RecordRef; var Handled: Boolean)
+    begin
+    end;
+#pragma warning restore
 }
