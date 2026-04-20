@@ -153,7 +153,7 @@ codeunit 8023 "Create Usage Data Billing"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure onBeforInsertUsageDataBilling(var UsageDataBilling: Record "Usage Data Billing"; UsageDataGenericImportGlobal: Record "Usage Data Generic Import")
+    local procedure OnBeforInsertUsageDataBilling(var UsageDataBilling: Record "Usage Data Billing"; UsageDataGenericImportGlobal: Record "Usage Data Generic Import")
     begin
     end;
 
