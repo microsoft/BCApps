@@ -6,13 +6,12 @@
 namespace System.Tooling;
 
 using System.AI;
-using System.Environment;
 using System.Upgrade;
 
 /// <summary>
 /// Registers the Copilot capability used by Performance Center and upgrade tags.
 /// </summary>
-codeunit 5486 "Perf. Center Installer"
+codeunit 8419 "Perf. Center Installer"
 {
     Subtype = Install;
     Access = Internal;
@@ -28,11 +27,11 @@ codeunit 5486 "Perf. Center Installer"
     local procedure RegisterCapability()
     var
         CopilotCapability: Codeunit "Copilot Capability";
-        EnvironmentInformation: Codeunit "Environment Information";
         LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2103698', Locked = true;
     begin
-        if not EnvironmentInformation.IsSaaSInfrastructure() then
-            exit;
+        // HACK (prototype): Register on-prem as well so the "AI-assisted performance analysis in
+        // Performance Center" toggle still shows on the Copilot & Agent Capabilities page. The
+        // capability is Active by default after registration, so the toggle reads "on" out of the box.
         if CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Performance Center") then
             exit;
         CopilotCapability.RegisterCapability(

@@ -9,7 +9,7 @@ namespace System.Tooling;
 /// A line on a Performance Analysis: either a captured profile row (kept with a
 /// relevance score decided by the AI filter) or a gathered signal finding.
 /// </summary>
-table 5471 "Performance Analysis Line"
+table 8404 "Performance Analysis Line"
 {
     Access = Public;
     DataClassification = SystemMetadata;

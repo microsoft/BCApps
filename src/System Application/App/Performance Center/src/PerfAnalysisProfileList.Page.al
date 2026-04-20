@@ -9,7 +9,7 @@ namespace System.Tooling;
 /// Shows the captured profiles for a Performance Analysis with the AI relevance score
 /// and reason. The user can override the "Marked Relevant" flag.
 /// </summary>
-page 5494 "Perf. Analysis Profile List"
+page 8427 "Perf. Analysis Profile List"
 {
     Caption = 'Captured profiles';
     PageType = List;

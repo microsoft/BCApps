@@ -11,7 +11,7 @@ using System.Media;
 /// <summary>
 /// Registers the Performance Center assisted setup tile that launches the wizard.
 /// </summary>
-codeunit 5487 "Perf. Center Assisted Setup"
+codeunit 8420 "Perf. Center Assisted Setup"
 {
     Access = Internal;
     InherentEntitlements = X;

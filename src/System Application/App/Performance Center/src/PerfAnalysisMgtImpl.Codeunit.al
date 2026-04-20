@@ -13,7 +13,7 @@ using System.Telemetry;
 /// Implementation behind "Perf. Analysis Mgt." Contains the state machine and the
 /// wizard-to-scheduler mapping.
 /// </summary>
-codeunit 5481 "Perf. Analysis Mgt. Impl."
+codeunit 8414 "Perf. Analysis Mgt. Impl."
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -34,6 +34,7 @@ codeunit 5481 "Perf. Analysis Mgt. Impl."
         Scheduler: Record "Performance Profile Scheduler";
         ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
         PerfAnalysisMgt: Codeunit "Perf. Analysis Mgt.";
+        TickTask: Codeunit "Perf. Analysis Tick Task";
         Telemetry: Codeunit Telemetry;
         Dimensions: Dictionary of [Text, Text];
     begin
@@ -65,6 +66,8 @@ codeunit 5481 "Perf. Analysis Mgt. Impl."
         Analysis."Profile Threshold (ms)" := Scheduler."Profile Creation Threshold";
         SetState(Analysis, Analysis."State"::Scheduled);
 
+        TickTask.ScheduleFirstTick(Analysis, Scheduler);
+
         Dimensions.Add('Category', TelemetryCategoryTok);
         Dimensions.Add('State', Format(Analysis."State"));
         Dimensions.Add('Activity', Format(Analysis."Scenario Activity Type"));
@@ -82,8 +85,16 @@ codeunit 5481 "Perf. Analysis Mgt. Impl."
         if TryGetSchedule(Analysis, Scheduler) then begin
             Scheduler."Ending Date-Time" := CurrentDateTime();
             Scheduler.Enabled := false;
+            // Scheduler.Modify fires OnAfterModifyProfileScheduler, which in turn calls
+            // Tick(Analysis) and may advance the analysis state in the database. Re-read
+            // below so our local var has a matching xRec before we Modify again.
             Scheduler.Modify(true);
         end;
+        if not Analysis.Get(Analysis."Id") then
+            exit;
+        if not (Analysis."State" in [Analysis."State"::Scheduled, Analysis."State"::Capturing]) then
+            exit;
+        Analysis."Monitoring Ends At" := CurrentDateTime();
         SetState(Analysis, Analysis."State"::CaptureEnded);
     end;
 
@@ -98,6 +109,10 @@ codeunit 5481 "Perf. Analysis Mgt. Impl."
             Scheduler."Ending Date-Time" := CurrentDateTime();
             Scheduler.Modify(true);
         end;
+        if not Analysis.Get(Analysis."Id") then
+            exit;
+        if Analysis."State" in [Analysis."State"::Concluded, Analysis."State"::Cancelled, Analysis."State"::Failed] then
+            exit;
         SetState(Analysis, Analysis."State"::Cancelled);
     end;
 
@@ -223,14 +238,17 @@ codeunit 5481 "Perf. Analysis Mgt. Impl."
 
     local procedure ThresholdFor(Analysis: Record "Performance Analysis") Threshold: Integer
     begin
-        // Use observed duration minus a small buffer, clamped to a sensible floor/ceiling.
-        Threshold := Analysis."Observed Duration (ms)" - 100;
+        // Catch anything that is significantly above what the user considers acceptable.
+        // "Significantly above" is modeled as 1.5x the expected duration, clamped to a
+        // sensible floor and ceiling.
+        if Analysis."Expected Duration (ms)" > 0 then
+            Threshold := (Analysis."Expected Duration (ms)" * 3) div 2
+        else
+            Threshold := 200;
         if Threshold < 200 then
             Threshold := 200;
         if Threshold > 60000 then
             Threshold := 60000;
-        if (Analysis."Expected Duration (ms)" > 0) and (Analysis."Expected Duration (ms)" < Threshold) then
-            Threshold := Analysis."Expected Duration (ms)";
     end;
 
     local procedure BuildAutoTitle(Analysis: Record "Performance Analysis"): Text[250]

@@ -10,7 +10,7 @@ namespace System.Tooling;
 /// iteration will let the user describe the slow scenario in natural language and have
 /// Copilot fill in the analysis request, replacing (or complementing) the wizard.
 /// </summary>
-page 5497 "Perf. Analysis Chat Req. Stub"
+page 8430 "Perf. Analysis Chat Req. Stub"
 {
     Caption = 'Report slow performance (chat, preview)';
     PageType = PromptDialog;

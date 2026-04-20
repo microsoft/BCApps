@@ -8,7 +8,7 @@ namespace System.Tooling;
 /// <summary>
 /// List of Performance Analysis records.
 /// </summary>
-page 5492 "Perf. Analysis List"
+page 8425 "Perf. Analysis List"
 {
     Caption = 'Performance Analyses';
     PageType = List;
@@ -17,7 +17,8 @@ page 5492 "Perf. Analysis List"
     SourceTable = "Performance Analysis";
     CardPageId = "Perf. Analysis Card";
     Editable = false;
-    Permissions = tabledata "Performance Analysis" = R;
+    Permissions = tabledata "Performance Analysis" = RIMD,
+                  tabledata "Performance Analysis Line" = RIMD;
 
     layout
     {

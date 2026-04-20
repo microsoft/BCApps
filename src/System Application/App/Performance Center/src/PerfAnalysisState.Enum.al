@@ -8,15 +8,15 @@ namespace System.Tooling;
 /// <summary>
 /// Lifecycle states of a Performance Analysis record.
 /// </summary>
-enum 5472 "Perf. Analysis State"
+enum 8405 "Perf. Analysis State"
 {
     Access = Public;
     Extensible = false;
 
     value(0; Requested) { Caption = 'Requested'; }
-    value(1; Scheduled) { Caption = 'Scheduled'; }
-    value(2; Capturing) { Caption = 'Capturing'; }
-    value(3; CaptureEnded) { Caption = 'Capture ended'; }
+    value(1; Scheduled) { Caption = 'Actively monitoring'; }
+    value(2; Capturing) { Caption = 'Actively monitoring'; }
+    value(3; CaptureEnded) { Caption = 'Monitoring ended'; }
     value(4; AiFiltering) { Caption = 'AI filtering'; }
     value(5; AiAnalyzing) { Caption = 'AI analyzing'; }
     value(6; Concluded) { Caption = 'Concluded'; }

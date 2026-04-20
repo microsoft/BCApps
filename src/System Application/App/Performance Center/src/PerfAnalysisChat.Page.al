@@ -8,7 +8,7 @@ namespace System.Tooling;
 /// <summary>
 /// PromptDialog page for chatting with a concluded performance analysis.
 /// </summary>
-page 5496 "Perf. Analysis Chat"
+page 8429 "Perf. Analysis Chat"
 {
     Caption = 'Chat with the analysis report';
     PageType = PromptDialog;

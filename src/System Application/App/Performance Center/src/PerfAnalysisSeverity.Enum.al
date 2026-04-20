@@ -8,7 +8,7 @@ namespace System.Tooling;
 /// <summary>
 /// Severity of a signal finding or line entry on a Performance Analysis.
 /// </summary>
-enum 5476 "Perf. Analysis Severity"
+enum 8409 "Perf. Analysis Severity"
 {
     Access = Public;
     Extensible = false;

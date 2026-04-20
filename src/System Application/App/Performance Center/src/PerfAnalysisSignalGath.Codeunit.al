@@ -10,7 +10,7 @@ namespace System.Tooling;
 /// Analysis. One codeunit, one method per source. Other apps can add signals through the
 /// OnGatherCustomSignals event.
 /// </summary>
-codeunit 5485 "Perf. Analysis Signal Gath."
+codeunit 8418 "Perf. Analysis Signal Gath."
 {
     Access = Public;
     InherentEntitlements = X;

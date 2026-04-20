@@ -5,7 +5,7 @@
 
 namespace System.Tooling;
 
-permissionset 5498 "Perf. Center - Objects"
+permissionset 8431 "Perf. Center - Objects"
 {
     Access = Internal;
     Assignable = false;
@@ -20,5 +20,7 @@ permissionset 5498 "Perf. Center - Objects"
                   page "Perf. Analysis Profile List" = X,
                   page "Perf. Analysis Signals" = X,
                   page "Perf. Analysis Chat" = X,
-                  page "Perf. Analysis Chat Req. Stub" = X;
+                  page "Perf. Analysis Chat Req. Stub" = X,
+                  page "Perf. Analysis Page Lookup" = X,
+                  page "Perf. Analysis Control Lookup" = X;
 }

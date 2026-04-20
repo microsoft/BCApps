@@ -8,7 +8,7 @@ namespace System.Tooling;
 /// <summary>
 /// Where an individual signal finding came from.
 /// </summary>
-enum 5475 "Perf. Analysis Signal Source"
+enum 8408 "Perf. Analysis Signal Source"
 {
     Access = Public;
     Extensible = true;

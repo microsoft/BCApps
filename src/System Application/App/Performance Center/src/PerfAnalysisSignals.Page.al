@@ -8,7 +8,7 @@ namespace System.Tooling;
 /// <summary>
 /// Advanced-user drill-down: signal findings attached to a Performance Analysis.
 /// </summary>
-page 5495 "Perf. Analysis Signals"
+page 8428 "Perf. Analysis Signals"
 {
     Caption = 'Performance Analysis Signals';
     PageType = List;

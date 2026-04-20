@@ -8,7 +8,7 @@ namespace System.Tooling;
 /// <summary>
 /// How often the user observes the slow scenario.
 /// </summary>
-enum 5473 "Perf. Analysis Frequency"
+enum 8406 "Perf. Analysis Frequency"
 {
     Access = Public;
     Extensible = false;

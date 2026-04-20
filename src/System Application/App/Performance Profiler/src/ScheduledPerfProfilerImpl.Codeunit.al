@@ -110,9 +110,6 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
 
     procedure ValidatePerformanceProfileSchedulerDatesRelation(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
     begin
-        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Ending Date-Time" < CurrentDateTime())) then
-            Error(ProfileCannotBeInThePastErr);
-
         if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
             Error(ProfileStartingDateLessThenEndingDateErr);
     end;
@@ -246,7 +243,6 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         InactiveOutsideTimeWindowLbl: Label 'Inactive (outside time window)';
         ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
         ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
-        ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
         ScheduleDurationCannotExceedRetentionPeriodErr: Label 'The performance profile schedule duration cannot exceed the retention period.';
         ScheduleEndTimeCannotBeEmptyErr: Label 'The performance profile schedule must have an end time.';
         CannotCreateSchedulesForOtherUsersErr: Label 'You do not have sufficient permissions to create profiler schedules for other users. Please contact your administrator.';

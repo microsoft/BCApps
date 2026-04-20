@@ -11,7 +11,7 @@ using System.Security.AccessControl;
 /// A single Performance Analysis request. Anchors the profiler schedule, the filtered
 /// profiles, the gathered signals, the AI conclusion, and the chat history.
 /// </summary>
-table 5470 "Performance Analysis"
+table 8403 "Performance Analysis"
 {
     Access = Public;
     DataClassification = SystemMetadata;
@@ -187,6 +187,15 @@ table 5470 "Performance Analysis"
     trigger OnModify()
     begin
         Rec."Modified At" := CurrentDateTime();
+    end;
+
+    trigger OnDelete()
+    var
+        AnalysisLine: Record "Performance Analysis Line";
+    begin
+        AnalysisLine.SetRange("Analysis Id", Rec."Id");
+        if not AnalysisLine.IsEmpty() then
+            AnalysisLine.DeleteAll();
     end;
 
     /// <summary>

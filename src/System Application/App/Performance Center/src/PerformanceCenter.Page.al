@@ -12,14 +12,14 @@ using System.Security.User;
 /// Performance Center hub. Simple part is always visible. Advanced part is visible to
 /// users who can manage other users on the tenant.
 /// </summary>
-page 5490 "Performance Center"
+page 8423 "Performance Center"
 {
     Caption = 'Performance Center';
     PageType = Card;
     ApplicationArea = All;
     UsageCategory = Administration;
     AboutTitle = 'About the Performance Center';
-    AboutText = 'The Performance Center helps you troubleshoot slowness in Business Central. Report a problem to schedule an AI-assisted analysis, or dig into recent activity if you are a power user.';
+    AboutText = 'The Performance Center helps you troubleshoot slowness in Business Central. Analyze a problem to schedule an AI-assisted capture, or dig into recent activity if you are a power user.';
     Permissions = tabledata "Performance Analysis" = R,
                   tabledata "Performance Profile Scheduler" = R;
 
@@ -29,7 +29,7 @@ page 5490 "Performance Center"
         {
             group(Simple)
             {
-                Caption = 'Report a performance problem';
+                Caption = 'Analyze a performance problem';
 
                 field(SimpleHint; SimpleHintLbl)
                 {
@@ -50,23 +50,11 @@ page 5490 "Performance Center"
                     ToolTip = 'Explains that AI-assisted analysis requires the Copilot capability to be enabled.';
                 }
             }
-            part(MyAnalyses; "Perf. Analysis List Part")
+            part(Analyses; "Perf. Analysis List Part")
             {
-                Caption = 'My performance analyses';
+                Caption = 'Performance analyses';
                 ApplicationArea = All;
                 SubPageView = sorting("Requested At") order(descending);
-            }
-            group(Advanced)
-            {
-                Caption = 'Advanced';
-                Visible = IsAdvanced;
-
-                part(AllAnalyses; "Perf. Analysis List Part")
-                {
-                    Caption = 'All performance analyses';
-                    ApplicationArea = All;
-                    SubPageView = sorting("Requested At") order(descending);
-                }
             }
         }
     }
@@ -77,7 +65,7 @@ page 5490 "Performance Center"
         {
             action(StartWizard)
             {
-                Caption = 'Report slow performance';
+                Caption = 'Analyze slow performance';
                 ToolTip = 'Open a guided wizard to describe a slow scenario and schedule a performance analysis.';
                 Image = Start;
                 ApplicationArea = All;
@@ -92,7 +80,7 @@ page 5490 "Performance Center"
             }
             action(StartChatRequest)
             {
-                Caption = 'Report slow performance (chat preview)';
+                Caption = 'Analyze slow performance (chat preview)';
                 ToolTip = 'Preview of a chat-based request experience. Not yet wired up.';
                 Image = Comment;
                 ApplicationArea = All;
@@ -115,15 +103,6 @@ page 5490 "Performance Center"
                 ApplicationArea = All;
                 Visible = IsAdvanced;
             }
-            action(OpenCapturedProfiles)
-            {
-                Caption = 'Captured profiles';
-                ToolTip = 'Open the list of captured performance profiles.';
-                RunObject = page "Performance Profile List";
-                Image = ViewDetails;
-                ApplicationArea = All;
-                Visible = IsAdvanced;
-            }
         }
         area(Promoted)
         {
@@ -132,7 +111,6 @@ page 5490 "Performance Center"
                 Caption = 'Process';
                 actionref(StartWizard_Promoted; StartWizard) { }
                 actionref(OpenProfilerSchedules_Promoted; OpenProfilerSchedules) { }
-                actionref(OpenCapturedProfiles_Promoted; OpenCapturedProfiles) { }
             }
         }
     }
@@ -140,22 +118,20 @@ page 5490 "Performance Center"
     var
         IsAdvanced: Boolean;
         IsAiAvailable: Boolean;
-        SimpleHintLbl: Label 'Is something slow in Business Central? Describe what you were doing, how often it happens and how long it takes. We will schedule an analysis behind the scenes and use AI to explain what was going on.';
+        SimpleHintLbl: Label 'Is something slow in Business Central? Describe what is slow, how often it happens and how long it takes. We will then monitor performance for a while behind the scenes and use AI to explain what was going on.';
         AiDisabledHintLbl: Label 'AI-assisted analysis is currently disabled for this environment. You can still schedule a capture, but the analysis and chat actions will be unavailable until the "AI-assisted performance analysis in Performance Center" Copilot capability is enabled.';
 
     trigger OnOpenPage()
     var
-        MyFilter: Record "Performance Analysis";
-        AllFilter: Record "Performance Analysis";
+        AnalysesFilter: Record "Performance Analysis";
         UserPermissions: Codeunit "User Permissions";
         Ai: Codeunit "Perf. Analysis AI";
     begin
         IsAdvanced := UserPermissions.CanManageUsersOnTenant(UserSecurityId());
         IsAiAvailable := Ai.IsAvailable();
 
-        MyFilter.SetRange("Requested By", UserSecurityId());
-        CurrPage.MyAnalyses.Page.SetTableView(MyFilter);
-        if IsAdvanced then
-            CurrPage.AllAnalyses.Page.SetTableView(AllFilter);
+        if not IsAdvanced then
+            AnalysesFilter.SetRange("Requested By", UserSecurityId());
+        CurrPage.Analyses.Page.SetTableView(AnalysesFilter);
     end;
 }

@@ -8,7 +8,7 @@ namespace System.Tooling;
 /// <summary>
 /// The kind of UI / API / background trigger the user associates with the slow scenario.
 /// </summary>
-enum 5474 "Perf. Analysis Trigger"
+enum 8407 "Perf. Analysis Trigger"
 {
     Access = Public;
     Extensible = false;

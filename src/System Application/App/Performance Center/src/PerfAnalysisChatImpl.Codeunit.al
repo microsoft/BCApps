@@ -11,7 +11,7 @@ using System.AI;
 /// Backs the Performance Analysis Chat PromptDialog. Keeps the chat history for the
 /// lifetime of the page and delegates the actual AI call to "Perf. Analysis AI".
 /// </summary>
-codeunit 5484 "Perf. Analysis Chat Impl."
+codeunit 8417 "Perf. Analysis Chat Impl."
 {
     Access = Internal;
     InherentEntitlements = X;

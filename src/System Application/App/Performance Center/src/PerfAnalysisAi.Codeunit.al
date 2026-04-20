@@ -14,7 +14,7 @@ using System.PerformanceProfile;
 /// the "AI-assisted performance analysis in Performance Center" Copilot capability is
 /// active and hard-fails with a friendly message when it is not.
 /// </summary>
-codeunit 5483 "Perf. Analysis AI"
+codeunit 8416 "Perf. Analysis AI"
 {
     Access = Public;
     InherentEntitlements = X;

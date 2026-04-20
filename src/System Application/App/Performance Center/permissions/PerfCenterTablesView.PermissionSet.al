@@ -5,7 +5,7 @@
 
 namespace System.Tooling;
 
-permissionset 5499 "Perf. Center Tables - View"
+permissionset 8432 "Perf. Center Tables - View"
 {
     Access = Internal;
     Assignable = false;

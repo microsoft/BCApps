@@ -11,7 +11,7 @@ using System.PerformanceProfile;
 /// Public facade for the Performance Center. Use this codeunit to request, drive and
 /// inspect Performance Analysis records from other apps.
 /// </summary>
-codeunit 5480 "Perf. Analysis Mgt."
+codeunit 8413 "Perf. Analysis Mgt."
 {
     Access = Public;
     InherentEntitlements = X;
