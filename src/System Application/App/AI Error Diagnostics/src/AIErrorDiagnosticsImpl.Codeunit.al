@@ -16,7 +16,6 @@ codeunit 4451 "AI Error Diagnostics Impl."
 
     var
         ClaudeCliPathTxt: Label 'C:\Users\ventselartur\.claude\local\claude.exe', Locked = true;
-        TimeoutMs: Integer;
 
     procedure AnalyzeError(ErrorMessage: Text; var Reason: Text; var Suggestion: Text): Boolean
     var
@@ -65,6 +64,8 @@ codeunit 4451 "AI Error Diagnostics Impl."
         StdOutReader: DotNet StreamReader;
         Arguments: Text;
         JsonSchema: Text;
+        TimeoutMs: Integer;
+        Success: Boolean;
     begin
         JsonSchema := '{"type":"object","properties":{"reason":{"type":"string"},"suggestion":{"type":"string"}},"required":["reason","suggestion"]}';
 
@@ -82,15 +83,19 @@ codeunit 4451 "AI Error Diagnostics Impl."
         if not Process.Start() then
             exit(false);
 
+        StdOutReader := Process.StandardOutput;
+        CliOutput := StdOutReader.ReadToEnd();
+
         TimeoutMs := 45000;
         if not Process.WaitForExit(TimeoutMs) then begin
             Process.Kill();
+            Process.Close();
             exit(false);
         end;
 
-        StdOutReader := Process.StandardOutput;
-        CliOutput := StdOutReader.ReadToEnd();
-        exit(CliOutput <> '');
+        Success := (Process.ExitCode = 0) and (CliOutput <> '');
+        Process.Close();
+        exit(Success);
     end;
 
     local procedure ParseResponse(CliOutput: Text; var Reason: Text; var Suggestion: Text): Boolean
