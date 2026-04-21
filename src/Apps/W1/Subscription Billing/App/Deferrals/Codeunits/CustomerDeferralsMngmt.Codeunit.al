@@ -231,12 +231,12 @@ codeunit 8067 "Customer Deferrals Mngmt."
             CustomerContractDeferral."Discount Amount" := PeriodLineDiscountAmount;
             CustomerContractDeferral."Entry No." := 0;
 #if not CLEAN29
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
             if FirstMonthIsPartial then
                 OnBeforeInsertCustomerContractDeferralWhenNotStartingOnFirstDayInMonth(CustomerContractDeferral, SalesLine, i, NumberOfPeriods)
             else
                 OnBeforeInsertCustomerContractDeferralWhenStartingOnFirstDayInMonth(CustomerContractDeferral, SalesLine, i, NumberOfPeriods);
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
 #endif
             OnBeforeInsertCustomerContractDeferral(CustomerContractDeferral, SalesLine, i, NumberOfPeriods);
             CustomerContractDeferral.Insert(false);
@@ -392,18 +392,22 @@ codeunit 8067 "Customer Deferrals Mngmt."
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
     [Obsolete('Replaced by OnBeforeInsertCustomerContractDeferral.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertCustomerContractDeferralWhenStartingOnFirstDayInMonth(var CustSubContractDeferral: Record "Cust. Sub. Contract Deferral"; SalesLine: Record "Sales Line"; PeriodNo: Integer; NumberOfPeriods: Integer)
     begin
     end;
+#pragma warning restore AL0432, AS0105
 #endif
 
 #if not CLEAN29
+#pragma warning disable AL0432, AS0105
     [Obsolete('Replaced by OnBeforeInsertCustomerContractDeferral.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertCustomerContractDeferralWhenNotStartingOnFirstDayInMonth(var CustSubContractDeferral: Record "Cust. Sub. Contract Deferral"; SalesLine: Record "Sales Line"; PeriodNo: Integer; NumberOfPeriods: Integer)
     begin
     end;
+#pragma warning restore AL0432, AS0105
 #endif
 }
