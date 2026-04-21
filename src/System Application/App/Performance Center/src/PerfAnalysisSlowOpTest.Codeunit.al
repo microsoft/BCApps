@@ -22,17 +22,13 @@ codeunit 8433 "Perf. Analysis Slow Op Test"
     var
         SleepMs: Integer;
     begin
-        // 50/50 between a "fast-ish" path and the expensive CheckLicense path so that
-        // runs produce a mix that's interesting to analyze.
         Randomize();
         if Random(2) = 1 then begin
             SleepMs := 1000 + Random(1000);
             Sleep(SleepMs);
-            Message(RanFastMsg, SleepMs);
-        end else begin
+        end else
             CheckLicense();
-            Message(RanViaCheckLicenseMsg);
-        end;
+        Message(RanMsg);
     end;
 
     procedure CheckLicense()
@@ -45,6 +41,5 @@ codeunit 8433 "Perf. Analysis Slow Op Test"
     end;
 
     var
-        RanFastMsg: Label 'Slow operation finished after %1 ms (fast path).', Comment = '%1 = sleep milliseconds';
-        RanViaCheckLicenseMsg: Label 'Slow operation finished. The slow path called CheckLicense, which sleeps 10-15 seconds.';
+        RanMsg: Label 'Done.';
 }

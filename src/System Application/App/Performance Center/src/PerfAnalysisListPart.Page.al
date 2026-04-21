@@ -102,6 +102,28 @@ page 8421 "Perf. Analysis List Part"
                     CurrPage.Update(false);
                 end;
             }
+            action(DeleteAnalysis)
+            {
+                Caption = 'Delete';
+                ToolTip = 'Delete the selected performance analysis.';
+                Image = Delete;
+                ApplicationArea = All;
+
+                trigger OnAction()
+                var
+                    LocalAnalysis: Record "Performance Analysis";
+                    ConfirmLbl: Label 'Delete the performance analysis "%1"?', Comment = '%1 = analysis title';
+                begin
+                    if IsNullGuid(Rec."Id") then
+                        exit;
+                    if not LocalAnalysis.Get(Rec."Id") then
+                        exit;
+                    if not Confirm(StrSubstNo(ConfirmLbl, LocalAnalysis."Title")) then
+                        exit;
+                    LocalAnalysis.Delete(true);
+                    CurrPage.Update(false);
+                end;
+            }
         }
     }
 

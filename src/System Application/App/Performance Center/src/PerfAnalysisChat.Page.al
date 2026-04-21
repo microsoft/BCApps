@@ -35,23 +35,9 @@ page 8429 "Perf. Analysis Chat"
         }
         area(Content)
         {
-            group(ConclusionGroup)
-            {
-                Caption = 'Conclusion';
-
-                field(ConclusionBox; ConclusionText)
-                {
-                    ShowCaption = false;
-                    MultiLine = true;
-                    Editable = false;
-                    ApplicationArea = All;
-                    ToolTip = 'Shows the AI-generated conclusion for this analysis.';
-                }
-            }
             group(ReplyGroup)
             {
                 Caption = 'Reply';
-                Visible = ReplyText <> '';
 
                 field(ReplyBox; ReplyText)
                 {
@@ -106,7 +92,6 @@ page 8429 "Perf. Analysis Chat"
         ChatImpl: Codeunit "Perf. Analysis Chat Impl.";
         UserQuestion: Text;
         ReplyText: Text;
-        ConclusionText: Text;
         AnalysisSet: Boolean;
 
     procedure SetAnalysis(var AnalysisRec: Record "Performance Analysis")
@@ -119,14 +104,18 @@ page 8429 "Perf. Analysis Chat"
     begin
         if not AnalysisSet then
             exit;
-        ConclusionText := Analysis.GetConclusion();
         ChatImpl.Initialize(Analysis);
     end;
 
     local procedure AskAi()
+    var
+        NoReplyLbl: Label 'The AI did not return a reply. Check the LLM call log for details.';
     begin
         if UserQuestion = '' then
             exit;
         ReplyText := ChatImpl.Ask(UserQuestion);
+        if ReplyText = '' then
+            ReplyText := NoReplyLbl;
+        CurrPage.Update(false);
     end;
 }

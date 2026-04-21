@@ -29,8 +29,8 @@ codeunit 8416 "Perf. Analysis AI"
         LastError: Text;
         SystemPromptLbl: Label 'You are a Dynamics 365 Business Central performance expert. The user has reported a slow scenario and we have captured one or more sampling performance profiles while the user reproduced it. Your job is to explain why the scenario is sometimes slow, grounded in the captured profiles and the user''s description. Be specific, be concise, and give guidance that a Business Central end user or developer can act on. If the data is inconclusive, say so plainly.';
         FilterInstructionLbl: Label 'For each captured profile, respond with a JSON array of objects with fields ProfileNo (integer), Relevance (0..1), Reason (short text). Mark profiles as relevant (>=0.5) only if they plausibly match the scenario. Respond with JSON only.';
-        AnalysisInstructionLbl: Label 'You will receive a Markdown document describing the user''s slow scenario (title, activity, trigger, page/action, expected/observed duration, frequency, notes) followed by the captured profiles with their metrics (activity duration, AL execution duration, SQL statement count and duration, HTTP call count and duration). Analyze why the scenario is sometimes slow and produce a conclusion in Markdown with these sections: 1. Summary. 2. Where time is spent (AL vs SQL vs HTTP, per profile). 3. Most likely root cause. 4. Why the scenario varies in duration (if applicable). 5. Recommended next steps, phrased so either an end user or a developer can act on them. Do not invent data that is not in the payload.';
-        ChatInstructionLbl: Label 'You can now answer follow-up questions about this analysis. Keep answers grounded in the provided context. If asked something you cannot answer from the context, say so.';
+        AnalysisInstructionLbl: Label 'You will receive a Markdown document describing the user''s slow scenario (title, activity, trigger, page/action, expected/observed duration, frequency, notes) followed by the captured profiles with their metrics (activity duration, AL execution duration, SQL statement count and duration, HTTP call count and duration). Analyze why the scenario is sometimes slow and produce a conclusion in Markdown. Do not include a top-level ''# '' heading - start directly with five ''## '' sections in this order: ''## Summary'', ''## Where time is spent'', ''## Most likely root cause'', ''## Why the scenario varies'', ''## Recommended next steps''. Within each section use short paragraphs and ''- '' bullet lists where appropriate, and use **bold** to emphasize key findings. Recommendations should be actionable for either an end user or a developer. Do not invent data that is not in the payload.';
+        ChatInstructionLbl: Label 'You are now in follow-up mode. The user is asking a question about the scenario and conclusion above. Answer the question directly and in full, in Markdown, grounded in the scenario, the captured profiles, and your prior conclusion. If the question cannot be answered from that context, say so explicitly and explain what additional data would be needed. Do not restate the conclusion unless the user asks for it.';
         CapabilityNotActiveErr: Label 'The Copilot capability "AI-assisted performance analysis in Performance Center" is not active in this environment. Enable it in the Copilot & AI capabilities page to use AI-assisted analysis.';
         AuthNotConfiguredErr: Label 'Azure OpenAI is not configured for this environment.';
 
@@ -70,6 +70,11 @@ codeunit 8416 "Perf. Analysis AI"
         AzureOpenAI: Codeunit "Azure OpenAI";
         Payload: Text;
         Reply: Text;
+        RawResponse: Text;
+        Err: Text;
+        Success: Boolean;
+        StatusCode: Integer;
+        DurationMs: Integer;
     begin
         LastError := '';
         ClearProfileLines(Analysis);
@@ -88,8 +93,16 @@ codeunit 8416 "Perf. Analysis AI"
         Messages.AddSystemMessage(FilterInstructionLbl);
         Messages.AddUserMessage(Payload);
 
-        if not TryChat(AzureOpenAI, Messages, Response, Reply, Enum::"Perf. Analysis LLM Purpose"::Filter, Analysis, JoinSystemPrompt(SystemPromptLbl, FilterInstructionLbl), Payload) then
+        if not TryChat(AzureOpenAI, Messages, Response, Reply, RawResponse, Success, StatusCode, Err, DurationMs) then begin
+            LogLlmCall(Enum::"Perf. Analysis LLM Purpose"::Filter, Analysis, BuildRawRequest(SystemPromptLbl, FilterInstructionLbl, Payload), RawResponse, Reply, false, StatusCode, GetLastErrorText(), DurationMs);
+            LastError := GetLastErrorText();
             exit(false);
+        end;
+        LogLlmCall(Enum::"Perf. Analysis LLM Purpose"::Filter, Analysis, BuildRawRequest(SystemPromptLbl, FilterInstructionLbl, Payload), RawResponse, Reply, Success, StatusCode, Err, DurationMs);
+        if not Success then begin
+            LastError := Err;
+            exit(false);
+        end;
 
         ApplyFilterReply(Analysis, Reply);
         exit(true);
@@ -109,6 +122,11 @@ codeunit 8416 "Perf. Analysis AI"
         AzureOpenAI: Codeunit "Azure OpenAI";
         Reply: Text;
         Payload: Text;
+        RawResponse: Text;
+        Err: Text;
+        Success: Boolean;
+        StatusCode: Integer;
+        DurationMs: Integer;
     begin
         LastError := '';
         // Keep lines in sync with the latest captured profiles so the card's "Profiles
@@ -123,8 +141,16 @@ codeunit 8416 "Perf. Analysis AI"
         Messages.AddSystemMessage(AnalysisInstructionLbl);
         Messages.AddUserMessage(Payload);
 
-        if not TryChat(AzureOpenAI, Messages, Response, Reply, Enum::"Perf. Analysis LLM Purpose"::Analyze, Analysis, JoinSystemPrompt(SystemPromptLbl, AnalysisInstructionLbl), Payload) then
+        if not TryChat(AzureOpenAI, Messages, Response, Reply, RawResponse, Success, StatusCode, Err, DurationMs) then begin
+            LogLlmCall(Enum::"Perf. Analysis LLM Purpose"::Analyze, Analysis, BuildRawRequest(SystemPromptLbl, AnalysisInstructionLbl, Payload), RawResponse, Reply, false, StatusCode, GetLastErrorText(), DurationMs);
+            LastError := GetLastErrorText();
             exit(false);
+        end;
+        LogLlmCall(Enum::"Perf. Analysis LLM Purpose"::Analyze, Analysis, BuildRawRequest(SystemPromptLbl, AnalysisInstructionLbl, Payload), RawResponse, Reply, Success, StatusCode, Err, DurationMs);
+        if not Success then begin
+            LastError := Err;
+            exit(false);
+        end;
 
         Analysis.SetConclusion(Reply);
         Analysis."Ai Model" := CopyStr('azure-openai-chat', 1, MaxStrLen(Analysis."Ai Model"));
@@ -153,7 +179,7 @@ codeunit 8416 "Perf. Analysis AI"
             UserHeaderLbl + Newline + BuildAnalysisPayload(Analysis));
     end;
 
-    local procedure JoinSystemPrompt(SystemPrompt: Text; Instruction: Text) Combined: Text
+    local procedure BuildRawRequest(SystemPrompt: Text; Instruction: Text; UserPayload: Text) Combined: Text
     var
         Newline: Text[2];
     begin
@@ -161,40 +187,58 @@ codeunit 8416 "Perf. Analysis AI"
         Newline[2] := 10;
         Combined :=
             '--- System message ---' + Newline + SystemPrompt + Newline + Newline +
-            '--- Instruction ---' + Newline + Instruction;
+            '--- Instruction ---' + Newline + Instruction + Newline + Newline +
+            '--- User message ---' + Newline + UserPayload;
     end;
 
     /// <summary>
-    /// Primes an AOAI Chat Messages codeunit with the analysis context so the chat page
-    /// can send follow-up questions grounded in the conclusion + top findings.
+    /// Answers a follow-up question about a concluded analysis. Builds a fresh prompt
+    /// identical in spirit to the original analysis prompt but with the prior conclusion
+    /// and the user's question appended, so each turn is independent. The caller (chat
+    /// page) only displays the question and the reply.
     /// </summary>
-    procedure PrimeChat(var Analysis: Record "Performance Analysis"; var Messages: Codeunit "AOAI Chat Messages")
+    procedure AskAboutAnalysis(var Analysis: Record "Performance Analysis"; UserQuestion: Text): Text
     var
-        PrimerLbl: Label 'Analysis context:\n%1', Comment = '%1 is the JSON payload describing the analysis';
-    begin
-        EnsureAvailable();
-        Messages.AddSystemMessage(SystemPromptLbl);
-        Messages.AddSystemMessage(ChatInstructionLbl);
-        Messages.AddSystemMessage(StrSubstNo(PrimerLbl, BuildAnalysisPayload(Analysis)));
-    end;
-
-    /// <summary>
-    /// Sends one turn of chat. Returns the reply text (empty on failure, with LastError set).
-    /// </summary>
-    procedure SendChat(var Analysis: Record "Performance Analysis"; var Messages: Codeunit "AOAI Chat Messages"; UserText: Text): Text
-    var
+        Messages: Codeunit "AOAI Chat Messages";
         Response: Codeunit "AOAI Operation Response";
         AzureOpenAI: Codeunit "Azure OpenAI";
         Reply: Text;
-        SystemPromptSummary: Text;
+        ContextMessage: Text;
+        RawResponse: Text;
+        Err: Text;
+        Success: Boolean;
+        StatusCode: Integer;
+        DurationMs: Integer;
+        ContextHeaderLbl: Label '# Context for the follow-up question', Locked = true;
+        ConclusionHeaderLbl: Label '## Prior conclusion', Locked = true;
+        Newline: Text[2];
     begin
         LastError := '';
         if not TryPrepareClient(AzureOpenAI) then
             exit('');
-        Messages.AddUserMessage(UserText);
-        SystemPromptSummary := JoinSystemPrompt(SystemPromptLbl, ChatInstructionLbl);
-        if not TryChat(AzureOpenAI, Messages, Response, Reply, Enum::"Perf. Analysis LLM Purpose"::Chat, Analysis, SystemPromptSummary, UserText) then
+        Newline[1] := 13;
+        Newline[2] := 10;
+        ClearProfileLines(Analysis);
+        if LoadProfilesToLines(Analysis) then;
+        ContextMessage :=
+            ContextHeaderLbl + Newline + Newline +
+            BuildAnalysisPayload(Analysis) + Newline + Newline +
+            ConclusionHeaderLbl + Newline + Newline +
+            Analysis.GetConclusion();
+        Messages.AddSystemMessage(SystemPromptLbl);
+        Messages.AddSystemMessage(ContextMessage);
+        Messages.AddSystemMessage(ChatInstructionLbl);
+        Messages.AddUserMessage(UserQuestion);
+        if not TryChat(AzureOpenAI, Messages, Response, Reply, RawResponse, Success, StatusCode, Err, DurationMs) then begin
+            LogLlmCall(Enum::"Perf. Analysis LLM Purpose"::Chat, Analysis, BuildRawRequest(SystemPromptLbl, ContextMessage + Newline + Newline + ChatInstructionLbl, UserQuestion), RawResponse, Reply, false, StatusCode, GetLastErrorText(), DurationMs);
+            LastError := GetLastErrorText();
             exit('');
+        end;
+        LogLlmCall(Enum::"Perf. Analysis LLM Purpose"::Chat, Analysis, BuildRawRequest(SystemPromptLbl, ContextMessage + Newline + Newline + ChatInstructionLbl, UserQuestion), RawResponse, Reply, Success, StatusCode, Err, DurationMs);
+        if not Success then begin
+            LastError := Err;
+            exit('');
+        end;
         exit(Reply);
     end;
 
@@ -221,14 +265,9 @@ codeunit 8416 "Perf. Analysis AI"
     end;
 
     [TryFunction]
-    local procedure TryChat(var AzureOpenAI: Codeunit "Azure OpenAI"; var Messages: Codeunit "AOAI Chat Messages"; var Response: Codeunit "AOAI Operation Response"; var Reply: Text; Purpose: Enum "Perf. Analysis LLM Purpose"; var Analysis: Record "Performance Analysis"; SystemPromptText: Text; UserPayload: Text)
+    local procedure TryChat(var AzureOpenAI: Codeunit "Azure OpenAI"; var Messages: Codeunit "AOAI Chat Messages"; var Response: Codeunit "AOAI Operation Response"; var Reply: Text; var RawResponse: Text; var Success: Boolean; var StatusCode: Integer; var Err: Text; var DurationMs: Integer)
     var
-        RawResponse: Text;
         StartedAt: DateTime;
-        DurationMs: Integer;
-        Err: Text;
-        Success: Boolean;
-        StatusCode: Integer;
     begin
         StartedAt := CurrentDateTime();
         AzureOpenAI.GenerateChatCompletion(Messages, Response);
@@ -242,12 +281,9 @@ codeunit 8416 "Perf. Analysis AI"
             Reply := '';
             Err := Response.GetError();
         end;
-        LogLlmCall(Purpose, Analysis, SystemPromptText, UserPayload, RawResponse, Reply, Success, StatusCode, Err, DurationMs);
-        if not Success then
-            Error(Err);
     end;
 
-    local procedure LogLlmCall(Purpose: Enum "Perf. Analysis LLM Purpose"; var Analysis: Record "Performance Analysis"; SystemPromptText: Text; UserPayload: Text; RawResponse: Text; Reply: Text; Success: Boolean; StatusCode: Integer; ErrorText: Text; DurationMs: Integer)
+    local procedure LogLlmCall(Purpose: Enum "Perf. Analysis LLM Purpose"; var Analysis: Record "Performance Analysis"; RawRequest: Text; RawResponse: Text; Reply: Text; Success: Boolean; StatusCode: Integer; ErrorText: Text; DurationMs: Integer)
     var
         Log: Record "Perf. Analysis LLM Log";
     begin
@@ -260,8 +296,7 @@ codeunit 8416 "Perf. Analysis AI"
         Log."Status Code" := StatusCode;
         Log."Error Text" := CopyStr(ErrorText, 1, MaxStrLen(Log."Error Text"));
         Log.Insert(true);
-        Log.SetSystemPromptText(SystemPromptText);
-        Log.SetUserPayloadText(UserPayload);
+        Log.SetRawRequestText(RawRequest);
         Log.SetReplyText(Reply);
         Log.SetRawResponseText(RawResponse);
         Log.Modify();

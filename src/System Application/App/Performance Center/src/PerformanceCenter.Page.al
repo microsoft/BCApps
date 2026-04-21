@@ -94,21 +94,13 @@ page 8423 "Performance Center"
                     ChatStub.RunModal();
                 end;
             }
-            action(OpenLlmLog)
-            {
-                Caption = 'LLM debug log';
-                ToolTip = 'Show every LLM call made by the Performance Center, with the full prompt, response, and error for troubleshooting.';
-                Image = Log;
-                ApplicationArea = All;
-                RunObject = page "Perf. Analysis LLM Logs";
-            }
             group(Debug)
             {
                 Caption = 'Debug';
                 action(SlowOperationTest)
                 {
-                    Caption = 'Slow operation (test)';
-                    ToolTip = 'Run a simulated slow operation that sleeps for 1-2 seconds or calls CheckLicense (which sleeps 10-15 seconds). Use this to produce a captured profile while a performance analysis is actively monitoring.';
+                    Caption = 'Run operation (test)';
+                    ToolTip = 'Run a test operation. Use this to produce a captured profile while a performance analysis is actively monitoring.';
                     Image = TestFile;
                     ApplicationArea = All;
 

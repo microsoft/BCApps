@@ -204,12 +204,23 @@ table 8403 "Performance Analysis"
     procedure GetConclusion() Result: Text
     var
         InStream: InStream;
+        Builder: TextBuilder;
+        Line: Text;
+        Newline: Text[2];
     begin
         Rec.CalcFields(Conclusion);
         if not Rec.Conclusion.HasValue() then
             exit('');
         Rec.Conclusion.CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.ReadText(Result);
+        Newline[1] := 13;
+        Newline[2] := 10;
+        while not InStream.EOS() do begin
+            InStream.ReadText(Line);
+            if Builder.Length() > 0 then
+                Builder.Append(Newline);
+            Builder.Append(Line);
+        end;
+        exit(Builder.ToText());
     end;
 
     /// <summary>

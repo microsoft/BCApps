@@ -5,11 +5,10 @@
 
 namespace System.Tooling;
 
-using System.AI;
-
 /// <summary>
-/// Backs the Performance Analysis Chat PromptDialog. Keeps the chat history for the
-/// lifetime of the page and delegates the actual AI call to "Perf. Analysis AI".
+/// Backs the Performance Analysis Chat PromptDialog. Each question is sent as an
+/// independent LLM call that includes the full scenario context and the prior
+/// conclusion, so the user only sees their question and the reply.
 /// </summary>
 codeunit 8417 "Perf. Analysis Chat Impl."
 {
@@ -21,26 +20,21 @@ codeunit 8417 "Perf. Analysis Chat Impl."
 
     var
         Analysis: Record "Performance Analysis";
-        Messages: Codeunit "AOAI Chat Messages";
-        Primed: Boolean;
+        AnalysisSet: Boolean;
 
     procedure Initialize(var AnalysisRec: Record "Performance Analysis")
-    var
-        Ai: Codeunit "Perf. Analysis AI";
     begin
         Analysis := AnalysisRec;
-        Clear(Messages);
-        Ai.PrimeChat(Analysis, Messages);
-        Primed := true;
+        AnalysisSet := true;
     end;
 
     procedure Ask(UserText: Text) Reply: Text
     var
         Ai: Codeunit "Perf. Analysis AI";
     begin
-        if not Primed then
-            Initialize(Analysis);
-        Reply := Ai.SendChat(Analysis, Messages, UserText);
+        if not AnalysisSet then
+            exit('');
+        Reply := Ai.AskAboutAnalysis(Analysis, UserText);
         if Reply = '' then
             Reply := Ai.GetLastError();
     end;

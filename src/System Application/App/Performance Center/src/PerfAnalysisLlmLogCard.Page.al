@@ -34,40 +34,15 @@ page 8434 "Perf. Analysis LLM Log Card"
                 field("Duration (ms)"; Rec."Duration (ms)") { ApplicationArea = All; ToolTip = 'Specifies the round-trip duration of the LLM call in milliseconds.'; }
                 field("Error Text"; Rec."Error Text") { ApplicationArea = All; ToolTip = 'Specifies the error message returned by the AOAI endpoint, if any.'; MultiLine = true; }
             }
-            group(SystemPromptGroup)
+            group(RawRequestGroup)
             {
-                Caption = 'System prompt (system + instruction messages)';
-                field(SystemPromptCtl; SystemPromptTxt)
+                Caption = 'Raw request';
+                field(RawRequestCtl; RawRequestTxt)
                 {
                     ApplicationArea = All;
-                    Caption = 'System prompt';
+                    Caption = 'Raw request';
                     ShowCaption = false;
                     MultiLine = true;
-                    ExtendedDatatype = RichContent;
-                }
-            }
-            group(UserPayloadGroup)
-            {
-                Caption = 'User payload';
-                field(UserPayloadCtl; UserPayloadTxt)
-                {
-                    ApplicationArea = All;
-                    Caption = 'User payload';
-                    ShowCaption = false;
-                    MultiLine = true;
-                    ExtendedDatatype = RichContent;
-                }
-            }
-            group(ReplyGroup)
-            {
-                Caption = 'Extracted reply';
-                field(ReplyCtl; ReplyTxt)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Reply';
-                    ShowCaption = false;
-                    MultiLine = true;
-                    ExtendedDatatype = RichContent;
                 }
             }
             group(RawResponseGroup)
@@ -79,7 +54,17 @@ page 8434 "Perf. Analysis LLM Log Card"
                     Caption = 'Raw response';
                     ShowCaption = false;
                     MultiLine = true;
-                    ExtendedDatatype = RichContent;
+                }
+            }
+            group(ReplyGroup)
+            {
+                Caption = 'Extracted reply';
+                field(ReplyCtl; ReplyTxt)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Reply';
+                    ShowCaption = false;
+                    MultiLine = true;
                 }
             }
         }
@@ -87,15 +72,13 @@ page 8434 "Perf. Analysis LLM Log Card"
 
     trigger OnAfterGetCurrRecord()
     begin
-        SystemPromptTxt := Rec.GetSystemPromptText();
-        UserPayloadTxt := Rec.GetUserPayloadText();
+        RawRequestTxt := Rec.GetRawRequestText();
         ReplyTxt := Rec.GetReplyText();
         RawResponseTxt := Rec.GetRawResponseText();
     end;
 
     var
-        SystemPromptTxt: Text;
-        UserPayloadTxt: Text;
+        RawRequestTxt: Text;
         ReplyTxt: Text;
         RawResponseTxt: Text;
 }

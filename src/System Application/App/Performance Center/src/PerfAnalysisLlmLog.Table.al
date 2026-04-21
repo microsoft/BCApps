@@ -52,13 +52,9 @@ table 8407 "Perf. Analysis LLM Log"
         {
             Caption = 'Error';
         }
-        field(9; "System Prompt"; Blob)
+        field(9; "Raw Request"; Blob)
         {
-            Caption = 'System Prompt';
-        }
-        field(10; "User Payload"; Blob)
-        {
-            Caption = 'User Payload';
+            Caption = 'Raw Request';
         }
         field(11; "Reply"; Blob)
         {
@@ -82,40 +78,22 @@ table 8407 "Perf. Analysis LLM Log"
         fieldgroup(Brick; "Logged At", "Purpose", "Success", "Duration (ms)") { }
     }
 
-    procedure SetSystemPromptText(NewText: Text)
+    procedure SetRawRequestText(NewText: Text)
     var
         OutStr: OutStream;
     begin
-        Clear(Rec."System Prompt");
-        Rec."System Prompt".CreateOutStream(OutStr, TextEncoding::UTF8);
+        Clear(Rec."Raw Request");
+        Rec."Raw Request".CreateOutStream(OutStr, TextEncoding::UTF8);
         OutStr.WriteText(NewText);
     end;
 
-    procedure GetSystemPromptText() Result: Text
+    procedure GetRawRequestText() Result: Text
     var
         InStr: InStream;
     begin
-        CalcFields("System Prompt");
-        Rec."System Prompt".CreateInStream(InStr, TextEncoding::UTF8);
-        InStr.ReadText(Result);
-    end;
-
-    procedure SetUserPayloadText(NewText: Text)
-    var
-        OutStr: OutStream;
-    begin
-        Clear(Rec."User Payload");
-        Rec."User Payload".CreateOutStream(OutStr, TextEncoding::UTF8);
-        OutStr.WriteText(NewText);
-    end;
-
-    procedure GetUserPayloadText() Result: Text
-    var
-        InStr: InStream;
-    begin
-        CalcFields("User Payload");
-        Rec."User Payload".CreateInStream(InStr, TextEncoding::UTF8);
-        InStr.ReadText(Result);
+        CalcFields("Raw Request");
+        Rec."Raw Request".CreateInStream(InStr, TextEncoding::UTF8);
+        Result := ReadAllText(InStr);
     end;
 
     procedure SetReplyText(NewText: Text)
@@ -133,7 +111,7 @@ table 8407 "Perf. Analysis LLM Log"
     begin
         CalcFields("Reply");
         Rec."Reply".CreateInStream(InStr, TextEncoding::UTF8);
-        InStr.ReadText(Result);
+        Result := ReadAllText(InStr);
     end;
 
     procedure SetRawResponseText(NewText: Text)
@@ -151,6 +129,23 @@ table 8407 "Perf. Analysis LLM Log"
     begin
         CalcFields("Raw Response");
         Rec."Raw Response".CreateInStream(InStr, TextEncoding::UTF8);
-        InStr.ReadText(Result);
+        Result := ReadAllText(InStr);
+    end;
+
+    local procedure ReadAllText(var InStr: InStream): Text
+    var
+        Builder: TextBuilder;
+        Line: Text;
+        Newline: Text[2];
+    begin
+        Newline[1] := 13;
+        Newline[2] := 10;
+        while not InStr.EOS() do begin
+            InStr.ReadText(Line);
+            if Builder.Length() > 0 then
+                Builder.Append(Newline);
+            Builder.Append(Line);
+        end;
+        exit(Builder.ToText());
     end;
 }

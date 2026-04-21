@@ -62,18 +62,6 @@ page 8426 "Perf. Analysis Card"
                     ToolTip = 'Specifies the slow scenario described when this analysis was created.';
                 }
             }
-            group(NotesGroup)
-            {
-                Caption = 'Notes';
-                field("Notes"; Rec."Notes")
-                {
-                    ShowCaption = false;
-                    ApplicationArea = All;
-                    Editable = false;
-                    MultiLine = true;
-                    ToolTip = 'Specifies any extra details the user added.';
-                }
-            }
             group(Result)
             {
                 Caption = 'Conclusion';
@@ -84,21 +72,9 @@ page 8426 "Perf. Analysis Card"
                     ShowCaption = false;
                     MultiLine = true;
                     Editable = false;
+                    ExtendedDatatype = RichContent;
                     ApplicationArea = All;
                     ToolTip = 'Shows the AI-generated conclusion for this analysis.';
-                }
-                field(ChatEntryPoint; ChatEntryPointLbl)
-                {
-                    ShowCaption = false;
-                    Editable = false;
-                    Style = StrongAccent;
-                    ApplicationArea = All;
-                    ToolTip = 'Opens a chat with this analysis.';
-
-                    trigger OnDrillDown()
-                    begin
-                        OpenChat();
-                    end;
                 }
             }
             group(Failure)
@@ -260,19 +236,6 @@ page 8426 "Perf. Analysis Card"
                     CurrPage.Update(false);
                 end;
             }
-            action(ChatWithReport)
-            {
-                Caption = 'Click here to chat with the analysis report';
-                ToolTip = 'Ask follow-up questions about the conclusion.';
-                Image = Comment;
-                ApplicationArea = All;
-                Enabled = CanChat;
-
-                trigger OnAction()
-                begin
-                    OpenChat();
-                end;
-            }
             action(RelatedSchedule)
             {
                 Caption = 'Profiler schedule';
@@ -301,6 +264,19 @@ page 8426 "Perf. Analysis Card"
                     ProfileList.Run();
                 end;
             }
+            action(ChatWithReport)
+            {
+                Caption = 'Click here to chat with the analysis report';
+                ToolTip = 'Ask follow-up questions about the conclusion.';
+                Image = Comment;
+                ApplicationArea = All;
+                Enabled = CanChat;
+
+                trigger OnAction()
+                begin
+                    OpenChat();
+                end;
+            }
             action(CreatePromptDebug)
             {
                 Caption = 'Create prompt (debug)';
@@ -319,6 +295,23 @@ page 8426 "Perf. Analysis Card"
                     DebugPage.SetPrompt(Ai.BuildAnalysisPromptForDebug(LocalAnalysis));
                     Commit();
                     DebugPage.RunModal();
+                end;
+            }
+            action(OpenLlmLog)
+            {
+                Caption = 'LLM debug log';
+                ToolTip = 'Show the LLM calls made for this performance analysis, with the full prompt, response, and error for troubleshooting.';
+                Image = Log;
+                ApplicationArea = All;
+
+                trigger OnAction()
+                var
+                    Log: Record "Perf. Analysis LLM Log";
+                    LogsPage: Page "Perf. Analysis LLM Logs";
+                begin
+                    Log.SetRange("Analysis Id", Rec."Id");
+                    LogsPage.SetTableView(Log);
+                    LogsPage.Run();
                 end;
             }
         }
@@ -342,7 +335,6 @@ page 8426 "Perf. Analysis Card"
         CanStopCapture: Boolean;
         CanChat: Boolean;
         HasRelatedSchedule: Boolean;
-        ChatEntryPointLbl: Label '>> Click here to chat with the analysis <<';
         RelatedScheduleLinkLbl: Label '>> Click here to open the profiler schedule <<';
         ReadyLbl: Label 'Now';
         AnyMomentLbl: Label 'Any moment now';
@@ -357,7 +349,7 @@ page 8426 "Perf. Analysis Card"
     begin
         AiAvailable := Ai.IsAvailable();
         Rec.CalcFields("Requested By User Name", "Target User Name");
-        ConclusionText := Rec.GetConclusion();
+        ConclusionText := ConclusionToHtml(Rec.GetConclusion());
         WhatsSlowText := BuildWhatsSlow();
         AnalysisReadyInTxt := ComputeReadyInText();
         HasRelatedSchedule := not IsNullGuid(Rec."Related Schedule Id");
@@ -393,22 +385,175 @@ page 8426 "Perf. Analysis Card"
 
     local procedure BuildWhatsSlow(): Text
     var
-        ScreenLbl: Label 'Screen: %1', Comment = '%1 = name of the page or screen';
         ActionLbl: Label 'Action: %1', Comment = '%1 = action, button or field name';
-        ObservedLbl: Label 'Takes about %1 ms (expected %2 ms)', Comment = '%1 = observed duration in ms, %2 = expected duration in ms';
-        FrequencyLbl: Label 'Frequency: %1', Comment = '%1 = frequency';
+        OnPageLbl: Label 'While on page: %1', Comment = '%1 = name of the page or screen, in angle brackets';
+        DurationLbl: Label 'It can take %1 ms, but it shouldn''t take more than %2 ms.', Comment = '%1 = observed duration in ms, %2 = expected duration in ms';
+        FrequencyLbl: Label 'Frequency: This happens %1.', Comment = '%1 = frequency phrase lowercased, e.g. "every time I do the action"';
+        NotesHeaderLbl: Label 'Notes:';
         Builder: TextBuilder;
+        FreqText: Text;
+        NotesText: Text;
     begin
         Builder.Append('<div>');
-        if Rec."Trigger Object Name" <> '' then
-            Builder.Append('<div>' + HtmlEscape(StrSubstNo(ScreenLbl, Rec."Trigger Object Name")) + '</div>');
         if Rec."Trigger Action Name" <> '' then
-            Builder.Append('<div>' + HtmlEscape(StrSubstNo(ActionLbl, Rec."Trigger Action Name")) + '</div>');
+            Builder.Append('<div>' + HtmlEscape(StrSubstNo(ActionLbl, EndWithPeriod(Rec."Trigger Action Name"))) + '</div>');
+        if Rec."Trigger Object Name" <> '' then
+            Builder.Append('<div>' + HtmlEscape(StrSubstNo(OnPageLbl, '<' + Rec."Trigger Object Name" + '>')) + '</div>');
         if (Rec."Observed Duration (ms)" > 0) or (Rec."Expected Duration (ms)" > 0) then
-            Builder.Append('<div>' + HtmlEscape(StrSubstNo(ObservedLbl, Rec."Observed Duration (ms)", Rec."Expected Duration (ms)")) + '</div>');
-        Builder.Append('<div>' + HtmlEscape(StrSubstNo(FrequencyLbl, Rec."Frequency")) + '</div>');
+            Builder.Append('<div>' + HtmlEscape(StrSubstNo(DurationLbl, Rec."Observed Duration (ms)", Rec."Expected Duration (ms)")) + '</div>');
+        FreqText := LowerFirst(Format(Rec."Frequency"));
+        Builder.Append('<div>' + HtmlEscape(StrSubstNo(FrequencyLbl, FreqText)) + '</div>');
+        NotesText := Rec."Notes";
+        if NotesText <> '' then begin
+            Builder.Append('<div>&nbsp;</div>');
+            Builder.Append('<div>' + HtmlEscape(NotesHeaderLbl) + '</div>');
+            Builder.Append('<div>' + NotesToHtml(NotesText) + '</div>');
+        end;
         Builder.Append('</div>');
         exit(Builder.ToText());
+    end;
+
+    local procedure NotesToHtml(Input: Text): Text
+    var
+        Crlf: Text[2];
+        Lf: Text[1];
+        Escaped: Text;
+    begin
+        Crlf[1] := 13;
+        Crlf[2] := 10;
+        Lf[1] := 10;
+        Escaped := HtmlEscape(Input);
+        Escaped := Escaped.Replace(Crlf, '<br>');
+        Escaped := Escaped.Replace(Lf, '<br>');
+        exit(Escaped);
+    end;
+
+    local procedure ConclusionToHtml(Input: Text): Text
+    var
+        Lines: List of [Text];
+        Line: Text;
+        Trim: Text;
+        Rest: Text;
+        Builder: TextBuilder;
+        ParaBuffer: Text;
+        Crlf: Text[2];
+        Lf: Text[1];
+        InList: Boolean;
+    begin
+        if Input = '' then
+            exit('');
+        Crlf[1] := 13;
+        Crlf[2] := 10;
+        Lf[1] := 10;
+        Input := Input.Replace(Crlf, Lf);
+        Lines := Input.Split(Lf);
+        InList := false;
+
+        foreach Line in Lines do begin
+            Trim := Line.TrimStart();
+            if StartsWithMarker(Trim, '- ', Rest) then begin
+                if not InList then begin
+                    FlushParagraph(Builder, ParaBuffer);
+                    Builder.Append('<ul>');
+                    InList := true;
+                end;
+                Builder.Append('<li>' + ApplyInlineMarkdown(Rest) + '</li>');
+            end else begin
+                if InList then begin
+                    Builder.Append('</ul>');
+                    InList := false;
+                end;
+                if StartsWithMarker(Trim, '#### ', Rest) then begin
+                    FlushParagraph(Builder, ParaBuffer);
+                    Builder.Append('<h4>' + ApplyInlineMarkdown(Rest) + '</h4>');
+                end else
+                    if StartsWithMarker(Trim, '### ', Rest) then begin
+                        FlushParagraph(Builder, ParaBuffer);
+                        Builder.Append('<h3>' + ApplyInlineMarkdown(Rest) + '</h3>');
+                    end else
+                        if StartsWithMarker(Trim, '## ', Rest) then begin
+                            FlushParagraph(Builder, ParaBuffer);
+                            Builder.Append('<h2>' + ApplyInlineMarkdown(Rest) + '</h2>');
+                        end else
+                            if StartsWithMarker(Trim, '# ', Rest) then
+                                FlushParagraph(Builder, ParaBuffer)
+                            else
+                                if Trim = '' then
+                                    FlushParagraph(Builder, ParaBuffer)
+                                else begin
+                                    if ParaBuffer <> '' then
+                                        ParaBuffer += ' ';
+                                    ParaBuffer += Trim;
+                                end;
+            end;
+        end;
+        if InList then
+            Builder.Append('</ul>');
+        FlushParagraph(Builder, ParaBuffer);
+        exit(Builder.ToText());
+    end;
+
+    local procedure StartsWithMarker(Line: Text; Marker: Text; var Rest: Text): Boolean
+    begin
+        if StrLen(Line) <= StrLen(Marker) then
+            exit(false);
+        if CopyStr(Line, 1, StrLen(Marker)) <> Marker then
+            exit(false);
+        Rest := CopyStr(Line, StrLen(Marker) + 1);
+        exit(true);
+    end;
+
+    local procedure FlushParagraph(var Builder: TextBuilder; var ParaBuffer: Text)
+    begin
+        if ParaBuffer = '' then
+            exit;
+        Builder.Append('<p>' + ApplyInlineMarkdown(ParaBuffer) + '</p>');
+        ParaBuffer := '';
+    end;
+
+    local procedure ApplyInlineMarkdown(Input: Text): Text
+    var
+        Escaped: Text;
+    begin
+        Escaped := HtmlEscape(Input);
+        Escaped := ToggleWrap(Escaped, '**', '<strong>', '</strong>');
+        Escaped := ToggleWrap(Escaped, '`', '<code>', '</code>');
+        exit(Escaped);
+    end;
+
+    local procedure ToggleWrap(Input: Text; Delim: Text; OpenTag: Text; CloseTag: Text) Output: Text
+    var
+        IdxInt: Integer;
+        Open: Boolean;
+    begin
+        Output := Input;
+        IdxInt := Output.IndexOf(Delim);
+        while IdxInt > 0 do begin
+            if Open then
+                Output := CopyStr(Output, 1, IdxInt - 1) + CloseTag + CopyStr(Output, IdxInt + StrLen(Delim))
+            else
+                Output := CopyStr(Output, 1, IdxInt - 1) + OpenTag + CopyStr(Output, IdxInt + StrLen(Delim));
+            Open := not Open;
+            IdxInt := Output.IndexOf(Delim);
+        end;
+        // If we had an unmatched opening delimiter, we already swallowed it; reality of
+        // LLM output is that delimiters are typically matched, so we accept the edge case.
+    end;
+
+    local procedure EndWithPeriod(Input: Text): Text
+    begin
+        if Input = '' then
+            exit(Input);
+        if Input.EndsWith('.') or Input.EndsWith('!') or Input.EndsWith('?') then
+            exit(Input);
+        exit(Input + '.');
+    end;
+
+    local procedure LowerFirst(Input: Text): Text
+    begin
+        if Input = '' then
+            exit(Input);
+        exit(LowerCase(CopyStr(Input, 1, 1)) + CopyStr(Input, 2));
     end;
 
     local procedure HtmlEscape(Input: Text): Text
