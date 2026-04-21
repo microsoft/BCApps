@@ -30,6 +30,7 @@ codeunit 4610 "Ext. SharePoint Graph Helper"
     internal procedure ListFiles(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
         TempGraphDriveItem: Record "SharePoint Graph Drive Item";
+        Response: Codeunit "SharePoint Graph Response";
         OriginalPath: Text;
     begin
         OriginalPath := Path;
@@ -41,7 +42,10 @@ codeunit 4610 "Ext. SharePoint Graph Helper"
         if Path = '' then
             Path := '/';
 
-        SharePointGraphClient.GetItemsByPath(Path, TempGraphDriveItem);
+        Response := SharePointGraphClient.GetItemsByPath(Path, TempGraphDriveItem);
+
+        if not Response.IsSuccessful() then
+            ShowError(Response);
 
         FilePaginationData.SetEndOfListing(true);
 
@@ -183,6 +187,7 @@ codeunit 4610 "Ext. SharePoint Graph Helper"
     internal procedure ListDirectories(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
         TempGraphDriveItem: Record "SharePoint Graph Drive Item";
+        Response: Codeunit "SharePoint Graph Response";
         OriginalPath: Text;
     begin
         OriginalPath := Path;
@@ -194,7 +199,10 @@ codeunit 4610 "Ext. SharePoint Graph Helper"
         if Path = '' then
             Path := '/';
 
-        SharePointGraphClient.GetItemsByPath(Path, TempGraphDriveItem);
+        Response := SharePointGraphClient.GetItemsByPath(Path, TempGraphDriveItem);
+
+        if not Response.IsSuccessful() then
+            ShowError(Response);
 
         FilePaginationData.SetEndOfListing(true);
 

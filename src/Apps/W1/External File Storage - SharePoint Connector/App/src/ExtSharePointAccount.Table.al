@@ -62,7 +62,7 @@ table 4580 "Ext. SharePoint Account"
         field(10; "Authentication Type"; Enum "Ext. SharePoint Auth Type")
         {
             Caption = 'Authentication Type';
-            ToolTip = 'Specifies the authentication flow used for this SharePoint account. Client Secret uses User grant flow, which means that the user must sign in when using this account. Certificate uses Client credentials flow, which means that the user does not need to sign in when using this account.';
+            ToolTip = 'Specifies the authentication method used for this SharePoint account. When using the legacy REST API, Client Secret uses the Authorization Code (user grant) flow, which requires an interactive sign-in, while Certificate uses the Client Credentials (app-only) flow, which does not require a user sign-in. When using Microsoft Graph API, both Client Secret and Certificate always use the Client Credentials (app-only) flow, so no interactive sign-in is required regardless of the selected type.';
             InitValue = "Client Secret";
         }
         field(11; "Certificate Key"; Guid)
