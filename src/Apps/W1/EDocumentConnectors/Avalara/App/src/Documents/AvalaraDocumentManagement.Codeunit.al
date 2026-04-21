@@ -39,6 +39,7 @@ codeunit 6371 "Avalara Document Management"
         JsonFieldSupplierNameTok: Label 'supplierName', Locked = true;
         // JSON field name constants
         JsonFieldValueTok: Label 'value', Locked = true;
+        MessageHeaderNotFoundErr: Label 'Message header not found for document ID %1.', Comment = '%1 = Document ID';
         MissingValueArrayErr: Label 'The JSON response is missing the required "value" array.';
         NoResponseFromAvalaraMsg: Label 'No response received from Avalara API';
         NoXmlContentToAttachMsg: Label 'No XML content to attach';
@@ -283,22 +284,24 @@ codeunit 6371 "Avalara Document Management"
         Response: HttpResponseMessage;
         InStream: InStream;
         OutStream: OutStream;
-        ResponseContent: Text;
     begin
         // Execute download request
         Request.Init();
         Request.Authenticate().CreateDownloadRequest(DocumentID, MediaType);
-        ResponseContent := HttpExec.ExecuteHttpRequest(Request);
+        HttpExec.ExecuteHttpRequest(Request);
 
-        if ResponseContent = '' then
+        // Validate response via status code
+        Response := HttpExec.GetResponse();
+        if not Response.IsSuccessStatusCode() then
             Error(EmptyResponseContentErr);
 
-        // Get response and read content into blob
-        Response := HttpExec.GetResponse();
-        Response.Content.ReadAs(InStream);
-
+        // Read binary content directly into blob
+        Response.Content().ReadAs(InStream);
         TempBlob.CreateOutStream(OutStream);
         CopyStream(OutStream, InStream);
+
+        if not TempBlob.HasValue() then
+            Error(EmptyResponseContentErr);
     end;
 
     /// <summary>
@@ -391,7 +394,4 @@ codeunit 6371 "Avalara Document Management"
         MessageResponseCard.SetRecord(MessageResponseHeader);
         MessageResponseCard.Run();
     end;
-
-    var
-        MessageHeaderNotFoundErr: Label 'Message header not found for document ID %1.', Comment = '%1 = Document ID';
 }

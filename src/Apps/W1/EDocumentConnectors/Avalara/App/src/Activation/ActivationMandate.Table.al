@@ -61,21 +61,25 @@ table 6377 "Activation Mandate"
     }
 
     procedure SetBlocked(ConnectionSetup: Record "Connection Setup"; CountryMandate: Text; Block: Boolean)
+    var
+        ActivationMandate: Record "Activation Mandate";
     begin
-        Rec.SetRange("Country Mandate", CountryMandate);
-        Rec.SetRange("Mandate Type", GetMandateTypeFromName(CountryMandate));
-        Rec.SetRange("Company Id", ConnectionSetup."Company Id");
-        if Rec.FindSet(true) then
-            Rec.ModifyAll(Blocked, Block, true);
+        ActivationMandate.SetRange("Country Mandate", CountryMandate);
+        ActivationMandate.SetRange("Mandate Type", GetMandateTypeFromName(CountryMandate));
+        ActivationMandate.SetRange("Company Id", ConnectionSetup."Company Id");
+        if ActivationMandate.FindSet(true) then
+            ActivationMandate.ModifyAll(Blocked, Block, true);
     end;
 
     procedure GetBlocked(ConnectionSetup: Record "Connection Setup"; CountryMandate: Text): Boolean
+    var
+        ActivationMandate: Record "Activation Mandate";
     begin
-        Rec.SetRange("Country Mandate", CountryMandate);
-        Rec.SetRange("Mandate Type", GetMandateTypeFromName(CountryMandate));
-        Rec.SetRange("Company Id", ConnectionSetup."Company Id");
-        if Rec.FindFirst() then
-            exit(Rec.Blocked);
+        ActivationMandate.SetRange("Country Mandate", CountryMandate);
+        ActivationMandate.SetRange("Mandate Type", GetMandateTypeFromName(CountryMandate));
+        ActivationMandate.SetRange("Company Id", ConnectionSetup."Company Id");
+        if ActivationMandate.FindFirst() then
+            exit(ActivationMandate.Blocked);
     end;
 
     procedure GetMandateTypeFromName(MandateText: Text): Code[10]

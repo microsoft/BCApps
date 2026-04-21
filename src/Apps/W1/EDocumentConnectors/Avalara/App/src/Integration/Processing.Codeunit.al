@@ -622,6 +622,7 @@ MessageToken,
         MessageEvent: Record "Avl Message Event";
         MessageResponseHeader: Record "Avl Message Response Header";
         AvalaraFunctions: Codeunit "Avalara Functions";
+        HeaderExists: Boolean;
         i: Integer;
         EventsArray: JsonArray;
         EventObj: JsonObject;
@@ -647,6 +648,8 @@ MessageToken,
         if MessageResponseHeader.Id = '' then
             Error(MissingIdInResponseErr);
 
+        HeaderExists := MessageResponseHeader.Get(MessageResponseHeader.Id);
+
         if JsonObj.Get(JsonFieldCompanyIdTok, RootToken) and RootToken.IsValue() then
             MessageResponseHeader.CompanyId := CopyStr(RootToken.AsValue().AsText(), 1, MaxStrLen(MessageResponseHeader.CompanyId));
 
@@ -655,7 +658,9 @@ MessageToken,
 
         MessageResponseHeader.SetFullResponse(ResponseText);
 
-        if not MessageResponseHeader.Get(MessageResponseHeader.Id) then
+        if HeaderExists then
+            MessageResponseHeader.Modify()
+        else
             MessageResponseHeader.Insert();
 
         // --- Events Array ---
