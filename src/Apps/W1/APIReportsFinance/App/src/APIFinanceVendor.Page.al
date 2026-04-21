@@ -19,7 +19,6 @@ page 30308 "API Finance - Vendor"
     DeleteAllowed = false;
     SourceTable = Vendor;
     ODataKeyFields = SystemId;
-    AboutText = 'Provides access to vendor data from the Vendor table, including vendor numbers, names, addresses, currency codes, payment terms, tax liability, blocked status, and balances. Supports read-only GET operations for retrieving vendor records to enable integration with external financial reporting and accounts payable platforms.';
 
     layout
     {

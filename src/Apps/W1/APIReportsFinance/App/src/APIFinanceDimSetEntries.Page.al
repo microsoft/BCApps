@@ -18,7 +18,6 @@ page 30303 "API Finance - Dim Set Entries"
     DataAccessIntent = ReadOnly;
     ODataKeyFields = SystemId;
     SourceTable = "Dimension Set Entry";
-    AboutText = 'Provides access to dimension set entry data from the Dimension Set Entry table, including dimension set IDs, dimension codes and names, and dimension value codes and names. Supports read-only GET operations for retrieving dimension combinations assigned to transactions to enable integration with external financial reporting and analytics platforms.';
 
     layout
     {

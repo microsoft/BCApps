@@ -13,7 +13,6 @@ page 8049 "General Ledger Setup API"
     PageType = API;
     SourceTable = "General Ledger Setup";
     ODataKeyFields = SystemId;
-    AboutText = 'Exposes general ledger setup data including the local currency code and shortcut dimension codes for dimensions one through eight. Provides read-only access for external systems to retrieve ledger configuration needed for proper dimension mapping and currency handling in subscription billing integrations.';
 
     layout
     {

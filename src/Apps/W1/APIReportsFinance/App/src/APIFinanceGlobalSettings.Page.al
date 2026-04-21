@@ -17,7 +17,6 @@ page 30306 "API Finance - Global Settings"
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
-    AboutText = 'Provides access to global financial settings, including company information, local currency code, and additional reporting currency from the General Ledger Setup. Supports read-only GET operations for retrieving environment-level configuration to enable integration with external financial reporting and consolidation platforms.';
 
     layout
     {

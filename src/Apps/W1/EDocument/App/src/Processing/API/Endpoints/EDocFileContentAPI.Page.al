@@ -35,7 +35,6 @@ page 6119 "E-Doc. File Content API"
     InsertAllowed = false;
     DeleteAllowed = false;
     ModifyAllowed = false;
-    AboutText = 'Retrieves the file content of electronic documents, providing access to both structured and unstructured data stored for each e-document. Supports read-only GET operations for downloading e-document files, enabling external systems to archive, validate, or further process received electronic documents.';
 
     Permissions =
         tabledata "E-Document" = r,

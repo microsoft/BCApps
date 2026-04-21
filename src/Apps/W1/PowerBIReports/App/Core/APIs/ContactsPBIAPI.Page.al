@@ -19,7 +19,6 @@ page 36966 "Contacts - PBI API"
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
-    AboutText = 'Provides access to contact data from the Contact table, including contact numbers, types, names, company associations, and address details. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {

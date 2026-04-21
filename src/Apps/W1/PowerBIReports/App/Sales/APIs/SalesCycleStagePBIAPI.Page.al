@@ -20,7 +20,6 @@ page 37082 "Sales Cycle Stage - PBI API"
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
-    AboutText = 'Provides access to sales cycle stage data from the Sales Cycle Stage table, including sales cycle codes, stage numbers, and descriptions. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {

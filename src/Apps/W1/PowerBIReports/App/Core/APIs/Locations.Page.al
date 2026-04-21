@@ -20,7 +20,6 @@ page 36957 Locations
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
-    AboutText = 'Provides access to location data from the Location table, including location codes, names, and adjustment bin codes. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {

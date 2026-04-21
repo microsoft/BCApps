@@ -29,7 +29,6 @@ page 6113 "E-Document Services API"
     Editable = false;
     DataAccessIntent = ReadOnly;
     DelayedInsert = true;
-    AboutText = 'Provides read-only access to e-document service configurations, including service code, description, document format, and integration settings. Supports GET operations for retrieving available e-document services, enabling external systems to discover configured services before submitting documents or querying processing status.';
 
     layout
     {

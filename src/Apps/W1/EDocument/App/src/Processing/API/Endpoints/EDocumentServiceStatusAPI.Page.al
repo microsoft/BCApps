@@ -29,7 +29,6 @@ page 6118 "E-Document Service Status API"
     Editable = false;
     DataAccessIntent = ReadOnly;
     DelayedInsert = true;
-    AboutText = 'Provides read-only access to e-document service processing statuses, tracking each document per service with details such as processing status, logs, and error information. Supports GET operations for monitoring the progress and outcome of e-document processing across configured services.';
 
     layout
     {

@@ -15,7 +15,6 @@ page 8046 "Cust. Contract Deferral API"
     ODataKeyFields = SystemId;
     Editable = false;
     DataAccessIntent = ReadOnly;
-    AboutText = 'Exposes customer subscription contract deferral records including posting dates, amounts, release status, and general ledger entry references. Provides read-only access for integrating deferred revenue data with external financial reporting systems, revenue recognition platforms, and compliance auditing tools.';
 
     layout
     {

@@ -20,7 +20,6 @@ page 36958 "Salesperson/Purchasers"
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
-    AboutText = 'Provides access to salesperson and purchaser data from the Salesperson/Purchaser table, including codes and names. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {

@@ -14,7 +14,6 @@ page 8022 "Archived Billing Lines API"
     Extensible = false;
     Editable = false;
     DataAccessIntent = ReadOnly;
-    AboutText = 'Exposes archived billing line records including historical billing periods, amounts, document references, discounts, and correction details for completed subscription invoices. Provides read-only access for integrating historical billing data with external audit systems, financial analytics tools, and long-term revenue reporting platforms.';
 
     layout
     {

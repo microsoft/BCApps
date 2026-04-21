@@ -14,7 +14,6 @@ page 8023 "Vendor Contracts API"
     Extensible = false;
     Editable = false;
     DataAccessIntent = ReadOnly;
-    AboutText = 'Exposes vendor subscription contracts including buy-from and pay-to details, payment terms, currency, dimensions, and contract lines. Provides read-only access for synchronizing vendor contract data with external procurement systems, cost management platforms, and accounts payable solutions.';
 
     layout
     {

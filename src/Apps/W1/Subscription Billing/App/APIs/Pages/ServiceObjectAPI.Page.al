@@ -14,7 +14,6 @@ page 8020 "Service Object API"
     Extensible = false;
     Editable = false;
     DataAccessIntent = ReadOnly;
-    AboutText = 'Exposes subscription header records (service objects) including customer, vendor, billing, and shipping details along with item information, serial numbers, and provision dates. Provides read-only access for integrating subscription master data with external subscription management platforms, asset tracking systems, and customer relationship tools.';
 
     layout
     {

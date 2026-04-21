@@ -20,7 +20,6 @@ page 36959 "Vendors - PBI API"
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
-    AboutText = 'Provides access to vendor data from the Vendor table, including vendor numbers, names, addresses, and posting groups. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {

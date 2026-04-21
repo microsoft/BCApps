@@ -25,7 +25,6 @@ page 20415 "Qlty. Create Inspection API"
     SourceTable = "Name/Value Buffer";
     SourceTableTemporary = true;
     ODataKeyFields = SystemId;
-    AboutText = 'Creates quality inspections from source documents by accepting a source document type and number. Supports bound actions to trigger inspection creation, enabling Power Automate flows and external systems to programmatically initiate quality inspections for purchase orders, production orders, and other source documents.';
 
     layout
     {

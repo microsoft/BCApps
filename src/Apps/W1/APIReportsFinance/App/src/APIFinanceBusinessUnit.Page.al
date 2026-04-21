@@ -18,7 +18,6 @@ page 30301 "API Finance - Business Unit"
     DeleteAllowed = false;
     SourceTable = "Business Unit";
     ODataKeyFields = SystemId;
-    AboutText = 'Provides access to business unit data from the Business Unit table, including unit codes, company names, currency codes, consolidation settings, and date ranges. Supports read-only GET operations for retrieving consolidation structures to enable integration with external financial reporting and multi-entity consolidation platforms.';
 
     layout
     {

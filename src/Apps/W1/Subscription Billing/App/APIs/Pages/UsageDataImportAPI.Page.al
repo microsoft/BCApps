@@ -16,7 +16,6 @@ page 8040 "Usage Data Import API"
     SourceTable = "Usage Data Import";
     ODataKeyFields = SystemId;
     Extensible = false;
-    AboutText = 'Manages usage data import records for subscription billing, allowing creation of new import batches linked to suppliers. Supports insert operations with nested generic import lines, enabling external metering and consumption platforms to push usage data for billing processing.';
 
     layout
     {

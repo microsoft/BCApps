@@ -20,7 +20,6 @@ page 36956 "General Ledger Setup - PBI API"
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
-    AboutText = 'Provides access to general ledger setup data from the General Ledger Setup table, including shortcut dimension codes and local currency code. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {

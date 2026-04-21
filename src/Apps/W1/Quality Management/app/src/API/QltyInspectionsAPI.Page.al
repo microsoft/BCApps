@@ -29,7 +29,6 @@ page 20414 "Qlty. Inspections API"
     PageType = API;
     SourceTable = "Qlty. Inspection Header";
     ODataKeyFields = SystemId;
-    AboutText = 'Manages quality inspection records, exposing inspection status, item details, lot and serial numbers, quantities, results, and disposition actions. Supports full CRUD operations and bound actions for processing inspection outcomes, enabling integration with quality management systems and manufacturing automation workflows.';
 
     layout
     {

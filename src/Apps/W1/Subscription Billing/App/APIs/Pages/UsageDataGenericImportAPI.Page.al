@@ -16,7 +16,6 @@ page 8039 "Usage Data Generic Import API"
     SourceTable = "Usage Data Generic Import";
     ODataKeyFields = SystemId;
     Extensible = false;
-    AboutText = 'Manages generic usage data import records including customer, subscription, product, and billing period details along with cost, quantity, and pricing fields. Supports insert operations for pushing consumption and metering data from external usage tracking platforms into the subscription billing process.';
 
     layout
     {

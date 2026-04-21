@@ -11,7 +11,6 @@ page 8045 "Customer Contract Lines API"
     SourceTable = "Cust. Sub. Contract Line";
     Editable = false;
     DataAccessIntent = ReadOnly;
-    AboutText = 'Exposes customer subscription contract line records linking contracts to subscription headers and subscription line entries. Provides read-only access with nested customer contract deferrals, enabling integration with external billing reconciliation and revenue recognition systems.';
 
     layout
     {

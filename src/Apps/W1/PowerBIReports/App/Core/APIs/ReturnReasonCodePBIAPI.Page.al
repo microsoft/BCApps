@@ -20,7 +20,6 @@ page 36965 "Return Reason Code - PBI API"
     DataAccessIntent = ReadOnly;
     Editable = false;
     Extensible = false;
-    AboutText = 'Provides access to return reason code data from the Return Reason table, including reason codes and descriptions. Supports read-only GET operations to provide data feeds optimized for Power BI and business intelligence dashboards.';
 
     layout
     {
