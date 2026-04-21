@@ -31,7 +31,7 @@ codeunit 133689 "No. Series Copilot Accu. Tests"
         ExpectedNumberJson: Codeunit "Test Input Json";
         Found: Boolean;
     begin
-        TestInputJsonQuestion := AITTestContext.GetQuestion();
+        TestInputJsonQuestion := AITTestContext.GetQuery();
         NoSeriesCopilotTestLib.Generate(TempNoSeriesGeneration, TempNoSeriesGenerationDetail, TestInputJsonQuestion.ValueAsText());
 
         TestInputJsonAnswer := AITTestContext.GetExpectedData();
