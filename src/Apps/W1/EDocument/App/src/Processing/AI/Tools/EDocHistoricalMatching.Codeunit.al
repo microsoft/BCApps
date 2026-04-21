@@ -219,6 +219,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
     local procedure LoadHistoricalDataIntoTempTable(var TempPurchInvLine: Record "Purch. Inv. Line" temporary; VendorNo: Code[20]; HistoricalMatchingConfig: Text)
     var
         PurchInvLine: Record "Purch. Inv. Line";
+        EDocPurchaseLineHistory: Record "E-Doc. Purchase Line History";
         AllocationAccount: Record "Allocation Account";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         OneYearAgoDate: Date;
@@ -252,6 +253,18 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
                 RecordCount += 1;
             until (PurchInvLine.Next() = 0) or (RecordCount >= MaxHistoricalRecords);
         end;
+
+        // Enrich temp records with product codes from e-document history
+        EDocPurchaseLineHistory.SetCurrentKey("Vendor No.", "Product Code");
+        EDocPurchaseLineHistory.SetRange("Vendor No.", VendorNo);
+        EDocPurchaseLineHistory.SetFilter("Product Code", '<>%1', '');
+        if EDocPurchaseLineHistory.FindSet() then
+            repeat
+                if TempPurchInvLine.GetBySystemId(EDocPurchaseLineHistory."Purch. Inv. Line SystemId") then begin
+                    TempPurchInvLine."Vendor Item No." := CopyStr(EDocPurchaseLineHistory."Product Code", 1, MaxStrLen(TempPurchInvLine."Vendor Item No."));
+                    TempPurchInvLine.Modify();
+                end;
+            until EDocPurchaseLineHistory.Next() = 0;
 
         ElapsedTime := CurrentDateTime() - StartTime;
         TelemetryDimensions.Add('Records loaded', Format(RecordCount));
@@ -320,7 +333,7 @@ codeunit 6177 "E-Doc. Historical Matching" implements "AOAI Function", IEDocAISy
         TempPurchInvLine.Reset();
         case MatchType of
             ProductCodeTok:
-                TempPurchInvLine.SetRange("No.", SearchValue);
+                TempPurchInvLine.SetRange("Vendor Item No.", CopyStr(SearchValue, 1, MaxStrLen(TempPurchInvLine."Vendor Item No.")));
             DescriptionTok:
                 TempPurchInvLine.SetRange(Description, SearchValue);
             'Similar Description':
