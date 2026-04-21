@@ -243,6 +243,9 @@ table 8061 "Billing Line"
         key(SK6; "Billing Template Code", Partner)
         {
         }
+        key(SK7; Partner, "Subscription Contract No.", "Subscription Contract Line No.", "Document Type", "Document No.")
+        {
+        }
     }
 
     trigger OnDelete()

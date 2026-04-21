@@ -34,15 +34,18 @@ codeunit 8060 "Create Billing Documents"
             if not RequestPageSelectionConfirmed() then
                 exit;
 
-        Window.Open(ProgressTxt);
-        Window.Update();
+        if GuiAllowed then begin
+            Window.Open(ProgressTxt);
+            Window.Update();
+        end;
         if AutomatedBilling then
             BillingLine.SetRange("Billing Error Log Entry No.", 0)
         else
             BillingLine.ModifyAll("Billing Error Log Entry No.", 0);
 
         ProcessBillingLines(BillingLine);
-        Window.Close();
+        if GuiAllowed then
+            Window.Close();
         if PostDocuments then
             PostCreatedDocuments();
         if not HideProcessingFinishedMessage then
@@ -89,17 +92,24 @@ codeunit 8060 "Create Billing Documents"
             repeat
                 if IsNewHeaderNeededPerContract(PreviousContractNo) then begin
                     TestPreviousDocumentTotalInvoiceAmount(true, DiscountLineExists, PreviousContractNo);
+                    if PreviousContractNo <> '' then
+                        Commit();
                     CustomerContract.Get(TempBillingLine."Subscription Contract No.");
                     CreateSalesHeaderFromContract(CustomerContract);
                     InsertContractDescriptionSalesLines(TempBillingLine);
                     PreviousContractNo := TempBillingLine."Subscription Contract No.";
                     ContractsProcessedCount += 1;
-                    Window.Update(1, CustomerContract."Sell-to Customer No.");
-                    Window.Update(2, PreviousContractNo);
+                    if GuiAllowed then begin
+                        Window.Update(1, CustomerContract."Sell-to Customer No.");
+                        Window.Update(2, PreviousContractNo);
+                        Window.Update(3, ContractsProcessedCount);
+                    end;
                 end;
                 InsertSalesLineFromTempBillingLine();
             until TempBillingLine.Next() = 0;
         TestPreviousDocumentTotalInvoiceAmount(true, DiscountLineExists, PreviousContractNo);
+        if PreviousContractNo <> '' then
+            Commit();
     end;
 
     local procedure CreatePurchaseDocumentsPerContract()
@@ -117,17 +127,24 @@ codeunit 8060 "Create Billing Documents"
             repeat
                 if IsNewHeaderNeededPerContract(PreviousContractNo) then begin
                     TestPreviousDocumentTotalInvoiceAmount(false, DiscountLineExists, PreviousContractNo);
+                    if PreviousContractNo <> '' then
+                        Commit();
                     VendorContract.Get(TempBillingLine."Subscription Contract No.");
                     CreatePurchaseHeaderFromContract(VendorContract);
                     InsertContractDescriptionPurchaseLines(TempBillingLine);
                     PreviousContractNo := TempBillingLine."Subscription Contract No.";
                     ContractsProcessedCount += 1;
-                    Window.Update(1, VendorContract."Pay-to Vendor No.");
-                    Window.Update(2, PreviousContractNo);
+                    if GuiAllowed then begin
+                        Window.Update(1, VendorContract."Pay-to Vendor No.");
+                        Window.Update(2, PreviousContractNo);
+                        Window.Update(3, ContractsProcessedCount);
+                    end;
                 end;
                 InsertPurchaseLineFromTempBillingLine();
             until TempBillingLine.Next() = 0;
         TestPreviousDocumentTotalInvoiceAmount(false, DiscountLineExists, PreviousContractNo);
+        if PreviousContractNo <> '' then
+            Commit();
     end;
 
     local procedure CreateSalesDocumentsPerCustomer()
@@ -149,13 +166,16 @@ codeunit 8060 "Create Billing Documents"
             repeat
                 if IsNewSalesHeaderNeeded(PreviousCustomerNo, LastDetailOverview, PreviousCurrencyCode, PreviousContractNo) then begin
                     TestPreviousDocumentTotalInvoiceAmount(true, DiscountLineExists, PreviousContractNo);
+                    if PreviousCustomerNo <> '' then
+                        Commit();
                     CreateSalesHeaderForCustomerNo(TempBillingLine."Partner No.");
                     SalesHeader."Sub. Contract Detail Overview" := TempBillingLine."Detail Overview";
                     SalesHeader.Modify(false);
                     PreviousCustomerNo := TempBillingLine."Partner No.";
                     LastDetailOverview := TempBillingLine."Detail Overview";
                     PreviousCurrencyCode := TempBillingLine."Currency Code";
-                    Window.Update(1, PreviousCustomerNo);
+                    if GuiAllowed then
+                        Window.Update(1, PreviousCustomerNo);
                     FirstContractDescriptionLineInserted := false;
                 end;
                 if TempBillingLine."Subscription Contract No." <> PreviousContractNo then begin
@@ -168,11 +188,16 @@ codeunit 8060 "Create Billing Documents"
                     end;
                     PreviousContractNo := TempBillingLine."Subscription Contract No.";
                     ContractsProcessedCount += 1;
-                    Window.Update(2, PreviousContractNo);
+                    if GuiAllowed then begin
+                        Window.Update(2, PreviousContractNo);
+                        Window.Update(3, ContractsProcessedCount);
+                    end;
                 end;
                 InsertSalesLineFromTempBillingLine();
             until TempBillingLine.Next() = 0;
         TestPreviousDocumentTotalInvoiceAmount(true, DiscountLineExists, PreviousContractNo);
+        if PreviousCustomerNo <> '' then
+            Commit();
     end;
 
     local procedure CreatePurchaseDocumentsPerVendor()
@@ -195,10 +220,13 @@ codeunit 8060 "Create Billing Documents"
                     (TempBillingLine."Currency Code" <> PreviousCurrencyCode)
                 then begin
                     TestPreviousDocumentTotalInvoiceAmount(false, DiscountLineExists, PreviousContractNo);
+                    if PreviousVendorNo <> '' then
+                        Commit();
                     CreatePurchaseHeaderForVendorNo(TempBillingLine."Partner No.");
                     PreviousVendorNo := TempBillingLine."Partner No.";
                     PreviousCurrencyCode := TempBillingLine."Currency Code";
-                    Window.Update(1, PreviousVendorNo);
+                    if GuiAllowed then
+                        Window.Update(1, PreviousVendorNo);
                     FirstContractDescriptionLineInserted := false;
                 end;
                 if TempBillingLine."Subscription Contract No." <> PreviousContractNo then begin
@@ -211,11 +239,16 @@ codeunit 8060 "Create Billing Documents"
                     end;
                     PreviousContractNo := TempBillingLine."Subscription Contract No.";
                     ContractsProcessedCount += 1;
-                    Window.Update(2, PreviousContractNo);
+                    if GuiAllowed then begin
+                        Window.Update(2, PreviousContractNo);
+                        Window.Update(3, ContractsProcessedCount);
+                    end;
                 end;
                 InsertPurchaseLineFromTempBillingLine();
             until TempBillingLine.Next() = 0;
         TestPreviousDocumentTotalInvoiceAmount(false, DiscountLineExists, PreviousContractNo);
+        if PreviousVendorNo <> '' then
+            Commit();
     end;
 
     local procedure InsertSalesLineFromTempBillingLine()
@@ -302,10 +335,10 @@ codeunit 8060 "Create Billing Documents"
             UsageDataBilling.SetRange("Subscription Contract Line No.", CustomerContractLine."Line No.");
             UsageDataBilling.SetRange("Document Type", Enum::"Usage Based Billing Doc. Type"::None);
             UsageDataBilling.SetRange("Document No.", '');
+            BillingLineNo := GetBillingLineNo(BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"),
+                                                "Service Partner"::Customer, SalesLine."Document No.", CustomerContractLine."Subscription Contract No.", CustomerContractLine."Line No.");
             if UsageDataBilling.FindSet() then
                 repeat
-                    BillingLineNo := GetBillingLineNo(BillingLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"),
-                                                        "Service Partner"::Customer, SalesLine."Document No.", CustomerContractLine."Subscription Contract No.", CustomerContractLine."Line No.");
                     UsageDataBilling.SaveDocumentValues(UsageBasedDocTypeConv.ConvertSalesDocTypeToUsageBasedBillingDocType(SalesLine."Document Type"), SalesLine."Document No.",
                                                                                SalesLine."Line No.", BillingLineNo);
                 until UsageDataBilling.Next() = 0;
@@ -411,10 +444,10 @@ codeunit 8060 "Create Billing Documents"
         UsageDataBilling.SetRange("Subscription Contract Line No.", ServiceCommitment."Subscription Contract Line No.");
         UsageDataBilling.SetRange("Document Type", Enum::"Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetRange("Document No.", '');
+        BillingLineNo := GetBillingLineNo(BillingLine.GetBillingDocumentTypeFromPurchaseDocumentType(PurchaseLine."Document Type"),
+                                            "Service Partner"::Vendor, PurchaseLine."Document No.", ServiceCommitment."Subscription Contract No.", ServiceCommitment."Subscription Contract Line No.");
         if UsageDataBilling.FindSet() then
             repeat
-                BillingLineNo := GetBillingLineNo(BillingLine.GetBillingDocumentTypeFromPurchaseDocumentType(PurchaseLine."Document Type"),
-                                                    "Service Partner"::Vendor, PurchaseLine."Document No.", ServiceCommitment."Subscription Contract No.", ServiceCommitment."Subscription Contract Line No.");
                 UsageDataBilling.SaveDocumentValues(UsageBasedDocTypeConv.ConvertPurchaseDocTypeToUsageBasedBillingDocType(PurchaseLine."Document Type"), PurchaseLine."Document No.",
                                            PurchaseLine."Line No.", BillingLineNo);
             until UsageDataBilling.Next() = 0;
@@ -726,13 +759,18 @@ codeunit 8060 "Create Billing Documents"
         CurrencyCode: Code[20];
         PartnerNo: Code[20];
         LineNo: Integer;
+        CachedCustomerContractNo: Code[20];
+        CachedVendorContractNo: Code[20];
     begin
         if BillingLine.FindSet() then
             repeat
                 case BillingLine.Partner of
                     BillingLine.Partner::Customer:
                         begin
-                            CustomerContract.Get(BillingLine."Subscription Contract No.");
+                            if BillingLine."Subscription Contract No." <> CachedCustomerContractNo then begin
+                                CustomerContract.Get(BillingLine."Subscription Contract No.");
+                                CachedCustomerContractNo := BillingLine."Subscription Contract No.";
+                            end;
                             case CustomerRecurringBillingGrouping of
                                 CustomerRecurringBillingGrouping::"Sell-to Customer No.":
                                     PartnerNo := CustomerContract."Sell-to Customer No.";
@@ -743,7 +781,10 @@ codeunit 8060 "Create Billing Documents"
                         end;
                     BillingLine.Partner::Vendor:
                         begin
-                            VendorContract.Get(BillingLine."Subscription Contract No.");
+                            if BillingLine."Subscription Contract No." <> CachedVendorContractNo then begin
+                                VendorContract.Get(BillingLine."Subscription Contract No.");
+                                CachedVendorContractNo := BillingLine."Subscription Contract No.";
+                            end;
                             case VendorRecurringBillingGrouping of
                                 VendorRecurringBillingGrouping::"Pay-to Vendor No.":
                                     PartnerNo := VendorContract."Pay-to Vendor No.";
@@ -1030,6 +1071,8 @@ codeunit 8060 "Create Billing Documents"
 
     local procedure ProcessingFinishedMessage()
     begin
+        if not GuiAllowed then
+            exit;
         if DocumentsCreatedCount = 0 then
             Message(NoDocumentsCreatedMsg)
         else
@@ -1404,7 +1447,7 @@ codeunit 8060 "Create Billing Documents"
         PostDocuments: Boolean;
         HideProcessingFinishedMessage: Boolean;
         Window: Dialog;
-        ProgressTxt: Label 'Creating documents...\Partner No. #1#################################\Contract No. #2#################################', Comment = '%1=Partner No., %2=Contract No.';
+        ProgressTxt: Label 'Creating documents...\Partner No. #1#################################\Contract No. #2#################################\Contracts processed: #3##########', Comment = '%1=Partner No., %2=Contract No., %3=Contracts processed';
         OnlyOneServicePartnerErr: Label 'You can create documents only for one type of partner at a time (Customer or Vendor). Please check your filters.';
         UpdateRequiredErr: Label 'At least one Subscription Line was changed after billing proposal was created. Please check the lines marked with "Update Required" field and update the billing proposal before the billing documents can be created.';
         BillingPeriodDescriptionTxt: Label 'Billing period: %1 to %2', Comment = '%1=Recurring Billing from, %2=Recurring Billing to';
