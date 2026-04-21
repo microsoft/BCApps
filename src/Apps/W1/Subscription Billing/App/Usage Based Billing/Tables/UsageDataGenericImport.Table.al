@@ -306,6 +306,9 @@ table 8018 "Usage Data Generic Import"
         {
             Clustered = true;
         }
+        key(key2; "Usage Data Import Entry No.", "Processing Status")
+        {
+        }
     }
 
     trigger OnInsert()
