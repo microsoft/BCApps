@@ -77,7 +77,7 @@ codeunit 2351 "Rest Client Impl."
     procedure SetDefaultRequestHeader(Name: Text; Value: Text)
     begin
         CheckInitialized();
-        if CurrHttpClientInstance.DefaultRequestHeaders.Contains(Name) then
+        if CurrHttpClientInstance.DefaultRequestHeaders.Contains(Name) or CurrHttpClientInstance.DefaultRequestHeaders.ContainsSecret(Name) then
             CurrHttpClientInstance.DefaultRequestHeaders.Remove(Name);
         CurrHttpClientInstance.DefaultRequestHeaders.Add(Name, Value);
     end;
@@ -85,7 +85,7 @@ codeunit 2351 "Rest Client Impl."
     procedure SetDefaultRequestHeader(Name: Text; Value: SecretText)
     begin
         CheckInitialized();
-        if CurrHttpClientInstance.DefaultRequestHeaders.Contains(Name) then
+        if CurrHttpClientInstance.DefaultRequestHeaders.Contains(Name) or CurrHttpClientInstance.DefaultRequestHeaders.ContainsSecret(Name) then
             CurrHttpClientInstance.DefaultRequestHeaders.Remove(Name);
         CurrHttpClientInstance.DefaultRequestHeaders.Add(Name, Value);
     end;
