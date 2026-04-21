@@ -1,0 +1,2 @@
+# cost: 15
+{"query":"{ reverseFulfillmentOrder(id: \"{{FulfillOrderId}}\") { lineItems(first: 10, after:\"{{After}}\") { pageInfo { endCursor hasNextPage } nodes { id fulfillmentLineItem { id lineItem { id name } } dispositions { id quantity type location { id legacyResourceId } } } } } }"}

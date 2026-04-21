@@ -8,14 +8,24 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
-using Microsoft.Finance.GeneralLedger.Setup;
 using System.Utilities;
 
+/// <summary>
+/// Reads PEPPOL BIS 3.0 Invoice and CreditNote XML into v2 import draft staging tables.
+/// This codeunit orchestrates *what* to parse and in what order.
+/// Reusable extraction logic lives in "E-Document PEPPOL Utility".
+/// Spec reference: https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree/
+///                 https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-creditnote/tree/
+/// </summary>
 codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+
+    var
+        PeppolUtility: Codeunit "E-Document PEPPOL Utility";
+        BillingReferenceEmptyTelemetryTxt: Label 'CreditNote BillingReference is empty - no originating invoice reference found.', Locked = true;
 
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
@@ -23,51 +33,104 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         DocStream: InStream;
         PeppolXML: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
-        XmlElement: XmlElement;
-        CommonAggregateComponentsLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2';
-        CommonBasicComponentsLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2';
-        DocumentationLbl: Label 'urn:un:unece:uncefact:documentation:2';
-        QualifiedDatatypesLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2';
-        UnqualifiedDataTypesSchemaModuleLbl: Label 'urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2';
-        DefaultInvoiceLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2';
-        CreditNoteNotSupportedLbl: Label 'Credit notes are not supported';
+        RootElement: XmlElement;
     begin
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);
 
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
         XmlDocument.ReadFrom(DocStream, PeppolXML);
-        XmlNamespaces.AddNamespace('cac', CommonAggregateComponentsLbl);
-        XmlNamespaces.AddNamespace('cbc', CommonBasicComponentsLbl);
-        XmlNamespaces.AddNamespace('ccts', DocumentationLbl);
-        XmlNamespaces.AddNamespace('qdt', QualifiedDatatypesLbl);
-        XmlNamespaces.AddNamespace('udt', UnqualifiedDataTypesSchemaModuleLbl);
-        XmlNamespaces.AddNamespace('inv', DefaultInvoiceLbl);
+        PeppolUtility.InitializePEPPOL3Namespaces(XmlNamespaces);
 
-        PeppolXML.GetRoot(XmlElement);
-        case UpperCase(XmlElement.LocalName()) of
+        PeppolXML.GetRoot(RootElement);
+        case UpperCase(RootElement.LocalName()) of
             'INVOICE':
                 begin
-                    PopulatePurchaseInvoiceHeader(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader);
-                    InsertPurchaseInvoiceLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.");
+                    PopulateInvoiceHeader(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader);
+                    InsertPurchaseLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/inv:Invoice/cac:InvoiceLine', 'cac:InvoiceLine', 'cbc:InvoicedQuantity');
+                    InsertAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/inv:Invoice');
+                    InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/inv:Invoice');
                 end;
             'CREDITNOTE':
-                Error(CreditNoteNotSupportedLbl);
+                begin
+                    PopulateCreditMemoHeader(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader);
+                    InsertPurchaseLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/cre:CreditNote/cac:CreditNoteLine', 'cac:CreditNoteLine', 'cbc:CreditedQuantity');
+                    InsertAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/cre:CreditNote');
+                    InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/cre:CreditNote');
+                end;
         end;
         EDocumentPurchaseHeader.Modify();
         EDocument.Direction := EDocument.Direction::Incoming;
-        exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
+
+        case UpperCase(RootElement.LocalName()) of
+            'INVOICE':
+                exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
+            'CREDITNOTE':
+                exit(Enum::"E-Doc. Process Draft"::"Purchase Credit Memo");
+            else
+                exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
+        end;
     end;
 
-    local procedure InsertPurchaseInvoiceLines(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; EDocumentEntryNo: Integer)
+    #region Header Orchestration
+
+    local procedure PopulateInvoiceHeader(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    begin
+        PopulateInvoiceDocumentInfo(PeppolXML, XmlNamespaces, Header);
+        PeppolUtility.PopulateSupplierInfo(PeppolXML, XmlNamespaces, '/inv:Invoice', Header);
+        PeppolUtility.PopulateCustomerInfo(PeppolXML, XmlNamespaces, '/inv:Invoice', Header);
+        // Per PEPPOL BIS 3.0: Invoice has DueDate as a direct child element
+        PeppolUtility.PopulateAmountsAndDates(PeppolXML, XmlNamespaces, '/inv:Invoice', '/inv:Invoice/cbc:DueDate', Header);
+        PeppolUtility.PopulateCurrency(PeppolXML, XmlNamespaces, '/inv:Invoice', Header);
+    end;
+
+    local procedure PopulateCreditMemoHeader(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    begin
+        PopulateCreditNoteDocumentInfo(PeppolXML, XmlNamespaces, Header);
+        PeppolUtility.PopulateSupplierInfo(PeppolXML, XmlNamespaces, '/cre:CreditNote', Header);
+        PeppolUtility.PopulateCustomerInfo(PeppolXML, XmlNamespaces, '/cre:CreditNote', Header);
+        // Per PEPPOL BIS 3.0: CreditNote has no top-level DueDate; it is under PaymentMeans.
+        // Spec ref: https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-creditnote/cac-PaymentMeans/cbc-PaymentDueDate/
+        PeppolUtility.PopulateAmountsAndDates(PeppolXML, XmlNamespaces, '/cre:CreditNote', '/cre:CreditNote/cac:PaymentMeans/cbc:PaymentDueDate', Header);
+        PeppolUtility.PopulateCurrency(PeppolXML, XmlNamespaces, '/cre:CreditNote', Header);
+    end;
+
+    local procedure PopulateInvoiceDocumentInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    var
+        Value: Text;
+    begin
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cbc:ID', Value) then
+            Header."Sales Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Sales Invoice No."));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:OrderReference/cbc:ID', Value) then
+            Header."Purchase Order No." := CopyStr(Value, 1, MaxStrLen(Header."Purchase Order No."));
+    end;
+
+    local procedure PopulateCreditNoteDocumentInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
+    var
+        Value: Text;
+    begin
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cbc:ID', Value) then
+            Header."Sales Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Sales Invoice No."));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:OrderReference/cbc:ID', Value) then
+            Header."Purchase Order No." := CopyStr(Value, 1, MaxStrLen(Header."Purchase Order No."));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', Value) then
+            Header."Vendor Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Vendor Invoice No."));
+        if Header."Vendor Invoice No." = '' then
+            Session.LogMessage('0000SNJ', BillingReferenceEmptyTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+    end;
+
+    #endregion Header Orchestration
+
+    #region Line Orchestration
+
+    local procedure InsertPurchaseLines(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; EDocumentEntryNo: Integer; LineXPath: Text; LineElementName: Text; QuantityElementName: Text)
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         NewLineXML: XmlDocument;
         LineXMLList: XmlNodeList;
         LineXMLNode: XmlNode;
         i: Integer;
-        InvoiceLinePathLbl: Label '/inv:Invoice/cac:InvoiceLine';
     begin
-        if not PeppolXML.SelectNodes(InvoiceLinePathLbl, XmlNamespaces, LineXMLList) then
+        if not PeppolXML.SelectNodes(LineXPath, XmlNamespaces, LineXMLList) then
             exit;
 
         for i := 1 to LineXMLList.Count do begin
@@ -76,131 +139,85 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
             EDocumentPurchaseLine."Line No." := EDocumentPurchaseLine.GetNextLineNo(EDocumentEntryNo);
             LineXMLList.Get(i, LineXMLNode);
             NewLineXML.ReplaceNodes(LineXMLNode);
-            PopulateEDocumentPurchaseLine(NewLineXML, XmlNamespaces, EDocumentPurchaseLine);
+            PeppolUtility.PopulatePurchaseLine(NewLineXML, XmlNamespaces, EDocumentPurchaseLine, LineElementName, QuantityElementName);
             EDocumentPurchaseLine.Insert();
         end;
     end;
 
-#pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
-    local procedure PopulatePurchaseInvoiceHeader(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    local procedure InsertAllowanceChargeLines(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; EDocumentEntryNo: Integer; RootPath: Text)
     var
-        XMLNode: XmlNode;
+        ChargeXML: XmlDocument;
+        ChargeNodes: XmlNodeList;
+        ChargeNode: XmlNode;
+        ChargeIndicator: Text;
+        i: Integer;
     begin
-        SetStringValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
-        SetStringValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
-        SetStringValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name', MaxStrLen(EDocumentPurchaseHeader."Vendor Company Name"), EDocumentPurchaseHeader."Vendor Company Name");
-        // Line below, using PayeeParty, shall be used when the Payee is different from the Seller. Otherwise, it will not be shown in the XML.
-        SetStringValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cac:PayeeParty/cac:PartyName/cbc:Name', MaxStrLen(EDocumentPurchaseHeader."Vendor Company Name"), EDocumentPurchaseHeader."Vendor Company Name");
-        SetNumberValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:AllowanceTotalAmount', EDocumentPurchaseHeader."Total Discount");
-        SetNumberValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:PayableAmount', EDocumentPurchaseHeader."Amount Due");
-        SetNumberValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:PayableAmount', EDocumentPurchaseHeader.Total);
-        SetStringValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cac:Contact/cbc:Name', MaxStrLen(EDocumentPurchaseHeader."Vendor Contact Name"), EDocumentPurchaseHeader."Vendor Contact Name");
-        SetStringValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:StreetName', MaxStrLen(EDocumentPurchaseHeader."Vendor Address"), EDocumentPurchaseHeader."Vendor Address");
-        SetStringValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', MaxStrLen(EDocumentPurchaseHeader."Customer VAT Id"), EDocumentPurchaseHeader."Customer VAT Id");
-        // Line below, using PayeeParty, shall be used when the Payee is different from the Seller. Otherwise, it will not be shown in the XML.
-        SetStringValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cac:PayeeParty/cac:PartyLegalEntity/cbc:CompanyID', MaxStrLen(EDocumentPurchaseHeader."Vendor VAT Id"), EDocumentPurchaseHeader."Vendor VAT Id");
-        SetNumberValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', EDocumentPurchaseHeader."Sub Total");
-        EDocumentPurchaseHeader."Total VAT" := EDocumentPurchaseHeader."Total" - EDocumentPurchaseHeader."Sub Total" - EDocumentPurchaseHeader."Total Discount";
-        SetDateValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cbc:DueDate', EDocumentPurchaseHeader."Due Date");
-        SetDateValueInField(PeppolXML, XMLNamespaces, '/inv:Invoice/cbc:IssueDate', EDocumentPurchaseHeader."Document Date");
-        SetStringValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', MaxStrLen(EDocumentPurchaseHeader."Vendor VAT Id"), EDocumentPurchaseHeader."Vendor VAT Id");
-        SetCurrencyValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cbc:DocumentCurrencyCode', MaxStrLen(EDocumentPurchaseHeader."Currency Code"), EDocumentPurchaseHeader."Currency Code");
-        SetStringValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyName/cbc:Name', MaxStrLen(EDocumentPurchaseHeader."Customer Company Name"), EDocumentPurchaseHeader."Customer Company Name");
-        SetStringValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', MaxStrLen(EDocumentPurchaseHeader."Customer VAT Id"), EDocumentPurchaseHeader."Customer VAT Id");
-        SetStringValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cbc:StreetName', MaxStrLen(EDocumentPurchaseHeader."Customer Address"), EDocumentPurchaseHeader."Customer Address");
-        SetStringValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID', MaxStrLen(EDocumentPurchaseHeader."Customer GLN"), EDocumentPurchaseHeader."Customer GLN");
-        SetStringValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID', MaxStrLen(EDocumentPurchaseHeader."Customer Company Id"), EDocumentPurchaseHeader."Customer Company Id");
-
-        if PeppolXML.SelectSingleNode('/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID', XmlNamespaces, XMLNode) then
-            if XMLNode.AsXmlAttribute().Value() = '0088' then // GLN
-                SetStringValueInField(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID', MaxStrLen(EDocumentPurchaseHeader."Vendor GLN"), EDocumentPurchaseHeader."Vendor GLN");
-    end;
-
-    local procedure PopulateEDocumentPurchaseLine(LineXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseLine: Record "E-Document Purchase Line")
-    begin
-        SetNumberValueInField(LineXML, XMLNamespaces, 'cac:InvoiceLine/cbc:InvoicedQuantity', EDocumentPurchaseLine.Quantity);
-        SetStringValueInField(LineXML, XMLNamespaces, 'cac:InvoiceLine/cbc:InvoicedQuantity/@unitCode', MaxStrLen(EDocumentPurchaseLine."Unit of Measure"), EDocumentPurchaseLine."Unit of Measure");
-        SetNumberValueInField(LineXML, XMLNamespaces, 'cac:InvoiceLine/cbc:LineExtensionAmount', EDocumentPurchaseLine."Sub Total");
-        SetCurrencyValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:LineExtensionAmount/@currencyID', MaxStrLen(EDocumentPurchaseLine."Currency Code"), EDocumentPurchaseLine."Currency Code");
-        SetNumberValueInField(LineXML, XMLNamespaces, 'cac:InvoiceLine/cac:AllowanceCharge/cbc:Amount', EDocumentPurchaseLine."Total Discount");
-        SetStringValueInField(LineXML, XMLNamespaces, 'cac:InvoiceLine/cbc:Note', MaxStrLen(EDocumentPurchaseLine.Description), EDocumentPurchaseLine.Description);
-        SetStringValueInField(LineXML, XMLNamespaces, 'cac:InvoiceLine/cac:Item/cbc:Name', MaxStrLen(EDocumentPurchaseLine.Description), EDocumentPurchaseLine.Description);
-        SetStringValueInField(LineXML, XMLNamespaces, 'cac:InvoiceLine/cac:Item/cbc:Description', MaxStrLen(EDocumentPurchaseLine.Description), EDocumentPurchaseLine.Description);
-        SetStringValueInField(LineXML, XMLNamespaces, 'cac:InvoiceLine/cac:Item/cac:SellersItemIdentification/cbc:ID', MaxStrLen(EDocumentPurchaseLine."Product Code"), EDocumentPurchaseLine."Product Code");
-        SetStringValueInField(LineXML, XMLNamespaces, 'cac:InvoiceLine/cac:Item/cac:StandardItemIdentification/cbc:ID', MaxStrLen(EDocumentPurchaseLine."Product Code"), EDocumentPurchaseLine."Product Code");
-        SetNumberValueInField(LineXML, XMLNamespaces, 'cac:InvoiceLine/cac:Item/cac:ClassifiedTaxCategory/cbc:Percent', EDocumentPurchaseLine."VAT Rate");
-        SetNumberValueInField(LineXML, XMLNamespaces, 'cac:InvoiceLine/cac:Price/cbc:PriceAmount', EDocumentPurchaseLine."Unit Price");
-    end;
-
-    local procedure SetCurrencyValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; MaxLength: Integer; var CurrencyField: Code[10])
-    var
-        GLSetup: Record "General Ledger Setup";
-        XMLNode: XmlNode;
-        CurrencyCode: Code[10];
-    begin
-        if not XMLDocument.SelectSingleNode(Path, XMLNamespaces, XMLNode) then
+        if not PeppolXML.SelectNodes(RootPath + '/cac:AllowanceCharge', XmlNamespaces, ChargeNodes) then
             exit;
 
-        GLSetup.Get();
+        for i := 1 to ChargeNodes.Count do begin
+            ChargeNodes.Get(i, ChargeNode);
+            ChargeXML.ReplaceNodes(ChargeNode);
 
-        if XMLNode.IsXmlElement() then begin
-            CurrencyCode := CopyStr(XMLNode.AsXmlElement().InnerText(), 1, MaxLength);
-            if GLSetup."LCY Code" <> CurrencyCode then
-                CurrencyField := CurrencyCode;
-            exit;
-        end;
-
-        if XMLNode.IsXmlAttribute() then begin
-            CurrencyCode := CopyStr(XMLNode.AsXmlAttribute().Value, 1, MaxLength);
-            if GLSetup."LCY Code" <> CurrencyCode then
-                CurrencyField := CurrencyCode;
-            exit;
-        end;
-    end;
-#pragma warning restore AA0139
-
-    local procedure SetStringValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; MaxLength: Integer; var Field: Text)
-    var
-        XMLNode: XmlNode;
-    begin
-        if not XMLDocument.SelectSingleNode(Path, XMLNamespaces, XMLNode) then
-            exit;
-
-        if XMLNode.IsXmlElement() then begin
-            Field := CopyStr(XMLNode.AsXmlElement().InnerText(), 1, MaxLength);
-            exit;
-        end;
-
-        if XMLNode.IsXmlAttribute() then begin
-            Field := CopyStr(XMLNode.AsXmlAttribute().Value(), 1, MaxLength);
-            exit;
+            if PeppolUtility.TryGetStringValue(ChargeXML, XmlNamespaces, 'cac:AllowanceCharge/cbc:ChargeIndicator', ChargeIndicator) then
+                if UpperCase(ChargeIndicator) = 'TRUE' then
+                    InsertSingleChargeLine(ChargeXML, XmlNamespaces, EDocumentEntryNo);
         end;
     end;
 
-    local procedure SetNumberValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; var DecimalValue: Decimal)
+    local procedure InsertSingleChargeLine(ChargeXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; EDocumentEntryNo: Integer)
     var
-        XMLNode: XmlNode;
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        ChargeAmount: Decimal;
+        Value: Text;
+        CurrencyCode: Text;
     begin
-        if not XMLDocument.SelectSingleNode(Path, XMLNamespaces, XMLNode) then
-            exit;
+        Clear(EDocumentPurchaseLine);
+        EDocumentPurchaseLine.Validate("E-Document Entry No.", EDocumentEntryNo);
+        EDocumentPurchaseLine."Line No." := EDocumentPurchaseLine.GetNextLineNo(EDocumentEntryNo);
+        EDocumentPurchaseLine.Quantity := 1;
 
-        if XMLNode.AsXmlElement().InnerText() <> '' then
-            Evaluate(DecimalValue, XMLNode.AsXmlElement().InnerText(), 9);
+        PeppolUtility.SetNumberValueInField(ChargeXML, XmlNamespaces, 'cac:AllowanceCharge/cbc:Amount', ChargeAmount);
+        EDocumentPurchaseLine."Unit Price" := ChargeAmount;
+        EDocumentPurchaseLine."Sub Total" := ChargeAmount;
+
+        if PeppolUtility.TryGetStringValue(ChargeXML, XmlNamespaces, 'cac:AllowanceCharge/cbc:AllowanceChargeReason', Value) then
+            EDocumentPurchaseLine.Description := CopyStr(Value, 1, MaxStrLen(EDocumentPurchaseLine.Description));
+
+        PeppolUtility.SetNumberValueInField(ChargeXML, XmlNamespaces, 'cac:AllowanceCharge/cac:TaxCategory/cbc:Percent', EDocumentPurchaseLine."VAT Rate");
+
+        if PeppolUtility.TryGetStringValue(ChargeXML, XmlNamespaces, 'cac:AllowanceCharge/cbc:Amount/@currencyID', CurrencyCode) then
+            PeppolUtility.SetCurrencyIfForeign(CurrencyCode, EDocumentPurchaseLine."Currency Code");
+
+        EDocumentPurchaseLine.Insert();
     end;
 
-    local procedure SetDateValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; var DateValue: Date)
+    #endregion Line Orchestration
+
+    #region Attachment Orchestration
+
+    local procedure InsertDocumentAttachments(EDocument: Record "E-Document"; PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text)
     var
-        XMLNode: XmlNode;
+        AttachmentNodes: XmlNodeList;
+        AttachmentNode: XmlNode;
+        AttachmentXML: XmlDocument;
+        i: Integer;
     begin
-        if not XMLDocument.SelectSingleNode(Path, XMLNamespaces, XMLNode) then
+        if not PeppolXML.SelectNodes(RootPath + '/cac:AdditionalDocumentReference', XmlNamespaces, AttachmentNodes) then
             exit;
 
-        if XMLNode.AsXmlElement().InnerText() <> '' then
-            Evaluate(DateValue, XMLNode.AsXmlElement().InnerText(), 9);
+        for i := 1 to AttachmentNodes.Count do begin
+            AttachmentNodes.Get(i, AttachmentNode);
+            AttachmentXML.ReplaceNodes(AttachmentNode);
+            PeppolUtility.ExtractAttachment(EDocument, AttachmentXML, XmlNamespaces);
+        end;
     end;
+
+    #endregion Attachment Orchestration
 
     procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
     begin
         Error('A view is not implemented for this handler.');
     end;
+
 }
