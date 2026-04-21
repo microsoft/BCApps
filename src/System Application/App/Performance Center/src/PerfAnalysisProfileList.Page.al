@@ -15,7 +15,6 @@ page 8427 "Perf. Analysis Profile List"
     PageType = List;
     ApplicationArea = All;
     SourceTable = "Performance Analysis Line";
-    SourceTableView = where("Line Type" = const(Profile));
     Editable = true;
     Permissions = tabledata "Performance Analysis Line" = RM;
 
@@ -63,14 +62,9 @@ page 8427 "Perf. Analysis Profile List"
     /// Filters this page to the analysis' captured profiles.
     /// </summary>
     procedure SetAnalysis(var Analysis: Record "Performance Analysis")
-    var
-        Line: Record "Performance Analysis Line";
     begin
-        Line.SetRange("Analysis Id", Analysis."Id");
-        Line.SetRange("Line Type", Line."Line Type"::Profile);
         Rec.FilterGroup(2);
         Rec.SetRange("Analysis Id", Analysis."Id");
-        Rec.SetRange("Line Type", Rec."Line Type"::Profile);
         Rec.FilterGroup(0);
     end;
 }

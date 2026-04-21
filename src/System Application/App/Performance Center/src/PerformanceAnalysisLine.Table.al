@@ -6,8 +6,8 @@
 namespace System.Tooling;
 
 /// <summary>
-/// A line on a Performance Analysis: either a captured profile row (kept with a
-/// relevance score decided by the AI filter) or a gathered signal finding.
+/// A line on a Performance Analysis: a captured profile row, kept with a relevance
+/// score decided by the AI filter.
 /// </summary>
 table 8404 "Performance Analysis Line"
 {
@@ -25,12 +25,6 @@ table 8404 "Performance Analysis Line"
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
-        }
-        field(3; "Line Type"; Option)
-        {
-            Caption = 'Line Type';
-            OptionMembers = Profile,Signal;
-            OptionCaption = 'Profile,Signal';
         }
         field(10; "Profile Schedule Id"; Guid)
         {
@@ -56,38 +50,16 @@ table 8404 "Performance Analysis Line"
         {
             Caption = 'Marked Relevant';
         }
-        field(20; "Signal Source"; Enum "Perf. Analysis Signal Source")
-        {
-            Caption = 'Signal Source';
-        }
-        field(21; "Severity"; Enum "Perf. Analysis Severity")
-        {
-            Caption = 'Severity';
-        }
-        field(22; "Title"; Text[250])
-        {
-            Caption = 'Title';
-        }
-        field(23; "Description"; Text[2048])
-        {
-            Caption = 'Description';
-        }
-        field(24; "Link"; Text[2048])
-        {
-            Caption = 'Link';
-            ExtendedDatatype = Url;
-        }
     }
 
     keys
     {
         key(PK; "Analysis Id", "Line No.") { Clustered = true; }
-        key(Relevance; "Analysis Id", "Line Type", "Ai Relevance Score") { }
-        key(Severity; "Analysis Id", "Line Type", "Severity") { }
+        key(Relevance; "Analysis Id", "Ai Relevance Score") { }
     }
 
     fieldgroups
     {
-        fieldgroup(Brick; "Line Type", "Title", "Severity", "Ai Relevance Score") { }
+        fieldgroup(Brick; "Profile Created At", "Ai Relevance Score") { }
     }
 }

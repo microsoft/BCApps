@@ -18,6 +18,8 @@ page 8421 "Perf. Analysis List Part"
     SourceTable = "Performance Analysis";
     CardPageId = "Perf. Analysis Card";
     Editable = false;
+    InsertAllowed = false;
+    DeleteAllowed = true;
     Permissions = tabledata "Performance Analysis" = RIMD,
                   tabledata "Performance Analysis Line" = RIMD;
 
@@ -44,14 +46,10 @@ page 8421 "Perf. Analysis List Part"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the user being monitored by this performance analysis.';
                 }
-                field("Requested At"; Rec."Requested At")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies when the analysis was requested.';
-                }
                 field("Monitoring Starts At"; Rec."Monitoring Starts At")
                 {
                     ApplicationArea = All;
+                    Caption = 'Monitoring Start Time';
                     ToolTip = 'Specifies when the monitoring window starts.';
                 }
                 field(AnalysisReadyIn; AnalysisReadyInTxt)

@@ -58,7 +58,7 @@ codeunit 8413 "Perf. Analysis Mgt."
     end;
 
     /// <summary>
-    /// Runs the AI analysis step: gathers signals and asks the AI for a conclusion.
+    /// Runs the AI analysis step: asks the AI for a conclusion based on the captured profiles.
     /// </summary>
     procedure RunAiAnalysis(var Analysis: Record "Performance Analysis")
     begin
@@ -101,7 +101,7 @@ codeunit 8413 "Perf. Analysis Mgt."
 
     /// <summary>
     /// Raised before the AI conclusion is generated. Subscribers can add extra context
-    /// lines (signals or notes) that will be fed to the AI.
+    /// to the analysis before it is sent to the AI.
     /// </summary>
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeRunAiAnalysis(var Analysis: Record "Performance Analysis")

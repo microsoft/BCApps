@@ -94,14 +94,31 @@ page 8423 "Performance Center"
                     ChatStub.RunModal();
                 end;
             }
-            action(OpenProfilerSchedules)
+            action(OpenLlmLog)
             {
-                Caption = 'Profiler schedules';
-                ToolTip = 'Open the list of active and past profiler schedules.';
-                RunObject = page "Perf. Profiler Schedules List";
-                Image = Timesheet;
+                Caption = 'LLM debug log';
+                ToolTip = 'Show every LLM call made by the Performance Center, with the full prompt, response, and error for troubleshooting.';
+                Image = Log;
                 ApplicationArea = All;
-                Visible = IsAdvanced;
+                RunObject = page "Perf. Analysis LLM Logs";
+            }
+            group(Debug)
+            {
+                Caption = 'Debug';
+                action(SlowOperationTest)
+                {
+                    Caption = 'Slow operation (test)';
+                    ToolTip = 'Run a simulated slow operation that sleeps for 1-2 seconds or calls CheckLicense (which sleeps 10-15 seconds). Use this to produce a captured profile while a performance analysis is actively monitoring.';
+                    Image = TestFile;
+                    ApplicationArea = All;
+
+                    trigger OnAction()
+                    var
+                        SlowOp: Codeunit "Perf. Analysis Slow Op Test";
+                    begin
+                        SlowOp.SlowOperation();
+                    end;
+                }
             }
         }
         area(Promoted)
@@ -110,7 +127,6 @@ page 8423 "Performance Center"
             {
                 Caption = 'Process';
                 actionref(StartWizard_Promoted; StartWizard) { }
-                actionref(OpenProfilerSchedules_Promoted; OpenProfilerSchedules) { }
             }
         }
     }

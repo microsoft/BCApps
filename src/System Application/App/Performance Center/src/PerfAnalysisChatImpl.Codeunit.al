@@ -40,7 +40,7 @@ codeunit 8417 "Perf. Analysis Chat Impl."
     begin
         if not Primed then
             Initialize(Analysis);
-        Reply := Ai.SendChat(Messages, UserText);
+        Reply := Ai.SendChat(Analysis, Messages, UserText);
         if Reply = '' then
             Reply := Ai.GetLastError();
     end;

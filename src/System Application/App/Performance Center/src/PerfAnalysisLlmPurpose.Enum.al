@@ -6,16 +6,14 @@
 namespace System.Tooling;
 
 /// <summary>
-/// Where an individual signal finding came from.
+/// Which Performance Center AI entry point produced a given LLM log entry.
 /// </summary>
-enum 8408 "Perf. Analysis Signal Source"
+enum 8408 "Perf. Analysis LLM Purpose"
 {
     Access = Public;
-    Extensible = true;
+    Extensible = false;
 
-    value(0; Profiler) { Caption = 'Profiler hotspot'; }
-    value(1; MissingIndex) { Caption = 'Missing database index'; }
-    value(2; Telemetry) { Caption = 'Telemetry'; }
-    value(3; AiInsight) { Caption = 'AI insight'; }
-    value(4; Custom) { Caption = 'Custom'; }
+    value(0; Filter) { Caption = 'Filter'; }
+    value(1; Analyze) { Caption = 'Analyze'; }
+    value(2; Chat) { Caption = 'Chat'; }
 }

@@ -11,7 +11,7 @@ The module has two flavors on the same page:
   to capture data.
 - **Advanced** — a technical user sees active profilers, missing index hints,
   recent analyses across users, and can drill from any analysis down to the
-  captured profiles and all gathered signals.
+  captured profiles.
 
 ## Lifecycle
 
@@ -24,8 +24,7 @@ Requested  ->  Scheduled  ->  Capturing  ->  CaptureEnded  ->  AiFiltering
 The user can `Stop Capture` at any time from the Analysis card. After the
 capture ends, the AI filters the captured profiles down to the relevant set
 (with a score + reason per profile) and then produces a narrative conclusion
-that combines the filtered profiles with signals such as profiler hotspots,
-missing indexes, and telemetry hints.
+based on those profiles.
 
 ## AI dependency
 
@@ -49,9 +48,3 @@ A separate page `Perf. Analysis Chat Req. Stub` illustrates how the
 request experience could be driven by a Copilot chat instead of a wizard.
 It is intentionally non-functional in this iteration; the wizard is the
 supported request entry point.
-
-## Extending signal sources
-
-Signals are gathered in `Perf. Analysis Signal Gath.` (one codeunit with
-methods per source). The codeunit exposes event publishers so other apps
-can attach additional signals without replacing the built-in gatherer.

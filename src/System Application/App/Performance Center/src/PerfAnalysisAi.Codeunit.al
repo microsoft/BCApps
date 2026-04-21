@@ -21,13 +21,15 @@ codeunit 8416 "Perf. Analysis AI"
     InherentPermissions = X;
     Permissions = tabledata "Performance Analysis" = RIM,
                   tabledata "Performance Analysis Line" = RIMD,
-                  tabledata "Performance Profile Scheduler" = R;
+                  tabledata "Performance Profile Scheduler" = R,
+                  tabledata "Performance Profiles" = R,
+                  tabledata "Perf. Analysis LLM Log" = RIM;
 
     var
         LastError: Text;
-        SystemPromptLbl: Label 'You are a Dynamics 365 Business Central performance expert. You help triage slow scenarios based on user descriptions, captured profiles and signal findings. Be concise and actionable. Always explain where time is spent, the most likely cause, and suggested next steps. If the data is inconclusive, say so.';
+        SystemPromptLbl: Label 'You are a Dynamics 365 Business Central performance expert. The user has reported a slow scenario and we have captured one or more sampling performance profiles while the user reproduced it. Your job is to explain why the scenario is sometimes slow, grounded in the captured profiles and the user''s description. Be specific, be concise, and give guidance that a Business Central end user or developer can act on. If the data is inconclusive, say so plainly.';
         FilterInstructionLbl: Label 'For each captured profile, respond with a JSON array of objects with fields ProfileNo (integer), Relevance (0..1), Reason (short text). Mark profiles as relevant (>=0.5) only if they plausibly match the scenario. Respond with JSON only.';
-        AnalysisInstructionLbl: Label 'Given the user-described scenario, the filtered relevant profiles and the gathered signals, produce a concise conclusion in Markdown. Sections: 1. Summary. 2. Where time is spent. 3. Likely cause. 4. Why it varies (if applicable). 5. Recommended next steps.';
+        AnalysisInstructionLbl: Label 'You will receive a Markdown document describing the user''s slow scenario (title, activity, trigger, page/action, expected/observed duration, frequency, notes) followed by the captured profiles with their metrics (activity duration, AL execution duration, SQL statement count and duration, HTTP call count and duration). Analyze why the scenario is sometimes slow and produce a conclusion in Markdown with these sections: 1. Summary. 2. Where time is spent (AL vs SQL vs HTTP, per profile). 3. Most likely root cause. 4. Why the scenario varies in duration (if applicable). 5. Recommended next steps, phrased so either an end user or a developer can act on them. Do not invent data that is not in the payload.';
         ChatInstructionLbl: Label 'You can now answer follow-up questions about this analysis. Keep answers grounded in the provided context. If asked something you cannot answer from the context, say so.';
         CapabilityNotActiveErr: Label 'The Copilot capability "AI-assisted performance analysis in Performance Center" is not active in this environment. Enable it in the Copilot & AI capabilities page to use AI-assisted analysis.';
         AuthNotConfiguredErr: Label 'Azure OpenAI is not configured for this environment.';
@@ -38,9 +40,11 @@ codeunit 8416 "Perf. Analysis AI"
     procedure EnsureAvailable()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIDeployments: Codeunit "AOAI Deployments";
     begin
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Performance Center", true) then
             Error(CapabilityNotActiveErr);
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
         if not AzureOpenAI.IsAuthorizationConfigured(Enum::"AOAI Model Type"::"Chat Completions") then
             Error(AuthNotConfiguredErr);
     end;
@@ -84,7 +88,7 @@ codeunit 8416 "Perf. Analysis AI"
         Messages.AddSystemMessage(FilterInstructionLbl);
         Messages.AddUserMessage(Payload);
 
-        if not TryChat(AzureOpenAI, Messages, Response, Reply) then
+        if not TryChat(AzureOpenAI, Messages, Response, Reply, Enum::"Perf. Analysis LLM Purpose"::Filter, Analysis, JoinSystemPrompt(SystemPromptLbl, FilterInstructionLbl), Payload) then
             exit(false);
 
         ApplyFilterReply(Analysis, Reply);
@@ -92,7 +96,11 @@ codeunit 8416 "Perf. Analysis AI"
     end;
 
     /// <summary>
-    /// Produces the analysis conclusion and stores it on the analysis record.
+    /// Produces the analysis conclusion and stores it on the analysis record. Loads the
+    /// captured profiles from the associated profiler schedule into the analysis lines,
+    /// builds an LLM prompt that includes the user's scenario details (expected duration,
+    /// notes, trigger, frequency) and the captured profile metrics, and asks AOAI for a
+    /// natural-language conclusion.
     /// </summary>
     procedure Analyze(var Analysis: Record "Performance Analysis"): Boolean
     var
@@ -100,22 +108,60 @@ codeunit 8416 "Perf. Analysis AI"
         Response: Codeunit "AOAI Operation Response";
         AzureOpenAI: Codeunit "Azure OpenAI";
         Reply: Text;
+        Payload: Text;
     begin
         LastError := '';
+        // Keep lines in sync with the latest captured profiles so the card's "Profiles
+        // Captured" counter and the payload below see the same data.
+        ClearProfileLines(Analysis);
+        if LoadProfilesToLines(Analysis) then;
         if not TryPrepareClient(AzureOpenAI) then
             exit(false);
 
+        Payload := BuildAnalysisPayload(Analysis);
         Messages.AddSystemMessage(SystemPromptLbl);
         Messages.AddSystemMessage(AnalysisInstructionLbl);
-        Messages.AddUserMessage(BuildAnalysisPayload(Analysis));
+        Messages.AddUserMessage(Payload);
 
-        if not TryChat(AzureOpenAI, Messages, Response, Reply) then
+        if not TryChat(AzureOpenAI, Messages, Response, Reply, Enum::"Perf. Analysis LLM Purpose"::Analyze, Analysis, JoinSystemPrompt(SystemPromptLbl, AnalysisInstructionLbl), Payload) then
             exit(false);
 
         Analysis.SetConclusion(Reply);
         Analysis."Ai Model" := CopyStr('azure-openai-chat', 1, MaxStrLen(Analysis."Ai Model"));
         Analysis.Modify(true);
         exit(true);
+    end;
+
+    /// <summary>
+    /// Returns the fully assembled LLM prompt (system messages + user payload) for the
+    /// given analysis so a developer can inspect what is sent to AOAI.
+    /// </summary>
+    procedure BuildAnalysisPromptForDebug(var Analysis: Record "Performance Analysis"): Text
+    var
+        SystemHeaderLbl: Label '=== System message ===';
+        InstructionHeaderLbl: Label '=== Instruction ===';
+        UserHeaderLbl: Label '=== User payload ===';
+        Newline: Text[2];
+    begin
+        Newline[1] := 13;
+        Newline[2] := 10;
+        ClearProfileLines(Analysis);
+        if LoadProfilesToLines(Analysis) then;
+        exit(
+            SystemHeaderLbl + Newline + SystemPromptLbl + Newline + Newline +
+            InstructionHeaderLbl + Newline + AnalysisInstructionLbl + Newline + Newline +
+            UserHeaderLbl + Newline + BuildAnalysisPayload(Analysis));
+    end;
+
+    local procedure JoinSystemPrompt(SystemPrompt: Text; Instruction: Text) Combined: Text
+    var
+        Newline: Text[2];
+    begin
+        Newline[1] := 13;
+        Newline[2] := 10;
+        Combined :=
+            '--- System message ---' + Newline + SystemPrompt + Newline + Newline +
+            '--- Instruction ---' + Newline + Instruction;
     end;
 
     /// <summary>
@@ -135,17 +181,19 @@ codeunit 8416 "Perf. Analysis AI"
     /// <summary>
     /// Sends one turn of chat. Returns the reply text (empty on failure, with LastError set).
     /// </summary>
-    procedure SendChat(var Messages: Codeunit "AOAI Chat Messages"; UserText: Text): Text
+    procedure SendChat(var Analysis: Record "Performance Analysis"; var Messages: Codeunit "AOAI Chat Messages"; UserText: Text): Text
     var
         Response: Codeunit "AOAI Operation Response";
         AzureOpenAI: Codeunit "Azure OpenAI";
         Reply: Text;
+        SystemPromptSummary: Text;
     begin
         LastError := '';
         if not TryPrepareClient(AzureOpenAI) then
             exit('');
         Messages.AddUserMessage(UserText);
-        if not TryChat(AzureOpenAI, Messages, Response, Reply) then
+        SystemPromptSummary := JoinSystemPrompt(SystemPromptLbl, ChatInstructionLbl);
+        if not TryChat(AzureOpenAI, Messages, Response, Reply, Enum::"Perf. Analysis LLM Purpose"::Chat, Analysis, SystemPromptSummary, UserText) then
             exit('');
         exit(Reply);
     end;
@@ -156,12 +204,15 @@ codeunit 8416 "Perf. Analysis AI"
     end;
 
     local procedure TryPrepareClient(var AzureOpenAI: Codeunit "Azure OpenAI"): Boolean
+    var
+        AOAIDeployments: Codeunit "AOAI Deployments";
     begin
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Performance Center");
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Performance Center", true) then begin
             LastError := CapabilityNotActiveErr;
             exit(false);
         end;
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
         if not AzureOpenAI.IsAuthorizationConfigured(Enum::"AOAI Model Type"::"Chat Completions") then begin
             LastError := AuthNotConfiguredErr;
             exit(false);
@@ -170,13 +221,71 @@ codeunit 8416 "Perf. Analysis AI"
     end;
 
     [TryFunction]
-    local procedure TryChat(var AzureOpenAI: Codeunit "Azure OpenAI"; var Messages: Codeunit "AOAI Chat Messages"; var Response: Codeunit "AOAI Operation Response"; var Reply: Text)
+    local procedure TryChat(var AzureOpenAI: Codeunit "Azure OpenAI"; var Messages: Codeunit "AOAI Chat Messages"; var Response: Codeunit "AOAI Operation Response"; var Reply: Text; Purpose: Enum "Perf. Analysis LLM Purpose"; var Analysis: Record "Performance Analysis"; SystemPromptText: Text; UserPayload: Text)
+    var
+        RawResponse: Text;
+        StartedAt: DateTime;
+        DurationMs: Integer;
+        Err: Text;
+        Success: Boolean;
+        StatusCode: Integer;
     begin
+        StartedAt := CurrentDateTime();
         AzureOpenAI.GenerateChatCompletion(Messages, Response);
-        if Response.IsSuccess() then
-            Reply := Response.GetResult()
-        else
-            Error(Response.GetError());
+        DurationMs := CurrentDateTime() - StartedAt;
+        RawResponse := Response.GetResult();
+        Success := Response.IsSuccess();
+        StatusCode := Response.GetStatusCode();
+        if Success then
+            Reply := ExtractAssistantContent(RawResponse)
+        else begin
+            Reply := '';
+            Err := Response.GetError();
+        end;
+        LogLlmCall(Purpose, Analysis, SystemPromptText, UserPayload, RawResponse, Reply, Success, StatusCode, Err, DurationMs);
+        if not Success then
+            Error(Err);
+    end;
+
+    local procedure LogLlmCall(Purpose: Enum "Perf. Analysis LLM Purpose"; var Analysis: Record "Performance Analysis"; SystemPromptText: Text; UserPayload: Text; RawResponse: Text; Reply: Text; Success: Boolean; StatusCode: Integer; ErrorText: Text; DurationMs: Integer)
+    var
+        Log: Record "Perf. Analysis LLM Log";
+    begin
+        Log.Init();
+        Log."Analysis Id" := Analysis."Id";
+        Log."Purpose" := Purpose;
+        Log."Logged At" := CurrentDateTime();
+        Log."Duration (ms)" := DurationMs;
+        Log."Success" := Success;
+        Log."Status Code" := StatusCode;
+        Log."Error Text" := CopyStr(ErrorText, 1, MaxStrLen(Log."Error Text"));
+        Log.Insert(true);
+        Log.SetSystemPromptText(SystemPromptText);
+        Log.SetUserPayloadText(UserPayload);
+        Log.SetReplyText(Reply);
+        Log.SetRawResponseText(RawResponse);
+        Log.Modify();
+    end;
+
+    // GetResult() returns the assistant message as a JSON object, e.g.
+    // {"role":"assistant","content":"...markdown with \u003E and \n escapes..."}.
+    // Parse it and return the decoded "content" string so callers get plain text.
+    local procedure ExtractAssistantContent(RawReply: Text): Text
+    var
+        Token: JsonToken;
+        ContentToken: JsonToken;
+    begin
+        if RawReply = '' then
+            exit('');
+        if not Token.ReadFrom(RawReply) then
+            exit(RawReply);
+        if not Token.IsObject() then
+            exit(RawReply);
+        if not Token.AsObject().Get('content', ContentToken) then
+            exit(RawReply);
+        if not ContentToken.IsValue() then
+            exit(RawReply);
+        exit(ContentToken.AsValue().AsText());
     end;
 
     local procedure ClearProfileLines(var Analysis: Record "Performance Analysis")
@@ -184,7 +293,6 @@ codeunit 8416 "Perf. Analysis AI"
         Line: Record "Performance Analysis Line";
     begin
         Line.SetRange("Analysis Id", Analysis."Id");
-        Line.SetRange("Line Type", Line."Line Type"::Profile);
         Line.DeleteAll(true);
     end;
 
@@ -205,7 +313,6 @@ codeunit 8416 "Perf. Analysis AI"
             Line.Init();
             Line."Analysis Id" := Analysis."Id";
             Line."Line No." := LineNo;
-            Line."Line Type" := Line."Line Type"::Profile;
             Line."Profile Schedule Id" := Profile."Schedule ID";
             Line."Profile Created At" := Profile.SystemCreatedAt;
             Line.Insert(true);
@@ -224,7 +331,6 @@ codeunit 8416 "Perf. Analysis AI"
     begin
         PayloadObj.Add('scenario', BuildScenarioJson(Analysis));
         Line.SetRange("Analysis Id", Analysis."Id");
-        Line.SetRange("Line Type", Line."Line Type"::Profile);
         if Line.FindSet() then
             repeat
                 Clear(ProfileObj);
@@ -238,43 +344,106 @@ codeunit 8416 "Perf. Analysis AI"
 
     local procedure BuildAnalysisPayload(var Analysis: Record "Performance Analysis") Payload: Text
     var
-        Line: Record "Performance Analysis Line";
-        Root: JsonObject;
-        RelevantProfiles: JsonArray;
-        Signals: JsonArray;
-        ItemObj: JsonObject;
+        Profile: Record "Performance Profiles";
+        Sb: TextBuilder;
+        ProfileNo: Integer;
+        NL: Text[2];
+        ScenarioHeaderLbl: Label '## Scenario';
+        ProfilesHeaderLbl: Label '## Captured profiles';
+        NoProfilesLbl: Label '(no profiles were captured for this scenario)';
+        ProfileHeaderLbl: Label 'Profile %1', Comment = '%1 is the profile number';
     begin
-        Root.Add('scenario', BuildScenarioJson(Analysis));
-        Root.Add('conclusionSoFar', Analysis.GetConclusion());
+        NL[1] := 13;
+        NL[2] := 10;
 
-        Line.SetRange("Analysis Id", Analysis."Id");
-        Line.SetRange("Line Type", Line."Line Type"::Profile);
-        Line.SetRange("Marked Relevant", true);
-        if Line.FindSet() then
-            repeat
-                Clear(ItemObj);
-                ItemObj.Add('profileNo', Line."Line No.");
-                ItemObj.Add('relevance', Line."Ai Relevance Score");
-                ItemObj.Add('reason', Line."Ai Reason");
-                RelevantProfiles.Add(ItemObj);
-            until Line.Next() = 0;
-        Root.Add('relevantProfiles', RelevantProfiles);
+        Sb.Append(ScenarioHeaderLbl);
+        Sb.Append(NL);
+        AppendScenarioLines(Analysis, Sb, NL);
+        Sb.Append(NL);
 
-        Line.Reset();
-        Line.SetRange("Analysis Id", Analysis."Id");
-        Line.SetRange("Line Type", Line."Line Type"::Signal);
-        if Line.FindSet() then
-            repeat
-                Clear(ItemObj);
-                ItemObj.Add('source', Format(Line."Signal Source"));
-                ItemObj.Add('severity', Format(Line."Severity"));
-                ItemObj.Add('title', Line."Title");
-                ItemObj.Add('description', Line."Description");
-                Signals.Add(ItemObj);
-            until Line.Next() = 0;
-        Root.Add('signals', Signals);
+        Sb.Append(ProfilesHeaderLbl);
+        Sb.Append(NL);
 
-        Root.WriteTo(Payload);
+        if not IsNullGuid(Analysis."Related Schedule Id") then begin
+            Profile.SetRange("Schedule ID", Analysis."Related Schedule Id");
+            if Profile.FindSet() then
+                repeat
+                    ProfileNo += 1;
+                    Sb.Append(NL);
+                    Sb.Append(StrSubstNo(ProfileHeaderLbl, ProfileNo));
+                    Sb.Append(NL);
+                    AppendProfileLines(Profile, Sb, NL);
+                until Profile.Next() = 0;
+        end;
+
+        if ProfileNo = 0 then begin
+            Sb.Append(NoProfilesLbl);
+            Sb.Append(NL);
+        end;
+
+        Payload := Sb.ToText();
+    end;
+
+    local procedure AppendScenarioLines(var Analysis: Record "Performance Analysis"; var Sb: TextBuilder; NL: Text[2])
+    var
+        TitleLbl: Label '- Title: %1', Comment = '%1 is the user-supplied title of the scenario';
+        ActivityLbl: Label '- Activity: %1', Comment = '%1 is the activity type, e.g. OpenPage';
+        TriggerLbl: Label '- Trigger: %1 on %2 %3 "%4"', Comment = '%1 is trigger kind, %2 object type, %3 object id, %4 object name';
+        TriggerActionLbl: Label '- Trigger action: %1', Comment = '%1 is the action name, e.g. Post';
+        FrequencyLbl: Label '- Frequency: %1', Comment = '%1 is how often the scenario is slow';
+        ObservedLbl: Label '- Observed duration: %1 ms', Comment = '%1 is duration in milliseconds';
+        ExpectedLbl: Label '- Expected duration: %1 ms', Comment = '%1 is duration in milliseconds';
+        NotesHeaderLbl: Label '- Notes:';
+    begin
+        Sb.Append(StrSubstNo(TitleLbl, Analysis."Title"));
+        Sb.Append(NL);
+        Sb.Append(StrSubstNo(ActivityLbl, Format(Analysis."Scenario Activity Type")));
+        Sb.Append(NL);
+        Sb.Append(StrSubstNo(TriggerLbl, Format(Analysis."Trigger Kind"), Format(Analysis."Trigger Object Type"), Analysis."Trigger Object Id", Analysis."Trigger Object Name"));
+        Sb.Append(NL);
+        if Analysis."Trigger Action Name" <> '' then begin
+            Sb.Append(StrSubstNo(TriggerActionLbl, Analysis."Trigger Action Name"));
+            Sb.Append(NL);
+        end;
+        Sb.Append(StrSubstNo(FrequencyLbl, Format(Analysis."Frequency")));
+        Sb.Append(NL);
+        Sb.Append(StrSubstNo(ObservedLbl, Analysis."Observed Duration (ms)"));
+        Sb.Append(NL);
+        Sb.Append(StrSubstNo(ExpectedLbl, Analysis."Expected Duration (ms)"));
+        Sb.Append(NL);
+        if Analysis."Notes" <> '' then begin
+            Sb.Append(NotesHeaderLbl);
+            Sb.Append(NL);
+            Sb.Append('  ');
+            Sb.Append(Analysis."Notes");
+            Sb.Append(NL);
+        end;
+    end;
+
+    local procedure AppendProfileLines(var Profile: Record "Performance Profiles"; var Sb: TextBuilder; NL: Text[2])
+    var
+        StartedAtLbl: Label '- Started at: %1', Comment = '%1 is the start date and time';
+        UserLbl: Label '- User: %1', Comment = '%1 is the user name';
+        ActivityLbl: Label '- Activity: %1', Comment = '%1 is the activity description';
+        ActivityDurationLbl: Label '- Activity duration: %1 ms', Comment = '%1 is duration in ms';
+        AlDurationLbl: Label '- AL execution duration: %1 ms', Comment = '%1 is duration in ms';
+        SqlLbl: Label '- SQL statements: %1 (total duration %2 ms)', Comment = '%1 is count, %2 is duration in ms';
+        HttpLbl: Label '- HTTP calls: %1 (total duration %2 ms)', Comment = '%1 is count, %2 is duration in ms';
+    begin
+        Sb.Append(StrSubstNo(StartedAtLbl, Format(Profile."Starting Date-Time", 0, 9)));
+        Sb.Append(NL);
+        Sb.Append(StrSubstNo(UserLbl, Profile."User Name"));
+        Sb.Append(NL);
+        Sb.Append(StrSubstNo(ActivityLbl, Profile."Activity Description"));
+        Sb.Append(NL);
+        Sb.Append(StrSubstNo(ActivityDurationLbl, Profile."Activity Duration"));
+        Sb.Append(NL);
+        Sb.Append(StrSubstNo(AlDurationLbl, Profile.Duration));
+        Sb.Append(NL);
+        Sb.Append(StrSubstNo(SqlLbl, Profile."Sql Statement Number", Profile."Sql Call Duration"));
+        Sb.Append(NL);
+        Sb.Append(StrSubstNo(HttpLbl, Profile."Http Call Number", Profile."Http Call Duration"));
+        Sb.Append(NL);
     end;
 
     local procedure BuildScenarioJson(var Analysis: Record "Performance Analysis") Scenario: JsonObject
@@ -315,7 +484,7 @@ codeunit 8416 "Perf. Analysis AI"
             ProfileNo := ReadInt(Obj, 'profileNo');
             Relevance := ReadDec(Obj, 'relevance');
             Reason := ReadText(Obj, 'reason');
-            if Line.Get(Analysis."Id", ProfileNo) and (Line."Line Type" = Line."Line Type"::Profile) then begin
+            if Line.Get(Analysis."Id", ProfileNo) then begin
                 Line."Ai Relevance Score" := Relevance;
                 Line."Ai Reason" := CopyStr(Reason, 1, MaxStrLen(Line."Ai Reason"));
                 Line."Marked Relevant" := Relevance >= 0.5;

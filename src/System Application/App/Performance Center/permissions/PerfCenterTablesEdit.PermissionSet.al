@@ -13,5 +13,6 @@ permissionset 8433 "Perf. Center Tables - Edit"
     IncludedPermissionSets = "Perf. Center Tables - View";
 
     Permissions = tabledata "Performance Analysis" = IMD,
-                  tabledata "Performance Analysis Line" = IMD;
+                  tabledata "Performance Analysis Line" = IMD,
+                  tabledata "Perf. Analysis LLM Log" = IMD;
 }

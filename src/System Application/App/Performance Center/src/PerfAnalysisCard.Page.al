@@ -41,16 +41,33 @@ page 8426 "Perf. Analysis Card"
                     Editable = false;
                     ToolTip = 'Specifies the current state of the analysis.';
                 }
+                field(AnalysisReadyIn; AnalysisReadyInTxt)
+                {
+                    Caption = 'Analysis ready in';
+                    Editable = false;
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies how long until the scheduled monitoring window finishes and the analysis becomes available.';
+                }
+            }
+            group(WhatIsSlow)
+            {
+                Caption = 'What is slow';
                 field(WhatsSlow; WhatsSlowText)
                 {
-                    Caption = 'What is slow';
+                    ShowCaption = false;
                     Editable = false;
                     MultiLine = true;
+                    ExtendedDatatype = RichContent;
                     ApplicationArea = All;
                     ToolTip = 'Specifies the slow scenario described when this analysis was created.';
                 }
+            }
+            group(NotesGroup)
+            {
+                Caption = 'Notes';
                 field("Notes"; Rec."Notes")
                 {
+                    ShowCaption = false;
                     ApplicationArea = All;
                     Editable = false;
                     MultiLine = true;
@@ -234,41 +251,12 @@ page 8426 "Perf. Analysis Card"
 
                 trigger OnAction()
                 var
+                    LocalAnalysis: Record "Performance Analysis";
                     Mgt: Codeunit "Perf. Analysis Mgt.";
                 begin
-                    Mgt.StopCapture(Rec);
-                    CurrPage.Update(false);
-                end;
-            }
-            action(RunFullAi)
-            {
-                Caption = 'Run AI analysis';
-                ToolTip = 'Filter the captured profiles and produce a conclusion using AI.';
-                Image = SparkleFilled;
-                ApplicationArea = All;
-                Enabled = CanRunAi;
-
-                trigger OnAction()
-                var
-                    Mgt: Codeunit "Perf. Analysis Mgt.";
-                begin
-                    Mgt.RunFullAiPipeline(Rec);
-                    CurrPage.Update(false);
-                end;
-            }
-            action(RunAiFilter)
-            {
-                Caption = 'Run AI filtering only';
-                ToolTip = 'Use AI to filter captured profiles without producing the conclusion yet.';
-                Image = AdjustEntries;
-                ApplicationArea = All;
-                Enabled = CanRunAi;
-
-                trigger OnAction()
-                var
-                    Mgt: Codeunit "Perf. Analysis Mgt.";
-                begin
-                    Mgt.RunAiFiltering(Rec);
+                    if not LocalAnalysis.Get(Rec."Id") then
+                        exit;
+                    Mgt.StopCapture(LocalAnalysis);
                     CurrPage.Update(false);
                 end;
             }
@@ -283,22 +271,6 @@ page 8426 "Perf. Analysis Card"
                 trigger OnAction()
                 begin
                     OpenChat();
-                end;
-            }
-            action(Cancel)
-            {
-                Caption = 'Cancel analysis';
-                ToolTip = 'Cancel this analysis and disable its profiler schedule.';
-                Image = CancelApprovalRequest;
-                ApplicationArea = All;
-                Enabled = CanCancel;
-
-                trigger OnAction()
-                var
-                    Mgt: Codeunit "Perf. Analysis Mgt.";
-                begin
-                    Mgt.CancelAnalysis(Rec);
-                    CurrPage.Update(false);
                 end;
             }
             action(RelatedSchedule)
@@ -329,19 +301,24 @@ page 8426 "Perf. Analysis Card"
                     ProfileList.Run();
                 end;
             }
-            action(ViewSignals)
+            action(CreatePromptDebug)
             {
-                Caption = 'View signals';
-                ToolTip = 'Show gathered signal findings (profiler hotspots, missing indexes, telemetry).';
-                Image = FilterLines;
+                Caption = 'Create prompt (debug)';
+                ToolTip = 'Build and show the LLM prompt that would be sent to Azure OpenAI for this analysis, without actually calling the model. Intended for development and troubleshooting only.';
+                Image = Setup;
                 ApplicationArea = All;
 
                 trigger OnAction()
                 var
-                    SignalsPage: Page "Perf. Analysis Signals";
+                    LocalAnalysis: Record "Performance Analysis";
+                    Ai: Codeunit "Perf. Analysis AI";
+                    DebugPage: Page "Perf. Analysis Debug Prompt";
                 begin
-                    SignalsPage.SetAnalysis(Rec);
-                    SignalsPage.Run();
+                    if not LocalAnalysis.Get(Rec."Id") then
+                        exit;
+                    DebugPage.SetPrompt(Ai.BuildAnalysisPromptForDebug(LocalAnalysis));
+                    Commit();
+                    DebugPage.RunModal();
                 end;
             }
         }
@@ -350,10 +327,10 @@ page 8426 "Perf. Analysis Card"
             group(Category_Process)
             {
                 Caption = 'Process';
-                actionref(RunFullAi_Promoted; RunFullAi) { }
-                actionref(ChatWithReport_Promoted; ChatWithReport) { }
                 actionref(StopCapture_Promoted; StopCapture) { }
                 actionref(RelatedSchedule_Promoted; RelatedSchedule) { }
+                actionref(ViewProfiles_Promoted; ViewProfiles) { }
+                actionref(ChatWithReport_Promoted; ChatWithReport) { }
             }
         }
     }
@@ -361,13 +338,15 @@ page 8426 "Perf. Analysis Card"
     var
         ConclusionText: Text;
         WhatsSlowText: Text;
+        AnalysisReadyInTxt: Text;
         CanStopCapture: Boolean;
-        CanRunAi: Boolean;
         CanChat: Boolean;
-        CanCancel: Boolean;
         HasRelatedSchedule: Boolean;
         ChatEntryPointLbl: Label '>> Click here to chat with the analysis <<';
         RelatedScheduleLinkLbl: Label '>> Click here to open the profiler schedule <<';
+        ReadyLbl: Label 'Now';
+        AnyMomentLbl: Label 'Any moment now';
+        UnknownReadyLbl: Label '—', Locked = true;
 
     trigger OnAfterGetCurrRecord()
     var
@@ -380,6 +359,7 @@ page 8426 "Perf. Analysis Card"
         Rec.CalcFields("Requested By User Name", "Target User Name");
         ConclusionText := Rec.GetConclusion();
         WhatsSlowText := BuildWhatsSlow();
+        AnalysisReadyInTxt := ComputeReadyInText();
         HasRelatedSchedule := not IsNullGuid(Rec."Related Schedule Id");
         ScheduleActive := HasRelatedSchedule and Scheduler.Get(Rec."Related Schedule Id")
             and Scheduler.Enabled
@@ -389,9 +369,7 @@ page 8426 "Perf. Analysis Card"
         // there is nothing to stop - the monitor will transition the analysis to
         // CaptureEnded.
         CanStopCapture := (Rec."State" in [Rec."State"::Scheduled, Rec."State"::Capturing]) and ScheduleActive;
-        CanRunAi := AiAvailable and (Rec."State" = Rec."State"::CaptureEnded);
         CanChat := AiAvailable and (Rec."State" = Rec."State"::Concluded);
-        CanCancel := not (Rec."State" in [Rec."State"::Concluded, Rec."State"::Cancelled, Rec."State"::Failed]);
     end;
 
     local procedure OpenChat()
@@ -421,13 +399,84 @@ page 8426 "Perf. Analysis Card"
         FrequencyLbl: Label 'Frequency: %1', Comment = '%1 = frequency';
         Builder: TextBuilder;
     begin
+        Builder.Append('<div>');
         if Rec."Trigger Object Name" <> '' then
-            Builder.AppendLine(StrSubstNo(ScreenLbl, Rec."Trigger Object Name"));
+            Builder.Append('<div>' + HtmlEscape(StrSubstNo(ScreenLbl, Rec."Trigger Object Name")) + '</div>');
         if Rec."Trigger Action Name" <> '' then
-            Builder.AppendLine(StrSubstNo(ActionLbl, Rec."Trigger Action Name"));
+            Builder.Append('<div>' + HtmlEscape(StrSubstNo(ActionLbl, Rec."Trigger Action Name")) + '</div>');
         if (Rec."Observed Duration (ms)" > 0) or (Rec."Expected Duration (ms)" > 0) then
-            Builder.AppendLine(StrSubstNo(ObservedLbl, Rec."Observed Duration (ms)", Rec."Expected Duration (ms)"));
-        Builder.AppendLine(StrSubstNo(FrequencyLbl, Rec."Frequency"));
+            Builder.Append('<div>' + HtmlEscape(StrSubstNo(ObservedLbl, Rec."Observed Duration (ms)", Rec."Expected Duration (ms)")) + '</div>');
+        Builder.Append('<div>' + HtmlEscape(StrSubstNo(FrequencyLbl, Rec."Frequency")) + '</div>');
+        Builder.Append('</div>');
         exit(Builder.ToText());
+    end;
+
+    local procedure HtmlEscape(Input: Text): Text
+    begin
+        Input := Input.Replace('&', '&amp;');
+        Input := Input.Replace('<', '&lt;');
+        Input := Input.Replace('>', '&gt;');
+        Input := Input.Replace('"', '&quot;');
+        Input := Input.Replace('''', '&#39;');
+        exit(Input);
+    end;
+
+    local procedure ComputeReadyInText(): Text
+    var
+        RemainingMs: BigInteger;
+    begin
+        if Rec."State" in [Rec."State"::Concluded, Rec."State"::Cancelled, Rec."State"::Failed] then
+            exit(ReadyLbl);
+        if Rec."State" in [Rec."State"::CaptureEnded, Rec."State"::AiFiltering, Rec."State"::AiAnalyzing] then
+            exit(ReadyLbl);
+        if Rec."Monitoring Ends At" = 0DT then
+            exit(UnknownReadyLbl);
+        RemainingMs := Rec."Monitoring Ends At" - CurrentDateTime();
+        if RemainingMs <= 0 then
+            exit(AnyMomentLbl);
+        exit(FormatDuration(RemainingMs));
+    end;
+
+    local procedure FormatDuration(TotalMs: BigInteger): Text
+    var
+        DaysFmtLbl: Label '%1 %2', Comment = '%1 = number, %2 = unit (days/day)';
+        DaySingularLbl: Label 'day';
+        DayPluralLbl: Label 'days';
+        HourSingularLbl: Label 'hour';
+        HourPluralLbl: Label 'hours';
+        MinuteSingularLbl: Label 'minute';
+        MinutePluralLbl: Label 'minutes';
+        Parts: Text;
+        Days: BigInteger;
+        Hours: BigInteger;
+        Minutes: BigInteger;
+    begin
+        Days := TotalMs div (24 * 60 * 60 * 1000);
+        TotalMs := TotalMs mod (24 * 60 * 60 * 1000);
+        Hours := TotalMs div (60 * 60 * 1000);
+        TotalMs := TotalMs mod (60 * 60 * 1000);
+        Minutes := TotalMs div (60 * 1000);
+        if (Days = 0) and (Hours = 0) and (Minutes = 0) then
+            Minutes := 1;
+        if Days > 0 then
+            Parts := StrSubstNo(DaysFmtLbl, Days, ReadyUnit(Days, DaySingularLbl, DayPluralLbl));
+        if Hours > 0 then begin
+            if Parts <> '' then
+                Parts += ' ';
+            Parts += StrSubstNo(DaysFmtLbl, Hours, ReadyUnit(Hours, HourSingularLbl, HourPluralLbl));
+        end;
+        if Minutes > 0 then begin
+            if Parts <> '' then
+                Parts += ' ';
+            Parts += StrSubstNo(DaysFmtLbl, Minutes, ReadyUnit(Minutes, MinuteSingularLbl, MinutePluralLbl));
+        end;
+        exit(Parts);
+    end;
+
+    local procedure ReadyUnit(Value: BigInteger; SingularLbl: Text; PluralLbl: Text): Text
+    begin
+        if Value = 1 then
+            exit(SingularLbl);
+        exit(PluralLbl);
     end;
 }

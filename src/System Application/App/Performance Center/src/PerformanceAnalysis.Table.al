@@ -9,7 +9,7 @@ using System.Security.AccessControl;
 
 /// <summary>
 /// A single Performance Analysis request. Anchors the profiler schedule, the filtered
-/// profiles, the gathered signals, the AI conclusion, and the chat history.
+/// profiles, the AI conclusion, and the chat history.
 /// </summary>
 table 8403 "Performance Analysis"
 {

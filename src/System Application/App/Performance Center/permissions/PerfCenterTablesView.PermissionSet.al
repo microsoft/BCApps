@@ -11,5 +11,6 @@ permissionset 8432 "Perf. Center Tables - View"
     Assignable = false;
 
     Permissions = tabledata "Performance Analysis" = R,
-                  tabledata "Performance Analysis Line" = R;
+                  tabledata "Performance Analysis Line" = R,
+                  tabledata "Perf. Analysis LLM Log" = R;
 }

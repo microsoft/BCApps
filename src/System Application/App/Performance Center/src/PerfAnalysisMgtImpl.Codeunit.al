@@ -92,10 +92,16 @@ codeunit 8414 "Perf. Analysis Mgt. Impl."
         end;
         if not Analysis.Get(Analysis."Id") then
             exit;
-        if not (Analysis."State" in [Analysis."State"::Scheduled, Analysis."State"::Capturing]) then
-            exit;
-        Analysis."Monitoring Ends At" := CurrentDateTime();
-        SetState(Analysis, Analysis."State"::CaptureEnded);
+        if Analysis."State" in [Analysis."State"::Scheduled, Analysis."State"::Capturing] then begin
+            Analysis."Monitoring Ends At" := CurrentDateTime();
+            SetState(Analysis, Analysis."State"::CaptureEnded);
+        end;
+
+        // Kick straight into the AI analysis phase. The Ai pipeline owns its own
+        // state transitions (CaptureEnded -> AiAnalyzing -> Concluded/Failed) so we
+        // do not need to short-circuit here.
+        if Analysis."State" = Analysis."State"::CaptureEnded then
+            RunFullAiPipeline(Analysis);
     end;
 
     procedure CancelAnalysis(var Analysis: Record "Performance Analysis")
@@ -131,7 +137,6 @@ codeunit 8414 "Perf. Analysis Mgt. Impl."
 
     procedure RunAiAnalysis(var Analysis: Record "Performance Analysis")
     var
-        Gatherer: Codeunit "Perf. Analysis Signal Gath.";
         Ai: Codeunit "Perf. Analysis AI";
         PerfAnalysisMgt: Codeunit "Perf. Analysis Mgt.";
     begin
@@ -139,7 +144,6 @@ codeunit 8414 "Perf. Analysis Mgt. Impl."
             Error(AnalysisNotActiveErr, Analysis."State");
         SetState(Analysis, Analysis."State"::AiAnalyzing);
 
-        Gatherer.GatherAll(Analysis);
         PerfAnalysisMgt.OnBeforeRunAiAnalysis(Analysis);
 
         if Ai.Analyze(Analysis) then begin
@@ -151,9 +155,10 @@ codeunit 8414 "Perf. Analysis Mgt. Impl."
 
     procedure RunFullAiPipeline(var Analysis: Record "Performance Analysis")
     begin
-        RunAiFiltering(Analysis);
-        if Analysis."State" = Analysis."State"::CaptureEnded then
-            RunAiAnalysis(Analysis);
+        // Skip the filtering pass: Analyze now includes the raw captured profile metrics
+        // in the payload directly, which is enough context for the model to reason about
+        // where time is spent without a separate relevance-scoring round-trip.
+        RunAiAnalysis(Analysis);
     end;
 
     procedure TryGetSchedule(var Analysis: Record "Performance Analysis"; var Scheduler: Record "Performance Profile Scheduler"): Boolean

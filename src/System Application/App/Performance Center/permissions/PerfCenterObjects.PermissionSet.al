@@ -18,9 +18,10 @@ permissionset 8431 "Perf. Center - Objects"
                   page "Perf. Analysis List Part" = X,
                   page "Perf. Analysis Card" = X,
                   page "Perf. Analysis Profile List" = X,
-                  page "Perf. Analysis Signals" = X,
                   page "Perf. Analysis Chat" = X,
                   page "Perf. Analysis Chat Req. Stub" = X,
                   page "Perf. Analysis Page Lookup" = X,
-                  page "Perf. Analysis Control Lookup" = X;
+                  page "Perf. Analysis Control Lookup" = X,
+                  page "Perf. Analysis LLM Logs" = X,
+                  page "Perf. Analysis LLM Log Card" = X;
 }
