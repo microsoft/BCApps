@@ -50,7 +50,7 @@ page 4316 "Agent List"
                 field("Can Access Current Company"; Rec."Can Access Current Company")
                 {
                     Caption = 'Can Access Current Company';
-                    Visible = ShowAllCompanies;
+                    Visible = ShouldShowAllCompanies;
                 }
             }
         }
@@ -118,11 +118,11 @@ page 4316 "Agent List"
                 Caption = 'Show agents for current company';
                 ToolTip = 'Show only agents that can access the current company.';
                 Image = FilterLines;
-                Visible = ShowAllCompanies;
+                Visible = ShouldShowAllCompanies;
 
                 trigger OnAction()
                 begin
-                    ShowAllCompanies := false;
+                    ShouldShowAllCompanies := false;
                     SetCompanyFilter();
                 end;
             }
@@ -132,11 +132,11 @@ page 4316 "Agent List"
                 Caption = 'Show agents for all companies';
                 ToolTip = 'Show agents from all companies.';
                 Image = RemoveFilterLines;
-                Visible = not ShowAllCompanies;
+                Visible = not ShouldShowAllCompanies;
 
                 trigger OnAction()
                 begin
-                    ShowAllCompanies := true;
+                    ShouldShowAllCompanies := true;
                     SetCompanyFilter();
                 end;
             }
@@ -177,7 +177,7 @@ page 4316 "Agent List"
         if AgentMetadataProvider.Names().Count() = 0 then
             AgentImpl.ShowNoAgentsAvailableNotification();
 
-        ShowAllCompanies := false;
+        ShouldShowAllCompanies := false;
         SetCompanyFilter();
     end;
 
@@ -200,7 +200,7 @@ page 4316 "Agent List"
 
     local procedure SetCompanyFilter()
     begin
-        if ShowAllCompanies then
+        if ShouldShowAllCompanies then
             Rec.SetRange("Can Access Current Company")
         else
             Rec.SetRange("Can Access Current Company", true);
@@ -209,6 +209,6 @@ page 4316 "Agent List"
 
     var
         CopilotAvailabilityTxt: Text;
-        ShowAllCompanies: Boolean;
+        ShouldShowAllCompanies: Boolean;
         NoAgentSetupErr: Label 'No agents have been setup. You must set up an agent first.';
 }
