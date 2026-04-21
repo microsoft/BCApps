@@ -506,9 +506,11 @@ table 8068 "Sales Subscription Line"
     local procedure CalculateCalculationBaseAmountCustomer()
     var
         TempSalesLine: Record "Sales Line" temporary;
+        LocalSalesHeader: Record "Sales Header";
         CalculatedBaseAmount: Decimal;
         IsHandled: Boolean;
     begin
+        GetSalesHeader(LocalSalesHeader);
         case "Calculation Base Type" of
             "Calculation Base Type"::"Item Price":
                 begin
@@ -527,6 +529,8 @@ table 8068 "Sales Subscription Line"
                                          Rec.TableCaption, CalculateCalculationBaseAmountCustomerProcedureNameLbl);
             end;
         end;
+        if LocalSalesHeader."Prices Including VAT" then
+            CalculatedBaseAmount := Round(CalculatedBaseAmount / (1 + SalesLine."VAT %" / 100), Currency."Unit-Amount Rounding Precision");
         Validate("Calculation Base Amount", CalculatedBaseAmount);
         if "Calculation Base Type" = "Calculation Base Type"::"Document Price And Discount" then
             Validate("Discount %", SalesLine."Line Discount %");
@@ -592,20 +596,33 @@ table 8068 "Sales Subscription Line"
         SalesHeader: Record "Sales Header";
     begin
         TestField("Document No.");
-        if ("Document Type" <> SalesHeader."Document Type") or ("Document No." <> SalesHeader."No.") then
-            if SalesHeader.Get("Document Type", "Document No.") then
-                if SalesHeader."Currency Code" = '' then
-                    Currency.InitRoundingPrecision()
-                else begin
-                    SalesHeader.TestField("Currency Factor");
-                    Currency.Get(SalesHeader."Currency Code");
-                    Currency.TestField("Unit-Amount Rounding Precision");
-                    Currency.TestField("Amount Rounding Precision");
-                end
+        if (SalesHeaderOverride."No." <> '') and
+           (SalesHeaderOverride."Document Type" = "Document Type") and
+           (SalesHeaderOverride."No." = "Document No.")
+        then begin
+            OutSalesHeader := SalesHeaderOverride;
+            if SalesHeaderOverride."Currency Code" = '' then
+                Currency.InitRoundingPrecision()
             else
-                Clear(SalesHeader);
-
+                Currency.Get(SalesHeaderOverride."Currency Code");
+            exit;
+        end;
+        if SalesHeader.Get("Document Type", "Document No.") then begin
+            if SalesHeader."Currency Code" = '' then
+                Currency.InitRoundingPrecision()
+            else begin
+                SalesHeader.TestField("Currency Factor");
+                Currency.Get(SalesHeader."Currency Code");
+                Currency.TestField("Unit-Amount Rounding Precision");
+                Currency.TestField("Amount Rounding Precision");
+            end;
+        end;
         OutSalesHeader := SalesHeader;
+    end;
+
+    procedure SetSalesHeader(var NewSalesHeader: Record "Sales Header")
+    begin
+        SalesHeaderOverride := NewSalesHeader;
     end;
 
     internal procedure CalcVATAmountLines(var SalesHeader: Record "Sales Header"; var TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary; var UniqueRhythmDictionary: Dictionary of [Code[20], Text])
@@ -884,6 +901,7 @@ table 8068 "Sales Subscription Line"
     var
         Currency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
+        SalesHeaderOverride: Record "Sales Header";
         SalesLine: Record "Sales Line";
         DateFormulaManagement: Codeunit "Date Formula Management";
         ServiceAmountIncreaseErr: Label '%1 cannot be greater than %2.', Comment = '%1 and %2 are numbers';

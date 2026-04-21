@@ -387,6 +387,31 @@ codeunit 8069 "Sales Subscription Line Mgmt."
         AddSalesServiceCommitmentsForSalesLine(ToSalesLine, false);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", OnAfterValidateEvent, "Prices Including VAT", false, false)]
+    local procedure RecalculateSalesSubscriptionLinesOnAfterSalesHeaderPricesIncludingVATValidate(var Rec: Record "Sales Header"; var xRec: Record "Sales Header"; CurrFieldNo: Integer)
+    var
+        SalesLine: Record "Sales Line";
+        SalesServiceCommitment: Record "Sales Subscription Line";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        if Rec."Prices Including VAT" = xRec."Prices Including VAT" then
+            exit;
+        SalesLine.SetRange("Document Type", Rec."Document Type");
+        SalesLine.SetRange("Document No.", Rec."No.");
+        if not SalesLine.FindSet() then
+            exit;
+        repeat
+            SalesServiceCommitment.FilterOnSalesLine(SalesLine);
+            if SalesServiceCommitment.FindSet() then
+                repeat
+                    SalesServiceCommitment.SetSalesLine(SalesLine);
+                    SalesServiceCommitment.SetSalesHeader(Rec);
+                    SalesServiceCommitment.CalculateCalculationBaseAmount();
+                until SalesServiceCommitment.Next() = 0;
+        until SalesLine.Next() = 0;
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateSalesSubscriptionLineFromSubscriptionPackageLine(var SalesLine: Record "Sales Line"; var SubscriptionPackageLine: Record "Subscription Package Line"; var IsHandled: Boolean)
     begin
