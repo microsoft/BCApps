@@ -534,11 +534,7 @@ codeunit 8351 "MCP Config Implementation"
     begin
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
-
-        PageMetadata.FilterGroup(-1);
-        PageMetadata.SetFilter(APIPublisher, '<>%1', 'microsoft');
-        PageMetadata.SetFilter(APIGroup, GetBlockedAPIGroupsFilter());
-        PageMetadata.FilterGroup(0);
+        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
 
         MCPAPIConfigToolLookup.LookupMode := true;
         MCPAPIConfigToolLookup.SetTableView(PageMetadata);
@@ -553,15 +549,11 @@ codeunit 8351 "MCP Config Implementation"
     var
         PageMetadata: Record "Page Metadata";
     begin
-        PageMetadata.SetLoadFields(PageType, APIPublisher, APIGroup, "AL Namespace");
+        PageMetadata.SetLoadFields(PageType, APIPublisher, APIGroup);
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter(APIPublisher, '<>%1', '');
         PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
-
-        PageMetadata.FilterGroup(-1);
-        PageMetadata.SetFilter(APIPublisher, '<>%1', 'microsoft');
-        PageMetadata.SetFilter(APIGroup, GetBlockedAPIGroupsFilter());
-        PageMetadata.FilterGroup(0);
+        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
 
         if not PageMetadata.FindSet() then
             exit;
@@ -609,7 +601,7 @@ codeunit 8351 "MCP Config Implementation"
         if PageMetadata."AL Namespace" = 'Microsoft.API.V1' then
             Error(APIToolNotSupportedErr);
 
-        if (PageMetadata.APIPublisher = 'microsoft') and IsBlockedAPIGroup(PageMetadata.APIGroup) then
+        if PageMetadata.APIVersion = 'beta' then
             Error(APIToolNotSupportedErr);
 
         exit(PageMetadata);
@@ -632,18 +624,11 @@ codeunit 8351 "MCP Config Implementation"
         if (APIGroup = '') or (APIPublisher = '') then
             exit;
 
-        if (APIPublisher = 'microsoft') and IsBlockedAPIGroup(APIGroup) then
-            exit;
-
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter(APIPublisher, APIPublisher);
         PageMetadata.SetFilter(APIGroup, APIGroup);
         PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
-
-        PageMetadata.FilterGroup(-1);
-        PageMetadata.SetFilter(APIPublisher, '<>%1', 'microsoft');
-        PageMetadata.SetFilter(APIGroup, GetBlockedAPIGroupsFilter());
-        PageMetadata.FilterGroup(0);
+        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
 
         if not PageMetadata.FindSet() then
             exit;
@@ -1211,33 +1196,4 @@ codeunit 8351 "MCP Config Implementation"
         Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditDeletedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
     end;
     #endregion
-
-    local procedure GetBlockedAPIGroupsFilter(): Text
-    begin
-        exit(
-            '<>intercompany' +
-            '&<>cloudMigration' +
-            '&<>expense' +
-            '&<>agent' +
-            '&<>dataverse' +
-            '&<>automate' +
-            '&<>runtime' +
-            '&<>admin' +
-            '&<>automation' +
-            '&<>codeCoverage' +
-            '&<>performancToolkit' +
-            '&<>aiTestToolkit' +
-            '&<>powerbi'
-        );
-    end;
-
-    local procedure IsBlockedAPIGroup(APIGroup: Text): Boolean
-    begin
-        exit(APIGroup in [
-            'intercompany', 'cloudMigration', 'expense', 'agent',
-            'dataverse', 'automate', 'runtime', 'admin', 'automation',
-            'codeCoverage', 'performancToolkit', 'aiTestToolkit',
-            'powerbi'
-        ]);
-    end;
 }
