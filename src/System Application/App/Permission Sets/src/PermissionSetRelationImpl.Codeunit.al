@@ -417,12 +417,12 @@ codeunit 9856 "Permission Set Relation Impl."
     local procedure ValidatePermissionSet(AppId: Guid; RoleId: Code[30]; Scope: Option System,Tenant): Boolean
     var
         UserAccountHelper: DotNet NavUserAccountHelper;
-        ValidationErrors: DotNet StringArray;
+        ValidationErrors: DotNet String;
     begin
-        if UserAccountHelper.IsPermissionSetValid(RoleId, AppId, Scope, ValidationErrors) then
-            exit(true);
+        //if UserAccountHelper.IsPermissionSetValid(RoleId, AppId, Scope, ValidationErrors) then
+        //    exit(true);
 
-        RaisePermissionSetValidationErrors(ValidationErrors);
+        //RaisePermissionSetValidationErrors(ValidationErrors);
     end;
 
     [ErrorBehavior(ErrorBehavior::Collect)]
