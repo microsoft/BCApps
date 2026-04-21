@@ -204,6 +204,7 @@ page 6181 "E-Document Purchase Draft"
                 {
                     ToolTip = 'Specifies the total of the lines amount values from all lines of the draft.';
                     Importance = Promoted;
+                    Editable = false;
                 }
                 field("Amount Excl. VAT"; EDocumentPurchaseHeader."Sub Total")
                 {
@@ -249,6 +250,7 @@ page 6181 "E-Document Purchase Draft"
                     Caption = 'Amount Incl. VAT';
                     ToolTip = 'Specifies the total amount of the electronic document including VAT.';
                     Importance = Promoted;
+                    Style = Strong;
 
                     trigger OnValidate()
                     begin
