@@ -54,10 +54,19 @@ codeunit 8023 "Create Usage Data Billing"
     var
         UsageDataBilling: Record "Usage Data Billing";
         UsageDataSupplier: Record "Usage Data Supplier";
+        CurrencyCode: Code[10];
     begin
         UsageDataSupplier.Get(SupplierNo);
+        CurrencyCode := UsageDataGenericImportGlobal.GetCurrencyCode();
 
-        UsageDataBilling.InitFrom(UsageDataImportEntryNo, SubscriptionNo, ProductID, ProductName, BillingPeriodStartDate, BillingPeriodEndDate, NewQuantity);
+        UsageDataBilling.InitFrom(
+            UsageDataGenericImportGlobal."Usage Data Import Entry No.",
+            UsageDataGenericImportGlobal."Subscription Header No.",
+            UsageDataGenericImportGlobal."Product ID",
+            UsageDataGenericImportGlobal."Product Name",
+            UsageDataGenericImportGlobal."Billing Period Start Date",
+            UsageDataGenericImportGlobal."Billing Period End Date",
+            UsageDataGenericImportGlobal.Quantity);
         UsageDataBilling."Supplier No." := SupplierNo;
         UsageDataBilling.Partner := TempServiceCommitment.Partner;
         UsageDataBilling."Subscription Header No." := TempServiceCommitment."Subscription Header No.";
@@ -71,7 +80,7 @@ codeunit 8023 "Create Usage Data Billing"
             UsageDataBilling."Currency Code" := CurrencyCode
         else
             UsageDataBilling.AlignContractCurrency(TempServiceCommitment, CurrencyCode);
-        UsageDataBilling.CalculateAmounts(UsageDataSupplier, CurrencyCode, UnitCost, CostAmount, UnitPrice, NewAmount);
+        UsageDataBilling.CalculateAmounts(UsageDataSupplier, CurrencyCode, UsageDataGenericImportGlobal.Cost, UsageDataGenericImportGlobal."Cost Amount", UsageDataGenericImportGlobal.Price, UsageDataGenericImportGlobal.Amount);
         UsageDataBilling.UpdateRebilling();
         UsageDataBilling."Entry No." := 0;
 
