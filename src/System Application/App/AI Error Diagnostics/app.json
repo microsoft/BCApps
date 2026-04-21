@@ -1,0 +1,32 @@
+{
+  "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "name": "AI Error Diagnostics",
+  "publisher": "Microsoft",
+  "brief": "AI-powered error diagnostics using Claude Code CLI",
+  "description": "Analyzes runtime errors by sending the error message and call stack to Claude Code CLI, returning a structured reason and suggestion.",
+  "version": "29.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
+      "name": "DotNet Aliases",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "internalsVisibleTo": [],
+  "platform": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 4450,
+      "to": 4451
+    }
+  ],
+  "target": "OnPrem",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
+}
