@@ -4,6 +4,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.Dimension;
 using System.Security.User;
 
@@ -135,6 +136,18 @@ table 8072 "Vend. Sub. Contract Deferral"
         {
             Caption = 'Currency Code';
         }
+        field(74; "Gen. Bus. Posting Group"; Code[20])
+        {
+            Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the general business posting group.';
+            TableRelation = "Gen. Business Posting Group";
+        }
+        field(75; "Gen. Prod. Posting Group"; Code[20])
+        {
+            Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the general product posting group.';
+            TableRelation = "Gen. Product Posting Group";
+        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -184,6 +197,9 @@ table 8072 "Vend. Sub. Contract Deferral"
         Rec."Pay-to Vendor No." := PurchaseLine."Pay-to Vendor No.";
         Rec.Discount := PurchaseLine."Discount";
         Rec."Currency Code" := PurchaseLine."Currency Code";
+        Rec."Gen. Bus. Posting Group" := PurchaseLine."Gen. Bus. Posting Group";
+        Rec."Gen. Prod. Posting Group" := PurchaseLine."Gen. Prod. Posting Group";
+        OnAfterInitFromPurchaseLine(Rec, PurchaseLine, Sign);
     end;
 
     internal procedure ShowDimensions()
@@ -220,5 +236,10 @@ table 8072 "Vend. Sub. Contract Deferral"
                 end;
         end;
         exit(false);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitFromPurchaseLine(var VendSubContractDeferral: Record "Vend. Sub. Contract Deferral"; PurchaseLine: Record "Purchase Line"; var Sign: Integer)
+    begin
     end;
 }
