@@ -885,6 +885,153 @@ codeunit 139915 "Sales Service Commitment Test"
     end;
 
     [Test]
+    procedure BaseAmountIsNetPriceWhenPricesIncludingVATEnabled()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        ExpectedCalculationBaseAmount: Decimal;
+    begin
+        // [SCENARIO] When Prices Including VAT is enabled on the Sales Header, the Calculation Base Amount
+        // on the Sales Subscription Line stores the net (ex-VAT) price, not the VAT-inclusive price.
+
+        // [GIVEN] A subscription item with a non-zero VAT%, and a Sales Order with Prices Including VAT = true
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Customer, Enum::"Calculation Base Type"::"Document Price");
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        if VATPostingSetup."VAT %" = 0 then begin
+            VATPostingSetup."VAT %" := LibraryRandom.RandDecInRange(10, 25, 0);
+            VATPostingSetup.Modify(false);
+        end;
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(
+            Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+
+        // [WHEN] A sales line is created with the subscription item
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", 1);
+
+        // [THEN] Calculation Base Amount equals the net price (unit price with VAT stripped)
+        Currency.InitRoundingPrecision();
+        ExpectedCalculationBaseAmount :=
+            Round(SalesLine."Unit Price" / (1 + SalesLine."VAT %" / 100), Currency."Unit-Amount Rounding Precision");
+        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
+        SalesServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Customer);
+        SalesServiceCommitment.SetRange("Calculation Base Type", Enum::"Calculation Base Type"::"Document Price");
+        SalesServiceCommitment.FindFirst();
+        Assert.AreEqual(
+            ExpectedCalculationBaseAmount,
+            SalesServiceCommitment."Calculation Base Amount",
+            'Calculation Base Amount must be the net price when Prices Including VAT is enabled.');
+    end;
+
+    [Test]
+    procedure BaseAmountEqualsUnitPriceWhenPricesExcludingVAT()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO] When Prices Including VAT is disabled (default), the Calculation Base Amount on the
+        // Sales Subscription Line equals the unit price directly, with no VAT adjustment.
+
+        // [GIVEN] A subscription item with a non-zero VAT%, and a Sales Order with Prices Including VAT = false
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Customer, Enum::"Calculation Base Type"::"Document Price");
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        if VATPostingSetup."VAT %" = 0 then begin
+            VATPostingSetup."VAT %" := LibraryRandom.RandDecInRange(10, 25, 0);
+            VATPostingSetup.Modify(false);
+        end;
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(
+            Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+
+        // [WHEN] A sales line is created with the subscription item (Prices Including VAT = false)
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", 1);
+
+        // [THEN] Calculation Base Amount equals the unit price without any VAT adjustment
+        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
+        SalesServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Customer);
+        SalesServiceCommitment.SetRange("Calculation Base Type", Enum::"Calculation Base Type"::"Document Price");
+        SalesServiceCommitment.FindFirst();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            'Calculation Base Amount must equal unit price when Prices Including VAT is disabled.');
+    end;
+
+    [Test]
+    procedure TogglingPricesIncludingVATRecalculatesBaseAmount()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        ExpectedBaseAmount: Decimal;
+    begin
+        // [SCENARIO] Toggling Prices Including VAT on a Sales Header triggers recalculation of the
+        // Calculation Base Amount on all existing Sales Subscription Lines.
+
+        // [GIVEN] A Sales Order with Prices Including VAT = false and an existing subscription line
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Customer, Enum::"Calculation Base Type"::"Document Price");
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        if VATPostingSetup."VAT %" = 0 then begin
+            VATPostingSetup."VAT %" := LibraryRandom.RandDecInRange(10, 25, 0);
+            VATPostingSetup.Modify(false);
+        end;
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(
+            Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", 1);
+        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
+        SalesServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Customer);
+        SalesServiceCommitment.SetRange("Calculation Base Type", Enum::"Calculation Base Type"::"Document Price");
+        SalesServiceCommitment.FindFirst();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            'Initial Calculation Base Amount must equal unit price when Prices Including VAT is disabled.');
+
+        // [WHEN] Prices Including VAT is toggled to true on the Sales Header
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+
+        // [THEN] Calculation Base Amount is recalculated to the net price from the new gross unit price
+        SalesLine.Find();
+        SalesServiceCommitment.Find();
+        Currency.InitRoundingPrecision();
+        ExpectedBaseAmount :=
+            Round(SalesLine."Unit Price" / (1 + SalesLine."VAT %" / 100), Currency."Unit-Amount Rounding Precision");
+        Assert.AreEqual(
+            ExpectedBaseAmount,
+            SalesServiceCommitment."Calculation Base Amount",
+            'Calculation Base Amount must be recalculated to net price when Prices Including VAT is toggled on.');
+
+        // [WHEN] Prices Including VAT is toggled back to false
+        SalesHeader.Validate("Prices Including VAT", false);
+        SalesHeader.Modify(true);
+
+        // [THEN] Calculation Base Amount reverts to the unit price (no VAT stripping)
+        SalesLine.Find();
+        SalesServiceCommitment.Find();
+        Assert.AreEqual(
+            SalesLine."Unit Price",
+            SalesServiceCommitment."Calculation Base Amount",
+            'Calculation Base Amount must revert to unit price when Prices Including VAT is toggled off.');
+    end;
+
+    [Test]
     procedure CheckSalesServiceCommitmentDiscountCalculation()
     var
         DiscountAmount: Decimal;
