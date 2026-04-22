@@ -63,6 +63,7 @@ page 20408 "Qlty. Inspection List"
                 {
                     AboutTitle = 'Inspection status at a glance';
                     AboutText = '**Status** shows whether the inspection is still in progress or finished. Finished inspections are locked and can''t be changed.';
+                    StyleExpr = StatusStyleExpr;
                 }
                 field("Result Code"; Rec."Result Code")
                 {
@@ -217,7 +218,7 @@ page 20408 "Qlty. Inspection List"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Create Re-inspection';
+                ToolTip = 'Create a new re-inspection based on this inspection. If the inspection is still open, it will be finished first. Finishing may be blocked if the current result does not allow it.';
                 Enabled = CanCreateReinspection;
 
                 trigger OnAction()
@@ -701,10 +702,12 @@ page 20408 "Qlty. Inspection List"
         CanFinish: Boolean;
         CanReopen: Boolean;
         RowActionsAreEnabled: Boolean;
+        StatusStyleExpr: Text;
 
     trigger OnAfterGetRecord()
     begin
         ResultStyleExpr := Rec.GetResultStyle();
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
     end;
 
     trigger OnAfterGetCurrRecord()

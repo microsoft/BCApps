@@ -43,6 +43,7 @@ pageextension 20415 "Qlty. Purchasing Agent RC" extends "Purchasing Agent Role C
                 group(Qlty_Analysis_Group)
                 {
                     Caption = 'Analysis';
+                    Tooltip = 'Analyze Quality Inspection data';
 
                     action(Qlty_QualityInspectionLines)
                     {

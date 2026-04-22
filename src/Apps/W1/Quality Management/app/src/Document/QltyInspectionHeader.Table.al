@@ -34,7 +34,8 @@ table 20405 "Qlty. Inspection Header"
     DrillDownPageId = "Qlty. Inspection List";
     LookupPageId = "Qlty. Inspection List";
     DataClassification = CustomerContent;
-    Permissions = tabledata "Qlty. Inspection Line" = d;
+    Permissions = tabledata "Qlty. Inspection Line" = d,
+                  tabledata "Qlty. I. Result Condit. Conf." = d;
 
     fields
     {
@@ -1581,6 +1582,18 @@ table 20405 "Qlty. Inspection Header"
         if (Rec."Pass Quantity" + Rec."Fail Quantity") > Rec."Source Quantity (Base)" then begin
             DifferenceInPassFailQuantity := Rec."Pass Quantity" + Rec."Fail Quantity" - Rec."Source Quantity (Base)";
             Error(PassFailQuantityInvalidErr, Rec.FieldCaption("Pass Quantity"), Rec.FieldCaption("Fail Quantity"), Rec.FieldCaption("Source Quantity (Base)"), DifferenceInPassFailQuantity);
+        end;
+    end;
+
+    procedure GetStatusStyleExpression(): Text
+    begin
+        case Rec.Status of
+            Rec.Status::Open:
+                exit('Favorable');
+            Rec.Status::Finished:
+                exit('Strong');
+            else
+                exit('None');
         end;
     end;
 
