@@ -58,15 +58,15 @@ page 9878 "Permission Set Lookup List"
 
     trigger OnAfterGetCurrRecord()
     begin
-        SelectedRecord := Rec;
+        TempSelectedRecord := Rec;
     end;
 
     var
-        SelectedRecord: Record "PermissionSet Buffer";
+        TempSelectedRecord: Record "PermissionSet Buffer";
 
     internal procedure GetSelectedRecord(var CurrSelectedRecord: Record "PermissionSet Buffer")
     begin
-        CurrSelectedRecord := SelectedRecord;
+        CurrSelectedRecord := TempSelectedRecord;
     end;
 
     internal procedure GetSelectedRecords(var CurrSelectedRecords: Record "PermissionSet Buffer")

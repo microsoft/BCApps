@@ -2,6 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
@@ -135,6 +136,18 @@ table 8072 "Vend. Sub. Contract Deferral"
         {
             Caption = 'Currency Code';
         }
+        field(74; "Gen. Bus. Posting Group"; Code[20])
+        {
+            Caption = 'Gen. Bus. Posting Group';
+            ToolTip = 'Specifies the general business posting group.';
+            TableRelation = "Gen. Business Posting Group";
+        }
+        field(75; "Gen. Prod. Posting Group"; Code[20])
+        {
+            Caption = 'Gen. Prod. Posting Group';
+            ToolTip = 'Specifies the general product posting group.';
+            TableRelation = "Gen. Product Posting Group";
+        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -171,8 +184,12 @@ table 8072 "Vend. Sub. Contract Deferral"
                     Sign := 1;
                 end;
         end;
-        if (PurchaseLine.Quantity < 0) and (not PurchaseLine."Discount") then
-            Sign := Sign * -1;
+
+        if (PurchaseLine."Document Type" = Enum::"Purchase Document Type"::"Credit Memo") and (PurchaseLine.Quantity < 0) then
+            Sign := Sign * -1
+        else
+            if (PurchaseLine.Quantity < 0) and (not PurchaseLine."Discount") then
+                Sign := Sign * -1;
         Rec."Vendor No." := PurchaseLine."Pay-to Vendor No.";
         Rec."Dimension Set ID" := PurchaseLine."Dimension Set ID";
         Rec."Discount %" := PurchaseLine."Line Discount %";
@@ -180,6 +197,9 @@ table 8072 "Vend. Sub. Contract Deferral"
         Rec."Pay-to Vendor No." := PurchaseLine."Pay-to Vendor No.";
         Rec.Discount := PurchaseLine."Discount";
         Rec."Currency Code" := PurchaseLine."Currency Code";
+        Rec."Gen. Bus. Posting Group" := PurchaseLine."Gen. Bus. Posting Group";
+        Rec."Gen. Prod. Posting Group" := PurchaseLine."Gen. Prod. Posting Group";
+        OnAfterInitFromPurchaseLine(Rec, PurchaseLine, Sign);
     end;
 
     internal procedure ShowDimensions()
@@ -216,5 +236,10 @@ table 8072 "Vend. Sub. Contract Deferral"
                 end;
         end;
         exit(false);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitFromPurchaseLine(var VendSubContractDeferral: Record "Vend. Sub. Contract Deferral"; PurchaseLine: Record "Purchase Line"; var Sign: Integer)
+    begin
     end;
 }

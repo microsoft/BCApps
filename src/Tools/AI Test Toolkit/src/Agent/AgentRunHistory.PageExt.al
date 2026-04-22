@@ -16,15 +16,22 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
                 ApplicationArea = All;
                 AutoFormatType = 0;
                 Visible = ViewBy = ViewBy::Version;
-                Caption = 'Copilot credits';
+                Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
                 Editable = false;
+
+                trigger OnDrillDown()
+                var
+                    AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+                begin
+                    AgentTestContextImpl.OpenAgentConsumptionOverview(Rec."Agent Task IDs");
+                end;
             }
             field("Agent Task Count - By Version"; AgentTaskCountByVersion)
             {
                 ApplicationArea = All;
                 Visible = ViewBy = ViewBy::Version;
-                Caption = 'Agent tasks';
+                Caption = 'Agent Tasks Executed';
                 ToolTip = 'Specifies the number of Agent Tasks related to the current version.';
                 Editable = false;
 
@@ -43,15 +50,22 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
                 ApplicationArea = All;
                 AutoFormatType = 0;
                 Visible = ViewBy = ViewBy::Tag;
-                Caption = 'Copilot credits';
+                Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for the tag.';
                 Editable = false;
+
+                trigger OnDrillDown()
+                var
+                    AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+                begin
+                    AgentTestContextImpl.OpenAgentTaskList(Rec."Agent Task IDs - By Tag");
+                end;
             }
             field("Agent Task Count - By Tag"; AgentTaskCountByTag)
             {
                 ApplicationArea = All;
                 Visible = ViewBy = ViewBy::Tag;
-                Caption = 'Agent tasks';
+                Caption = 'Agent Tasks Executed';
                 ToolTip = 'Specifies the number of Agent Tasks related to the tag.';
                 Editable = false;
 

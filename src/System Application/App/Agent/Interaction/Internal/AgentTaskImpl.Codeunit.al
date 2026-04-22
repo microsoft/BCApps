@@ -7,7 +7,6 @@ namespace System.Agents;
 
 using System.Agents.Troubleshooting;
 using System.Environment;
-using System.Environment.Consumption;
 using System.Integration;
 
 codeunit 4300 "Agent Task Impl."
@@ -153,18 +152,6 @@ codeunit 4300 "Agent Task Impl."
         exit((AgentTask.Status = AgentTask.Status::"Stopped by User") or (AgentTask.Status = AgentTask.Status::"Stopped by System"));
     end;
 
-    procedure GetCopilotCreditsConsumed(AgentTaskID: BigInteger): Decimal
-    var
-        AgentTask: Record "Agent Task";
-        UserAIConsumptionData: Record "User AI Consumption Data";
-    begin
-        if not AgentTask.Get(AgentTaskID) then
-            exit(0);
-        UserAIConsumptionData.SetRange("Agent Task Id", AgentTask.ID);
-        UserAIConsumptionData.CalcSums("Copilot Credits");
-        exit(UserAIConsumptionData."Copilot Credits");
-    end;
-
     internal procedure TryGetAgentRecordFromTaskId(TaskId: Integer; var Agent: Record Agent): Boolean
     var
         AgentTask: Record "Agent Task";
@@ -185,7 +172,7 @@ codeunit 4300 "Agent Task Impl."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetPageSummary, '', true, true)]
     local procedure OnGetGetPageSummary(PageId: Integer; Bookmark: Text; var Summary: Text)
     var
-        PageSummaryParameters: Record "Page Summary Parameters";
+        TempPageSummaryParameters: Record "Page Summary Parameters";
         PageSummaryProvider: Codeunit "Page Summary Provider";
     begin
         if PageId = 0 then begin
@@ -193,12 +180,12 @@ codeunit 4300 "Agent Task Impl."
             exit;
         end;
 
-        PageSummaryParameters."Page ID" := PageId;
+        TempPageSummaryParameters."Page ID" := PageId;
 #pragma warning disable AA0139
-        PageSummaryParameters.Bookmark := Bookmark;
+        TempPageSummaryParameters.Bookmark := Bookmark;
 #pragma warning restore AA0139
-        PageSummaryParameters."Include Binary Data" := false;
-        Summary := PageSummaryProvider.GetPageSummary(PageSummaryParameters);
+        TempPageSummaryParameters."Include Binary Data" := false;
+        Summary := PageSummaryProvider.GetPageSummary(TempPageSummaryParameters);
     end;
 
     var

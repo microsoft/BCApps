@@ -1,0 +1,2 @@
+# cost: 21
+{"query":"{ shopifyPaymentsAccount { payouts(first: 100, query: \"id:>={{SinceId}}\") { edges { cursor node { id status externalTraceId summary { adjustmentsFee { amount } adjustmentsGross { amount } chargesFee { amount } chargesGross { amount } refundsFee { amount } refundsFeeGross { amount } reservedFundsFee { amount } reservedFundsGross { amount } retriedPayoutsFee { amount } retriedPayoutsGross { amount currencyCode } } issuedAt net { amount currencyCode } } } pageInfo { hasNextPage } } } }"}

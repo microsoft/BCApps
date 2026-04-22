@@ -10,7 +10,6 @@ using Microsoft.Finance.Consolidation;
 #endif
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
-using Microsoft.Finance.GeneralLedger.Ledger;
 #if not CLEAN27
 using System.Environment.Configuration;
 #endif
@@ -147,28 +146,36 @@ codeunit 4410 "Trial Balance"
     local procedure InsertTrialBalanceDataForGLAccountWithFilters(var GLAccount: Record "G/L Account"; Dimension1ValueCode: Code[20]; Dimension2ValueCode: Code[20]; BusinessUnitCode: Code[20]; var TrialBalanceData: Record "EXR Trial Balance Buffer"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary)
     var
         GLAccount2: Record "G/L Account";
-        GLEntry: Record "G/L Entry";
     begin
         Clear(TrialBalanceData);
         if GLAccount.GetFilter("Date Filter") <> '' then begin
-            GLEntry.SetFilter("Posting Date", GLAccount.GetFilter("Date Filter"));
-            if GLEntry.FindFirst() then begin
-                GLAccount2.Copy(GLAccount);
-                GLAccount2.SetFilter("Date Filter", '..%1', GLEntry."Posting Date" - 1);
-                GLAccount2.CalcFields("Balance at Date", "Add.-Currency Balance at Date");
-                TrialBalanceData.Validate("Starting Balance", GLAccount2."Balance at Date");
-                TrialBalanceData.Validate("Starting Balance (ACY)", GLAccount2."Add.-Currency Balance at Date");
-            end;
+            GLAccount2.Copy(GLAccount);
+            GLAccount2.SetFilter("Date Filter", '..%1', ClosingDate(GLAccount2.GetRangeMin("Date Filter") - 1));
+            GLAccount2.CalcFields("Balance at Date", "Add.-Currency Balance at Date", "Debit Amount", "Credit Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount");
+            TrialBalanceData."Starting Balance" := GLAccount2."Balance at Date";
+            TrialBalanceData."Starting Balance (Debit)" := GLAccount2."Debit Amount";
+            TrialBalanceData."Starting Balance (Credit)" := GLAccount2."Credit Amount";
+            TrialBalanceData."Starting Balance (ACY)" := GLAccount2."Add.-Currency Balance at Date";
+            TrialBalanceData."Starting Balance (Debit) (ACY)" := GLAccount2."Add.-Currency Debit Amount";
+            TrialBalanceData."Starting Balance (Credit)(ACY)" := GLAccount2."Add.-Currency Credit Amount";
         end;
-        GlAccount.CalcFields("Net Change", "Balance at Date", "Additional-Currency Net Change", "Add.-Currency Balance at Date", "Budgeted Amount", "Budget at Date");
+        GlAccount.CalcFields("Net Change", "Balance at Date", "Additional-Currency Net Change", "Add.-Currency Balance at Date", "Budgeted Amount", "Budget at Date", "Debit Amount", "Credit Amount", "Add.-Currency Debit Amount", "Add.-Currency Credit Amount");
         TrialBalanceData."G/L Account No." := GlAccount."No.";
         TrialBalanceData."Dimension 1 Code" := Dimension1ValueCode;
         TrialBalanceData."Dimension 2 Code" := Dimension2ValueCode;
         TrialBalanceData."Business Unit Code" := BusinessUnitCode;
-        TrialBalanceData.Validate("Net Change", GLAccount."Net Change");
-        TrialBalanceData.Validate(Balance, GLAccount."Balance at Date");
-        TrialBalanceData.Validate("Net Change (ACY)", GLAccount."Additional-Currency Net Change");
-        TrialBalanceData.Validate("Balance (ACY)", GLAccount."Add.-Currency Balance at Date");
+        TrialBalanceData."Net Change" := GLAccount."Net Change";
+        TrialBalanceData."Net Change (Debit)" := GLAccount."Debit Amount";
+        TrialBalanceData."Net Change (Credit)" := GLAccount."Credit Amount";
+        TrialBalanceData.Balance := GLAccount."Balance at Date";
+        TrialBalanceData."Balance (Debit)" := TrialBalanceData."Starting Balance (Debit)" + TrialBalanceData."Net Change (Debit)";
+        TrialBalanceData."Balance (Credit)" := TrialBalanceData."Starting Balance (Credit)" + TrialBalanceData."Net Change (Credit)";
+        TrialBalanceData."Net Change (ACY)" := GLAccount."Additional-Currency Net Change";
+        TrialBalanceData."Net Change (Debit) (ACY)" := GLAccount."Add.-Currency Debit Amount";
+        TrialBalanceData."Net Change (Credit) (ACY)" := GLAccount."Add.-Currency Credit Amount";
+        TrialBalanceData."Balance (ACY)" := GLAccount."Add.-Currency Balance at Date";
+        TrialBalanceData."Balance (Debit) (ACY)" := TrialBalanceData."Starting Balance (Debit) (ACY)" + TrialBalanceData."Net Change (Debit) (ACY)";
+        TrialBalanceData."Balance (Credit) (ACY)" := TrialBalanceData."Starting Balance (Credit)(ACY)" + TrialBalanceData."Net Change (Credit) (ACY)";
         TrialBalanceData.Validate("Budget (Net)", GLAccount."Budgeted Amount");
         TrialBalanceData.Validate("Budget (Bal. at Date)", GLAccount."Budget at Date");
         TrialBalanceData.CalculateBudgetComparisons();
@@ -229,11 +236,20 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceQuery.DimensionValue1Code;
             TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceQuery.DimensionValue2Code;
             // The balances at the ending date are filled in from the values returned in this query
-            TrialBalanceData.Validate(Balance, EXRTrialBalanceQuery.Amount);
-            TrialBalanceData.Validate("Balance (ACY)", EXRTrialBalanceQuery.ACYAmount);
-            // And also in Net Change (which will have later the value at the starting date subtracted)
-            TrialBalanceData.Validate("Net Change", EXRTrialBalanceQuery.Amount);
-            TrialBalanceData.Validate("Net Change (ACY)", EXRTrialBalanceQuery.ACYAmount);
+            TrialBalanceData.Balance := EXRTrialBalanceQuery.Amount;
+            TrialBalanceData."Balance (Debit)" := EXRTrialBalanceQuery.DebitAmount;
+            TrialBalanceData."Balance (Credit)" := EXRTrialBalanceQuery.CreditAmount;
+            TrialBalanceData."Balance (ACY)" := EXRTrialBalanceQuery.ACYAmount;
+            TrialBalanceData."Balance (Debit) (ACY)" := EXRTrialBalanceQuery.ACYDebitAmount;
+            TrialBalanceData."Balance (Credit) (ACY)" := EXRTrialBalanceQuery.ACYCreditAmount;
+            // Net Change fields temporarily hold cumulative values up to the ending date,
+            // the starting date values will be subtracted in the second query
+            TrialBalanceData."Net Change" := EXRTrialBalanceQuery.Amount;
+            TrialBalanceData."Net Change (Debit)" := EXRTrialBalanceQuery.DebitAmount;
+            TrialBalanceData."Net Change (Credit)" := EXRTrialBalanceQuery.CreditAmount;
+            TrialBalanceData."Net Change (ACY)" := EXRTrialBalanceQuery.ACYAmount;
+            TrialBalanceData."Net Change (Debit) (ACY)" := EXRTrialBalanceQuery.ACYDebitAmount;
+            TrialBalanceData."Net Change (Credit) (ACY)" := EXRTrialBalanceQuery.ACYCreditAmount;
             TrialBalanceData.CheckAllZero();
             if not TrialBalanceData."All Zero" then begin
                 TrialBalanceData.Insert(true);
@@ -244,7 +260,7 @@ codeunit 4410 "Trial Balance"
         EXRTrialBalanceQuery.Close();
 
         // And now we get the balances at the starting date and modify the ones we have already inserted
-        EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.PostingDate, '..%1', StartDate - 1);
+        EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.PostingDate, '..%1', ClosingDate(StartDate - 1));
         EXRTrialBalanceQuery.Open();
         while EXRTrialBalanceQuery.Read() do begin
             TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceQuery.AccountNumber);
@@ -257,11 +273,19 @@ codeunit 4410 "Trial Balance"
                 TrialBalanceData.Insert(true);
             end;
             // The balances at starting date are filled in from the values returned in this query
-            TrialBalanceData.Validate("Starting Balance", EXRTrialBalanceQuery.Amount);
-            TrialBalanceData.Validate("Starting Balance (ACY)", EXRTrialBalanceQuery.ACYAmount);
-            // The "Net Change" will be modified from what it had (balance at ending date) to the subtraction with the starting balance
-            TrialBalanceData.Validate("Net Change", TrialBalanceData."Net Change" - EXRTrialBalanceQuery.Amount);
-            TrialBalanceData.Validate("Net Change (ACY)", TrialBalanceData."Net Change (ACY)" - EXRTrialBalanceQuery.ACYAmount);
+            TrialBalanceData."Starting Balance" := EXRTrialBalanceQuery.Amount;
+            TrialBalanceData."Starting Balance (Debit)" := EXRTrialBalanceQuery.DebitAmount;
+            TrialBalanceData."Starting Balance (Credit)" := EXRTrialBalanceQuery.CreditAmount;
+            TrialBalanceData."Starting Balance (ACY)" := EXRTrialBalanceQuery.ACYAmount;
+            TrialBalanceData."Starting Balance (Debit) (ACY)" := EXRTrialBalanceQuery.ACYDebitAmount;
+            TrialBalanceData."Starting Balance (Credit)(ACY)" := EXRTrialBalanceQuery.ACYCreditAmount;
+            // Subtract cumulative values at the starting date to get the period net change (gross debit and credit)
+            TrialBalanceData."Net Change" := TrialBalanceData."Net Change" - EXRTrialBalanceQuery.Amount;
+            TrialBalanceData."Net Change (Debit)" := TrialBalanceData."Net Change (Debit)" - EXRTrialBalanceQuery.DebitAmount;
+            TrialBalanceData."Net Change (Credit)" := TrialBalanceData."Net Change (Credit)" - EXRTrialBalanceQuery.CreditAmount;
+            TrialBalanceData."Net Change (ACY)" := TrialBalanceData."Net Change (ACY)" - EXRTrialBalanceQuery.ACYAmount;
+            TrialBalanceData."Net Change (Debit) (ACY)" := TrialBalanceData."Net Change (Debit) (ACY)" - EXRTrialBalanceQuery.ACYDebitAmount;
+            TrialBalanceData."Net Change (Credit) (ACY)" := TrialBalanceData."Net Change (Credit) (ACY)" - EXRTrialBalanceQuery.ACYCreditAmount;
             TrialBalanceData.Modify();
             InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
             InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
@@ -282,10 +306,18 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceBUQuery.DimensionValue1Code;
             TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceBUQuery.DimensionValue2Code;
             TrialBalanceData."Business Unit Code" := EXRTrialBalanceBUQuery.BusinessUnitCode;
-            TrialBalanceData.Validate(Balance, EXRTrialBalanceBUQuery.Amount);
-            TrialBalanceData.Validate("Balance (ACY)", EXRTrialBalanceBUQuery.ACYAmount);
-            TrialBalanceData.Validate("Net Change", EXRTrialBalanceBUQuery.Amount);
-            TrialBalanceData.Validate("Net Change (ACY)", EXRTrialBalanceBUQuery.ACYAmount);
+            TrialBalanceData.Balance := EXRTrialBalanceBUQuery.Amount;
+            TrialBalanceData."Balance (Debit)" := EXRTrialBalanceBUQuery.DebitAmount;
+            TrialBalanceData."Balance (Credit)" := EXRTrialBalanceBUQuery.CreditAmount;
+            TrialBalanceData."Balance (ACY)" := EXRTrialBalanceBUQuery.ACYAmount;
+            TrialBalanceData."Balance (Debit) (ACY)" := EXRTrialBalanceBUQuery.ACYDebitAmount;
+            TrialBalanceData."Balance (Credit) (ACY)" := EXRTrialBalanceBUQuery.ACYCreditAmount;
+            TrialBalanceData."Net Change" := EXRTrialBalanceBUQuery.Amount;
+            TrialBalanceData."Net Change (Debit)" := EXRTrialBalanceBUQuery.DebitAmount;
+            TrialBalanceData."Net Change (Credit)" := EXRTrialBalanceBUQuery.CreditAmount;
+            TrialBalanceData."Net Change (ACY)" := EXRTrialBalanceBUQuery.ACYAmount;
+            TrialBalanceData."Net Change (Debit) (ACY)" := EXRTrialBalanceBUQuery.ACYDebitAmount;
+            TrialBalanceData."Net Change (Credit) (ACY)" := EXRTrialBalanceBUQuery.ACYCreditAmount;
             TrialBalanceData.CheckAllZero();
             if not TrialBalanceData."All Zero" then begin
                 TrialBalanceData.Insert(true);
@@ -296,7 +328,7 @@ codeunit 4410 "Trial Balance"
         EXRTrialBalanceBUQuery.Close();
 
         // And now we get the balances at the starting date and modify the ones we have already inserted
-        EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.PostingDate, '..%1', StartDate - 1);
+        EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.PostingDate, '..%1', ClosingDate(StartDate - 1));
         EXRTrialBalanceBUQuery.Open();
         while EXRTrialBalanceBUQuery.Read() do begin
             TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceBUQuery.AccountNumber);
@@ -310,10 +342,18 @@ codeunit 4410 "Trial Balance"
                 TrialBalanceData."Business Unit Code" := EXRTrialBalanceBUQuery.BusinessUnitCode;
                 TrialBalanceData.Insert(true);
             end;
-            TrialBalanceData.Validate("Starting Balance", EXRTrialBalanceBUQuery.Amount);
-            TrialBalanceData.Validate("Starting Balance (ACY)", EXRTrialBalanceBUQuery.ACYAmount);
-            TrialBalanceData.Validate("Net Change", TrialBalanceData."Net Change" - EXRTrialBalanceBUQuery.Amount);
-            TrialBalanceData.Validate("Net Change (ACY)", TrialBalanceData."Net Change (ACY)" - EXRTrialBalanceBUQuery.ACYAmount);
+            TrialBalanceData."Starting Balance" := EXRTrialBalanceBUQuery.Amount;
+            TrialBalanceData."Starting Balance (Debit)" := EXRTrialBalanceBUQuery.DebitAmount;
+            TrialBalanceData."Starting Balance (Credit)" := EXRTrialBalanceBUQuery.CreditAmount;
+            TrialBalanceData."Starting Balance (ACY)" := EXRTrialBalanceBUQuery.ACYAmount;
+            TrialBalanceData."Starting Balance (Debit) (ACY)" := EXRTrialBalanceBUQuery.ACYDebitAmount;
+            TrialBalanceData."Starting Balance (Credit)(ACY)" := EXRTrialBalanceBUQuery.ACYCreditAmount;
+            TrialBalanceData."Net Change" := TrialBalanceData."Net Change" - EXRTrialBalanceBUQuery.Amount;
+            TrialBalanceData."Net Change (Debit)" := TrialBalanceData."Net Change (Debit)" - EXRTrialBalanceBUQuery.DebitAmount;
+            TrialBalanceData."Net Change (Credit)" := TrialBalanceData."Net Change (Credit)" - EXRTrialBalanceBUQuery.CreditAmount;
+            TrialBalanceData."Net Change (ACY)" := TrialBalanceData."Net Change (ACY)" - EXRTrialBalanceBUQuery.ACYAmount;
+            TrialBalanceData."Net Change (Debit) (ACY)" := TrialBalanceData."Net Change (Debit) (ACY)" - EXRTrialBalanceBUQuery.ACYDebitAmount;
+            TrialBalanceData."Net Change (Credit) (ACY)" := TrialBalanceData."Net Change (Credit) (ACY)" - EXRTrialBalanceBUQuery.ACYCreditAmount;
             TrialBalanceData.Modify();
             InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
             InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
@@ -441,16 +481,11 @@ codeunit 4410 "Trial Balance"
 
     local procedure GetRangeDatesForGLAccountFilter(GLAccountDateFilter: Text; var StartDate: Date; var EndDate: Date)
     var
-        GLEntry: Record "G/L Entry";
+        GLAccount: Record "G/L Account";
     begin
-        GLEntry.SetFilter("Posting Date", GLAccountDateFilter);
-        GLEntry.SetLoadFields("Posting Date");
-        GLEntry.SetCurrentKey("Posting Date");
-        GLEntry.SetAscending("Posting Date", true);
-        if GLEntry.FindFirst() then
-            StartDate := GLEntry."Posting Date";
-        if GLEntry.FindLast() then
-            EndDate := GLEntry."Posting Date";
+        GLAccount.SetFilter("Date Filter", GLAccountDateFilter);
+        StartDate := GLAccount.GetRangeMin("Date Filter");
+        EndDate := GLAccount.GetRangeMax("Date Filter");
         if StartDate = 0D then
             StartDate := WorkDate();
         if EndDate = 0D then

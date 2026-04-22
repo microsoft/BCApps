@@ -5,10 +5,6 @@
 
 namespace System.MCP;
 
-#if not CLEAN28
-using System.Environment.Configuration;
-#endif
-
 page 8350 "MCP Config List"
 {
     PageType = List;
@@ -43,6 +39,11 @@ page 8350 "MCP Config List"
                 field(Active; Rec.Active)
                 {
                     ToolTip = 'Specifies whether the MCP configuration is active.';
+                }
+                field(Default; Rec.Default)
+                {
+                    ToolTip = 'Specifies whether this configuration is the default. The default configuration is used when no configuration is specified by a connection.';
+                    Editable = false;
                 }
                 field(EnableDynamicToolMode; Rec.EnableDynamicToolMode)
                 {
@@ -80,7 +81,7 @@ page 8350 "MCP Config List"
             {
                 Caption = 'Give Feedback';
                 ToolTip = 'Share your feedback about the MCP server experience.';
-                Image = Questionaire;
+                Image = Comment;
 
                 trigger OnAction()
                 begin
@@ -136,11 +137,47 @@ page 8350 "MCP Config List"
                         CurrPage.Update(false);
                     end;
                 }
+                action(SetAsDefault)
+                {
+                    Caption = 'Set as Default';
+                    ToolTip = 'Set this configuration as the default. It will be used when no configuration is specified by a connection.';
+                    Image = Approve;
+                    AccessByPermission = tabledata "MCP Configuration" = M;
+                    Scope = Repeater;
+                    Enabled = not Rec.Default;
+
+                    trigger OnAction()
+                    var
+                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                    begin
+                        MCPConfigImplementation.SetAsDefaultConfiguration(Rec.SystemId);
+                        CurrPage.Update(false);
+                    end;
+                }
+                action(ClearDefault)
+                {
+                    Caption = 'Clear Default';
+                    ToolTip = 'Remove the default designation from this configuration. The system will revert to built-in default settings.';
+                    Image = Undo;
+                    AccessByPermission = tabledata "MCP Configuration" = M;
+                    Scope = Repeater;
+                    Enabled = Rec.Default;
+
+                    trigger OnAction()
+                    var
+                        MCPConfigImplementation: Codeunit "MCP Config Implementation";
+                    begin
+                        MCPConfigImplementation.ClearDefaultConfiguration();
+                        CurrPage.Update(false);
+                    end;
+                }
             }
         }
         area(Promoted)
         {
             actionref(Promoted_Copy; Copy) { }
+            actionref(Promoted_SetAsDefault; SetAsDefault) { }
+            actionref(Promoted_ClearDefault; ClearDefault) { }
             actionref(Promoted_GiveFeedback; GiveFeedback) { }
             group(Promoted_Advanced)
             {
@@ -164,19 +201,7 @@ page 8350 "MCP Config List"
     }
 
     trigger OnOpenPage()
-#if not CLEAN28
-    var
-        FeatureNotEnabledErrorInfo: ErrorInfo;
-#endif
     begin
-#if not CLEAN28
-        if not MCPConfigImplementation.IsFeatureEnabled() then begin
-            FeatureNotEnabledErrorInfo.Message := FeatureNotEnabledErr;
-            FeatureNotEnabledErrorInfo.AddNavigationAction(GoToFeatureManagementLbl);
-            FeatureNotEnabledErrorInfo.PageNo := Page::"Feature Management";
-            Error(FeatureNotEnabledErrorInfo);
-        end;
-#endif
         HadActiveConfigsOnOpen := not MCPConfigImplementation.HasNoActiveConfigurations();
     end;
 
@@ -192,9 +217,5 @@ page 8350 "MCP Config List"
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         HadActiveConfigsOnOpen: Boolean;
-#if not CLEAN28
-        FeatureNotEnabledErr: Label 'MCP server feature is not enabled. Please contact your system administrator to enable the feature.';
-        GoToFeatureManagementLbl: Label 'Go to Feature Management';
-#endif
 
 }
