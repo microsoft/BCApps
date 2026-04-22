@@ -56,8 +56,8 @@ pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
     }
     local procedure ShowPurchaseOrder(RecRelatedVariant: Variant)
     var
-        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
     begin
-        SubcFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
+        SubcPurchFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
     end;
 }
