@@ -397,19 +397,17 @@ codeunit 8069 "Sales Subscription Line Mgmt."
             exit;
         if Rec."Prices Including VAT" = xRec."Prices Including VAT" then
             exit;
-        SalesLine.SetRange("Document Type", Rec."Document Type");
-        SalesLine.SetRange("Document No.", Rec."No.");
-        if not SalesLine.FindSet() then
+        SalesServiceCommitment.FilterOnDocument(Rec."Document Type", Rec."No.");
+        SalesServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Customer);
+        if not SalesServiceCommitment.FindSet() then
             exit;
         repeat
-            SalesServiceCommitment.FilterOnSalesLine(SalesLine);
-            if SalesServiceCommitment.FindSet() then
-                repeat
-                    SalesServiceCommitment.SetSalesLine(SalesLine);
-                    SalesServiceCommitment.SetSalesHeader(Rec);
-                    SalesServiceCommitment.CalculateCalculationBaseAmount();
-                until SalesServiceCommitment.Next() = 0;
-        until SalesLine.Next() = 0;
+            if SalesLine.Get(SalesServiceCommitment."Document Type", SalesServiceCommitment."Document No.", SalesServiceCommitment."Document Line No.") then begin
+                SalesServiceCommitment.SetSalesLine(SalesLine);
+                SalesServiceCommitment.SetSalesHeader(Rec);
+                SalesServiceCommitment.CalculateCalculationBaseAmount();
+            end;
+        until SalesServiceCommitment.Next() = 0;
     end;
 
     [IntegrationEvent(false, false)]

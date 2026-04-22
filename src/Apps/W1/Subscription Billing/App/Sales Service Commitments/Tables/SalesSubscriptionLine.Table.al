@@ -529,7 +529,7 @@ table 8068 "Sales Subscription Line"
                                          Rec.TableCaption, CalculateCalculationBaseAmountCustomerProcedureNameLbl);
             end;
         end;
-        if LocalSalesHeader."Prices Including VAT" then
+        if LocalSalesHeader."Prices Including VAT" and (SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Normal VAT") then
             CalculatedBaseAmount := Round(CalculatedBaseAmount / (1 + SalesLine.GetVATPct() / 100), Currency."Unit-Amount Rounding Precision");
         Validate("Calculation Base Amount", CalculatedBaseAmount);
         if "Calculation Base Type" = "Calculation Base Type"::"Document Price And Discount" then
