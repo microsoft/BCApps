@@ -95,7 +95,6 @@ page 99001561 "WIP Adjustment"
                 }
                 field("Description 2"; Rec."Description 2")
                 {
-                    Visible = false;
                 }
                 field("Current Quantity (Base)"; Rec."Quantity (Base)")
                 {

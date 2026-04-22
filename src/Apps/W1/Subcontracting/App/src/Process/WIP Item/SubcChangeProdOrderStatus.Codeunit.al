@@ -9,9 +9,8 @@ using Microsoft.Manufacturing.Document;
 
 codeunit 99001549 "Subc. Change Prod.Order Status"
 {
-
     [EventSubscriber(ObjectType::Page, Page::"Change Status on Prod. Order", OnAfterSet, '', false, false)]
-    local procedure "Change Status on Prod. Order_OnAfterSet"(var Sender: Page "Change Status on Prod. Order"; ProdOrder: Record "Production Order"; var PostingDate: Date; var ReqUpdUnitCost: Boolean; var ProductionOrderStatus: Record "Production Order"; var FirmPlannedStatusEditable: Boolean; var ReleasedStatusEditable: Boolean; var FinishedStatusEditable: Boolean)
+    local procedure SetSubcontractingProductionOrderOnAfterSetSubcontractingWIPEntriesAffected(var Sender: Page "Change Status on Prod. Order"; ProdOrder: Record "Production Order"; var PostingDate: Date; var ReqUpdUnitCost: Boolean; var ProductionOrderStatus: Record "Production Order"; var FirmPlannedStatusEditable: Boolean; var ReleasedStatusEditable: Boolean; var FinishedStatusEditable: Boolean)
     begin
         Sender.SubcSetOrder(ProdOrder);
     end;
@@ -44,7 +43,7 @@ codeunit 99001549 "Subc. Change Prod.Order Status"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnAfterChangeStatusOnProdOrder, '', false, false)]
-    local procedure "Prod. Order Status Management_OnAfterChangeStatusOnProdOrder"(var ProdOrder: Record "Production Order"; var ToProdOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; NewPostingDate: Date; NewUpdateUnitCost: Boolean; var SuppressCommit: Boolean; xProductionOrder: Record "Production Order")
+    local procedure UpdateWIPLedgerEntryProdOrderRelationOnAfterChangeStatus(var ProdOrder: Record "Production Order"; var ToProdOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; NewPostingDate: Date; NewUpdateUnitCost: Boolean; var SuppressCommit: Boolean; xProductionOrder: Record "Production Order")
     begin
         UpdateWIPLedgerEntryProdOrderRelation(xProductionOrder, ToProdOrder, NewStatus);
     end;

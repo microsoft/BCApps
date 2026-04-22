@@ -1015,6 +1015,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         SubcontractingMgmtLibrary.Initialize();
         SubcontractingMgmtLibrary.UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Purchase);
         LibraryMfgManagement.Initialize();
+        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         if IsInitialized then
             exit;
@@ -1029,7 +1030,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         SubcontractingMgmtLibrary.SetupInventorySetup();
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         IsInitialized := true;
         Commit();

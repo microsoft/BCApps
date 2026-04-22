@@ -601,7 +601,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         end;
     end;
 
-    procedure ShowTransferOrdersAndReturnOrder(RecRelatedVariant: Variant; LookUpPage: Boolean; IsReturn: Boolean)
+    procedure ShowTransferOrdersAndReturnOrder(RecRelatedVariant: Variant; LookUpPage: Boolean; IsReturn: Boolean): Decimal
     var
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
@@ -611,6 +611,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         DataTypeManagement: Codeunit "Data Type Management";
+        PageManagement: Codeunit "Page Management";
         RecRef: RecordRef;
         NoOfTransferHeaders: Integer;
         NoTransferExistsTxt: Label 'No transfer order exists for this purchase order.';
@@ -619,6 +620,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
             exit;
 
         DataTypeManagement.GetRecordRef(RecRelatedVariant, RecRef);
+        ProductionOrder.SetLoadFields("No.", "Source Type");
 
         case RecRef.Number() of
             Database::"Prod. Order Component":
@@ -667,6 +669,8 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         TransferLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         TransferLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
         TransferLine.SetRange("Derived From Line No.", 0);
+        if not LookUpPage then
+            exit(TransferLine.Count());
 
         if not TransferLine.IsEmpty() then
             if TransferLine.FindSet() then
@@ -683,9 +687,9 @@ codeunit 99001507 "Subc. Factbox Mgmt."
                     Message(NoTransferExistsTxt);
                 NoOfTransferHeaders = 1:
                     if TransferHeader.FindFirst() then
-                        Page.Run(Page::"Transfer Order", TransferHeader);
+                        PageManagement.PageRun(TransferHeader);
                 NoOfTransferHeaders > 1:
-                    Page.Run(Page::"Transfer Orders", TransferHeader);
+                    PageManagement.PageRunList(TransferHeader);
             end;
         end;
     end;
@@ -791,6 +795,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         TransferLine.SetRange(TransferLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         TransferLine.SetRange(TransferLine."Routing No.", ProdOrderRoutingLine."Routing No.");
         TransferLine.SetRange(TransferLine."Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetRange("Return Order", false);
         TransferLine.SetRange("Derived From Line No.", 0);
         exit(TransferLine.Count());
     end;
@@ -804,6 +809,7 @@ codeunit 99001507 "Subc. Factbox Mgmt."
         TransferLine.SetRange(TransferLine."Routing Reference No.", 0);
         TransferLine.SetRange(TransferLine."Operation No.", '');
         TransferLine.SetRange("Derived From Line No.", 0);
+        TransferLine.SetRange("Return Order", true);
         exit(TransferLine.Count());
     end;
 

@@ -240,7 +240,7 @@ codeunit 139983 "Subc. Management Library"
     begin
         if WIPLedgerEntry.FindLast() then;
         WIPLedgerEntry.Init();
-        WIPLedgerEntry."Entry No." := WIPLedgerEntry."Entry No." + 1;
+        WIPLedgerEntry."Entry No." := WIPLedgerEntry.GetNextEntryNo();
         WIPLedgerEntry."Item No." := ItemNo;
         WIPLedgerEntry."Location Code" := LocationCode;
         WIPLedgerEntry."Prod. Order Status" := "Production Order Status"::Released;

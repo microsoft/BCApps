@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
@@ -100,7 +99,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
             if SubcManagementSetup."Direct Transfer" then begin
                 SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
-                TransferHeader.Validate("Direct Transfer Posting", "Direct Transfer Posting Type"::"Direct Transfer");
+                TransferHeader.Validate("Direct Transfer", true);
             end;
 
             TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;

@@ -7,7 +7,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.WorkCenter;
@@ -99,7 +98,7 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
             if SubcManagementSetup."Direct Transfer" then begin
                 SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
-                TransferHeader.Validate("Direct Transfer Posting", "Direct Transfer Posting Type"::"Direct Transfer");
+                TransferHeader.Validate("Direct Transfer", true);
             end;
 
             TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;
@@ -416,9 +415,6 @@ report 99001501 "Subc. Create Transf. Order"
         PrevProdOrderRoutingLine.SetAutoCalcFields(Subcontracting);
         if PrevProdOrderRoutingLine.FindSet() then
             repeat
-                if not PrevProdOrderRoutingLine.Subcontracting then
-                    continue;
-
                 if not FoundSubcontractingPrevOp then begin
                     TransferWIPItem := PrevProdOrderRoutingLine."Transfer WIP Item";
                     FoundSubcontractingPrevOp := true;
@@ -550,9 +546,10 @@ report 99001501 "Subc. Create Transf. Order"
         SubcontractorWIPLedgerEntry.CalcSums("Quantity (Base)");
         PostedWIPQtyBase := SubcontractorWIPLedgerEntry."Quantity (Base)";
 
-        foreach LocCode in WIPPreviousOperationNoDict.Keys() do
-            if LocCode <> '' then
-                exit(ExpectedQtyBase > 0);
+        if WIPPreviousOperationNoDict.Keys().Count() > 1 then
+            foreach LocCode in WIPPreviousOperationNoDict.Keys() do
+                if LocCode <> '' then
+                    exit(ExpectedQtyBase > 0);
 
         exit(PostedWIPQtyBase < ExpectedQtyBase);
     end;

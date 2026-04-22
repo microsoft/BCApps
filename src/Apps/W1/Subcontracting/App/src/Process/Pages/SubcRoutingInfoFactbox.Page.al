@@ -60,7 +60,7 @@ page 99001502 "Subc. Routing Info Factbox"
                     ShowPurchaseInvoices();
                 end;
             }
-            field(ShowNoOfTransferOrdersFromProdOrderComp; SubcFactboxMgmt.GetNoOfTransferLinesFromRouting(Rec))
+            field(ShowNoOfTransferOrdersFromProdOrderComp; SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, false))
             {
                 AutoFormatType = 0;
                 Caption = 'Transfer Order Lines';
@@ -72,7 +72,7 @@ page 99001502 "Subc. Routing Info Factbox"
                     SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                 end;
             }
-            field(ShowNoOfReturnTransferOrdersFromProdOrderComp; SubcFactboxMgmt.GetNoOfReturnTransferLinesFromRouting(Rec))
+            field(ShowNoOfReturnTransferOrdersFromProdOrderComp; SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, true))
             {
                 AutoFormatType = 0;
                 Caption = 'Return Transfer Order Lines';
