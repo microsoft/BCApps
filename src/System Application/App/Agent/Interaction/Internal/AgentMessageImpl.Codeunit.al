@@ -59,19 +59,6 @@ codeunit 4308 "Agent Message Impl."
         GlobalIgnoreAttachment := IgnoreAttachment;
     end;
 
-    procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; var TempAgentTaskFile: Record "Agent Task File" temporary)
-    var
-        AgentTaskImpl: Codeunit "Agent Task Impl.";
-        FileInstream: InStream;
-    begin
-        TempAgentTaskFile.CalcFields(Content);
-        if not TempAgentTaskFile.Content.HasValue() then
-            exit;
-
-        TempAgentTaskFile.Content.CreateInStream(FileInstream, AgentTaskImpl.GetDefaultEncoding());
-        AddAttachment(AgentTaskMessage, TempAgentTaskFile."File Name", TempAgentTaskFile."File MIME Type", FileInstream, '');
-    end;
-
     procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; var TempAgentTaskFile: Record "Agent Task File" temporary; IgnoredReason: Text[250])
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
