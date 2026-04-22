@@ -10,7 +10,6 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using System.TestLibraries.Utilities;
 
 codeunit 139897 "E-Doc. Send Subscriber Test"
 {
