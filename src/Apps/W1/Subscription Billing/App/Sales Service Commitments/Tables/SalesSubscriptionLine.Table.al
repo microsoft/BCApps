@@ -530,7 +530,7 @@ table 8068 "Sales Subscription Line"
             end;
         end;
         if LocalSalesHeader."Prices Including VAT" then
-            CalculatedBaseAmount := Round(CalculatedBaseAmount / (1 + SalesLine."VAT %" / 100), Currency."Unit-Amount Rounding Precision");
+            CalculatedBaseAmount := Round(CalculatedBaseAmount / (1 + SalesLine.GetVATPct() / 100), Currency."Unit-Amount Rounding Precision");
         Validate("Calculation Base Amount", CalculatedBaseAmount);
         if "Calculation Base Type" = "Calculation Base Type"::"Document Price And Discount" then
             Validate("Discount %", SalesLine."Line Discount %");
@@ -603,8 +603,12 @@ table 8068 "Sales Subscription Line"
             OutSalesHeader := SalesHeaderOverride;
             if SalesHeaderOverride."Currency Code" = '' then
                 Currency.InitRoundingPrecision()
-            else
+            else begin
+                SalesHeaderOverride.TestField("Currency Factor");
                 Currency.Get(SalesHeaderOverride."Currency Code");
+                Currency.TestField("Unit-Amount Rounding Precision");
+                Currency.TestField("Amount Rounding Precision");
+            end;
             exit;
         end;
         if SalesHeader.Get("Document Type", "Document No.") then begin
