@@ -1585,6 +1585,18 @@ table 20405 "Qlty. Inspection Header"
         end;
     end;
 
+    procedure GetStatusStyleExpression(): Text
+    begin
+        case Rec.Status of
+            Rec.Status::Open:
+                exit('Favorable');
+            Rec.Status::Finished:
+                exit('Strong');
+            else
+                exit('None');
+        end;
+    end;
+
     /// <summary>
     /// Gets the preferred result style to use.
     /// </summary>

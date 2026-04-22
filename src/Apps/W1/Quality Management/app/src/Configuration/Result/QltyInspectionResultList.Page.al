@@ -26,9 +26,11 @@ page 20416 "Qlty. Inspection Result List"
             {
                 field(Code; Rec.Code)
                 {
+                    ShowMandatory = true;
                 }
                 field(Description; Rec.Description)
                 {
+                    ShowMandatory = true;
                 }
                 field("Evaluation Sequence"; Rec."Evaluation Sequence")
                 {

@@ -11,6 +11,7 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
@@ -701,6 +702,62 @@ codeunit 139883 "E-Doc Process Test"
         if Item.Delete() then;
         ItemReference.SetRecFilter();
         if ItemReference.Delete() then;
+    end;
+
+    [Test]
+    [HandlerFunctions('EditDimensionSetEntriesHandler')]
+    procedure ManuallyAddedDimensionsOnDraftAreCarriedToPurchaseInvoice()
+    var
+        EDocument: Record "E-Document";
+        EDocImportParams: Record "E-Doc. Import Parameters";
+        EDocPurchaseLine: Record "E-Document Purchase Line";
+        EDocPurchaseLineReread: Record "E-Document Purchase Line";
+        DimensionValue: Record "Dimension Value";
+        DimSetEntry: Record "Dimension Set Entry";
+        LibraryDimension: Codeunit "Library - Dimension";
+    begin
+        // [SCENARIO] When the user edits dimensions on an e-document draft line via LookupDimensions,
+        // the changes should be persisted to the database.
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        // [GIVEN] An inbound e-document is received and a draft is created
+        EDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        WorkDate(DMY2Date(1, 1, 2027));
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', EDocImportParams), 'The draft should be created');
+
+        // [GIVEN] A dimension value to add via the Dimensions lookup
+        LibraryDimension.CreateDimWithDimValue(DimensionValue);
+        LibraryVariableStorage.Enqueue(DimensionValue."Dimension Code");
+        LibraryVariableStorage.Enqueue(DimensionValue.Code);
+
+        // [WHEN] LookupDimensions is called on the draft line (simulating the Dimensions page action)
+        EDocPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPurchaseLine.FindFirst();
+        EDocPurchaseLine.LookupDimensions(); // Opens modal handled by EditDimensionSetEntriesHandler
+
+        // [THEN] The dimension should be persisted on the e-document purchase line when re-read from the database
+        EDocPurchaseLineReread.Get(EDocPurchaseLine."E-Document Entry No.", EDocPurchaseLine."Line No.");
+
+        DimSetEntry.SetRange("Dimension Set ID", EDocPurchaseLineReread."[BC] Dimension Set ID");
+        DimSetEntry.SetRange("Dimension Code", DimensionValue."Dimension Code");
+        DimSetEntry.SetRange("Dimension Value Code", DimensionValue.Code);
+        Assert.RecordIsNotEmpty(DimSetEntry);
+    end;
+
+    [ModalPageHandler]
+    procedure EditDimensionSetEntriesHandler(var EditDimensionSetEntries: TestPage "Edit Dimension Set Entries")
+    var
+        DimensionCode: Code[20];
+        DimensionValueCode: Code[20];
+    begin
+        DimensionCode := CopyStr(LibraryVariableStorage.DequeueText(), 1, 20);
+        DimensionValueCode := CopyStr(LibraryVariableStorage.DequeueText(), 1, 20);
+        EditDimensionSetEntries.New();
+        EditDimensionSetEntries."Dimension Code".SetValue(DimensionCode);
+        EditDimensionSetEntries.DimensionValueCode.SetValue(DimensionValueCode);
+        EditDimensionSetEntries.OK().Invoke();
     end;
 
     local procedure Initialize(Integration: Enum "Service Integration")

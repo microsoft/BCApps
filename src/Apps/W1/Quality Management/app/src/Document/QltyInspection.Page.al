@@ -102,6 +102,7 @@ page 20406 "Qlty. Inspection"
                     field(Status; Rec.Status)
                     {
                         Editable = false;
+                        StyleExpr = StatusStyleExpr;
                     }
                     field("Finished Date"; Rec."Finished Date")
                     {
@@ -474,7 +475,7 @@ page 20406 "Qlty. Inspection"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Create Re-inspection';
+                ToolTip = 'Create a new re-inspection based on this inspection. If the inspection is still open, it will be finished first. Finishing may be blocked if the current result does not allow it.';
 
                 trigger OnAction()
                 begin
@@ -834,6 +835,7 @@ page 20406 "Qlty. Inspection"
         VisibleDocumentNo, VisibleDocumentLineNo : Boolean;
         VisibleSourceTaskNo, VisibleSourceType, VisibleSourceSubType : Boolean;
         CanChangeQuantity: Boolean;
+        StatusStyleExpr: Text;
 
     trigger OnOpenPage()
     begin
@@ -857,9 +859,11 @@ page 20406 "Qlty. Inspection"
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
     begin
         IsOpen := Rec.Status = Rec.Status::Open;
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
+
         CanReopen := not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
-        if Rec.Status = Rec.Status::Open then
+        if IsOpen then
             if QltyPermissionMgmt.CanChangeItemTracking() then begin
                 TempItemTrackingSetup."Lot No. Required" := true;
                 TempItemTrackingSetup."Serial No. Required" := true;
