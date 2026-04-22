@@ -1,6 +1,10 @@
-## preview
+## v9.0
 
-Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+### Needs Context in Build job moved from environment variable to file
+
+`NeedsContext` is currently available as an environment variable in the build step of AL-Go. In some cases on repos with a large amount of projects, it's possible for this variable to exceed the max size GitHub allows for such variables. To work around this issue, we now place the contents of `NeedsContext` in a json file, where `NeedsContext` is the path to that file.
+
+If you have any custom processes that uses `NeedsContext`, those needs to be updated to now first read the contents of the json file. The structure of the json is identical to what was previously in the variable, so only extra step is to read the file.
 
 ### Added support for workspace compilation
 
