@@ -12,7 +12,7 @@ permissionset 99001500 "Subc. Permissionset"
         tabledata "Subc. Management Setup" = RIMD,
         table "Subcontractor Price" = X,
         tabledata "Subcontractor Price" = RIMD,
-        codeunit "Single Instance Dictionary" = X,
+        codeunit "Subc. Session State" = X,
         codeunit "Subc. Business Setup Ext." = X,
         codeunit "Subc. Calc. Prod. Order Ext." = X,
         codeunit "Subc. Calc.StandardCost Ext." = X,

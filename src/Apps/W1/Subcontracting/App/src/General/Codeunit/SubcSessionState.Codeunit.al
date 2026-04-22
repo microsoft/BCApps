@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-codeunit 99001500 "Single Instance Dictionary"
+codeunit 99001500 "Subc. Session State"
 {
     SingleInstance = true;
 
