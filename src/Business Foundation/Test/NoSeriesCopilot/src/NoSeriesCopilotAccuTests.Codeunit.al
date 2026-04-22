@@ -26,13 +26,13 @@ codeunit 133689 "No. Series Copilot Accu. Tests"
     var
         TempNoSeriesGeneration: Record "No. Series Generation";
         TempNoSeriesGenerationDetail: Record "No. Series Generation Detail";
-        TestInputJsonQuestion: Codeunit "Test Input Json";
+        TestInputJsonQuery: Codeunit "Test Input Json";
         TestInputJsonAnswer: Codeunit "Test Input Json";
         ExpectedNumberJson: Codeunit "Test Input Json";
         Found: Boolean;
     begin
-        TestInputJsonQuestion := AITTestContext.GetQuery();
-        NoSeriesCopilotTestLib.Generate(TempNoSeriesGeneration, TempNoSeriesGenerationDetail, TestInputJsonQuestion.ValueAsText());
+        TestInputJsonQuery := AITTestContext.GetQuery();
+        NoSeriesCopilotTestLib.Generate(TempNoSeriesGeneration, TempNoSeriesGenerationDetail, TestInputJsonQuery.ValueAsText());
 
         TestInputJsonAnswer := AITTestContext.GetExpectedData();
 
