@@ -16,7 +16,7 @@ codeunit 4317 "Agent System Permissions"
     /// <returns>True if the user has permissions to manage all agents, false otherwise.</returns>
     procedure CurrentUserHasCanManageAllAgentsPermission(): Boolean
     begin
-        exit("Agent System Permissions Impl.".CurrentUserHasCanManageAllAgentsPermission());
+        exit(AgentSystemPermissionsImpl.CurrentUserHasCanManageAllAgentsPermission());
     end;
 
     /// <summary>
@@ -26,7 +26,7 @@ codeunit 4317 "Agent System Permissions"
     [Scope('OnPrem')]
     procedure CurrentUserHasTroubleshootAllAgents(): Boolean
     begin
-        exit("Agent System Permissions Impl.".CurrentUserHasTroubleshootAllAgents());
+        exit(AgentSystemPermissionsImpl.CurrentUserHasTroubleshootAllAgents());
     end;
 
     /// <summary>
@@ -36,9 +36,20 @@ codeunit 4317 "Agent System Permissions"
     [Scope('OnPrem')]
     procedure CurrentUserHasCanCreateCustomAgent(): Boolean
     begin
-        exit("Agent System Permissions Impl.".CurrentUserHasCanCreateCustomAgent());
+        exit(AgentSystemPermissionsImpl.CurrentUserHasCanCreateCustomAgent());
+    end;
+
+    /// <summary>
+    /// Gets whether the current user has permissions to manage a specific agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityId">The user security id associated with the agent.</param>
+    /// <returns>True if the user has manage permissions for the specified agent, false otherwise.</returns>
+    [Scope('OnPrem')]
+    procedure CurrentUserCanManageAgent(AgentUserSecurityId: Guid): Boolean
+    begin
+        exit(AgentSystemPermissionsImpl.CurrentUserCanManageAgent(AgentUserSecurityId));
     end;
 
     var
-        "Agent System Permissions Impl.": Codeunit "Agent System Permissions Impl.";
+        AgentSystemPermissionsImpl: Codeunit "Agent System Permissions Impl.";
 }
