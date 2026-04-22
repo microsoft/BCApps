@@ -65,7 +65,7 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then
                             if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                                SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                     end;
                 }
                 action("Return Transfer Order")
@@ -78,7 +78,7 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then
                             if PurchaseLine.Get(Rec."Source Subtype", Rec."Source No.", Rec."Source Line No.") then
-                                SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
+                                SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
                     end;
                 }
             }
@@ -86,20 +86,21 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
     }
     var
         PurchaseLine: Record "Purchase Line";
-        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
     end;
 }

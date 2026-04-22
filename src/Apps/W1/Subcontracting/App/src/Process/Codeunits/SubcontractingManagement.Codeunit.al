@@ -95,7 +95,7 @@ codeunit 99001505 "Subcontracting Management"
     var
         RoutingLine: Record "Routing Line";
         Vendor: Record Vendor;
-        SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
+        SubcSessionState: Codeunit "Subc. Session State";
         SubcontractingManagement: Codeunit "Subcontracting Management";
         RoutingLinkCode: Code[10];
         WorkCenterNo: Code[20];
@@ -105,7 +105,7 @@ codeunit 99001505 "Subcontracting Management"
             RoutingLinkCode := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
 
         Vendor.SetLoadFields("Work Center No.");
-        if Vendor.Get(SingleInstanceDictionary.GetCode(SubcontractingManagement.GetDictionaryKey_Sub_CreateProdOrderProcess())) then
+        if Vendor.Get(SubcSessionState.GetCode(SubcontractingManagement.GetDictionaryKey_Sub_CreateProdOrderProcess())) then
             WorkCenterNo := Vendor."Work Center No.";
 
         if WorkCenterNo = '' then

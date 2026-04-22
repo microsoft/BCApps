@@ -74,7 +74,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                     ToolTip = 'Specifies the depended Transfer Order of this Subcontracting Purchase Order.';
                     trigger OnAction()
                     begin
-                        SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                        SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                     end;
                 }
                 action("Return Transfer Order")
@@ -85,14 +85,15 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                     ToolTip = 'Specifies the depended Return Transfer Order of this Subcontracting Purchase Order.';
                     trigger OnAction()
                     begin
-                        SubcFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
+                        SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
                     end;
                 }
             }
         }
     }
     var
-        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
 
     local procedure CreateProductionOrder(CreatingCodeunitID: Integer; ShowCreatedDocument: Boolean)
     var
@@ -136,16 +137,16 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
     end;
 }
