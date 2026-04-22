@@ -157,8 +157,9 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         CopyStream(FileOutStream, InStream);
         TempAgentTaskFileToAttach.Modify();
 
-        GlobalIgnoreAttachmentsList.Add(TempAgentTaskFileToAttach.ID, Ignored);
-        GlobalIgnoredReasonByFileId.Add(TempAgentTaskFileToAttach.ID, IgnoredReason);
+        GlobalIgnoreAttachmentsList.Set(TempAgentTaskFileToAttach.ID, Ignored);
+        if Ignored then
+            GlobalIgnoredReasonByFileId.Set(TempAgentTaskFileToAttach.ID, IgnoredReason);
         exit(this);
     end;
 
