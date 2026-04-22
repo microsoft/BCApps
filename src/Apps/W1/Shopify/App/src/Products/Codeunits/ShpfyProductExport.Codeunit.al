@@ -672,7 +672,8 @@ codeunit 30178 "Shpfy Product Export"
                 until ShopifyVariant.Next() = 0;
             // Re-fetch the parent product's item, as the loop above may have overwritten
             // the Item variable with a child item from "Add Item as Shopify Variant".
-            Item.GetBySystemId(ShopifyProduct."Item SystemId");
+            if not Item.GetBySystemId(ShopifyProduct."Item SystemId") then
+                exit;
             ItemVariant.SetRange("Item No.", Item."No.");
             ItemUnitofMeasure.SetRange("Item No.", Item."No.");
             if ItemVariant.FindSet(false) then

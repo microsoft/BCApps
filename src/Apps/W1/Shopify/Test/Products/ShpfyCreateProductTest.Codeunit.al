@@ -3116,6 +3116,7 @@ codeunit 139601 "Shpfy Create Product Test"
         ProductExport.SetShop(ExportShop);
         ExportShop.SetRange(Code, ExportShop.Code);
         ProductExport.Run(ExportShop);
+        OutboundHttpRequests.AssertEmpty();
 
         // [THEN] No new Shopify variant record is created for the unmapped child item variant.
         ShopifyVariant.Reset();
