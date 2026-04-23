@@ -291,7 +291,7 @@ codeunit 139986 "Subc. CreateProdOrdWizLibrary"
         LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, ComponentItem."Base Unit of Measure");
         LibraryManufacturing.CreateProductionBOMLine(
             ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ComponentItem."No.", 1);
-        BOMLineDescription2 := CopyStr('BOMDesc2_' + Format(LibraryRandom.RandIntInRange(1000, 9999)), 1, MaxStrLen(ProductionBOMLine."Description 2"));
+        BOMLineDescription2 := CopyStr(StrSubstNo('BOMDesc2_%1', LibraryRandom.RandIntInRange(1000, 9999)), 1, MaxStrLen(ProductionBOMLine."Description 2"));
         ProductionBOMLine."Description 2" := BOMLineDescription2;
         ProductionBOMLine.Modify();
         ProductionBOMHeader.Validate("Version Nos.", LibraryERM.CreateNoSeriesCode());
@@ -324,7 +324,7 @@ codeunit 139986 "Subc. CreateProdOrdWizLibrary"
             RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Work Center", WorkCenter2."No.");
         RoutingLine.Validate("Setup Time", 15);
         RoutingLine.Validate("Run Time", 8);
-        RoutingLineDescription2 := CopyStr('RtgDesc2_' + Format(LibraryRandom.RandIntInRange(1000, 9999)), 1, MaxStrLen(RoutingLine."Description 2"));
+        RoutingLineDescription2 := CopyStr(StrSubstNo('RtgDesc2_%1', LibraryRandom.RandIntInRange(1000, 9999)), 1, MaxStrLen(RoutingLine."Description 2"));
         RoutingLine."Description 2" := RoutingLineDescription2;
         RoutingLine.Modify(true);
 
