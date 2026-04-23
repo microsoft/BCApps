@@ -111,7 +111,7 @@ codeunit 99001508 "Subc. Price Management"
         ManufacturingSetup: Record "Manufacturing Setup";
         WorkCenter: Record "Work Center";
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
-        SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
+        SubcSessionState: Codeunit "Subc. Session State";
         ItemRecordID: RecordId;
         RecRef: RecordRef;
         CalculationDate: Date;
@@ -138,18 +138,18 @@ codeunit 99001508 "Subc. Price Management"
         if WorkCenter."Subcontractor No." = '' then
             exit;
 
-        SingleInstanceDictionary.GetRecordID('OnBeforeCalcRoutingLineCosts', ItemRecordID);
+        SubcSessionState.GetRecordID('OnBeforeCalcRoutingLineCosts', ItemRecordID);
         if ItemRecordID.TableNo() <> 0 then
             RecRef := ItemRecordID.GetRecord()
         else begin
-            SingleInstanceDictionary.GetRecordID('OnCalcMfgItemOnBeforeCalcRtngCost', ItemRecordID);
+            SubcSessionState.GetRecordID('OnCalcMfgItemOnBeforeCalcRtngCost', ItemRecordID);
             if ItemRecordID.TableNo() = 0 then
                 exit;
             RecRef := ItemRecordID.GetRecord()
         end;
 
         RecRef.SetTable(Item);
-        CalculationDate := SingleInstanceDictionary.GetDate('OnAfterSetProperties');
+        CalculationDate := SubcSessionState.GetDate('OnAfterSetProperties');
         if CalculationDate = 0D then
             CalculationDate := WorkDate();
 
@@ -169,8 +169,8 @@ codeunit 99001508 "Subc. Price Management"
             RoutingLine."Concurrent Capacities");
         SLSub := (CostTime * DirectUnitCost);
 
-        SingleInstanceDictionary.ClearAllDictionariesForKey('OnBeforeCalcRoutingLineCosts');
-        SingleInstanceDictionary.ClearAllDictionariesForKey('OnCalcMfgItemOnBeforeCalcRtngCost');
+        SubcSessionState.ClearAllDictionariesForKey('OnBeforeCalcRoutingLineCosts');
+        SubcSessionState.ClearAllDictionariesForKey('OnCalcMfgItemOnBeforeCalcRtngCost');
     end;
 
     local procedure CalcRtngCostPerUnit(No: Code[20]; var DirUnitCost: Decimal; var IndirCostPct: Decimal; var OvhdRate: Decimal; var UnitCost: Decimal; var UnitCostCalculationType: Enum "Unit Cost Calculation Type"; Item: Record Item; StandardTaskCode: Code[10]; CalculationDate: Date)

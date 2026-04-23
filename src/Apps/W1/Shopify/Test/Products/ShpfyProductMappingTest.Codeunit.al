@@ -246,4 +246,47 @@ codeunit 139604 "Shpfy Product Mapping Test"
         // [THEN] ShopifyProduct."Item SystemId"= Item.SystemId
         LibraryAssert.AreEqual(Item.SystemId, ShopifyProduct."Item SystemId", 'ShopifyProduct."Item SystemId"= Item.SystemId');
     end;
+
+    [Test]
+    procedure UnitTestFindMappingByBarcodeDisabled()
+    var
+        Item: Record Item;
+        ItemReference: Record "Item Reference";
+        Shop: Record "Shpfy Shop";
+        ShopifyProduct: Record "Shpfy Product";
+        ShopifyVariant: Record "Shpfy Variant";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ProductMapping: Codeunit "Shpfy Product Mapping";
+        EmptyGuid: Guid;
+        Barcode: Code[50];
+    begin
+        // [SCENARIO] When "Find Mapping by Barcode" is disabled on the shop, the barcode fallback should not run.
+        // [SCENARIO] Even if the variant has a barcode matching an Item Reference, no mapping should be made.
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Find Mapping by Barcode" := false;
+        Shop.Modify();
+        Item := ProductInitTest.CreateItem();
+        ItemReference.SetRange("Item No.", Item."No.");
+        ItemReference.SetRange("Reference Type", "Item Reference Type"::"Bar Code");
+        if ItemReference.FindFirst() then
+            BarCode := ItemReference."Reference No.";
+
+        // [GIVEN] A Shopify Product Record
+        // [GIVEN] A Shopify Variant record that belongs to the Shopify Product record and has the same barcode of that from the item record.
+        ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
+        ShopifyVariant.Barcode := Barcode;
+        ShopifyVariant.Modify();
+        ShopifyProduct.Get(ShopifyVariant."Product Id");
+
+        // [WHEN] Invoke ProductMapping.FindMapping(ShopifyProduct, ShopifyVariant)
+        ProductMapping.FindMapping(ShopifyProduct, ShopifyVariant);
+
+        // [THEN] ShopifyVariant."Item SystemId" should be empty (no mapping made)
+        LibraryAssert.AreEqual(EmptyGuid, ShopifyVariant."Item SystemId", 'ShopifyVariant."Item SystemId" should be empty when barcode fallback is disabled');
+
+        // [THEN] ShopifyProduct."Item SystemId" should be empty (no mapping made)
+        LibraryAssert.AreEqual(EmptyGuid, ShopifyProduct."Item SystemId", 'ShopifyProduct."Item SystemId" should be empty when barcode fallback is disabled');
+    end;
 }

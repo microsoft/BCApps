@@ -347,6 +347,18 @@ page 149031 "AIT Test Suite"
                 end;
             }
 
+            action(ResetSuiteSetup)
+            {
+                Caption = 'Reset Suite Setup';
+                ToolTip = 'Resets the per-suite setup flag so that the setup can be run again.';
+                Image = ResetStatus;
+
+                trigger OnAction()
+                begin
+                    Rec.ResetSuiteSetup();
+                    CurrPage.Update(false);
+                end;
+            }
             action(Compare)
             {
                 Caption = 'View runs';

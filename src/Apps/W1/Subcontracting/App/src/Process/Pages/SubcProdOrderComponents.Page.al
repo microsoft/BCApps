@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -59,7 +59,7 @@ page 99001503 "Subc. Prod. Order Components"
                     AutoFormatType = 0;
                     ToolTip = 'Specifies the difference between the finished and planned quantities, or zero if the finished quantity is greater than the remaining quantity.';
                 }
-                field("OutQtyOnPurch Order (Base)"; SubcFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(Rec))
+                field("OutQtyOnPurch Order (Base)"; SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(Rec))
                 {
                     AutoFormatType = 0;
                     Caption = 'Outstanding Qty (Base)';
@@ -68,10 +68,10 @@ page 99001503 "Subc. Prod. Order Components"
                     ToolTip = 'Specifies the outstanding item amount that is on the subcontracting order.';
                     trigger OnDrillDown()
                     begin
-                        SubcFactboxMgmt.ShowPurchOrderOutstandingQtyBaseFromProdOrderComp(Rec);
+                        SubcCompFactboxMgmt.ShowPurchOrderOutstandingQtyBaseFromProdOrderComp(Rec);
                     end;
                 }
-                field("ReceivedQtyOnPurch Order (Base)"; SubcFactboxMgmt.GetPurchOrderQtyReceivedBaseFromProdOrderComp(Rec))
+                field("ReceivedQtyOnPurch Order (Base)"; SubcCompFactboxMgmt.GetPurchOrderQtyReceivedBaseFromProdOrderComp(Rec))
                 {
                     AutoFormatType = 0;
                     Caption = 'Qty. received (Base)';
@@ -80,7 +80,7 @@ page 99001503 "Subc. Prod. Order Components"
                     ToolTip = 'Specifies the received item amount that is on the subcontracting order.';
                     trigger OnDrillDown()
                     begin
-                        SubcFactboxMgmt.ShowPurchOrderQtyReceivedBaseFromProdOrderComp(Rec);
+                        SubcCompFactboxMgmt.ShowPurchOrderQtyReceivedBaseFromProdOrderComp(Rec);
                     end;
                 }
                 field("Qty. on Transfer Order (Base)"; Rec."Qty. on Trans Order (Base)")
@@ -105,7 +105,7 @@ page 99001503 "Subc. Prod. Order Components"
                 {
                     ToolTip = 'Specifies the item amount transferred to the subcontractor.';
                 }
-                field(ConsumedQty; SubcFactboxMgmt.GetConsumptionQtyFromProdOrderComponent(Rec))
+                field(ConsumedQty; SubcCompFactboxMgmt.GetConsumptionQtyFromProdOrderComponent(Rec))
                 {
                     AutoFormatType = 0;
                     Caption = 'Consumed';
@@ -114,7 +114,7 @@ page 99001503 "Subc. Prod. Order Components"
                     ToolTip = 'Specifies the consumed Quantity from assigned Components.';
                     trigger OnDrillDown()
                     begin
-                        SubcFactboxMgmt.ShowConsumptionQtyFromProdOrderComponent(Rec);
+                        SubcCompFactboxMgmt.ShowConsumptionQtyFromProdOrderComponent(Rec);
                     end;
                 }
                 field("Due Date"; Rec."Due Date")
@@ -174,5 +174,5 @@ page 99001503 "Subc. Prod. Order Components"
     }
 
     var
-        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcCompFactboxMgmt: Codeunit "Subc. Comp. Factbox Mgmt.";
 }
