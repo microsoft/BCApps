@@ -351,7 +351,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     begin
         GetSubmanagementSetup();
 
-        Item.SetLoadFields("Item Category Code", "Description 2");
+        Item.SetLoadFields("Item Category Code");
         Item.Get(ProdOrderComponent."Item No.");
 
         PurchaseLine.Init();
