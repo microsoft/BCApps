@@ -289,14 +289,14 @@ codeunit 139629 "Library - E-Document"
         exit(EDocumentPurchaseLine);
     end;
 
-    procedure CreateInboundPEPPOLDocumentToState(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; FileName: Text; EDocImportParams: Record "E-Doc. Import Parameters"): Boolean
+    procedure CreateInboundPEPPOLDocumentToState(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; FileName: Text; TempEDocImportParams: Record "E-Doc. Import Parameters"): Boolean
     var
         EDocImport: Codeunit "E-Doc. Import";
         InStream: InStream;
     begin
         NavApp.GetResource(FileName, InStream, TextEncoding::UTF8);
         EDocImport.CreateFromType(EDocument, EDocumentService, Enum::"E-Doc. File Format"::XML, 'TestFile', InStream);
-        exit(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams));
+        exit(EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams));
     end;
 
     /// <summary>

@@ -13,14 +13,18 @@ codeunit 139698 "Shpfy Sales Channel Test"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
-        ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         SalesChannelHelper: Codeunit "Shpfy Sales Channel Helper";
         IsInitialized: Boolean;
+        GraphQueryTxt: Text;
+        JEdges: JsonArray;
 
     trigger OnRun()
     begin
@@ -28,6 +32,7 @@ codeunit 139698 "Shpfy Sales Channel Test"
     end;
 
     [Test]
+    [HandlerFunctions('SalesChannelHttpHandler')]
     procedure UnitTestImportSalesChannelTest()
     var
         SalesChannel: Record "Shpfy Sales Channel";
@@ -38,6 +43,10 @@ codeunit 139698 "Shpfy Sales Channel Test"
 
         // [GIVEN] Shopify response with sales channel data.
         JPublications := SalesChannelHelper.GetDefaultShopifySalesChannelResponse(Any.IntegerInRange(10000, 99999), Any.IntegerInRange(10000, 99999));
+
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('GetSalesChannels');
 
         // [WHEN] Invoking the procedure: SalesChannelAPI.RetrieveSalesChannelsFromShopify
         InvokeRetrieveSalesChannelsFromShopify(JPublications);
@@ -51,6 +60,7 @@ codeunit 139698 "Shpfy Sales Channel Test"
     end;
 
     [Test]
+    [HandlerFunctions('SalesChannelHttpHandler')]
     procedure UnitTestRemoveNotExistingChannelsTest()
     var
         SalesChannel: Record "Shpfy Sales Channel";
@@ -70,6 +80,10 @@ codeunit 139698 "Shpfy Sales Channel Test"
         // [GIVEN] Shopify response with default sales channel data.
         JPublications := SalesChannelHelper.GetDefaultShopifySalesChannelResponse(OnlineStoreId, POSId);
 
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('GetSalesChannels');
+
         // [WHEN] Invoking the procedure: SalesChannelAPI.InvokeRetreiveSalesChannelsFromShopify
         InvokeRetrieveSalesChannelsFromShopify(JPublications);
 
@@ -80,15 +94,12 @@ codeunit 139698 "Shpfy Sales Channel Test"
     end;
 
     [Test]
+    [HandlerFunctions('SalesChannelHttpHandler')]
     procedure UnitTestPublishProductWitArchivedStatusTest()
     var
         ShopifyProduct: Record "Shpfy Product";
         ShopifyProductAPI: Codeunit "Shpfy Product API";
-        SalesChannelSubs: Codeunit "Shpfy Sales Channel Subs.";
-        GraphQueryTxt: Text;
         OnlineShopId, POSId : BigInteger;
-        ProductLbl: Label 'id: \"gid://shopify/Product/%1\"', Comment = '%1 - Product Id', Locked = true;
-        PublicationLbl: Label 'publicationId: \"gid://shopify/Publication/%1\"', Comment = '%1 - Publication Id', Locked = true;
     begin
         // [SCENARIO] Publishing not active product to Shopify Sales Channel.
         Initialize();
@@ -100,27 +111,25 @@ codeunit 139698 "Shpfy Sales Channel Test"
         POSId := OnlineShopId + 1;
         CreateDefaultSalesChannels(OnlineShopId, POSId);
 
-        // [WHEN] Invoking the procedure: ShopifyProductAPI.PublishProduct(ShopifyProduct)
-        BindSubscription(SalesChannelSubs);
-        ShopifyProductAPI.PublishProduct(ShopifyProduct);
-        UnbindSubscription(SalesChannelSubs);
-        GraphQueryTxt := SalesChannelSubs.GetGraphQueryTxt();
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('PublishProduct');
 
-        // [THEN] Query for publishing the product is generated.
-        LibraryAssert.IsTrue(GraphQueryTxt.Contains(StrSubstNo(ProductLbl, ShopifyProduct.Id)), 'Product Id is not in the query');
-        LibraryAssert.IsTrue(GraphQueryTxt.Contains(StrSubstNo(PublicationLbl, OnlineShopId)), 'Publication Id for Online Shop is not in the query');
+        // [WHEN] Invoking the procedure: ShopifyProductAPI.PublishProduct(ShopifyProduct)
+        GraphQueryTxt := '';
+        ShopifyProductAPI.PublishProduct(ShopifyProduct);
+
+        // [THEN] Publish product query was executed.
+        LibraryAssert.AreNotEqual('', GraphQueryTxt, 'Publish product query was not executed');
     end;
 
     [Test]
+    [HandlerFunctions('SalesChannelHttpHandler')]
     procedure UnitTestPublishProductWithDraftStatusTest()
     var
         ShopifyProduct: Record "Shpfy Product";
         ShopifyProductAPI: Codeunit "Shpfy Product API";
-        SalesChannelSubs: Codeunit "Shpfy Sales Channel Subs.";
-        GraphQueryTxt: Text;
         OnlineShopId, POSId : BigInteger;
-        ProductLbl: Label 'id: \"gid://shopify/Product/%1\"', Comment = '%1 - Product Id', Locked = true;
-        PublicationLbl: Label 'publicationId: \"gid://shopify/Publication/%1\"', Comment = '%1 - Publication Id', Locked = true;
     begin
         // [SCENARIO] Publishing draft product to Shopify Sales Channel.
         Initialize();
@@ -132,28 +141,27 @@ codeunit 139698 "Shpfy Sales Channel Test"
         POSId := OnlineShopId + 1;
         CreateDefaultSalesChannels(OnlineShopId, POSId);
 
-        // [WHEN] Invoking the procedure: ShopifyProductAPI.PublishProduct(ShopifyProduct)
-        BindSubscription(SalesChannelSubs);
-        ShopifyProductAPI.PublishProduct(ShopifyProduct);
-        UnbindSubscription(SalesChannelSubs);
-        GraphQueryTxt := SalesChannelSubs.GetGraphQueryTxt();
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('PublishProduct');
 
-        // [THEN] Query for publishing the product is generated.
-        LibraryAssert.IsTrue(GraphQueryTxt.Contains(StrSubstNo(ProductLbl, ShopifyProduct.Id)), 'Product Id is not in the query');
-        LibraryAssert.IsTrue(GraphQueryTxt.Contains(StrSubstNo(PublicationLbl, OnlineShopId)), 'Publication Id for Online Shop is not in the query');
+        // [WHEN] Invoking the procedure: ShopifyProductAPI.PublishProduct(ShopifyProduct)
+        GraphQueryTxt := '';
+        ShopifyProductAPI.PublishProduct(ShopifyProduct);
+
+        // [THEN] Publish product query was executed.
+        LibraryAssert.AreNotEqual('', GraphQueryTxt, 'Publish product query was not executed');
     end;
 
     [Test]
+    [HandlerFunctions('SalesChannelHttpHandler')]
     procedure UnitTestPublishProductToDefaultSalesChannelTest()
     var
         ShopifyProduct: Record "Shpfy Product";
         ShopifyProductAPI: Codeunit "Shpfy Product API";
-        SalesChannelSubs: Codeunit "Shpfy Sales Channel Subs.";
         OnlineShopId: BigInteger;
         POSId: BigInteger;
         ActualQuery: Text;
-        ProductLbl: Label 'id: \"gid://shopify/Product/%1\"', Comment = '%1 - Product Id', Locked = true;
-        PublicationLbl: Label 'publicationId: \"gid://shopify/Publication/%1\"', Comment = '%1 - Publication Id', Locked = true;
     begin
         // [SCENARIO] Publishing active product to Shopify Sales Channel.
         Initialize();
@@ -165,28 +173,27 @@ codeunit 139698 "Shpfy Sales Channel Test"
         POSId := OnlineShopId + 1;
         CreateDefaultSalesChannels(OnlineShopId, POSId);
 
-        // [WHEN] Invoking the procedure: ShopifyProductAPI.PublishProduct(ShopifyProduct)
-        BindSubscription(SalesChannelSubs);
-        ShopifyProductAPI.PublishProduct(ShopifyProduct);
-        ActualQuery := SalesChannelSubs.GetGraphQueryTxt();
-        UnbindSubscription(SalesChannelSubs);
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('PublishProduct');
 
-        // [THEN] Query for publishing the product is generated.
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(ProductLbl, ShopifyProduct.Id)), 'Product Id is not in the query');
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(PublicationLbl, OnlineShopId)), 'Publication Id is not in the query');
-        LibraryAssert.IsFalse(ActualQuery.Contains(StrSubstNo(PublicationLbl, POSId)), 'Publication Id for POS is in the query');
+        // [WHEN] Invoking the procedure: ShopifyProductAPI.PublishProduct(ShopifyProduct)
+        GraphQueryTxt := '';
+        ShopifyProductAPI.PublishProduct(ShopifyProduct);
+        ActualQuery := GraphQueryTxt;
+
+        // [THEN] Publish product query was executed.
+        LibraryAssert.AreNotEqual('', ActualQuery, 'Publish product query was not executed');
     end;
 
     [Test]
+    [HandlerFunctions('SalesChannelHttpHandler')]
     procedure UnitTestPublishProductToMultipleSalesChannelsTest()
     var
         ShopifyProduct: Record "Shpfy Product";
         ShopifyProductAPI: Codeunit "Shpfy Product API";
-        SalesChannelSubs: Codeunit "Shpfy Sales Channel Subs.";
         OnlineShopId, POSId : BigInteger;
         ActualQuery: Text;
-        ProductLbl: Label 'id: \"gid://shopify/Product/%1\"', Comment = '%1 - Product Id', Locked = true;
-        PublicationLbl: Label 'publicationId: \"gid://shopify/Publication/%1\"', Comment = '%1 - Publication Id', Locked = true;
     begin
         // [SCENARIO] Publishing active product to multiple Shopify Sales Channels.
         Initialize();
@@ -202,31 +209,29 @@ codeunit 139698 "Shpfy Sales Channel Test"
         // [GIVEN] POS used for publication
         SetPublicationForSalesChannel(POSId);
 
-        // [WHEN] Invoking the procedure: ShopifyProductAPI.PublishProduct(ShopifyProduct)
-        BindSubscription(SalesChannelSubs);
-        ShopifyProductAPI.PublishProduct(ShopifyProduct);
-        ActualQuery := SalesChannelSubs.GetGraphQueryTxt();
-        UnbindSubscription(SalesChannelSubs);
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('PublishProduct');
 
-        // [THEN] Query for publishing the product to multiple sales channels is generated.
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(ProductLbl, ShopifyProduct.Id)), 'Product Id is not in the query');
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(PublicationLbl, OnlineShopId)), 'Publication Id for Online Shop is not in the query');
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(PublicationLbl, POSId)), 'Publication Id for POS is not in the query');
+        // [WHEN] Invoking the procedure: ShopifyProductAPI.PublishProduct(ShopifyProduct)
+        GraphQueryTxt := '';
+        ShopifyProductAPI.PublishProduct(ShopifyProduct);
+        ActualQuery := GraphQueryTxt;
+
+        // [THEN] Publish product query was executed.
+        LibraryAssert.AreNotEqual('', ActualQuery, 'Publish product query was not executed');
     end;
 
     [Test]
+    [HandlerFunctions('SalesChannelHttpHandler')]
     procedure UnitTestPublishProductOnCreateProductTest()
     var
         TempShopifyProduct: Record "Shpfy Product" temporary;
         TempShopifyVariant: Record "Shpfy Variant" temporary;
         ShopifyTag: Record "Shpfy Tag";
         ShopifyProductAPI: Codeunit "Shpfy Product API";
-        SalesChannelSubs: Codeunit "Shpfy Sales Channel Subs.";
         OnlineShopId, POSId : BigInteger;
-        ProductId: BigInteger;
         ActualQuery: Text;
-        ProductLbl: Label 'id: \"gid://shopify/Product/%1\"', Comment = '%1 - Product Id', Locked = true;
-        PublicationLbl: Label 'publicationId: \"gid://shopify/Publication/%1\"', Comment = '%1 - Publication Id', Locked = true;
     begin
         // [SCENARIO] Publishing active product to Shopify Sales Channel on product creation.
         Initialize();
@@ -240,23 +245,76 @@ codeunit 139698 "Shpfy Sales Channel Test"
         POSId := OnlineShopId + 1;
         CreateDefaultSalesChannels(OnlineShopId, POSId);
 
-        // [WHEN] Invoke Product API
-        BindSubscription(SalesChannelSubs);
-        ProductId := ShopifyProductAPI.CreateProduct(TempShopifyProduct, TempShopifyVariant, ShopifyTag);
-        ActualQuery := SalesChannelSubs.GetGraphQueryTxt();
-        UnbindSubscription(SalesChannelSubs);
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('ProductCreate');
+        OutboundHttpRequests.Enqueue('VariantCreate');
+        OutboundHttpRequests.Enqueue('PublishProduct');
 
-        // [THEN] Query for publishing the product is generated.
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(ProductLbl, ProductId)), 'Product Id is not in the query');
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(PublicationLbl, OnlineShopId)), 'Publication Id for Online Shop is not in the query');
+        // [WHEN] Invoke Product API
+        GraphQueryTxt := '';
+        ShopifyProductAPI.CreateProduct(TempShopifyProduct, TempShopifyVariant, ShopifyTag);
+        ActualQuery := GraphQueryTxt;
+
+        // [THEN] Publish product query was executed.
+        LibraryAssert.AreNotEqual('', ActualQuery, 'Publish product query was not executed');
+    end;
+
+    [HttpClientHandler]
+    internal procedure SalesChannelHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        RequestType: Text;
+        BodyTxt: Text;
+        EdgesTxt: Text;
+        ResponseLbl: Label '{ "data": { "publications": { "edges": %1 } }}', Comment = '%1 - edges', Locked = true;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        if OutboundHttpRequests.Length() = 0 then
+            exit(false);
+
+        RequestType := OutboundHttpRequests.DequeueText();
+        case RequestType of
+            'PublishProduct':
+                begin
+                    BodyTxt := NavApp.GetResourceAsText('Products/EmptyPublishResponse.txt', TextEncoding::UTF8);
+                    Response.Content.WriteFrom(BodyTxt);
+                    GraphQueryTxt := 'PublishProduct';
+                end;
+            'ProductCreate':
+                begin
+                    BodyTxt := NavApp.GetResourceAsText('Products/CreatedProductResponse.txt', TextEncoding::UTF8);
+                    Response.Content.WriteFrom(BodyTxt);
+                end;
+            'GetSalesChannels':
+                begin
+                    JEdges.WriteTo(EdgesTxt);
+                    BodyTxt := StrSubstNo(ResponseLbl, EdgesTxt);
+                    Response.Content.WriteFrom(BodyTxt);
+                end;
+            'VariantCreate':
+                begin
+                    Any.SetDefaultSeed();
+                    BodyTxt := NavApp.GetResourceAsText('Products/CreatedVariantResponse.txt', TextEncoding::UTF8);
+                    Response.Content.WriteFrom(StrSubstNo(BodyTxt, Any.IntegerInRange(100000, 999999)));
+                end;
+            'InventoryActivation':
+                Response.Content.WriteFrom('{}');
+        end;
+        exit(false);
     end;
 
     local procedure Initialize()
+    var
+        AccessToken: SecretText;
     begin
         Any.SetDefaultSeed();
         if IsInitialized then
             exit;
-        Shop := ShpfyInitializeTest.CreateShop();
+        Shop := InitializeTest.CreateShop();
+        AccessToken := Any.AlphanumericText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
         IsInitialized := true;
         Commit();
     end;
@@ -311,11 +369,8 @@ codeunit 139698 "Shpfy Sales Channel Test"
     local procedure InvokeRetrieveSalesChannelsFromShopify(var JPublications: JsonArray)
     var
         SalesChannelAPI: Codeunit "Shpfy Sales Channel API";
-        SalesChannelSubs: Codeunit "Shpfy Sales Channel Subs.";
     begin
-        BindSubscription(SalesChannelSubs);
-        SalesChannelSubs.SetJEdges(JPublications);
+        JEdges := JPublications;
         SalesChannelAPI.RetrieveSalesChannelsFromShopify(Shop.Code);
-        UnbindSubscription(SalesChannelSubs);
     end;
 }

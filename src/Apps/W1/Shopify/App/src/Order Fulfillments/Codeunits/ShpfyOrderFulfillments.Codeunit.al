@@ -33,8 +33,6 @@ codeunit 30160 "Shpfy Order Fulfillments"
         JFulfillments: JsonArray;
         JResponse: JsonToken;
     begin
-        if CommunicationMgt.GetTestInProgress() then
-            exit;
         CommunicationMgt.SetShop(Shop);
         Parameters.Add('OrderId', Format(OrderId));
         GraphQLType := "Shpfy GraphQL Type"::Orders_GetOrderFulfillment;
