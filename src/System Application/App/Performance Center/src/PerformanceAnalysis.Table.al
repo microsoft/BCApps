@@ -71,6 +71,14 @@ table 8403 "Performance Analysis"
         {
             Caption = 'Trigger Action or Field';
         }
+        field(16; "Trigger Object System Name"; Text[250])
+        {
+            Caption = 'Trigger Object System Name';
+        }
+        field(17; "Trigger Action System Name"; Text[250])
+        {
+            Caption = 'Trigger Action System Name';
+        }
         field(20; "Frequency"; Enum "Perf. Analysis Frequency")
         {
             Caption = 'Frequency';
@@ -157,6 +165,12 @@ table 8403 "Performance Analysis"
             Caption = 'Last Error';
             Editable = false;
         }
+        field(100; "No."; Integer)
+        {
+            Caption = 'No.';
+            AutoIncrement = true;
+            Editable = false;
+        }
     }
 
     keys
@@ -164,6 +178,7 @@ table 8403 "Performance Analysis"
         key(PK; "Id") { Clustered = true; }
         key(User; "Requested By", "Requested At") { }
         key(State; "State", "Requested At") { }
+        key(Number; "No.") { }
     }
 
     fieldgroups

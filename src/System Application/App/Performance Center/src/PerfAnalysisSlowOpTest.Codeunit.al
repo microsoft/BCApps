@@ -20,15 +20,19 @@ codeunit 8433 "Perf. Analysis Slow Op Test"
 
     procedure SlowOperation()
     var
+        StartTime: DateTime;
+        ElapsedMs: Integer;
         SleepMs: Integer;
     begin
+        StartTime := CurrentDateTime();
         Randomize();
         if Random(2) = 1 then begin
             SleepMs := 1000 + Random(1000);
             Sleep(SleepMs);
         end else
             CheckLicense();
-        Message(RanMsg);
+        ElapsedMs := CurrentDateTime() - StartTime;
+        Message(RanMsg, ElapsedMs);
     end;
 
     procedure CheckLicense()
@@ -41,5 +45,5 @@ codeunit 8433 "Perf. Analysis Slow Op Test"
     end;
 
     var
-        RanMsg: Label 'Done.';
+        RanMsg: Label 'Done (took %1 milliseconds).', Comment = '%1 = elapsed time in milliseconds';
 }

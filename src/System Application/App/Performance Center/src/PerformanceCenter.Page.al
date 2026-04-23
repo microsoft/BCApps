@@ -99,7 +99,7 @@ page 8423 "Performance Center"
                 Caption = 'Debug';
                 action(SlowOperationTest)
                 {
-                    Caption = 'Run operation (test)';
+                    Caption = 'Run slow operation';
                     ToolTip = 'Run a test operation. Use this to produce a captured profile while a performance analysis is actively monitoring.';
                     Image = TestFile;
                     ApplicationArea = All;

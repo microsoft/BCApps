@@ -87,20 +87,13 @@ page 8424 "Perf. Analysis Wizard"
             }
             group(HowSlow)
             {
-                Caption = 'How slow?';
+                Caption = 'How fast should it be?';
                 Visible = Step = Step::HowSlow;
-                InstructionalText = 'Approximate numbers are fine. Use seconds — a rough estimate is enough.';
+                InstructionalText = 'How fast is the scenario normally? Or how fast would you expect it to be?';
 
-                field(ObservedSec; ObservedSeconds)
-                {
-                    Caption = 'Observed duration (seconds)';
-                    ApplicationArea = All;
-                    MinValue = 0;
-                    ToolTip = 'Specifies roughly how long it takes today, in seconds.';
-                }
                 field(ExpectedSec; ExpectedSeconds)
                 {
-                    Caption = 'Expected duration less than (seconds)';
+                    Caption = 'Normal/expected duration (seconds)';
                     ApplicationArea = All;
                     MinValue = 0;
                     ToolTip = 'Specifies how long you think it should take, in seconds. The profiler will flag anything that runs significantly longer than this.';
@@ -227,7 +220,6 @@ page 8424 "Perf. Analysis Wizard"
     var
         Step: Option Welcome,Where,HowOften,HowSlow,Who,Notes,Summary;
         IsAdmin: Boolean;
-        ObservedSeconds: Integer;
         ExpectedSeconds: Integer;
         SummaryTextTxt: Text;
         TargetUserNameTxt: Text[132];
@@ -347,10 +339,10 @@ page 8424 "Perf. Analysis Wizard"
 
     local procedure ThresholdForSummary() Threshold: Integer
     begin
-        // Mirror Perf. Analysis Mgt. Impl.: threshold is "significantly above" the expected
-        // duration so the profiler catches runs that exceed what the user expects.
+        // Mirror Perf. Analysis Mgt. Impl.: threshold is set below the expected duration so
+        // the profiler also captures runs at the expected pace for comparison.
         if Rec."Expected Duration (ms)" > 0 then
-            Threshold := (Rec."Expected Duration (ms)" * 3) div 2
+            Threshold := Rec."Expected Duration (ms)" div 2
         else
             Threshold := 200;
         if Threshold < 200 then
@@ -361,8 +353,8 @@ page 8424 "Perf. Analysis Wizard"
 
     local procedure BuildAutoTitle(): Text[250]
     var
-        PageAndScenarioLbl: Label 'Slow on %1: %2', Comment = '%1 = page name, %2 = scenario';
-        PageOnlyLbl: Label 'Slow on %1', Comment = '%1 = page name';
+        PageAndScenarioLbl: Label 'Slowness on the %1 page: %2', Comment = '%1 = page name, %2 = scenario';
+        PageOnlyLbl: Label 'Slowness on the %1 page', Comment = '%1 = page name';
         ScenarioOnlyLbl: Label 'Slow: %1', Comment = '%1 = scenario';
         GenericLbl: Label 'Slow scenario';
         Scenario: Text[250];
@@ -394,7 +386,6 @@ page 8424 "Perf. Analysis Wizard"
 
     local procedure ApplyDurations()
     begin
-        Rec."Observed Duration (ms)" := ObservedSeconds * 1000;
         Rec."Expected Duration (ms)" := ExpectedSeconds * 1000;
     end;
 
@@ -433,6 +424,9 @@ page 8424 "Perf. Analysis Wizard"
         Rec."Trigger Object Type" := Rec."Trigger Object Type"::Page;
         Rec."Trigger Object Id" := TempPageBuf."Page Id";
         Rec."Trigger Object Name" := Name;
+        Rec."Trigger Object System Name" := TempPageBuf.Name;
+        Rec."Trigger Action Name" := '';
+        Rec."Trigger Action System Name" := '';
         LastPickedObjectName := Name;
         Text := Name;
         exit(true);
@@ -455,6 +449,7 @@ page 8424 "Perf. Analysis Wizard"
             exit(false);
         ScenarioText := CopyStr(TempScenarioBuf."Scenario", 1, MaxStrLen(ScenarioText));
         Rec."Trigger Action Name" := ScenarioText;
+        Rec."Trigger Action System Name" := TempScenarioBuf.Name;
         Text := ScenarioText;
         exit(true);
     end;

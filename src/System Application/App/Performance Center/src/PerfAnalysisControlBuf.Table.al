@@ -34,6 +34,7 @@ table 8405 "Perf. Analysis Control Buf"
             OptionMembers = Field,Action,Close;
             OptionCaption = 'Change a field value,Invoke an action,Close the page';
         }
+        field(7; "Name"; Text[250]) { Caption = 'Name'; }
     }
 
     keys

@@ -28,6 +28,7 @@ page 8432 "Perf. Analysis Control Lookup"
     LinksAllowed = false;
     Permissions = tabledata AllObjWithCaption = r,
                   tabledata Field = r,
+                  tabledata "Page Action" = r,
                   tabledata "Page Metadata" = r;
 
     layout
@@ -82,11 +83,11 @@ page 8432 "Perf. Analysis Control Lookup"
     }
 
     var
-        ChangeFieldFmtLbl: Label 'Change the value of the ''%1'' field.', Comment = '%1 = field caption';
-        ChangeFieldOnSubpageFmtLbl: Label 'Change the value of the ''%1'' field of the %2.', Comment = '%1 = field caption, %2 = subpage name';
-        InvokeActionFmtLbl: Label 'Invoke the ''%1'' action.', Comment = '%1 = action caption';
-        InvokeActionOnSubpageFmtLbl: Label 'Invoke the ''%1'' action on the %2.', Comment = '%1 = action caption, %2 = subpage name';
-        CloseActionLbl: Label 'Close the page.';
+        ChangeFieldFmtLbl: Label 'Change the value of the ''%1'' field', Comment = '%1 = field caption';
+        ChangeFieldOnSubpageFmtLbl: Label 'Change the value of the ''%1'' field of the %2', Comment = '%1 = field caption, %2 = subpage name';
+        InvokeActionFmtLbl: Label 'Invoke the ''%1'' action', Comment = '%1 = action caption';
+        InvokeActionOnSubpageFmtLbl: Label 'Invoke the ''%1'' action on the %2', Comment = '%1 = action caption, %2 = subpage name';
+        CloseActionLbl: Label 'Close the page';
         MainPageName: Text[250];
         MainPageId: Integer;
         TargetPageNameFilter: Text[250];
@@ -120,7 +121,7 @@ page 8432 "Perf. Analysis Control Lookup"
             foreach SubPageId in SubPageIds do
                 AddSubpageScenarios(SubPageId);
         end;
-        AddScenarioEx(100, CloseActionLbl, MainPageId, MainPageName, Rec."Scenario Type"::Action);
+        AddScenarioEx(100, CloseActionLbl, MainPageId, MainPageName, Rec."Scenario Type"::Action, 'Close');
     end;
 
     trigger OnOpenPage()
@@ -247,49 +248,53 @@ page 8432 "Perf. Analysis Control Lookup"
                     ScenarioText := CopyStr(StrSubstNo(ChangeFieldOnSubpageFmtLbl, Caption, SubpageName), 1, 500)
                 else
                     ScenarioText := CopyStr(StrSubstNo(ChangeFieldFmtLbl, Caption), 1, 500);
-                AddScenarioEx(SortGroup, ScenarioText, TargetPageId, TargetPageName, Rec."Scenario Type"::Field);
+                AddScenarioEx(SortGroup, ScenarioText, TargetPageId, TargetPageName, Rec."Scenario Type"::Field, CopyStr(Field.FieldName, 1, 250));
             until Field.Next() = 0;
     end;
 
     local procedure AddActionScenarios(PageId: Integer; TargetPageName: Text[250]; SubpageName: Text[250]; SortGroup: Integer)
     var
-        Captions: List of [Text[250]];
+        CaptionsAndNames: Dictionary of [Text[250], Text[250]];
         Caption: Text[250];
+        SystemName: Text[250];
         ScenarioText: Text[500];
     begin
-        if not TryCollectActionCaptions(PageId, Captions) then
+        if not TryCollectActionCaptions(PageId, CaptionsAndNames) then
             exit;
-        foreach Caption in Captions do begin
+        foreach Caption in CaptionsAndNames.Keys() do begin
+            SystemName := CaptionsAndNames.Get(Caption);
             if SubpageName = MainPageName then
                 ScenarioText := CopyStr(StrSubstNo(InvokeActionFmtLbl, Caption), 1, 500)
             else
                 ScenarioText := CopyStr(StrSubstNo(InvokeActionOnSubpageFmtLbl, Caption, SubpageName), 1, 500);
-            AddScenarioEx(SortGroup, ScenarioText, PageId, TargetPageName, Rec."Scenario Type"::Action);
+            AddScenarioEx(SortGroup, ScenarioText, PageId, TargetPageName, Rec."Scenario Type"::Action, SystemName);
         end;
     end;
 
     [TryFunction]
-    local procedure TryCollectActionCaptions(PageId: Integer; var Captions: List of [Text[250]])
+    local procedure TryCollectActionCaptions(PageId: Integer; var CaptionsAndNames: Dictionary of [Text[250], Text[250]])
     var
         PageAction: Record "Page Action";
-        NavPageActionALFunctions: DotNet NavPageActionALFunctions;
-        NavPageActionALResponse: DotNet NavPageActionALResponse;
-        NavPageActionAL: DotNet NavPageActionAL;
-        Seen: List of [Text[250]];
         Caption: Text[250];
+        SystemName: Text[250];
     begin
-        NavPageActionALResponse := NavPageActionALFunctions.GetActions(PageId);
-        if not NavPageActionALResponse.Success then
-            exit;
-        foreach NavPageActionAL in NavPageActionALResponse.PageActions do
-            if NavPageActionAL.ActionType = PageAction."Action Type"::Action then begin
-                Caption := CopyStr(Format(NavPageActionAL.Caption), 1, 250);
+        // Read the Page Action virtual table directly. Unlike NavPageActionALFunctions.GetActions,
+        // it does not apply a static Visible filter - which is important because extension-added
+        // actions often have conditional Visible properties that evaluate to false without a
+        // record context, causing them to be hidden from the wizard.
+        PageAction.SetRange("Page ID", PageId);
+        PageAction.SetFilter("Action Type", '%1|%2|%3',
+            PageAction."Action Type"::Action,
+            PageAction."Action Type"::CustomAction,
+            PageAction."Action Type"::FileUploadAction);
+        if PageAction.FindSet() then
+            repeat
+                Caption := CopyStr(PageAction.Caption, 1, 250);
                 Caption := StripAmpersand(Caption);
-                if (Caption <> '') and (not Seen.Contains(Caption)) then begin
-                    Seen.Add(Caption);
-                    Captions.Add(Caption);
-                end;
-            end;
+                SystemName := CopyStr(PageAction.Name, 1, 250);
+                if (Caption <> '') and (SystemName <> '') and (not CaptionsAndNames.ContainsKey(Caption)) then
+                    CaptionsAndNames.Add(Caption, SystemName);
+            until PageAction.Next() = 0;
     end;
 
     local procedure StripAmpersand(Input: Text[250]): Text[250]
@@ -377,7 +382,7 @@ page 8432 "Perf. Analysis Control Lookup"
         exit(PageMeta.Name);
     end;
 
-    local procedure AddScenarioEx(SortGroup: Integer; Text: Text[500]; TargetPageId: Integer; TargetPageName: Text[250]; ScenarioType: Option Field,Action)
+    local procedure AddScenarioEx(SortGroup: Integer; Text: Text[500]; TargetPageId: Integer; TargetPageName: Text[250]; ScenarioType: Option Field,Action; SystemName: Text[250])
     var
         NextLineNo: Integer;
     begin
@@ -402,6 +407,7 @@ page 8432 "Perf. Analysis Control Lookup"
         Rec."Target Page Id" := TargetPageId;
         Rec."Target Page Name" := TargetPageName;
         Rec."Scenario Type" := ScenarioType;
+        Rec.Name := SystemName;
         Rec.Insert();
     end;
 }

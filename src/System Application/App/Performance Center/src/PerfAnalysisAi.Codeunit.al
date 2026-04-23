@@ -28,8 +28,9 @@ codeunit 8416 "Perf. Analysis AI"
     var
         LastError: Text;
         SystemPromptLbl: Label 'You are a Dynamics 365 Business Central performance expert. The user has reported a slow scenario and we have captured one or more sampling performance profiles while the user reproduced it. Your job is to explain why the scenario is sometimes slow, grounded in the captured profiles and the user''s description. Be specific, be concise, and give guidance that a Business Central end user or developer can act on. If the data is inconclusive, say so plainly.';
-        FilterInstructionLbl: Label 'For each captured profile, respond with a JSON array of objects with fields ProfileNo (integer), Relevance (0..1), Reason (short text). Mark profiles as relevant (>=0.5) only if they plausibly match the scenario. Respond with JSON only.';
-        AnalysisInstructionLbl: Label 'You will receive a Markdown document describing the user''s slow scenario (title, activity, trigger, page/action, expected/observed duration, frequency, notes) followed by the captured profiles with their metrics (activity duration, AL execution duration, SQL statement count and duration, HTTP call count and duration). Analyze why the scenario is sometimes slow and produce a conclusion in Markdown. Do not include a top-level ''# '' heading - start directly with five ''## '' sections in this order: ''## Summary'', ''## Where time is spent'', ''## Most likely root cause'', ''## Why the scenario varies'', ''## Recommended next steps''. Within each section use short paragraphs and ''- '' bullet lists where appropriate, and use **bold** to emphasize key findings. Recommendations should be actionable for either an end user or a developer. Do not invent data that is not in the payload.';
+        FilterSystemPromptLbl: Label 'You are a Dynamics 365 Business Central performance expert. Profiler traces were captured for a user over a monitoring window. The user has told us exactly which scenario they want analyzed (the target user, the page, and the specific action or field they interacted with). Your job is to decide, for each captured profile, whether that profile captures the user actually performing that scenario. You are NOT judging whether a profile is "interesting" or "slow" - only whether it represents the requested scenario being reproduced. Profiles captured while the user was doing something else on the same page, navigating between pages, or idling, are not relevant even if they happened during the monitoring window.';
+        FilterInstructionLbl: Label 'Decide relevance by comparing each profile''s description against the scenario the user described. All profiles belong to the same target user, so do not consider who captured them. A profile is relevant only if its description plausibly represents the scenario being reproduced. Do not base relevance on duration or any other performance characteristic - those are for the later analysis step. Respond with a JSON array of integers listing the ProfileNo values of the relevant profiles (for example [1,3,4]). Respond with JSON only, no explanation and no extra fields.';
+        AnalysisInstructionLbl: Label 'You will receive a Markdown document describing a slow scenario under ''## Observations by the user'' (when it is slow, the expected duration, free-form notes) followed by the captured profiles under ''## Captured profiles''. Each profile is introduced by a ''Profile N'' header, followed by plain-text bullet lines with the profile''s metadata (starting time, activity description, activity and sampling durations, SQL and HTTP counts), followed by ''- Profile payload:'' and the raw JSON sampling profile captured while the user reproduced the scenario. IMPORTANT - how to read the payload: (1) The payload comes from a SAMPLING profiler. A function''s hit count is the number of samples observed inside that function, NOT the number of times the function was called. Treat hit counts as a measure of time spent in a code path, not as a call count. Do not say ''X was called N times'' based on hit counts. (2) Ignore IdleTime in the payload completely. IdleTime represents time the server was waiting outside the operation itself (between requests, waiting for the next user interaction, parked, etc.) and is never experienced by the user as slowness. Do not mention IdleTime anywhere in the conclusion. Focus only on SQL, HTTP, and CPU-bound work that happens between when the user triggered the action and when the response was returned. IMPORTANT - how to refer to profiles in the conclusion: The ''Profile N'' numbering is an internal detail and is not visible to the end user. Do not write ''Profile 1'', ''Profile 2'', ''Profiles 3 and 5'', etc. If you need to point to a specific captured profile, refer to it by its ''Starting at'' timestamp (for example ''the capture at 2026-04-22 09:35:12''). Analyze why the scenario is sometimes slow and produce a conclusion in Markdown. Do not include a top-level ''# '' heading - start directly with five ''## '' sections in this order: ''## Summary'', ''## Where time is spent'', ''## Most likely root cause'', ''## Why the scenario varies'', ''## Recommended next steps''. Within each section use short paragraphs and ''- '' bullet lists where appropriate, and use **bold** to emphasize key findings. Recommendations should be actionable for either an end user or a developer. Do not invent data that is not in the payload.';
         ChatInstructionLbl: Label 'You are now in follow-up mode. The user is asking a question about the scenario and conclusion above. Answer the question directly and in full, in Markdown, grounded in the scenario, the captured profiles, and your prior conclusion. If the question cannot be answered from that context, say so explicitly and explain what additional data would be needed. Do not restate the conclusion unless the user asks for it.';
         CapabilityNotActiveErr: Label 'The Copilot capability "AI-assisted performance analysis in Performance Center" is not active in this environment. Enable it in the Copilot & AI capabilities page to use AI-assisted analysis.';
         AuthNotConfiguredErr: Label 'Azure OpenAI is not configured for this environment.';
@@ -89,16 +90,16 @@ codeunit 8416 "Perf. Analysis AI"
             exit(false);
 
         Payload := BuildFilterPayload(Analysis);
-        Messages.AddSystemMessage(SystemPromptLbl);
+        Messages.AddSystemMessage(FilterSystemPromptLbl);
         Messages.AddSystemMessage(FilterInstructionLbl);
         Messages.AddUserMessage(Payload);
 
         if not TryChat(AzureOpenAI, Messages, Response, Reply, RawResponse, Success, StatusCode, Err, DurationMs) then begin
-            LogLlmCall(Enum::"Perf. Analysis LLM Purpose"::Filter, Analysis, BuildRawRequest(SystemPromptLbl, FilterInstructionLbl, Payload), RawResponse, Reply, false, StatusCode, GetLastErrorText(), DurationMs);
+            LogLlmCall(Enum::"Perf. Analysis LLM Purpose"::Filter, Analysis, BuildRawRequest(FilterSystemPromptLbl, FilterInstructionLbl, Payload), RawResponse, Reply, false, StatusCode, GetLastErrorText(), DurationMs);
             LastError := GetLastErrorText();
             exit(false);
         end;
-        LogLlmCall(Enum::"Perf. Analysis LLM Purpose"::Filter, Analysis, BuildRawRequest(SystemPromptLbl, FilterInstructionLbl, Payload), RawResponse, Reply, Success, StatusCode, Err, DurationMs);
+        LogLlmCall(Enum::"Perf. Analysis LLM Purpose"::Filter, Analysis, BuildRawRequest(FilterSystemPromptLbl, FilterInstructionLbl, Payload), RawResponse, Reply, Success, StatusCode, Err, DurationMs);
         if not Success then begin
             LastError := Err;
             exit(false);
@@ -120,6 +121,7 @@ codeunit 8416 "Perf. Analysis AI"
         Messages: Codeunit "AOAI Chat Messages";
         Response: Codeunit "AOAI Operation Response";
         AzureOpenAI: Codeunit "Azure OpenAI";
+        Line: Record "Performance Analysis Line";
         Reply: Text;
         Payload: Text;
         RawResponse: Text;
@@ -129,10 +131,12 @@ codeunit 8416 "Perf. Analysis AI"
         DurationMs: Integer;
     begin
         LastError := '';
-        // Keep lines in sync with the latest captured profiles so the card's "Profiles
-        // Captured" counter and the payload below see the same data.
-        ClearProfileLines(Analysis);
-        if LoadProfilesToLines(Analysis) then;
+        // If lines have not been loaded yet (filter step was skipped) populate them so
+        // BuildAnalysisPayload has something to work with. Do not wipe existing lines -
+        // the filter step's "Marked Relevant" markings must survive into analysis.
+        Line.SetRange("Analysis Id", Analysis."Id");
+        if Line.IsEmpty() then
+            if LoadProfilesToLines(Analysis) then;
         if not TryPrepareClient(AzureOpenAI) then
             exit(false);
 
@@ -152,31 +156,51 @@ codeunit 8416 "Perf. Analysis AI"
             exit(false);
         end;
 
-        Analysis.SetConclusion(Reply);
+        Analysis.SetConclusion(BuildConclusionPreface(Analysis) + Reply);
         Analysis."Ai Model" := CopyStr('azure-openai-chat', 1, MaxStrLen(Analysis."Ai Model"));
         Analysis.Modify(true);
         exit(true);
     end;
 
-    /// <summary>
-    /// Returns the fully assembled LLM prompt (system messages + user payload) for the
-    /// given analysis so a developer can inspect what is sent to AOAI.
-    /// </summary>
-    procedure BuildAnalysisPromptForDebug(var Analysis: Record "Performance Analysis"): Text
+    local procedure BuildConclusionPreface(var Analysis: Record "Performance Analysis"): Text
     var
-        SystemHeaderLbl: Label '=== System message ===';
-        InstructionHeaderLbl: Label '=== Instruction ===';
-        UserHeaderLbl: Label '=== User payload ===';
-        Newline: Text[2];
+        NL: Text[2];
+        UserName: Text;
+        ActionName: Text;
+        StartText: Text;
+        EndText: Text;
+        WithUserAndActionLbl: Label 'Analyzed %1''s action "%2" between %3 and %4. Captured %5 profile(s), selected %6 as relevant.', Comment = '%1 target user name, %2 trigger action name, %3 monitoring start, %4 monitoring end, %5 profiles captured, %6 profiles relevant';
+        WithUserLbl: Label 'Analyzed %1''s session between %2 and %3. Captured %4 profile(s), selected %5 as relevant.', Comment = '%1 target user name, %2 monitoring start, %3 monitoring end, %4 profiles captured, %5 profiles relevant';
+        WithActionLbl: Label 'Analyzed action "%1" between %2 and %3. Captured %4 profile(s), selected %5 as relevant.', Comment = '%1 trigger action name, %2 monitoring start, %3 monitoring end, %4 profiles captured, %5 profiles relevant';
+        FallbackLbl: Label 'Analyzed the scenario between %1 and %2. Captured %3 profile(s), selected %4 as relevant.', Comment = '%1 monitoring start, %2 monitoring end, %3 profiles captured, %4 profiles relevant';
     begin
-        Newline[1] := 13;
-        Newline[2] := 10;
-        ClearProfileLines(Analysis);
-        if LoadProfilesToLines(Analysis) then;
-        exit(
-            SystemHeaderLbl + Newline + SystemPromptLbl + Newline + Newline +
-            InstructionHeaderLbl + Newline + AnalysisInstructionLbl + Newline + Newline +
-            UserHeaderLbl + Newline + BuildAnalysisPayload(Analysis));
+        NL[1] := 13;
+        NL[2] := 10;
+        Analysis.CalcFields("Target User Name");
+        UserName := Analysis."Target User Name";
+        ActionName := Analysis."Trigger Action Name";
+        StartText := FormatDateTimeForPreface(Analysis."Monitoring Starts At");
+        EndText := FormatDateTimeForPreface(Analysis."Monitoring Ends At");
+
+        case true of
+            (UserName <> '') and (ActionName <> ''):
+                exit(StrSubstNo(WithUserAndActionLbl, UserName, ActionName, StartText, EndText, Analysis."Profiles Captured", Analysis."Profiles Relevant") + NL + NL);
+            UserName <> '':
+                exit(StrSubstNo(WithUserLbl, UserName, StartText, EndText, Analysis."Profiles Captured", Analysis."Profiles Relevant") + NL + NL);
+            ActionName <> '':
+                exit(StrSubstNo(WithActionLbl, ActionName, StartText, EndText, Analysis."Profiles Captured", Analysis."Profiles Relevant") + NL + NL);
+            else
+                exit(StrSubstNo(FallbackLbl, StartText, EndText, Analysis."Profiles Captured", Analysis."Profiles Relevant") + NL + NL);
+        end;
+    end;
+
+    local procedure FormatDateTimeForPreface(Dt: DateTime): Text
+    var
+        UnknownLbl: Label '(unknown)';
+    begin
+        if Dt = 0DT then
+            exit(UnknownLbl);
+        exit(Format(Dt));
     end;
 
     local procedure BuildRawRequest(SystemPrompt: Text; Instruction: Text; UserPayload: Text) Combined: Text
@@ -186,9 +210,9 @@ codeunit 8416 "Perf. Analysis AI"
         Newline[1] := 13;
         Newline[2] := 10;
         Combined :=
-            '--- System message ---' + Newline + SystemPrompt + Newline + Newline +
-            '--- Instruction ---' + Newline + Instruction + Newline + Newline +
-            '--- User message ---' + Newline + UserPayload;
+            '# System message' + Newline + SystemPrompt + Newline + Newline +
+            '# Instruction' + Newline + Instruction + Newline + Newline +
+            '# User message' + Newline + UserPayload;
     end;
 
     /// <summary>
@@ -350,6 +374,7 @@ codeunit 8416 "Perf. Analysis AI"
             Line."Line No." := LineNo;
             Line."Profile Schedule Id" := Profile."Schedule ID";
             Line."Profile Created At" := Profile.SystemCreatedAt;
+            Line."Profile ID" := Profile."Profile ID";
             Line.Insert(true);
         until Profile.Next() = 0;
         Analysis."Profiles Captured" := LineNo;
@@ -359,34 +384,60 @@ codeunit 8416 "Perf. Analysis AI"
 
     local procedure BuildFilterPayload(var Analysis: Record "Performance Analysis") Payload: Text
     var
-        Line: Record "Performance Analysis Line";
+        Profile: Record "Performance Profiles";
         PayloadObj: JsonObject;
         Profiles: JsonArray;
         ProfileObj: JsonObject;
+        ProfileNo: Integer;
     begin
-        PayloadObj.Add('scenario', BuildScenarioJson(Analysis));
-        Line.SetRange("Analysis Id", Analysis."Id");
-        if Line.FindSet() then
-            repeat
-                Clear(ProfileObj);
-                ProfileObj.Add('profileNo', Line."Line No.");
-                ProfileObj.Add('createdAt', Format(Line."Profile Created At", 0, 9));
-                Profiles.Add(ProfileObj);
-            until Line.Next() = 0;
+        // For filtering we want the model to see everything the user entered in the
+        // wizard (so it understands what scenario to match) and the minimum profile
+        // metadata needed to identify a match: the profile number (for the reply),
+        // a description of what was captured, and the duration. User name is omitted
+        // because all captured profiles are for the same target user, and the raw
+        // trigger object / action fields are omitted because the scenario title and
+        // activity already describe the scenario in natural language.
+        PayloadObj.Add('scenario', BuildFilterScenarioJson(Analysis));
+        if not IsNullGuid(Analysis."Related Schedule Id") then begin
+            Profile.SetRange("Schedule ID", Analysis."Related Schedule Id");
+            if Profile.FindSet() then
+                repeat
+                    ProfileNo += 1;
+                    Clear(ProfileObj);
+                    ProfileObj.Add('profileNo', ProfileNo);
+                    ProfileObj.Add('description', Profile."Activity Description");
+                    ProfileObj.Add('durationMs', Profile."Activity Duration");
+                    Profiles.Add(ProfileObj);
+                until Profile.Next() = 0;
+        end;
         PayloadObj.Add('profiles', Profiles);
         PayloadObj.WriteTo(Payload);
+    end;
+
+    local procedure BuildFilterScenarioJson(var Analysis: Record "Performance Analysis") Scenario: JsonObject
+    begin
+        Scenario.Add('title', Analysis."Title");
+        Scenario.Add('triggerObjectSystemName', Analysis."Trigger Object System Name");
+        Scenario.Add('triggerActionSystemName', Analysis."Trigger Action System Name");
+        Scenario.Add('frequency', Format(Analysis."Frequency"));
+        Scenario.Add('expectedMs', Analysis."Expected Duration (ms)");
+        Scenario.Add('notes', Analysis."Notes");
     end;
 
     local procedure BuildAnalysisPayload(var Analysis: Record "Performance Analysis") Payload: Text
     var
         Profile: Record "Performance Profiles";
+        Line: Record "Performance Analysis Line";
         Sb: TextBuilder;
         ProfileNo: Integer;
         NL: Text[2];
-        ScenarioHeaderLbl: Label '## Scenario';
+        ScenarioHeaderLbl: Label '## Observations by the user';
         ProfilesHeaderLbl: Label '## Captured profiles';
         NoProfilesLbl: Label '(no profiles were captured for this scenario)';
+        NoRelevantLbl: Label '(no captured profiles were considered relevant)';
         ProfileHeaderLbl: Label 'Profile %1', Comment = '%1 is the profile number';
+        HasAnyLines: Boolean;
+        HasRelevantLines: Boolean;
     begin
         NL[1] := 13;
         NL[2] := 10;
@@ -399,50 +450,56 @@ codeunit 8416 "Perf. Analysis AI"
         Sb.Append(ProfilesHeaderLbl);
         Sb.Append(NL);
 
+        Line.SetRange("Analysis Id", Analysis."Id");
+        HasAnyLines := not Line.IsEmpty();
+        Line.SetRange("Marked Relevant", true);
+        HasRelevantLines := not Line.IsEmpty();
+
         if not IsNullGuid(Analysis."Related Schedule Id") then begin
             Profile.SetRange("Schedule ID", Analysis."Related Schedule Id");
             if Profile.FindSet() then
                 repeat
                     ProfileNo += 1;
-                    Sb.Append(NL);
-                    Sb.Append(StrSubstNo(ProfileHeaderLbl, ProfileNo));
-                    Sb.Append(NL);
-                    AppendProfileLines(Profile, Sb, NL);
+                    // Only include profiles flagged relevant by the filter step. If the
+                    // filter step never ran (no lines at all), fall back to including
+                    // everything so the analysis still has data to reason about.
+                    if (not HasAnyLines) or IsProfileRelevant(Analysis."Id", ProfileNo) then begin
+                        Sb.Append(NL);
+                        Sb.Append(StrSubstNo(ProfileHeaderLbl, ProfileNo));
+                        Sb.Append(NL);
+                        AppendProfileLines(Profile, Sb, NL);
+                    end;
                 until Profile.Next() = 0;
         end;
 
         if ProfileNo = 0 then begin
             Sb.Append(NoProfilesLbl);
             Sb.Append(NL);
-        end;
+        end else
+            if HasAnyLines and (not HasRelevantLines) then begin
+                Sb.Append(NoRelevantLbl);
+                Sb.Append(NL);
+            end;
 
         Payload := Sb.ToText();
     end;
 
+    local procedure IsProfileRelevant(AnalysisId: Guid; LineNo: Integer): Boolean
+    var
+        Line: Record "Performance Analysis Line";
+    begin
+        if not Line.Get(AnalysisId, LineNo) then
+            exit(false);
+        exit(Line."Marked Relevant");
+    end;
+
     local procedure AppendScenarioLines(var Analysis: Record "Performance Analysis"; var Sb: TextBuilder; NL: Text[2])
     var
-        TitleLbl: Label '- Title: %1', Comment = '%1 is the user-supplied title of the scenario';
-        ActivityLbl: Label '- Activity: %1', Comment = '%1 is the activity type, e.g. OpenPage';
-        TriggerLbl: Label '- Trigger: %1 on %2 %3 "%4"', Comment = '%1 is trigger kind, %2 object type, %3 object id, %4 object name';
-        TriggerActionLbl: Label '- Trigger action: %1', Comment = '%1 is the action name, e.g. Post';
-        FrequencyLbl: Label '- Frequency: %1', Comment = '%1 is how often the scenario is slow';
-        ObservedLbl: Label '- Observed duration: %1 ms', Comment = '%1 is duration in milliseconds';
-        ExpectedLbl: Label '- Expected duration: %1 ms', Comment = '%1 is duration in milliseconds';
+        FrequencyLbl: Label '- When is it slow: %1', Comment = '%1 is how often the scenario is slow';
+        ExpectedLbl: Label '- Duration expected to be less than: %1 ms', Comment = '%1 is duration in milliseconds';
         NotesHeaderLbl: Label '- Notes:';
     begin
-        Sb.Append(StrSubstNo(TitleLbl, Analysis."Title"));
-        Sb.Append(NL);
-        Sb.Append(StrSubstNo(ActivityLbl, Format(Analysis."Scenario Activity Type")));
-        Sb.Append(NL);
-        Sb.Append(StrSubstNo(TriggerLbl, Format(Analysis."Trigger Kind"), Format(Analysis."Trigger Object Type"), Analysis."Trigger Object Id", Analysis."Trigger Object Name"));
-        Sb.Append(NL);
-        if Analysis."Trigger Action Name" <> '' then begin
-            Sb.Append(StrSubstNo(TriggerActionLbl, Analysis."Trigger Action Name"));
-            Sb.Append(NL);
-        end;
         Sb.Append(StrSubstNo(FrequencyLbl, Format(Analysis."Frequency")));
-        Sb.Append(NL);
-        Sb.Append(StrSubstNo(ObservedLbl, Analysis."Observed Duration (ms)"));
         Sb.Append(NL);
         Sb.Append(StrSubstNo(ExpectedLbl, Analysis."Expected Duration (ms)"));
         Sb.Append(NL);
@@ -457,33 +514,47 @@ codeunit 8416 "Perf. Analysis AI"
 
     local procedure AppendProfileLines(var Profile: Record "Performance Profiles"; var Sb: TextBuilder; NL: Text[2])
     var
-        StartedAtLbl: Label '- Started at: %1', Comment = '%1 is the start date and time';
-        UserLbl: Label '- User: %1', Comment = '%1 is the user name';
-        ActivityLbl: Label '- Activity: %1', Comment = '%1 is the activity description';
-        ActivityDurationLbl: Label '- Activity duration: %1 ms', Comment = '%1 is duration in ms';
-        AlDurationLbl: Label '- AL execution duration: %1 ms', Comment = '%1 is duration in ms';
-        SqlLbl: Label '- SQL statements: %1 (total duration %2 ms)', Comment = '%1 is count, %2 is duration in ms';
-        HttpLbl: Label '- HTTP calls: %1 (total duration %2 ms)', Comment = '%1 is count, %2 is duration in ms';
+        ProfileInStream: InStream;
+        LineText: Text;
+        StartingAtLbl: Label '- Starting at: %1', Comment = '%1 is the starting date-time';
+        ActivityDescLbl: Label '- Activity description: %1', Comment = '%1 is the profile activity description';
+        ActivityDurationLbl: Label '- Activity duration (ms): %1', Comment = '%1 activity duration';
+        SamplingDurationLbl: Label '- Sampling duration (ms): %1', Comment = '%1 sampling duration';
+        SqlLbl: Label '- SQL: %1 statement(s), %2 ms', Comment = '%1 sql statement count, %2 sql call duration';
+        HttpLbl: Label '- HTTP: %1 call(s), %2 ms', Comment = '%1 http call count, %2 http call duration';
+        PayloadLbl: Label '- Profile payload:';
     begin
-        Sb.Append(StrSubstNo(StartedAtLbl, Format(Profile."Starting Date-Time", 0, 9)));
+        Sb.Append(StrSubstNo(StartingAtLbl, Format(Profile."Starting Date-Time", 0, 9)));
         Sb.Append(NL);
-        Sb.Append(StrSubstNo(UserLbl, Profile."User Name"));
-        Sb.Append(NL);
-        Sb.Append(StrSubstNo(ActivityLbl, Profile."Activity Description"));
+        Sb.Append(StrSubstNo(ActivityDescLbl, Profile."Activity Description"));
         Sb.Append(NL);
         Sb.Append(StrSubstNo(ActivityDurationLbl, Profile."Activity Duration"));
         Sb.Append(NL);
-        Sb.Append(StrSubstNo(AlDurationLbl, Profile.Duration));
+        Sb.Append(StrSubstNo(SamplingDurationLbl, Profile.Duration));
         Sb.Append(NL);
         Sb.Append(StrSubstNo(SqlLbl, Profile."Sql Statement Number", Profile."Sql Call Duration"));
         Sb.Append(NL);
         Sb.Append(StrSubstNo(HttpLbl, Profile."Http Call Number", Profile."Http Call Duration"));
         Sb.Append(NL);
+        Sb.Append(PayloadLbl);
+        Sb.Append(NL);
+
+        Profile.CalcFields(Profile);
+        if Profile.Profile.HasValue() then begin
+            Profile.Profile.CreateInStream(ProfileInStream, TextEncoding::UTF8);
+            while not ProfileInStream.EOS() do begin
+                ProfileInStream.ReadText(LineText);
+                Sb.Append(LineText);
+                Sb.Append(NL);
+            end;
+        end;
     end;
 
     local procedure BuildScenarioJson(var Analysis: Record "Performance Analysis") Scenario: JsonObject
     begin
+        Analysis.CalcFields("Target User Name");
         Scenario.Add('title', Analysis."Title");
+        Scenario.Add('targetUserName', Analysis."Target User Name");
         Scenario.Add('activity', Format(Analysis."Scenario Activity Type"));
         Scenario.Add('trigger', Format(Analysis."Trigger Kind"));
         Scenario.Add('triggerObjectType', Format(Analysis."Trigger Object Type"));
@@ -491,7 +562,6 @@ codeunit 8416 "Perf. Analysis AI"
         Scenario.Add('triggerObjectName', Analysis."Trigger Object Name");
         Scenario.Add('triggerActionName', Analysis."Trigger Action Name");
         Scenario.Add('frequency', Format(Analysis."Frequency"));
-        Scenario.Add('observedMs', Analysis."Observed Duration (ms)");
         Scenario.Add('expectedMs', Analysis."Expected Duration (ms)");
         Scenario.Add('notes', Analysis."Notes");
     end;
@@ -503,30 +573,31 @@ codeunit 8416 "Perf. Analysis AI"
         Tok: JsonToken;
         Obj: JsonObject;
         ProfileNo: Integer;
-        Relevance: Decimal;
-        Reason: Text;
         Relevant: Integer;
         I: Integer;
     begin
-        // The model is asked for JSON only. Be defensive.
+        // The model is asked to reply with a JSON array of integer profile numbers,
+        // e.g. [1,3,4]. Be defensive and also accept older-style arrays of objects
+        // with a profileNo field in case the model produces them.
         if not Arr.ReadFrom(ExtractJsonArray(Reply)) then
             exit;
         for I := 0 to Arr.Count() - 1 do begin
             Arr.Get(I, Tok);
-            if not Tok.IsObject() then
-                continue;
-            Obj := Tok.AsObject();
-            ProfileNo := ReadInt(Obj, 'profileNo');
-            Relevance := ReadDec(Obj, 'relevance');
-            Reason := ReadText(Obj, 'reason');
-            if Line.Get(Analysis."Id", ProfileNo) then begin
-                Line."Ai Relevance Score" := Relevance;
-                Line."Ai Reason" := CopyStr(Reason, 1, MaxStrLen(Line."Ai Reason"));
-                Line."Marked Relevant" := Relevance >= 0.5;
-                if Line."Marked Relevant" then
+            ProfileNo := 0;
+            if Tok.IsValue() then
+                ProfileNo := Tok.AsValue().AsInteger()
+            else
+                if Tok.IsObject() then begin
+                    Obj := Tok.AsObject();
+                    ProfileNo := ReadInt(Obj, 'profileNo');
+                end;
+            if ProfileNo > 0 then
+                if Line.Get(Analysis."Id", ProfileNo) then begin
+                    Line."Marked Relevant" := true;
+                    Line."Ai Relevance Score" := 1;
+                    Line.Modify(true);
                     Relevant += 1;
-                Line.Modify(true);
-            end;
+                end;
         end;
         Analysis."Profiles Relevant" := Relevant;
         Analysis.Modify(true);

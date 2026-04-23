@@ -154,11 +154,71 @@ codeunit 8414 "Perf. Analysis Mgt. Impl."
     end;
 
     procedure RunFullAiPipeline(var Analysis: Record "Performance Analysis")
+    var
+        Dialog: Dialog;
+        FilteringStepLbl: Label 'Selecting relevant profiles...';
+        AnalyzingStepLbl: Label 'Analyzing profiles...';
     begin
-        // Skip the filtering pass: Analyze now includes the raw captured profile metrics
-        // in the payload directly, which is enough context for the model to reason about
-        // where time is spent without a separate relevance-scoring round-trip.
+        if GuiAllowed() then
+            Dialog.Open(FilteringStepLbl);
+        RunAiFiltering(Analysis);
+        if GuiAllowed() then
+            Dialog.Close();
+        if Analysis."State" = Analysis."State"::Failed then
+            exit;
+
+        if GuiAllowed() then
+            Dialog.Open(AnalyzingStepLbl);
         RunAiAnalysis(Analysis);
+        if GuiAllowed() then
+            Dialog.Close();
+    end;
+
+    procedure Reanalyze(var Analysis: Record "Performance Analysis")
+    var
+        Dialog: Dialog;
+        CleaningStepLbl: Label 'Cleaning previous results...';
+        FilteringStepLbl: Label 'Selecting relevant profiles...';
+        AnalyzingStepLbl: Label 'Analyzing profiles...';
+    begin
+        if not (Analysis."State" in [Analysis."State"::Concluded, Analysis."State"::Failed]) then
+            Error(AnalysisNotActiveErr, Analysis."State");
+
+        if GuiAllowed() then
+            Dialog.Open(CleaningStepLbl);
+        ResetAnalysisResults(Analysis);
+        SetState(Analysis, Analysis."State"::CaptureEnded);
+        if GuiAllowed() then begin
+            Sleep(3000);
+            Dialog.Close();
+        end;
+
+        if GuiAllowed() then
+            Dialog.Open(FilteringStepLbl);
+        RunAiFiltering(Analysis);
+        if GuiAllowed() then
+            Dialog.Close();
+        if Analysis."State" = Analysis."State"::Failed then
+            exit;
+
+        if GuiAllowed() then
+            Dialog.Open(AnalyzingStepLbl);
+        RunAiAnalysis(Analysis);
+        if GuiAllowed() then
+            Dialog.Close();
+    end;
+
+    local procedure ResetAnalysisResults(var Analysis: Record "Performance Analysis")
+    var
+        Line: Record "Performance Analysis Line";
+    begin
+        Line.SetRange("Analysis Id", Analysis."Id");
+        Line.DeleteAll(true);
+        Clear(Analysis."Conclusion");
+        Analysis."Last Error" := '';
+        Analysis."Profiles Relevant" := 0;
+        Analysis."Ai Model" := '';
+        Analysis.Modify(true);
     end;
 
     procedure TryGetSchedule(var Analysis: Record "Performance Analysis"; var Scheduler: Record "Performance Profile Scheduler"): Boolean
@@ -243,11 +303,12 @@ codeunit 8414 "Perf. Analysis Mgt. Impl."
 
     local procedure ThresholdFor(Analysis: Record "Performance Analysis") Threshold: Integer
     begin
-        // Catch anything that is significantly above what the user considers acceptable.
-        // "Significantly above" is modeled as 1.5x the expected duration, clamped to a
+        // Set the threshold below the expected duration so we also capture runs at or near
+        // the expected time, not just the outliers. This gives the AI a baseline to compare
+        // the slow runs against. Modeled as 50% of the expected duration, clamped to a
         // sensible floor and ceiling.
         if Analysis."Expected Duration (ms)" > 0 then
-            Threshold := (Analysis."Expected Duration (ms)" * 3) div 2
+            Threshold := Analysis."Expected Duration (ms)" div 2
         else
             Threshold := 200;
         if Threshold < 200 then

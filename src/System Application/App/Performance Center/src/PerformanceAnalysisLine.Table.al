@@ -50,6 +50,10 @@ table 8404 "Performance Analysis Line"
         {
             Caption = 'Marked Relevant';
         }
+        field(15; "Profile ID"; BigInteger)
+        {
+            Caption = 'Profile ID';
+        }
     }
 
     keys

@@ -25,7 +25,7 @@ codeunit 8413 "Perf. Analysis Mgt."
     /// based on the answers captured from the user (typically the wizard).
     /// </summary>
     /// <param name="Analysis">The Performance Analysis record to create. Fields like
-    /// Trigger, Frequency, Observed Duration etc. must be populated before calling.</param>
+    /// Trigger, Frequency, Expected Duration etc. must be populated before calling.</param>
     procedure RequestAnalysis(var Analysis: Record "Performance Analysis")
     begin
         Impl.RequestAnalysis(Analysis);
@@ -71,6 +71,16 @@ codeunit 8413 "Perf. Analysis Mgt."
     procedure RunFullAiPipeline(var Analysis: Record "Performance Analysis")
     begin
         Impl.RunFullAiPipeline(Analysis);
+    end;
+
+    /// <summary>
+    /// Re-runs the AI analysis for an analysis that has already Concluded or Failed,
+    /// using the profiles already captured. Transitions the state back through
+    /// AiAnalyzing to Concluded (or Failed).
+    /// </summary>
+    procedure Reanalyze(var Analysis: Record "Performance Analysis")
+    begin
+        Impl.Reanalyze(Analysis);
     end;
 
     /// <summary>

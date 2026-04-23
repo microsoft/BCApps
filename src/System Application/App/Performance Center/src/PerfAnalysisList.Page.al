@@ -15,6 +15,7 @@ page 8425 "Perf. Analysis List"
     ApplicationArea = All;
     UsageCategory = Lists;
     SourceTable = "Performance Analysis";
+    SourceTableView = sorting("No.") order(descending);
     CardPageId = "Perf. Analysis Card";
     Editable = false;
     Permissions = tabledata "Performance Analysis" = RIMD,
@@ -26,6 +27,11 @@ page 8425 "Perf. Analysis List"
         {
             repeater(Group)
             {
+                field("No."; Rec."No.")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies a running number identifying the performance analysis.';
+                }
                 field("Title"; Rec."Title")
                 {
                     ApplicationArea = All;

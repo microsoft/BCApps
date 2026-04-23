@@ -52,11 +52,12 @@ page 8421 "Perf. Analysis List Part"
                     Caption = 'Monitoring Start Time';
                     ToolTip = 'Specifies when the monitoring window starts.';
                 }
-                field(AnalysisReadyIn; AnalysisReadyInTxt)
+                field(AnalysisReadyIn; MonitoringEndDisplayTxt)
                 {
-                    Caption = 'Analysis Ready In';
+                    Caption = 'Monitoring end time';
+                    Editable = false;
                     ApplicationArea = All;
-                    ToolTip = 'Specifies how long until the scheduled monitoring window finishes and the analysis becomes available.';
+                    ToolTip = 'Specifies when the scheduled monitoring window finishes and the analysis becomes available.';
                 }
                 field(ProfilerScheduleLink; ProfilerScheduleLinkLbl)
                 {
@@ -131,18 +132,11 @@ page 8421 "Perf. Analysis List Part"
         StateStyle: Text;
         HasRelatedSchedule: Boolean;
         CanStopMonitoring: Boolean;
-        AnalysisReadyInTxt: Text;
+        MonitoringEndDisplayTxt: Text;
         ProfilerScheduleLinkLbl: Label 'Open schedule';
-        ReadyLbl: Label 'Now';
         AnyMomentLbl: Label 'Any moment now';
-        UnknownLbl: Label '—', Locked = true;
-        DaysFmtLbl: Label '%1 %2', Comment = '%1 = number, %2 = unit (days/day)';
-        DaySingularLbl: Label 'day';
-        DayPluralLbl: Label 'days';
-        HourSingularLbl: Label 'hour';
-        HourPluralLbl: Label 'hours';
-        MinuteSingularLbl: Label 'minute';
-        MinutePluralLbl: Label 'minutes';
+        UnknownReadyLbl: Label '—', Locked = true;
+        InPrefixFmtLbl: Label 'in %1', Comment = '%1 = remaining duration, e.g. "2 hours and 15 minutes"';
 
     trigger OnOpenPage()
     var
@@ -157,7 +151,7 @@ page 8421 "Perf. Analysis List Part"
     begin
         Rec.CalcFields("Target User Name");
         HasRelatedSchedule := not IsNullGuid(Rec."Related Schedule Id");
-        AnalysisReadyInTxt := ComputeReadyInText();
+        MonitoringEndDisplayTxt := ComputeMonitoringEndDisplayText();
         CanStopMonitoring := Rec."State" in [Rec."State"::Scheduled, Rec."State"::Capturing];
         case Rec."State" of
             Rec."State"::Concluded:
@@ -177,26 +171,38 @@ page 8421 "Perf. Analysis List Part"
         end;
     end;
 
-    local procedure ComputeReadyInText(): Text
+    local procedure ComputeMonitoringEndDisplayText(): Text
     var
         RemainingMs: BigInteger;
     begin
-        // Once the analysis has left the monitoring phase, the column no longer makes sense.
-        if Rec."State" in [Rec."State"::Concluded, Rec."State"::Cancelled, Rec."State"::Failed] then
-            exit(ReadyLbl);
-        if Rec."State" in [Rec."State"::CaptureEnded, Rec."State"::AiFiltering, Rec."State"::AiAnalyzing] then
-            exit(ReadyLbl);
+        // While monitoring is actively running we show a relative "in X and Y" caption
+        // because the absolute timestamp is less meaningful to the reader. Once the
+        // window has elapsed or the analysis has moved on we fall back to the actual
+        // end time (or a dash if we never knew it).
         if Rec."Monitoring Ends At" = 0DT then
-            exit(UnknownLbl);
-        RemainingMs := Rec."Monitoring Ends At" - CurrentDateTime();
-        if RemainingMs <= 0 then
-            exit(AnyMomentLbl);
-        exit(FormatDuration(RemainingMs));
+            exit(UnknownReadyLbl);
+        if Rec."State" in [Rec."State"::Scheduled, Rec."State"::Capturing] then begin
+            RemainingMs := Rec."Monitoring Ends At" - CurrentDateTime();
+            if RemainingMs <= 0 then
+                exit(AnyMomentLbl);
+            exit(StrSubstNo(InPrefixFmtLbl, FormatDuration(RemainingMs)));
+        end;
+        exit(Format(Rec."Monitoring Ends At"));
     end;
 
     local procedure FormatDuration(TotalMs: BigInteger): Text
     var
-        Parts: Text;
+        UnitFmtLbl: Label '%1 %2', Comment = '%1 = number, %2 = unit (days/day, hours/hour, minutes/minute)';
+        DaySingularLbl: Label 'day';
+        DayPluralLbl: Label 'days';
+        HourSingularLbl: Label 'hour';
+        HourPluralLbl: Label 'hours';
+        MinuteSingularLbl: Label 'minute';
+        MinutePluralLbl: Label 'minutes';
+        AndSepLbl: Label ' and ', Locked = true;
+        CommaSepLbl: Label ', ', Locked = true;
+        Parts: array[3] of Text;
+        Count: Integer;
         Days: BigInteger;
         Hours: BigInteger;
         Minutes: BigInteger;
@@ -208,13 +214,27 @@ page 8421 "Perf. Analysis List Part"
         Minutes := TotalMs div (60 * 1000);
         if (Days = 0) and (Hours = 0) and (Minutes = 0) then
             Minutes := 1;
-        if Days > 0 then
-            Parts := StrSubstNo(DaysFmtLbl, Days, Unit(Days, DaySingularLbl, DayPluralLbl));
-        if Hours > 0 then
-            Parts := Join3(Parts, StrSubstNo(DaysFmtLbl, Hours, Unit(Hours, HourSingularLbl, HourPluralLbl)), Minutes > 0);
-        if Minutes > 0 then
-            Parts := Join3(Parts, StrSubstNo(DaysFmtLbl, Minutes, Unit(Minutes, MinuteSingularLbl, MinutePluralLbl)), false);
-        exit(Parts);
+        if Days > 0 then begin
+            Count += 1;
+            Parts[Count] := StrSubstNo(UnitFmtLbl, Days, Unit(Days, DaySingularLbl, DayPluralLbl));
+        end;
+        if Hours > 0 then begin
+            Count += 1;
+            Parts[Count] := StrSubstNo(UnitFmtLbl, Hours, Unit(Hours, HourSingularLbl, HourPluralLbl));
+        end;
+        if Minutes > 0 then begin
+            Count += 1;
+            Parts[Count] := StrSubstNo(UnitFmtLbl, Minutes, Unit(Minutes, MinuteSingularLbl, MinutePluralLbl));
+        end;
+        case Count of
+            1:
+                exit(Parts[1]);
+            2:
+                exit(Parts[1] + AndSepLbl + Parts[2]);
+            3:
+                exit(Parts[1] + CommaSepLbl + Parts[2] + AndSepLbl + Parts[3]);
+        end;
+        exit('');
     end;
 
     local procedure Unit(Value: BigInteger; SingularLbl: Text; PluralLbl: Text): Text
@@ -222,18 +242,6 @@ page 8421 "Perf. Analysis List Part"
         if Value = 1 then
             exit(SingularLbl);
         exit(PluralLbl);
-    end;
-
-    local procedure Join3(Existing: Text; NewPart: Text; MoreToCome: Boolean): Text
-    var
-        AndSepLbl: Label ' and ', Locked = true;
-        CommaSepLbl: Label ' ', Locked = true;
-    begin
-        if Existing = '' then
-            exit(NewPart);
-        if MoreToCome then
-            exit(Existing + CommaSepLbl + NewPart);
-        exit(Existing + AndSepLbl + NewPart);
     end;
 
     local procedure OpenRelatedSchedule()
