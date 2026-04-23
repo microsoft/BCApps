@@ -762,20 +762,29 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure AddStandardAPITools(ConfigId: Guid)
     var
         PageMetadata: Record "Page Metadata";
+        QueryMetadata: Record "Query Metadata";
         MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter(APIPublisher, '=%1', '');
         PageMetadata.SetFilter(APIGroup, '=%1', '');
         PageMetadata.SetRange(APIVersion, 'v2.0');
-        if not PageMetadata.FindSet() then
-            exit;
+        if PageMetadata.FindSet() then
+            repeat
+                if CheckAPIToolExists(ConfigId, PageMetadata.ID, MCPConfigurationTool."Object Type"::Page) then
+                    continue;
+                CreateAPIPageTool(ConfigId, PageMetadata.ID, false);
+            until PageMetadata.Next() = 0;
 
-        repeat
-            if CheckAPIToolExists(ConfigId, PageMetadata.ID, MCPConfigurationTool."Object Type"::Page) then
-                continue;
-            CreateAPIPageTool(ConfigId, PageMetadata.ID, false);
-        until PageMetadata.Next() = 0;
+        QueryMetadata.SetFilter(EntityName, '<>%1', '');
+        QueryMetadata.SetFilter(APIPublisher, '=%1', '');
+        QueryMetadata.SetFilter(APIGroup, '=%1', '');
+        if QueryMetadata.FindSet() then
+            repeat
+                if CheckAPIToolExists(ConfigId, QueryMetadata.ID, MCPConfigurationTool."Object Type"::Query) then
+                    continue;
+                CreateAPIQueryTool(ConfigId, QueryMetadata.ID);
+            until QueryMetadata.Next() = 0;
     end;
 
     internal procedure CheckAPIToolExists(ConfigId: Guid; ObjectId: Integer; ObjectType: Option): Boolean
