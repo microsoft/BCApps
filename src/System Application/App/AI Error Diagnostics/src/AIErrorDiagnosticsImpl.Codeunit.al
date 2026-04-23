@@ -7,7 +7,7 @@ namespace System.AI;
 
 using System;
 
-codeunit 4451 "AI Error Diagnostics Impl."
+codeunit 4452 "AI Error Diagnostics Impl."
 {
     Access = Internal;
     SingleInstance = true;
@@ -15,7 +15,7 @@ codeunit 4451 "AI Error Diagnostics Impl."
     InherentPermissions = X;
 
     var
-        ClaudeCliPathTxt: Label 'C:\Users\ventselartur\.claude\local\claude.exe', Locked = true;
+        ClaudeCliPathTxt: Label 'C:\Users\ventselartur\.claude-cli\CurrentVersion\claude.exe', Locked = true;
 
     procedure AnalyzeError(ErrorMessage: Text; var Reason: Text; var Suggestion: Text): Boolean
     var

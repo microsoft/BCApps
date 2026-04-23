@@ -15,6 +15,7 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using System.AI;
 using System.Utilities;
 
 codeunit 6140 "E-Doc. Import"
@@ -136,12 +137,17 @@ codeunit 6140 "E-Doc. Import"
     var
         EDocDraftSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
-        LastErrorText: Text;
+        AIErrorDiagnostics: Codeunit "AI Error Diagnostics";
+        LastErrorText, Reason, Suggestion : Text;
+        AdvancedErrorMessageLbl: Label '%1. Reason: %2. Suggestion: %3', Comment = '%1 = error message, %2 = reason, %3 = suggestion';
     begin
         EDocumentErrorHelper.ClearErrorMessages(EDocument);
         Commit();
         if not ImportEDocumentProcess.Run() then begin
             LastErrorText := GetLastErrorText();
+            AIErrorDiagnostics.AnalyzeError(LastErrorText, Reason, Suggestion);
+            if Reason <> '' then
+                LastErrorText := StrSubstNo(AdvancedErrorMessageLbl, LastErrorText, Reason, Suggestion);
             if LastErrorText <> '' then begin // We don't insert an error when empty, following the convention of empty error meaning "operation cancelled by user"
                 EDocument.SetRecFilter();
                 EDocument.FindFirst();

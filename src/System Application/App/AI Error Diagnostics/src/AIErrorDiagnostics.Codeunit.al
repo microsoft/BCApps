@@ -10,7 +10,7 @@ namespace System.AI;
 /// Given an error message, captures the call stack and returns a structured reason and suggestion.
 /// OnPrem only.
 /// </summary>
-codeunit 4450 "AI Error Diagnostics"
+codeunit 4451 "AI Error Diagnostics"
 {
     Access = Public;
     SingleInstance = true;
