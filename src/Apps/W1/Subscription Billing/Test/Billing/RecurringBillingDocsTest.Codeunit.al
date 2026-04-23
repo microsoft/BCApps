@@ -780,6 +780,7 @@ codeunit 139687 "Recurring Billing Docs Test"
     procedure CreateBillingDocumentsForVendorContractSetsRecurringBillingBeforeVendorValidation()
     var
         PayToVendor: Record Vendor;
+        PurchHdrSub: Codeunit "Rec. Billing Purch. Hdr. Sub.";
     begin
         // [SCENARIO #4302] When creating billing documents from a vendor contract where "Pay-to Vendor No."
         // differs from "Buy-from Vendor No.", the purchase header must have "Recurring Billing" = true
@@ -798,8 +799,14 @@ codeunit 139687 "Recurring Billing Docs Test"
         // [GIVEN] A billing proposal for the vendor contract
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
 
-        // [WHEN] Billing documents are created from the proposal
+        // [GIVEN] A subscriber that errors if "Recurring Billing" is false when "Pay-to Vendor No." is validated
+        BindSubscription(PurchHdrSub);
+
+        // [WHEN] Billing documents are created from the proposal (subscriber errors if "Recurring Billing" is false during vendor validation)
         CreateBillingDocuments(false);
+
+        // Unbind before assertions to ensure cleanup regardless of assertion results
+        UnbindSubscription(PurchHdrSub);
 
         // [THEN] The created purchase header has "Recurring Billing" = true
         BillingLine.SetFilter("Document No.", '<>%1', '');
