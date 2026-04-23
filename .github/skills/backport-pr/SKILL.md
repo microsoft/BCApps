@@ -79,7 +79,10 @@ New-BCAppsBackport -PullRequestNumber <PR> -TargetBranches @('releases/27.x','re
 
 `git push` may fail with `Recv failure: Connection was reset`. The cherry-pick branch is already created locally and committed, so:
 1. Manually retry: `git push origin backport/<branch>/<PR>/<timestamp>`.
-2. Then create the PR: `gh pr create --title "[<branch>] <original title>" --body "This pull request backports #<PR> to <branch>`r`n`r`nFixes AB#<wi>" --base <branch> --head <cherry-pick-branch>`.
+2. Then create the PR:
+
+   ```powershell
+   gh pr create --title "[<branch>] <original title>" --body "This pull request backports #<PR> to <branch>`r`n`r`nFixes AB#<wi>" --base <branch> --head <cherry-pick-branch>
 3. Re-run the script for the *remaining* branches only (the duplicate-detection in the script prevents re-creating an existing PR for the same title+base, but skipping the already-handled branch is cleaner).
 
 ## Auto-merge
