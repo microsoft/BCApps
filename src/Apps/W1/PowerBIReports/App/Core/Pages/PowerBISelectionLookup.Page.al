@@ -8,6 +8,7 @@ using System.Integration.PowerBI;
 
 page 36963 "Power BI Selection Lookup"
 {
+    ApplicationArea = All;
     Caption = 'Select Power BI Element';
     DeleteAllowed = false;
     InsertAllowed = false;

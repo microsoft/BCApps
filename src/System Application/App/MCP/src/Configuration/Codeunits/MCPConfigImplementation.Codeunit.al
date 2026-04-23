@@ -7,9 +7,6 @@ namespace System.MCP;
 
 using System.Azure.Identity;
 using System.Environment;
-#if not CLEAN28
-using System.Environment.Configuration;
-#endif
 using System.Feedback;
 using System.Reflection;
 using System.Utilities;
@@ -1117,7 +1114,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         Feedback.WithCustomQuestion(MCPServerFeedbackQst, MCPServerFeedbackQst).WithCustomQuestionType(Enum::FeedbackQuestionType::Text);
-        Feedback.RequestDislikeFeedback('MCP Server', 'Configuration', 'Model Context Protocol (MCP) Server');
+        Feedback.RequestDislikeFeedback('MCP Server', 'MCPServer', 'Model Context Protocol (MCP) Server');
 
         Session.LogMessage('0000RTR', NoActiveConfigsFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
     end;
@@ -1126,7 +1123,7 @@ codeunit 8351 "MCP Config Implementation"
     var
         Feedback: Codeunit "Microsoft User Feedback";
     begin
-        Feedback.RequestFeedback('MCP Server', 'Configuration', 'Model Context Protocol (MCP) Server');
+        Feedback.RequestFeedback('MCP Server', 'MCPServer', 'Model Context Protocol (MCP) Server');
 
         Session.LogMessage('0000RTS', GeneralFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
     end;
@@ -1196,14 +1193,4 @@ codeunit 8351 "MCP Config Implementation"
         Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditDeletedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
     end;
     #endregion
-
-#if not CLEAN28
-    internal procedure IsFeatureEnabled(): Boolean
-    var
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
-        EnableMcpAccessTok: Label 'EnableMcpAccess', Locked = true;
-    begin
-        exit(FeatureManagementFacade.IsEnabled(EnableMcpAccessTok));
-    end;
-#endif
 }

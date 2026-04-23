@@ -192,7 +192,7 @@ codeunit 30161 "Shpfy Import Order"
         OrderLine.DeleteAll();
     end;
 
-    local procedure ConsiderRefundsInQuantityAndAmounts(var OrderHeader: Record "Shpfy Order Header")
+    internal procedure ConsiderRefundsInQuantityAndAmounts(var OrderHeader: Record "Shpfy Order Header")
     var
         OrderLine: Record "Shpfy Order Line";
         RefundLine: Record "Shpfy Refund Line";
@@ -222,9 +222,9 @@ codeunit 30161 "Shpfy Import Order"
             RefundLine.CalcSums(Quantity, Amount, "Presentment Amount", "Subtotal Amount", "Presentment Subtotal Amount", "Total Tax Amount", "Presentment Total Tax Amount");
             OrderLine.Quantity -= RefundLine.Quantity;
             OrderLine.Modify();
-            OrderHeader."Total Amount" -= RefundLine."Subtotal Amount";
+            OrderHeader."Total Amount" -= RefundLine."Subtotal Amount" + RefundLine."Total Tax Amount";
             OrderHeader."Subtotal Amount" -= RefundLine."Subtotal Amount";
-            OrderHeader."Presentment Total Amount" -= RefundLine."Presentment Subtotal Amount";
+            OrderHeader."Presentment Total Amount" -= RefundLine."Presentment Subtotal Amount" + RefundLine."Presentment Total Tax Amount";
             OrderHeader."Presentment Subtotal Amount" -= RefundLine."Presentment Subtotal Amount";
             OrderHeader."VAT Amount" -= RefundLine."Total Tax Amount";
             OrderHeader."Presentment VAT Amount" -= RefundLine."Presentment Total Tax Amount";
@@ -314,7 +314,7 @@ codeunit 30161 "Shpfy Import Order"
         JResponse: JsonToken;
     begin
         Parameters.Add('OrderId', Format(OrderId));
-        if Shop."B2B Enabled" then
+        if Shop."Advanced Shopify Plan" then
             Parameters.Add('StaffMember', 'staffMember { id }')
         else
             Parameters.Add('StaffMember', '');
@@ -388,7 +388,7 @@ codeunit 30161 "Shpfy Import Order"
         JsonHelper.GetValueIntoField(JOrder, 'presentmentCurrencyCode', OrderHeaderRecordRef, OrderHeader.FieldNo("Presentment Currency Code"));
         JsonHelper.GetValueIntoField(JOrder, 'test', OrderHeaderRecordRef, OrderHeader.FieldNo(Test));
         JsonHelper.GetValueIntoField(JOrder, 'edited', OrderHeaderRecordRef, OrderHeader.FieldNo(Edited));
-        if Shop."B2B Enabled" then begin
+        if Shop."Advanced Shopify Plan" then begin
             StaffMemberId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JOrder, 'staffMember.id'));
             SetSalespersonOnOrderHeader(OrderHeader."Shop Code", StaffMemberId, OrderHeaderRecordRef);
         end;

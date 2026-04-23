@@ -8,7 +8,6 @@ namespace System.Agents;
 using System.AI;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Environment.Consumption;
 using System.Reflection;
 using System.Security.AccessControl;
 
@@ -266,13 +265,6 @@ codeunit 4301 "Agent Impl."
             exit(true);
         end;
         exit(false);
-    end;
-
-    procedure CanShowMonetizationData(): Boolean
-    var
-        DummyUserAIConsumptionData: Record "User AI Consumption Data";
-    begin
-        exit(DummyUserAIConsumptionData.ReadPermission());
     end;
 
     local procedure UpdateUserSettingsWithProfile(var TempAllProfile: Record "All Profile" temporary; var UserSettingsRec: Record "User Settings")

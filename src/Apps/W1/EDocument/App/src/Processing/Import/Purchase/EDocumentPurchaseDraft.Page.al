@@ -160,6 +160,26 @@ page 6181 "E-Document Purchase Draft"
                             CurrPage.Update();
                         end;
                     }
+                    field("Vendor Invoice No."; EDocumentPurchaseHeader."Vendor Invoice No.")
+                    {
+                        Caption = 'Vendor Invoice No.';
+                        ToolTip = 'Specifies the vendor''s invoice number referenced in the credit memo billing reference.';
+                        Visible = IsCreditMemo;
+                        Editable = false;
+                    }
+                    field("Applies-to Doc. No."; EDocumentPurchaseHeader."Applies-to Doc. No.")
+                    {
+                        Caption = 'Applies-to Doc. No.';
+                        ToolTip = 'Specifies the posted purchase invoice number in Business Central that this credit memo applies to.';
+                        Visible = IsCreditMemo;
+                        Editable = PageEditable;
+
+                        trigger OnValidate()
+                        begin
+                            EDocumentPurchaseHeader.Modify();
+                            CurrPage.Update();
+                        end;
+                    }
                 }
                 field("Status"; Rec.Status)
                 {
@@ -502,6 +522,7 @@ page 6181 "E-Document Purchase Draft"
         HasErrorsOrWarnings := false;
         HasErrors := false;
         PageEditable := IsEditable();
+        IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
         EDocumentNotification.SendPurchaseDocumentDraftNotifications(Rec."Entry No");
 
         if Rec."Entry No" <> 0 then
@@ -533,6 +554,7 @@ page 6181 "E-Document Purchase Draft"
             (Rec.Status = Enum::"E-Document Status"::Error);
 
         PageEditable := IsEditable();
+        IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
     end;
 
     local procedure SetPageCaption()
@@ -606,8 +628,6 @@ page 6181 "E-Document Purchase Draft"
 
     local procedure FinalizeEDocument(EDocImportParameters: Record "E-Doc. Import Parameters")
     var
-        TempErrorMessage: Record "Error Message" temporary;
-        ErrorMessage: Record "Error Message";
         EDocImport: Codeunit "E-Doc. Import";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         Telemetry: Codeunit Telemetry;
@@ -620,12 +640,7 @@ page 6181 "E-Document Purchase Draft"
         EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
         Rec.Get(Rec."Entry No");
 
-        if EDocumentErrorHelper.HasErrors(Rec) then begin
-            ErrorMessage.SetRange("Context Record ID", Rec.RecordId);
-            ErrorMessage.CopyToTemp(TempErrorMessage);
-            Commit(); // Persists error messages after error is thrown.
-            TempErrorMessage.ThrowError();
-        end;
+        EDocumentErrorHelper.ThrowIfHasErrors(Rec);
 
         PageEditable := IsEditable();
         CurrPage.Lines.Page.Update();
@@ -662,6 +677,7 @@ page 6181 "E-Document Purchase Draft"
         Rec.Get(Rec."Entry No");
         if GuiAllowed() then
             Progress.Close();
+        EDocumentErrorHelper.ThrowIfHasErrors(Rec);
     end;
 
     local procedure PrepareDraft()
@@ -704,6 +720,7 @@ page 6181 "E-Document Purchase Draft"
         Rec.Get(Rec."Entry No");
         if GuiAllowed() then
             Progress.Close();
+        EDocumentErrorHelper.ThrowIfHasErrors(Rec);
     end;
 
     local procedure ProvideFeedback()
@@ -764,5 +781,5 @@ page 6181 "E-Document Purchase Draft"
         FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.', Locked = true;
         ProcessingDocumentMsg: Label 'Processing document...';
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
-        PageEditable, HasPDFSource : Boolean;
+        PageEditable, HasPDFSource, IsCreditMemo : Boolean;
 }
