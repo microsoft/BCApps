@@ -339,7 +339,7 @@ codeunit 132617 "RSA Test"
         TempBlobData.CreateInStream(DataInStream);
         TempBlobSignature.CreateInStream(SignatureInStream);
 
-        // [THEN] The signature can be verified using the first instance's stateful verify (same key loaded)
+        // [THEN] The signature can be verified using the instance that imported the PEM private key
         LibraryAssert.IsTrue(RSA2.VerifyData(DataInStream, Enum::"Hash Algorithm"::SHA256, Enum::"RSA Signature Padding"::Pkcs1, SignatureInStream),
             'Signature must be valid after ImportFromPem with a private key.');
     end;
@@ -423,10 +423,10 @@ codeunit 132617 "RSA Test"
         // [WHEN] The public key is exported as PEM
         PublicKeyPem := RSA1.ExportRSAPublicKeyPem();
 
-        // [THEN] The result contains a valid PEM header and footer
-        LibraryAssert.IsTrue(PublicKeyPem.Contains('-----BEGIN RSA PUBLIC KEY-----'),
+        // [THEN] The result has valid PEM header and footer in the correct positions
+        LibraryAssert.IsTrue(PublicKeyPem.StartsWith('-----BEGIN RSA PUBLIC KEY-----'),
             'PEM public key must start with RSA PUBLIC KEY header.');
-        LibraryAssert.IsTrue(PublicKeyPem.Contains('-----END RSA PUBLIC KEY-----'),
+        LibraryAssert.IsTrue(PublicKeyPem.TrimEnd().EndsWith('-----END RSA PUBLIC KEY-----'),
             'PEM public key must end with RSA PUBLIC KEY footer.');
     end;
 
