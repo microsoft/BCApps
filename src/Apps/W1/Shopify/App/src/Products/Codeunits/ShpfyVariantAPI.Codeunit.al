@@ -215,7 +215,10 @@ codeunit 30189 "Shpfy Variant API"
             if ShopifyVariant."Country/Region of Origin Code" <> xShopifyVariant."Country/Region of Origin Code" then begin
                 HasChange := true;
                 GraphQuery.Append(', countryCodeOfOrigin: ');
-                GraphQuery.Append(ShopifyVariant."Country/Region of Origin Code");
+                if ShopifyVariant."Country/Region of Origin Code" = '' then
+                    GraphQuery.Append('null')
+                else
+                    GraphQuery.Append(ShopifyVariant."Country/Region of Origin Code");
             end;
             if ShopifyVariant.Weight <> xShopifyVariant.Weight then begin
                 GraphQuery.Append(', measurement: {weight: {value:');
