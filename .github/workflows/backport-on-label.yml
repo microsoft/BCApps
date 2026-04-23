@@ -1,0 +1,298 @@
+name: Backport on Label
+
+on:
+  pull_request_target:
+    types: [closed, labeled]
+    branches:
+      - 'main'
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to backport (must be merged to main with Backported + version labels)'
+        required: true
+        type: number
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  backport:
+    # Gate: only run if PR is merged and has the "Backported" label
+    if: >-
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event.pull_request.merged == true &&
+       contains(toJSON(github.event.pull_request.labels.*.name), 'Backported'))
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 1. Resolve PR details ──────────────────────────────────────────
+      - name: Resolve PR details
+        id: pr_details
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            PR_NUM="${{ inputs.pr_number }}"
+          else
+            PR_NUM="${{ github.event.pull_request.number }}"
+          fi
+          echo "PR_NUM=$PR_NUM" >> "$GITHUB_OUTPUT"
+
+          # Fetch full PR details via GitHub API
+          PR_JSON=$(gh api "/repos/${REPO}/pulls/${PR_NUM}" --jq '{
+            title: .title,
+            body: .body,
+            merged: .merged,
+            merge_commit_sha: .merge_commit_sha,
+            labels: [.labels[].name],
+            head_sha: .head.sha
+          }')
+
+          # Verify the PR is merged
+          MERGED=$(echo "$PR_JSON" | jq -r '.merged')
+          if [[ "$MERGED" != "true" ]]; then
+            echo "::error::PR #$PR_NUM is not merged. Skipping."
+            exit 1
+          fi
+
+          # Verify the PR has the Backported label
+          HAS_BACKPORTED=$(echo "$PR_JSON" | jq '[.labels[] | select(. == "Backported")] | length')
+          if [[ "$HAS_BACKPORTED" -eq 0 ]]; then
+            echo "::error::PR #$PR_NUM does not have the 'Backported' label. Skipping."
+            exit 1
+          fi
+
+          TITLE=$(echo "$PR_JSON" | jq -r '.title')
+          BODY=$(echo "$PR_JSON" | jq -r '.body // empty')
+          MERGE_COMMIT=$(echo "$PR_JSON" | jq -r '.merge_commit_sha')
+          LABELS_JSON=$(echo "$PR_JSON" | jq -c '.labels')
+
+          echo "TITLE<<GHEOF" >> "$GITHUB_OUTPUT"
+          echo "$TITLE" >> "$GITHUB_OUTPUT"
+          echo "GHEOF" >> "$GITHUB_OUTPUT"
+
+          echo "BODY<<GHEOF" >> "$GITHUB_OUTPUT"
+          echo "$BODY" >> "$GITHUB_OUTPUT"
+          echo "GHEOF" >> "$GITHUB_OUTPUT"
+
+          echo "MERGE_COMMIT=$MERGE_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "LABELS_JSON=$LABELS_JSON" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      # ── 2. Extract metadata from original PR ──────────────────────────
+      - name: Extract PR metadata
+        id: metadata
+        env:
+          PR_BODY: ${{ steps.pr_details.outputs.BODY }}
+        run: |
+          # Extract linked issue numbers (Fixes #N, Closes #N, Resolves #N)
+          ISSUES=$(echo "$PR_BODY" | grep -Poi '(fix|fixes|fixed|close|closes|closed|resolve|resolves|resolved)\s+#\K[0-9]+' || true)
+          # Take the first linked issue
+          ISSUE_NUM=$(echo "$ISSUES" | head -1)
+          echo "ISSUE_NUM=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+
+          if [[ -n "$ISSUE_NUM" ]]; then
+            echo "Found linked issue: #$ISSUE_NUM"
+          else
+            echo "::notice::No linked issue found in original PR description."
+          fi
+        shell: bash
+
+      # ── 3. Identify version labels and validate branches ───────────────
+      - name: Identify target branches
+        id: targets
+        env:
+          LABELS_JSON: ${{ steps.pr_details.outputs.LABELS_JSON }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUM: ${{ steps.pr_details.outputs.PR_NUM }}
+        run: |
+          # Filter labels matching version pattern (e.g., 28.x, 28.1, 27.5)
+          VERSION_LABELS=$(echo "$LABELS_JSON" | jq -r '.[] | select(test("^[0-9]+\\.[a-zA-Z0-9]+$"))' || true)
+
+          if [[ -z "$VERSION_LABELS" ]]; then
+            echo "::notice::No version labels found on PR #$PR_NUM. Nothing to backport."
+            echo "TARGETS=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Version labels found: $VERSION_LABELS"
+
+          VALID_TARGETS=""
+          INVALID_TARGETS=""
+
+          while IFS= read -r label; do
+            BRANCH="releases/$label"
+            # Validate the branch exists
+            if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null 2>&1; then
+              VALID_TARGETS="${VALID_TARGETS}${label}\n"
+              echo "✅ Branch $BRANCH exists"
+            else
+              INVALID_TARGETS="${INVALID_TARGETS}${label}\n"
+              echo "::warning::Branch $BRANCH does not exist for label '$label'"
+            fi
+          done <<< "$VERSION_LABELS"
+
+          # Post warning for invalid branches
+          if [[ -n "$INVALID_TARGETS" ]]; then
+            INVALID_LIST=$(echo -e "$INVALID_TARGETS" | sed '/^$/d' | sed 's/^/- `releases\//' | sed 's/$/`/')
+            COMMENT="⚠️ **Backport Warning**: The following version labels do not have corresponding release branches:\n${INVALID_LIST}\n\nPlease verify the labels or create the missing branches."
+            gh api "/repos/${REPO}/issues/${PR_NUM}/comments" \
+              -f body="$(echo -e "$COMMENT")" \
+              --silent
+          fi
+
+          VALID_LIST=$(echo -e "$VALID_TARGETS" | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
+          echo "TARGETS=$VALID_LIST" >> "$GITHUB_OUTPUT"
+          echo "Valid targets: $VALID_LIST"
+        shell: bash
+
+      # ── 4. Cherry-pick and create PRs ──────────────────────────────────
+      - name: Backport to release branches
+        if: steps.targets.outputs.TARGETS != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUM: ${{ steps.pr_details.outputs.PR_NUM }}
+          PR_TITLE: ${{ steps.pr_details.outputs.TITLE }}
+          MERGE_COMMIT: ${{ steps.pr_details.outputs.MERGE_COMMIT }}
+          ISSUE_NUM: ${{ steps.metadata.outputs.ISSUE_NUM }}
+          TARGETS: ${{ steps.targets.outputs.TARGETS }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          SUMMARY_SUCCESS=""
+          SUMMARY_SKIPPED=""
+          SUMMARY_FAILED=""
+
+          IFS=',' read -ra TARGET_ARRAY <<< "$TARGETS"
+
+          for VERSION in "${TARGET_ARRAY[@]}"; do
+            TARGET_BRANCH="releases/$VERSION"
+            BACKPORT_BRANCH="backport/${TARGET_BRANCH}/${PR_NUM}"
+
+            echo "::group::Processing $TARGET_BRANCH"
+
+            # ── 4.1 Idempotency check ──
+            EXISTING_PR=$(gh api "/repos/${REPO}/pulls?head=${REPO##*/}:${BACKPORT_BRANCH}&base=${TARGET_BRANCH}&state=open" --jq '.[0].number // empty' 2>/dev/null || true)
+            if [[ -n "$EXISTING_PR" ]]; then
+              echo "::notice::Backport PR #$EXISTING_PR already exists for $TARGET_BRANCH. Skipping."
+              SUMMARY_SKIPPED="${SUMMARY_SKIPPED}- \`${TARGET_BRANCH}\`: PR #${EXISTING_PR} already exists\n"
+              echo "::endgroup::"
+              continue
+            fi
+
+            # ── 4.2 Create cherry-pick branch ──
+            git fetch origin "$TARGET_BRANCH" --quiet
+            git checkout -b "$BACKPORT_BRANCH" "origin/$TARGET_BRANCH"
+
+            # ── 4.3 Cherry-pick ──
+            CHERRY_PICK_SUCCESS=true
+            # Determine the number of parents to decide cherry-pick strategy
+            PARENT_COUNT=$(git cat-file -p "$MERGE_COMMIT" | grep -c '^parent ' || true)
+
+            if [[ "$PARENT_COUNT" -gt 1 ]]; then
+              # Merge commit: use -m 1
+              if ! git cherry-pick "$MERGE_COMMIT" -m 1 --no-edit 2>&1; then
+                CHERRY_PICK_SUCCESS=false
+              fi
+            else
+              # Squash merge or single commit
+              if ! git cherry-pick "$MERGE_COMMIT" --no-edit 2>&1; then
+                CHERRY_PICK_SUCCESS=false
+              fi
+            fi
+
+            if [[ "$CHERRY_PICK_SUCCESS" == "false" ]]; then
+              echo "::error::Cherry-pick failed for $TARGET_BRANCH"
+              git cherry-pick --abort 2>/dev/null || true
+              git checkout main --quiet 2>/dev/null || true
+              git branch -D "$BACKPORT_BRANCH" 2>/dev/null || true
+
+              SUMMARY_FAILED="${SUMMARY_FAILED}- \`${TARGET_BRANCH}\`: cherry-pick conflict\n"
+
+              # ── 6.1 Post conflict comment ──
+              CONFLICT_COMMENT="❌ **Backport Failed**: Cherry-pick to \`${TARGET_BRANCH}\` failed due to conflicts.\n\n**Option 1 — Use the hotfix-propagation skill** (recommended):\nIn VS Code Copilot Chat, ask:\n> Resolve the backport conflict for PR #${PR_NUM} to \`${TARGET_BRANCH}\` (commit \`${MERGE_COMMIT:0:10}\`)\n\nThe skill will cherry-pick, resolve conflicts interactively, and create the PR.\n\n**Option 2 — Resolve manually**:\n\`\`\`bash\ngit fetch origin ${TARGET_BRANCH}\ngit checkout -b ${BACKPORT_BRANCH} origin/${TARGET_BRANCH}\ngit cherry-pick ${MERGE_COMMIT} -m 1\n# resolve conflicts, then:\ngit cherry-pick --continue\ngit push origin ${BACKPORT_BRANCH}\ngh pr create --base ${TARGET_BRANCH} --head ${BACKPORT_BRANCH}\n\`\`\`"
+              gh api "/repos/${REPO}/issues/${PR_NUM}/comments" \
+                -f body="$(echo -e "$CONFLICT_COMMENT")" \
+                --silent
+
+              echo "::endgroup::"
+              continue
+            fi
+
+            # ── 4.4 Push branch ──
+            git push origin "$BACKPORT_BRANCH"
+
+            # ── 5.1 Build PR title ──
+            BP_TITLE="[${TARGET_BRANCH}] ${PR_TITLE}"
+            BP_TITLE="${BP_TITLE:0:255}"
+
+            # ── 5.2 Build PR body ──
+            BP_BODY="This is a backport of #${PR_NUM}"
+
+            if [[ -n "$ISSUE_NUM" ]]; then
+              BP_BODY="${BP_BODY}\n\nFixes #${ISSUE_NUM}"
+            fi
+
+            # ── 5.3 Create PR ──
+            NEW_PR_URL=$(gh pr create \
+              --repo "$REPO" \
+              --base "$TARGET_BRANCH" \
+              --head "$BACKPORT_BRANCH" \
+              --title "$BP_TITLE" \
+              --body "$(echo -e "$BP_BODY")")
+
+            NEW_PR_NUM=$(echo "$NEW_PR_URL" | grep -Eo '[0-9]+$')
+
+            # ── 5.4 Add Linked label ──
+            gh pr edit "$NEW_PR_NUM" --repo "$REPO" --add-label "Linked"
+
+            echo "✅ Created backport PR $NEW_PR_URL for $TARGET_BRANCH"
+            SUMMARY_SUCCESS="${SUMMARY_SUCCESS}- \`${TARGET_BRANCH}\`: ${NEW_PR_URL}\n"
+
+            # Return to a clean state for the next iteration
+            git checkout main --quiet 2>/dev/null || git checkout --detach --quiet
+            git branch -D "$BACKPORT_BRANCH" 2>/dev/null || true
+
+            echo "::endgroup::"
+          done
+
+          # ── 6.3 Post summary comment ──
+          SUMMARY="## 🔄 Backport Summary for PR #${PR_NUM}\n\n"
+
+          if [[ -n "$SUMMARY_SUCCESS" ]]; then
+            SUMMARY="${SUMMARY}### ✅ Created\n${SUMMARY_SUCCESS}\n"
+          fi
+
+          if [[ -n "$SUMMARY_SKIPPED" ]]; then
+            SUMMARY="${SUMMARY}### ⏭️ Skipped (already exists)\n${SUMMARY_SKIPPED}\n"
+          fi
+
+          if [[ -n "$SUMMARY_FAILED" ]]; then
+            SUMMARY="${SUMMARY}### ❌ Failed\n${SUMMARY_FAILED}\n"
+          fi
+
+          if [[ -z "$SUMMARY_SUCCESS" && -z "$SUMMARY_SKIPPED" && -z "$SUMMARY_FAILED" ]]; then
+            echo "::notice::No backport actions were taken."
+          else
+            gh api "/repos/${REPO}/issues/${PR_NUM}/comments" \
+              -f body="$(echo -e "$SUMMARY")" \
+              --silent
+          fi
+        shell: bash
