@@ -159,7 +159,7 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
             if UnitOfMeasure.Get(PurchInvLine."Unit of Measure") then // we only assign if it's a valid unit of measure
                 EDocumentPurchaseLine."[BC] Unit of Measure" := CopyStr(PurchInvLine."Unit of Measure", 1, MaxStrLen(EDocumentPurchaseLine."[BC] Unit of Measure"));
 
-        if (EDocumentPurchaseLine."[BC] Purchase Line Type" = "Purchase Line Type"::" ") and (EDocumentPurchaseLine."[BC] Purchase Type No." = '') then begin
+        if EDocumentPurchaseLine."[BC] Purchase Type No." = '' then begin
             // We first check if the purchase invoice line came from an allocation account line
             // If so, we set the account type and number explictly since the type and number of the line has changed
             if not IsNullGuid(PurchInvLine."Alloc. Purch. Line SystemId") then begin

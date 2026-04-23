@@ -222,9 +222,15 @@ page 20408 "Qlty. Inspection List"
                 Enabled = CanCreateReinspection;
 
                 trigger OnAction()
+                var
+                    CreatedReinspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection();
+                    Rec.CreateReinspection(CreatedReinspectionHeader);
                     CurrPage.Update(false);
+                    if not IsNullGuid(CreatedReinspectionHeader.SystemId) then begin
+                        Commit();
+                        Page.Run(Page::"Qlty. Inspection", CreatedReinspectionHeader);
+                    end;
                 end;
             }
             action(TakePicture)
@@ -550,8 +556,6 @@ page 20408 "Qlty. Inspection List"
                     QltyDocumentNavigation.NavigateToFindEntries(Rec);
                 end;
             }
-#pragma warning disable AS0031
-#pragma warning disable AS0032
             group(ItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
@@ -632,8 +636,6 @@ page 20408 "Qlty. Inspection List"
                     ToolTip = 'View the quantities of the item in each bin where it exists. You can see all the important parameters relating to bin content, and you can modify certain bin content parameters in this window.';
                 }
             }
-#pragma warning restore AS0032
-#pragma warning restore AS0031
         }
     }
 
@@ -709,6 +711,7 @@ page 20408 "Qlty. Inspection List"
     trigger OnAfterGetRecord()
     begin
         ResultStyleExpr := Rec.GetResultStyle();
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -717,7 +720,7 @@ page 20408 "Qlty. Inspection List"
         CanUnassign := false;
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
         CanCreateReinspection := RowActionsAreEnabled;
-        CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
+        CanReopen := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
         CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
         StatusStyleExpr := Rec.GetStatusStyleExpression();
 

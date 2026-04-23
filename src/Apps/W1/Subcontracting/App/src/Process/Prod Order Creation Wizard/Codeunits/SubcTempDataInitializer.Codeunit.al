@@ -28,7 +28,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         TempGlobalRoutingLine: Record "Routing Line" temporary;
         TempGlobalVendor: Record Vendor temporary;
         SubcManagementSetup: Record "Subc. Management Setup";
-        SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
+        SubcSessionState: Codeunit "Subc. Session State";
         SubcVersionMgmt: Codeunit "Subc. Version Mgmt.";
         HasSubManagementSetup: Boolean;
         SubcRtngBOMSourceType: Enum "Subc. RtngBOMSourceType";
@@ -269,7 +269,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         BuildTemporaryComponents();
 
         GetVendor();
-        SingleInstanceDictionary.SetCode('SetSubcontractingLocationCodeFromVendor', TempGlobalVendor."Subcontr. Location Code");
+        SubcSessionState.SetCode('SetSubcontractingLocationCodeFromVendor', TempGlobalVendor."Subcontr. Location Code");
     end;
 
     local procedure BuildTemporaryComponents()

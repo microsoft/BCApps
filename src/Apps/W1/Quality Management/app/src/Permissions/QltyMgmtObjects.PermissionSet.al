@@ -40,8 +40,6 @@ using Microsoft.QualityManagement.Setup.SetupGuide;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 
-#pragma warning disable AS0125
-#pragma warning disable AS0090
 permissionset 20406 "QltyMgmt - Objects"
 {
     Caption = 'Quality Management - Objects';
@@ -89,6 +87,7 @@ permissionset 20406 "QltyMgmt - Objects"
         codeunit "Qlty. Permission Mgmt." = X,
         codeunit "Qlty. Manufactur. Integration" = X,
         codeunit "Qlty. Assembly Integration" = X,
+        codeunit "Qlty. Batch Notif. Helper" = X,
         codeunit "Qlty. Demo Data Mgmt." = X,
         codeunit "Qlty. Receiving Integration" = X,
         codeunit "Qlty. Report Mgmt." = X,
@@ -165,5 +164,3 @@ permissionset 20406 "QltyMgmt - Objects"
         table "Qlty. Inspection Header" = X,
         table "Qlty. Test" = X;
 }
-#pragma warning restore AS0090
-#pragma warning restore AS0125
