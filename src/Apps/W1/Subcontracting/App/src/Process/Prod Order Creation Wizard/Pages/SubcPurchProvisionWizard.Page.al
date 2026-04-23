@@ -66,6 +66,13 @@ page 99001505 "Subc. PurchProvisionWizard"
                         Editable = false;
                         ToolTip = 'Specifies the description of the item for which the purchase provision is being set up.';
                     }
+                    field("Description 2"; Rec."Description 2")
+                    {
+                        Caption = 'Description 2';
+                        Editable = false;
+                        ToolTip = 'Specifies additional description of the item for which the purchase provision is being set up.';
+                        Visible = false;
+                    }
                     group(BomRoutingTransfer)
                     {
                         Caption = 'BOM/Routing Transfer';
