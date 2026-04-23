@@ -1,0 +1,332 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "29bad4dcc0a702aa0c35",
+  "position": {
+    "x": 21.615034960841459,
+    "y": 61.89760011513691,
+    "z": 3000,
+    "height": 65.827606471653539,
+    "width": 1232.0569927679633,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "MRR End of Period"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.MRR End of Period",
+              "nativeQueryRef": "MRR End of Period"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Total Change"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Total Change",
+              "nativeQueryRef": "Total Change"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Downgrade"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Total Downgrade",
+              "nativeQueryRef": "Downgrade"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Churn"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Total Churn",
+              "nativeQueryRef": "Churn"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Avg. Mon. Churn Rate %"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Mon. Recurring Revenue Churn Avg. %",
+              "nativeQueryRef": "Mon. Avg. Churn Rate %"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Subscription Billing KPIs"
+                  }
+                },
+                "Property": "MRR End of Period"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Financial KPIs Card'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualTooltip": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {
+            "altText": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "angle": {
+              "expr": {
+                "Literal": {
+                  "Value": "90L"
+                }
+              }
+            },
+            "shadowDistance": {
+              "expr": {
+                "Literal": {
+                  "Value": "10L"
+                }
+              }
+            },
+            "shadowBlur": {
+              "expr": {
+                "Literal": {
+                  "Value": "10L"
+                }
+              }
+            },
+            "shadowSpread": {
+              "expr": {
+                "Literal": {
+                  "Value": "3L"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "70L"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "351feee601302be0701d",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "MRR End of Period"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "25bf0a00064e0917b179",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "Total Change"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "336624a9b28690bcb0b9",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "Downgrade"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "a4d33d98646690deda7d",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "Churn"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "675210d141e123c4eee6",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Subscription Billing KPIs"
+              }
+            },
+            "Property": "Avg. Mon. Churn Rate %"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

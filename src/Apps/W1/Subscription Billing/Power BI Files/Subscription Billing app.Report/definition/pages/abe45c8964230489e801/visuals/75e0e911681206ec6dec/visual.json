@@ -1,0 +1,107 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "75e0e911681206ec6dec",
+  "position": {
+    "x": 25.776754890678941,
+    "y": 61.1277330264672,
+    "z": 2000,
+    "height": 307.11162255466053,
+    "width": 399.9079401611047,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Category"
+                    }
+                  },
+                  "Property": "Item Category Description"
+                }
+              },
+              "queryRef": "Item Category.Item Category Description",
+              "nativeQueryRef": "Item Category Description",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Mon. Recurring Revenue"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Mon. Recurring Revenue",
+              "nativeQueryRef": "Mon. Recurring Revenue"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Subscription Billing KPIs"
+                  }
+                },
+                "Property": "Mon. Recurring Revenue"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Mon. Recurring Revenue by Item Category Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

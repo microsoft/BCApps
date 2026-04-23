@@ -1,0 +1,191 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "04bd429e4709269ddca9",
+  "position": {
+    "x": 21.615034960841459,
+    "y": 60.915098526007753,
+    "z": 1000,
+    "height": 306.54049580829707,
+    "width": 1231.074491178834,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "columnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+                    }
+                  },
+                  "Level": "Fiscal Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Quarter-Month-Week.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year-Quarter-Month-Week Fiscal Year",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+                    }
+                  },
+                  "Level": "Fiscal Quarter Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Quarter-Month-Week.Fiscal Quarter Year",
+              "nativeQueryRef": "Fiscal Year-Quarter-Month-Week Fiscal Quarter Year",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+                    }
+                  },
+                  "Level": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Quarter-Month-Week.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Year-Quarter-Month-Week Fiscal Month Year",
+              "active": false
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Is Released"
+                    }
+                  },
+                  "Property": "Is Released"
+                }
+              },
+              "queryRef": "Is Released.Is Released",
+              "nativeQueryRef": "Is Released"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Customer Deferrals"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Customer Deferrals",
+              "nativeQueryRef": "Customer Deferrals"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Is Released"
+                  }
+                },
+                "Property": "Is Released"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "categoryAxis": [
+        {
+          "properties": {
+            "concatenateLabels": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Released and Deferred Amount by Year and Month Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

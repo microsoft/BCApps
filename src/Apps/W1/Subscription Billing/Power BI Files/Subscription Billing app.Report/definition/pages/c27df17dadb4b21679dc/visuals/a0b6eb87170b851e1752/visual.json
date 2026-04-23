@@ -1,0 +1,339 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "a0b6eb87170b851e1752",
+  "position": {
+    "x": 650.20088967279241,
+    "y": 386.7207905897,
+    "z": 4000,
+    "height": 307.03930901215193,
+    "width": 602.39200072626352,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+                    }
+                  },
+                  "Level": "Fiscal Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Quarter-Month-Week.Fiscal Year",
+              "nativeQueryRef": "Fiscal Year-Quarter-Month-Week Fiscal Year",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+                    }
+                  },
+                  "Level": "Fiscal Quarter Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Quarter-Month-Week.Fiscal Quarter Year",
+              "nativeQueryRef": "Fiscal Year-Quarter-Month-Week Fiscal Quarter Year",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Date"
+                        }
+                      },
+                      "Hierarchy": "Fiscal Year-Quarter-Month-Week"
+                    }
+                  },
+                  "Level": "Fiscal Month Year"
+                }
+              },
+              "queryRef": "Date.Fiscal Year-Quarter-Month-Week.Fiscal Month Year",
+              "nativeQueryRef": "Fiscal Year-Quarter-Month-Week Fiscal Month Year",
+              "active": true
+            }
+          ]
+        },
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Billing Rhythm"
+                }
+              },
+              "queryRef": "Customer Contract Line.Billing Rhythm",
+              "nativeQueryRef": "Billing Rhythm",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendors"
+                    }
+                  },
+                  "Property": "Vendor No. & Name"
+                }
+              },
+              "queryRef": "Vendors.Vendor No. & Name",
+              "nativeQueryRef": "Vendor No. & Name",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendor Contract Line"
+                    }
+                  },
+                  "Property": "Vendor Contract No."
+                }
+              },
+              "queryRef": "Vendor Contract Line.Vendor Contract No.",
+              "nativeQueryRef": "Vendor Contract No.",
+              "active": false
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Vendor Billing Forecast"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Forecast Cash Outflow",
+              "nativeQueryRef": "Vendor Billing Forecast"
+            }
+          ]
+        }
+      }
+    },
+    "expansionStates": [
+      {
+        "roles": [
+          "Rows"
+        ],
+        "levels": [
+          {
+            "queryRefs": [
+              "Customer Contract Line.Billing Rhythm"
+            ],
+            "isCollapsed": true,
+            "identityKeys": [
+              {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Customer Contract Line"
+                    }
+                  },
+                  "Property": "Billing Rhythm"
+                }
+              }
+            ],
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Vendors.Vendor No. & Name"
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          },
+          {
+            "queryRefs": [
+              "Vendor Contract Line.Vendor Contract No."
+            ],
+            "isCollapsed": true,
+            "isPinned": true
+          }
+        ],
+        "root": {
+          "children": [
+            {
+              "identityValues": [
+                {
+                  "Literal": {
+                    "Value": "'12M'"
+                  }
+                }
+              ],
+              "isToggled": true
+            }
+          ]
+        }
+      }
+    ],
+    "objects": {
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "113D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Month"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "95D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Sales Measures.Average Sales Amount per Day"
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "backColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "FillRule": {
+                      "Input": {
+                        "Measure": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Entity": "Subscription Billing KPIs"
+                            }
+                          },
+                          "Property": "Vendor Billing Forecast"
+                        }
+                      },
+                      "FillRule": {
+                        "linearGradient2": {
+                          "min": {
+                            "color": {
+                              "Literal": {
+                                "Value": "'#b3d8dd'"
+                              }
+                            }
+                          },
+                          "max": {
+                            "color": {
+                              "Literal": {
+                                "Value": "'#429EAA'"
+                              }
+                            }
+                          },
+                          "nullColoringStrategy": {
+                            "strategy": {
+                              "Literal": {
+                                "Value": "'noColor'"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "Subscription Billing KPIs.Forecast Cash Outflow"
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Billing Forecast by Billing Period, Vendor and Contract No. Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,277 @@
+table 'Localized Labels'
+	isHidden
+	lineageTag: bb491cc1-cc21-4024-930c-dd934ce72e6d
+
+	measure 'CONNECT YOUR DATA' = 0
+		isHidden
+		lineageTag: 2e0d925d-a450-462e-b5aa-768960cbdb6f
+
+	measure '1. Download the Finance Connector for Power BI' = 0
+		isHidden
+		lineageTag: 8aaa5c35-6d66-4f75-9ce0-4b7747ad09b0
+
+	measure '2. Configure Dynamics 365 Business Central' = 0
+		isHidden
+		lineageTag: fca6e0ca-f179-4be6-83ba-13954a9c6fb8
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS' = 0
+		isHidden
+		lineageTag: 30ccb8a8-14ea-40b0-b57e-7662a5d0351d
+
+	measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.' = 0
+		isHidden
+		lineageTag: 49af546a-c7f8-4d21-b054-1b9196a3e634
+
+	measure 'HELP AND SUPPORT' = 0
+		isHidden
+		lineageTag: a5955ac3-4cb2-47cd-ad4c-08c768bbc55c
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation.' = 0
+		isHidden
+		lineageTag: 06dfcd33-477b-4ed5-b9bf-2428c57f4a33
+
+	measure 'for Business Central' = 0
+		isHidden
+		lineageTag: eca50d64-01d0-4c4c-9290-eccae33a5e97
+
+	measure 'Last Refreshed' = 0
+		isHidden
+		lineageTag: 3878a9f3-ddab-46db-99ad-12f24e36bbfa
+
+	measure 'Company Name' = 0
+		isHidden
+		lineageTag: 92097977-f391-4f47-996c-775a3d895704
+
+	measure 'Analysis Entries as of' = 0
+		isHidden
+		lineageTag: 6b062a7a-3eb7-4a5d-a4ea-433fddecd35c
+
+	measure 'Billing Forecast by Billing Period, Customer and Contract No.' = 0
+		isHidden
+		lineageTag: 844749de-04b7-4c58-ab13-5f3daaa60c0f
+
+	measure 'Billing Forecast by Year and Month' = 0
+		isHidden
+		lineageTag: c953823b-1413-4c30-a98f-87f08a507f5d
+
+	measure 'Billing Schedule' = 0
+		isHidden
+		lineageTag: 9fa316a2-2600-4aca-8e34-1afef875b17e
+
+	measure 'Change of Mon. Recurring Revenue by Year and Month' = 0
+		isHidden
+		lineageTag: bfa03046-886f-4ef2-9f4f-260ef45799c7
+
+	measure 'Current Date Range:' = 0
+		isHidden
+		lineageTag: bb1ea999-c865-44de-83c8-0303918d8209
+
+	measure 'Customer Contract Deferrals' = 0
+		isHidden
+		lineageTag: 4041576c-02c2-43c7-a5a8-b2912ba6afea
+
+	measure 'Customer Contract Lines' = 0
+		isHidden
+		lineageTag: 97234d24-14b3-4e55-98e1-64e15a249b8b
+
+	measure 'Customer Deferrals (Caption)' = 0
+		isHidden
+		lineageTag: 2d14594c-f95c-40b2-a16e-fcd14a43ea9e
+
+	measure 'Mon. Recurring Revenue Analysis' = 0
+		isHidden
+		lineageTag: 0ee39fdc-22f3-4a1f-8935-554dda29762f
+
+	measure 'Mon. Recurring Revenue and Mon. Recurring Revenue PY by Month' = 0
+		isHidden
+		lineageTag: 83f53b50-5914-4de9-a9ba-7d7f0f0e7af5
+
+	measure 'Mon. Recurring Revenue and Year-Over-Year Growth by Year and Month' = 0
+		isHidden
+		lineageTag: 63fd2d9e-64b1-4fa9-84ad-cb5606cc685a
+
+	measure 'Mon. Recurring Revenue by Customer' = 0
+		isHidden
+		lineageTag: 1592b158-1a6e-4da3-8e3b-2f7654d7c26b
+
+	measure 'Mon. Recurring Revenue by Salesperson' = 0
+		isHidden
+		lineageTag: a45186ab-13c5-4bf1-8dfa-007fcb440551
+
+	measure 'Mon. Recurring Revenue by Year and Month' = 0
+		isHidden
+		lineageTag: 0ec06452-e48a-44dc-ac9c-69eea9e9c90d
+
+	measure 'Mon. Recurring Revenue by Item' = 0
+		isHidden
+		lineageTag: 413d6827-df93-4af7-a6bc-2cf0b8c8b3b9
+
+	measure 'Mon. Recurring Revenue by Item Category' = 0
+		isHidden
+		lineageTag: 8df0393a-f5c5-456a-a246-be1c02c5f655
+
+	measure 'Mon. Recurring Revenue Churn and Downgrade by Customer Contract' = 0
+		isHidden
+		lineageTag: 277e2367-9947-4d8f-998f-54a527f79b9e
+
+	measure 'Mon. Recurring Revenue New and Upgrade by Customer Contract' = 0
+		isHidden
+		lineageTag: 6edfffb4-0fcd-4594-a05c-fc6be11af633
+
+	measure 'Monthly Sales and Cost Forecast by Year and Month' = 0
+		isHidden
+		lineageTag: 205d4014-4b70-4eb1-8846-cc92ec330e61
+
+	measure 'Monthly Sales and Cost Forecast by Salesperson, Customer and Contract No.' = 0
+		isHidden
+		lineageTag: d6da1e7b-f30f-449e-9a6b-a98254cddbbb
+
+	measure 'Released and Deferred Amount by Year and Month' = 0
+		isHidden
+		lineageTag: 1548ea23-9cac-459e-a44f-59f85d5f6e2e
+
+	measure 'Revenue Analysis' = 0
+		isHidden
+		lineageTag: fff8e682-fd4c-4383-9b59-732cce93b54f
+
+	measure 'Revenue by Customer' = 0
+		isHidden
+		lineageTag: 74bf2c9b-8d69-41a2-83e7-caa5a5baea17
+
+	measure 'Revenue by Item' = 0
+		isHidden
+		lineageTag: 4e5b62e7-1c5a-431f-826e-0fa5e0214775
+
+	measure 'Revenue by Salesperson' = 0
+		isHidden
+		lineageTag: 9ad2380b-28bc-4256-9641-c7eeb44e9332
+
+	measure 'Revenue Development' = 0
+		isHidden
+		lineageTag: 56df1932-0d8e-4790-8d09-6c4a40980cf1
+
+	measure 'Sales and Cost Forecast' = 0
+		isHidden
+		lineageTag: e0c3256a-6dbd-43f6-b684-e5f55eb48f82
+
+	measure 'Revenue Year-Over-Year Growth' = 0
+		isHidden
+		lineageTag: 6301f566-718e-4d41-a033-1c160569a383
+
+	measure 'Subscription Billing Analysis' = 0
+		isHidden
+		lineageTag: 90809706-227f-44a2-bda1-b8d5a3478e20
+
+	measure 'Subscription Billing Overview' = 0
+		isHidden
+		lineageTag: d8b1ba69-e782-4019-b1e1-82631b2f3da8
+
+	measure 'Top 5 Customers by Mon. Recurring Revenue' = 0
+		isHidden
+		lineageTag: c335ebff-26bb-4dc2-a037-940621cca510
+
+	measure 'Top 5 Vendors by Mon. Recurring Cost' = 0
+		isHidden
+		lineageTag: 50f239ca-7c1e-4517-8643-b292f9ac664e
+
+	measure 'Total Contract Value Analysis' = 0
+		isHidden
+		lineageTag: d6592fcb-173b-4124-bf9b-e4f224d32a9e
+
+	measure 'Total Contract Value and Total Contract Value PY by Month' = 0
+		isHidden
+		lineageTag: 134c7194-8ef9-4d65-9e94-6165d77d7fb7
+
+	measure 'Total Contract Value and Year-Over-Year Growth by Year and Month' = 0
+		isHidden
+		lineageTag: 502cdb29-986f-495f-bab1-c2bb28d186aa
+
+	measure 'Total Contract Value by Year and Month' = 0
+		isHidden
+		lineageTag: e53514e4-7fb5-411c-9760-ab7df69d20e4
+
+	measure 'Total Contract Value Year-Over-Year Growth' = 0
+		isHidden
+		lineageTag: 1a56b4a4-97ab-4a95-984e-069a4cf354b8
+
+	measure 'Vendor Contract Deferrals' = 0
+		isHidden
+		lineageTag: 36c90144-d3d9-4000-b48c-41e339f86860
+
+	measure 'Vendor Deferrals (Caption)' = 0
+		isHidden
+		lineageTag: d9ce6943-0cf7-4d3c-91bb-5158022168a5
+
+	measure 'Back button' = 0
+		formatString: 0
+		isHidden
+		lineageTag: 8a192dfe-ff11-4ade-afb9-acacc9cb7c64
+
+	measure 'Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue' = 0
+		formatString: 0
+		isHidden
+		lineageTag: 673f244c-6171-47fd-88fe-8d25ff9fa65c
+
+	measure 'Churn Analysis' = 0
+		formatString: 0
+		isHidden
+		lineageTag: 970aed3a-a493-4dcf-81ce-67b05dbb580a
+
+	measure 'Avg. Mon. Churn Rate % by Year and Month' = 0
+		isHidden
+		lineageTag: dbec714d-36ad-4e74-bc74-9691ee24a02e
+
+	measure 'Total Contract Value by Package' = 0
+		isHidden
+		lineageTag: eb7ac507-a2f1-4ba2-92d4-e7eb91d456d9
+
+	measure 'Mon. Recurring Revenue by Package' = 0
+		isHidden
+		lineageTag: 9c002ddd-002a-426e-a47d-d6351d291e93
+
+	measure 'Churn by Customer' = 0
+		isHidden
+		lineageTag: 79e806b1-5fe4-461f-9e2d-8d23af4d33ac
+
+	measure 'Profitability by Item' = 0
+		isHidden
+		lineageTag: aef1f788-4dd3-4346-ba15-c7964929e203
+
+	measure 'Mon. Recurring Revenue by Customer Location' = 0
+		isHidden
+		lineageTag: 355d4e8c-e2b7-488d-8aae-610791396576
+
+	measure 'Profitability by Salesperson' = 0
+		isHidden
+		lineageTag: 10fb96a6-7639-4f61-b26c-4c8aeb15b721
+
+	measure 'Total Contract Value by Salesperson' = 0
+		isHidden
+		lineageTag: 5ca0d80c-d7cc-4f84-9bf1-8cadb5777ad1
+
+	measure 'Customer Deferrals by Released Status' = 0
+		isHidden
+		lineageTag: dc49dcdf-4074-4dde-845c-dd35d6864bbc
+
+	measure 'Vendor Deferrals by Released Status' = 0
+		isHidden
+		lineageTag: 10e96e0c-8487-469d-97ea-94d49f78cdd5
+
+	measure 'Billing Forecast by Billing Period, Vendor and Contract No.' = 0
+		isHidden
+		lineageTag: 601a43e9-3983-471f-8187-a5cc4ee23dff
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 199faaa3-4c88-43c8-9560-ca033e5f0ec4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [unused]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Partition = calculated
+		mode: import
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

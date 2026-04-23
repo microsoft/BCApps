@@ -28,11 +28,11 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         TempGlobalRoutingLine: Record "Routing Line" temporary;
         TempGlobalVendor: Record Vendor temporary;
         ManufacturingSetup: Record "Manufacturing Setup";
-        SubcontractingManagementSetup: Record "Subc. Management Setup";
-        SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
+        SubcManagementSetup: Record "Subc. Management Setup";
+        SubcSessionState: Codeunit "Subc. Session State";
         SubcVersionMgmt: Codeunit "Subc. Version Mgmt.";
         HasManufacturingSetup: Boolean;
-        HasSubcontractingManagementSetup: Boolean;
+        HasSubcManagementSetup: Boolean;
         SubcRtngBOMSourceType: Enum "Subc. RtngBOMSourceType";
 
     /// <summary>
@@ -156,12 +156,12 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     local procedure InitializeTemporaryBOMLineFromSetup(BOMNo: Code[20])
     begin
         GetManufacturingSetup();
-        GetSubcontractingManagementSetup();
+        GetSubcManagementSetup();
         TempGlobalProductionBOMLine.Init();
         TempGlobalProductionBOMLine."Production BOM No." := BOMNo;
         TempGlobalProductionBOMLine."Line No." := 10000;
         TempGlobalProductionBOMLine."Type" := "Production BOM Line Type"::Item;
-        TempGlobalProductionBOMLine.Validate("No.", SubcontractingManagementSetup."Preset Component Item No.");
+        TempGlobalProductionBOMLine.Validate("No.", SubcManagementSetup."Preset Component Item No.");
         TempGlobalProductionBOMLine."Quantity per" := 1;
         TempGlobalProductionBOMLine."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
         TempGlobalProductionBOMLine."Subcontracting Type" := "Subcontracting Type"::InventoryByVendor;
@@ -216,8 +216,8 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         Vendor.Get(TempGlobalPurchaseLine."Buy-from Vendor No.");
         WorkCenterNo := Vendor."Work Center No.";
         if WorkCenterNo = '' then begin
-            SubcontractingManagementSetup.TestField("Common Work Center No.");
-            WorkCenterNo := SubcontractingManagementSetup."Common Work Center No.";
+            SubcManagementSetup.TestField("Common Work Center No.");
+            WorkCenterNo := SubcManagementSetup."Common Work Center No.";
         end;
         exit(WorkCenterNo);
     end;
@@ -241,13 +241,13 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         Location.SetLoadFields("Prod. Output Whse. Handling");
         Location.Get(TempGlobalPurchaseLine."Location Code");
         if Location."Prod. Output Whse. Handling" <> "Prod. Output Whse. Handling"::"No Warehouse Handling" then
-            if SubcontractingManagementSetup."Put-Away Work Center No." <> '' then begin
+            if SubcManagementSetup."Put-Away Work Center No." <> '' then begin
                 TempGlobalRoutingLine.Init();
                 TempGlobalRoutingLine."Routing No." := RoutingNo;
                 TempGlobalRoutingLine."Operation No." := '20';
                 TempGlobalRoutingLine.Type := "Capacity Type Routing"::"Work Center";
-                TempGlobalRoutingLine."No." := SubcontractingManagementSetup."Put-Away Work Center No.";
-                TempGlobalRoutingLine."Work Center No." := SubcontractingManagementSetup."Put-Away Work Center No.";
+                TempGlobalRoutingLine."No." := SubcManagementSetup."Put-Away Work Center No.";
+                TempGlobalRoutingLine."Work Center No." := SubcManagementSetup."Put-Away Work Center No.";
                 TempGlobalRoutingLine.Description := CopyStr(PutAwayOperationLbl, 1, MaxStrLen(TempGlobalRoutingLine.Description));
                 TempGlobalRoutingLine."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
                 TempGlobalRoutingLine.Insert();
@@ -267,7 +267,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         BuildTemporaryComponents();
 
         GetVendor();
-        SingleInstanceDictionary.SetCode('SetSubcontractingLocationCodeFromVendor', TempGlobalVendor."Subcontr. Location Code");
+        SubcSessionState.SetCode('SetSubcontractingLocationCodeFromVendor', TempGlobalVendor."Subcontr. Location Code");
     end;
 
     local procedure BuildTemporaryComponents()
@@ -327,7 +327,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
                     PresetComponentLocationCode();
 
                     if not SubcVersionMgmt.CheckBOMExists(ProductionBOMLine."Production BOM No.", '') then
-                        TempGlobalProdOrderComponent.Validate("Flushing Method", SubcontractingManagementSetup."Def. provision flushing method");
+                        TempGlobalProdOrderComponent.Validate("Flushing Method", SubcManagementSetup."Def. provision flushing method");
 
                     FillProdOrderComponentDefaultBin();
                     TempGlobalProdOrderComponent.Insert();
@@ -513,11 +513,11 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         HasManufacturingSetup := ManufacturingSetup.Get();
     end;
 
-    local procedure GetSubcontractingManagementSetup()
+    local procedure GetSubcManagementSetup()
     begin
-        if HasSubcontractingManagementSetup then
+        if HasSubcManagementSetup then
             exit;
-        HasSubcontractingManagementSetup := SubcontractingManagementSetup.Get();
+        HasSubcManagementSetup := SubcManagementSetup.Get();
     end;
 
     local procedure ClearBOMTables()
