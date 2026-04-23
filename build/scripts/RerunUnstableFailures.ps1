@@ -33,8 +33,8 @@ if ($run.run_attempt -gt $MaxAttempts) {
 
 Write-Host "--- Checking run $($run.id): $($run.display_title) ---"
 
-# Count failed jobs
-$jobsJson = gh api "/repos/$Owner/$Repo/actions/runs/$RunId/jobs?filter=latest&per_page=100" 2>&1
+# Fetch all jobs (paginated)
+$jobsJson = gh api "/repos/$Owner/$Repo/actions/runs/$RunId/jobs?filter=latest&per_page=100" --paginate 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "::warning::Failed to fetch jobs for run $RunId"
     exit 1
