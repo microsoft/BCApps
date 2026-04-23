@@ -533,6 +533,7 @@ codeunit 6103 "E-Document Subscribers"
     local procedure OnAfterSendEDocument(ReportUsage: Integer; RecordVariant: Variant; DocNo: Code[20]; ToCust: Code[20]; DocName: Text[150]; CustomerFieldNo: Integer; DocumentNoFieldNo: Integer; DocumentSendingProfile: Record "Document Sending Profile")
     var
         EDocument: Record "E-Document";
+        TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
     begin
         if DocumentSendingProfile."Electronic Document" <> Enum::"Doc. Sending Profile Elec.Doc."::"Extended E-Document Service Flow" then
@@ -540,7 +541,9 @@ codeunit 6103 "E-Document Subscribers"
         if DocumentSendingProfile."Electronic Service Flow" = '' then
             exit;
 
-        RecordRef.GetTable(RecordVariant);
+        if not (RecordVariant.IsRecord() or RecordVariant.IsRecordRef()) then
+            exit;
+        TypeHelper.CopyRecVariantToRecRef(RecordVariant, RecordRef);
         if RecordRef.FindSet() then
             repeat
                 if not EDocument.IsEDocumentCreatedForRecord(RecordRef) then
@@ -556,6 +559,7 @@ codeunit 6103 "E-Document Subscribers"
     local procedure OnAfterSendToEMailEDocument(var DocumentSendingProfile: Record "Document Sending Profile"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; DocNo: Code[20]; DocName: Text[150]; ToCust: Code[20]; DocNoFieldNo: Integer; ShowDialog: Boolean)
     var
         EDocument: Record "E-Document";
+        TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
     begin
         if DocumentSendingProfile."E-Mail" = DocumentSendingProfile."E-Mail"::"No" then
@@ -565,7 +569,9 @@ codeunit 6103 "E-Document Subscribers"
                                                                 Enum::"Document Sending Profile Attachment Type"::"PDF & E-Document"]) then
             exit;
 
-        RecordRef.GetTable(RecordVariant);
+        if not (RecordVariant.IsRecord() or RecordVariant.IsRecordRef()) then
+            exit;
+        TypeHelper.CopyRecVariantToRecRef(RecordVariant, RecordRef);
         if RecordRef.FindSet() then
             repeat
                 if not EDocument.IsEDocumentCreatedForRecord(RecordRef) then
