@@ -256,7 +256,7 @@ codeunit 9057 "Plan Upgrade"
 
         // Create delegated plan
         PlanId := PlanIds.GetD365BCAdminPlanId();
-        PlanName := 'Delegated Dynamics 365 Business Central Administrator';
+        PlanName := 'Delegated Dynamics 365 Business Central Admin';
         RoleCenterId := 9022;
 
         if not Plan.Get(PlanId) then
