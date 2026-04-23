@@ -1458,6 +1458,9 @@ codeunit 134685 "Email Test"
         // [Then] The primary source is the table marked as primary source, not the related entity
         Assert.AreEqual(PrimaryTableId, PrimarySource, 'GetPrimarySourceEntity should return the table ID of the primary source record');
     end;
+
+    [Test]
+    procedure GetSentEmailsForRecordByVariant()
     var
         SentEmail: Record "Sent Email";
         TempSentEmail: Record "Sent Email" temporary;

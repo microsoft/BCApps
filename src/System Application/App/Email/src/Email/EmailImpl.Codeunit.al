@@ -746,9 +746,11 @@ codeunit 8900 "Email Impl"
     var
         EmailRelatedRecord: Record "Email Related Record";
         SystemIdFilter: Text;
+        Found: Boolean;
     begin
         EmailRelatedRecord.SetRange("Email Message Id", EmailMessageId);
-        if EmailRelatedRecord.FindSet() then
+        Found := EmailRelatedRecord.FindSet();
+        if Found then
             repeat
                 if Dict.Get(EmailRelatedRecord."Table Id", SystemIdFilter) then
                     Dict.Set(EmailRelatedRecord."Table Id", SystemIdFilter + '|' + Format(EmailRelatedRecord."System Id"))
@@ -756,7 +758,7 @@ codeunit 8900 "Email Impl"
                     Dict.Add(EmailRelatedRecord."Table Id", Format(EmailRelatedRecord."System Id"));
             until EmailRelatedRecord.Next() <= 0;
 
-        exit(EmailRelatedRecord.Count() > 0);
+        exit(Found);
     end;
 
     procedure GetPrimarySourceEntity(var PrimarySource: Integer; EmailMessageId: Guid; RelatedIds: List of [Integer]): Boolean
@@ -772,7 +774,7 @@ codeunit 8900 "Email Impl"
 
         EmailRelatedRecord.SetRange("Email Message Id", EmailMessageId);
         foreach RelatedId in RelatedIds do begin
-            EmailRelatedRecord.SetFilter("Table Id", Format(RelatedId));
+            EmailRelatedRecord.SetRange("Table Id", RelatedId);
 
             if EmailRelatedRecord.FindSet() then
                 repeat
