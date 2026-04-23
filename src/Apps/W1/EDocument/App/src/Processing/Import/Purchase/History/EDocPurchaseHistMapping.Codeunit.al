@@ -226,7 +226,7 @@ codeunit 6120 "E-Doc. Purchase Hist. Mapping"
             EDocPurchLineField.Get(EDocumentPurchaseLine, EDocPurchLineFieldSetup);
             NewPurchLineFieldRef := NewPurchLineRecordRef.Field(EDocPurchLineFieldSetup."Field No.");
             FieldValue := EDocPurchLineField.GetValue();
-            EDocImportContext.SetAdditionalFieldContext(NewPurchLineFieldRef.Name(), EDocPurchLineFieldSetup."Field No.", Format(FieldValue));
+            EDocImportContext.SetAdditionalFieldContext(NewPurchLineFieldRef.Name(), EDocPurchLineFieldSetup."Field No.", EDocPurchLineField.GetValueAsText());
             NewPurchLineFieldRef.Validate(FieldValue);
             EDocImportContext.ClearAdditionalFieldContext();
         until EDocPurchLineFieldSetup.Next() = 0;

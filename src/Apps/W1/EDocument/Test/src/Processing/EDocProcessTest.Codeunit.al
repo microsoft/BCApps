@@ -1001,7 +1001,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseLine.Insert();
 
         // [GIVEN] The item reference is only valid in the future (not on the e-document's default posting date)
-        ItemReference."Starting Date" := CalcDate('<+1D>', Today());
+        ItemReference."Starting Date" := CalcDate('<+1D>', WorkDate());
         ItemReference.Modify();
 
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");

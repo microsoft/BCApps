@@ -21,27 +21,40 @@ codeunit 6199 "E-Doc. Import Context"
         ValidatingFieldLbl: Label 'While validating field "%1"', Comment = '%1 = Field Caption';
         WrapErrorLbl: Label '%1: %2', Comment = '%1 = Context, %2 = Original Error';
 
+    /// <summary>
+    /// Binds the event subscribers in this codeunit so that field validation context is automatically tracked.
+    /// </summary>
     procedure Bind()
     begin
-        if not IsBound then begin
-            BindSubscription(this);
-            IsBound := true;
-        end;
+        if not IsBound then
+            if BindSubscription(this) then
+                IsBound := true;
     end;
 
+    /// <summary>
+    /// Unbinds the event subscribers in this codeunit so that field validation context is no longer tracked.
+    /// </summary>
     procedure Unbind()
     begin
-        if IsBound then begin
-            UnbindSubscription(this);
-            IsBound := false;
-        end;
+        if IsBound then
+            if UnbindSubscription(this) then
+                IsBound := false;
     end;
 
+    /// <summary>
+    /// Returns whether a context message is currently set.
+    /// </summary>
+    /// <returns>True if a context message is set, false otherwise.</returns>
     procedure HasContext(): Boolean
     begin
         exit(CurrentContext <> '');
     end;
 
+    /// <summary>
+    /// Wraps the original error message with the current context, if one is set.
+    /// </summary>
+    /// <param name="OriginalError">The original error message to wrap.</param>
+    /// <returns>The error message prefixed with the current context, or the original message if no context is set.</returns>
     procedure WrapErrorMessage(OriginalError: Text): Text
     begin
         if CurrentContext = '' then
@@ -49,12 +62,21 @@ codeunit 6199 "E-Doc. Import Context"
         exit(StrSubstNo(WrapErrorLbl, CurrentContext, OriginalError));
     end;
 
+    /// <summary>
+    /// Sets the context to describe an additional field being applied, and unbinds the event subscribers.
+    /// </summary>
+    /// <param name="FieldName">The name of the additional field being applied.</param>
+    /// <param name="FieldNo">The ID of the additional field being applied.</param>
+    /// <param name="Value">The value being applied to the field.</param>
     procedure SetAdditionalFieldContext(FieldName: Text; FieldNo: Integer; Value: Text)
     begin
         Unbind();
         CurrentContext := StrSubstNo(AdditionalFieldContextLbl, FieldName, FieldNo, Value);
     end;
 
+    /// <summary>
+    /// Clears the additional field context and re-binds the event subscribers.
+    /// </summary>
     procedure ClearAdditionalFieldContext()
     begin
         CurrentContext := '';
