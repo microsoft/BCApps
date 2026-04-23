@@ -297,60 +297,17 @@ codeunit 8906 "Email Editor"
             until TempEmailRelatedAttachment.Next() = 0;
     end;
 
-    local procedure GetPrimarySourceEntity(var PrimarySource: Integer; EmailMessageID: Guid; RelatedIds: List of [Integer]): Boolean
-    var
-        EmailRelatedRecord: Record "Email Related Record";
-        RelatedId: Integer;
-    begin
-        // If there is only one key in the dict, then there is no need to use DB resources.
-        if RelatedIds.Count = 1 then begin
-            PrimarySource := RelatedIds.Get(1);
-            exit(true);
-        end;
-
-        EmailRelatedRecord.SetRange("Email Message Id", EmailMessageID);
-        foreach RelatedId in RelatedIds do begin
-            EmailRelatedRecord.SetFilter("Table Id", Format(RelatedId));
-
-            if EmailRelatedRecord.FindSet() then
-                repeat
-                    if EmailRelatedRecord."Relation Type" = EmailRelatedRecord."Relation Type"::"Primary Source" then begin
-                        PrimarySource := RelatedId;
-                        exit(true);
-                    end;
-                until EmailRelatedRecord.Next() = 0;
-        end;
-
-        exit(false);
-    end;
-
-    local procedure FindEmailSourceEntities(EmailMessageID: Guid; var Dict: Dictionary of [Integer, Text]): Boolean
-    var
-        EmailRelatedRecord: Record "Email Related Record";
-        SystemIdFilter: Text;
-    begin
-        EmailRelatedRecord.SetRange("Email Message Id", EmailMessageID);
-        if EmailRelatedRecord.FindSet() then
-            repeat
-                if Dict.Get(EmailRelatedRecord."Table Id", SystemIdFilter) then
-                    Dict.Set(EmailRelatedRecord."Table Id", SystemIdFilter + '|' + Format(EmailRelatedRecord."System Id"))
-                else
-                    Dict.Add(EmailRelatedRecord."Table Id", Format(EmailRelatedRecord."System Id"));
-            until EmailRelatedRecord.Next() <= 0;
-
-        exit(EmailRelatedRecord.Count() > 0);
-    end;
-
     procedure LoadWordTemplate(EmailMessageImpl: Codeunit "Email Message Impl."; EmailMessageID: Guid)
     var
         WordTemplateRecord: Record "Word Template";
         WordTemplateToTextWizard: Page "Word Template To Text Wizard";
+        EmailImpl: Codeunit "Email Impl";
         TemplateSize: Integer;
         Dict: Dictionary of [Integer, Text];
         PrimarySource: Integer;
     begin
-        if FindEmailSourceEntities(EmailMessageID, Dict) then begin
-            if not GetPrimarySourceEntity(PrimarySource, EmailMessageID, Dict.Keys) then
+        if EmailImpl.FindEmailSourceEntities(EmailMessageID, Dict) then begin
+            if not EmailImpl.GetPrimarySourceEntity(PrimarySource, EmailMessageID, Dict.Keys) then
                 Error(NoPrimarySourceOnEmailErr);
 
             WordTemplateToTextWizard.SetData(Dict, PrimarySource);
@@ -378,13 +335,14 @@ codeunit 8906 "Email Editor"
     var
         WordTemplateRecord: Record "Word Template";
         WordTemplateSelectionWizard: Page "Word Template Selection Wizard";
+        EmailImpl: Codeunit "Email Impl";
         InStream: InStream;
         Filename: Text;
         FileSize: Integer;
         ContentType: Text[250];
         Dict: Dictionary of [Integer, Text];
     begin
-        if FindEmailSourceEntities(EmailMessageID, Dict) then begin
+        if EmailImpl.FindEmailSourceEntities(EmailMessageID, Dict) then begin
             WordTemplateSelectionWizard.SetData(Dict);
             WordTemplateSelectionWizard.SaveAsDocumentStream();
             WordTemplateSelectionWizard.RunModal();
