@@ -54,7 +54,7 @@ codeunit 4300 "Agent Task Impl."
         Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry);
     end;
 
-    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; var NewAgentTask: Record "Agent Task")
+    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; BillingContext: Enum "Agent Task Billing Context"; var NewAgentTask: Record "Agent Task")
     begin
         NewAgentTask."Agent User Security ID" := AgentUserSecurityID;
         NewAgentTask."Created By" := UserSecurityId();
@@ -62,6 +62,7 @@ codeunit 4300 "Agent Task Impl."
         NewAgentTask."Needs Attention" := false;
         NewAgentTask.Status := NewAgentTask.Status::Paused;
         NewAgentTask."External ID" := ExternalID;
+        NewAgentTask."Billing Context" := BillingContext;
         NewAgentTask.Insert();
     end;
 
