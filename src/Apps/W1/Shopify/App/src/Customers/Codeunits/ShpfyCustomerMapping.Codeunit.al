@@ -108,6 +108,7 @@ codeunit 30118 "Shpfy Customer Mapping"
         case Direction of
             Direction::ShopifyToBC:
                 begin
+                    FindCustomer.CopyFilters(Customer);
                     if ShopifyCustomer.Email <> '' then begin
                         FindCustomer.SetFilter("E-Mail", '@' + ShopifyCustomer.Email);
                         if FindCustomer.FindFirst() then begin
@@ -119,6 +120,7 @@ codeunit 30118 "Shpfy Customer Mapping"
                         PhoneFilter := CreatePhoneFilter(ShopifyCustomer."Phone No.");
                         if PhoneFilter <> '' then begin
                             Clear(FindCustomer);
+                            FindCustomer.CopyFilters(Customer);
                             FindCustomer.SetFilter("Phone No.", PhoneFilter);
                             if FindCustomer.FindFirst() then begin
                                 Customer := FindCustomer;

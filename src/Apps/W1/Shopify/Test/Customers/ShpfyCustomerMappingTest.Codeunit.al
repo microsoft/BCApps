@@ -71,6 +71,101 @@ codeunit 139569 "Shpfy Customer Mapping Test"
         LibraryAssert.AreEqual(Customer."No.", ResultCode, 'Mapping By Bill-to Info');
     end;
 
+    [Test]
+    procedure TestFindMappingRespectsCustomerFilters()
+    var
+        Customer1: Record Customer;
+        Customer2: Record Customer;
+        ShopifyCustomer: Record "Shpfy Customer";
+        CustomerMapping: Codeunit "Shpfy Customer Mapping";
+        FilterSub: Codeunit "Shpfy Cust. Mapping Filter Sub";
+        SharedEmail: Text[80];
+    begin
+        // [SCENARIO] FindMapping respects Customer filters applied via OnBeforeFindMapping
+        Init(Customer1);
+        SharedEmail := 'filtertest@domain.com';
+
+        // [GIVEN] Two customers sharing the same email address
+        Customer1.Init();
+        Customer1."No." := 'SHPFY-F-01';
+        Customer1."E-Mail" := SharedEmail;
+        Customer1.Insert(false);
+
+        Customer2.Init();
+        Customer2."No." := 'SHPFY-F-02';
+        Customer2."E-Mail" := SharedEmail;
+        Customer2.Insert(false);
+
+        // [GIVEN] A Shopify customer whose email matches both BC customers
+        ShopifyCustomer.DeleteAll();
+        ShopifyCustomer.Init();
+        ShopifyCustomer.Id := 99700;
+        ShopifyCustomer.Email := SharedEmail;
+        ShopifyCustomer.Insert();
+
+        // [GIVEN] A subscriber that restricts the Customer view to Customer2 only
+        FilterSub.SetCustomerNoFilter(Customer2."No.");
+        BindSubscription(FilterSub);
+
+        // [WHEN] FindMapping is executed
+        CustomerMapping.FindMapping(ShopifyCustomer);
+
+        // [THEN] The Shopify customer is mapped to Customer2, not Customer1
+        LibraryAssert.AreEqual(
+            Customer2.SystemId,
+            ShopifyCustomer."Customer SystemId",
+            'FindMapping must honour the Customer filters set via OnBeforeFindMapping.');
+
+        UnbindSubscription(FilterSub);
+    end;
+
+    [Test]
+    procedure TestFindMappingRespectsPhoneFilter()
+    var
+        Customer1: Record Customer;
+        Customer2: Record Customer;
+        ShopifyCustomer: Record "Shpfy Customer";
+        CustomerMapping: Codeunit "Shpfy Customer Mapping";
+        FilterSub: Codeunit "Shpfy Cust. Mapping Filter Sub";
+    begin
+        // [SCENARIO] FindMapping phone-number path also respects Customer filters
+        Init(Customer1);
+
+        // [GIVEN] Two customers sharing the same phone number
+        Customer1.Init();
+        Customer1."No." := 'SHPFY-P-01';
+        Customer1."Phone No." := '123456789';
+        Customer1.Insert(false);
+
+        Customer2.Init();
+        Customer2."No." := 'SHPFY-P-02';
+        Customer2."Phone No." := '123456789';
+        Customer2.Insert(false);
+
+        // [GIVEN] A Shopify customer whose phone matches both BC customers (no email)
+        ShopifyCustomer.DeleteAll();
+        ShopifyCustomer.Init();
+        ShopifyCustomer.Id := 99701;
+        ShopifyCustomer."Phone No." := '+1 234 56789';
+        ShopifyCustomer.Insert();
+
+        // [GIVEN] A subscriber that restricts the Customer view to Customer2 only
+        FilterSub.SetCustomerNoFilter(Customer2."No.");
+        BindSubscription(FilterSub);
+
+        // [WHEN] FindMapping is executed
+        CustomerMapping.FindMapping(ShopifyCustomer);
+
+        // [THEN] The Shopify customer is mapped to Customer2, not Customer1
+        LibraryAssert.AreEqual(
+            Customer2.SystemId,
+            ShopifyCustomer."Customer SystemId",
+            'FindMapping phone path must honour the Customer filters set via OnBeforeFindMapping.');
+
+        UnbindSubscription(FilterSub);
+    end;
+
+
     local procedure CreateShopifyCustomerAddress(var Customer: Record Customer; var ShopifyCustomer: Record "Shpfy Customer")
     var
         CustomerAddress: Record "Shpfy Customer Address";
