@@ -152,6 +152,28 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements "Signature Algorithm v
         RSACryptoServiceProvider();
         DotNetRSACryptoServiceProvider.FromXmlString(XmlString.Unwrap());
     end;
+
+    [NonDebuggable]
+    procedure ImportFromPem(PemKey: SecretText)
+    var
+        DotNetRSA: DotNet RSA;
+        RSAEncryptionHelper: DotNet RSAEncryptionHelper;
+        XmlString: Text;
+    begin
+        RSACryptoServiceProvider();
+        DotNetRSA := DotNetRSACryptoServiceProvider.Create();
+        RSAEncryptionHelper.ImportFromPem(DotNetRSA, PemKey.Unwrap());
+        if not TryExportPrivateXml(DotNetRSA, XmlString) then
+            XmlString := DotNetRSA.ToXmlString(false);
+        DotNetRSACryptoServiceProvider.FromXmlString(XmlString);
+    end;
+
+    [TryFunction]
+    [NonDebuggable]
+    local procedure TryExportPrivateXml(DotNetRSA: DotNet RSA; var XmlString: Text)
+    begin
+        XmlString := DotNetRSA.ToXmlString(true);
+    end;
     #endregion
 
     local procedure RSACryptoServiceProvider()

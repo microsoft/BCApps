@@ -307,6 +307,129 @@ codeunit 132617 "RSA Test"
         RSA.Decrypt(XmlString, EncryptedInStream, false, DecryptedOutStream);
     end;
 
+    [Test]
+    procedure ImportFromPemPrivateKeyAndSignData()
+    var
+        RSA1: Codeunit RSA;
+        RSA2: Codeunit RSA;
+        TempBlobData: Codeunit "Temp Blob";
+        TempBlobSignature: Codeunit "Temp Blob";
+        DataOutStream: OutStream;
+        SignatureOutStream: OutStream;
+        DataInStream: InStream;
+        SignatureInStream: InStream;
+        PemPrivateKey: SecretText;
+    begin
+        // [SCENARIO] A private RSA key exported as PEM can be imported and used to sign data that is verifiable with the matching public key.
+
+        // [GIVEN] An RSA instance with a generated key pair and its private key in PEM format
+        RSA1.InitializeRSA(2048);
+        PemPrivateKey := RSA1.ExportRSAPrivateKeyPem();
+
+        // [GIVEN] Random data to sign
+        TempBlobData.CreateOutStream(DataOutStream);
+        SaveRandomTextToOutStream(DataOutStream);
+        TempBlobData.CreateInStream(DataInStream);
+
+        // [WHEN] A new RSA instance imports the PEM private key and signs the data
+        RSA2.ImportFromPem(PemPrivateKey);
+        TempBlobSignature.CreateOutStream(SignatureOutStream);
+        RSA2.SignData(DataInStream, Enum::"Hash Algorithm"::SHA256, Enum::"RSA Signature Padding"::Pkcs1, SignatureOutStream);
+
+        TempBlobData.CreateInStream(DataInStream);
+        TempBlobSignature.CreateInStream(SignatureInStream);
+
+        // [THEN] The signature can be verified using the first instance's stateful verify (same key loaded)
+        LibraryAssert.IsTrue(RSA2.VerifyData(DataInStream, Enum::"Hash Algorithm"::SHA256, Enum::"RSA Signature Padding"::Pkcs1, SignatureInStream),
+            'Signature must be valid after ImportFromPem with a private key.');
+    end;
+
+    [Test]
+    procedure ImportFromPemPublicKeyAndVerifyData()
+    var
+        RSA1: Codeunit RSA;
+        RSA2: Codeunit RSA;
+        RSA3: Codeunit RSA;
+        TempBlobData: Codeunit "Temp Blob";
+        TempBlobSignature: Codeunit "Temp Blob";
+        DataOutStream: OutStream;
+        SignatureOutStream: OutStream;
+        DataInStream: InStream;
+        SignatureInStream: InStream;
+        PemPublicKey: Text;
+        PrivateXmlKey: SecretText;
+    begin
+        // [SCENARIO] A public RSA key exported as PEM can be imported and used to verify a signature.
+
+        // [GIVEN] An RSA key pair with its public key in PEM and private key in XML
+        RSA1.InitializeRSA(2048);
+        PemPublicKey := RSA1.ExportRSAPublicKeyPem();
+        PrivateXmlKey := RSA1.ToSecretXmlString(true);
+
+        // [GIVEN] Data signed using the private key (XML-based)
+        TempBlobData.CreateOutStream(DataOutStream);
+        SaveRandomTextToOutStream(DataOutStream);
+        TempBlobData.CreateInStream(DataInStream);
+        TempBlobSignature.CreateOutStream(SignatureOutStream);
+        RSA2.SignData(PrivateXmlKey, DataInStream, Enum::"Hash Algorithm"::SHA256, Enum::"RSA Signature Padding"::Pkcs1, SignatureOutStream);
+
+        TempBlobData.CreateInStream(DataInStream);
+        TempBlobSignature.CreateInStream(SignatureInStream);
+
+        // [WHEN] A new RSA instance imports the PEM public key and verifies the signature
+        RSA3.ImportFromPem(PemPublicKey);
+
+        // [THEN] Verification succeeds
+        LibraryAssert.IsTrue(RSA3.VerifyData(DataInStream, Enum::"Hash Algorithm"::SHA256, Enum::"RSA Signature Padding"::Pkcs1, SignatureInStream),
+            'Signature must be verifiable after ImportFromPem with a public key.');
+    end;
+
+    [Test]
+    procedure ExportAndImportRSAPrivateKeyPem()
+    var
+        RSA1: Codeunit RSA;
+        RSA2: Codeunit RSA;
+        PemPrivateKey: SecretText;
+        XmlFromOriginal: SecretText;
+        XmlFromImported: SecretText;
+    begin
+        // [SCENARIO] A private key roundtrips losslessly through ExportRSAPrivateKeyPem and ImportFromPem.
+
+        // [GIVEN] An RSA instance with a generated private key
+        RSA1.InitializeRSA(2048);
+        XmlFromOriginal := RSA1.ToSecretXmlString(false);
+
+        // [WHEN] The private key is exported to PEM and imported into a new instance
+        PemPrivateKey := RSA1.ExportRSAPrivateKeyPem();
+        RSA2.ImportFromPem(PemPrivateKey);
+
+        // [THEN] The public key XML exported from the new instance matches the original
+        XmlFromImported := RSA2.ToSecretXmlString(false);
+        LibraryAssert.AreEqual(GetXmlString(XmlFromOriginal), GetXmlString(XmlFromImported),
+            'Public key XML must be identical after PEM roundtrip.');
+    end;
+
+    [Test]
+    procedure ExportRSAPublicKeyPemContainsPemHeader()
+    var
+        RSA1: Codeunit RSA;
+        PublicKeyPem: Text;
+    begin
+        // [SCENARIO] ExportRSAPublicKeyPem returns a well-formed PEM string with the correct header.
+
+        // [GIVEN] An initialized RSA instance
+        RSA1.InitializeRSA(2048);
+
+        // [WHEN] The public key is exported as PEM
+        PublicKeyPem := RSA1.ExportRSAPublicKeyPem();
+
+        // [THEN] The result contains a valid PEM header and footer
+        LibraryAssert.IsTrue(PublicKeyPem.Contains('-----BEGIN RSA PUBLIC KEY-----'),
+            'PEM public key must start with RSA PUBLIC KEY header.');
+        LibraryAssert.IsTrue(PublicKeyPem.Contains('-----END RSA PUBLIC KEY-----'),
+            'PEM public key must end with RSA PUBLIC KEY footer.');
+    end;
+
     local procedure SaveRandomTextToOutStream(OutStream: OutStream) PlainText: Text
     begin
         PlainText := Any.AlphanumericText(Any.IntegerInRange(80));
