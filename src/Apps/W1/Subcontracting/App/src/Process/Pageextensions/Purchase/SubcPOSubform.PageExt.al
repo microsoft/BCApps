@@ -20,7 +20,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                 ApplicationArea = Manufacturing;
                 Caption = 'Create Production Order';
                 Image = CreateSerialNo;
-                ToolTip = 'Create the production order for the current purchase provision order.';
+                ToolTip = 'Create the production order for the current purchase order.';
                 trigger OnAction()
                 begin
                     Rec.TestStatusOpen();
