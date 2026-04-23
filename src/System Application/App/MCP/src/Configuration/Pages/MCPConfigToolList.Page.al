@@ -70,7 +70,6 @@ page 8352 "MCP Config Tool List"
                                 end;
                         end;
 
-
                         if not IsNullGuid(Rec.SystemId) then
                             Rec.Delete();
                         CurrPage.Update();
@@ -231,7 +230,7 @@ page 8352 "MCP Config Tool List"
             {
                 Caption = 'Add All Standard APIs as Tools';
                 Image = ResourceGroup;
-                ToolTip = 'Adds tools for all standard API v2.0 to the configuration.';
+                ToolTip = 'Adds tools for all standard API pages and queries to the configuration.';
                 Enabled = not IsConfigActive;
 
                 trigger OnAction()

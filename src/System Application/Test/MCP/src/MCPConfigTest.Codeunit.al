@@ -389,7 +389,7 @@ codeunit 130130 "MCP Config Test"
     end;
 
     [Test]
-    [HandlerFunctions('LookupAPIToolsOKHandler')]
+    [HandlerFunctions('LookupAPIPageToolsOKHandler')]
     procedure TestLookupAPIPageTools()
     var
         PageMetadata: Record "Page Metadata";
@@ -1309,7 +1309,7 @@ codeunit 130130 "MCP Config Test"
 
 
     [ModalPageHandler]
-    procedure LookupAPIToolsOKHandler(var MCPAPIConfigToolLookup: TestPage "MCP API Config Tool Lookup")
+    procedure LookupAPIPageToolsOKHandler(var MCPAPIConfigToolLookup: TestPage "MCP API Config Tool Lookup")
     begin
         MCPAPIConfigToolLookup.GoToKey(Page::"Mock API");
         MCPAPIConfigToolLookup.OK().Invoke();
