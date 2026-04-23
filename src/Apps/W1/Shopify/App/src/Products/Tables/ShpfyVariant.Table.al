@@ -205,12 +205,12 @@ table 30129 "Shpfy Variant"
         field(109; "Tariff No."; Code[20])
         {
             Caption = 'Tariff No.';
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
         }
         field(110; "Country/Region of Origin Code"; Code[10])
         {
             Caption = 'Country/Region of Origin Code';
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
         }
     }
     keys

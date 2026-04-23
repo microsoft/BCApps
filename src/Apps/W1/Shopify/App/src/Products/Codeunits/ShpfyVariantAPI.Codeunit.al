@@ -189,7 +189,7 @@ codeunit 30189 "Shpfy Variant API"
                 HasChange := true;
                 GraphQuery.Append(', compareAtPrice: null');
             end;
-        if (ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost") or (ShopifyVariant.Weight <> xShopifyVariant.Weight) or (ShopifyVariant.SKU <> xShopifyVariant.SKU) then begin
+        if (ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost") or (ShopifyVariant.Weight <> xShopifyVariant.Weight) or (ShopifyVariant.SKU <> xShopifyVariant.SKU) or (ShopifyVariant."Tariff No." <> xShopifyVariant."Tariff No.") or (ShopifyVariant."Country/Region of Origin Code" <> xShopifyVariant."Country/Region of Origin Code") then begin
             HasChange := true;
             GraphQuery.Append(', inventoryItem: {tracked: ');
             if Shop."Inventory Tracked" then

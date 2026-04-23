@@ -2974,9 +2974,10 @@ codeunit 139601 "Shpfy Create Product Test"
         // [SCENARIO] Creating a temp product from an Item with Tariff No. and Country/Region of Origin Code
         // should populate those fields on the Shopify variant.
 
-        // [GIVEN] A shop
+        // [GIVEN] A shop with HS/Country sync enabled
         Shop := InitializeTest.CreateShop();
         Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync HS Code and Country" := true;
         Shop.Modify();
         CreateProduct.SetShop(Shop);
 
@@ -3012,9 +3013,10 @@ codeunit 139601 "Shpfy Create Product Test"
         // [SCENARIO] Creating a temp product from an Item without Tariff No. and Country/Region of Origin Code
         // should leave those fields empty on the Shopify variant.
 
-        // [GIVEN] A shop
+        // [GIVEN] A shop with HS/Country sync enabled
         Shop := InitializeTest.CreateShop();
         Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync HS Code and Country" := true;
         Shop.Modify();
         CreateProduct.SetShop(Shop);
 
@@ -3033,7 +3035,7 @@ codeunit 139601 "Shpfy Create Product Test"
     end;
 
     [Test]
-    procedure UnitTestCreateTempProductWithVariantsSetsHSCode()
+    procedure UnitTestCreateTempProductWithVariantsSetsHSCodeAndCountryOfOrigin()
     var
         Item: Record Item;
         TempShopifyProduct: Record "Shpfy Product" temporary;
@@ -3044,12 +3046,13 @@ codeunit 139601 "Shpfy Create Product Test"
         InitializeTest: Codeunit "Shpfy Initialize Test";
         ProductInitTest: Codeunit "Shpfy Product Init Test";
     begin
-        // [SCENARIO] Creating a temp product with variants from an Item with Tariff No.
-        // should populate Tariff No. on all variant records.
+        // [SCENARIO] Creating a temp product with variants from an Item with Tariff No. and Country/Region of Origin Code
+        // should populate both fields on all variant records.
 
-        // [GIVEN] A shop
+        // [GIVEN] A shop with HS/Country sync enabled
         Shop := InitializeTest.CreateShop();
         Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync HS Code and Country" := true;
         Shop.Modify();
         CreateProduct.SetShop(Shop);
 
