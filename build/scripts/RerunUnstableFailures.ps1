@@ -34,12 +34,12 @@ if ($run.run_attempt -gt $MaxAttempts) {
 Write-Host "--- Checking run $($run.id): $($run.display_title) ---"
 
 # Fetch all jobs (paginated)
-$jobsJson = gh api "/repos/$Owner/$Repo/actions/runs/$RunId/jobs?filter=latest&per_page=100" --paginate 2>&1
+$jobsJson = gh api "/repos/$Owner/$Repo/actions/runs/$RunId/jobs?filter=latest&per_page=100" --paginate --jq '.jobs[]' 2>&1
 if ($LASTEXITCODE -ne 0) {
     Write-Host "::warning::Failed to fetch jobs for run $RunId"
     exit 1
 }
-$jobs = ($jobsJson | ConvertFrom-Json).jobs
+$jobs = $jobsJson | ConvertFrom-Json
 
 # Exclude utility jobs that are not actual build jobs
 $excludedJobs = @("Pull Request Status Check", "Initialization")
