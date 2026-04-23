@@ -227,7 +227,7 @@ jobs:
               SUMMARY_FAILED="${SUMMARY_FAILED}- \`${TARGET_BRANCH}\`: cherry-pick conflict\n"
 
               # ── 6.1 Post conflict comment ──
-              CONFLICT_COMMENT="❌ **Backport Failed**: Cherry-pick to \`${TARGET_BRANCH}\` failed due to conflicts.\n\nTo resolve manually:\n\`\`\`bash\ngit fetch origin ${TARGET_BRANCH}\ngit checkout -b ${BACKPORT_BRANCH} origin/${TARGET_BRANCH}\ngit cherry-pick ${MERGE_COMMIT} -m 1\n# resolve conflicts, then:\ngit cherry-pick --continue\ngit push origin ${BACKPORT_BRANCH}\ngh pr create --base ${TARGET_BRANCH} --head ${BACKPORT_BRANCH}\n\`\`\`"
+              CONFLICT_COMMENT="❌ **Backport Failed**: Cherry-pick to \`${TARGET_BRANCH}\` failed due to conflicts.\n\n**Option 1 — Use the hotfix-propagation skill** (recommended):\nIn VS Code Copilot Chat, ask:\n> Resolve the backport conflict for PR #${PR_NUM} to \`${TARGET_BRANCH}\` (commit \`${MERGE_COMMIT:0:10}\`)\n\nThe skill will cherry-pick, resolve conflicts interactively, and create the PR.\n\n**Option 2 — Resolve manually**:\n\`\`\`bash\ngit fetch origin ${TARGET_BRANCH}\ngit checkout -b ${BACKPORT_BRANCH} origin/${TARGET_BRANCH}\ngit cherry-pick ${MERGE_COMMIT} -m 1\n# resolve conflicts, then:\ngit cherry-pick --continue\ngit push origin ${BACKPORT_BRANCH}\ngh pr create --base ${TARGET_BRANCH} --head ${BACKPORT_BRANCH}\n\`\`\`"
               gh api "/repos/${REPO}/issues/${PR_NUM}/comments" \
                 -f body="$(echo -e "$CONFLICT_COMMENT")" \
                 --silent
