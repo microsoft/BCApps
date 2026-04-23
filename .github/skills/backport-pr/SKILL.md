@@ -49,6 +49,7 @@ The script lives at [build/scripts/CrossBranchPorting.psm1](../../../build/scrip
 Import-Module ./build/scripts/CrossBranchPorting.psm1 -Force
 
 $pr = '<PR_NUMBER>'
+$sourceTitle = gh pr view $pr --repo microsoft/BCApps --json title --jq .title
 # Map of target branch -> linked ADO work item id (resolved as described above)
 $map = @{
     'releases/27.5' = '<WI_ID_FOR_27_5>'
@@ -60,10 +61,22 @@ foreach ($branch in $map.Keys) {
     # the cleanest path is to run it once per branch and then patch the resulting PR body.
     New-BCAppsBackport -PullRequestNumber $pr -TargetBranches @($branch) -SkipConfirmation
     # The script leaves the PR body with "[**Insert Work Item Number Here**]" — replace it.
-    $backportPr = gh pr list --repo microsoft/BCApps --state open --search "[$branch] in:title $pr in:body" --json number,body,url | ConvertFrom-Json | Select-Object -First 1
+    $expectedTitle = "[$branch] $sourceTitle"
+    $backportPr = $null
+    for ($attempt = 1; $attempt -le 5 -and -not $backportPr; $attempt++) {
+        $backportPr = gh pr list --repo microsoft/BCApps --state open --base $branch --search "`"$expectedTitle`" in:title" --json number,title,body,url |
+            ConvertFrom-Json |
+            Where-Object { $_.title -eq $expectedTitle } |
+            Select-Object -First 1
+        if (-not $backportPr) {
+            Start-Sleep -Seconds 3
+        }
+    }
     if ($backportPr) {
         $newBody = $backportPr.body -replace '\[\*\*Insert Work Item Number Here\*\*\]', $map[$branch]
         gh pr edit $backportPr.number --repo microsoft/BCApps --body $newBody
+    } else {
+        Write-Warning "Could not find backport PR for branch '$branch' after retries. Update the PR body manually."
     }
 }
 ```
@@ -83,6 +96,7 @@ New-BCAppsBackport -PullRequestNumber <PR> -TargetBranches @('releases/27.x','re
 
    ```powershell
    gh pr create --title "[<branch>] <original title>" --body "This pull request backports #<PR> to <branch>`r`n`r`nFixes AB#<wi>" --base <branch> --head <cherry-pick-branch>
+   ```
 3. Re-run the script for the *remaining* branches only (the duplicate-detection in the script prevents re-creating an existing PR for the same title+base, but skipping the already-handled branch is cleaner).
 
 ## Auto-merge
