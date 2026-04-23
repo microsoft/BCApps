@@ -345,6 +345,24 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         RefundLine.Modify(false);
     end;
 
+    internal procedure CreateRefundLineWithTaxAmount(RefundId: BigInteger; OrderLineId: BigInteger; SubtotalAmount: Decimal; TaxAmount: Decimal)
+    var
+        RefundLine: Record "Shpfy Refund Line";
+    begin
+        RefundLine."Refund Line Id" := Any.IntegerInRange(100000, 999999);
+        RefundLine."Refund Id" := RefundId;
+        RefundLine."Order Line Id" := OrderLineId;
+        RefundLine.Quantity := 1;
+        RefundLine.Amount := SubtotalAmount + TaxAmount;
+        RefundLine."Subtotal Amount" := SubtotalAmount;
+        RefundLine."Total Tax Amount" := TaxAmount;
+        RefundLine."Presentment Amount" := SubtotalAmount + TaxAmount;
+        RefundLine."Presentment Subtotal Amount" := SubtotalAmount;
+        RefundLine."Presentment Total Tax Amount" := TaxAmount;
+        RefundLine."Can Create Credit Memo" := false;
+        RefundLine.Insert();
+    end;
+
     local procedure GetItem(): Record Item
     var
         InitializeTest: Codeunit "Shpfy Initialize Test";

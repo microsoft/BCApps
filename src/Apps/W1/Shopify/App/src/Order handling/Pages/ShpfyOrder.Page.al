@@ -70,6 +70,15 @@ page 30113 "Shpfy Order"
                     TableRelation = Contact;
                     Visible = false;
                     ToolTip = 'Specifies the number of the contact person at the sell-to customer.';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        Contact: Record Contact;
+                    begin
+                        Rec.LookupContactForCustomer(Rec."Sell-to Customer No.", Rec."Sell-to Contact No.", Contact);
+                        if Page.RunModal(0, Contact) = Action::LookupOK then
+                            Rec.Validate("Sell-to Contact No.", Contact."No.");
+                    end;
                 }
                 field(ShippingMethod; Rec."Shipping Method Code")
                 {
@@ -95,11 +104,6 @@ page 30113 "Shpfy Order"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the purchase order number that is associated with the Shopify order.';
-                }
-                field(UseShopifyOrderNo; Rec."Use Shopify Order No.")
-                {
-                    ApplicationArea = All;
-                    Editable = not Rec.Processed;
                 }
                 field(Closed; Rec.Closed)
                 {
@@ -237,6 +241,12 @@ page 30113 "Shpfy Order"
                     Editable = false;
                     Importance = Additional;
                     ToolTip = 'Specifies whether the order has had any edits applied.';
+                }
+                field(UseShopifyOrderNo; Rec."Use Shopify Order No.")
+                {
+                    ApplicationArea = All;
+                    Importance = Additional;
+                    Editable = not Rec.Processed;
                 }
                 field(Processed; Rec.Processed)
                 {
@@ -482,6 +492,15 @@ page 30113 "Shpfy Order"
                         TableRelation = Contact;
                         Visible = false;
                         ToolTip = 'Specifies the number of the contact person at the ship-to address.';
+
+                        trigger OnLookup(var Text: Text): Boolean
+                        var
+                            Contact: Record Contact;
+                        begin
+                            Rec.LookupContactForCustomer(Rec."Sell-to Customer No.", Rec."Ship-to Contact No.", Contact);
+                            if Page.RunModal(0, Contact) = Action::LookupOK then
+                                Rec.Validate("Ship-to Contact No.", Contact."No.");
+                        end;
                     }
                 }
                 group(BillTo)
@@ -553,6 +572,15 @@ page 30113 "Shpfy Order"
                         TableRelation = Contact;
                         Visible = false;
                         ToolTip = 'Specifies the number of the contact person at the bill-to customer.';
+
+                        trigger OnLookup(var Text: Text): Boolean
+                        var
+                            Contact: Record Contact;
+                        begin
+                            Rec.LookupContactForCustomer(Rec."Bill-to Customer No.", Rec."Bill-to Contact No.", Contact);
+                            if Page.RunModal(0, Contact) = Action::LookupOK then
+                                Rec.Validate("Bill-to Contact No.", Contact."No.");
+                        end;
                     }
                 }
             }
@@ -819,6 +847,20 @@ page 30113 "Shpfy Order"
                         ImportOrder.ReimportExistingOrderConfirmIfConflicting(Rec);
                     end;
                 }
+            }
+            action(ProvideFeedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feedback';
+                ToolTip = 'Provide feedback on Shopify Connector.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    ShopMgt: Codeunit "Shpfy Shop Mgt.";
+                begin
+                    ShopMgt.RequestFeedback();
+                end;
             }
         }
         area(navigation)

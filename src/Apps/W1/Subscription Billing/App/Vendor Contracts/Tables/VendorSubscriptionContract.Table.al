@@ -1426,12 +1426,12 @@ table 8063 "Vendor Subscription Contract"
         ModifyVendorAddressNotification.Recall();
     end;
 
-    local procedure GetModifyVendorAddressNotificationId(): Guid
+    internal procedure GetModifyVendorAddressNotificationId(): Guid
     begin
         exit('70D33B2A-0A18-44FB-9D27-2429FC5167ED');
     end;
 
-    local procedure GetModifyPayToVendorAddressNotificationId(): Guid
+    internal procedure GetModifyPayToVendorAddressNotificationId(): Guid
     begin
         exit('CCEDACB9-211A-4457-919B-5B841759EBB5');
     end;
@@ -1456,54 +1456,49 @@ table 8063 "Vendor Subscription Contract"
         if PayToAddressEqualsOldBuyFromAddress() then
             case FieldNumber of
                 FieldNo("Pay-to Address"):
-                    if xRec."Buy-from Address" = "Pay-to Address" then
-                        "Pay-to Address" := "Buy-from Address";
+                    "Pay-to Address" := "Buy-from Address";
                 FieldNo("Pay-to Address 2"):
-                    if xRec."Buy-from Address 2" = "Pay-to Address 2" then
-                        "Pay-to Address 2" := "Buy-from Address 2";
+                    "Pay-to Address 2" := "Buy-from Address 2";
                 FieldNo("Pay-to City"), FieldNo("Pay-to Post Code"):
                     begin
-                        if xRec."Buy-from City" = "Pay-to City" then
-                            "Pay-to City" := "Buy-from City";
-                        if xRec."Buy-from Post Code" = "Pay-to Post Code" then
-                            "Pay-to Post Code" := "Buy-from Post Code";
-                        if xRec."Buy-from County" = "Pay-to County" then
-                            "Pay-to County" := "Buy-from County";
-                        if xRec."Buy-from Country/Region Code" = "Pay-to Country/Region Code" then
-                            "Pay-to Country/Region Code" := "Buy-from Country/Region Code";
+                        "Pay-to City" := "Buy-from City";
+                        "Pay-to Post Code" := "Buy-from Post Code";
+                        "Pay-to County" := "Buy-from County";
+                        "Pay-to Country/Region Code" := "Buy-from Country/Region Code";
                     end;
                 FieldNo("Pay-to County"):
-                    if xRec."Buy-from County" = "Pay-to County" then
-                        "Pay-to County" := "Buy-from County";
+                    "Pay-to County" := "Buy-from County";
                 FieldNo("Pay-to Country/Region Code"):
-                    if xRec."Buy-from Country/Region Code" = "Pay-to Country/Region Code" then
-                        "Pay-to Country/Region Code" := "Buy-from Country/Region Code";
+                    "Pay-to Country/Region Code" := "Buy-from Country/Region Code";
             end;
     end;
 
     local procedure PayToAddressEqualsOldBuyFromAddress(): Boolean
     begin
-        if (xRec."Buy-from Address" = "Pay-to Address") and
-           (xRec."Buy-from Address 2" = "Pay-to Address 2") and
-           (xRec."Buy-from City" = "Pay-to City") and
-           (xRec."Buy-from County" = "Pay-to County") and
-           (xRec."Buy-from Post Code" = "Pay-to Post Code") and
-           (xRec."Buy-from Country/Region Code" = "Pay-to Country/Region Code")
-        then
-            exit(true);
+        exit(IsPayToAddressEqualToBuyFromAddress(xRec, Rec));
     end;
 
     internal procedure BuyFromAddressEqualsPayToAddress(): Boolean
     begin
-        exit(
-          ("Pay-to Address" = "Buy-from Address") and
-          ("Pay-to Address 2" = "Buy-from Address 2") and
-          ("Pay-to City" = "Buy-from City") and
-          ("Pay-to County" = "Buy-from County") and
-          ("Pay-to Post Code" = "Buy-from Post Code") and
-          ("Pay-to Country/Region Code" = "Buy-from Country/Region Code") and
-          ("Pay-to Contact No." = "Buy-from Contact No.") and
-          ("Pay-to Contact" = "Buy-from Contact"));
+        exit(IsPayToAddressEqualToBuyFromAddress(Rec, Rec));
+    end;
+
+    local procedure IsPayToAddressEqualToBuyFromAddress(VendorContractWithBuyFrom: Record "Vendor Subscription Contract"; VendorContractWithPayTo: Record "Vendor Subscription Contract"): Boolean
+    var
+        Result: Boolean;
+    begin
+        Result :=
+          (VendorContractWithBuyFrom."Buy-from Address" = VendorContractWithPayTo."Pay-to Address") and
+          (VendorContractWithBuyFrom."Buy-from Address 2" = VendorContractWithPayTo."Pay-to Address 2") and
+          (VendorContractWithBuyFrom."Buy-from City" = VendorContractWithPayTo."Pay-to City") and
+          (VendorContractWithBuyFrom."Buy-from County" = VendorContractWithPayTo."Pay-to County") and
+          (VendorContractWithBuyFrom."Buy-from Post Code" = VendorContractWithPayTo."Pay-to Post Code") and
+          (VendorContractWithBuyFrom."Buy-from Country/Region Code" = VendorContractWithPayTo."Pay-to Country/Region Code") and
+          (VendorContractWithBuyFrom."Buy-from Contact No." = VendorContractWithPayTo."Pay-to Contact No.") and
+          (VendorContractWithBuyFrom."Buy-from Contact" = VendorContractWithPayTo."Pay-to Contact");
+
+        OnAfterIsPayToAddressEqualToBuyFromAddress(VendorContractWithBuyFrom, VendorContractWithPayTo, Result);
+        exit(Result);
     end;
 
     local procedure SetPurchaserCode(PurchaserCodeToCheck: Code[20]; var PurchaserCodeToAssign: Code[20])
@@ -1581,7 +1576,7 @@ table 8063 "Vendor Subscription Contract"
         if VendorContractLine.FindSet() then
             repeat
                 if not TempServiceObject.Get(VendorContractLine."Subscription Header No.") then begin
-#pragma warning disable AA0214                    
+#pragma warning disable AA0214
                     ServiceObject.Get(VendorContractLine."Subscription Header No.");
                     ServiceObject.UpdateServicesDates();
                     ServiceObject.Modify(false);
@@ -1805,6 +1800,11 @@ table 8063 "Vendor Subscription Contract"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateDimDimSource(VendorSubscriptionContract: Record "Vendor Subscription Contract"; CurrFieldNo: Integer; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsPayToAddressEqualToBuyFromAddress(VendorContractWithBuyFrom: Record "Vendor Subscription Contract"; VendorContractWithPayTo: Record "Vendor Subscription Contract"; var Result: Boolean)
     begin
     end;
 }

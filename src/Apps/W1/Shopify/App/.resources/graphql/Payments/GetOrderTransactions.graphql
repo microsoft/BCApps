@@ -1,0 +1,2 @@
+# cost: 3
+{"query":"{ order(id: \"gid://shopify/Order/{{OrderId}}\") { transactions { authorizationCode createdAt errorCode formattedGateway gateway id kind manualPaymentGateway paymentId receiptJson status test amountSet { presentmentMoney { amount currencyCode } shopMoney { amount currencyCode }} amountRoundingSet { presentmentMoney { amount currencyCode } shopMoney { amount currencyCode }} paymentDetails { ... on CardPaymentDetails { avsResultCode bin cvvResultCode number company }}}}}"}

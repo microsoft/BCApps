@@ -54,7 +54,7 @@ codeunit 8021 "Text Management"
         TextEditor.RunModal();
     end;
 
-    local procedure ReadBlobText(RecRef: RecordRef; FieldNo: Integer): Text
+    internal procedure ReadBlobText(RecRef: RecordRef; FieldNo: Integer): Text
     var
         TempBlob: Codeunit "Temp Blob";
         TypeHelper: Codeunit "Type Helper";
