@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Purchases.Document;
@@ -154,9 +153,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
-#pragma warning disable AL0432
-        PageControl.SetRange(PageNo, Page::"Subcontracting Worksheet");
-#pragma warning restore AL0432
+        PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
         PageControl.SetRange(FieldNo, ReqLine.FieldNo("Base UM Qty/PL UM Qty"));
         ControlExist := not PageControl.IsEmpty();
 
@@ -179,9 +176,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
-#pragma warning disable AL0432
-        PageControl.SetRange(PageNo, Page::"Subcontracting Worksheet");
-#pragma warning restore AL0432
+        PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
         PageControl.SetRange(FieldNo, ReqLine.FieldNo("PL UM Qty/Base UM Qty"));
         ControlExist := not PageControl.IsEmpty();
 
@@ -204,9 +199,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
-#pragma warning disable AL0432
-        PageControl.SetRange(PageNo, Page::"Subcontracting Worksheet");
-#pragma warning restore AL0432
+        PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
         PageControl.SetRange(FieldNo, ReqLine.FieldNo("Pricelist Cost"));
         ControlExist := not PageControl.IsEmpty();
 
@@ -229,9 +222,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
-#pragma warning disable AL0432
-        PageControl.SetRange(PageNo, Page::"Subcontracting Worksheet");
-#pragma warning restore AL0432
+        PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
         PageControl.SetRange(FieldNo, ReqLine.FieldNo("Standard Task Code"));
         ControlExist := not PageControl.IsEmpty();
 
@@ -247,16 +238,14 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ControlExist: Boolean;
     begin
         // [FEATURE] Subcontracting Management
-        // [SCENARIO] Check if Controls exist on Page "Subcontracting Worksheet"
+        // [SCENARIO] Check if Controls exist on Page "Subc. Subcontracting Worksheet"
 
         // [GIVEN]
         Initialize();
 
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Requisition Line");
-#pragma warning disable AL0432
-        PageControl.SetRange(PageNo, Page::"Subcontracting Worksheet");
-#pragma warning restore AL0432
+        PageControl.SetRange(PageNo, Page::"Subc. Subcontracting Worksheet");
         PageControl.SetRange(FieldNo, ReqLine.FieldNo("UoM for Pricelist"));
         ControlExist := not PageControl.IsEmpty();
 
