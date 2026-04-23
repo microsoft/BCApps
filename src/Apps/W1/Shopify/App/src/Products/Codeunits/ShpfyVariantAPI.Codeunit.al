@@ -206,18 +206,16 @@ codeunit 30189 "Shpfy Variant API"
                 GraphQuery.Append(ShopifyVariant.SKU);
                 GraphQuery.Append('\"');
             end;
-            if Shop."Sync HS Code and Country" then begin
-                if ShopifyVariant."Tariff No." <> xShopifyVariant."Tariff No." then begin
-                    HasChange := true;
-                    GraphQuery.Append(', harmonizedSystemCode: \"');
-                    GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant."Tariff No."));
-                    GraphQuery.Append('\"');
-                end;
-                if ShopifyVariant."Country/Region of Origin Code" <> xShopifyVariant."Country/Region of Origin Code" then begin
-                    HasChange := true;
-                    GraphQuery.Append(', countryCodeOfOrigin: ');
-                    GraphQuery.Append(ShopifyVariant."Country/Region of Origin Code");
-                end;
+            if ShopifyVariant."Tariff No." <> xShopifyVariant."Tariff No." then begin
+                HasChange := true;
+                GraphQuery.Append(', harmonizedSystemCode: \"');
+                GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant."Tariff No."));
+                GraphQuery.Append('\"');
+            end;
+            if ShopifyVariant."Country/Region of Origin Code" <> xShopifyVariant."Country/Region of Origin Code" then begin
+                HasChange := true;
+                GraphQuery.Append(', countryCodeOfOrigin: ');
+                GraphQuery.Append(ShopifyVariant."Country/Region of Origin Code");
             end;
             if ShopifyVariant.Weight <> xShopifyVariant.Weight then begin
                 GraphQuery.Append(', measurement: {weight: {value:');
@@ -296,16 +294,14 @@ codeunit 30189 "Shpfy Variant API"
             GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant.SKU));
             GraphQuery.Append('\"');
         end;
-        if Shop."Sync HS Code and Country" then begin
-            if ShopifyVariant."Tariff No." <> '' then begin
-                GraphQuery.Append(', harmonizedSystemCode: \"');
-                GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant."Tariff No."));
-                GraphQuery.Append('\"');
-            end;
-            if ShopifyVariant."Country/Region of Origin Code" <> '' then begin
-                GraphQuery.Append(', countryCodeOfOrigin: ');
-                GraphQuery.Append(ShopifyVariant."Country/Region of Origin Code");
-            end;
+        if ShopifyVariant."Tariff No." <> '' then begin
+            GraphQuery.Append(', harmonizedSystemCode: \"');
+            GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant."Tariff No."));
+            GraphQuery.Append('\"');
+        end;
+        if ShopifyVariant."Country/Region of Origin Code" <> '' then begin
+            GraphQuery.Append(', countryCodeOfOrigin: ');
+            GraphQuery.Append(ShopifyVariant."Country/Region of Origin Code");
         end;
         if ShopifyVariant.Weight > 0 then begin
             GraphQuery.Append(', measurement: {weight: {value:');
