@@ -26,7 +26,7 @@ codeunit 139700 "Shpfy Cust. Mapping Filter Sub"
         CustomerNoFilter := CustomerNo;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Customer Events", 'OnBeforeFindMapping', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Customer Events", 'OnBeforeFindMapping', '', true, false)]
     local procedure OnBeforeFindMapping(Direction: Enum "Shpfy Mapping Direction"; var ShopifyCustomer: Record "Shpfy Customer"; var Customer: Record Customer; var Handled: Boolean)
     begin
         if CustomerNoFilter <> '' then

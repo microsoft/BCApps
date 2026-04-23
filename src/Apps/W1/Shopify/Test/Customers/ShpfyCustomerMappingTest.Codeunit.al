@@ -109,14 +109,13 @@ codeunit 139569 "Shpfy Customer Mapping Test"
 
         // [WHEN] FindMapping is executed
         CustomerMapping.FindMapping(ShopifyCustomer);
+        UnbindSubscription(FilterSub);
 
         // [THEN] The Shopify customer is mapped to Customer2, not Customer1
         LibraryAssert.AreEqual(
             Customer2.SystemId,
             ShopifyCustomer."Customer SystemId",
             'FindMapping must honour the Customer filters set via OnBeforeFindMapping.');
-
-        UnbindSubscription(FilterSub);
     end;
 
     [Test]
@@ -155,14 +154,13 @@ codeunit 139569 "Shpfy Customer Mapping Test"
 
         // [WHEN] FindMapping is executed
         CustomerMapping.FindMapping(ShopifyCustomer);
+        UnbindSubscription(FilterSub);
 
         // [THEN] The Shopify customer is mapped to Customer2, not Customer1
         LibraryAssert.AreEqual(
             Customer2.SystemId,
             ShopifyCustomer."Customer SystemId",
             'FindMapping phone path must honour the Customer filters set via OnBeforeFindMapping.');
-
-        UnbindSubscription(FilterSub);
     end;
 
 
