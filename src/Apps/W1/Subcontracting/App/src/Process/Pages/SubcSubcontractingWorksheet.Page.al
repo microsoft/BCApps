@@ -330,7 +330,7 @@ page 99001504 "Subc. Subcontracting Worksheet"
                     ShortCutKey = 'Shift+F7';
                     ToolTip = 'View or change detailed information about the record on the document or journal line.';
                 }
-                action("Item &Tracking Lines")
+                action(ItemTrackingLines)
                 {
                     ApplicationArea = ItemTracking;
                     Caption = 'Item Tracking Lines';
@@ -414,7 +414,7 @@ page 99001504 "Subc. Subcontracting Worksheet"
             {
                 Caption = 'Line', Comment = 'Generated from the PromotedActionCategories property index 3.';
 
-                actionref("Item &Tracking Lines_Promoted"; "Item &Tracking Lines")
+                actionref(ItemTrackingLines_Promoted; ItemTrackingLines)
                 {
                 }
                 actionref(Dimensions_Promoted; Dimensions)
