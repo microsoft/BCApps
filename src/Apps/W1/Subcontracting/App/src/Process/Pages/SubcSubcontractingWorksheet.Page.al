@@ -317,9 +317,9 @@ page 99001504 "Subc. Subcontracting Worksheet"
     {
         area(navigation)
         {
-            group("&Line")
+            group(Line)
             {
-                Caption = '&Line';
+                Caption = 'Line';
                 Image = Line;
                 action(Card)
                 {
@@ -333,7 +333,7 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 action("Item &Tracking Lines")
                 {
                     ApplicationArea = ItemTracking;
-                    Caption = 'Item &Tracking Lines';
+                    Caption = 'Item Tracking Lines';
                     Image = ItemTrackingLines;
                     ShortCutKey = 'Ctrl+Alt+I';
                     ToolTip = 'View or edit serial, lot and package numbers that are assigned to the item on the document or journal line.';
@@ -362,9 +362,9 @@ page 99001504 "Subc. Subcontracting Worksheet"
         }
         area(processing)
         {
-            group("F&unctions")
+            group("Functions")
             {
-                Caption = 'F&unctions';
+                Caption = 'Functions';
                 Image = "Action";
                 action("Calculate Subcontracts")
                 {
@@ -385,7 +385,7 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 action(CarryOutActionMessage)
                 {
                     ApplicationArea = Manufacturing;
-                    Caption = 'Carry &Out Action Message';
+                    Caption = 'Carry Out Action Message';
                     Ellipsis = true;
                     Image = CarryOutActionMessage;
                     ToolTip = 'Use a batch job to help you create actual supply orders from the order proposals.';

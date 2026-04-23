@@ -113,7 +113,7 @@ page 99001505 "Subc. PurchProvisionWizard"
                     field(BOMRoutingShowEditTypeField; BOMRoutingShowEditType)
                     {
                         Caption = 'BOM/Routing';
-                        ToolTip = 'Specifies the display and editing behavior for BOM and Routing selection steps in the wizard. Hide: Skip BOM/Routing selection steps entirely. Show: Show BOM/Routing selection with version choice but no editing. Edit: Show BOM/Routing selection with full editing capabilities including version creation and line modifications.';
+                        ToolTip = 'Specifies how BOM and routing selection steps behave in the wizard. Hide: skip selection. Show: display with version choice, no editing. Edit: display with full editing and version creation.';
                         trigger OnValidate()
                         begin
                             SetBOMRoutingEditable();
@@ -122,7 +122,7 @@ page 99001505 "Subc. PurchProvisionWizard"
                     field(ProdCompRoutingShowEditTypeField; ProdCompRoutingShowEditType)
                     {
                         Caption = 'Prod. Components/Prod. Operations';
-                        ToolTip = 'Specifies the display and editing behavior for Production Order Components and Routing-Operations preview steps in the wizard. Hide: Skip component and routing preview steps, use generated data directly. Show: Show component and routing preview for review but no editing allowed. Edit: Show component and routing preview with full editing capabilities allowing modifications before production order creation.';
+                        ToolTip = 'Specifies how the component and routing-operations preview steps behave in the wizard. Hide: skip preview, use generated data. Show: display for review only. Edit: display with full editing before production order creation.';
                     }
                 }
             }
@@ -386,7 +386,7 @@ page 99001505 "Subc. PurchProvisionWizard"
         Finished: Boolean;
         BomRtngFromSource: Enum "Subc. RtngBOMSourceType";
         BomRtngFromSourceTxt: Text;
-        NewVersionIntroductionLbl: Label 'To edit lines directly, activate "Create New Version". This generates a temporary version code (replaced by a number series upon saving). Without this, existing master data is used, and editing is disabled for this step.';
+        NewVersionIntroductionLbl: Label 'To edit lines directly, activate "Create New Version". This generates a temporary version code (replaced by a number series upon saving). Without this, existing master data is used, and editing is not available for this step.';
 
     trigger OnInit()
     begin
@@ -657,7 +657,7 @@ page 99001505 "Subc. PurchProvisionWizard"
     local procedure ShowRoutingStep()
     begin
         RoutingStepVisible := true;
-        if (ProdCompRoutingShowEditType = ProdCompRoutingShowEditType::Hide) then begin
+        if ProdCompRoutingShowEditType = ProdCompRoutingShowEditType::Hide then begin
             NextActionEnabled := false;
             FinishActionEnabled := true;
         end;
