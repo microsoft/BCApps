@@ -437,13 +437,17 @@ codeunit 130130 "MCP Config Test"
         // [WHEN] Tools are added by API group
         MCPConfigTestLibrary.AddToolsByAPIGroup(ConfigId);
 
-        // [THEN] Tools are added successfully
+        // [THEN] Page tool is added successfully
         MCPConfigurationTool.Get(ConfigId, MCPConfigurationTool."Object Type"::Page, Page::"Mock API");
         Assert.IsTrue(MCPConfigurationTool."Allow Read", 'Allow Read is not true');
         Assert.IsFalse(MCPConfigurationTool."Allow Create", 'Allow Create is not true');
         Assert.IsFalse(MCPConfigurationTool."Allow Modify", 'Allow Modify is not true');
         Assert.IsFalse(MCPConfigurationTool."Allow Delete", 'Allow Delete is not true');
         Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions is not true');
+
+        // [THEN] Query tool is added successfully
+        MCPConfigurationTool.Get(ConfigId, MCPConfigurationTool."Object Type"::Query, Query::"Mock API Query");
+        Assert.IsTrue(MCPConfigurationTool."Allow Read", 'Allow Read is not true for query');
     end;
 
     [Test]
@@ -458,13 +462,17 @@ codeunit 130130 "MCP Config Test"
         // [WHEN] Standard API tools are added
         MCPConfigTestLibrary.AddStandardAPITools(ConfigId);
 
-        // [THEN] Standard API tools are added successfully
+        // [THEN] Standard API page tools are added successfully
         MCPConfigurationTool.Get(ConfigId, MCPConfigurationTool."Object Type"::Page, Page::"Mock APIV2");
         Assert.IsTrue(MCPConfigurationTool."Allow Read", 'Allow Read is not true');
         Assert.IsFalse(MCPConfigurationTool."Allow Create", 'Allow Create is not true');
         Assert.IsFalse(MCPConfigurationTool."Allow Modify", 'Allow Modify is not true');
         Assert.IsFalse(MCPConfigurationTool."Allow Delete", 'Allow Delete is not true');
         Assert.IsFalse(MCPConfigurationTool."Allow Bound Actions", 'Allow Bound Actions is not true');
+
+        // [THEN] Standard API query tools are added successfully
+        MCPConfigurationTool.Get(ConfigId, MCPConfigurationTool."Object Type"::Query, Query::"Mock APIV2 Query");
+        Assert.IsTrue(MCPConfigurationTool."Allow Read", 'Allow Read is not true for query');
     end;
 
     [Test]

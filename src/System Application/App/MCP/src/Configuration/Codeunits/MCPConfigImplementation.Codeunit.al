@@ -779,6 +779,7 @@ codeunit 8351 "MCP Config Implementation"
         QueryMetadata.SetFilter(EntityName, '<>%1', '');
         QueryMetadata.SetFilter(APIPublisher, '=%1', '');
         QueryMetadata.SetFilter(APIGroup, '=%1', '');
+        QueryMetadata.SetRange(APIVersion, 'v2.0');
         if QueryMetadata.FindSet() then
             repeat
                 if CheckAPIToolExists(ConfigId, QueryMetadata.ID, MCPConfigurationTool."Object Type"::Query) then
