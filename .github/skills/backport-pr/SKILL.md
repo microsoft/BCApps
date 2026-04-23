@@ -50,6 +50,9 @@ Import-Module ./build/scripts/CrossBranchPorting.psm1 -Force
 
 $pr = '<PR_NUMBER>'
 $sourceTitle = gh pr view $pr --repo microsoft/BCApps --json title --jq .title
+if (-not $sourceTitle) {
+    throw "Could not read title for source PR #$pr."
+}
 # Map of target branch -> linked ADO work item id (resolved as described above)
 $map = @{
     'releases/27.5' = '<WI_ID_FOR_27_5>'
@@ -63,6 +66,7 @@ foreach ($branch in $map.Keys) {
     # The script leaves the PR body with "[**Insert Work Item Number Here**]" — replace it.
     $expectedTitle = "[$branch] $sourceTitle"
     $backportPr = $null
+    # GitHub search indexing can lag briefly after PR creation; retry for ~15 seconds.
     for ($attempt = 1; $attempt -le 5 -and -not $backportPr; $attempt++) {
         $backportPr = gh pr list --repo microsoft/BCApps --state open --base $branch --search "`"$expectedTitle`" in:title" --json number,title,body,url |
             ConvertFrom-Json |
