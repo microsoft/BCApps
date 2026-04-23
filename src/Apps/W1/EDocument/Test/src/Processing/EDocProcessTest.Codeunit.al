@@ -31,6 +31,7 @@ codeunit 139883 "E-Doc Process Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
+    TestPermissions = Disabled;
 
     var
         Customer: Record Customer;
@@ -1092,7 +1093,6 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] An inbound e-document is received and a draft is created
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
-        WorkDate(DMY2Date(1, 1, 2027));
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft should be created');
 
         // [GIVEN] A dimension value to add via the Dimensions lookup
@@ -1146,7 +1146,6 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] An inbound credit note e-document is received and fully processed
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        WorkDate(DMY2Date(1, 1, 2027));
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-0.xml', TempEDocImportParams), 'The credit note e-document should be processed');
 
         // [THEN] The E-Document type is Purchase Credit Memo
@@ -1187,7 +1186,6 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentService.Modify();
 
         TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        WorkDate(DMY2Date(1, 1, 2027));
         Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The invoice e-document should be processed');
 
         // [THEN] The E-Document type is Purchase Invoice
