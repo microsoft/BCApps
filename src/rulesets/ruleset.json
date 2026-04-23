@@ -35,19 +35,34 @@
       "justification": "Adding a var modifier in events should be allowed in main, as it only will break the runtime behavior of extensions subscribing to it when used in hotfix scenarios."
     },
     {
-        "id":  "AS0138",
-        "action":  "None",
-        "justification": "TODO(#572306) - (see PTE0026) This will require a multi-release effort."
+      "id": "AS0138",
+      "action": "None",
+      "justification": "TODO(#572306) - (see PTE0026) This will require a multi-release effort."
     },
     {
-        "id":  "AS0139",
-        "action":  "None",
-        "justification": "TODO(#595767) - This will be enabled after branching to BC 27."
+      "id": "AS0139",
+      "action": "None",
+      "justification": "TODO(#595767) - This will be enabled after branching to BC 27."
     },
     {
-        "id":  "PTE0026",
-        "action":  "None",
-        "justification": "TODO(#572306) - (see AS0138) This will require a multi-release effort."
+      "id": "PTE0026",
+      "action": "None",
+      "justification": "TODO(#572306) - (see AS0138) This will require a multi-release effort."
+    },
+    {
+      "justification": "Temporarily turned into an error by Submit-NAVCompilerTestJob",
+      "id": "AW0018",
+      "action": "Error"
+    },
+    {
+      "justification": "Temporarily turned into an error by Submit-NAVCompilerTestJob",
+      "id": "AW0019",
+      "action": "Error"
+    },
+    {
+      "justification": "Temporarily turned into an error by Submit-NAVCompilerTestJob",
+      "id": "AW0020",
+      "action": "Error"
     }
   ]
 }
