@@ -27,8 +27,10 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     [EventSubscriber(ObjectType::Table, Database::"Transfer Header", OnUpdateTransLinesOnAfterUpdateFromDirectTransfer, '', false, false)]
     local procedure "Transfer Header_OnUpdateTransLinesOnAfterUpdateFromDirectTransfer"(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
-        if TempTransferLine."Transfer WIP Item" then
+        if TempTransferLine."Transfer WIP Item" then begin
             TransferLine.Validate("Transfer WIP Item", TempTransferLine."Transfer WIP Item");
+            TransferLine.UpdateDescriptions();
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Header", OnBeforeValidateEvent, "Direct Transfer", false, false)]

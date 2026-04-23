@@ -284,6 +284,9 @@ page 99001561 "WIP Adjustment"
             Rec.SetRange("Routing No.", WIPLedgerEntry."Routing No.");
             Rec.SetRange("Operation No.", WIPLedgerEntry."Operation No.");
             Rec.SetRange("Location Code", WIPLedgerEntry."Location Code");
+            Rec.SetRange("In Transit", WIPLedgerEntry."In Transit");
+            Rec.SetRange("Item No.", WIPLedgerEntry."Item No.");
+            Rec.SetRange("Variant Code", WIPLedgerEntry."Variant Code");
             if Rec.FindFirst() then begin
                 Rec."Quantity (Base)" += WIPLedgerEntry."Quantity (Base)";
                 Rec.Modify();
@@ -301,6 +304,12 @@ page 99001561 "WIP Adjustment"
                 EntrySeq += 1;
             end;
         until WIPLedgerEntry.Next() = 0;
+
+        Rec.SetRange("Location Code");
+        Rec.SetRange("In Transit");
+        Rec.SetRange("Item No.");
+        Rec.SetRange("Variant Code");
+        Rec.SetRange("Prod. Order Line No.");
 
         LineCount := Rec.Count();
         if Rec.FindFirst() then;

@@ -10,6 +10,20 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
 {
     layout
     {
+        modify("No.")
+        {
+            trigger OnAfterValidate()
+            begin
+                UpdateWIPEnabled();
+            end;
+        }
+        modify(Type)
+        {
+            trigger OnAfterValidate()
+            begin
+                UpdateWIPEnabled();
+            end;
+        }
         modify("Routing Link Code")
         {
             Visible = true;
@@ -19,6 +33,7 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
             field("Transfer WIP Item"; Rec."Transfer WIP Item")
             {
                 ApplicationArea = Manufacturing;
+                Enabled = TransferWIPItemEnabled;
             }
             field("Transfer Description"; Rec."Transfer Description")
             {
@@ -50,6 +65,26 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateWIPEnabled();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateWIPEnabled();
+    end;
+
+    var
+        TransferWIPItemEnabled: Boolean;
+
+    local procedure UpdateWIPEnabled()
+    begin
+        Rec.Calcfields(Subcontracting);
+        TransferWIPItemEnabled := Rec.Subcontracting;
+    end;
+
     procedure ShowRelatedSubcontractorPrices()
     var
         SubcontractorPrice: Record "Subcontractor Price";

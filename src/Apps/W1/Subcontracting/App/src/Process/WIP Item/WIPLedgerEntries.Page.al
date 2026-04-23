@@ -112,6 +112,8 @@ page 99001560 "WIP Ledger Entries"
                 Caption = 'WIP Adjustment';
                 Image = AdjustEntries;
                 ToolTip = 'Manually adjust the WIP quantity for the selected WIP ledger entry.';
+                Enabled = WIPAdjustmentEnabled;
+                Visible = WIPAdjustmentEnabled;
 
                 trigger OnAction()
                 var
@@ -131,4 +133,12 @@ page 99001560 "WIP Ledger Entries"
             actionref(WipAdjustment_Promoted; "WIP Adjustment") { }
         }
     }
+
+    var
+        WIPAdjustmentEnabled: Boolean;
+
+    trigger OnOpenPage()
+    begin
+        WIPAdjustmentEnabled := not Rec.IsTemporary();
+    end;
 }

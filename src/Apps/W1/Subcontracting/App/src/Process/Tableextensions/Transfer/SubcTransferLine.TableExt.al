@@ -120,6 +120,7 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
                     Item.Get(Rec."Item No.");
                     "Qty. per Unit of Measure" := UnitOfMeasureManagement.GetQtyPerUnitOfMeasure(Item, "Unit of Measure Code");
                 end;
+                UpdateDescriptions();
                 Validate(Quantity);
             end;
         }
@@ -209,5 +210,16 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
         Item.Get("Item No.");
         QtyPerUoM := UnitOfMeasureManagement.GetQtyPerUnitOfMeasure(Item, "Unit of Measure Code");
         BaseQty := UnitOfMeasureManagement.CalcBaseQty(Quantity, QtyPerUoM);
+    end;
+
+    internal procedure UpdateDescriptions()
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        if Rec."Transfer WIP Item" then
+            if ProdOrderRoutingLine.Get("Production Order Status"::Released, "Prod. Order No.", "Routing Reference No.", "Routing No.", "Operation No.") then begin
+                Rec.Description := ProdOrderRoutingLine."Transfer Description";
+                Rec."Description 2" := ProdOrderRoutingLine."Transfer Description 2";
+            end;
     end;
 }
