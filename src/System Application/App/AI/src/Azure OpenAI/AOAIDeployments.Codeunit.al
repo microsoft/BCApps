@@ -70,12 +70,10 @@ codeunit 7768 "AOAI Deployments"
     end;
 #endif
 
-#if not CLEAN31
     /// <summary>
     /// Returns the name of the latest AOAI deployment model of GPT-4.1.
     /// </summary>
     /// <returns>The deployment name.</returns>
-    [Obsolete('GPT4.1 deployment name is no longer supported from 15 May 2026. Use GetGPT53ChatLatest instead (or GetGPT53ChatPreview for testing upcoming versions).', '31.0')]
     procedure GetGPT41Latest(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -88,7 +86,6 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of the preview AOAI deployment model of GPT-4.1.
     /// </summary>
     /// <returns>The deployment name.</returns>
-    [Obsolete('GPT4.1 deployment name is no longer supported from 15 May 2026. Use GetGPT53ChatLatest instead (or GetGPT53ChatPreview for testing upcoming versions).', '31.0')]
     procedure GetGPT41Preview(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -101,7 +98,6 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of the latest AOAI deployment model of GPT-4.1 mini.
     /// </summary>
     /// <returns>The deployment name.</returns>
-    [Obsolete('GPT4.1 mini deployment name is no longer supported from 15 May 2026. Use GetGPT53ChatLatest instead (or GetGPT53ChatPreview for testing upcoming versions).', '31.0')]
     procedure GetGPT41MiniLatest(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -114,7 +110,6 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of the preview AOAI deployment model of GPT-4.1 mini.
     /// </summary>
     /// <returns>The deployment name.</returns>
-    [Obsolete('GPT4.1 mini deployment name is no longer supported from 15 May 2026. Use GetGPT53ChatLatest instead (or GetGPT53ChatPreview for testing upcoming versions).', '31.0')]
     procedure GetGPT41MiniPreview(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -122,7 +117,6 @@ codeunit 7768 "AOAI Deployments"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AOAIDeploymentsImpl.GetGPT41MiniPreview(CallerModuleInfo));
     end;
-#endif
 
     /// <summary>
     /// Returns the name of the latest AOAI deployment model of GPT-5.3 chat.
