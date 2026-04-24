@@ -30,7 +30,7 @@ jobs:
           lfs: true
 
       - name: Troubleshooting
-        uses: microsoft/AL-Go/Actions/Troubleshooting@730da166f092a5b269c127281fa69774a9cdb163
+        uses: microsoft/AL-Go/Actions/Troubleshooting@aholstrup1/retry-docker-pull-before-pipeline
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
