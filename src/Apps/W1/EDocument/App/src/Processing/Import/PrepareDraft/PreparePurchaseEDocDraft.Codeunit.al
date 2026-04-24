@@ -116,7 +116,7 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
     begin
-        EDocumentPurchaseLine.SetLoadFields("E-Document Entry No.", "[BC] Purchase Type No.", "[BC] Deferral Code");
+        EDocumentPurchaseLine.SetLoadFields("E-Document Entry No.", "[BC] Purchase Type No.", "[BC] Deferral Code", Description, "Product Code", Quantity, "Unit of Measure", "Unit Price");
         EDocumentPurchaseLine.ReadIsolation(IsolationLevel::ReadCommitted);
 
         // Step 1: Apply historical pattern matching

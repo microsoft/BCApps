@@ -222,9 +222,15 @@ page 20408 "Qlty. Inspection List"
                 Enabled = CanCreateReinspection;
 
                 trigger OnAction()
+                var
+                    ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection();
+                    Rec.CreateReinspection(ReinspectionQltyInspectionHeader);
                     CurrPage.Update(false);
+                    if not IsNullGuid(ReinspectionQltyInspectionHeader.SystemId) then begin
+                        Commit();
+                        Page.Run(Page::"Qlty. Inspection", ReinspectionQltyInspectionHeader);
+                    end;
                 end;
             }
             action(TakePicture)

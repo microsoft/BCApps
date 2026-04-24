@@ -108,6 +108,17 @@ page 4316 "Agent List"
                 end;
             }
         }
+        area(Navigation)
+        {
+            action(AgentConfigurationRights)
+            {
+                ApplicationArea = All;
+                Caption = 'View agent configuration rights';
+                ToolTip = 'View who can create new agents';
+                Image = Permission;
+                RunObject = Page "Agent Creation Control";
+            }
+        }
         area(Promoted)
         {
             group(Category_Process)
