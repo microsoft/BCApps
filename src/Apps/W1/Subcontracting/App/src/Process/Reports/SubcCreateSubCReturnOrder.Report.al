@@ -271,7 +271,9 @@ report 99001502 "Subc. Create SubCReturnOrder"
         if SubcontractingType = "Subcontracting Type"::Purchase then
             TransferFromLocationCode := "Purchase Line"."Location Code"
         else begin
-            ManufacturingSetup.Get();
+            if not ManufacturingSetup.Get() then
+                Clear(ManufacturingSetup);
+
             ManufacturingSetup.TestField("Subc. Comp. at Location");
             case ManufacturingSetup."Subc. Comp. at Location" of
                 "Components at Location"::Purchase:

@@ -432,7 +432,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
 
     local procedure UpdateSubMgmtSetupWithReqWkshTemplate()
     begin
-        LibraryMfgManagement.CreateLaborReqWkshTemplateAndNameAndUpdateSetup();
+        LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
     end;
 
     local procedure UpdateSubMgmtSetup_ComponentAtLocation(CompAtLocation: Enum "Components at Location")

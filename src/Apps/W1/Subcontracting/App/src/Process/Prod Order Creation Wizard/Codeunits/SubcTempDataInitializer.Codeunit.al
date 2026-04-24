@@ -179,6 +179,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     begin
         ClearRoutingTables();
         GetManufacturingSetup();
+        GetSubcManagementSetup();
 
         ManufacturingSetup.TestField("Routing Nos.");
 

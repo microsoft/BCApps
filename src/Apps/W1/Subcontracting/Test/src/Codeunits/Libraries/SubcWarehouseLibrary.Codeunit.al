@@ -421,11 +421,11 @@ codeunit 149908 "Subc. Warehouse Library"
     end;
 
     /// <summary>
-    /// Updates the subcontracting management setup with a labor requirement worksheet template and name. This is used to set up the subcontracting management parameters for testing scenarios that involve subcontracting and the use of labor requirement worksheets in the subcontracting process.
+    /// Updates the subcontracting management setup with a subcontracting requirement worksheet template and name. This is used to set up the subcontracting management parameters for testing scenarios that involve subcontracting and the use of subcontracting requirement worksheets in the subcontracting process.
     /// </summary>
     procedure UpdateSubMgmtSetupWithReqWkshTemplate()
     begin
-        SubcLibraryMfgManagement.CreateLaborReqWkshTemplateAndNameAndUpdateSetup();
+        SubcLibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
     end;
 
     // ========================================

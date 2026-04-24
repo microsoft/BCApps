@@ -23,14 +23,14 @@ codeunit 99001503 "Subcontracting Comp. Init."
             ManufacturingSetup.Insert(true);
         end;
 
-        CreateLaborReqWkshTemplateAndNameAndUpdateSetup(ManufacturingSetup);
+        CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup(ManufacturingSetup);
         ManufacturingSetup."Direct Transfer" := true;
         ManufacturingSetup."Create Prod. Order Info Line" := true;
         Evaluate(ManufacturingSetup."Subc. Inb. Whse. Handling Time", GetDefaultInboundWhseHandlingTime());
         ManufacturingSetup.Modify(true);
     end;
 
-    procedure CreateLaborReqWkshTemplateAndNameAndUpdateSetup(var ManufacturingSetup: Record "Manufacturing Setup")
+    procedure CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup(var ManufacturingSetup: Record "Manufacturing Setup")
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";

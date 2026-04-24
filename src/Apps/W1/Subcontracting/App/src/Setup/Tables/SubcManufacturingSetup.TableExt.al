@@ -24,7 +24,7 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
             DataClassification = CustomerContent;
 #pragma warning disable AL0432
 #pragma warning disable AL0520
-            TableRelation = "Req. Wksh. Template" where(Type = const("For. Labor"));
+            TableRelation = "Req. Wksh. Template" where(Type = const(Subcontracting));
 #pragma warning restore AL0432
 #pragma warning restore AL0520
         }
@@ -34,7 +34,7 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
             DataClassification = CustomerContent;
 #pragma warning disable AL0432
 #pragma warning disable AL0520
-            TableRelation = "Requisition Wksh. Name".Name where("Template Type" = const("For. Labor"),
+            TableRelation = "Requisition Wksh. Name".Name where("Template Type" = const(Subcontracting),
                                                                 "Worksheet Template Name" = field("Subcontracting Template Name"));
 #pragma warning restore AL0432
 #pragma warning restore AL0520

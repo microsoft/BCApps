@@ -2087,7 +2087,7 @@ Comment = '|%1 = Transfer Order No.';
 
     local procedure UpdateSubMgmtSetupWithReqWkshTemplate()
     begin
-        LibraryMfgManagement.CreateLaborReqWkshTemplateAndNameAndUpdateSetup();
+        LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
     end;
 
     local procedure UpdateSubMgmtSetupTransferInfoLine(Update: Boolean)
