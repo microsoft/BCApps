@@ -37,10 +37,25 @@ codeunit 689 "Payment Practices"
     end;
 
     local procedure GenerateTotals(var PaymentPracticeData: Record "Payment Practice Data"; var PaymentPracticeHeader: Record "Payment Practice Header")
+    var
+        SchemeHandler: Interface PaymentPracticeSchemeHandler;
     begin
         PaymentPracticeHeader."Average Actual Payment Period" := PaymentPracticeMath.GetAverageActualPaymentTime(PaymentPracticeData);
         PaymentPracticeHeader."Average Agreed Payment Period" := PaymentPracticeMath.GetAverageAgreedPaymentTime(PaymentPracticeData);
         PaymentPracticeHeader."Pct Paid on Time" := PaymentPracticeMath.GetPercentOfOnTimePayments(PaymentPracticeData);
+
+        // Reset fields before calculating scheme-specific totals
+        PaymentPracticeHeader."Mode Payment Time" := 0;
+        PaymentPracticeHeader."Mode Payment Time Min." := 0;
+        PaymentPracticeHeader."Mode Payment Time Max." := 0;
+        PaymentPracticeHeader."Median Payment Time" := 0;
+        PaymentPracticeHeader."80th Percentile Payment Time" := 0;
+        PaymentPracticeHeader."95th Percentile Payment Time" := 0;
+        PaymentPracticeHeader."Pct Peppol Enabled" := 0;
+        PaymentPracticeHeader."Pct Small Business Payments" := 0;
+
+        SchemeHandler := PaymentPracticeHeader."Reporting Scheme";
+        SchemeHandler.CalculateHeaderTotals(PaymentPracticeHeader, PaymentPracticeData);
     end;
 
     local procedure GenerateData(var PaymentPracticeData: Record "Payment Practice Data"; PaymentPracticeHeader: Record "Payment Practice Header"; PaymentPracticeDataGenerator: Interface PaymentPracticeDataGenerator)

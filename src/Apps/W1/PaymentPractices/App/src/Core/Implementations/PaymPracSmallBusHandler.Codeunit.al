@@ -11,6 +11,7 @@ codeunit 682 "Paym. Prac. Small Bus. Handler" implements PaymentPracticeSchemeHa
     Access = Internal;
 
     var
+        PaymentPracticeMath: Codeunit "Payment Practice Math";
         WrongHeaderTypeErr: Label 'Payment Practice Header Type must be Vendor for the Small Business reporting scheme.';
 
     procedure ValidateHeader(var PaymentPracticeHeader: Record "Payment Practice Header")
@@ -22,15 +23,19 @@ codeunit 682 "Paym. Prac. Small Bus. Handler" implements PaymentPracticeSchemeHa
     procedure UpdatePaymentPracData(var PaymentPracticeData: Record "Payment Practice Data"): Boolean
     var
         Vendor: Record Vendor;
+        CompanySize: Record "Company Size";
     begin
         if PaymentPracticeData."Source Type" <> PaymentPracticeData."Source Type"::Vendor then
             exit(false);
 
-        Vendor.SetLoadFields("Small Business Supplier");
+        Vendor.SetLoadFields("Company Size Code");
         if not Vendor.Get(PaymentPracticeData."CV No.") then
             exit(false);
 
-        exit(Vendor."Small Business Supplier");
+        if CompanySize.Get(Vendor."Company Size Code") then
+            exit(CompanySize."Small Business")
+        else
+            exit(false);
     end;
 
     procedure CalculateHeaderTotals(var PaymentPracticeHeader: Record "Payment Practice Header"; var PaymentPracticeData: Record "Payment Practice Data")
@@ -48,6 +53,14 @@ codeunit 682 "Paym. Prac. Small Bus. Handler" implements PaymentPracticeSchemeHa
 
         PaymentPracticeHeader."Total Number of Payments" := TotalCount;
         PaymentPracticeHeader."Total Amount of Payments" := TotalValue;
+        PaymentPracticeHeader."Mode Payment Time" := PaymentPracticeMath.GetModePaymentTime(PaymentPracticeData);
+        PaymentPracticeHeader."Mode Payment Time Min." := PaymentPracticeMath.GetModePaymentTimeMin(PaymentPracticeData);
+        PaymentPracticeHeader."Mode Payment Time Max." := PaymentPracticeMath.GetModePaymentTimeMax(PaymentPracticeData);
+        PaymentPracticeHeader."Median Payment Time" := PaymentPracticeMath.GetMedianPaymentTime(PaymentPracticeData);
+        PaymentPracticeHeader."80th Percentile Payment Time" := PaymentPracticeMath.Get80thPercentilePaymentTime(PaymentPracticeData);
+        PaymentPracticeHeader."95th Percentile Payment Time" := PaymentPracticeMath.Get95thPercentilePaymentTime(PaymentPracticeData);
+        PaymentPracticeHeader."Pct Peppol Enabled" := PaymentPracticeMath.GetPctPeppolEnabled(PaymentPracticeData);
+        PaymentPracticeHeader."Pct Small Business Payments" := PaymentPracticeMath.GetPctSmallBusinessPayments(PaymentPracticeData, PaymentPracticeHeader);
     end;
 
     procedure CalculateLineTotals(var PaymentPracticeLine: Record "Payment Practice Line"; var PaymentPracticeData: Record "Payment Practice Data")

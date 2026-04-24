@@ -134,6 +134,84 @@ table 687 "Payment Practice Header"
             AutoFormatType = 0;
             ToolTip = 'Specifies the percentage of payments not made within agreed terms that are due to disputes.';
         }
+        field(24; "Mode Payment Time"; Integer)
+        {
+            ToolTip = 'Specifies the mode payment time.';
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(25; "Mode Payment Time Min."; Integer)
+        {
+            ToolTip = 'Specifies the minimum per vendor mode payment time.';
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(26; "Mode Payment Time Max."; Integer)
+        {
+            ToolTip = 'Specifies the maximum per vendor mode payment time.';
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(27; "Median Payment Time"; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 2;
+            ToolTip = 'Specifies the median payment time.';
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(28; "80th Percentile Payment Time"; Integer)
+        {
+            ToolTip = 'Specifies the 80th percentile payment time.';
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(29; "95th Percentile Payment Time"; Integer)
+        {
+            ToolTip = 'Specifies the 95th percentile payment time.';
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(30; "Pct Peppol Enabled"; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 2;
+            ToolTip = 'Specifies the percentage of invoices that are PEPPOL enabled.';
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
+        field(31; "Pct Small Business Payments"; Decimal)
+        {
+            AutoFormatType = 0;
+            DecimalPlaces = 2;
+            ToolTip = 'Specifies small business payments as a percentage of total payments. This includes the value of partial payments.';
+
+            trigger OnValidate()
+            begin
+                Rec."Modified Manually" := true;
+            end;
+        }
     }
 
     keys
