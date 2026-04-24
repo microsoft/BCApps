@@ -29,6 +29,7 @@ codeunit 8351 "MCP Config Implementation"
         InvalidPageTypeErr: Label 'Only API pages are supported.';
         InvalidQueryTypeErr: Label 'Only API queries are supported.';
         InvalidAPIVersionErr: Label 'Only API v2.0 objects are supported.';
+        APIToolNotSupportedErr: Label 'This API page is not available for MCP configuration.';
         DefaultMCPConfigurationDescriptionLbl: Label 'Default MCP configuration';
         DynamicToolModeRequiredErr: Label 'Dynamic tool mode needs to be enabled to discover read-only objects.';
         VersionNotValidErr: Label 'The API version is not valid for the selected tool.';
@@ -508,8 +509,8 @@ codeunit 8351 "MCP Config Implementation"
         MCPAPIConfigToolLookup: Page "MCP API Config Tool Lookup";
     begin
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
-        PageMetadata.SetFilter(APIPublisher, '<>%1', 'microsoft');
         PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
+        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
 
         MCPAPIConfigToolLookup.LookupMode := true;
         MCPAPIConfigToolLookup.SetTableView(PageMetadata);
@@ -549,7 +550,10 @@ codeunit 8351 "MCP Config Implementation"
     begin
         PageMetadata.SetLoadFields(PageType, APIPublisher, APIGroup);
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
-        PageMetadata.SetFilter(APIPublisher, '<>%1&<>%2', '', 'microsoft');
+        PageMetadata.SetFilter(APIPublisher, '<>%1', '');
+        PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
+        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
+
         if not PageMetadata.FindSet() then
             exit;
 
@@ -614,11 +618,11 @@ codeunit 8351 "MCP Config Implementation"
         if not ValidateAPIPublisher then
             exit(PageMetadata);
 
-        if PageMetadata.APIPublisher = 'microsoft' then
-            Error(InvalidAPIVersionErr);
-
         if PageMetadata."AL Namespace" = 'Microsoft.API.V1' then
-            Error(InvalidAPIVersionErr);
+            Error(APIToolNotSupportedErr);
+
+        if PageMetadata.APIVersion = 'beta' then
+            Error(APIToolNotSupportedErr);
 
         exit(PageMetadata);
     end;
@@ -667,6 +671,9 @@ codeunit 8351 "MCP Config Implementation"
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter(APIPublisher, APIPublisher);
         PageMetadata.SetFilter(APIGroup, APIGroup);
+        PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
+        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
+
         if not PageMetadata.FindSet() then
             exit;
 
