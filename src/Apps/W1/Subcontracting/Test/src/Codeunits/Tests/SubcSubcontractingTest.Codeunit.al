@@ -1756,7 +1756,9 @@ Comment = '|%1 = Transfer Order No.';
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         PurchaseLine.SetRange("No.", ProdOrderComp."Item No.");
+#pragma warning disable AA0210
         PurchaseLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
         PurchaseLine.FindFirst();
         Assert.AreEqual(
             ExpectedDescription2, PurchaseLine."Description 2",
