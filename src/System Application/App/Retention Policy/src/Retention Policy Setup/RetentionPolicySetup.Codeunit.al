@@ -140,17 +140,6 @@ codeunit 3902 "Retention Policy Setup"
         exit(RetentionPolicySetupImpl.FindOrCreateRetentionPeriod(RetentionPeriodCode, RetentionPeriodEnum, RetPeriodCalc))
     end;
 
-    /// <summary>
-    /// Truncates all records in the table specified by the retention policy setup.
-    /// </summary>
-    /// <param name="RetentionPolicySetup">The retention policy setup record that specifies the table to truncate.</param>
-    procedure TruncateTableRecords(RetentionPolicySetup: Record "Retention Policy Setup")
-    var
-        RetentionPolicySetupImpl: Codeunit "Retention Policy Setup Impl.";
-    begin
-        RetentionPolicySetupImpl.TruncateTableRecords(RetentionPolicySetup);
-    end;
-
     // these event subscribers are here because the Impl. codeunit has a manual subscriber
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", OnRegisterManualSetup, '', true, true)]
