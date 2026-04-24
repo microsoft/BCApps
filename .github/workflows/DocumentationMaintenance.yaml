@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 30
     env:
       COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GH_TOKEN }}
+      COPILOT_HOME: ${{ github.workspace }}/.copilot
     steps:
       - name: Check for existing docs review
         id: dedup
@@ -52,6 +53,8 @@ jobs:
       - name: Setup Node.js
         if: steps.dedup.outputs.skip != 'true'
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '24'
 
       - name: Install Copilot CLI
         if: steps.dedup.outputs.skip != 'true'
@@ -59,11 +62,7 @@ jobs:
 
       - name: Install al-docs plugin
         if: steps.dedup.outputs.skip != 'true'
-        run: |
-          copilot plugin install ./tools/al-docs-plugin
-          PLUGIN_DIR="$HOME/.copilot/installed-plugins"
-          mkdir -p ~/.copilot
-          echo "{\"trusted_folders\":[\"$PLUGIN_DIR\"]}" > ~/.copilot/config.json
+        run: copilot plugin install ./tools/al-docs-plugin
 
       - name: Find changed apps
         if: steps.dedup.outputs.skip != 'true'
@@ -91,6 +90,17 @@ jobs:
           echo "$APPS" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
+      - name: Generate code maps
+        if: steps.dedup.outputs.skip != 'true' && steps.scope.outputs.count != '0'
+        run: |
+          while IFS= read -r APP_PATH; do
+            [ -z "$APP_PATH" ] && continue
+            APP_NAME=$(jq -r '.name // "unknown"' "$APP_PATH/app.json" 2>/dev/null || echo "unknown")
+            MAP_FILE="/tmp/codemap-${APP_NAME// /-}.md"
+            echo "Generating code map for $APP_NAME..."
+            pwsh -File tools/al-docs-plugin/scripts/Get-ALCodeMap.ps1 -Path "$APP_PATH" > "$MAP_FILE"
+          done <<< '${{ steps.scope.outputs.apps }}'
+
       - name: Run al-docs audit
         if: steps.dedup.outputs.skip != 'true' && steps.scope.outputs.count != '0'
         id: audit
@@ -98,25 +108,20 @@ jobs:
           while IFS= read -r APP_PATH; do
             [ -z "$APP_PATH" ] && continue
             APP_NAME=$(jq -r '.name // "unknown"' "$APP_PATH/app.json" 2>/dev/null || echo "unknown")
+            MAP_FILE="/tmp/codemap-${APP_NAME// /-}.md"
             REPORT_FILE="/tmp/audit-${APP_NAME// /-}.md"
 
             echo "Auditing $APP_NAME at $APP_PATH..."
 
             timeout 600 copilot -p \
-              "Run the al-docs skill in audit mode on the app at $APP_PATH. After the audit, summarize in 2-3 sentences: coverage percentage, what is missing." \
-              --model claude-opus-4.6 \
+              "Read $MAP_FILE — it contains the code map for $APP_PATH. Use the /al-docs skill to produce an audit report. Summarize in 2-3 sentences: coverage percentage, what is missing." \
+              --model claude-sonnet-4.6 \
               --no-ask-user \
               --autopilot \
+              --allow-tool=skill \
               --allow-tool=read \
               --allow-tool=glob \
               --allow-tool=grep \
-              --allow-tool='shell(git log:read)' \
-              --allow-tool='shell(git diff:read)' \
-              --allow-tool='shell(find:read)' \
-              --allow-tool='shell(wc:read)' \
-              --allow-tool='shell(sort:read)' \
-              --allow-tool='shell(uniq:read)' \
-              --allow-tool='shell(jq:read)' \
               --share="$REPORT_FILE" || true
 
           done <<< '${{ steps.scope.outputs.apps }}'
