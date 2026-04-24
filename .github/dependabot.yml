@@ -12,7 +12,7 @@ updates:
   schedule:
     interval: weekly
   ignore:
-    - dependency-name: "microsoft/AL-Go-Actions/*"
+    - dependency-name: "microsoft/AL-Go/Actions/*"
     - dependency-name: "microsoft/AL-Go/*"
   labels:
     - "Automation"

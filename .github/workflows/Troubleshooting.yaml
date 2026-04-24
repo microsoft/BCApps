@@ -30,7 +30,7 @@ jobs:
           lfs: true
 
       - name: Troubleshooting
-        uses: microsoft/AL-Go-Actions/Troubleshooting@v9.0
+        uses: microsoft/AL-Go/Actions/Troubleshooting@aholstrup1/dotnet10-bccontainerhelper-fix
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
