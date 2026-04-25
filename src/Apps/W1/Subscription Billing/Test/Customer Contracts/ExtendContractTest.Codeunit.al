@@ -359,6 +359,52 @@ codeunit 148152 "Extend Contract Test"
         ExtendContract.ItemDescription.AssertEquals(ItemTranslation.Description);
     end;
 
+    [Test]
+    procedure ExtendContractTransfersCustomerPriceGroupToSubscriptionLine()
+    var
+        ExtendContractMgt: Codeunit "Extend Sub. Contract Mgt.";
+        TempExtendServiceCommPackage: Record "Subscription Package" temporary;
+    begin
+        // [SCENARIO] When Extend Contract is used for a customer with a Customer Price Group,
+        // the Customer Price Group is transferred to both the Subscription Header and the Subscription Line.
+
+        // [GIVEN] Subscription Item with a standard package
+        Initialize();
+        ContractTestLibrary.InitContractsApp();
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
+        SetupItemWithMultipleServiceCommitmentPackages();
+
+        // [GIVEN] Customer with a Customer Price Group assigned
+        LibrarySales.CreateCustomerPriceGroup(CustomerPriceGroup);
+        ContractTestLibrary.CreateCustomer(Customer);
+        Customer.Validate("Customer Price Group", CustomerPriceGroup.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Customer Subscription Contract for that customer
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
+
+        // [WHEN] Extend Contract creates a new Subscription and Subscription Lines
+        ServiceObjectQty := LibraryRandom.RandDec(10, 2);
+        ServiceObject.InsertFromItemNoAndCustomerContract(ServiceObject, Item."No.", '', ServiceObjectQty, WorkDate(), CustomerContract);
+        ServiceObject.SetUnitPriceAndUnitCostFromExtendContract(0, 0);
+        ExtendContractMgt.SetHideDialog(true);
+        ExtendContractMgt.ExtendContract(ServiceObject, TempExtendServiceCommPackage, true, CustomerContract, false, VendorContract, false, 0);
+        ServiceObject.ResetCalledFromExtendContract();
+
+        // [THEN] The Subscription Header has the Customer Price Group from the customer
+        ServiceObject.TestField("Customer Price Group", CustomerPriceGroup.Code);
+
+        // [THEN] All Subscription Lines for the Customer partner also have the Customer Price Group
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Customer);
+        Assert.IsTrue(ServiceCommitment.FindSet(), 'Expected at least one customer subscription line after Extend Contract.');
+        repeat
+            ServiceCommitment.TestField("Customer Price Group", CustomerPriceGroup.Code);
+        until ServiceCommitment.Next() = 0;
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -418,7 +464,7 @@ codeunit 148152 "Extend Contract Test"
                 ServiceCommitmentToTest.TestField(Description, SourceServiceCommPackageLine.Description);
                 ServiceCommitmentToTest.TestField("Invoicing via", SourceServiceCommPackageLine."Invoicing via");
                 ServiceCommitmentToTest.TestField("Invoicing Item No.", Item."No.");
-                ServiceCommitmentToTest.TestField("Customer Price Group", ServiceCommitmentPackage."Price Group");
+                ServiceCommitmentToTest.TestField("Customer Price Group", ServiceObject."Customer Price Group");
                 ServiceCommitmentToTest.TestField("Extension Term", SourceServiceCommPackageLine."Extension Term");
                 ServiceCommitmentToTest.TestField("Notice Period", SourceServiceCommPackageLine."Notice Period");
                 ServiceCommitmentToTest.TestField("Initial Term", SourceServiceCommPackageLine."Initial Term");

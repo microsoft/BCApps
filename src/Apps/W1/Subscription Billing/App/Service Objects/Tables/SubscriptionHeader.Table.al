@@ -1914,7 +1914,7 @@ table 8057 "Subscription Header"
                         ServiceCommitment.Description := ServiceCommPackageLine.Description;
                         ServiceCommitment."Invoicing via" := ServiceCommPackageLine."Invoicing via";
                         ServiceCommitment."Invoicing Item No." := ServiceCommPackageLine.GetInvoicingItemNo(Item);
-                        ServiceCommitment."Customer Price Group" := ServiceCommitmentPackage."Price Group";
+                        ServiceCommitment."Customer Price Group" := Rec."Customer Price Group";
 
                         if ServiceAndCalculationStartDate <> 0D then
                             ServiceCommitment.Validate("Subscription Line Start Date", ServiceAndCalculationStartDate)
