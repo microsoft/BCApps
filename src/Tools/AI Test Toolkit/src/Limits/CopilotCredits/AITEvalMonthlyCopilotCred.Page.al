@@ -285,7 +285,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
         CurrentUserIsAgentAdminForCurrentCompany := AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission();
-        CurrentUserIsAgentAdminForAllCompanies := AgentSystemPermissions.CurrentUserHasCanManageAllAgentsInAllCompaniesPermission()
+        CurrentUserIsAgentAdminForAllCompanies := AgentSystemPermissions.CurrentUserHasCanManageAllAgentsInAllCompaniesPermission();
     end;
 
     local procedure LoadCreditLimitSetup()
@@ -338,6 +338,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         Rec.Reset();
         Rec.DeleteAll();
         EnvironmentLoadedDataCopilotCreditsConsumed := 0;
+        CompanyLoadedDataCopilotCreditsConsumed := 0;
         PeriodStartDate := EnvironmentLimitRecord.GetPeriodStartDate();
 
         // Load all agent test suites and their credit consumption for the current period into the buffer.
@@ -365,13 +366,13 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         SortOrder := 0;
         TempAIEvalSuiteUsageBuffer.SetCurrentKey("Environment Consumed");
 #pragma warning disable AA0233, AA0181
-        if AIEvalSuiteUsageBufferTemp.FindLast() then
+        if TempAIEvalSuiteUsageBuffer.FindLast() then
             repeat
                 SortOrder += 1;
-                Rec := AIEvalSuiteUsageBufferTemp;
+                Rec := TempAIEvalSuiteUsageBuffer;
                 Rec.Index := SortOrder;
                 Rec.Insert();
-            until AIEvalSuiteUsageBufferTemp.Next(-1) = 0;
+            until TempAIEvalSuiteUsageBuffer.Next(-1) = 0;
 #pragma warning restore AA0233, AA0181
 
         if Rec.FindFirst() then;
