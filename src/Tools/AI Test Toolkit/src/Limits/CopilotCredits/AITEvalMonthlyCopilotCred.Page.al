@@ -328,7 +328,9 @@ page 149048 "AIT Eval Monthly Copilot Cred."
     local procedure LoadBufferData()
     var
         AITTestSuite: Record "AIT Test Suite";
+#pragma warning disable AA0237
         TempAIEvalSuiteUsageBuffer: Record "AIT Eval Suite Usage Buffer";
+#pragma warning restore AA0237
         AgentTestConsumption: Codeunit "Agent Test Consumption";
         PeriodStartDate: Date;
         SortOrder: Integer;
