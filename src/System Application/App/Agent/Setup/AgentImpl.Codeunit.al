@@ -125,12 +125,12 @@ codeunit 4301 "Agent Impl."
 
     local procedure SetProfile(Agent: Record Agent; var AllProfile: Record "All Profile")
     var
-        UserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
-        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
-        UpdateUserSettingsWithProfile(AllProfile, UserSettingsRecord);
-        UpdateAgentUserSettings(UserSettingsRecord);
+        UserSettings.GetUserSettings(Agent."User Security ID", TempUserSettingsRecord);
+        UpdateUserSettingsWithProfile(AllProfile, TempUserSettingsRecord);
+        UpdateAgentUserSettings(TempUserSettingsRecord);
     end;
 
     procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; LanguageID: Integer; LocaleID: Integer; TimeZone: Text[180])
@@ -146,16 +146,16 @@ codeunit 4301 "Agent Impl."
     procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
     var
         Agent: Record Agent;
-        UserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
         GetAgent(Agent, AgentUserSecurityID);
 
-        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
-        UserSettingsRecord."Language ID" := NewUserSettingsRec."Language ID";
-        UserSettingsRecord."Locale ID" := NewUserSettingsRec."Locale ID";
-        UserSettingsRecord."Time Zone" := NewUserSettingsRec."Time Zone";
-        UpdateAgentUserSettings(UserSettingsRecord);
+        UserSettings.GetUserSettings(Agent."User Security ID", TempUserSettingsRecord);
+        TempUserSettingsRecord."Language ID" := NewUserSettingsRec."Language ID";
+        TempUserSettingsRecord."Locale ID" := NewUserSettingsRec."Locale ID";
+        TempUserSettingsRecord."Time Zone" := NewUserSettingsRec."Time Zone";
+        UpdateAgentUserSettings(TempUserSettingsRecord);
     end;
 
     procedure GetUserSettings(AgentUserSecurityID: Guid; var UserSettingsRec: Record "User Settings")
@@ -175,16 +175,16 @@ codeunit 4301 "Agent Impl."
     local procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
     var
         Agent: Record Agent;
-        UserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
         GetAgent(Agent, AgentUserSecurityID);
 
-        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
+        UserSettings.GetUserSettings(Agent."User Security ID", TempUserSettingsRecord);
 #pragma warning disable AA0139
-        UserSettingsRecord.Company := CompanyName;
+        TempUserSettingsRecord.Company := CompanyName;
 #pragma warning restore AA0139
-        UpdateAgentUserSettings(UserSettingsRecord);
+        UpdateAgentUserSettings(TempUserSettingsRecord);
     end;
 
     procedure GetUserName(AgentUserSecurityID: Guid): Code[50]
