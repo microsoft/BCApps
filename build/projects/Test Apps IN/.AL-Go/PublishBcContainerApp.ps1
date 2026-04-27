@@ -7,7 +7,8 @@ function PublishApp() {
 
     $listOfAppsNotToPublish = @(
         "Library - No Transactions",
-        "Prevent Metadata Updates Library"
+        "Prevent Metadata Updates Library",
+        "Contoso Coffee Demo Dataset (IN)"
     )
 
     Write-Host "Processing app file: $appFile"

@@ -2607,11 +2607,31 @@
   {
     "codeunitId": 137404,
     "codeunitName": "SCM Manufacturing",
-    "method": "ExpectedQuantityOnProductionOrderComponenent"
+    "method": "ProdOrderCompDueDateBeforeComponentReceiptDateIsNotAllowed"
   },
   {
     "codeunitId": 137404,
     "codeunitName": "SCM Manufacturing",
-    "method": "QuantityOnProductionOrderLine"
+    "method": "ProdOrderEndingDateBeforeComponentReceiptDateAllowedWithWarning"
+  },
+  {
+    "codeunitId": 137404,
+    "codeunitName": "SCM Manufacturing",
+    "method": "DeleteProdOrdLnWithPostedOutput"
+  },
+  {
+    "codeunitId": 137404,
+    "codeunitName": "SCM Manufacturing",
+    "method": "ChangeRtngOnProdOrdLnWithPostedOutput"
+  },
+  {
+    "codeunitId": 137404,
+    "codeunitName": "SCM Manufacturing",
+    "method": "ModifyReleasedProdOrderConsumptionPosted"
+  },
+  {
+    "codeunitId": 137404,
+    "codeunitName": "SCM Manufacturing",
+    "method": "ProductionJournalMultiLevelItemTrackingWorkflow"
   }
 ]

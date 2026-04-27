@@ -19853,5 +19853,425 @@
     "codeunitId": 144001,
     "codeunitName": "VAT Report",
     "method": "CreateVIESELMA_FileIDMatchesEingangsID"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType1_Negative_BlankedESRAccountNo"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType1_Negative_BlankedESRAccountNo"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "PurchCrMemoUsingACY"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "ChangeLSVJournalLineStatus"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateDDFileFromLSVJournalMultipleCustBankAccount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateDDFileFromLSVJournalNoCustBankAccount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateDDFileFromLSVJournalNoGIROForCustBankAccount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateLSVFileCustBankAccountHasNoIBANOrBankAccNo"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateLSVFileMultipleCustBankAccount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateLSVFileNoCustBankAccount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "DeleteLSVJournal"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "DeleteLSVJournalLine"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "UnApplyPstdPurchCrMemoUsingACY"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateDDFileWithCombinePerCustomerError"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "LSVCollectionOrder"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "ReopenCollection"
+  },
+  {
+    "codeunitId": 144044,
+    "codeunitName": "Test LSV DD Payment Import",
+    "method": "PrintESRJournal"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType1_Negative_BlankedESRAccountNoForESRPlus"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType1_Negative_BlankedESRAccountNoForESRPlus"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "SalesInvUsingACY"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType3_Negative_BlankedSWIFT"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType3_Negative_BlankedSWIFT"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "UnApplyPstdSalesInvUsingACY"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType3_Negative_BlankedIBAN"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType4_Negative_BlankedSWIFT"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType4_Negative_BlankedIBAN"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType6_Negative_BlankedSWIFTCode"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType3_Negative_BlankedIBAN"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType4_Negative_BlankedSWIFT"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType4_Negative_BlankedIBAN"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType6_Negative_BlankedSWIFTCode"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "SalesCrMemoUsingACY"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "UnApplyPstdSalesCrMemoUsingACY"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "CreateCurrencyACY"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "GetACYAmount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CheckLSVSetupSenderInfo"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CheckLSVSetupOtherInfo"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CheckLSVSetupCustomerIDSizeError"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CheckLSVSetupSenderIDSizeError"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CheckLSVSetupOnDelete"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "SuggestLSVCollection"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "SuggestLSVCollectionWithCreditMemoAndDiscount"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CreateLSVCollectionWithManualLines"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "CloseLSVCollectionWithManualLines"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "LSVCollectionAdvice"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "LSVCustomerbankList"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "LSVCollectionAuthorisationXMLOutput"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "LSVCollectionJournal"
+  },
+  {
+    "codeunitId": 144040,
+    "codeunitName": "Test LSV DD Payment Export",
+    "method": "ModifyPostingDate"
+  },
+  {
+    "codeunitId": 144044,
+    "codeunitName": "Test LSV DD Payment Import",
+    "method": "ImportDDFileNoRejectionFCYNonEUR"
+  },
+  {
+    "codeunitId": 144044,
+    "codeunitName": "Test LSV DD Payment Import",
+    "method": "GetLSVLinesWithCreditMemo"
+  },
+  {
+    "codeunitId": 144044,
+    "codeunitName": "Test LSV DD Payment Import",
+    "method": "DeleteImportedLinesResetsStatus"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "UT_GetAccountNo"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "UT_GetAccountNo"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "FullyApplyPstdPurchInvWithMultiplePayment"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "FullyApplyPstdSalesInvWithMultiplePayment"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "PartialApplyPstdPurchInvWithMultiplePayment"
+  },
+  {
+    "codeunitId": 144051,
+    "codeunitName": "ERM Sales/Purchase VAT",
+    "method": "PartialApplyPstdSalesInvWithMultiplePayment"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_Negative_PaymentType3_BankAccountBlankSWIFT"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_Negative_PaymentType3_BankAccountBlankSWIFT"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType3_QRReferenceNormalIBAN"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType3_CRReferenceQRIBAN"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType3_UstrdReferenceQRIBAN"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_PaymentType3_BlankReferenceQRIBAN"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "PaymentReferenceNonNumericValueInPaymentJournal"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "PaymentReferenceNonNumericValueInPurchaseInvoice"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "PaymentReferenceNonNumericValueInVendorLedgerEntry"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "IsSwissSEPACTExportWhenEmptyBalAccInBatch"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "IsSwissSEPACTExportWhenEmptyBalAccInBatchAndLine"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType3_QRReferenceNormalIBAN"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType3_CRReferenceQRIBAN"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType3_UstrdReferenceQRIBAN"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_PaymentType3_BlankReferenceQRIBAN"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "PaymentReferenceNonNumericValueInPaymentJournal"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "PaymentReferenceNonNumericValueInPurchaseInvoice"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "PaymentReferenceNonNumericValueInVendorLedgerEntry"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "IsSwissSEPACTExportWhenEmptyBalAccInBatch"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "IsSwissSEPACTExportWhenEmptyBalAccInBatchAndLine"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_Negative_PaymentType5_BankAccountBlankSWIFT"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "XMLExport_Negative_PaymentType6_BankAccountBlankSWIFT"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_Negative_PaymentType5_BankAccountBlankSWIFT"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "XMLExport_Negative_PaymentType6_BankAccountBlankSWIFT"
+  },
+  {
+    "codeunitId": 144352,
+    "codeunitName": "Swiss SEPA CT Export",
+    "method": "SuggestVendorPaymentWithReferenceNo"
+  },
+  {
+    "codeunitId": 144354,
+    "codeunitName": "Swiss SEPA CT 09 Export",
+    "method": "SuggestVendorPaymentWithReferenceNo"
   }
 ]

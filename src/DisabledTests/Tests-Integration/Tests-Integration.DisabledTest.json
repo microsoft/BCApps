@@ -368,5 +368,10 @@
     "codeunitId": 139058,
     "codeunitName": "Office OCR Test",
     "method": "SendIncomingDocApprovalRequest"
+  },
+  {
+    "codeunitId": 139051,
+    "codeunitName": "Add-in Hyperlink Sales",
+    "method": "CreateSalesInvoiceTitle"
   }
 ]

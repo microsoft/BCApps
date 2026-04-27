@@ -4043,5 +4043,55 @@
     "codeunitId": 137927,
     "codeunitName": "SCM Assembly Copy",
     "method": "ShipmentToQuote"
+  },
+  {
+    "codeunitId": 137091,
+    "codeunitName": "SCM Kitting - D2",
+    "method": "AvgParentAndCompIndCost"
+  },
+  {
+    "codeunitId": 137091,
+    "codeunitName": "SCM Kitting - D2",
+    "method": "AvgParentAndCompOverhead"
+  },
+  {
+    "codeunitId": 137091,
+    "codeunitName": "SCM Kitting - D2",
+    "method": "AvgParentFIFOCompCostAdj"
+  },
+  {
+    "codeunitId": 137091,
+    "codeunitName": "SCM Kitting - D2",
+    "method": "AvgParentIndCost"
+  },
+  {
+    "codeunitId": 137091,
+    "codeunitName": "SCM Kitting - D2",
+    "method": "AvgUpdateParent"
+  },
+  {
+    "codeunitId": 137091,
+    "codeunitName": "SCM Kitting - D2",
+    "method": "FIFOCompIndCost"
+  },
+  {
+    "codeunitId": 137091,
+    "codeunitName": "SCM Kitting - D2",
+    "method": "FIFOCompOverhead"
+  },
+  {
+    "codeunitId": 137091,
+    "codeunitName": "SCM Kitting - D2",
+    "method": "FIFOParentAndCompIndCostOvhd"
+  },
+  {
+    "codeunitId": 137091,
+    "codeunitName": "SCM Kitting - D2",
+    "method": "StdParent"
+  },
+  {
+    "codeunitId": 137091,
+    "codeunitName": "SCM Kitting - D2",
+    "method": "StdParentAvgCompCostAdj"
   }
 ]

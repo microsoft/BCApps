@@ -1708,5 +1708,10 @@
     "codeunitId": 18928,
     "codeunitName": "TCS On Journals",
     "method": "PostFromTCSGeneralJournalWithAdditionalCurrency"
+  },
+  {
+    "codeunitId": 18928,
+    "codeunitName": "TCS On Journals",
+    "method": "PayTCSToGovernmentFromSalesJournalWithoutTCS"
   }
 ]

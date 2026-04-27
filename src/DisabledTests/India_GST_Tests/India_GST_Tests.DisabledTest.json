@@ -4533,5 +4533,55 @@
     "codeunitId": 18488,
     "codeunitName": "GST FA Reclass Journal Tests",
     "method": "ReclassifyFixedAssetWithIntraState"
+  },
+  {
+    "codeunitId": 18134,
+    "codeunitName": "GST Purchase Registered",
+    "method": "CheckVendorRelatedValidations"
+  },
+  {
+    "codeunitId": 18139,
+    "codeunitName": "GST Purchase Reg",
+    "method": "CheckVendorRelatedValidations"
+  },
+  {
+    "codeunitId": 18078,
+    "codeunitName": "GST Preparations Sales",
+    "method": "GSTPrepartionDeemedExportCustomer"
+  },
+  {
+    "codeunitId": 18078,
+    "codeunitName": "GST Preparations Sales",
+    "method": "GSTPrepartionExemptedCustomer"
+  },
+  {
+    "codeunitId": 18078,
+    "codeunitName": "GST Preparations Sales",
+    "method": "GSTPrepartionExportCustomer"
+  },
+  {
+    "codeunitId": 18078,
+    "codeunitName": "GST Preparations Sales",
+    "method": "GSTPrepartionRegisteredCustomer"
+  },
+  {
+    "codeunitId": 18078,
+    "codeunitName": "GST Preparations Sales",
+    "method": "GSTPrepartionSEZCustomer"
+  },
+  {
+    "codeunitId": 18078,
+    "codeunitName": "GST Preparations Sales",
+    "method": "GSTPrepartionSEZDevelopmentCustomer"
+  },
+  {
+    "codeunitId": 18078,
+    "codeunitName": "GST Preparations Sales",
+    "method": "GSTPrepartionUnregisteredCustomer"
+  },
+  {
+    "codeunitId": 18345,
+    "codeunitName": "GST Settlement Tests",
+    "method": "TestApplyGSTSettlementWithBlankGSTTINNo"
   }
 ]

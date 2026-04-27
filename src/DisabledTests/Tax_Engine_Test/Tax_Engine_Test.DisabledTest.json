@@ -183,5 +183,10 @@
     "codeunitId": 137700,
     "codeunitName": "Json Exchange and Exec. Tests",
     "method": "TestUseCasePostingExecution"
+  },
+  {
+    "codeunitId": 137551,
+    "codeunitName": "Tax Document GL Posting Tests",
+    "method": "TestGetTransactionDocument"
   }
 ]

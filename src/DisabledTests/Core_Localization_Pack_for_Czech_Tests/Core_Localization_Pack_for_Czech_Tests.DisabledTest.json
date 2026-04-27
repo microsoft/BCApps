@@ -633,5 +633,45 @@
     "codeunitId": 148106,
     "codeunitName": "Reconciliation CZL",
     "method": "BankAccountReconcile"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "Invt. Mvmt. Templates CZL",
+    "method": "ValidateGenBusPostingGroupInvtReceiptUT"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "Invt. Mvmt. Templates CZL",
+    "method": "ValidateInvtMovementNegativeTemplateInvtReceiptUT"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "Invt. Mvmt. Templates CZL",
+    "method": "ValidateInvtMovementNegativeTemplateInvtShipmentUT"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "Invt. Mvmt. Templates CZL",
+    "method": "ValidateInvtMovementPositiveTemplateInvtReceiptUT"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "Invt. Mvmt. Templates CZL",
+    "method": "ValidateInvtMovementPositiveTemplateInvtShipmentUT"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "Invt. Mvmt. Templates CZL",
+    "method": "ValidateInvtMovementTemplateItemJournal"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "Invt. Mvmt. Templates CZL",
+    "method": "ValidatePhysInventoryNegativeItemJournal"
+  },
+  {
+    "codeunitId": 148053,
+    "codeunitName": "Invt. Mvmt. Templates CZL",
+    "method": "ValidatePhysInventoryPositiveItemJournal"
   }
 ]

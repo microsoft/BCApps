@@ -193,5 +193,10 @@
     "codeunitId": 136907,
     "codeunitName": "Resource",
     "method": "VerifyManualSalesPriceNotResetWhenQuantityChanged"
+  },
+  {
+    "codeunitId": 136907,
+    "codeunitName": "Resource",
+    "method": "UpdateItemAnalysisViewAfterPostJobJournal"
   }
 ]
