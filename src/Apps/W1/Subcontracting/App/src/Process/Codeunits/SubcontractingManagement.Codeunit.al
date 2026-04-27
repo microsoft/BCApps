@@ -172,7 +172,7 @@ codeunit 99001505 "Subcontracting Management"
     var
         WorkCenter: Record "Work Center";
         HasSubcontractor, IsHandled : Boolean;
-        WorkCenterVendorDoesntExistErr: Label 'Vendor %1 on Work Center %2 does not exist.',
+        WorkCenterVendorDoesntExistErr: Label 'Subcontractor %1 on Work Center %2 does not exist.',
             Comment = 'Parameter %1 - subcontractor number, %2 - vendor number.';
     begin
         OnBeforeGetSubcontractor(WorkCenterNo, Vendor, HasSubcontractor, IsHandled);//DO NOT DELETE
