@@ -168,7 +168,7 @@ table 99001500 "Subcontractor Price"
             until SubcontractorPrice.Next() = 0;
     end;
 
-    procedure DeletePricesForVendor(VendorNo: Code[20])
+    internal procedure DeletePricesForVendor(VendorNo: Code[20])
     begin
         SetCurrentKey("Vendor No.");
         SetRange("Vendor No.", VendorNo);
@@ -176,7 +176,7 @@ table 99001500 "Subcontractor Price"
             DeleteAll(true);
     end;
 
-    procedure DeletePricesForWorkCenter(WorkCenterNo: Code[20])
+    internal procedure DeletePricesForWorkCenter(WorkCenterNo: Code[20])
     begin
         SetCurrentKey("Work Center No.");
         SetRange("Work Center No.", WorkCenterNo);
@@ -184,7 +184,7 @@ table 99001500 "Subcontractor Price"
             DeleteAll(true);
     end;
 
-    procedure DeletePricesForItem(ItemNo: Code[20])
+    internal procedure DeletePricesForItem(ItemNo: Code[20])
     begin
         SetCurrentKey("Item No.");
         SetRange("Item No.", ItemNo);
