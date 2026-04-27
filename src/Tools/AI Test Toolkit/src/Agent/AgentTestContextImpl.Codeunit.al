@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Agents;
+using System.Environment;
 using System.TestTools.TestRunner;
 
 codeunit 149049 "Agent Test Context Impl."
@@ -46,20 +47,31 @@ codeunit 149049 "Agent Test Context Impl."
 
     local procedure LogAgentTask(AgentTaskId: BigInteger; var AITLogEntry: Record "AIT Log Entry")
     var
-        AgentTaskLog: Record "Agent Task Log";
+        AgentTestTaskLog: Record "Agent Task Log";
+        AgentTestConsumptionLog: Record "Agent Test Consumption Log";
+        AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
     begin
-        AgentTaskLog.TransferFields(AITLogEntry, false);
-        AgentTaskLog."Agent Task ID" := AgentTaskId;
-        AgentTaskLog."Test Log Entry ID" := AITLogEntry."Entry No.";
-        AgentTaskLog.Insert();
+        AgentTestTaskLog.TransferFields(AITLogEntry, false);
+        AgentTestTaskLog."Agent Task ID" := AgentTaskId;
+        AgentTestTaskLog."Test Log Entry ID" := AITLogEntry."Entry No.";
+        AgentTestTaskLog.Insert();
+
+        // Insert database level consumption tracking.
+        AgentTestConsumptionLog."Agent Task ID" := AgentTaskId;
+#pragma warning disable AA0139
+        AgentTestConsumptionLog."Company" := CompanyName();
+#pragma warning restore AA0139
+        AgentTestConsumptionLog."Test Suite Code" := AITLogEntry."Test Suite Code";
+        AgentTestConsumptionLog."Copilot Credits" := AgentConsumptionOverview.GetCopilotCreditsConsumed(AgentTaskId);
+        AgentTestConsumptionLog.Insert();
     end;
 
     procedure GetAgentTaskIDsForLogEntry(LogEntryNo: Integer): Text
     var
-        AgentTaskLog: Record "Agent Task Log";
+        AgentTestTaskLog: Record "Agent Task Log";
     begin
-        AgentTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
-        exit(GetAgentTaskIDs(AgentTaskLog));
+        AgentTestTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
+        exit(GetCommaSeparatedAgentTaskIDs(AgentTestTaskLog));
     end;
 
     procedure GetAgentTaskIDs(TestSuiteCode: Code[100]; VersionNumber: Integer; Tag: Text[20]; TestMethodLineNo: Integer): Text
@@ -68,31 +80,31 @@ codeunit 149049 "Agent Test Context Impl."
     begin
         if VersionNumber > 0 then
             VersionFilterText := Format(VersionNumber);
+
         exit(GetAgentTaskIDs(TestSuiteCode, VersionFilterText, Tag, TestMethodLineNo));
     end;
 
     procedure GetAgentTaskIDs(TestSuiteCode: Code[100]; VersionFilter: Text; Tag: Text[20]; TestMethodLineNo: Integer): Text
     var
-        AgentTaskLog: Record "Agent Task Log";
+        AgentTestTaskLog: Record "Agent Task Log";
     begin
-        AgentTaskLog.SetRange("Test Suite Code", TestSuiteCode);
+        AgentTestTaskLog.SetRange("Test Suite Code", TestSuiteCode);
         if Tag <> '' then
-            AgentTaskLog.SetRange(Tag, Tag);
+            AgentTestTaskLog.SetRange(Tag, Tag);
         if VersionFilter <> '' then
-            AgentTaskLog.SetFilter(Version, VersionFilter);
+            AgentTestTaskLog.SetFilter(Version, VersionFilter);
         if TestMethodLineNo > 0 then
-            AgentTaskLog.SetRange("Test Method Line No.", TestMethodLineNo);
+            AgentTestTaskLog.SetRange("Test Method Line No.", TestMethodLineNo);
 
-        exit(GetAgentTaskIDs(AgentTaskLog));
+        exit(GetCommaSeparatedAgentTaskIDs(AgentTestTaskLog));
     end;
 
     procedure GetCopilotCreditsForLogEntry(LogEntryNo: Integer): Decimal
     var
-        AgentTaskLog: Record "Agent Task Log";
-
+        AgentTestTaskLog: Record "Agent Task Log";
     begin
-        AgentTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
-        exit(GetCopilotCredits(AgentTaskLog));
+        AgentTestTaskLog.SetRange("Test Log Entry ID", LogEntryNo);
+        exit(GetCopilotCredits(AgentTestTaskLog));
     end;
 
     procedure GetCopilotCredits(TestSuiteCode: Code[100]; VersionNumber: Integer; Tag: Text[20]; TestMethodLineNo: Integer): Decimal
@@ -106,34 +118,31 @@ codeunit 149049 "Agent Test Context Impl."
 
     procedure GetCopilotCredits(TestSuiteCode: Code[100]; VersionFilter: Text; Tag: Text[20]; TestMethodLineNo: Integer): Decimal
     var
-        AgentTaskLog: Record "Agent Task Log";
+        AgentTestTaskLog: Record "Agent Task Log";
     begin
-        AgentTaskLog.SetRange("Test Suite Code", TestSuiteCode);
+        AgentTestTaskLog.SetRange("Test Suite Code", TestSuiteCode);
         if VersionFilter <> '' then
-            AgentTaskLog.SetFilter(Version, VersionFilter);
-
+            AgentTestTaskLog.SetFilter(Version, VersionFilter);
         if Tag <> '' then
-            AgentTaskLog.SetRange(Tag, Tag);
-
+            AgentTestTaskLog.SetRange(Tag, Tag);
         if TestMethodLineNo > 0 then
-            AgentTaskLog.SetRange("Test Method Line No.", TestMethodLineNo);
-
-        exit(GetCopilotCredits(AgentTaskLog));
+            AgentTestTaskLog.SetRange("Test Method Line No.", TestMethodLineNo);
+        exit(GetCopilotCredits(AgentTestTaskLog));
     end;
 
-    local procedure GetCopilotCredits(var AgentTaskLog: Record "Agent Task Log"): Decimal
+    local procedure GetCopilotCredits(var AgentTestTaskLog: Record "Agent Task Log"): Decimal
     var
-        AgentTask: Codeunit "Agent Task";
-        TaskIDList: List of [BigInteger];
+        AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
+        TaskIDsList: List of [BigInteger];
         TotalCredits: Decimal;
     begin
-        if AgentTaskLog.FindSet() then
+        if AgentTestTaskLog.FindSet() then
             repeat
-                if not TaskIDList.Contains(AgentTaskLog."Agent Task ID") then begin
-                    TaskIDList.Add(AgentTaskLog."Agent Task ID");
-                    TotalCredits += AgentTask.GetCopilotCreditsConsumed(AgentTaskLog."Agent Task ID");
+                if not TaskIDsList.Contains(AgentTestTaskLog."Agent Task ID") then begin
+                    TaskIDsList.Add(AgentTestTaskLog."Agent Task ID");
+                    TotalCredits += AgentConsumptionOverview.GetCopilotCreditsConsumed(AgentTestTaskLog."Agent Task ID");
                 end;
-            until AgentTaskLog.Next() = 0;
+            until AgentTestTaskLog.Next() = 0;
 
         exit(TotalCredits);
     end;
@@ -164,18 +173,30 @@ codeunit 149049 "Agent Test Context Impl."
         AgentTaskListPage.Run();
     end;
 
-    local procedure GetAgentTaskIDs(var AgentTaskLog: Record "Agent Task Log"): Text
+    procedure OpenAgentConsumptionOverview(CommaSeparatedTaskIDs: Text)
+    var
+        AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
+        FilterText: Text;
+    begin
+        FilterText := ConvertCommaSeparatedToFilter(CommaSeparatedTaskIDs);
+        if FilterText = '' then
+            exit;
+
+        AgentConsumptionOverview.OpenAgentTaskConsumptionOverview(FilterText);
+    end;
+
+    local procedure GetCommaSeparatedAgentTaskIDs(var AgentTestTaskLog: Record "Agent Task Log"): Text
     var
         TaskIDList: List of [BigInteger];
         TaskIDTextList: List of [Text];
     begin
-        if AgentTaskLog.FindSet() then
+        if AgentTestTaskLog.FindSet() then
             repeat
-                if not TaskIDList.Contains(AgentTaskLog."Agent Task ID") then begin
-                    TaskIDList.Add(AgentTaskLog."Agent Task ID");
-                    TaskIDTextList.Add(Format(AgentTaskLog."Agent Task ID"));
+                if not TaskIDList.Contains(AgentTestTaskLog."Agent Task ID") then begin
+                    TaskIDList.Add(AgentTestTaskLog."Agent Task ID");
+                    TaskIDTextList.Add(Format(AgentTestTaskLog."Agent Task ID"));
                 end;
-            until AgentTaskLog.Next() = 0;
+            until AgentTestTaskLog.Next() = 0;
 
         exit(ConcatenateList(TaskIDTextList, ', '));
     end;
@@ -236,6 +257,16 @@ codeunit 149049 "Agent Test Context Impl."
         GlobalAgentUserSecurityID := AITTestSuite."Agent User Security ID";
         if not Agent.IsActive(GlobalAgentUserSecurityID) then
             Error(AgentIsNotActiveErr, AITTestSuite.Code, AITTestSuite."Agent User Security ID");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAgentTaskEvalExecutionContext, '', true, true)]
+    local procedure GetAgentTaskEvalExecutionContextEvent(AgentUserSecurityId: Guid; TaskId: BigInteger; var Context: JsonObject)
+    var
+        AIMonthlyEvalCopilotCredits: Codeunit "AIT Eval Monthly Copilot Cred.";
+        LimitReachedTok: Label 'limitReached', Locked = true;
+    begin
+        // Agent task log entries are currently logged after the eval execution, so we need to answer independently of the task ID.
+        Context.Add(LimitReachedTok, AIMonthlyEvalCopilotCredits.IsLimitReached());
     end;
 
     var

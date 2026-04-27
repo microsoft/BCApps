@@ -15,8 +15,10 @@ page 149031 "AIT Test Suite"
     PageType = Document;
     SourceTable = "AIT Test Suite";
     Extensible = true;
-    DataCaptionExpression = PageCaptionLbl + ' - ' + Rec."Code";
-    UsageCategory = None;
+    SaveValues = true;
+    DataCaptionExpression = PageCaptionLbl + ' - ' + Format(Rec."Test Type") + ' (' + Format(Rec."Copilot Capability") + ') - ' + Rec."Code";
+    UsageCategory = Administration;
+    AdditionalSearchTerms = 'AIT, AI Eval Tool, Eval Tool, AI Eval Suite, Eval Suite, Copilot, Copilot Eval, AI Test Tool, Test Tool, AI Test Suite, Test Suite, Copilot Test';
 
     layout
     {
@@ -27,8 +29,34 @@ page 149031 "AIT Test Suite"
                 Caption = 'AI Eval Suite';
                 Enabled = Rec.Status <> Rec.Status::Running;
 
-                field("Code"; Rec."Code")
+                field("Code"; CurrentSuiteCode)
                 {
+                    Caption = 'Suite Code';
+                    ToolTip = 'Specifies the currently selected AI Eval Suite.';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        AITTestSuite: Record "AIT Test Suite";
+                    begin
+                        AITTestSuite.Get(CurrentSuiteCode);
+                        if not (Page.RunModal(Page::"AIT Test Suite List", AITTestSuite) in [Action::LookupOK, Action::Yes]) then
+                            exit(false);
+
+                        CurrentSuiteCode := AITTestSuite.Code;
+                        ChangeTestSuite();
+                        exit(true);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        if IsNullGuid(Rec.SystemId) then begin
+                            Rec.Code := CurrentSuiteCode;
+                            Rec.Insert();
+                        end;
+
+                        ChangeTestSuite();
+                    end;
+
                 }
                 field(Description; Rec.Description)
                 {
@@ -36,10 +64,27 @@ page 149031 "AIT Test Suite"
                 field(TestType; Rec."Test Type")
                 {
                     Importance = Additional;
+
+                    trigger OnValidate()
+                    begin
+                        // Refresh the page caption to reflect the change in test type
+                        CurrPage.Update(false);
+                    end;
+                }
+                field("Copilot Capability"; Rec."Copilot Capability")
+                {
+                    Importance = Additional;
+
+                    trigger OnValidate()
+                    begin
+                        // Refresh the page caption to reflect the change in capability
+                        CurrPage.Update(false);
+                    end;
                 }
                 field(Dataset; Rec."Input Dataset")
                 {
-                    ShowMandatory = true;
+                    Caption = 'Default Input Dataset';
+                    Importance = Additional;
                     NotBlank = true;
 
                     trigger OnValidate()
@@ -61,18 +106,13 @@ page 149031 "AIT Test Suite"
                         AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
                     end;
                 }
-                field("Copilot Capability"; Rec."Copilot Capability")
-                {
-                    ApplicationArea = All;
-                }
                 field("Run Frequency"; Rec."Run Frequency")
                 {
-                    ApplicationArea = All;
+                    Importance = Additional;
                     ToolTip = 'Specifies how frequently the eval suite should be run.';
                 }
                 field("Language Tag"; Language)
                 {
-                    ApplicationArea = All;
                     Caption = 'Language';
                     ToolTip = 'Specifies the language to use when running the eval suite. Available languages are based on languages of input datasets.';
                     Editable = false;
@@ -111,10 +151,10 @@ page 149031 "AIT Test Suite"
 
                     field("Evaluation Setup"; EvaluationSetupTxt)
                     {
-                        ApplicationArea = All;
                         Caption = 'Evaluators';
                         ToolTip = 'Specifies whether the evaluation is setup.';
                         Editable = false;
+                        Importance = Additional;
 
                         trigger OnAssistEdit()
                         var
@@ -132,18 +172,18 @@ page 149031 "AIT Test Suite"
                     }
                     field(Evaluators; Rec."Number of Evaluators")
                     {
-                        ApplicationArea = All;
                         Caption = 'Number of Evaluators';
                         ToolTip = 'Specifies evaluators for the evaluation.';
                         Visible = false;
+                        Importance = Additional;
                     }
 
                     field("Column Mappings"; Rec."Number of Column Mappings")
                     {
-                        ApplicationArea = All;
                         Caption = 'Column Mappings';
                         ToolTip = 'Specifies column mappings for the evaluation.';
                         Visible = false;
+                        Importance = Additional;
                     }
                 }
                 group(StatusGroup)
@@ -196,8 +236,19 @@ page 149031 "AIT Test Suite"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec.Code, 0, Rec.Version);
                     end;
                 }
+                field("No. of Tests Skipped"; Rec."No. of Tests Skipped")
+                {
+                    Style = Ambiguous;
+                }
                 field(Accuracy; Rec.Accuracy)
                 {
+                }
+                field(ExecutionPercentage; ExecutionRatio)
+                {
+                    Editable = false;
+                    Caption = 'Execution';
+                    ToolTip = 'Specifies the average execution of the eval suite. The execution is calculated as the percentage of evals that were executed among the total evals (excluding skipped evals).';
+                    AutoFormatType = 0;
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
@@ -236,7 +287,7 @@ page 149031 "AIT Test Suite"
             action(Start)
             {
                 Enabled = Rec.Status <> Rec.Status::Running;
-                Caption = 'Start';
+                Caption = 'Run';
                 Image = Start;
                 ToolTip = 'Starts running the AI Eval Suite.';
 
@@ -250,7 +301,7 @@ page 149031 "AIT Test Suite"
             action(StartBatch)
             {
                 Enabled = Rec.Status <> Rec.Status::Running;
-                Caption = 'Start Batch';
+                Caption = 'Run batch';
                 Image = ExecuteBatch;
                 ToolTip = 'Starts running the AI Eval Suite, the specified number of times.';
 
@@ -296,9 +347,21 @@ page 149031 "AIT Test Suite"
                 end;
             }
 
+            action(ResetSuiteSetup)
+            {
+                Caption = 'Reset Suite Setup';
+                ToolTip = 'Resets the per-suite setup flag so that the setup can be run again.';
+                Image = ResetStatus;
+
+                trigger OnAction()
+                begin
+                    Rec.ResetSuiteSetup();
+                    CurrPage.Update(false);
+                end;
+            }
             action(Compare)
             {
-                Caption = 'View Runs';
+                Caption = 'View runs';
                 Image = History;
                 ToolTip = 'View the run history of the suite.';
                 Scope = Repeater;
@@ -331,7 +394,7 @@ page 149031 "AIT Test Suite"
             }
             action("Download Test Summary")
             {
-                Caption = 'Download Eval Summary';
+                Caption = 'Download eval summary';
                 Image = Export;
                 ToolTip = 'Downloads a summary of the eval results.';
 
@@ -413,8 +476,10 @@ page 149031 "AIT Test Suite"
 
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+        CurrentSuiteCode: Code[10];
         AvgTimeDuration: Duration;
         AvgTokensConsumed: Integer;
+        ExecutionRatio: Decimal;
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Eval';
         TestRunnerDisplayName: Text;
@@ -427,6 +492,8 @@ page 149031 "AIT Test Suite"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUptake('0000NEV', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
+        ShowNotifications();
+        SetCurrentTestSuite();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -439,11 +506,21 @@ page 149031 "AIT Test Suite"
         AITTestSuiteLanguage: Codeunit "AIT Test Suite Language";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
+        if Rec.Find() then;
+        CurrentSuiteCode := Rec.Code;
         UpdateTotalDuration();
         UpdateAverages();
         Language := AITTestSuiteLanguage.GetLanguageDisplayName(Rec."Run Language ID");
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
         EvaluationSetupTxt := AITTestSuiteMgt.GetEvaluationSetupText(Rec.Code, 0);
+    end;
+
+    local procedure ShowNotifications()
+    var
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
+    begin
+        AITEvalLimitProvider := Rec."Test Type";
+        AITEvalLimitProvider.ShowNotifications();
     end;
 
     local procedure UpdateTotalDuration()
@@ -464,5 +541,38 @@ page 149031 "AIT Test Suite"
             AvgTokensConsumed := Rec."Tokens Consumed" div Rec."No. of Tests Executed"
         else
             AvgTokensConsumed := 0;
+
+        ExecutionRatio := AITTestSuiteMgt.GetExecution(Rec);
+    end;
+
+    local procedure SetCurrentTestSuite()
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        // If the page was opened with a specific record (e.g. from the list), use that record
+        if Rec.Code <> '' then begin
+            CurrentSuiteCode := Rec.Code;
+            exit;
+        end;
+
+        if CurrentSuiteCode <> '' then
+            if AITTestSuite.Get(CurrentSuiteCode) then
+                CurrentSuiteCode := AITTestSuite.Code
+            else
+                Clear(CurrentSuiteCode);
+
+        if CurrentSuiteCode = '' then begin
+            AITTestSuite.Copy(Rec);
+            AITTestSuite.FindFirst();
+            CurrentSuiteCode := AITTestSuite.Code;
+        end;
+
+        Rec.Get(CurrentSuiteCode);
+    end;
+
+    local procedure ChangeTestSuite()
+    begin
+        Rec.Get(CurrentSuiteCode);
+        CurrPage.Update(false);
     end;
 }
