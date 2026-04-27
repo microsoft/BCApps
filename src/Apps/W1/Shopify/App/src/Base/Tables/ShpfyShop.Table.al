@@ -950,6 +950,13 @@ table 30102 "Shpfy Shop"
             DataClassification = SystemMetadata;
             InitValue = true;
         }
+        field(209; "Sync HS Code and Country"; Boolean)
+        {
+            Caption = 'Sync HS Code and Country of Origin';
+            ToolTip = 'Specifies whether the Tariff No. (as harmonized system code) and Country/Region of Origin Code are synchronized to Shopify variants. Required for AI channel distribution and customs-aware selling.';
+            DataClassification = SystemMetadata;
+            InitValue = true;
+        }
     }
 
     keys
