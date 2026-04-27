@@ -20,7 +20,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                 ApplicationArea = Manufacturing;
                 Caption = 'Create Production Order';
                 Image = CreateSerialNo;
-                ToolTip = 'Creates the production order belonging to the order for provision.';
+                ToolTip = 'Create the production order for the current purchase order.';
                 trigger OnAction()
                 begin
                     Rec.TestStatusOpen();
@@ -38,7 +38,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order';
                     Image = Production;
-                    ToolTip = 'Specifies the depended Production Order of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related production order.';
                     trigger OnAction()
                     begin
                         ShowProductionOrder(Rec);
@@ -49,7 +49,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order Routing';
                     Image = Route;
-                    ToolTip = 'Specifies the depended Production Routing of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related production order routing.';
                     trigger OnAction()
                     begin
                         ShowProductionOrderRouting(Rec);
@@ -60,7 +60,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order Components';
                     Image = Components;
-                    ToolTip = 'Specifies the depended Production Components of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related production order components.';
                     trigger OnAction()
                     begin
                         ShowProductionOrderComponents(Rec);
@@ -71,7 +71,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                     ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Transfer Order';
                     Image = TransferOrder;
-                    ToolTip = 'Specifies the depended Transfer Order of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related transfer order.';
                     trigger OnAction()
                     begin
                         SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
@@ -82,7 +82,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                     ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Return Transfer Order';
                     Image = ReturnRelated;
-                    ToolTip = 'Specifies the depended Return Transfer Order of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related return transfer order.';
                     trigger OnAction()
                     begin
                         SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);

@@ -96,7 +96,6 @@ codeunit 99001505 "Subcontracting Management"
         RoutingLine: Record "Routing Line";
         Vendor: Record Vendor;
         SubcSessionState: Codeunit "Subc. Session State";
-        SubcontractingManagement: Codeunit "Subcontracting Management";
         RoutingLinkCode: Code[10];
         WorkCenterNo: Code[20];
     begin
@@ -105,7 +104,7 @@ codeunit 99001505 "Subcontracting Management"
             RoutingLinkCode := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
 
         Vendor.SetLoadFields("Work Center No.");
-        if Vendor.Get(SubcSessionState.GetCode(SubcontractingManagement.GetDictionaryKey_Sub_CreateProdOrderProcess())) then
+        if Vendor.Get(SubcSessionState.GetCode(GetKeyCreateProdOrderProcess())) then
             WorkCenterNo := Vendor."Work Center No.";
 
         if WorkCenterNo = '' then
@@ -132,7 +131,7 @@ codeunit 99001505 "Subcontracting Management"
         StockkeepingUnit: Record "Stockkeeping Unit";
         ConfirmManagement: Codeunit "Confirm Management";
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
-        RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
+        RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
         SuccessfullyUpdatedMsg: Label 'Successfully updated.';
         UpdateIsCancelledErr: Label 'Update cancelled.';
     begin
@@ -164,7 +163,7 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
-    procedure GetDictionaryKey_Sub_CreateProdOrderProcess(): Text
+    procedure GetKeyCreateProdOrderProcess(): Text
     begin
         exit('Sub_CreateProdOrderProcess');
     end;
@@ -193,7 +192,6 @@ codeunit 99001505 "Subcontracting Management"
     end;
 
     procedure HandleCommonWorkCenter(ItemJournalLine: Record "Item Journal Line"): Boolean
-    var
     begin
         if ItemJournalLine."Work Center No." = '' then
             exit(false);
@@ -375,14 +373,12 @@ codeunit 99001505 "Subcontracting Management"
     procedure UpdateLocationCodeInProdOrderCompAfterDeleteTransferLine(var TransferLine: Record "Transfer Line")
     var
         ProdOrderComponent: Record "Prod. Order Component";
-        SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
         if ProdOrderComponent.Get("Production Order Status"::Released, TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Prod. Order Comp. Line No.") then
             if ProdOrderComponent."Orig. Location Code" <> '' then begin
-                SubcontractingManagement.ChangeLocation_OnProdOrderComponent(ProdOrderComponent, '', ProdOrderComponent."Orig. Location Code", ProdOrderComponent."Orig. Bin Code");
+                ChangeLocation_OnProdOrderComponent(ProdOrderComponent, '', ProdOrderComponent."Orig. Location Code", ProdOrderComponent."Orig. Bin Code");
                 ProdOrderComponent."Orig. Location Code" := '';
                 ProdOrderComponent."Orig. Bin Code" := '';
-
 
                 ProdOrderComponent.Modify();
             end;
@@ -468,7 +464,7 @@ codeunit 99001505 "Subcontracting Management"
                     Clear(Vendor);
 
                 VendorSubcontractingLocationCode := Vendor."Subcontr. Location Code";
-                if ProdOrderComponent."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase] = false then
+                if not (ProdOrderComponent."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase]) then
                     Clear(VendorSubcontractingLocationCode);
                 OrigLocationCode := ProdOrderComponent."Orig. Location Code";
                 OrigBinCode := ProdOrderComponent."Orig. Bin Code";
@@ -506,7 +502,7 @@ codeunit 99001505 "Subcontracting Management"
                     if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(RoutingLinkUpdConfQst, ProdOrderRoutingLine."Routing Link Code"), true) then
                         Error(UpdateIsCancelledErr);
                 repeat
-                    if ProdOrderComponent."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase] = false then
+                    if not (ProdOrderComponent."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase]) then
                         Clear(VendorSubcontractingLocationCode);
                     OrigLocationCode := ProdOrderComponent."Orig. Location Code";
                     OrigBinCode := ProdOrderComponent."Orig. Bin Code";

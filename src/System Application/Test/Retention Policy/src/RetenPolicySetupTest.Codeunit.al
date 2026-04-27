@@ -656,7 +656,7 @@ codeunit 138701 "Reten. Policy Setup Test"
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
         RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
-        RetentionPolicy: Codeunit "Retention Policy Setup";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         RetentionPolicySetup.DeleteAll(true);
@@ -668,7 +668,7 @@ codeunit 138701 "Reten. Policy Setup Test"
         Assert.IsFalse(RetenPolAllowedTables.IsTruncateAllowed(Database::"Retention Policy Test Data"), 'Truncate should not be allowed by default');
 
         // execute
-        asserterror RetentionPolicy.TruncateTableRecords(RetentionPolicySetup);
+        asserterror ApplyRetentionPolicy.TruncateTableRecords(RetentionPolicySetup);
 
         // verify
         Assert.ExpectedError('Truncate is not allowed for table');
@@ -680,7 +680,7 @@ codeunit 138701 "Reten. Policy Setup Test"
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
         RetentionPolicyTestData: Record "Retention Policy Test Data";
-        RetentionPolicy: Codeunit "Retention Policy Setup";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         RetentionPolicySetup.DeleteAll(true);
@@ -699,7 +699,7 @@ codeunit 138701 "Reten. Policy Setup Test"
         RetentionPolicyTestLibrary.SetTruncateAllowed(Database::"Retention Policy Test Data", true);
 
         // execute
-        RetentionPolicy.TruncateTableRecords(RetentionPolicySetup);
+        ApplyRetentionPolicy.TruncateTableRecords(RetentionPolicySetup);
 
         // verify
         RetentionPolicyTestData.Reset();
