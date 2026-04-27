@@ -26,10 +26,6 @@ page 8352 "MCP Config Tool List"
             repeater(Control1)
             {
                 ShowCaption = false;
-                field("Object Type"; Rec."Object Type")
-                {
-                    ToolTip = 'Specifies the type of the object.';
-                }
                 field("Object Id"; Rec."Object Id")
                 {
                     ToolTip = 'Specifies the ID of the object.';
@@ -70,28 +66,6 @@ page 8352 "MCP Config Tool List"
                     Editable = false;
                     ToolTip = 'Specifies the name of the object.';
                 }
-                field("API Version"; Rec."API Version")
-                {
-                    Caption = 'API Version';
-                    ToolTip = 'Specifies the API version of the tool.';
-
-                    trigger OnLookup(var Text: Text): Boolean
-                    var
-                        APIVersion: Text[30];
-                    begin
-                        if Rec."Object ID" = 0 then
-                            exit;
-
-                        MCPConfigImplementation.LookupAPIVersions(Rec."Object Id", APIVersion);
-                        if APIVersion <> '' then
-                            Rec."API Version" := APIVersion;
-                    end;
-
-                    trigger OnValidate()
-                    begin
-                        MCPConfigImplementation.ValidateAPIVersion(Rec."Object Id", Rec."API Version");
-                    end;
-                }
                 field("Allow Read"; Rec."Allow Read")
                 {
                     ToolTip = 'Specifies whether read operations are allowed for this tool.';
@@ -115,6 +89,32 @@ page 8352 "MCP Config Tool List"
                 {
                     ToolTip = 'Specifies whether bound actions are allowed for this tool.';
                     Editable = AllowCreateUpdateDeleteTools;
+                }
+                field("Object Type"; Rec."Object Type")
+                {
+                    ToolTip = 'Specifies the type of the object.';
+                }
+                field("API Version"; Rec."API Version")
+                {
+                    Caption = 'API Version';
+                    ToolTip = 'Specifies the API version of the tool.';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        APIVersion: Text[30];
+                    begin
+                        if Rec."Object ID" = 0 then
+                            exit;
+
+                        MCPConfigImplementation.LookupAPIVersions(Rec."Object Id", APIVersion);
+                        if APIVersion <> '' then
+                            Rec."API Version" := APIVersion;
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        MCPConfigImplementation.ValidateAPIVersion(Rec."Object Id", Rec."API Version");
+                    end;
                 }
             }
         }
