@@ -93,6 +93,14 @@ page 688 "Payment Practice Lines"
                     Editable = false;
                     ToolTip = 'Specifies whether the line has been modified manually.';
                 }
+                field("Invoice Count"; Rec."Invoice Count")
+                {
+                    Editable = false;
+                }
+                field("Invoice Value"; Rec."Invoice Value")
+                {
+                    Editable = false;
+                }
             }
         }
     }

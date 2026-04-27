@@ -28,9 +28,11 @@ codeunit 686 "Paym. Prac. Size Aggregator" implements PaymentPracticeLinesAggreg
     var
         PaymentPracticeLine: Record "Payment Practice Line";
         CompanySize: Record "Company Size";
+        SchemeHandler: Interface PaymentPracticeSchemeHandler;
         NextLineNo: Integer;
     begin
         NextLineNo := 1;
+        SchemeHandler := PaymentPracticeHeader."Reporting Scheme";
         if CompanySize.FindSet() then
             repeat
                 PaymentPracticeLine.Init();
@@ -45,9 +47,12 @@ codeunit 686 "Paym. Prac. Size Aggregator" implements PaymentPracticeLinesAggreg
                 PaymentPracticeLine."Average Actual Payment Period" := PaymentPracticeMath.GetAverageActualPaymentTime(PaymentPracticeData);
                 PaymentPracticeLine."Average Agreed Payment Period" := PaymentPracticeMath.GetAverageAgreedPaymentTime(PaymentPracticeData);
                 PaymentPracticeLine."Pct Paid on Time" := PaymentPracticeMath.GetPercentOfOnTimePayments(PaymentPracticeData);
-                PaymentPracticeData.SetRange("Company Size Code");
 
                 PaymentPracticeLine.Insert();
+                SchemeHandler.CalculateLineTotals(PaymentPracticeLine, PaymentPracticeData);
+                if (PaymentPracticeLine."Invoice Count" <> 0) or (PaymentPracticeLine."Invoice Value" <> 0) then
+                    PaymentPracticeLine.Modify();
+                PaymentPracticeData.SetRange("Company Size Code");
             until CompanySize.Next() = 0;
     end;
 

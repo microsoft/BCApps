@@ -25,7 +25,7 @@ page 686 "Payment Practice Data List"
                 }
                 field("Payment Entry No."; Rec."Pmt. Entry No.")
                 {
-                    ToolTip = 'Specifies the closing payment entry number that is associated with the source invoicy entry, if any was applied.';
+                    ToolTip = 'Specifies the closing payment entry number that is associated with the source invoice entry, if any was applied.';
                 }
                 field("Invoice Posting Date"; Rec."Invoice Posting Date")
                 {
@@ -41,7 +41,7 @@ page 686 "Payment Practice Data List"
                 }
                 field("Pmt. Posting Date"; Rec."Pmt. Posting Date")
                 {
-                    ToolTip = 'Specifies the posting date of the payment entry that is associated with the source invoicy entry, if any was applied.';
+                    ToolTip = 'Specifies the posting date of the payment entry that is associated with the source invoice entry, if any was applied.';
                 }
                 field("Invoice Is Open"; Rec."Invoice Is Open")
                 {
@@ -64,6 +64,18 @@ page 686 "Payment Practice Data List"
                     ToolTip = 'Specifies the number of days that was the actual period for payment for the invoice.';
                     Style = Unfavorable;
                     StyleExpr = Rec."Actual Payment Days" > Rec."Agreed Payment Days";
+                }
+                field("Dispute Status"; Rec."Dispute Status")
+                {
+                    Visible = false;
+                }
+                field("Overdue Due to Dispute"; Rec."Overdue Due to Dispute")
+                {
+                    Visible = false;
+                }
+                field("SCF Payment Date"; Rec."SCF Payment Date")
+                {
+                    Visible = false;
                 }
             }
         }
