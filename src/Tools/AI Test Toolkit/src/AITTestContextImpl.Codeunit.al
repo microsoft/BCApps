@@ -92,7 +92,6 @@ codeunit 149043 "AIT Test Context Impl."
     /// </summary>
     /// <returns>A Test Input Json codeunit for the test_setup element.</returns>
     procedure GetTestSetup(): Codeunit "Test Input Json"
-    var
     begin
         exit(GetTestInput(TestSetupTok));
     end;
