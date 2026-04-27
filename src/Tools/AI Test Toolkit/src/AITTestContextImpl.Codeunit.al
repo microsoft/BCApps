@@ -32,7 +32,7 @@ codeunit 149043 "AIT Test Context Impl."
         ExpectedDataTok: Label 'expected_data', Locked = true;
         ContinueOnFailureTok: Label 'continue_on_failure', Locked = true;
         TestMetricsTok: Label 'test_metrics', Locked = true;
-        TestSetupTok: Label 'turn_setup', Locked = true;
+        TurnSetupTok: Label 'turn_setup', Locked = true;
         QuestionTok: Label 'question', Locked = true;
         TurnsTok: Label 'turns', Locked = true;
         MessagesTok: Label 'messages', Locked = true;
@@ -62,7 +62,7 @@ codeunit 149043 "AIT Test Context Impl."
     /// <returns>A Test Input Json codeunit for the turn_setup element.</returns>
     procedure GetTurnSetup(): Codeunit "Test Input Json"
     begin
-        exit(GetTurnSetup(TestSetupTok));
+        exit(GetTurnSetup(TurnSetupTok));
     end;
 
     /// <summary>
