@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Agents;
-using System.Environment.Consumption;
 
 codeunit 4333 "Agent Consumption Overview"
 {
