@@ -10,7 +10,7 @@ page 4316 "Agent List"
     PageType = List;
     ApplicationArea = All;
     UsageCategory = Administration;
-    SourceTable = Agent;
+    SourceTable = "Agent";
     Caption = 'Agents', Comment = 'Agents in this page should be translated as AI agents. It is listing the AI agents that users have setup to help with automating tasks.';
     CardPageId = "Agent Card";
     AdditionalSearchTerms = 'Agent, Agents, Copilot, Automation, AI';
@@ -46,11 +46,6 @@ page 4316 "Agent List"
                 field(State; Rec.State)
                 {
                     Caption = 'State';
-                }
-                field("Can Access Current Company"; Rec."Can Access Current Company")
-                {
-                    Caption = 'Can Access Current Company';
-                    Visible = ShouldShowAllCompanies;
                 }
             }
         }
@@ -112,34 +107,6 @@ page 4316 "Agent List"
                     AgentConsumptionOverview.OpenAgentConsumptionOverview(Rec."User Security ID");
                 end;
             }
-            action(ShowCurrentCompany)
-            {
-                ApplicationArea = All;
-                Caption = 'Show agents for current company';
-                ToolTip = 'Show only agents that can access the current company.';
-                Image = FilterLines;
-                Visible = ShouldShowAllCompanies;
-
-                trigger OnAction()
-                begin
-                    ShouldShowAllCompanies := false;
-                    SetCompanyFilter();
-                end;
-            }
-            action(ShowAllCompanies)
-            {
-                ApplicationArea = All;
-                Caption = 'Show agents for all companies';
-                ToolTip = 'Show agents from all companies.';
-                Image = RemoveFilterLines;
-                Visible = not ShouldShowAllCompanies;
-
-                trigger OnAction()
-                begin
-                    ShouldShowAllCompanies := true;
-                    SetCompanyFilter();
-                end;
-            }
         }
         area(Navigation)
         {
@@ -176,9 +143,6 @@ page 4316 "Agent List"
         // Check if there are any agents available
         if AgentMetadataProvider.Names().Count() = 0 then
             AgentImpl.ShowNoAgentsAvailableNotification();
-
-        ShouldShowAllCompanies := false;
-        SetCompanyFilter();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -198,17 +162,7 @@ page 4316 "Agent List"
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
     end;
 
-    local procedure SetCompanyFilter()
-    begin
-        if ShouldShowAllCompanies then
-            Rec.SetRange("Can Access Current Company")
-        else
-            Rec.SetRange("Can Access Current Company", true);
-        CurrPage.Update(false);
-    end;
-
     var
         CopilotAvailabilityTxt: Text;
-        ShouldShowAllCompanies: Boolean;
         NoAgentSetupErr: Label 'No agents have been setup. You must set up an agent first.';
 }
