@@ -2958,4 +2958,120 @@ codeunit 139601 "Shpfy Create Product Test"
 
             until TempShopifyVariant.Next() = 0;
     end;
+
+    [Test]
+    procedure UnitTestCreateTempProductSetsHSCodeAndCountryOfOrigin()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+    begin
+        // [SCENARIO] Creating a temp product from an Item with Tariff No. and Country/Region of Origin Code
+        // should populate those fields on the Shopify variant.
+
+        // [GIVEN] A shop with HS/Country sync enabled
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync HS Code and Country" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] An item with Tariff No. and Country/Region of Origin Code
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item."Tariff No." := '6402.99.0000';
+        Item."Country/Region of Origin Code" := 'US';
+        Item.Modify();
+        Item.SetRecFilter();
+
+        // [WHEN] CreateTempProduct is called
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] The variant has Tariff No. populated
+        LibraryAssert.AreEqual('6402.99.0000', TempShopifyVariant."Tariff No.", 'TempShopifyVariant."Tariff No." should match Item."Tariff No."');
+
+        // [THEN] The variant has Country/Region of Origin Code populated
+        LibraryAssert.AreEqual('US', TempShopifyVariant."Country/Region of Origin Code", 'TempShopifyVariant."Country/Region of Origin Code" should match Item."Country/Region of Origin Code"');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductEmptyHSCodeAndCountryOfOrigin()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+    begin
+        // [SCENARIO] Creating a temp product from an Item without Tariff No. and Country/Region of Origin Code
+        // should leave those fields empty on the Shopify variant.
+
+        // [GIVEN] A shop with HS/Country sync enabled
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync HS Code and Country" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] An item without Tariff No. and Country/Region of Origin Code
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2));
+        Item.SetRecFilter();
+
+        // [WHEN] CreateTempProduct is called
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] The variant has empty Tariff No.
+        LibraryAssert.AreEqual('', TempShopifyVariant."Tariff No.", 'TempShopifyVariant."Tariff No." should be empty');
+
+        // [THEN] The variant has empty Country/Region of Origin Code
+        LibraryAssert.AreEqual('', TempShopifyVariant."Country/Region of Origin Code", 'TempShopifyVariant."Country/Region of Origin Code" should be empty');
+    end;
+
+    [Test]
+    procedure UnitTestCreateTempProductWithVariantsSetsHSCodeAndCountryOfOrigin()
+    var
+        Item: Record Item;
+        TempShopifyProduct: Record "Shpfy Product" temporary;
+        Shop: Record "Shpfy Shop";
+        TempShopifyVariant: Record "Shpfy Variant" temporary;
+        TempTag: Record "Shpfy Tag" temporary;
+        CreateProduct: Codeunit "Shpfy Create Product";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+    begin
+        // [SCENARIO] Creating a temp product with variants from an Item with Tariff No. and Country/Region of Origin Code
+        // should populate both fields on all variant records.
+
+        // [GIVEN] A shop with HS/Country sync enabled
+        Shop := InitializeTest.CreateShop();
+        Shop."SKU Mapping" := "Shpfy SKU Mapping"::" ";
+        Shop."Sync HS Code and Country" := true;
+        Shop.Modify();
+        CreateProduct.SetShop(Shop);
+
+        // [GIVEN] An item with variants and Tariff No.
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", Any.DecimalInRange(10, 100, 2), Any.DecimalInRange(100, 1000, 2), true);
+        Item."Tariff No." := '8471.30.0100';
+        Item."Country/Region of Origin Code" := 'DE';
+        Item.Modify();
+        Item.SetRecFilter();
+
+        // [WHEN] CreateTempProduct is called
+        CreateProduct.CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempTag);
+
+        // [THEN] All variants have Tariff No. and Country of Origin populated
+        TempShopifyVariant.Reset();
+        if TempShopifyVariant.FindSet() then
+            repeat
+                LibraryAssert.AreEqual('8471.30.0100', TempShopifyVariant."Tariff No.", 'Each variant should have Tariff No.');
+                LibraryAssert.AreEqual('DE', TempShopifyVariant."Country/Region of Origin Code", 'Each variant should have Country/Region of Origin Code');
+            until TempShopifyVariant.Next() = 0;
+    end;
 }
