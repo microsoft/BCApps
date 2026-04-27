@@ -32,6 +32,7 @@ codeunit 149043 "AIT Test Context Impl."
         ExpectedDataTok: Label 'expected_data', Locked = true;
         ContinueOnFailureTok: Label 'continue_on_failure', Locked = true;
         TestMetricsTok: Label 'test_metrics', Locked = true;
+        TestSetupTok: Label 'test_setup', Locked = true;
         TurnSetupTok: Label 'turn_setup', Locked = true;
         QuestionTok: Label 'question', Locked = true;
         TurnsTok: Label 'turns', Locked = true;
@@ -44,6 +45,7 @@ codeunit 149043 "AIT Test Context Impl."
         HasSuiteSetupData: Boolean;
         SuiteSetupDataNotLoadedErr: Label 'Per-suite setup data has not been loaded.';
         TurnSetupNotFoundErr: Label 'The turn_setup element was not found for the current turn.';
+        TestSetupNotFoundErr: Label 'The test_setup element was not found for the current turn.';
         SuiteSetupInputCodeTok: Label 'SUITE-SETUP', Locked = true;
 
     /// <summary>
@@ -82,6 +84,23 @@ codeunit 149043 "AIT Test Context Impl."
     begin
         TurnSetup := GetTestInput(TurnSetupTok, ElementFound);
         exit(ElementFound);
+    end;
+
+    /// <summary>
+    /// Get the Test Setup from the input dataset for the current iteration using the legacy 'test_setup' element.
+    /// Errors if the test_setup element is not found for the current turn.
+    /// Retained for backward compatibility with datasets that have not migrated to 'turn_setup'.
+    /// </summary>
+    /// <returns>A Test Input Json codeunit for the test_setup element.</returns>
+    procedure GetTestSetup(): Codeunit "Test Input Json"
+    var
+        TestSetup: Codeunit "Test Input Json";
+        ElementFound: Boolean;
+    begin
+        TestSetup := GetTestInput(TestSetupTok, ElementFound);
+        if not ElementFound then
+            Error(TestSetupNotFoundErr);
+        exit(TestSetup);
     end;
 
     /// <summary>
