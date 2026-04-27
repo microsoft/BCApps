@@ -1,0 +1,48 @@
+name: Rerun Unstable Failures
+on:
+  workflow_run:
+    workflows: ['Pull Request Build']
+    types: [completed]
+
+permissions: read-all
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  RerunUnstableFailures:
+    if: github.repository_owner == 'microsoft' && github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-slim
+    environment: Official-Build
+    permissions:
+      actions: write
+      contents: read
+    env:
+      MAX_FAILED_JOBS: 3 # Maximum number of failed jobs in order to consider rerunning
+      MIN_TOTAL_JOBS: 10 # Minimum number of jobs that has run in order to consider rerunning
+      MAX_ATTEMPTS: 1 # Maximum number of attempts to rerun a failed job
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+
+      - name: Rerun unstable failures
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          $params = @{
+            Owner = $env:GITHUB_REPOSITORY_OWNER
+            Repo = $env:GITHUB_REPOSITORY.Split('/')[1]
+            RunId = ${{ github.event.workflow_run.id }}
+            MaxFailedJobs = $env:MAX_FAILED_JOBS
+            MinTotalJobs = $env:MIN_TOTAL_JOBS
+            MaxAttempts = $env:MAX_ATTEMPTS
+          }
+          build/scripts/RerunUnstableFailures.ps1 @params

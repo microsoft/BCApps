@@ -39,6 +39,11 @@ page 99001503 "Subc. Prod. Order Components"
                 {
                     ToolTip = 'Specifies a description of the item on the line.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ToolTip = 'Specifies a second description of the item on the line.';
+                    Visible = false;
+                }
                 field("Location Code"; Rec."Location Code")
                 {
                     ToolTip = 'Specifies the location where the component is stored. Copies the location code from the corresponding field on the production order line.';
