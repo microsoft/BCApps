@@ -34,19 +34,19 @@ page 99001510 "Subc. Management Setup"
                 Caption = 'Subcontracting';
                 field("Subcontracting Template Name"; Rec."Subcontracting Template Name")
                 {
-                    ToolTip = 'Specifies the name of the subcontracting journal template to be used for the direct creation of subcontracting orders from an released routing.';
+                    ToolTip = 'Specifies the name of the subcontracting journal template to be used for the direct creation of subcontracting orders from a released routing.';
                 }
                 field("Subcontracting Batch Name"; Rec."Subcontracting Batch Name")
                 {
-                    ToolTip = 'Specifies the name of the subcontracting journal batch to be used for the direct creation of subcontracting orders from an released routing.';
+                    ToolTip = 'Specifies the name of the subcontracting journal batch to be used for the direct creation of subcontracting orders from a released routing.';
                 }
                 field("Component Direct Unit Cost"; Rec."Component Direct Unit Cost")
                 {
-                    ToolTip = 'Specifies which Direct Unit Cost of an Prod. Order Component is to be used in the subcontracting purchase order. Standard: Standard pricing is used when procuring the component. Prod. Order Component: The calculated Direct Unit Cost of the Prod. Order Component Line is transferred to the subcontracting purchase order.';
+                    ToolTip = 'Specifies which direct unit cost to use in the subcontracting purchase order. Standard: uses standard pricing. Prod. Order Component: transfers the calculated direct unit cost from the production order component line.';
                 }
                 field(RefSubItemChargeToRcptSubLines; Rec.RefItemChargeToRcptSubLines)
                 {
-                    ToolTip = 'Specifies whether to enable the item charge assignment to purchase receipt lines with subcontracting. When enabled, the item charge is posted as new a value entry of type "Direct Cost", when it is assigned to a purchase receipt line with referenced production order line. This created value entry is automatically assigned to a capacity entry of the prod order.';
+                    ToolTip = 'Specifies whether to enable item charge assignment to subcontracting purchase receipt lines. When turned on, the item charge is posted as a new value entry of type "Direct Cost" and is automatically assigned to a capacity entry of the production order.';
                 }
             }
             group(Provision)
@@ -91,7 +91,7 @@ page 99001510 "Subc. Management Setup"
                 }
                 field(AllowEditUISelection; Rec.AllowEditUISelection)
                 {
-                    ToolTip = 'Specifies whether the user is allowed to change the display and editing options for Production BOM and Routing steps within the purchase provision wizard. If enabled, users can decide whether to hide, show, or fully edit BOM and Routing details during the process. If disabled, the options defined in the setup will be applied without allowing user modification at the wizard level.';
+                    ToolTip = 'Specifies whether the user can change display and editing options for BOM and routing steps in the wizard. If turned on, users can hide, show, or edit details. If turned off, the options from setup are applied without user changes.';
                 }
                 group("Both Available")
                 {

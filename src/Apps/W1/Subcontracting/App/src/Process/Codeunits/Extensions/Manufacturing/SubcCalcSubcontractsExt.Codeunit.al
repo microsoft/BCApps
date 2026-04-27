@@ -11,7 +11,7 @@ using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 99001529 "Subc. Calc Subcontracts Ext."
 {
-    [EventSubscriber(ObjectType::Report, Report::"Calculate Subcontracts", OnAfterTransferProdOrderRoutingLine, '', false, false)]
+    [EventSubscriber(ObjectType::Report, Report::"Subc. Calculate Subcontracts", OnAfterTransferProdOrderRoutingLine, '', false, false)]
     local procedure OnAfterTransferProdOrderRoutingLine(var RequisitionLine: Record "Requisition Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         WorkCenter: Record "Work Center";

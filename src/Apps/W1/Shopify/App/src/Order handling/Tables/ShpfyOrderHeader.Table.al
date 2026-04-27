@@ -6,6 +6,8 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Sales.Customer;
@@ -850,16 +852,28 @@ table 30118 "Shpfy Order Header"
         {
             Caption = 'Sell-to Contact No.';
             DataClassification = CustomerContent;
+            trigger OnValidate()
+            begin
+                CheckContactRelatedToCustomer("Sell-to Contact No.", "Sell-to Customer No.");
+            end;
         }
         field(1018; "Bill-to Contact No."; Code[20])
         {
             Caption = 'Bill-to Contact No.';
             DataClassification = CustomerContent;
+            trigger OnValidate()
+            begin
+                CheckContactRelatedToCustomer("Bill-to Contact No.", "Bill-to Customer No.");
+            end;
         }
         field(1019; "Ship-to Contact No."; Code[20])
         {
             Caption = 'Ship-to Contact No.';
             DataClassification = CustomerContent;
+            trigger OnValidate()
+            begin
+                CheckContactRelatedToCustomer("Ship-to Contact No.", "Sell-to Customer No.");
+            end;
         }
         field(1020; "Has Order State Error"; Boolean)
         {
@@ -1051,5 +1065,40 @@ table 30118 "Shpfy Order Header"
         Shop.Get(Rec."Shop Code");
         exit(Shop."Currency Handling" = "Shpfy Currency Handling"::"Presentment Currency");
     end;
+
+    local procedure CheckContactRelatedToCustomer(ContactNo: Code[20]; CustomerNo: Code[20])
+    var
+        Contact: Record Contact;
+        ContactBusinessRelation: Record "Contact Business Relation";
+    begin
+        if (ContactNo = '') or (CustomerNo = '') then
+            exit;
+        if not Contact.Get(ContactNo) then
+            exit;
+        ContactBusinessRelation.SetRange("Link to Table", "Contact Business Relation Link To Table"::Customer);
+        ContactBusinessRelation.SetRange("No.", CustomerNo);
+        if ContactBusinessRelation.FindFirst() then
+            if (Contact."No." = ContactBusinessRelation."Contact No.") or
+               (Contact."Company No." = ContactBusinessRelation."Contact No.") then
+                exit;
+        Error(ContactNotRelatedToCustomerErr, ContactNo, Contact.Name, CustomerNo);
+    end;
+
+    internal procedure LookupContactForCustomer(CustomerNo: Code[20]; ContactNo: Code[20]; var Contact: Record Contact)
+    var
+        ContactBusinessRelation: Record "Contact Business Relation";
+    begin
+        if CustomerNo <> '' then begin
+            ContactBusinessRelation.SetRange("Link to Table", "Contact Business Relation Link To Table"::Customer);
+            ContactBusinessRelation.SetRange("No.", CustomerNo);
+            if ContactBusinessRelation.FindFirst() then
+                Contact.SetRange("Company No.", ContactBusinessRelation."Contact No.");
+        end;
+        if ContactNo <> '' then
+            if Contact.Get(ContactNo) then;
+    end;
+
+    var
+        ContactNotRelatedToCustomerErr: Label 'Contact %1 %2 is not related to customer %3.', Comment = '%1 = Contact No., %2 = Contact Name, %3 = Customer No.';
 
 }

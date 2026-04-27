@@ -50,7 +50,8 @@ page 30101 "Shpfy Shop Card"
                     trigger OnValidate()
                     begin
                         Rec.TestField(Enabled, false);
-                        CurrPage.SaveRecord();
+                        if Rec."Code" <> '' then
+                            CurrPage.SaveRecord();
                     end;
                 }
                 field(Enabled; Rec.Enabled)
@@ -96,12 +97,10 @@ page 30101 "Shpfy Shop Card"
                 field(LoggingMode; Rec."Logging Mode")
                 {
                     ApplicationArea = All;
-                    Importance = Additional;
                 }
                 field(AllowBackgroudSyncs; Rec."Allow Background Syncs")
                 {
                     ApplicationArea = All;
-                    Importance = Additional;
                 }
                 field("Allow Outgoing Requests"; Rec."Allow Outgoing Requests")
                 {
@@ -195,6 +194,11 @@ page 30101 "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                     Editable = Rec."SKU Mapping" = Rec."SKU Mapping"::"Item No. + Variant Code";
+                }
+                field(FindMappingByBarcode; Rec."Find Mapping by Barcode")
+                {
+                    ApplicationArea = All;
+                    Visible = false;
                 }
                 field(InventoryTracket; Rec."Inventory Tracked")
                 {
@@ -351,7 +355,6 @@ page 30101 "Shpfy Shop Card"
             }
             group("B2B Company Synchronization")
             {
-                Visible = Rec."B2B Enabled";
                 field("Company Import From Shopify"; Rec."Company Import From Shopify")
                 {
                     ApplicationArea = All;
@@ -388,6 +391,7 @@ page 30101 "Shpfy Shop Card"
                 field("Auto Create Catalog"; Rec."Auto Create Catalog")
                 {
                     ApplicationArea = All;
+                    Visible = Rec."Advanced Shopify Plan";
                 }
                 field("Company Metafields To Shopify"; Rec."Company Metafields To Shopify")
                 {
@@ -744,7 +748,6 @@ page 30101 "Shpfy Shop Card"
                 RunObject = Page "Shpfy Companies";
                 RunPageLink = "Shop Id" = field("Shop Id");
                 ToolTip = 'Add, view or edit detailed information for the companies.';
-                Visible = Rec."B2B Enabled";
             }
             action(Catalogs)
             {
@@ -758,7 +761,7 @@ page 30101 "Shpfy Shop Card"
                 RunObject = Page "Shpfy Catalogs";
                 RunPageLink = "Shop Code" = field(Code);
                 ToolTip = 'View a list of Shopify B2B catalogs for the shop.';
-                Visible = Rec."B2B Enabled";
+                Visible = Rec."Advanced Shopify Plan";
             }
             action(MarketCatalogs)
             {
@@ -772,7 +775,6 @@ page 30101 "Shpfy Shop Card"
                 RunObject = Page "Shpfy Market Catalogs";
                 RunPageLink = "Shop Code" = field(Code);
                 ToolTip = 'View a list of Shopify market catalogs for the shop.';
-                Visible = Rec."B2B Enabled";
             }
             action(Languages)
             {
@@ -838,7 +840,7 @@ page 30101 "Shpfy Shop Card"
                 RunObject = Page "Shpfy Staff Mapping";
                 RunPageLink = "Shop Code" = field(Code);
                 ToolTip = 'View a list of Shopify Staff Members for the shop.';
-                Visible = Rec."B2B Enabled";
+                Visible = Rec."Advanced Shopify Plan";
             }
         }
         area(Processing)
@@ -1008,7 +1010,6 @@ page 30101 "Shpfy Shop Card"
                     PromotedCategory = Category5;
                     PromotedOnly = true;
                     ToolTip = 'Synchronize the companies with Shopify. The way companies are synchronized depends on the B2B settings in the Shopify Shop Card.';
-                    Visible = Rec."B2B Enabled";
 
                     trigger OnAction()
                     var
@@ -1125,10 +1126,8 @@ page 30101 "Shpfy Shop Card"
                         BackgroundSyncs.InventorySync(Rec);
                         BackgroundSyncs.ProductImagesSync(Rec, '');
                         BackgroundSyncs.ProductPricesSync(Rec);
-                        if Rec."B2B Enabled" then begin
-                            BackgroundSyncs.CompanySync(Rec);
-                            BackgroundSyncs.CatalogPricesSync(Rec, '', "Shpfy Catalog Type"::" ");
-                        end;
+                        BackgroundSyncs.CompanySync(Rec);
+                        BackgroundSyncs.CatalogPricesSync(Rec, '', "Shpfy Catalog Type"::" ");
                     end;
                 }
             }
@@ -1199,6 +1198,20 @@ page 30101 "Shpfy Shop Card"
                     FullfillmentOrdersAPI: Codeunit "Shpfy Fulfillment Orders API";
                 begin
                     FullfillmentOrdersAPI.RegisterFulfillmentService(Rec);
+                end;
+            }
+            action(ProvideFeedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feedback';
+                ToolTip = 'Provide feedback on Shopify Connector.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    ShopMgt: Codeunit "Shpfy Shop Mgt.";
+                begin
+                    ShopMgt.RequestFeedback();
                 end;
             }
         }

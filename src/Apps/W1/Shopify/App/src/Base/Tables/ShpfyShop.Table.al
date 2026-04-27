@@ -66,7 +66,7 @@ table 30102 "Shpfy Shop"
         field(3; Enabled; Boolean)
         {
             Caption = 'Enabled';
-            ToolTip = 'Specifies if the service is enabled.';
+            ToolTip = 'Specifies whether this Shopify shop connection is active. When enabled, the connector requests an access token, imports shop settings, and syncs countries. Ensure the Shopify Admin URL is configured first.';
 
             trigger OnValidate()
             var
@@ -75,6 +75,7 @@ table 30102 "Shpfy Shop"
                 AuditLog: Codeunit "Audit Log";
             begin
                 if Rec."Enabled" then begin
+                    Rec.TestField("Code");
                     Rec.TestField("Shopify URL");
                     Rec."Enabled" := CustomerConsentMgt.ConfirmUserConsent();
                     if Rec.Enabled then
@@ -452,7 +453,7 @@ table 30102 "Shpfy Shop"
         field(52; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
-            ToolTip = 'Specifies the currency of the Shopify Shop. Enter a currency code only if your online shop uses a different currency than the local currency (LCY). The specified currency must have exchange rates configured. If your online shop uses the same currency as Business Central, leave the field empty.';
+            ToolTip = 'Specifies the currency used by your Shopify store. Leave blank if it matches the local currency (LCY). When set, exchange rates must be configured. This currency is used when calculating product prices to sync to Shopify and works together with the "Currency Handling" field in the Order section, which determines how order currencies are processed.';
             DataClassification = CustomerContent;
             TableRelation = Currency.Code;
 
@@ -526,6 +527,7 @@ table 30102 "Shpfy Shop"
             Caption = 'Allow Line Disc.';
             ToolTip = 'Specifies if line discount is allowed while calculating prices for Shopify.';
             DataClassification = CustomerContent;
+            InitValue = true;
         }
         field(62; "Customer Templ. Code"; Code[20])
         {
@@ -715,11 +717,21 @@ table 30102 "Shpfy Shop"
             DataClassification = SystemMetadata;
             InitValue = true;
         }
+#if not CLEANSCHEMA32
         field(117; "B2B Enabled"; Boolean)
         {
             Caption = 'B2B Enabled';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'B2B features are now available on all Shopify plans.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
         field(118; "Can Update Shopify Companies"; Boolean)
         {
             Caption = 'Can Update Shopify Companies';
@@ -926,6 +938,18 @@ table 30102 "Shpfy Shop"
 #endif
         }
 #endif
+        field(207; "Advanced Shopify Plan"; Boolean)
+        {
+            Caption = 'Advanced Shopify Plan';
+            DataClassification = SystemMetadata;
+        }
+        field(208; "Find Mapping by Barcode"; Boolean)
+        {
+            Caption = 'Find Mapping by Barcode';
+            ToolTip = 'Specifies whether to use the barcode as a fallback when the primary SKU mapping strategy does not find a match.';
+            DataClassification = SystemMetadata;
+            InitValue = true;
+        }
     }
 
     keys
@@ -1079,24 +1103,6 @@ table 30102 "Shpfy Shop"
         GLAccount.TestField(Blocked, false);
     end;
 
-    internal procedure CopyPriceCalculationFieldsFromCustomerTempl(TemplateCode: Code[20])
-    var
-        CustomerTempl: Record "Customer Templ.";
-    begin
-        if TemplateCode = '' then
-            exit;
-        if not CustomerTempl.Get(TemplateCode) then
-            exit;
-        Rec."Gen. Bus. Posting Group" := CustomerTempl."Gen. Bus. Posting Group";
-        Rec."VAT Bus. Posting Group" := CustomerTempl."VAT Bus. Posting Group";
-        Rec."Tax Area Code" := CustomerTempl."Tax Area Code";
-        Rec."Tax Liable" := CustomerTempl."Tax Liable";
-        Rec."VAT Country/Region Code" := CustomerTempl."Country/Region Code";
-        Rec."Customer Posting Group" := CustomerTempl."Customer Posting Group";
-        Rec."Prices Including VAT" := CustomerTempl."Prices Including VAT";
-        Rec."Allow Line Disc." := CustomerTempl."Allow Line Disc.";
-        Rec.Modify();
-    end;
 
     local procedure EnableShopifyLogRetentionPolicySetup()
     var
@@ -1130,8 +1136,8 @@ table 30102 "Shpfy Shop"
         JResponse := CommunicationMgt.ExecuteGraphQL('{"query":"query { shop { name plan { publicDisplayName partnerDevelopment shopifyPlus } weightUnit } }"}');
         if JResponse.SelectToken('$.data.shop.plan', JItem) then
             if JItem.IsObject then
-                Rec."B2B Enabled" := JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
-                                        (JsonHelper.GetValueAsText(JItem, 'publicDisplayName') in ['Plus Trial', 'Development']);
+                Rec."Advanced Shopify Plan" := JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
+                                                (JsonHelper.GetValueAsText(JItem, 'publicDisplayName') in ['Plus Trial', 'Development', 'Advanced']);
         Rec."Weight Unit" := ConvertToWeightUnit(JsonHelper.GetValueAsText(JResponse, 'data.shop.weightUnit'));
     end;
 

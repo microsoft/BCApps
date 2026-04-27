@@ -28,7 +28,6 @@ using Microsoft.QualityManagement.Integration.Foundation.Navigate;
 using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.Integration.Manufacturing;
-using Microsoft.QualityManagement.Integration.Manufacturing.Routing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Utilities;
 using Microsoft.QualityManagement.Integration.Warehouse;
@@ -41,8 +40,6 @@ using Microsoft.QualityManagement.Setup.SetupGuide;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 
-#pragma warning disable AS0125
-#pragma warning disable AS0090
 permissionset 20406 "QltyMgmt - Objects"
 {
     Caption = 'Quality Management - Objects';
@@ -90,7 +87,9 @@ permissionset 20406 "QltyMgmt - Objects"
         codeunit "Qlty. Permission Mgmt." = X,
         codeunit "Qlty. Manufactur. Integration" = X,
         codeunit "Qlty. Assembly Integration" = X,
+        codeunit "Qlty. Batch Notif. Helper" = X,
         codeunit "Qlty. Demo Data Mgmt." = X,
+        codeunit "Qlty. Demo Data Runner" = X,
         codeunit "Qlty. Receiving Integration" = X,
         codeunit "Qlty. Report Mgmt." = X,
         codeunit "Qlty. Session Helper" = X,
@@ -111,7 +110,11 @@ permissionset 20406 "QltyMgmt - Objects"
         page "Qlty. Test Lookup Values" = X,
         page "Qlty. Manager Role Center" = X,
         page "Qlty. Management Setup Guide" = X,
+#if not CLEAN29
+#pragma warning disable AL0432
         page "Qlty. Demo Data Launcher" = X,
+#pragma warning restore AL0432
+#endif
         page "Qlty. Management Setup" = X,
         page "Qlty. Most Recent Picture" = X,
         page "Qlty. Prod. Gen. Rule S. Guide" = X,
@@ -119,7 +122,6 @@ permissionset 20406 "QltyMgmt - Objects"
         page "Qlty. Rec. Gen. Rule S. Guide" = X,
         page "Qlty. Related Transfer Orders" = X,
         page "Qlty. Report Selection - QM" = X,
-        page "Qlty. Routing Line Lookup" = X,
         page "Qlty. Inspection Template List" = X,
         page "Qlty. Inspection Template Subf" = X,
         page "Qlty. Inspection Template" = X,
@@ -167,5 +169,3 @@ permissionset 20406 "QltyMgmt - Objects"
         table "Qlty. Inspection Header" = X,
         table "Qlty. Test" = X;
 }
-#pragma warning restore AS0090
-#pragma warning restore AS0125

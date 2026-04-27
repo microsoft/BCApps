@@ -15,8 +15,9 @@ report 20400 "Qlty. Create Inspection"
 {
     Caption = 'Create Quality Inspection';
     ProcessingOnly = true;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = ReportsAndAnalysis;
-    ApplicationArea = All;
+    ApplicationArea = QualityManagement;
     Permissions =
         tabledata "Qlty. Inspection Header" = Rim,
         tabledata "Qlty. Inspection Line" = Rim;
