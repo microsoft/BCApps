@@ -32,7 +32,7 @@ codeunit 149043 "AIT Test Context Impl."
         ExpectedDataTok: Label 'expected_data', Locked = true;
         ContinueOnFailureTok: Label 'continue_on_failure', Locked = true;
         TestMetricsTok: Label 'test_metrics', Locked = true;
-        TestSetupTok: Label 'test_setup', Locked = true;
+        TestSetupTok: Label 'turn_setup', Locked = true;
         QuestionTok: Label 'question', Locked = true;
         TurnsTok: Label 'turns', Locked = true;
         MessagesTok: Label 'messages', Locked = true;
@@ -59,10 +59,10 @@ codeunit 149043 "AIT Test Context Impl."
     /// <summary>
     /// Get the Test Setup from the input dataset for the current iteration.
     /// </summary>
-    /// <returns>A Test Input Json codeunit for the test_setup element.</returns>
-    procedure GetTestSetup(): Codeunit "Test Input Json"
+    /// <returns>A Test Input Json codeunit for the turn_setup element.</returns>
+    procedure GetTurnSetup(): Codeunit "Test Input Json"
     begin
-        exit(GetTestInput(TestSetupTok));
+        exit(GetTurnSetup(TestSetupTok));
     end;
 
     /// <summary>
@@ -71,7 +71,7 @@ codeunit 149043 "AIT Test Context Impl."
     /// <returns>A Test Input Json codeunit for the context element.</returns>
     procedure GetContext(): Codeunit "Test Input Json"
     begin
-        exit(GetTestInput(ContextTok));
+        exit(GetTurnSetup(ContextTok));
     end;
 
     /// <summary>
@@ -89,7 +89,7 @@ codeunit 149043 "AIT Test Context Impl."
         if QueryFound then
             exit(QueryInput);
 
-        exit(GetTestInput(QuestionTok));
+        exit(GetTurnSetup(QuestionTok));
     end;
 
 #if not CLEAN29
@@ -109,7 +109,7 @@ codeunit 149043 "AIT Test Context Impl."
     /// <returns>A Test Input Json codeunit for the ground_truth element.</returns>
     procedure GetGroundTruth(): Codeunit "Test Input Json"
     begin
-        exit(GetTestInput(GroundTruthTok));
+        exit(GetTurnSetup(GroundTruthTok));
     end;
 
     /// <summary>
@@ -119,7 +119,7 @@ codeunit 149043 "AIT Test Context Impl."
     /// <returns>Test Input Json for the expected data</returns>
     procedure GetExpectedData(): Codeunit "Test Input Json"
     begin
-        exit(GetTestInput(ExpectedDataTok));
+        exit(GetTurnSetup(ExpectedDataTok));
     end;
 
     /// <summary>
@@ -433,7 +433,7 @@ codeunit 149043 "AIT Test Context Impl."
     /// </summary>
     /// <param name="ElementName">Element name to get from test input.</param>
     /// <returns>Test Input Json for the element</returns>
-    local procedure GetTestInput(ElementName: Text) TestInputJson: Codeunit "Test Input Json"
+    local procedure GetTurnSetup(ElementName: Text) TestInputJson: Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
     begin

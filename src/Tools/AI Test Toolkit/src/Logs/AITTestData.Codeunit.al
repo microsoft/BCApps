@@ -28,7 +28,7 @@ codeunit 149035 "AIT Test Data"
             TestInputView::Context:
                 exit(FilterToElement('context', TestData));
             TestInputView::"Test Setup":
-                exit(FilterToElement('test_setup', TestData));
+                exit(FilterToElement('turn_setup', TestData));
             TestInputView::"Ground Truth":
                 exit(FilterToElement('ground_truth', TestData));
             TestInputView::"Expected Data":

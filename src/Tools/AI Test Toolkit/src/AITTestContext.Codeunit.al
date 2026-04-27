@@ -39,12 +39,12 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Get the Test Setup from the input dataset for the current iteration.
+    /// Get the turn setup from the input dataset for the current iteration.
     /// </summary>
-    /// <returns>A Test Input Json codeunit for the test_setup element.</returns>
-    procedure GetTestSetup(): Codeunit "Test Input Json"
+    /// <returns>A Test Input Json codeunit for the turn_setup element.</returns>
+    procedure GetTurnSetup(): Codeunit "Test Input Json"
     begin
-        exit(AITTestContextImpl.GetTestSetup());
+        exit(AITTestContextImpl.GetTurnSetup());
     end;
 
     /// <summary>
