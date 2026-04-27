@@ -3149,7 +3149,6 @@ codeunit 139601 "Shpfy Create Product Test"
 
     local procedure InitializeProductExport()
     var
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         AccessToken: SecretText;
     begin
         Any.SetDefaultSeed();
@@ -3163,7 +3162,6 @@ codeunit 139601 "Shpfy Create Product Test"
         ExportShop.Modify();
         Commit();
 
-        CommunicationMgt.SetTestInProgress(false);
         AccessToken := LibraryRandom.RandText(20);
         ShpfyInitializeTest.RegisterAccessTokenForShop(ExportShop.GetStoreName(), AccessToken);
 
