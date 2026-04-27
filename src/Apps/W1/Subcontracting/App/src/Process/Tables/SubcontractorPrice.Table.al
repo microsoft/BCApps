@@ -127,6 +127,12 @@ table 99001500 "Subcontractor Price"
         key(Key02; "Vendor No.", "Item No.", "Work Center No.", "Variant Code", "Unit of Measure Code", "Currency Code")
         {
         }
+        key(Key03; "Work Center No.")
+        {
+        }
+        key(Key04; "Item No.")
+        {
+        }
     }
     fieldgroups
     {
