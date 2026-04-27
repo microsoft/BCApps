@@ -24,14 +24,14 @@ codeunit 139891 "E-Document Structured Tests"
 
     var
         Customer: Record Customer;
-        Vendor: Record Vendor;
         EDocumentService: Record "E-Document Service";
+        Vendor: Record Vendor;
         Assert: Codeunit Assert;
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryEDoc: Codeunit "Library - E-Document";
         EDocImplState: Codeunit "E-Doc. Impl. State";
-        LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         StructuredValidations: Codeunit "EDoc Structured Validations";
+        LibraryEDoc: Codeunit "Library - E-Document";
+        LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         EDocumentStatusNotUpdatedErr: Label 'The status of the EDocument was not updated to the expected status after the step was executed.';
 
@@ -378,18 +378,31 @@ codeunit 139891 "E-Document Structured Tests"
             Assert.Fail(EDocumentStatusNotUpdatedErr);
     end;
 
+    [Test]
+    procedure TestPEPPOLInvoice_NamespacePrefixedRootElement()
+    var
+        EDocument: Record "E-Document";
+    begin
+        Initialize(Enum::"Service Integration"::"Mock");
+        SetupPEPPOLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-prefixed-ns.xml');
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertFullPEPPOLDocumentExtracted(EDocument."Entry No")            
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
     #endregion
 
     local procedure Initialize(Integration: Enum "Service Integration")
     var
-        TransformationRule: Record "Transformation Rule";
-        EDocument: Record "E-Document";
+        Currency: Record Currency;
+        DocumentAttachment: Record "Document Attachment";
         EDocDataStorage: Record "E-Doc. Data Storage";
-        EDocumentServiceStatus: Record "E-Document Service Status";
+        EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        DocumentAttachment: Record "Document Attachment";
-        Currency: Record Currency;
+        EDocumentServiceStatus: Record "E-Document Service Status";
+        TransformationRule: Record "Transformation Rule";
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
         LibraryVariableStorage.Clear();

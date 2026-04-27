@@ -199,7 +199,6 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
     local procedure CheckProdOrderRtngLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line")
     var
-        GenProductPostingGroup: Record "Gen. Product Posting Group";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         WorkCenter: Record "Work Center";
@@ -224,10 +223,6 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
         WorkCenter.TestField("Subcontractor No.");
         WorkCenter.TestField("Gen. Prod. Posting Group");
-
-        GenProductPostingGroup.SetLoadFields("Def. VAT Prod. Posting Group");
-        GenProductPostingGroup.Get(WorkCenter."Gen. Prod. Posting Group");
-        GenProductPostingGroup.TestField("Def. VAT Prod. Posting Group");
 
         ProdOrderLine.FindFirst();
         PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.");
@@ -356,7 +351,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     begin
         GetSubmanagementSetup();
 
-        Item.SetLoadFields("Item Category Code", "Description 2");
+        Item.SetLoadFields("Item Category Code");
         Item.Get(ProdOrderComponent."Item No.");
 
         PurchaseLine.Init();
@@ -390,7 +385,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         end;
 
         PurchaseLine.Description := ProdOrderComponent.Description;
-        PurchaseLine."Description 2" := Item."Description 2";
+        PurchaseLine."Description 2" := ProdOrderComponent."Description 2";
 
         PurchaseLine."Sales Order No." := RequisitionLine."Sales Order No.";
         PurchaseLine."Sales Order Line No." := RequisitionLine."Sales Order Line No.";
@@ -476,7 +471,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         RequisitionLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
 
         RequisitionLine.Description := ProdOrderRoutingLine.Description;
-        RequisitionLine."Description 2" := '';
+        RequisitionLine."Description 2" := ProdOrderRoutingLine."Description 2";
         SetVendorItemNo(RequisitionLine);
 
         if PurchLineExists(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine) then begin
