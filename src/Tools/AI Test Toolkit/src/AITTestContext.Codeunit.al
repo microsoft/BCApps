@@ -58,7 +58,8 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Get the Test Setup from the input dataset for the current iteration.
+    /// Get the Test Setup from the input dataset for the current iteration using the legacy 'test_setup' element.
+    /// Retained for backward compatibility with datasets that have not migrated to 'turn_setup' — new code should use <see cref="GetTurnSetup"/>.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the test_setup element.</returns>
     procedure GetTestSetup(): Codeunit "Test Input Json"

@@ -438,7 +438,7 @@ codeunit 149043 "AIT Test Context Impl."
 
     /// <summary>
     /// Finds the suite setup Test Input Group for the current test's dataset.
-    /// Navigates: AITTestMethodLine."Input Dataset" ? TestInputGroup."Suite Setup Group Name" ? target group.
+    /// Navigates: AITTestMethodLine."Input Dataset" -> TestInputGroup."Suite Setup Group Name" -> target group.
     /// </summary>
     local procedure GetSuiteSetupGroup(var SuiteSetupGroup: Record "Test Input Group"): Boolean
     var
