@@ -172,7 +172,8 @@ codeunit 99001505 "Subcontracting Management"
     var
         WorkCenter: Record "Work Center";
         HasSubcontractor, IsHandled : Boolean;
-        WorkCenterVendorDoesntExistErr: Label 'The subcontractor vendor assigned to the work center does not exist.';
+        WorkCenterVendorDoesntExistErr: Label 'Subcontractor %1 on Work Center %2 does not exist.',
+            Comment = 'Parameter %1 - subcontractor/vendor number, %2 - work center number.';
     begin
         OnBeforeGetSubcontractor(WorkCenterNo, Vendor, HasSubcontractor, IsHandled);//DO NOT DELETE
         if IsHandled then
@@ -183,7 +184,7 @@ codeunit 99001505 "Subcontracting Management"
         if WorkCenter."Subcontractor No." <> '' then begin
             Vendor.SetLoadFields("Subcontr. Location Code");
             if not Vendor.Get(WorkCenter."Subcontractor No.") then
-                Error(WorkCenterVendorDoesntExistErr);
+                Error(WorkCenterVendorDoesntExistErr, WorkCenter."Subcontractor No.", WorkCenter."No.");
             Vendor.TestField("Subcontr. Location Code");
             exit(true);
         end;
