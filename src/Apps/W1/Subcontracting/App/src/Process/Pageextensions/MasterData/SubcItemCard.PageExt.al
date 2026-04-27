@@ -30,7 +30,7 @@ pageextension 99001518 "Subc. Item Card" extends "Item Card"
                 ApplicationArea = Manufacturing;
                 Caption = 'Create Prod. BOM/Routing';
                 Image = CreateForm;
-                ToolTip = 'Create Production BOM and/or Routing with purchase provision options.';
+                ToolTip = 'Create a Production BOM and/or Routing for the item.';
                 trigger OnAction()
                 var
                     SubcCreateProdRtngExt: Codeunit "Subc. Create Prod. Rtng. Ext.";
