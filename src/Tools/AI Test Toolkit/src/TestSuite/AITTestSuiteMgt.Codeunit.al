@@ -13,6 +13,8 @@ using System.Utilities;
 codeunit 149034 "AIT Test Suite Mgt."
 {
     Access = Internal;
+    Permissions = tabledata "Test Input Group" = rmid,
+                  tabledata "Test Input" = rmid;
 
     var
         GlobalAITTestSuite: Record "AIT Test Suite";
