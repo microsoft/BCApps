@@ -48,6 +48,16 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
+    /// Tries to get the turn setup from the input dataset for the current iteration.
+    /// </summary>
+    /// <param name="TurnSetup">Returns the turn_setup Test Input Json codeunit when the element exists.</param>
+    /// <returns>True if the turn_setup element exists for the current turn; false otherwise.</returns>
+    procedure GetTurnSetup(var TurnSetup: Codeunit "Test Input Json"): Boolean
+    begin
+        exit(AITTestContextImpl.GetTurnSetup(TurnSetup));
+    end;
+
+    /// <summary>
     /// Get the Context from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the context element.</returns>

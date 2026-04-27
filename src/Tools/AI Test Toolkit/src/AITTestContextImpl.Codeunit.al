@@ -43,6 +43,7 @@ codeunit 149043 "AIT Test Context Impl."
         ConversationTok: Label 'conversation', Locked = true;
         HasSuiteSetupData: Boolean;
         SuiteSetupDataNotLoadedErr: Label 'Per-suite setup data has not been loaded.';
+        TurnSetupNotFoundErr: Label 'The turn_setup element was not found for the current turn.';
         SuiteSetupInputCodeTok: Label 'SUITE-SETUP', Locked = true;
 
     /// <summary>
@@ -58,11 +59,29 @@ codeunit 149043 "AIT Test Context Impl."
 
     /// <summary>
     /// Get the Test Setup from the input dataset for the current iteration.
+    /// Errors if the turn_setup element is not found for the current turn.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the turn_setup element.</returns>
     procedure GetTurnSetup(): Codeunit "Test Input Json"
+    var
+        TurnSetup: Codeunit "Test Input Json";
     begin
-        exit(GetTurnSetup(TurnSetupTok));
+        if not GetTurnSetup(TurnSetup) then
+            Error(TurnSetupNotFoundErr);
+        exit(TurnSetup);
+    end;
+
+    /// <summary>
+    /// Tries to get the Turn Setup from the input dataset for the current iteration.
+    /// </summary>
+    /// <param name="TurnSetup">Returns the turn_setup Test Input Json codeunit when the element exists.</param>
+    /// <returns>True if the turn_setup element exists for the current turn; false otherwise.</returns>
+    procedure GetTurnSetup(var TurnSetup: Codeunit "Test Input Json"): Boolean
+    var
+        ElementFound: Boolean;
+    begin
+        TurnSetup := GetTestInput(TurnSetupTok, ElementFound);
+        exit(ElementFound);
     end;
 
     /// <summary>

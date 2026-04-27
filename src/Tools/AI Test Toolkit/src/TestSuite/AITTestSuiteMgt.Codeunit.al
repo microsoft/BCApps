@@ -126,7 +126,7 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITTestRunInputHandler.SetInput(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
 
-        BindSubscription(AITTestRunInputHandler);
+        if BindSubscription(AITTestRunInputHandler) then;
         RunAITestLine(AITTestMethodLineForLogEntry, false);
         UnbindSubscription(AITTestRunInputHandler);
 
