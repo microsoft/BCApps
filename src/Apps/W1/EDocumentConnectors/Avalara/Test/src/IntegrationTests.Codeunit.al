@@ -10,21 +10,31 @@ using Microsoft.eServices.EDocument.Service;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Setup;
 using System.Threading;
 using System.Utilities;
 
+/// <summary>
+/// Integration tests for the Avalara E-Document Connector verifying the full outbound document
+/// lifecycle (Submit, GetResponse with Pending/Complete/Error status transitions), inbound document
+/// import with purchase invoice creation, service-down error handling, manual resend after errors,
+/// credit memo submission, and company selection from the Connection Setup Card.
+/// </summary>
 codeunit 148191 "Integration Tests"
 {
-
-    Subtype = Test;
-    TestType = Uncategorized;
-    Permissions = tabledata "Connection Setup" = rimd,
+    Permissions = tabledata "Activation Mandate" = rimd,
+                  tabledata "Connection Setup" = rimd,
                   tabledata "E-Document" = r;
+    Subtype = Test;
     TestHttpRequestPolicy = AllowOutboundFromHandler;
+    TestType = IntegrationTest;
 
     [Test]
     [HandlerFunctions('HttpSubmitHandler')]
@@ -32,8 +42,8 @@ codeunit 148191 "Integration Tests"
     var
         EDocument: Record "E-Document";
         JobQueueEntry: Record "Job Queue Entry";
-        EDocumentPage: TestPage "E-Document";
         EDocLogList: List of [Enum "E-Document Service Status"];
+        EDocumentPage: TestPage "E-Document";
     begin
         // Steps:
         // Pending response -> Sent 
@@ -113,8 +123,8 @@ codeunit 148191 "Integration Tests"
     var
         EDocument: Record "E-Document";
         JobQueueEntry: Record "Job Queue Entry";
-        EDocumentPage: TestPage "E-Document";
         EDocLogList: List of [Enum "E-Document Service Status"];
+        EDocumentPage: TestPage "E-Document";
     begin
         // Steps:
         // Pending response -> Pending response -> Sent 
@@ -229,8 +239,8 @@ codeunit 148191 "Integration Tests"
     var
         EDocument: Record "E-Document";
         JobQueueEntry: Record "Job Queue Entry";
-        EDocumentPage: TestPage "E-Document";
         EDocLogList: List of [Enum "E-Document Service Status"];
+        EDocumentPage: TestPage "E-Document";
     begin
         // Steps:
         // Pending response -> Error -> Pending response -> Sent 
@@ -392,8 +402,8 @@ codeunit 148191 "Integration Tests"
     procedure SubmitDocumentAvalaraServiceDown()
     var
         EDocument: Record "E-Document";
-        EDocumentPage: TestPage "E-Document";
         EDocLogList: List of [Enum "E-Document Service Status"];
+        EDocumentPage: TestPage "E-Document";
     begin
         Initialize();
 
@@ -438,9 +448,9 @@ codeunit 148191 "Integration Tests"
     [HandlerFunctions('HttpSubmitHandler')]
     procedure SubmitGetDocuments()
     var
+        Currency: Record Currency;
         EDocument: Record "E-Document";
         PurchaseHeader: Record "Purchase Header";
-        Currency: Record Currency;
         EDocServicePage: TestPage "E-Document Service";
     begin
         Initialize();
@@ -448,9 +458,11 @@ codeunit 148191 "Integration Tests"
 
         // Use date and currency exchange rate in document that is loaded
         WorkDate(DMY2Date(8, 4, 2024));
-        Currency.Init();
-        Currency.Validate(Code, 'XYZ');
-        Currency.Insert(true);
+        if not Currency.Get('XYZ') then begin
+            Currency.Init();
+            Currency.Validate(Code, 'XYZ');
+            Currency.Insert(true);
+        end;
         LibraryERM.CreateExchangeRate('XYZ', WorkDate(), 1, 1);
 
         // Open and close E-Doc page creates auto import job due to setting
@@ -532,8 +544,9 @@ codeunit 148191 "Integration Tests"
 
     local procedure Initialize()
     var
-        ConnectionSetup: Record "Connection Setup";
+        ActivationMandate: Record "Activation Mandate";
         CompanyInformation: Record "Company Information";
+        ConnectionSetup: Record "Connection Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
         AvalaraAuth: Codeunit Authenticator;
         KeyGuid: Guid;
@@ -543,7 +556,11 @@ codeunit 148191 "Integration Tests"
         GeneralLedgerSetup.Get();
         PrevVATReportingDateValue := GeneralLedgerSetup."VAT Reporting Date Usage";
         GeneralLedgerSetup."VAT Reporting Date Usage" := Enum::"VAT Reporting Date Usage"::Disabled;
+        if GeneralLedgerSetup."LCY Code" = '' then
+            GeneralLedgerSetup."LCY Code" := 'GBP';
         GeneralLedgerSetup.Modify();
+
+        EnsureSetupNumberSeries();
 
         // Clean up token between runs
         if ConnectionSetup.Get() then
@@ -562,7 +579,22 @@ codeunit 148191 "Integration Tests"
         CompanyInformation.Get();
         OriginalVATNumber := CompanyInformation."VAT Registration No.";
         CompanyInformation."VAT Registration No." := 'GB777777771';
+        if CompanyInformation.Name = '' then
+            CompanyInformation.Name := 'Test Company';
         CompanyInformation.Modify();
+
+        // Ensure mandate exists with correct state on every test run
+        ActivationMandate.DeleteAll();
+        ActivationMandate.Init();
+        ActivationMandate."Activation ID" := CreateGuid();
+        ActivationMandate."Country Mandate" := 'GB-Test-Mandate';
+        ActivationMandate.Activated := true;
+        ActivationMandate.Insert(true);
+
+        // Detect rollback from a previous failed test and force re-init
+        if IsInitialized then
+            if not Customer.Get(Customer."No.") then
+                IsInitialized := false;
 
         if IsInitialized then
             exit;
@@ -570,6 +602,8 @@ codeunit 148191 "Integration Tests"
         LibraryEDocument.SetupStandardVAT();
         LibraryEDocument.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
         EDocumentService."Avalara Mandate" := 'GB-Test-Mandate';
+        EnsureCountryISOCode(Customer."Country/Region Code");
+        EnsurePostingSetup();
 
         LibraryEDocument.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::"PEPPOL BIS 3.0", Enum::"Service Integration"::Avalara);
         EDocumentService.Validate("Auto Import", true);
@@ -582,6 +616,120 @@ codeunit 148191 "Integration Tests"
         Vendor.Modify();
 
         IsInitialized := true;
+    end;
+
+    local procedure EnsurePostingSetup()
+    var
+        GenProdPostingGroup: Record "Gen. Product Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        Item: Record Item;
+    begin
+        // General Posting Setup for Customer's and Vendor's bus. groups
+        if not GenProdPostingGroup.FindSet() then
+            exit;
+        repeat
+            if not GeneralPostingSetup.Get(Customer."Gen. Bus. Posting Group", GenProdPostingGroup.Code) then begin
+                GeneralPostingSetup.Init();
+                GeneralPostingSetup.Validate("Gen. Bus. Posting Group", Customer."Gen. Bus. Posting Group");
+                GeneralPostingSetup.Validate("Gen. Prod. Posting Group", GenProdPostingGroup.Code);
+                GeneralPostingSetup.Insert(true);
+            end;
+            if GeneralPostingSetup."Sales Account" = '' then begin
+                GeneralPostingSetup."Sales Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Sales Credit Memo Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Sales Line Disc. Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."COGS Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Purch. Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Purch. Credit Memo Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup."Inventory Adjmt. Account" := LibraryERM.CreateGLAccountNo();
+                GeneralPostingSetup.Modify(true);
+            end;
+
+            if (Vendor."Gen. Bus. Posting Group" <> '') and (Vendor."Gen. Bus. Posting Group" <> Customer."Gen. Bus. Posting Group") then begin
+                if not GeneralPostingSetup.Get(Vendor."Gen. Bus. Posting Group", GenProdPostingGroup.Code) then begin
+                    GeneralPostingSetup.Init();
+                    GeneralPostingSetup.Validate("Gen. Bus. Posting Group", Vendor."Gen. Bus. Posting Group");
+                    GeneralPostingSetup.Validate("Gen. Prod. Posting Group", GenProdPostingGroup.Code);
+                    GeneralPostingSetup.Insert(true);
+                end;
+                if GeneralPostingSetup."Purch. Account" = '' then begin
+                    GeneralPostingSetup."Sales Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup."Sales Credit Memo Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup."Sales Line Disc. Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup."COGS Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup."Purch. Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup."Purch. Credit Memo Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup."Inventory Adjmt. Account" := LibraryERM.CreateGLAccountNo();
+                    GeneralPostingSetup.Modify(true);
+                end;
+            end;
+        until GenProdPostingGroup.Next() = 0;
+
+        // Inventory Posting Setup for all items' inventory posting groups
+        Item.SetFilter("Inventory Posting Group", '<>%1', '');
+        if Item.FindSet() then
+            repeat
+                if not InventoryPostingSetup.Get('', Item."Inventory Posting Group") then begin
+                    InventoryPostingSetup.Init();
+                    InventoryPostingSetup."Location Code" := '';
+                    InventoryPostingSetup."Invt. Posting Group Code" := Item."Inventory Posting Group";
+                    InventoryPostingSetup."Inventory Account" := LibraryERM.CreateGLAccountNo();
+                    InventoryPostingSetup.Insert(true);
+                end else
+                    if InventoryPostingSetup."Inventory Account" = '' then begin
+                        InventoryPostingSetup."Inventory Account" := LibraryERM.CreateGLAccountNo();
+                        InventoryPostingSetup.Modify(true);
+                    end;
+            until Item.Next() = 0;
+    end;
+
+    local procedure EnsureCountryISOCode(CountryCode: Code[10])
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        if CountryRegion.Get(CountryCode) then
+            if CountryRegion."ISO Code" = '' then begin
+                CountryRegion."ISO Code" := 'GB';
+                CountryRegion."ISO Numeric Code" := '826';
+                CountryRegion.Modify();
+            end;
+    end;
+
+    local procedure EnsureSetupNumberSeries()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        if not SalesReceivablesSetup.Get() then begin
+            SalesReceivablesSetup.Init();
+            SalesReceivablesSetup.Insert();
+        end;
+        if SalesReceivablesSetup."Invoice Nos." = '' then
+            SalesReceivablesSetup."Invoice Nos." := LibraryERM.CreateNoSeriesCode();
+        if SalesReceivablesSetup."Credit Memo Nos." = '' then
+            SalesReceivablesSetup."Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
+        if SalesReceivablesSetup."Posted Invoice Nos." = '' then
+            SalesReceivablesSetup."Posted Invoice Nos." := LibraryERM.CreateNoSeriesCode();
+        if SalesReceivablesSetup."Posted Credit Memo Nos." = '' then
+            SalesReceivablesSetup."Posted Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
+        SalesReceivablesSetup.Modify(true);
+
+        if not PurchasesPayablesSetup.Get() then begin
+            PurchasesPayablesSetup.Init();
+            PurchasesPayablesSetup.Insert();
+        end;
+        if PurchasesPayablesSetup."Invoice Nos." = '' then
+            PurchasesPayablesSetup."Invoice Nos." := LibraryERM.CreateNoSeriesCode();
+        if PurchasesPayablesSetup."Credit Memo Nos." = '' then
+            PurchasesPayablesSetup."Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
+        if PurchasesPayablesSetup."Posted Invoice Nos." = '' then
+            PurchasesPayablesSetup."Posted Invoice Nos." := LibraryERM.CreateNoSeriesCode();
+        if PurchasesPayablesSetup."Posted Credit Memo Nos." = '' then
+            PurchasesPayablesSetup."Posted Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
+        PurchasesPayablesSetup.Modify(true);
     end;
 
     local procedure SetCompanyIdInConnectionSetup(Id: Text[100]; Name: Text[100])
@@ -627,11 +775,11 @@ codeunit 148191 "Integration Tests"
     internal procedure HttpSubmitHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         Regex: Codeunit Regex;
-        ConnectTokenFileTok: Label 'ConnectToken.txt', Locked = true;
-        DownloadDocumentFileTok: Label 'DownloadDocument.txt', Locked = true;
-        SubmitDocumentFileTok: Label 'SubmitDocument.txt', Locked = true;
-        GetDocumentsFileTok: Label 'GetDocuments.txt', Locked = true;
-        CompaniesFileTok: Label 'Companies.txt', Locked = true;
+        CompaniesFileTok: Label 'HttpResponseFiles/Companies.txt', Locked = true;
+        ConnectTokenFileTok: Label 'HttpResponseFiles/ConnectToken.txt', Locked = true;
+        DownloadDocumentFileTok: Label 'HttpResponseFiles/DownloadDocument.txt', Locked = true;
+        GetDocumentsFileTok: Label 'HttpResponseFiles/GetDocuments.txt', Locked = true;
+        SubmitDocumentFileTok: Label 'HttpResponseFiles/SubmitDocument.txt', Locked = true;
     begin
         case true of
             Regex.IsMatch(Request.Path, 'https?://.+/connect/token'):
@@ -679,7 +827,7 @@ codeunit 148191 "Integration Tests"
     [HttpClientHandler]
     internal procedure ServiceDownHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
-        Http500FileTok: Label 'Http500.txt', Locked = true;
+        Http500FileTok: Label 'HttpResponseFiles/Http500.txt', Locked = true;
     begin
         LoadResourceIntoHttpResponse(Http500FileTok, Response);
         Response.HttpStatusCode := 500;
@@ -697,9 +845,9 @@ codeunit 148191 "Integration Tests"
 
     local procedure GetStatusResponse(var Response: TestHttpResponseMessage)
     var
-        GetResponseCompleteFileTok: Label 'GetResponseComplete.txt', Locked = true;
-        GetResponsePendingFileTok: Label 'GetResponsePending.txt', Locked = true;
-        GetResponseErrorFileTok: Label 'GetResponseError.txt', Locked = true;
+        GetResponseCompleteFileTok: Label 'HttpResponseFiles/GetResponseComplete.txt', Locked = true;
+        GetResponseErrorFileTok: Label 'HttpResponseFiles/GetResponseError.txt', Locked = true;
+        GetResponsePendingFileTok: Label 'HttpResponseFiles/GetResponsePending.txt', Locked = true;
     begin
         case DocumentStatus of
             DocumentStatus::Completed:
@@ -715,16 +863,16 @@ codeunit 148191 "Integration Tests"
 
     var
         Customer: Record Customer;
-        Vendor: Record Vendor;
         EDocumentService: Record "E-Document Service";
-        LibraryEDocument: Codeunit "Library - E-Document";
-        LibraryPermission: Codeunit "Library - Lower Permissions";
-        LibraryJobQueue: Codeunit "Library - Job Queue";
-        LibraryERM: Codeunit "Library - ERM";
+        Vendor: Record Vendor;
         Assert: Codeunit Assert;
+        LibraryEDocument: Codeunit "Library - E-Document";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryJobQueue: Codeunit "Library - Job Queue";
+        LibraryPermission: Codeunit "Library - Lower Permissions";
         IsInitialized: Boolean;
         PrevVATReportingDateValue: Enum "VAT Reporting Date Usage";
-        OriginalVATNumber: Text[20];
         IncorrectValueErr: Label 'Wrong value';
         DocumentStatus: Option Completed,Pending,Error;
+        OriginalVATNumber: Text[20];
 }
