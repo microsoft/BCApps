@@ -54,13 +54,12 @@ codeunit 2359 "Http Authentication Basic" implements "Http Authentication"
         Header.Add('Authorization', SecretStrSubstNo('Basic %1', ToBase64(SecretStrSubstNo('%1:%2', GlobalUsername, GlobalPassword))));
     end;
 
+    [NonDebuggable]
     local procedure ToBase64(String: SecretText) Base64String: SecretText
     var
         Convert: DotNet Convert;
         Encoding: DotNet Encoding;
     begin
-#pragma warning disable AL0796
         Base64String := Convert.ToBase64String(Encoding.UTF8().GetBytes(String.Unwrap()));
-#pragma warning restore AL0796
     end;
 }
