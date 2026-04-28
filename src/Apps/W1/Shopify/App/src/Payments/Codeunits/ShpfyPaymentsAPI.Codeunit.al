@@ -115,7 +115,7 @@ codeunit 30385 "Shpfy Payments API"
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.shopifyPaymentsAccount.payouts.pageInfo.hasNextPage');
     end;
 
-    local procedure ImportPayout(JPayout: JsonObject)
+    internal procedure ImportPayout(JPayout: JsonObject)
     var
         DataCapture: Record "Shpfy Data Capture";
         Payout: Record "Shpfy Payout";
