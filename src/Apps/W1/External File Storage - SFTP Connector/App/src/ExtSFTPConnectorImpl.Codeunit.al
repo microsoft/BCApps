@@ -15,6 +15,9 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'The SFTP connector is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     Permissions = tabledata "Ext. SFTP Account" = rimd;
 
     var

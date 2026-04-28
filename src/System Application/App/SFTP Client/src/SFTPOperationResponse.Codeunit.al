@@ -12,6 +12,9 @@ codeunit 9764 "SFTP Operation Response"
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'The SFTP module is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     internal procedure GetResponseStream(var ResultInstream: InStream)
     begin

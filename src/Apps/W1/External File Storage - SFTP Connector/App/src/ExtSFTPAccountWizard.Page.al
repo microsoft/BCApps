@@ -20,6 +20,9 @@ page 4622 "Ext. SFTP Account Wizard"
     Permissions = tabledata "Ext. SFTP Account" = rimd;
     SourceTable = "Ext. SFTP Account";
     SourceTableTemporary = true;
+    ObsoleteReason = 'The SFTP connector is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     layout
     {

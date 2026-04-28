@@ -10,6 +10,9 @@ permissionset 4622 "Ext. SFTP - Objects"
     Access = Public;
     Assignable = false;
     Caption = 'SFTP - Objects';
+    ObsoleteReason = 'The SFTP connector is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     Permissions =
         table "Ext. SFTP Account" = X,
         page "Ext. SFTP Account Wizard" = X,

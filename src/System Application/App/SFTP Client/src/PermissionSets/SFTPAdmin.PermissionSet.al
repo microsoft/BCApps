@@ -9,6 +9,9 @@ permissionset 9762 "SFTP - Admin"
     Access = Public;
     Assignable = true;
     Caption = 'SFTP - Admin';
+    ObsoleteReason = 'The SFTP module is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     Permissions =
         page "SFTP Folder Content" = X;

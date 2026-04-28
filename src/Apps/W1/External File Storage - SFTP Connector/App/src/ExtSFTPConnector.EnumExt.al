@@ -17,5 +17,8 @@ enumextension 4621 "Ext. SFTP Connector" extends "Ext. File Storage Connector"
     {
         Caption = 'SFTP';
         Implementation = "External File Storage Connector" = "Ext. SFTP Connector Impl";
+        ObsoleteReason = 'The SFTP connector is deprecated because platform hardening will prevent support for SFTP connections.';
+        ObsoleteState = Pending;
+        ObsoleteTag = '29.0';
     }
 }

@@ -10,6 +10,9 @@ permissionset 4621 "Ext. SFTP - Edit"
     Access = Public;
     Assignable = false;
     Caption = 'SFTP - Edit';
+    ObsoleteReason = 'The SFTP connector is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     IncludedPermissionSets = "Ext. SFTP - Read";
 
     Permissions =

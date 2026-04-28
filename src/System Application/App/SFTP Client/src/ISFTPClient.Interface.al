@@ -7,9 +7,14 @@ namespace System.SFTPClient;
 
 using System;
 
+#pragma warning disable AL0432
 interface "ISFTP Client"
 {
     Access = Internal;
+    ObsoleteReason = 'The SFTP module is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+
     procedure SftpClient(Host: Text; Port: Integer; UserName: Text; Password: SecretText): Boolean
     procedure SftpClient(Host: Text; Port: Integer; UserName: Text; PrivateKey: InStream): Boolean
     procedure SftpClient(HostName: Text; Port: Integer; Username: Text; PrivateKey: InStream; Passphrase: SecretText): Boolean
@@ -28,3 +33,4 @@ interface "ISFTP Client"
     procedure SetSHA256Fingerprints(FingerPrints: List of [Text])
     procedure SetMD5Fingerprints(FingerPrints: List of [Text])
 }
+#pragma warning restore AL0432

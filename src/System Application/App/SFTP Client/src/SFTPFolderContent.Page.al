@@ -16,6 +16,9 @@ page 9761 "SFTP Folder Content"
     DeleteAllowed = false;
     Editable = false;
     Extensible = false;
+    ObsoleteReason = 'The SFTP module is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     layout
     {
