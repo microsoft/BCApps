@@ -5,7 +5,7 @@
 
 namespace System.SFTPClient;
 
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
 codeunit 9762 "SFTP Client"
 {
     Access = Public;
@@ -207,4 +207,4 @@ codeunit 9762 "SFTP Client"
     var
         SFTPClientImplementation: Codeunit "SFTP Client Implementation";
 }
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105

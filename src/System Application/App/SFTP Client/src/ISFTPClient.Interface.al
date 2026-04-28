@@ -7,7 +7,7 @@ namespace System.SFTPClient;
 
 using System;
 
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
 interface "ISFTP Client"
 {
     Access = Internal;
@@ -33,4 +33,4 @@ interface "ISFTP Client"
     procedure SetSHA256Fingerprints(FingerPrints: List of [Text])
     procedure SetMD5Fingerprints(FingerPrints: List of [Text])
 }
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105

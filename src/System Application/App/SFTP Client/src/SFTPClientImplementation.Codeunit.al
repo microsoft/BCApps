@@ -8,7 +8,7 @@ namespace System.SFTPClient;
 using System;
 using System.Utilities;
 
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
 codeunit 9763 "SFTP Client Implementation"
 {
     Access = Internal;
@@ -214,4 +214,4 @@ codeunit 9763 "SFTP Client Implementation"
         HostkeyFingerprintsMD5: List of [Text];
         ISFTPClientSet: Boolean;
 }
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105

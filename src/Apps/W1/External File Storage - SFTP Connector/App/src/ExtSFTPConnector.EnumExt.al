@@ -8,7 +8,7 @@ namespace System.ExternalFileStorage;
 /// <summary>
 /// Enum extension to register the SFTP connector.
 /// </summary>
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
 enumextension 4621 "Ext. SFTP Connector" extends "Ext. File Storage Connector"
 {
     /// <summary>
@@ -23,4 +23,4 @@ enumextension 4621 "Ext. SFTP Connector" extends "Ext. File Storage Connector"
         ObsoleteTag = '29.0';
     }
 }
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105

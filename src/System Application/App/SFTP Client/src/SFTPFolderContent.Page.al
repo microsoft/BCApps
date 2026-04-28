@@ -5,7 +5,7 @@
 
 namespace System.SFTPClient;
 
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
 page 9761 "SFTP Folder Content"
 {
     Caption = 'SFTP Folder Content';
@@ -57,4 +57,4 @@ page 9761 "SFTP Folder Content"
         }
     }
 }
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
