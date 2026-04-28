@@ -8,11 +8,15 @@ namespace System.SFTPClient;
 using System;
 using System.Utilities;
 
+#pragma warning disable AL0432
 codeunit 9763 "SFTP Client Implementation"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'The SFTP module has been removed because platform hardening prevents support for SFTP connections.';
+    ObsoleteState = Removed;
+    ObsoleteTag = '29.0';
 
     procedure Initialize(Host: Text; Port: Integer; UserName: Text; Password: SecretText): Codeunit "SFTP Operation Response"
     begin
@@ -210,3 +214,4 @@ codeunit 9763 "SFTP Client Implementation"
         HostkeyFingerprintsMD5: List of [Text];
         ISFTPClientSet: Boolean;
 }
+#pragma warning restore AL0432

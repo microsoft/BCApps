@@ -15,6 +15,9 @@ table 4621 "Ext. SFTP Account"
 {
     Caption = 'SFTP Account';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'The SFTP connector has been removed because platform hardening prevents support for SFTP connections.';
+    ObsoleteState = Removed;
+    ObsoleteTag = '29.0';
 
     fields
     {

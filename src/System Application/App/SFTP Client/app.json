@@ -43,12 +43,5 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "internalsVisibleTo": [
-    {
-      "id": "d367ef25-dc5e-4585-b5ec-915b78878799",
-      "name": "SFTP Client Test",
-      "publisher": "Microsoft"
-    }
-  ],
   "target": "OnPrem"
 }

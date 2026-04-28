@@ -5,11 +5,15 @@
 
 namespace System.SFTPClient;
 
+#pragma warning disable AL0432
 codeunit 9762 "SFTP Client"
 {
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'The SFTP module has been removed because platform hardening prevents support for SFTP connections.';
+    ObsoleteState = Removed;
+    ObsoleteTag = '29.0';
 
     /// <summary>
     /// Adds a SHA256 fingerprint to the list of accepted host key fingerprints.
@@ -203,3 +207,4 @@ codeunit 9762 "SFTP Client"
     var
         SFTPClientImplementation: Codeunit "SFTP Client Implementation";
 }
+#pragma warning restore AL0432

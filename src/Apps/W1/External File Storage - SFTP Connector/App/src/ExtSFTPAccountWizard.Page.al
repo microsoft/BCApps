@@ -10,6 +10,7 @@ using System.Environment;
 /// <summary>
 /// Displays an account that is being registered via the SFTP connector.
 /// </summary>
+#pragma warning disable AL0432
 page 4622 "Ext. SFTP Account Wizard"
 {
     ApplicationArea = All;
@@ -20,6 +21,9 @@ page 4622 "Ext. SFTP Account Wizard"
     Permissions = tabledata "Ext. SFTP Account" = rimd;
     SourceTable = "Ext. SFTP Account";
     SourceTableTemporary = true;
+    ObsoleteReason = 'The SFTP connector has been removed because platform hardening prevents support for SFTP connections.';
+    ObsoleteState = Removed;
+    ObsoleteTag = '29.0';
 
     layout
     {
@@ -241,3 +245,4 @@ page 4622 "Ext. SFTP Account Wizard"
             CertificateStatusText := CertificateUploadedLbl;
     end;
 }
+#pragma warning restore AL0432

@@ -7,11 +7,15 @@ namespace System.SFTPClient;
 
 using System.Utilities;
 
+#pragma warning disable AL0432
 codeunit 9764 "SFTP Operation Response"
 {
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'The SFTP module has been removed because platform hardening prevents support for SFTP connections.';
+    ObsoleteState = Removed;
+    ObsoleteTag = '29.0';
 
     internal procedure GetResponseStream(var ResultInstream: InStream)
     begin
@@ -70,3 +74,4 @@ codeunit 9764 "SFTP Operation Response"
         ErrorType: Enum "SFTP Exception Type";
         ErrorMsg: Text;
 }
+#pragma warning restore AL0432

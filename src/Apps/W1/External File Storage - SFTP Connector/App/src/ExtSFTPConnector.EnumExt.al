@@ -8,6 +8,7 @@ namespace System.ExternalFileStorage;
 /// <summary>
 /// Enum extension to register the SFTP connector.
 /// </summary>
+#pragma warning disable AL0432
 enumextension 4621 "Ext. SFTP Connector" extends "Ext. File Storage Connector"
 {
     /// <summary>
@@ -17,5 +18,9 @@ enumextension 4621 "Ext. SFTP Connector" extends "Ext. File Storage Connector"
     {
         Caption = 'SFTP';
         Implementation = "External File Storage Connector" = "Ext. SFTP Connector Impl";
+        ObsoleteReason = 'The SFTP connector has been removed because platform hardening prevents support for SFTP connections.';
+        ObsoleteState = Removed;
+        ObsoleteTag = '29.0';
     }
 }
+#pragma warning restore AL0432

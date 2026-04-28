@@ -5,13 +5,18 @@
 
 namespace System.ExternalFileStorage;
 
+#pragma warning disable AL0432
 permissionset 4623 "Ext. SFTP - Read"
 {
     Access = Public;
     Assignable = false;
     Caption = 'SFTP - Read';
+    ObsoleteReason = 'The SFTP connector has been removed because platform hardening prevents support for SFTP connections.';
+    ObsoleteState = Removed;
+    ObsoleteTag = '29.0';
     IncludedPermissionSets = "Ext. SFTP - Objects";
 
     Permissions =
         tabledata "Ext. SFTP Account" = r;
 }
+#pragma warning restore AL0432

@@ -1,2 +1,3 @@
 # External File Storage - SFTP Connector
-This connector allows access to SFTP Server Files and Folder.
+
+This connector was removed in 29.0 because platform hardening prevents support for SFTP connections.

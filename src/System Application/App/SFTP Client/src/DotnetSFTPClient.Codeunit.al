@@ -7,11 +7,15 @@ namespace System.SFTPClient;
 
 using System;
 
+#pragma warning disable AL0432
 codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'The SFTP module has been removed because platform hardening prevents support for SFTP connections.';
+    ObsoleteState = Removed;
+    ObsoleteTag = '29.0';
 
     var
         [WithEvents]
@@ -260,3 +264,4 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
         FingerprintsMD5 := Fingerprints;
     end;
 }
+#pragma warning restore AL0432
