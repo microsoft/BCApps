@@ -95,6 +95,45 @@ codeunit 4321 Agent
     end;
 
     /// <summary>
+    /// Gets the model ID of the agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    /// <returns>The model ID of the agent. Must be valid value from Agent Model table.</returns>
+    /// <remarks>If returned value is empty, it indicates that the agent will use the current default model.</remarks>
+    procedure GetModelId(AgentUserSecurityID: Guid): Code[30]
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(AgentImpl.GetModelId(AgentUserSecurityID));
+    end;
+
+    /// <summary>
+    /// Sets the model ID of the agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    /// <param name="ModelId">The model ID to set for the agent. Must be valid value from Agent Model table.</param>
+    procedure SetModelId(AgentUserSecurityID: Guid; ModelId: Code[30])
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentImpl.SetModelId(AgentUserSecurityID, ModelId);
+    end;
+
+    /// <summary>
+    /// Sets the agent model to auto mode, meaning the agent will use the default agent model.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    procedure SetModelIdToAuto(AgentUserSecurityID: Guid)
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentImpl.SetModelIdToAuto(AgentUserSecurityID);
+    end;
+
+    /// <summary>
     /// Set the instructions which agent will use to complete the tasks.
     /// </summary>
     /// <param name="Agent">The agent which instructions will be set.</param>

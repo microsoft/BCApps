@@ -149,6 +149,7 @@ codeunit 4325 "Agent Setup Impl."
             if Agent.Get(UserSecurityID) then begin
                 AgentSetupBuffer."User Name" := Agent."User Name";
                 AgentSetupBuffer."Display Name" := Agent."Display Name";
+                AgentSetupBuffer."Model ID" := Agent."Model ID";
                 AgentSetupBuffer.State := Agent.State;
                 AgentMetadata := Agent."Agent Metadata Provider";
                 AgentSetupBuffer.Initials := AgentMetadata.GetInitials(UserSecurityID);
@@ -249,6 +250,10 @@ codeunit 4325 "Agent Setup Impl."
         AgentRecord.Get(AgentSetupBuffer."User Security ID");
         AgentSetupBuffer.GetUserSettings(TempNewUserSettings);
         Agent.UpdateLocalizationSettings(AgentRecord."User Security ID", TempNewUserSettings);
+
+        if AgentSetupBuffer."Model ID" <> '' then
+            Agent.SetModelId(AgentRecord."User Security ID", AgentSetupBuffer."Model ID");
+
         UpdateAgentState(AgentSetupBuffer);
 
         exit(AgentRecord."User Security ID");
@@ -263,8 +268,13 @@ codeunit 4325 "Agent Setup Impl."
     begin
         AgentRecord.Get(AgentSetupBuffer."User Security ID");
 
-        if AgentSetupBuffer."Values Updated" then
+        if AgentSetupBuffer."Values Updated" then begin
             Agent.SetDisplayName(AgentSetupBuffer."User Security ID", AgentSetupBuffer."Display Name");
+            if AgentSetupBuffer."Model ID" <> '' then
+                Agent.SetModelId(AgentSetupBuffer."User Security ID", AgentSetupBuffer."Model ID")
+            else
+                Agent.SetModelIdToAuto(AgentSetupBuffer."User Security ID");
+        end;
 
         if AgentSetupBuffer."User Settings Updated" then begin
             AgentSetupBuffer.GetUserSettings(TempNewUserSettings);

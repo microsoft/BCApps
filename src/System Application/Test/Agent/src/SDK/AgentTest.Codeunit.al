@@ -216,6 +216,93 @@ codeunit 133961 "Agent Test"
 
     #endregion
 
+    #region Model ID Tests
+
+    [Test]
+    procedure GetModelId()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        ModelId: Code[30];
+    begin
+        Initialize();
+
+        // [SCENARIO] Get model ID of an agent
+
+        // [GIVEN] An agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Getting the model ID
+        ModelId := Agent.GetModelId(AgentId);
+
+        // [THEN] The model ID should be empty for a newly created agent
+        Assert.AreEqual('', ModelId, 'Model ID should be empty for a new agent');
+    end;
+
+    [Test]
+    procedure SetModelId()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        NewModelId: Code[30];
+        RetrievedModelId: Code[30];
+    begin
+        Initialize();
+
+        // [SCENARIO] Set model ID of an agent
+
+        // [GIVEN] An agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Setting a new model ID
+        NewModelId := CopyStr(Any.AlphanumericText(MaxStrLen(NewModelId)), 1, MaxStrLen(NewModelId));
+        Agent.SetModelId(AgentId, NewModelId);
+
+        // [THEN] The model ID should be updated
+        RetrievedModelId := Agent.GetModelId(AgentId);
+        Assert.AreEqual(NewModelId, RetrievedModelId, 'Model ID should be updated');
+    end;
+
+    [Test]
+    procedure SetModelIdToAuto()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        RetrievedModelId: Code[30];
+    begin
+        Initialize();
+
+        // [SCENARIO] Set model ID of an agent to auto mode
+
+        // [GIVEN] An agent with a model ID set
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.SetModelId(AgentId, CopyStr(Any.AlphanumericText(30), 1, 30));
+
+        // [WHEN] Setting the model ID to auto
+        Agent.SetModelIdToAuto(AgentId);
+
+        // [THEN] The model ID should be empty
+        RetrievedModelId := Agent.GetModelId(AgentId);
+        Assert.AreEqual('', RetrievedModelId, 'Model ID should be empty in auto mode');
+    end;
+
+    #endregion
+
     #region User Name Tests
 
     [Test]

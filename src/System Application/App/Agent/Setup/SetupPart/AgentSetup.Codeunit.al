@@ -173,6 +173,44 @@ codeunit 4324 "Agent Setup"
         exit(AgentSetupImpl.OpenAgentAccessControlSetup(AgentSetupBuffer));
     end;
 
+    /// <summary>
+    /// Gets the model ID of the agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    /// <returns>The model ID of the agent.</returns>
+    procedure GetModelId(AgentUserSecurityID: Guid): Code[30]
+    var
+        Agent: Codeunit Agent;
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        exit(Agent.GetModelId(AgentUserSecurityID));
+    end;
+
+    /// <summary>
+    /// Sets the model ID of the agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    /// <param name="ModelId">The model ID to set for the agent. Must be valid value from Agent Model table.</param>
+    procedure SetModelId(AgentUserSecurityID: Guid; ModelId: Code[30])
+    var
+        Agent: Codeunit Agent;
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        Agent.SetModelId(AgentUserSecurityID, ModelId);
+    end;
+
+    /// <summary>
+    /// Sets the agent model to auto mode, meaning the agent will use the default agent model.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    procedure SetModelIdToAuto(AgentUserSecurityID: Guid)
+    var
+        Agent: Codeunit Agent;
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        Agent.SetModelIdToAuto(AgentUserSecurityID);
+    end;
+
     var
         AgentSetupImpl: Codeunit "Agent Setup Impl.";
         FeatureAccessManagement: Codeunit "Feature Access Management";
