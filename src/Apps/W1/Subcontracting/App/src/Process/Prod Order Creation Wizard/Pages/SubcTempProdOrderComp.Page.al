@@ -44,6 +44,12 @@ page 99001508 "Subc. Temp Prod Order Comp"
                 {
                     ToolTip = 'Specifies a description of the item on the line.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description of the item on the line.';
+                    Visible = false;
+                }
                 field("Location Code"; Rec."Location Code")
                 {
                     ToolTip = 'Specifies the location where the component is stored.';
