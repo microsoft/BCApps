@@ -140,7 +140,7 @@ page 2514 "Delete Orphaned Extension Data"
                         ExtensionDatabaseManagement: Codeunit "Extension Database Management";
                     begin
                         ExtensionDatabaseManagement.MarkAllOrphanedExtensionDataAsReviewed();
-                        HasUnreviewedExtensions := false;
+                        UpdateHasUnreviewedExtensions();
                         CurrPage.Update(false);
                     end;
                 }
