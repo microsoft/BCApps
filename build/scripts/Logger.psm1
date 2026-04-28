@@ -2,7 +2,7 @@
 
 <#
 .SYNOPSIS
-Writes output to log
+Writes output to log, with formatting.
 .DESCRIPTION
 Writes a message and timestamp to the host as well as the 'verbose.log' file
 #>
