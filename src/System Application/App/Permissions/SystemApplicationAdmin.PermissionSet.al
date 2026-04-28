@@ -16,7 +16,7 @@ using System.MCP;
 using System.Privacy;
 using System.SFTPClient;
 
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
 permissionset 154 "System Application - Admin"
 {
     Access = Internal;
@@ -43,4 +43,4 @@ permissionset 154 "System Application - Admin"
                              "TROUBLESHOOT TOOLS",
                              "VSC Intgr. - Admin";
 }
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105

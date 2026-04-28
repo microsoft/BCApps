@@ -5,6 +5,7 @@
 
 namespace System.ExternalFileStorage;
 
+#pragma warning disable AL0432, AS0105
 permissionset 4623 "Ext. SFTP - Read"
 {
     Access = Public;
@@ -18,3 +19,4 @@ permissionset 4623 "Ext. SFTP - Read"
     Permissions =
         tabledata "Ext. SFTP Account" = r;
 }
+#pragma warning restore AL0432, AS0105

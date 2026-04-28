@@ -5,10 +5,10 @@
 
 namespace System.ExternalFileStorage;
 
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
 entitlement "Ext. SFTP Connector"
 {
     ObjectEntitlements = "Ext. SFTP - Edit";
     Type = Implicit;
 }
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105

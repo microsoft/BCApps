@@ -8,6 +8,7 @@ namespace System.ExternalFileStorage;
 /// <summary>
 /// Displays an account that was registered via the SFTP connector.
 /// </summary>
+#pragma warning disable AL0432, AS0105
 page 4621 "Ext. SFTP Account"
 {
     ApplicationArea = All;
@@ -162,3 +163,4 @@ page 4621 "Ext. SFTP Account"
             CertificateStatusText := CertificateUploadedLbl;
     end;
 }
+#pragma warning restore AL0432, AS0105

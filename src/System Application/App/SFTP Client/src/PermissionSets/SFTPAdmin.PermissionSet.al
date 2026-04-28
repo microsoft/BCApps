@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.SFTPClient;
 
+#pragma warning disable AL0432, AS0105
 permissionset 9762 "SFTP - Admin"
 {
     Access = Public;
@@ -16,3 +17,4 @@ permissionset 9762 "SFTP - Admin"
     Permissions =
         page "SFTP Folder Content" = X;
 }
+#pragma warning restore AL0432, AS0105

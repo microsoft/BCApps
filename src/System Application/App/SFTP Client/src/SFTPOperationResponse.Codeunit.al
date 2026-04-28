@@ -7,6 +7,7 @@ namespace System.SFTPClient;
 
 using System.Utilities;
 
+#pragma warning disable AL0432, AS0105
 codeunit 9764 "SFTP Operation Response"
 {
     Access = Public;
@@ -73,3 +74,4 @@ codeunit 9764 "SFTP Operation Response"
         ErrorType: Enum "SFTP Exception Type";
         ErrorMsg: Text;
 }
+#pragma warning restore AL0432, AS0105

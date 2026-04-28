@@ -5,9 +5,9 @@
 
 namespace System.ExternalFileStorage;
 
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
 permissionsetextension 4622 "File Storage - Edit - Ext. SFTP" extends "File Storage - Edit"
 {
     IncludedPermissionSets = "Ext. SFTP - Read";
 }
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105

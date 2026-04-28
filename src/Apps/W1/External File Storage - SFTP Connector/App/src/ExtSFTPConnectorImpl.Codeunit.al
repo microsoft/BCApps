@@ -10,6 +10,7 @@ using System.SFTPClient;
 using System.Text;
 using System.Utilities;
 
+#pragma warning disable AL0432, AS0105
 codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Connector"
 {
     Access = Internal;
@@ -498,3 +499,4 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         Account.ModifyAll(Disabled, true);
     end;
 }
+#pragma warning restore AL0432, AS0105

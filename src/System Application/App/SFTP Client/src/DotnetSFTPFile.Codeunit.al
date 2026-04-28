@@ -7,7 +7,7 @@ namespace System.SFTPClient;
 
 using System;
 
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AS0105
 codeunit 9761 "Dotnet SFTP File" implements "ISFTP File"
 {
     Access = Internal;
@@ -63,4 +63,4 @@ codeunit 9761 "Dotnet SFTP File" implements "ISFTP File"
         RenciSFTPFile := NewFile;
     end;
 }
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AS0105
