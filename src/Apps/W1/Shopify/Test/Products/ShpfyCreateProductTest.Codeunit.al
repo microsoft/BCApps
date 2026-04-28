@@ -26,7 +26,6 @@ codeunit 139601 "Shpfy Create Product Test"
         OutboundHttpRequests: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
         ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
-        ProductInitTest: Codeunit "Shpfy Product Init Test";
 
     [Test]
     procedure UnitTestCreateTempProductFromItem()
