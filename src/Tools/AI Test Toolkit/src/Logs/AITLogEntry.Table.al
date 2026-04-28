@@ -72,7 +72,7 @@ table 149034 "AIT Log Entry"
         field(10; Status; Option)
         {
             Caption = 'Status';
-            OptionMembers = Success,Error;
+            OptionMembers = Success,Error,Skipped;
             ToolTip = 'Specifies the status of the iteration.';
         }
         field(11; Operation; Text[100])

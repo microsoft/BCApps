@@ -5,6 +5,7 @@
 
 namespace System.Agents;
 
+using System.Environment.Consumption;
 using System.Security.AccessControl;
 using System.Security.User;
 
@@ -13,6 +14,20 @@ codeunit 4318 "Agent System Permissions Impl."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+
+    procedure CurrentUserCanSeeConsumptionData(): Boolean
+    var
+        DummyUserAIConsumptionData: Record "User AI Consumption Data";
+    begin
+        exit(DummyUserAIConsumptionData.ReadPermission());
+    end;
+
+    procedure CurrentUserHasCanManageAllAgentsInAllCompaniesPermission(): Boolean
+    var
+        AgentUtilities: Codeunit "Agent Utilities";
+    begin
+        exit(AgentUtilities.CurrentUserHasConfigureAllAgentsPermissionInAllCompanies());
+    end;
 
     procedure CurrentUserHasCanManageAllAgentsPermission(): Boolean
     begin
@@ -30,6 +45,19 @@ codeunit 4318 "Agent System Permissions Impl."
         exit(false);
     end;
 
+    procedure CurrentUserCanUseAgent(AgentUserSecurityId: Guid): Boolean
+    var
+        Agent: Record Agent;
+    begin
+        if (CurrentUserHasCanManageAllAgentsPermission()) then
+            exit(true);
+
+        if Agent.Get(AgentUserSecurityId) then
+            exit(Agent."Can Current User Use Agent");
+
+        exit(false);
+    end;
+
     procedure CurrentUserCanManageAgent(AgentUserSecurityId: Guid): Boolean
     var
         Agent: Record Agent;
@@ -38,8 +66,7 @@ codeunit 4318 "Agent System Permissions Impl."
             exit(true);
 
         if Agent.Get(AgentUserSecurityId) then
-            if Agent."Can Curr. User Configure Agent" then
-                exit(true);
+            exit(Agent."Can Curr. User Configure Agent");
 
         exit(false);
     end;
