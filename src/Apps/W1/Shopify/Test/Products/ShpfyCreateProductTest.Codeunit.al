@@ -3092,6 +3092,7 @@ codeunit 139601 "Shpfy Create Product Test"
         ShopifyProduct: Record "Shpfy Product";
         ShopifyVariant: Record "Shpfy Variant";
         ProductExport: Codeunit "Shpfy Product Export";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
     begin
         // [SCENARIO] Product Export must not create additional Shopify variants
         // [SCENARIO] for unmapped child-item variants when a child item was added as Shopify variant.
