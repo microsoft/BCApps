@@ -190,12 +190,12 @@ table 4310 "Agent Setup Buffer"
 
     internal procedure GetUserSettings(var TempNewUserSetting: Record "User Settings" temporary)
     var
-        TempFetchedUserSettings: Record "User Settings";
+        UserSettings: Record "User Settings";
         Agent: Codeunit Agent;
     begin
         if not TempUserSettings.FindFirst() then begin
-            Agent.GetUserSettings(Rec."User Security ID", TempFetchedUserSettings);
-            TempFetchedUserSettings.Copy(TempUserSettings);
+            Agent.GetUserSettings(Rec."User Security ID", UserSettings);
+            TempUserSettings.Copy(UserSettings);
         end;
 
         TempNewUserSetting.Copy(TempUserSettings, true);

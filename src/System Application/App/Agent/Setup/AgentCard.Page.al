@@ -76,11 +76,11 @@ page 4315 "Agent Card"
                             if not Confirm(ProfileChangedQst, false) then
                                 exit;
 
-                            if Agent.ProfileLookup(TempUserSettingsRecord) then
-                                Agent.SetProfile(TempUserSettingsRecord."User Security ID", TempUserSettingsRecord."Profile ID", TempUserSettingsRecord."App ID");
+                            if Agent.ProfileLookup(UserSettingsRecord) then
+                                Agent.SetProfile(UserSettingsRecord."User Security ID", UserSettingsRecord."Profile ID", UserSettingsRecord."App ID");
                         end;
                     }
-                    field(Language; Language.GetWindowsLanguageName(TempUserSettingsRecord."Language ID"))
+                    field(Language; Language.GetWindowsLanguageName(UserSettingsRecord."Language ID"))
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Language';
@@ -91,9 +91,9 @@ page 4315 "Agent Card"
                         var
                             UserSettings: Codeunit "User Settings";
                         begin
-                            UserSettings.GetUserSettings(Rec."User Security ID", TempUserSettingsRecord);
+                            UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
                             Commit();
-                            Page.RunModal(Page::"Agent User Settings", TempUserSettingsRecord);
+                            Page.RunModal(Page::"Agent User Settings", UserSettingsRecord);
                             CurrPage.Update(false);
                         end;
                     }
@@ -155,9 +155,9 @@ page 4315 "Agent Card"
                     UserSettings: Codeunit "User Settings";
                 begin
                     Rec.TestField("User Security ID");
-                    UserSettings.GetUserSettings(Rec."User Security ID", TempUserSettingsRecord);
+                    UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
                     Commit();
-                    Page.RunModal(Page::"Agent User Settings", TempUserSettingsRecord);
+                    Page.RunModal(Page::"Agent User Settings", UserSettingsRecord);
                 end;
             }
             action(AgentTasks)
@@ -210,8 +210,8 @@ page 4315 "Agent Card"
         UserSettings: Codeunit "User Settings";
     begin
         if not IsNullGuid(Rec."User Security ID") then begin
-            UserSettings.GetUserSettings(Rec."User Security ID", TempUserSettingsRecord);
-            ProfileDisplayName := UserSettings.GetProfileName(TempUserSettingsRecord);
+            UserSettings.GetUserSettings(Rec."User Security ID", UserSettingsRecord);
+            ProfileDisplayName := UserSettings.GetProfileName(UserSettingsRecord);
         end;
 
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
@@ -253,7 +253,7 @@ page 4315 "Agent Card"
     end;
 
     var
-        TempUserSettingsRecord: Record "User Settings";
+        UserSettingsRecord: Record "User Settings";
         Language: Codeunit Language;
         ProfileDisplayName, CopilotAvailabilityTxt : Text;
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';

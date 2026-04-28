@@ -173,7 +173,7 @@ codeunit 4300 "Agent Task Impl."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetPageSummary, '', true, true)]
     local procedure OnGetGetPageSummary(PageId: Integer; Bookmark: Text; var Summary: Text)
     var
-        TempPageSummaryParameters: Record "Page Summary Parameters";
+        PageSummaryParameters: Record "Page Summary Parameters";
         PageSummaryProvider: Codeunit "Page Summary Provider";
     begin
         if PageId = 0 then begin
@@ -181,12 +181,12 @@ codeunit 4300 "Agent Task Impl."
             exit;
         end;
 
-        TempPageSummaryParameters."Page ID" := PageId;
+        PageSummaryParameters."Page ID" := PageId;
 #pragma warning disable AA0139
-        TempPageSummaryParameters.Bookmark := Bookmark;
+        PageSummaryParameters.Bookmark := Bookmark;
 #pragma warning restore AA0139
-        TempPageSummaryParameters."Include Binary Data" := false;
-        Summary := PageSummaryProvider.GetPageSummary(TempPageSummaryParameters);
+        PageSummaryParameters."Include Binary Data" := false;
+        Summary := PageSummaryProvider.GetPageSummary(PageSummaryParameters);
     end;
 
     var
