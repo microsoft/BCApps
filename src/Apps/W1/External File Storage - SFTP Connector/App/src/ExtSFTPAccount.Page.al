@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -21,7 +22,7 @@ page 4621 "Ext. SFTP Account"
     SourceTable = "Ext. SFTP Account";
     UsageCategory = None;
     ObsoleteReason = 'The SFTP connector has been removed because platform hardening prevents support for SFTP connections.';
-    ObsoleteState = Removed;
+    ObsoleteState = Pending;
     ObsoleteTag = '29.0';
 
     layout
@@ -164,3 +165,4 @@ page 4621 "Ext. SFTP Account"
     end;
 }
 #pragma warning restore AL0432, AS0105
+#endif

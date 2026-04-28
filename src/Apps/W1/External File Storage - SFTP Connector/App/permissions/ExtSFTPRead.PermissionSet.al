@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,7 +13,7 @@ permissionset 4623 "Ext. SFTP - Read"
     Assignable = false;
     Caption = 'SFTP - Read';
     ObsoleteReason = 'The SFTP connector has been removed because platform hardening prevents support for SFTP connections.';
-    ObsoleteState = Removed;
+    ObsoleteState = Pending;
     ObsoleteTag = '29.0';
     IncludedPermissionSets = "Ext. SFTP - Objects";
 
@@ -20,3 +21,4 @@ permissionset 4623 "Ext. SFTP - Read"
         tabledata "Ext. SFTP Account" = r;
 }
 #pragma warning restore AL0432, AS0105
+#endif

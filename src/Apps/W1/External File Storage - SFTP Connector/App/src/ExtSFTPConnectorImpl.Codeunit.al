@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -17,7 +18,7 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     InherentEntitlements = X;
     InherentPermissions = X;
     ObsoleteReason = 'The SFTP connector has been removed because platform hardening prevents support for SFTP connections.';
-    ObsoleteState = Removed;
+    ObsoleteState = Pending;
     ObsoleteTag = '29.0';
     Permissions = tabledata "Ext. SFTP Account" = rimd;
 
@@ -500,3 +501,4 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     end;
 }
 #pragma warning restore AL0432, AS0105
+#endif

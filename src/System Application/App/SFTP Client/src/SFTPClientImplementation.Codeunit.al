@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -15,7 +16,7 @@ codeunit 9763 "SFTP Client Implementation"
     InherentEntitlements = X;
     InherentPermissions = X;
     ObsoleteReason = 'The SFTP module has been removed because platform hardening prevents support for SFTP connections.';
-    ObsoleteState = Removed;
+    ObsoleteState = Pending;
     ObsoleteTag = '29.0';
 
     procedure Initialize(Host: Text; Port: Integer; UserName: Text; Password: SecretText): Codeunit "SFTP Operation Response"
@@ -215,3 +216,4 @@ codeunit 9763 "SFTP Client Implementation"
         ISFTPClientSet: Boolean;
 }
 #pragma warning restore AL0432, AS0105
+#endif

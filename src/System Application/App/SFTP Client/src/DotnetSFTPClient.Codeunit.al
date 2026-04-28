@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,7 +15,7 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
     InherentEntitlements = X;
     InherentPermissions = X;
     ObsoleteReason = 'The SFTP module has been removed because platform hardening prevents support for SFTP connections.';
-    ObsoleteState = Removed;
+    ObsoleteState = Pending;
     ObsoleteTag = '29.0';
 
     var
@@ -265,3 +266,4 @@ codeunit 9760 "Dotnet SFTP Client" implements "ISFTP Client"
     end;
 }
 #pragma warning restore AL0432, AS0105
+#endif
