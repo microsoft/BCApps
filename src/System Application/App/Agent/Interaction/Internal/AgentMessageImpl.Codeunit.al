@@ -59,7 +59,7 @@ codeunit 4308 "Agent Message Impl."
         GlobalIgnoreAttachment := IgnoreAttachment;
     end;
 
-    procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; var TempAgentTaskFile: Record "Agent Task File" temporary)
+    procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; var TempAgentTaskFile: Record "Agent Task File" temporary; IgnoredReason: Text[250])
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         FileInstream: InStream;
@@ -69,10 +69,15 @@ codeunit 4308 "Agent Message Impl."
             exit;
 
         TempAgentTaskFile.Content.CreateInStream(FileInstream, AgentTaskImpl.GetDefaultEncoding());
-        AddAttachment(AgentTaskMessage, TempAgentTaskFile."File Name", TempAgentTaskFile."File MIME Type", FileInstream);
+        AddAttachment(AgentTaskMessage, TempAgentTaskFile."File Name", TempAgentTaskFile."File MIME Type", FileInstream, IgnoredReason);
     end;
 
     procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream)
+    begin
+        AddAttachment(AgentTaskMessage, FileName, FileMIMEType, InStream, '');
+    end;
+
+    procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; IgnoredReason: Text[250])
     var
         AgentTaskFile: Record "Agent Task File";
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
@@ -92,6 +97,7 @@ codeunit 4308 "Agent Message Impl."
         AgentTaskMessageAttachment."Message ID" := AgentTaskMessage.ID;
         AgentTaskMessageAttachment."File ID" := AgentTaskFile.ID;
         AgentTaskMessageAttachment.Ignored := GlobalIgnoreAttachment;
+        AgentTaskMessageAttachment."Ignored Reason" := CopyStr(IgnoredReason, 1, MaxStrLen(AgentTaskMessageAttachment."Ignored Reason"));
         AgentTaskMessageAttachment.Insert();
     end;
 
