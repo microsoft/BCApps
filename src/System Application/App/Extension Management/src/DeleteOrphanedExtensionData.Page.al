@@ -133,7 +133,7 @@ page 2514 "Delete Orphaned Extension Data"
                     Caption = 'Mark All as Reviewed';
                     Enabled = HasUnreviewedExtensions;
                     Image = Approve;
-                    ToolTip = 'Mark all orphaned extension data as reviewed. This acknowledges the data has been seen and suppresses future notifications.';
+                    ToolTip = 'Mark all orphaned extension data as reviewed. This acknowledges the data has been seen and is kept intentionally.';
 
                     trigger OnAction()
                     var

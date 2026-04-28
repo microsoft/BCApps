@@ -429,7 +429,7 @@ page 2500 "Extension Management"
         HelpActionVisible: Boolean;
         IsSourceSpecificationAvailable: Boolean;
         UninstalledExtensionsMsg: Label 'There''s orphaned data from uninstalled extensions. Use the Delete Orphaned Extension Data page to review it.';
-        ShowOrphanedExtensionsLbl: Label 'Show extensions';
+        ShowOrphanedExtensionsLbl: Label 'Show Extensions';
         MarkAllAsReviewedLbl: Label 'Mark All as Reviewed';
         OrphanedDataNotificationIdTok: Label 'b1c5a678-2e3f-4d91-a6b0-9f8e7d6c5b4a', Locked = true;
 
