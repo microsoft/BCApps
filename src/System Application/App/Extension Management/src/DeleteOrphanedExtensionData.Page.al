@@ -122,6 +122,7 @@ page 2514 "Delete Orphaned Extension Data"
                             Clear(Rec);
                             Rec.SetView(FilterCache);
                             Rec.SetFilter(Rec.Status, '<>Installed');
+                            UpdateHasUnreviewedExtensions();
                             CurrPage.Update(false);
                         end;
                     end;
@@ -193,7 +194,7 @@ page 2514 "Delete Orphaned Extension Data"
         ExtensionDatabaseSnapshot: Record "Extension Database Snapshot";
     begin
         ExtensionDatabaseSnapshot.SetFilter(Status, '<>%1', ExtensionDatabaseSnapshot.Status::Installed);
-        ExtensionDatabaseSnapshot.SetRange("Is Reviewed", false);
+        ExtensionDatabaseSnapshot.SetFilter("Is Reviewed", '%1', false);
         HasUnreviewedExtensions := not ExtensionDatabaseSnapshot.IsEmpty();
     end;
 }

@@ -32,7 +32,8 @@ page 2500 "Extension Management"
                             "Tenant Visible" = const(true));
     UsageCategory = Administration;
     ContextSensitiveHelpPage = 'ui-extensions';
-    Permissions = tabledata "Published Application" = r;
+    Permissions = tabledata "Published Application" = r,
+                  tabledata "Extension Database Snapshot" = r;
 
     layout
     {
@@ -389,12 +390,20 @@ page 2500 "Extension Management"
         Uninstalled: Record "Extension Database Snapshot";
         Notif: Notification;
     begin
+        if not Uninstalled.ReadPermission() then
+            exit;
+
+        Notif.Id := OrphanedDataNotificationIdTok;
+        Notif.Scope := NotificationScope::LocalScope;
+
+        Notif.Recall();
+
         Uninstalled.SetFilter(Status, '<>%1', Uninstalled.Status::Installed);
         Uninstalled.SetFilter("Is Reviewed", '%1', false);
         if not Uninstalled.IsEmpty() then begin
             Notif.Message(UninstalledExtensionsMsg);
-            Notif.AddAction('Show', Codeunit::"Extension Operation Impl", 'HandleOrphanedDataNotification');
-            Notif.AddAction('Mark All as Reviewed', Codeunit::"Extension Operation Impl", 'MarkOrphanedDataAsReviewed');
+            Notif.AddAction(ShowOrphanedExtensionsLbl, Codeunit::"Extension Operation Impl", 'HandleOrphanedDataNotification');
+            Notif.AddAction(MarkAllAsReviewedLbl, Codeunit::"Extension Operation Impl", 'MarkOrphanedDataAsReviewed');
             Notif.Send();
         end;
     end;
@@ -419,7 +428,10 @@ page 2500 "Extension Management"
         InfoStyle: Boolean;
         HelpActionVisible: Boolean;
         IsSourceSpecificationAvailable: Boolean;
-        UninstalledExtensionsMsg: Label 'There''s orphaned data from uninstalled extensions. Use the Delete Orphaned Extension Data page to review';
+        UninstalledExtensionsMsg: Label 'There''s orphaned data from uninstalled extensions. Use the Delete Orphaned Extension Data page to review it.';
+        ShowOrphanedExtensionsLbl: Label 'Show extensions';
+        MarkAllAsReviewedLbl: Label 'Mark All as Reviewed';
+        OrphanedDataNotificationIdTok: Label 'b1c5a678-2e3f-4d91-a6b0-9f8e7d6c5b4a', Locked = true;
 
     protected procedure IsSaasEnvironment(): boolean
     begin
