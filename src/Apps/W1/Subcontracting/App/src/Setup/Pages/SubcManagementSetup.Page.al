@@ -47,7 +47,7 @@ page 99001510 "Subc. Management Setup"
                 }
                 field(AllowEditUISelection; Rec.AllowEditUISelection)
                 {
-                    ToolTip = 'Specifies whether the user is allowed to change the display and editing options for Production BOM and Routing steps within the purchase provision wizard. If enabled, users can decide whether to hide, show, or fully edit BOM and Routing details during the process. If disabled, the options defined in the setup will be applied without allowing user modification at the wizard level.';
+                    ToolTip = 'Specifies whether the user can change display and editing options for BOM and routing steps in the wizard. If turned on, users can hide, show, or edit details. If turned off, the options from setup are applied without user changes.';
                 }
                 group("Both Available")
                 {

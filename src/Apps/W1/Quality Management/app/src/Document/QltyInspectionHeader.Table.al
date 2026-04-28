@@ -998,8 +998,8 @@ table 20405 "Qlty. Inspection Header"
     /// <summary>
     /// Creates a Re-inspection and returns the created record.
     /// </summary>
-    /// <param name="CreatedReinspectionHeader">The newly created re-inspection header.</param>
-    procedure CreateReinspection(var CreatedReinspectionHeader: Record "Qlty. Inspection Header")
+    /// <param name="ReinspectionQltyInspectionHeader">The newly created re-inspection header.</param>
+    procedure CreateReinspection(var ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         Proceed: Boolean;
@@ -1017,7 +1017,7 @@ table 20405 "Qlty. Inspection Header"
         else
             Proceed := true;
         if Proceed then
-            QltyInspectionCreate.CreateReinspection(Rec, CreatedReinspectionHeader);
+            QltyInspectionCreate.CreateReinspection(Rec, ReinspectionQltyInspectionHeader);
     end;
 
     /// <summary>

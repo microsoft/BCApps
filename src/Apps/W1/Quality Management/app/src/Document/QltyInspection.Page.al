@@ -479,13 +479,13 @@ page 20406 "Qlty. Inspection"
 
                 trigger OnAction()
                 var
-                    CreatedReinspectionHeader: Record "Qlty. Inspection Header";
+                    ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection(CreatedReinspectionHeader);
+                    Rec.CreateReinspection(ReinspectionQltyInspectionHeader);
                     CurrPage.Update(false);
-                    if not IsNullGuid(CreatedReinspectionHeader.SystemId) then begin
+                    if not IsNullGuid(ReinspectionQltyInspectionHeader.SystemId) then begin
                         Commit();
-                        Page.Run(Page::"Qlty. Inspection", CreatedReinspectionHeader);
+                        Page.Run(Page::"Qlty. Inspection", ReinspectionQltyInspectionHeader);
                     end;
                 end;
             }

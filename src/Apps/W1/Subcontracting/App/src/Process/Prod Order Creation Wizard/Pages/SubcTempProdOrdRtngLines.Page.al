@@ -40,6 +40,12 @@ page 99001509 "Subc. TempProdOrdRtngLines"
                 {
                     ToolTip = 'Specifies a description of the operation.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description of the operation.';
+                    Visible = false;
+                }
                 field("Setup Time"; Rec."Setup Time")
                 {
                     AutoFormatType = 0;
