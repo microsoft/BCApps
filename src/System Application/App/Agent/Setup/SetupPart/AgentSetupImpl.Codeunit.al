@@ -263,9 +263,8 @@ codeunit 4325 "Agent Setup Impl."
     begin
         AgentRecord.Get(AgentSetupBuffer."User Security ID");
 
-        if AgentSetupBuffer."Values Updated" then begin
+        if AgentSetupBuffer."Values Updated" then
             Agent.SetDisplayName(AgentSetupBuffer."User Security ID", AgentSetupBuffer."Display Name");
-        end;
 
         if AgentSetupBuffer."User Settings Updated" then begin
             AgentSetupBuffer.GetUserSettings(TempNewUserSettings);

@@ -251,11 +251,11 @@ codeunit 133961 "Agent Test"
         Any: Codeunit Any;
         AgentId: Guid;
         NewModelId: Code[30];
-        RetrievedModelId: Code[30];
+        AgentModelNotFoundErr: Label 'The agent model ''%1'' could not be found.', Locked = true;
     begin
         Initialize();
 
-        // [SCENARIO] Set model ID of an agent
+        // [SCENARIO] Setting an invalid model ID should fail
 
         // [GIVEN] An agent
         AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
@@ -264,13 +264,12 @@ codeunit 133961 "Agent Test"
             CopyStr(Any.AlphanumericText(80), 1, 80),
             CopyStr(Any.AlphanumericText(2048), 1, 2048));
 
-        // [WHEN] Setting a new model ID
+        // [WHEN] Setting an invalid model ID
         NewModelId := CopyStr(Any.AlphanumericText(MaxStrLen(NewModelId)), 1, MaxStrLen(NewModelId));
-        Agent.SetModelId(AgentId, NewModelId);
+        asserterror Agent.SetModelId(AgentId, NewModelId);
 
-        // [THEN] The model ID should be updated
-        RetrievedModelId := Agent.GetModelId(AgentId);
-        Assert.AreEqual(NewModelId, RetrievedModelId, 'Model ID should be updated');
+        // [THEN] The agent should reject unknown model IDs
+        Assert.ExpectedError(StrSubstNo(AgentModelNotFoundErr, NewModelId));
     end;
 
     [Test]
@@ -285,15 +284,14 @@ codeunit 133961 "Agent Test"
 
         // [SCENARIO] Set model ID of an agent to auto mode
 
-        // [GIVEN] An agent with a model ID set
+        // [GIVEN] An agent
         AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
             AgentRecord,
             CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
             CopyStr(Any.AlphanumericText(80), 1, 80),
             CopyStr(Any.AlphanumericText(2048), 1, 2048));
-        Agent.SetModelId(AgentId, CopyStr(Any.AlphanumericText(30), 1, 30));
 
-        // [WHEN] Setting the model ID to auto
+        // [WHEN] Setting the model ID to auto (auto means empty model ID)
         Agent.SetModelIdToAuto(AgentId);
 
         // [THEN] The model ID should be empty
