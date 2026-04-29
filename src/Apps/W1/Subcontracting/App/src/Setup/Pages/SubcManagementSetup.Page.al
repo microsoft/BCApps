@@ -72,10 +72,6 @@ page 99001510 "Subc. Management Setup"
                 {
                     ToolTip = 'Specifies the default flushing method used for purchase provision components. This determines how component consumption is automatically posted during production.';
                 }
-                field("Direct Transfer"; Rec."Direct Transfer")
-                {
-                    ToolTip = 'Specifies that the transfer for subcontracting components does not use an in-transit location. When you transfer directly, the Qty. to Receive field will be locked with the same value as the quantity to ship.';
-                }
                 field("Component at Location"; Rec."Component at Location")
                 {
                     ToolTip = 'Specifies which location code is to be used as the transfer-from location when creating a transfer order of external production components (provision).';
