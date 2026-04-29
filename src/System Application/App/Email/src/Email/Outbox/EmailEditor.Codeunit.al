@@ -300,8 +300,8 @@ codeunit 8906 "Email Editor"
     procedure LoadWordTemplate(EmailMessageImpl: Codeunit "Email Message Impl."; EmailMessageID: Guid)
     var
         WordTemplateRecord: Record "Word Template";
-        WordTemplateToTextWizard: Page "Word Template To Text Wizard";
         EmailImpl: Codeunit "Email Impl";
+        WordTemplateToTextWizard: Page "Word Template To Text Wizard";
         TemplateSize: Integer;
         Dict: Dictionary of [Integer, Text];
         PrimarySource: Integer;
@@ -334,8 +334,8 @@ codeunit 8906 "Email Editor"
     procedure AttachFromWordTemplate(EmailMessageImpl: Codeunit "Email Message Impl."; EmailMessageID: Guid)
     var
         WordTemplateRecord: Record "Word Template";
-        WordTemplateSelectionWizard: Page "Word Template Selection Wizard";
         EmailImpl: Codeunit "Email Impl";
+        WordTemplateSelectionWizard: Page "Word Template Selection Wizard";
         InStream: InStream;
         Filename: Text;
         FileSize: Integer;
