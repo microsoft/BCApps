@@ -21,6 +21,7 @@ codeunit 2359 "Http Authentication Basic" implements "Http Authentication"
     /// <summary>Initializes the authentication object with the given username and password</summary>
     /// <param name="Username">The username to use for authentication</param>
     /// <param name="Password">The password to use for authentication</param>
+    [NonDebuggable]
     procedure Initialize(Username: Text; Password: SecretText)
     begin
         Initialize(Username, '', Password);
@@ -30,6 +31,7 @@ codeunit 2359 "Http Authentication Basic" implements "Http Authentication"
     /// <param name="Username">The username to use for authentication</param>
     /// <param name="Domain">The domain to use for authentication</param>
     /// <param name="Password">The password to use for authentication</param>
+    [NonDebuggable]
     procedure Initialize(Username: Text; Domain: Text; Password: SecretText)
     begin
         if Domain = '' then
@@ -42,6 +44,7 @@ codeunit 2359 "Http Authentication Basic" implements "Http Authentication"
 
     /// <summary>Checks if authentication is required for the request</summary>
     /// <returns>Returns true because authentication is required</returns>
+    [NonDebuggable]
     procedure IsAuthenticationRequired(): Boolean;
     begin
         exit(true);
@@ -49,6 +52,7 @@ codeunit 2359 "Http Authentication Basic" implements "Http Authentication"
 
     /// <summary>Gets the authorization headers for the request</summary>
     /// <returns>Returns a dictionary of headers that need to be added to the request</returns>
+    [NonDebuggable]
     procedure GetAuthorizationHeaders() Header: Dictionary of [Text, SecretText];
     begin
         Header.Add('Authorization', SecretStrSubstNo('Basic %1', ToBase64(SecretStrSubstNo('%1:%2', GlobalUsername, GlobalPassword))));
