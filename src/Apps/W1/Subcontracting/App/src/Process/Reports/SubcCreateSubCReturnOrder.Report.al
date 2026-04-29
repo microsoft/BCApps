@@ -80,6 +80,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
     local procedure InsertTransferHeader(SubcontractingType: Enum "Subcontracting Type"; OrigCompLineLocation: Code[10])
     var
+        TransferRoute: Record "Transfer Route";
         TransferFromLocationCode, TransferToLocationCode : Code[10];
     begin
         if not SubcManagementSetup.Get() then
@@ -103,6 +104,8 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
             TransferHeader.Validate("Transfer-from Code", TransferFromLocationCode);
             TransferHeader.Validate("Transfer-to Code", OrigCompLineLocation);
+            if not TransferRoute.Get(TransferFromLocationCode, OrigCompLineLocation) or (TransferRoute."In-Transit Code" = '') then
+                TransferHeader.Validate("Direct Transfer", true);
 
             TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;
             TransferHeader."Source Subtype" := TransferHeader."Source Subtype"::"2";

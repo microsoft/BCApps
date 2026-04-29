@@ -74,6 +74,7 @@ report 99001501 "Subc. Create Transf. Order"
 
     local procedure InsertTransferHeader(CompLineLocation: Code[10])
     var
+        TransferRoute: Record "Transfer Route";
         TransferToLocationCode: Code[10];
     begin
         GetTransferToLocationCode(TransferToLocationCode);
@@ -92,6 +93,8 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader.Insert(true);
             TransferHeader.Validate("Transfer-from Code", CompLineLocation);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
+            if not TransferRoute.Get(CompLineLocation, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then
+                TransferHeader.Validate("Direct Transfer", true);
 
             TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;
             TransferHeader."Source Subtype" := TransferHeader."Source Subtype"::"2";
