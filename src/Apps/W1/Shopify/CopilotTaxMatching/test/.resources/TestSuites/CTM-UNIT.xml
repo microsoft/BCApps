@@ -11,16 +11,16 @@
               Description="Jurisdiction Matching (J1-J8, F1-F2)"
               Dataset="CTM-TS-JurisdictionMatch.yaml" />
         <Line CodeunitID="30494"
-              Description="Jurisdiction Creation (JC1-JC4)"
+              Description="Jurisdiction Creation (JC1-JC5)"
               Dataset="CTM-TS-JurisdictionCreate.yaml" />
         <Line CodeunitID="30494"
-              Description="Tax Detail (TD1-TD6)"
+              Description="Tax Detail (TD1-TD8)"
               Dataset="CTM-TS-TaxDetail.yaml" />
         <Line CodeunitID="30495"
               Description="Tax Area (TA1-TA11)"
               Dataset="CTM-TS-TaxArea.yaml" />
         <Line CodeunitID="30497"
-              Description="Guards (G1, G4, G7)"
+              Description="Guards (G1, G4-G7)"
               Dataset="CTM-TS-Guard.yaml" />
     </AITSuite>
 </Root>

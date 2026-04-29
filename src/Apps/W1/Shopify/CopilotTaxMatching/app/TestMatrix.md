@@ -55,11 +55,11 @@
 |---|----------|---------------------|-----------------|
 | TD1 | No existing detail | None for this jurisdiction + tax group | Tax Detail created with rate from tax line |
 | TD2 | Exact detail exists | Same jurisdiction, tax group, and rate | No duplicate created |
-| TD3 | Same jurisdiction, different rate | Detail exists with different Tax Below Maximum | New Tax Detail created for the new rate |
+| TD3 | Same jurisdiction, different rate | Valid bracket exists at earlier date with different rate | Existing detail preserved; rate divergence logged (telemetry `0000SHK`); no new detail inserted |
 | TD4 | Same jurisdiction, different tax group | Detail exists with different Tax Group Code | New Tax Detail created for the new tax group |
 | TD5 | Item has no tax group | Order line item has blank Tax Group Code | Tax Detail created with blank Tax Group Code |
 | TD6 | Order line has no item | Item No. is blank on order line | Tax Detail created with blank Tax Group Code |
-| TD7 | Multiple tax lines, same jurisdiction | Two lines with different rates, same jurisdiction | Two Tax Detail records created |
+| TD7 | Multiple tax lines across jurisdictions | Two tax lines on different jurisdictions, auto-create on | One Tax Detail per jurisdiction |
 | TD8 | Effective date | Order Document Date = 2026-01-15 | Tax Detail has Effective Date = 2026-01-15 |
 
 ---
@@ -94,6 +94,19 @@
 | G6 | No order lines | MatchTaxLines returns false |
 | G7 | All tax lines already have jurisdiction codes | MatchTaxLines returns false (no unmatched lines) |
 | G8 | Order import Result = false | Event subscriber exits immediately |
+
+---
+
+## HITL (Human-in-the-loop) Scenarios
+
+| # | Scenario | Expected Result |
+|---|----------|-----------------|
+| HITL-1 | Order Header marker set; Sales Header created | `Sales Header."Copilot Tax Match Applied" = true` (propagated via `OnAfterCreateSalesHeader`) |
+| HITL-2 | Order Header marker false; Sales Header created | Sales Header marker stays false; no notification row queued |
+| HITL-3 | Order Header marker propagated to Sales Header | One row inserted in `Shpfy Copilot Tax Notification` keyed `(SalesHeader.SystemId, UserId())` |
+| HITL-4 | `MarkReviewed` called on a queued row | Row's `Reviewed` flips to `true`; `SendForCurrentSalesHeader` returns silently next time |
+| HITL-5 | Successful match applied | `Activity Log Entry` count for the Order Header `Tax Area Code` field ≥ 1; per-line entries on each matched `Shpfy Order Tax Line` |
+| HITL-6 | LLM returns 'low'/'medium'/'high'/unknown confidence | `Capitalize` helper maps to 'Low'/'Medium'/'High'/'Low' (safe fallback); `Activity Log Builder.SetConfidence` does not error |
 
 ---
 

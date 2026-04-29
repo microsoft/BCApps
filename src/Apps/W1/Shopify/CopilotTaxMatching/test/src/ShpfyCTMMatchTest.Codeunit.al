@@ -27,6 +27,9 @@ codeunit 30494 "Shpfy CTM Match Test"
         Input: Codeunit "Test Input Json";
         Expected: Codeunit "Test Input Json";
         MatchedJurisdictions: List of [Code[10]];
+        MatchLog: JsonArray;
+        ResolvedTaxAreaCode: Code[20];
+        TaxAreaWasCreated: Boolean;
         Result: Boolean;
         ExpectedResult: Boolean;
         ElementExists: Boolean;
@@ -41,9 +44,9 @@ codeunit 30494 "Shpfy CTM Match Test"
         OrderHeader := TestLib.SetupOrder(Input.Element('setup'), Shop);
 
         // Act — real LLM call + tax area
-        Result := Matcher.MatchTaxLines(OrderHeader, Shop, MatchedJurisdictions);
+        Result := Matcher.MatchTaxLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog);
         if Result and (MatchedJurisdictions.Count() > 0) then
-            TaxAreaBuilder.FindOrCreateTaxArea(OrderHeader, Shop, MatchedJurisdictions);
+            TaxAreaBuilder.FindOrCreateTaxArea(OrderHeader, Shop, MatchedJurisdictions, ResolvedTaxAreaCode, TaxAreaWasCreated);
 
         // Log test output
         LogTestOutput(Input, OrderHeader, MatchedJurisdictions, Result);

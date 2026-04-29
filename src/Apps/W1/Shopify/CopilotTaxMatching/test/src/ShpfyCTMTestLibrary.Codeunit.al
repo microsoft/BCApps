@@ -157,6 +157,10 @@ codeunit 30491 "Shpfy CTM Test Library"
         if ElementExists then
             OrderHeader."Tax Area Code" := CopyStr(SetupInput.Element('existingTaxAreaCode').ValueAsText(), 1, MaxStrLen(OrderHeader."Tax Area Code"));
 
+        SetupInput.ElementExists('taxExempt', ElementExists);
+        if ElementExists then
+            OrderHeader."Tax Exempt" := SetupInput.Element('taxExempt').ValueAsBoolean();
+
         OrderHeader.Insert();
 
         // Create order lines and tax lines

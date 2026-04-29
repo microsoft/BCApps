@@ -1,24 +1,22 @@
-// ------------------------------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See License.txt in the project root for license information.
-// ------------------------------------------------------------------------------------------------
-
 namespace Microsoft.Integration.Shopify;
 
 /// <summary>
-/// Page Shpfy Order Tax Lines (ID 30168).
+/// Page Shpfy CT Order Tax Lines Part (ID 30479).
+/// ListPart variant of the Shopify Order Tax Lines surface, designed to be embedded as a
+/// subform on the Shopify Order Card page. The platform renders AI confidence indicators
+/// on Activity Log-anchored fields when they appear on a Card or in a ListPart embedded
+/// in a Card — so embedding this part is what makes per-tax-line Copilot indicators
+/// visible without forcing the user to drill into individual records.
 /// </summary>
-page 30168 "Shpfy Order Tax Lines"
+page 30479 "Shpfy CT Order Tax Lines Part"
 {
-    Caption = 'Shopify Order Tax Lines';
+    Caption = 'Tax Lines';
+    PageType = ListPart;
+    SourceTable = "Shpfy Order Tax Line";
     DeleteAllowed = false;
     Editable = false;
     InsertAllowed = false;
     ModifyAllowed = false;
-    PageType = List;
-    PromotedActionCategories = 'New,Process,Report,Fulfillment,Inspect';
-    SourceTable = "Shpfy Order Tax Line";
-    UsageCategory = None;
 
     layout
     {
@@ -29,7 +27,7 @@ page 30168 "Shpfy Order Tax Lines"
                 field(Title; Rec.Title)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the title of the tax line.';
+                    ToolTip = 'Specifies the title of the tax line as imported from Shopify.';
                 }
                 field(Rate; Rec.Rate)
                 {
@@ -44,7 +42,6 @@ page 30168 "Shpfy Order Tax Lines"
                 field("Presentment Amount"; Rec."Presentment Amount")
                 {
                     ApplicationArea = All;
-                    Caption = 'Presentment Amount';
                     ToolTip = 'Specifies the amount of the tax line in presentment currency.';
                     Visible = PresentmentCurrencyVisible;
                 }
@@ -58,6 +55,11 @@ page 30168 "Shpfy Order Tax Lines"
                     ApplicationArea = All;
                     ToolTip = 'Specifies if the channel that submitted the tax line is liable for remitting.';
                 }
+                field("Tax Jurisdiction Code"; Rec."Tax Jurisdiction Code")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the Business Central Tax Jurisdiction matched to this Shopify tax line.';
+                }
             }
         }
     }
@@ -67,7 +69,7 @@ page 30168 "Shpfy Order Tax Lines"
 
     trigger OnAfterGetRecord()
     begin
-        this.SetShowPresentmentCurrencyVisibility();
+        SetShowPresentmentCurrencyVisibility();
     end;
 
     local procedure SetShowPresentmentCurrencyVisibility()
@@ -80,7 +82,6 @@ page 30168 "Shpfy Order Tax Lines"
             exit;
         if not OrderHeader.Get(OrderLine."Shopify Order Id") then
             exit;
-
         PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
     end;
 }

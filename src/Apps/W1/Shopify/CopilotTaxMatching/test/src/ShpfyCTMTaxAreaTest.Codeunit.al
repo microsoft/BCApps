@@ -28,6 +28,8 @@ codeunit 30495 "Shpfy CTM Tax Area Test"
         Expected: Codeunit "Test Input Json";
         JurisdictionCodesInput: Codeunit "Test Input Json";
         JurisdictionCodes: List of [Code[10]];
+        ResolvedTaxAreaCode: Code[20];
+        TaxAreaWasCreated: Boolean;
         Result: Boolean;
         ElementExists: Boolean;
         i: Integer;
@@ -58,7 +60,7 @@ codeunit 30495 "Shpfy CTM Tax Area Test"
         EnsureJurisdictionsExist(JurisdictionCodes);
 
         // Act
-        Result := TaxAreaBuilder.FindOrCreateTaxArea(OrderHeader, Shop, JurisdictionCodes);
+        Result := TaxAreaBuilder.FindOrCreateTaxArea(OrderHeader, Shop, JurisdictionCodes, ResolvedTaxAreaCode, TaxAreaWasCreated);
 
         // Assert
         Expected := Input.Element('expected');

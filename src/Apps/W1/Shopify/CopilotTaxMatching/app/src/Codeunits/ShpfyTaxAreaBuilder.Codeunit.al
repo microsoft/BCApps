@@ -12,10 +12,13 @@ codeunit 30472 "Shpfy Tax Area Builder"
     InherentPermissions = X;
     InherentEntitlements = X;
 
-    procedure FindOrCreateTaxArea(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; JurisdictionCodes: List of [Code[10]]): Boolean
+    procedure FindOrCreateTaxArea(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; JurisdictionCodes: List of [Code[10]]; var ResolvedTaxAreaCode: Code[20]; var WasCreated: Boolean): Boolean
     var
         TaxAreaCode: Code[20];
     begin
+        Clear(ResolvedTaxAreaCode);
+        WasCreated := false;
+
         if JurisdictionCodes.Count() = 0 then
             exit(false);
 
@@ -25,11 +28,14 @@ codeunit 30472 "Shpfy Tax Area Builder"
             if not Shop."Auto Create Tax Areas" then
                 exit(false);
             TaxAreaCode := CreateTaxArea(OrderHeader, Shop, JurisdictionCodes);
+            if TaxAreaCode <> '' then
+                WasCreated := true;
         end;
 
         if TaxAreaCode = '' then
             exit(false);
 
+        ResolvedTaxAreaCode := TaxAreaCode;
         OrderHeader."Tax Area Code" := TaxAreaCode;
         OrderHeader."Tax Liable" := true;
         OrderHeader.Modify();

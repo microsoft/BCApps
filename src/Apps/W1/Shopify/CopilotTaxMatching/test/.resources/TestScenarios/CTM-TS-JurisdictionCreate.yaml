@@ -105,3 +105,27 @@ tests:
           lineNo: 1
           jurisdictionCode: NYSTAX
       matchResult: true
+
+  - name: JC5-DescriptionEqualsCode
+    description: Auto-created jurisdiction's Description must equal its Code
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      createdJurisdictionDescriptionEqualsCode: true
+      matchResult: true

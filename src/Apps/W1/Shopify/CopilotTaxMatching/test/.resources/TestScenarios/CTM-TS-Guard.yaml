@@ -42,6 +42,38 @@ tests:
     expected:
       existingTaxAreaKept: EXISTING-AREA
 
+  - name: G5-OrderTaxExempt
+    description: Order is Tax Exempt — Copilot skipped, order remains unchanged
+    setup:
+      shopSettings:
+        copilotTaxMatchingEnabled: true
+      taxExempt: true
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      orderUnchanged: true
+
+  - name: G6-NoOrderLines
+    description: Order has no order lines — matcher returns false, no changes
+    setup:
+      shopSettings:
+        copilotTaxMatchingEnabled: true
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+    expected:
+      orderUnchanged: true
+
   - name: G7-ResultFalse
     description: Order import Result = false — event subscriber exits immediately
     setup:

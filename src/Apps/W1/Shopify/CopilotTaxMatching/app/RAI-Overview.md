@@ -69,11 +69,31 @@ The response is parsed and validated entirely in AL code. The LLM does not execu
 
 2. **Writes the jurisdiction code** to the Shopify tax line record.
 
-3. **Creates Tax Detail records** (tax rate entries) when auto-creating jurisdictions, using the rate from the Shopify tax line and the Tax Group Code from the order line's item.
+3. **Ensures a Tax Detail bracket valid at the order date exists** for every matched jurisdiction, so the posted Sales Document computes a non-zero tax rate. The matcher looks for the latest Tax Detail with `Effective Date <= order date` for the jurisdiction + tax group + tax type. If none exists, it inserts one at the order date with Shopify's rate. If one exists with a *different* rate from Shopify's, the existing detail is left untouched and the rate divergence is logged in telemetry (event `0000SHK`) — the matcher does not override admin-maintained tax rates, since auto-inserting a new bracket would silently propagate the new rate to every order posting after this date. Admins reconcile divergences manually.
 
 4. **Finds or creates a Tax Area**: Searches for an existing Tax Area that contains exactly the matched set of jurisdictions. If none exists and **Auto Create Tax Areas = Yes**, creates one named after the most specific (lowest-level) jurisdiction, e.g. `SHPFY-MTATAX`.
 
 5. **Sets Tax Area Code and Tax Liable** on the Shopify order header, which flows through to the Sales Document when created.
+
+## Transparency to the user
+
+Because automated tax matching has tax and legal implications, every Copilot decision is visibly recorded and actively surfaced for human review. The mantra is "here's what Copilot did, please take a look" — Copilot still applies matches automatically (so auto-create-sales-doc and background job-queue sync flows are not broken), but no decision runs invisibly.
+
+Three layers deliver this:
+
+1. **Audit log** — every matched tax line and the resulting Tax Area each get a System Application `Activity Log` entry of Type `AI`, carrying the LLM's confidence (`Low`/`Medium`/`High`), the LLM's stated reasoning, and a drill-back link to the Tax Jurisdiction or Tax Area record. The platform automatically renders these as confidence indicators on the corresponding fields.
+
+2. **Persistent badge on the BC Sales Order** — a `Copilot Tax Match Applied` Boolean propagates from the Shopify order onto the Sales Header that BC creates from it. The Sales Order page shows it as a read-only field plus a "Show Copilot Tax Decisions" action that opens the originating Shopify order, where the AI confidence indicators are visible.
+
+3. **Active notification** — the first time a user opens a Copilot-matched Sales Order, a non-blocking BC `Notification` fires asking them to review what Copilot did. Three actions: drill into the source order, mark this one reviewed, or suppress the prompt for all future orders for this user (`MyNotifications.Disable`).
+
+**Why no approve/reject gate** — a blocking gate would defeat auto-create-sales-doc and background sync, the two highest-volume import paths. Instead the Sales Order itself is the editable canonical record where overrides take effect, and the audit + badge + notification ensure the AI's decisions are never silent.
+
+**v1 limitations** documented for awareness:
+
+- The notification row is keyed on the user who *processed* the order. In the job-queue auto-create path, that is the JOBQUEUE user, so the eventual interactive user may not match. The badge and the always-on action are the unaffected fallback paths; per-user-shadow refinement is deferred to v1.1.
+- Refunds and credit memos inherit Tax Area via the standard return-doc path and do not get HITL prompts of their own.
+- Chained automation that auto-releases and auto-posts the Sales Document immediately after auto-create can land in a posted state before a human sees it. A narrow gate suppressing one auto-post cycle when `Copilot Tax Match Applied = true` is planned for v1.1.
 
 ## Guardrails and limitations
 
@@ -88,6 +108,7 @@ The response is parsed and validated entirely in AL code. The LLM does not execu
 | Feature gating | Requires Copilot capability to be both registered and active. Admin must explicitly enable per shop. Standard Copilot AI Capabilities page controls apply. |
 | Determinism | Temperature = 0 for consistent results across identical inputs. |
 | Token limits | Max 4096 output tokens. Input is bounded by the number of tax lines per order (typically 1-5) and total jurisdiction count in the tenant. |
+| Silent automation | Every match writes an `Activity Log` entry (Type = AI) with confidence + reason + drill-back. The Sales Order shows a persistent `Copilot Tax Match Applied` badge and an action that drills into the AI decisions. A one-time notification fires on first user view to actively prompt review. |
 
 ## Model and infrastructure
 

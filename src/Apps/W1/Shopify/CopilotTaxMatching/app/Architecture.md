@@ -38,6 +38,16 @@ This feature uses an LLM to automate the mapping from free-text Shopify tax desc
 | 30470 | PageExtension | Shpfy Copilot Tax Shop Card | "Copilot Tax Matching" group on Shop Card |
 | 30470 | EnumExtension | Shpfy Copilot Tax Cap. | `"Shpfy Tax Matching"` value on `Copilot Capability` enum |
 | 30470 | PermissionSet | Shpfy Copilot Tax Matching | RIMD on tax tables + all codeunits; includes `Shpfy - Edit` |
+| 30476 | Codeunit | Shpfy Copilot Tax Notify | Owns the non-blocking review notification: queue, send-on-page-open, action handlers |
+| 30477 | Codeunit | Shpfy CT Activity Log | Wraps `Activity Log Builder` chain for per-line + per-area AI audit entries |
+| 30476 | Table | Shpfy Copilot Tax Notification | Per-(Sales Header, user) review-prompt log; key `(Sales Header SystemId, User Id)` |
+| 30476 | TableExtension | Shpfy CT Order Header | `Copilot Tax Match Applied` Boolean marker on `Shpfy Order Header` |
+| 30477 | TableExtension | Shpfy CT Sales Header | `Copilot Tax Match Applied` Boolean marker on `Sales Header` |
+| 30480 | TableExtension | Shpfy CT Order Tax Line | `Tax Jurisdiction Code` (Code[10], `TableRelation = "Tax Jurisdiction"`) — moved out of the connector since the connector itself does not read or write it |
+| 30478 | PageExtension | Shpfy CT Order Tax Lines | Adds the Tax Jurisdiction Code column to the standalone Tax Lines list, visible only when the parent order's shop has Copilot Tax Matching enabled |
+| 30479 | Page (ListPart) | Shpfy CT Order Tax Lines Part | Tax lines list embedded as a subform on the Shopify Order Card so the platform AI confidence indicator renders on the Tax Jurisdiction Code cell |
+| 30479 | PageExtension | Shpfy CT Order | Embeds the tax lines ListPart on the Shopify Order page (after Invoice Details), visible only when the shop has Copilot Tax Matching enabled |
+| 30476 | PageExtension | Shpfy CT Sales Order | Read-only badge field, "Show Copilot Tax Decisions" action, `OnAfterGetCurrRecord` notification trigger |
 
 ## Execution Flow
 
@@ -82,15 +92,15 @@ ApplyMatches()
   |     |-- Parse tax_line_id -> ParentId + LineNo
   |     |-- Validate jurisdiction exists, or create if auto-create enabled
   |     |-- Write jurisdiction code to Shpfy Order Tax Line
-  |     |-- Ensure Tax Detail record exists (when auto-creating)
+  |     |-- Ensure Tax Detail bracket valid at the order date exists (always; rate-mismatch is logged, never overridden)
   |-- FixReportToJurisdictions() if >1 jurisdiction matched
   |-- Return matched jurisdiction list
   |
   v
 Tax Area Builder (30472) — FindOrCreateTaxArea()
   |-- Search all Tax Areas for exact jurisdiction set match
-  |-- If found: use existing
-  |-- If not found + Auto Create Tax Areas: create new area
+  |-- If found: use existing (WasCreated = false)
+  |-- If not found + Auto Create Tax Areas: create new area (WasCreated = true)
   |     |-- Code: {NamingPattern}{LowestJurisdiction} (e.g. SHPFY-MTATAX)
   |     |-- Collision: append -2, -3, ... up to -999
   |     |-- Description: "Shopify - " + joined jurisdiction descriptions
@@ -98,8 +108,54 @@ Tax Area Builder (30472) — FindOrCreateTaxArea()
   |-- Set OrderHeader."Tax Area Code" + "Tax Liable" = true
   |
   v
+Copilot Tax Events (30473) — HITL writes (after Tax Area resolved)
+  |-- Set OrderHeader."Copilot Tax Match Applied" = true
+  |-- Shpfy CT Activity Log (30477):
+  |     |-- LogPerLineEntries — one Activity Log entry per matched tax line
+  |     |     (anchor = Shpfy Order Tax Line, field "Tax Jurisdiction Code")
+  |     |-- LogTaxAreaEntry — one Activity Log entry on the Order Header
+  |           (anchor = Shpfy Order Header, field "Tax Area Code")
+  |
+  v
 Order continues through standard import pipeline
+  |
+  v
+ShpfyProcessOrder.CreateHeaderFromShopifyOrder()
+  |-- Propagates Tax Area Code + Tax Liable to Sales Header
+  |-- Fires OnAfterCreateSalesHeader event
+        |
+        v
+      Copilot Tax Events (30473) — OnAfterCreateSalesHeader subscriber
+        |-- If OrderHeader."Copilot Tax Match Applied" -> true:
+        |     |-- Set SalesHeader."Copilot Tax Match Applied" = true
+        |     |-- Shpfy Copilot Tax Notify (30476):
+        |           |-- QueueNotificationFor — insert one row into
+        |                 Shpfy Copilot Tax Notification keyed
+        |                 (SalesHeader.SystemId, UserId())
+        |
+        v
+      User opens Sales Order page → PageExt 30476 OnAfterGetCurrRecord
+        |-- If marker set + row not Reviewed + MyNotifications enabled:
+        |     |-- Send one-time notification with three actions
+        |           (Show Copilot Tax Decisions / Mark as reviewed / Don't show again)
 ```
+
+## Human-in-the-loop (non-blocking)
+
+The matcher runs synchronously during order import without prompting the user, but every Copilot decision is recorded and surfaced for human review afterward. Three pillars deliver this without blocking auto-create-sales-doc or background sync flows:
+
+1. **Audit trail** — `Shpfy CT Activity Log` (30477) writes a System Application `Activity Log` entry (Type = `AI`) for each matched tax line and one for the resulting Tax Area. Each entry carries the LLM confidence (`Low`/`Medium`/`High`), the LLM's reasoning text, and a drill-back URL to the Tax Jurisdiction or Tax Area card. The platform automatically renders a confidence indicator next to the field on the originating record (Shpfy Order Tax Line for per-line, Shpfy Order Header for per-area).
+
+2. **Persistent badge** — a `Copilot Tax Match Applied` Boolean on `Shpfy Order Header` (field 30476, set by `ShpfyCopilotTaxEvents` after `FindOrCreateTaxArea` succeeds) propagates to `Sales Header` (field 30476) via the existing `OnAfterCreateSalesHeader` event in `ShpfyOrderEvents` (line 161). The Sales Order page extension shows this as a read-only field (`Importance = Additional`).
+
+3. **Active notification** — when the marker propagates onto a Sales Header, `ShpfyCopilotTaxNotify` queues a row in the `Shpfy Copilot Tax Notification` table keyed on `(SalesHeader.SystemId, UserId())`. The Sales Order page extension's `OnAfterGetCurrRecord` trigger fires a non-blocking BC `Notification` ("Copilot populated the Tax Area %1 — review the AI-generated tax decisions before posting") with three actions:
+   - **Show Copilot Tax Decisions** — opens the originating Shopify order, where platform-rendered AI confidence indicators are visible on each Copilot-matched field.
+   - **Mark as reviewed** — flips `Reviewed` on the row so the prompt does not fire again for this Sales Header for this user.
+   - **Don't show again** — calls `MyNotifications.Disable` for the feature notification GUID, suppressing the prompt across all Sales Orders for this user. Stays per-user — there is no per-shop suppression toggle.
+
+Where review naturally happens depends on the auto-create configuration. With auto-create-sales-doc on, the BC Sales Document is the canonical review surface (the Tax Area is editable there, and overrides land on the document business logic actually consumes). With auto-create off, the user reviews on the Shpfy Order Header before triggering Sales Doc creation. The audit trail anchors on Shpfy entities in either case so it remains reachable even if a Sales Document is never created.
+
+For safety, `ShpfyCopilotTaxEvents.OnAfterMapShopifyOrder` resets the marker to `false` before each matcher run so re-matching (after a user manually clears Tax Area Code on the Shpfy Order Header) cannot leave a stale `true` flag from a prior run.
 
 ## Data Sent to LLM
 
@@ -165,7 +221,9 @@ Confidence levels drive business logic:
 
 ## UI Surface
 
-The only user-facing UI is a **"Copilot Tax Matching" group** on the Shopify Shop Card page:
+The Copilot's matching itself runs silently during order import — no dialog, wizard, or chat interface. The visible surfaces are:
+
+**Shopify Shop Card** — a "Copilot Tax Matching" group with the per-shop configuration:
 
 | Field | Type | Default | Purpose |
 |-------|------|---------|---------|
@@ -174,7 +232,11 @@ The only user-facing UI is a **"Copilot Tax Matching" group** on the Shopify Sho
 | Auto Create Tax Areas | Boolean | true | Allow system to create Tax Area records |
 | Tax Area Naming Pattern | Text[20] | `SHPFY-` | Prefix for auto-generated Tax Area codes |
 
-There is no Copilot dialog, wizard, or chat interface. The feature operates silently during order import.
+**BC Sales Order page** — the HITL review surface:
+
+- Read-only `Copilot Tax Match Applied` field (next to Tax Liable, `Importance = Additional`).
+- "Show Copilot Tax Decisions" navigation action (visible when the marker is set) that opens the originating Shopify order.
+- One-time non-blocking notification on first open of the Sales Order, with actions to drill in, mark reviewed, or suppress per-user.
 
 ## Data Model
 
@@ -187,32 +249,34 @@ The feature reads from and writes to the standard Shopify connector tables and B
 | Shpfy Order Header | Tax Area Code (1070) | Written by Tax Area Builder |
 | Shpfy Order Header | Tax Liable (1080) | Set to `true` by Tax Area Builder |
 | Shpfy Order Header | Tax Exempt (1090) | Imported from Shopify `taxExempt` field; guards skip matching |
-| Shpfy Order Tax Line | Tax Jurisdiction Code (10) | Written by Matcher for each matched line |
+| Shpfy Order Tax Line | Tax Jurisdiction Code (30476, via Copilot TableExt) | Written by Matcher for each matched line |
 | Shpfy Refund Header | Tax Area Code (110) | FlowField → Order Header; shown on Refund page |
 | Shpfy Refund Header | Tax Liable (111) | FlowField → Order Header; inherited by credit memo |
 | Shpfy Refund Header | Tax Exempt (112) | FlowField → Order Header; shown on Refund page |
 | Shpfy Shop | 4 config fields (30470-30473) | Read by Events + Matcher + Builder |
 
-### BC tax tables (read/write when auto-creating)
+### BC tax tables
 
 | Table | Usage |
 |-------|-------|
-| Tax Jurisdiction | Read for matching; created when auto-create enabled |
-| Tax Area | Read for exact-match search; created when auto-create enabled |
+| Tax Jurisdiction | Read for matching; created when `Auto Create Tax Jurisdictions` enabled |
+| Tax Area | Read for exact-match search; created when `Auto Create Tax Areas` enabled |
 | Tax Area Line | Read/created as part of Tax Area |
-| Tax Detail | Created for new jurisdictions (rate from Shopify tax line) |
+| Tax Detail | Always: for every matched jurisdiction, look for the latest Tax Detail with `Effective Date <= order date` for the jurisdiction + tax group + tax type. If none exists, insert a new one at the order date with Shopify's rate. If one exists with the same rate, do nothing. If one exists with a different rate, leave it untouched and log a rate-divergence warning (telemetry `0000SHK`) — admin owns rate updates. |
 
-## Integration Point
+## Integration Points
 
-The feature hooks into the standard connector via a single integration event:
+The feature hooks into the standard connector via two existing integration events on `Shpfy Order Events` (codeunit 30162):
 
 ```al
-// In Shpfy Order Events (30162) — standard connector
 [IntegrationEvent(false, false)]
 internal procedure OnAfterMapShopifyOrder(var ShopifyOrderHeader: Record "Shpfy Order Header"; Result: Boolean)
+
+[IntegrationEvent(false, false)]
+internal procedure OnAfterCreateSalesHeader(OrderHeader: Record "Shpfy Order Header"; var SalesHeader: Record "Sales Header")
 ```
 
-This event fires after `OrderMapping.DoMapping()` completes. The standard connector's `MapTaxArea` runs first (address-based lookup). Copilot only activates if that lookup didn't find a Tax Area.
+`OnAfterMapShopifyOrder` fires after `OrderMapping.DoMapping()` completes (the connector's `MapTaxArea` runs first via address-based lookup; Copilot only activates if that lookup didn't find a Tax Area). `OnAfterCreateSalesHeader` fires inside `ShpfyProcessOrder.CreateHeaderFromShopifyOrder()` after the connector's existing Tax Area Code propagation; the Copilot subscriber uses it to propagate the marker flag and queue the review notification.
 
 ## Capability Registration
 
@@ -235,6 +299,16 @@ Registration follows the standard BC Copilot pattern:
 | 0000SH7 | Warning | Matcher | Jurisdiction not found, auto-create disabled |
 | 0000SH8 | Normal | Events | Match starting for order |
 | 0000SH9 | Usage | Events | Match successful |
+| 0000SHA | Usage | Events | Copilot Tax Match Applied marker set on Order Header |
+| 0000SHB | Usage | Events | Marker propagated to Sales Header |
+| 0000SHC | Usage | Notify | Notification row queued |
+| 0000SHD | Usage | Notify | Notification sent to user |
+| 0000SHE | Usage | Notify | User clicked "Show Copilot Tax Decisions" |
+| 0000SHF | Usage | Notify | User marked notification reviewed |
+| 0000SHH | Usage | Notify | User chose "Don't show again" |
+| 0000SHI | Uptake: Used | Activity Log | Per-tax-line entry written |
+| 0000SHJ | Uptake: Used | Activity Log | Per-tax-area entry written |
+| 0000SHK | Warning | Matcher | Existing Tax Detail rate differs from Shopify's reported rate (existing left untouched) |
 
 ## Test App
 

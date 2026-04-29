@@ -72,6 +72,11 @@ codeunit 30492 "Shpfy CTM Verify"
         if ElementExists then
             if Expected.Element('orderUnchanged').ValueAsBoolean() then
                 VerifyOrderUnchanged(OrderHeader);
+
+        Expected.ElementExists('createdJurisdictionDescriptionEqualsCode', ElementExists);
+        if ElementExists then
+            if Expected.Element('createdJurisdictionDescriptionEqualsCode').ValueAsBoolean() then
+                VerifyCreatedJurisdictionDescriptionEqualsCode(OrderHeader);
     end;
 
     local procedure VerifyTaxLineJurisdictions(ExpectedArray: Codeunit "Test Input Json")
@@ -181,12 +186,18 @@ codeunit 30492 "Shpfy CTM Verify"
         ExpectedItem: Codeunit "Test Input Json";
         TaxGroupCode: Code[20];
         RatePct: Decimal;
+        ExpectedEffectiveDate: Date;
+        EffectiveDateExists: Boolean;
         i: Integer;
     begin
         for i := 0 to ExpectedArray.GetElementCount() - 1 do begin
             ExpectedItem := ExpectedArray.ElementAt(i);
             TaxGroupCode := CopyStr(ExpectedItem.Element('taxGroupCode').ValueAsText(), 1, MaxStrLen(TaxGroupCode));
             RatePct := ExpectedItem.Element('ratePct').ValueAsDecimal();
+
+            ExpectedItem.ElementExists('effectiveDate', EffectiveDateExists);
+            if EffectiveDateExists then
+                Evaluate(ExpectedEffectiveDate, ExpectedItem.Element('effectiveDate').ValueAsText());
 
             // Find matched tax lines to get the jurisdiction code
             OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
@@ -202,9 +213,40 @@ codeunit 30492 "Shpfy CTM Verify"
                         LibraryAssert.IsTrue(TaxDetail.FindFirst(),
                             StrSubstNo(TaxDetailShouldExistLbl,
                                 TaxLine."Tax Jurisdiction Code", TaxGroupCode, RatePct));
+
+                        if EffectiveDateExists then
+                            LibraryAssert.AreEqual(ExpectedEffectiveDate, TaxDetail."Effective Date",
+                                StrSubstNo(TaxDetailEffectiveDateLbl, TaxLine."Tax Jurisdiction Code", TaxGroupCode));
                     end;
                 until OrderLine.Next() = 0;
         end;
+    end;
+
+    local procedure VerifyCreatedJurisdictionDescriptionEqualsCode(OrderHeader: Record "Shpfy Order Header")
+    var
+        OrderLine: Record "Shpfy Order Line";
+        TaxLine: Record "Shpfy Order Tax Line";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        Checked: Boolean;
+    begin
+        OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        if OrderLine.FindSet() then
+            repeat
+                TaxLine.SetRange("Parent Id", OrderLine."Line Id");
+                TaxLine.SetFilter("Tax Jurisdiction Code", '<>%1', '');
+                if TaxLine.FindSet() then
+                    repeat
+                        if TaxJurisdiction.Get(TaxLine."Tax Jurisdiction Code") then begin
+                            LibraryAssert.AreEqual(
+                                Format(TaxJurisdiction.Code),
+                                TaxJurisdiction.Description,
+                                StrSubstNo(JurisdictionDescriptionEqualsCodeLbl, TaxJurisdiction.Code));
+                            Checked := true;
+                        end;
+                    until TaxLine.Next() = 0;
+            until OrderLine.Next() = 0;
+
+        LibraryAssert.IsTrue(Checked, 'At least one created jurisdiction should have been checked.');
     end;
 
     internal procedure VerifyTaxDetailCount(CountInput: Codeunit "Test Input Json")
@@ -281,6 +323,8 @@ codeunit 30492 "Shpfy CTM Verify"
         JurisdictionCountryRegionLbl: Label 'Jurisdiction %1 Country/Region', Locked = true;
         JurisdictionReportToLbl: Label 'Jurisdiction %1 Report-to should match first', Locked = true;
         TaxDetailShouldExistLbl: Label 'Tax Detail should exist for %1 / %2 / %3', Locked = true;
+        TaxDetailEffectiveDateLbl: Label 'Tax Detail Effective Date for %1 / %2', Locked = true;
         TaxDetailCountLbl: Label 'Tax Detail count for %1/%2', Locked = true;
         TaxAreaShouldExistLbl: Label 'Tax Area %1 should exist', Locked = true;
+        JurisdictionDescriptionEqualsCodeLbl: Label 'Auto-created jurisdiction %1 should have Description = Code', Locked = true;
 }
