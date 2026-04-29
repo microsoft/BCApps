@@ -104,7 +104,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentImpl.GetModelId(AgentUserSecurityID));
     end;
 
@@ -117,7 +117,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.SetModelId(AgentUserSecurityID, ModelId);
     end;
 
@@ -129,7 +129,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.SetModelIdToAuto(AgentUserSecurityID);
     end;
 
