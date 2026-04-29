@@ -776,7 +776,7 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
-    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,MessageHandler')]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CreateBillingDocumentsForVendorContractSetsRecurringBillingBeforeVendorValidation()
     var
         PayToVendor: Record Vendor;
