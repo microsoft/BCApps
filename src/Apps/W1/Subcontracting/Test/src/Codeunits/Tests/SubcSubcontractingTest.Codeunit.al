@@ -1894,6 +1894,97 @@ Comment = '|%1 = Transfer Order No.';
             'Description 2 must be populated on the Requisition Line from the subcontracting Work Center');
     end;
 
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder,HandleCreateTransferOrderMsg')]
+    procedure PostingDirectSubcontractingTransferSetsSourceFieldsOnDirectTransHeader()
+    var
+        Bin: Record Bin;
+        DirectTransHeader: Record "Direct Trans. Header";
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        TransferOrder: TestPage "Transfer Order";
+    begin
+        // [SCENARIO 617373] Posting a direct subcontracting transfer correctly propagates Source Type and Source ID to the Direct Trans. Header
+
+        // [GIVEN] Complete manufacturing setup with direct transfer enabled
+        Initialize();
+        UpdateManufacturingSetupWithSubcontractingLocation();
+        SetupInventorySetup();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        UpdateSubMgmtSetupDirectTransfer(true);
+        UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+        CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        // [GIVEN] Subcontracting purchase order and transfer order to vendor
+        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+
+        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
+        TransferLine.FindFirst();
+        TransferHeader.Get(TransferLine."Document No.");
+
+        Item.Get(ProdOrderComp."Item No.");
+        Location.Get(TransferHeader."Transfer-from Code");
+        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+
+        // [WHEN] Post the direct transfer order
+        TransferOrder.OpenView();
+        TransferOrder.GoToRecord(TransferHeader);
+        TransferOrder.Post.Invoke();
+
+        // [THEN] Direct Trans. Header has Source Type = Subcontracting and Source ID = Vendor No.
+        DirectTransHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        Assert.RecordIsNotEmpty(DirectTransHeader);
+        DirectTransHeader.FindFirst();
+        Assert.AreEqual(
+            "Transfer Source Type"::Subcontracting, DirectTransHeader."Source Type",
+            'Source Type must be Subcontracting on Direct Trans. Header');
+        Assert.AreEqual(
+            Vendor."No.", DirectTransHeader."Source ID",
+            'Source ID must be the Vendor No. on Direct Trans. Header');
+
+        // [TEARDOWN]
+        UpdateSubMgmtSetupDirectTransfer(false);
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
