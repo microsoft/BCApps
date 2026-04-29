@@ -14,7 +14,6 @@ using System.Integration;
 using System.Integration.Excel;
 using System.MCP;
 using System.Privacy;
-using System.SFTPClient;
 
 permissionset 154 "System Application - Admin"
 {
