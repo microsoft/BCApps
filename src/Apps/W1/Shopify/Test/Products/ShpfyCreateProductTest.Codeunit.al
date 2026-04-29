@@ -19,13 +19,13 @@ codeunit 139601 "Shpfy Create Product Test"
 
 
     var
+        ExportShop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
-        ExportShop: Record "Shpfy Shop";
-        ExportIsInitialized: Boolean;
         OutboundHttpRequests: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
         ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
+        ExportIsInitialized: Boolean;
 
     [Test]
     procedure UnitTestCreateTempProductFromItem()
