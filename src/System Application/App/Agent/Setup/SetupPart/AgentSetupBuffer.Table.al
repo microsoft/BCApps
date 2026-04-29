@@ -79,19 +79,6 @@ table 4310 "Agent Setup Buffer"
             end;
         }
         /// <summary>
-        /// The AI model identifier used by this agent.
-        /// </summary>
-        field(6; "Model ID"; Code[30])
-        {
-            Caption = 'Model ID';
-            ToolTip = 'Specifies the AI model used by the agent.';
-
-            trigger OnValidate()
-            begin
-                Rec."Values Updated" := true;
-            end;
-        }
-        /// <summary>
         /// The initials displayed on the agent's icon in the timeline and user interface.
         /// </summary>
         field(15; Initials; Text[4])
