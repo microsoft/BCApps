@@ -172,6 +172,8 @@ codeunit 9556 "Record Selection Impl."
             exit(false);
 
         GenericList := NavPageSummaryALFunctions.GetSummaryFields(PageId);
+        if IsNull(GenericList) then
+            exit(false);
 
         foreach PageSummaryField in GenericList do
             PageSummaryFieldList.Add(PageSummaryField);

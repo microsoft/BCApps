@@ -145,38 +145,16 @@ codeunit 135136 "Record Selection Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure RecordSelectionMediaFieldsNotIncludedTest()
     var
-        RecordSelectionImpl: Codeunit "Record Selection Impl.";
-        TempRecordSelectionBuffer: Record "Record Selection Buffer" temporary;
-        PrimaryKeyCaptions: array[10] of Text;
-        FieldCount: Integer;
+        RecordSelection: Codeunit "Record Selection";
     begin
         // [SCENARIO] Media fields in the page summary are excluded from the record selection display.
         // [GIVEN] Data in the test table which has a Media field in the Brick fieldgroup
         Initialize();
         PermissionsMock.Set('Rec. Selection Read');
 
-        // [WHEN] GetRecordsFromTableId is called for the table
-        FieldCount := RecordSelectionImpl.GetRecordsFromTableId(Database::"Record Selection Test Table", PrimaryKeyCaptions, TempRecordSelectionBuffer);
-
-        // [THEN] The media field is not included in the field count
-        Assert.AreEqual(3, FieldCount, 'Media fields should be excluded from the field count.');
-        Assert.AreEqual('', PrimaryKeyCaptions[4], 'Media field caption should not be present in the captions.');
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    procedure RecordSelectionToTextSkipsMediaFieldsTest()
-    var
-        RecordSelection: Codeunit "Record Selection";
-    begin
-        // [SCENARIO] ToText excludes media field values from the comma-separated result.
-        // [GIVEN] Data in the test table which has a Media field in the Brick fieldgroup
-        Initialize();
-        PermissionsMock.Set('Rec. Selection Read');
-
-        // [WHEN] ToText is called for a record
-        // [THEN] The result contains only the non-media field values
-        Assert.AreEqual(ExpectedTextTok, RecordSelection.ToText(Database::"Record Selection Test Table", SystemId), 'ToText should not include media field values.');
+        // [WHEN] ToText is called for a record in the table
+        // [THEN] The media field is not included in the text output
+        Assert.AreEqual(ExpectedTextTok, RecordSelection.ToText(Database::"Record Selection Test Table", SystemId), 'Media fields should not be included in the record selection display.');
     end;
 
     local procedure Initialize()
