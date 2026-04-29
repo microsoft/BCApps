@@ -111,6 +111,14 @@ page 4315 "Agent Card"
                         UpdateControls();
                     end;
                 }
+                field(ModelName; ModelNameDisplayTxt)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Model Name';
+                    Tooltip = 'Specifies the model name used by the agent.';
+                    Editable = false;
+                    Importance = Additional;
+                }
             }
             part(Permissions; "View Agent Permissions")
             {
@@ -214,6 +222,11 @@ page 4315 "Agent Card"
             ProfileDisplayName := UserSettings.GetProfileName(TempUserSettingsRecord);
         end;
 
+        if Rec."Model Name" = '' then
+            ModelNameDisplayTxt := AutoTxt
+        else
+            ModelNameDisplayTxt := Rec."Model Name";
+
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
     end;
 
@@ -255,7 +268,8 @@ page 4315 "Agent Card"
     var
         TempUserSettingsRecord: Record "User Settings";
         Language: Codeunit Language;
-        ProfileDisplayName, CopilotAvailabilityTxt : Text;
+        ProfileDisplayName, CopilotAvailabilityTxt, ModelNameDisplayTxt : Text;
+        AutoTxt: Label 'Auto';
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';
         OpenConfigurationPageQst: Label 'To activate the agent, use the setup page. Would you like to open this page now?';
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to set up and activate the agent.';
