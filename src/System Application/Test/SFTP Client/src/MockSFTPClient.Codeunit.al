@@ -8,6 +8,7 @@ namespace System.Test.SFTPClient;
 using System;
 using System.SFTPClient;
 
+#pragma warning disable AL0432, AS0105
 codeunit 139075 "Mock SFTP Client" implements "ISFTP Client"
 {
     Access = Internal;
@@ -293,3 +294,4 @@ codeunit 139075 "Mock SFTP Client" implements "ISFTP Client"
         exit(true);
     end;
 }
+#pragma warning restore AL0432, AS0105
