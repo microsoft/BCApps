@@ -137,4 +137,157 @@ codeunit 132686 "Azure OpenAI Tools Test"
     begin
         exit('{"type": "function","function": {"name": "test_function_1"}');
     end;
+    [Test]
+    procedure TestChatCompletionParamsDefaultPayloadHasStandardFields()
+    var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        Payload: JsonObject;
+        Token: JsonToken;
+    begin
+        // [SCENARIO] Default chat completion params produce a standard (non-reasoning) payload
+
+        // [GIVEN] Default AOAIChatCompletionParams (no reasoning effort set)
+        // [WHEN] Parameters are added to the payload
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
+
+        // [THEN] Standard parameters are present
+        LibraryAssert.IsTrue(Payload.Get('temperature', Token), 'Payload should contain temperature.');
+        LibraryAssert.IsTrue(Payload.Get('presence_penalty', Token), 'Payload should contain presence_penalty.');
+        LibraryAssert.IsTrue(Payload.Get('frequency_penalty', Token), 'Payload should contain frequency_penalty.');
+
+        // [THEN] Reasoning model parameters are absent
+        LibraryAssert.IsFalse(Payload.Get('reasoning_effort', Token), 'Payload should not contain reasoning_effort.');
+        LibraryAssert.IsFalse(Payload.Get('max_completion_tokens', Token), 'Payload should not contain max_completion_tokens.');
+    end;
+
+    [Test]
+    procedure TestChatCompletionParamsReasoningEffortLowPayload()
+    var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        Payload: JsonObject;
+        Token: JsonToken;
+    begin
+        // [SCENARIO] Setting reasoning effort Low produces a reasoning model payload
+
+        // [GIVEN] ReasoningEffort set to Low
+        AOAIChatCompletionParams.SetReasoningEffort(Enum::"AOAI Reasoning Effort"::Low);
+
+        // [WHEN] Parameters are added to the payload
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
+
+        // [THEN] reasoning_effort is 'low'
+        LibraryAssert.IsTrue(Payload.Get('reasoning_effort', Token), 'Payload should contain reasoning_effort.');
+        LibraryAssert.AreEqual('low', Token.AsValue().AsText(), 'reasoning_effort should be low.');
+
+        // [THEN] Standard non-reasoning parameters are absent
+        LibraryAssert.IsFalse(Payload.Get('temperature', Token), 'Payload should not contain temperature for reasoning models.');
+        LibraryAssert.IsFalse(Payload.Get('presence_penalty', Token), 'Payload should not contain presence_penalty for reasoning models.');
+        LibraryAssert.IsFalse(Payload.Get('frequency_penalty', Token), 'Payload should not contain frequency_penalty for reasoning models.');
+    end;
+
+    [Test]
+    procedure TestChatCompletionParamsReasoningEffortMediumPayload()
+    var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        Payload: JsonObject;
+        Token: JsonToken;
+    begin
+        // [SCENARIO] Setting reasoning effort Medium produces correct payload value
+
+        // [GIVEN] ReasoningEffort set to Medium
+        AOAIChatCompletionParams.SetReasoningEffort(Enum::"AOAI Reasoning Effort"::Medium);
+
+        // [WHEN] Parameters are added to the payload
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
+
+        // [THEN] reasoning_effort is 'medium'
+        LibraryAssert.IsTrue(Payload.Get('reasoning_effort', Token), 'Payload should contain reasoning_effort.');
+        LibraryAssert.AreEqual('medium', Token.AsValue().AsText(), 'reasoning_effort should be medium.');
+    end;
+
+    [Test]
+    procedure TestChatCompletionParamsReasoningEffortHighPayload()
+    var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        Payload: JsonObject;
+        Token: JsonToken;
+    begin
+        // [SCENARIO] Setting reasoning effort High produces correct payload value
+
+        // [GIVEN] ReasoningEffort set to High
+        AOAIChatCompletionParams.SetReasoningEffort(Enum::"AOAI Reasoning Effort"::High);
+
+        // [WHEN] Parameters are added to the payload
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
+
+        // [THEN] reasoning_effort is 'high'
+        LibraryAssert.IsTrue(Payload.Get('reasoning_effort', Token), 'Payload should contain reasoning_effort.');
+        LibraryAssert.AreEqual('high', Token.AsValue().AsText(), 'reasoning_effort should be high.');
+    end;
+
+    [Test]
+    procedure TestChatCompletionParamsReasoningEffortUsesMaxCompletionTokens()
+    var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        Payload: JsonObject;
+        Token: JsonToken;
+    begin
+        // [SCENARIO] Reasoning models use max_completion_tokens instead of max_tokens
+
+        // [GIVEN] ReasoningEffort set and MaxTokens configured
+        AOAIChatCompletionParams.SetReasoningEffort(Enum::"AOAI Reasoning Effort"::Medium);
+        AOAIChatCompletionParams.SetMaxTokens(1000);
+
+        // [WHEN] Parameters are added to the payload
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
+
+        // [THEN] max_completion_tokens is used, not max_tokens
+        LibraryAssert.IsTrue(Payload.Get('max_completion_tokens', Token), 'Payload should contain max_completion_tokens for reasoning models.');
+        LibraryAssert.AreEqual(1000, Token.AsValue().AsInteger(), 'max_completion_tokens should be 1000.');
+        LibraryAssert.IsFalse(Payload.Get('max_tokens', Token), 'Payload should not contain max_tokens for reasoning models.');
+    end;
+
+    [Test]
+    procedure TestChatCompletionParamsStandardModelUsesMaxTokens()
+    var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        Payload: JsonObject;
+        Token: JsonToken;
+    begin
+        // [SCENARIO] Standard models use max_tokens
+
+        // [GIVEN] No reasoning effort, MaxTokens configured
+        AOAIChatCompletionParams.SetMaxTokens(500);
+
+        // [WHEN] Parameters are added to the payload
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
+
+        // [THEN] max_tokens is used, not max_completion_tokens
+        LibraryAssert.IsTrue(Payload.Get('max_tokens', Token), 'Payload should contain max_tokens for standard models.');
+        LibraryAssert.AreEqual(500, Token.AsValue().AsInteger(), 'max_tokens should be 500.');
+        LibraryAssert.IsFalse(Payload.Get('max_completion_tokens', Token), 'Payload should not contain max_completion_tokens for standard models.');
+    end;
+
+    [Test]
+    procedure TestChatCompletionParamsGetSetReasoningEffort()
+    var
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+    begin
+        // [SCENARIO] GetReasoningEffort returns what was set
+
+        // [GIVEN] Default params - reasoning effort not set (ordinal 0)
+        LibraryAssert.AreEqual(0, AOAIChatCompletionParams.GetReasoningEffort().AsInteger(), 'Default reasoning effort should be unset (ordinal 0).');
+
+        // [WHEN] ReasoningEffort is set to High
+        AOAIChatCompletionParams.SetReasoningEffort(Enum::"AOAI Reasoning Effort"::High);
+
+        // [THEN] GetReasoningEffort returns High
+        LibraryAssert.AreEqual(Enum::"AOAI Reasoning Effort"::High, AOAIChatCompletionParams.GetReasoningEffort(), 'GetReasoningEffort should return High.');
+    end;
 }
