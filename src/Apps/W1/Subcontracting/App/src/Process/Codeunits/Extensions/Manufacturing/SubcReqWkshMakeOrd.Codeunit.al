@@ -18,12 +18,14 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterCheckInsertFinalizePurchaseOrderHeader, '', false, false)]
     local procedure OnInsertPurchOrderLineOnAfterCheckInsertFinalizePurchaseOrderHeader(var RequisitionLine: Record "Requisition Line"; var PurchaseHeader: Record "Purchase Header"; var NextLineNo: Integer)
     var
-        AdditionallyPurchaseLine: Record "Purchase Line";
+        PurchaseLineWithService: Record "Purchase Line";
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
-        AdditionallyPurchaseLine."Document Type" := PurchaseHeader."Document Type";
-        AdditionallyPurchaseLine."Document No." := PurchaseHeader."No.";
-        SubcPurchaseOrderCreator.TransferSubcontractingProdOrderComp(AdditionallyPurchaseLine, RequisitionLine, NextLineNo);
+        if RequisitionLine."Prod. Order No." = '' then
+            exit;
+        PurchaseLineWithService."Document Type" := PurchaseHeader."Document Type";
+        PurchaseLineWithService."Document No." := PurchaseHeader."No.";
+        SubcPurchaseOrderCreator.TransferSubcontractingProdOrderComp(PurchaseLineWithService, RequisitionLine, NextLineNo);
     end;
 
     local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchaseLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line")

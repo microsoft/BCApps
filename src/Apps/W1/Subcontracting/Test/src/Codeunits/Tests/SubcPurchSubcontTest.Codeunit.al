@@ -378,7 +378,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryManufacturing.CreateProductionBOMLine(
             ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ComponentItem."No.", 1);
         ProductionBOMLine.Validate("Routing Link Code", RoutingLink.Code);
-        ProductionBOMLine."Subcontracting Type" := "Subcontracting Type"::Purchase;
+        ProductionBOMLine.Validate("Subcontracting Type", "Subcontracting Type"::Purchase);
         ProductionBOMLine.Modify(true);
         ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
         ProductionBOMHeader.Modify(true);
@@ -436,12 +436,16 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ItemLedgerEntry.SetRange("Item No.", ComponentItem."No.");
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
         Assert.RecordIsNotEmpty(ItemLedgerEntry);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField(Quantity, Qty);
 
         // [THEN] Component has a negative consumption ILE (backward flushing)
         ItemLedgerEntry.Reset();
         ItemLedgerEntry.SetRange("Item No.", ComponentItem."No.");
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
         Assert.RecordIsNotEmpty(ItemLedgerEntry);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField(Quantity, -Qty);
 
         // [THEN] Net inventory of component is zero (received and consumed via backward flushing)
         ComponentItem.CalcFields(Inventory);
