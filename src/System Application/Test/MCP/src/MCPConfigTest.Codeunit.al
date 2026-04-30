@@ -786,7 +786,7 @@ codeunit 130130 "MCP Config Test"
     procedure TestFindMissingObjectWarningsForQueryTool()
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
-        MCPConfigWarning: Record "MCP Config Warning";
+        TempMCPConfigWarning: Record "MCP Config Warning";
         ConfigId: Guid;
         ToolId: Guid;
     begin
@@ -798,14 +798,14 @@ codeunit 130130 "MCP Config Test"
         Commit();
 
         // [WHEN] Find warnings for configuration is called
-        MCPConfig.FindWarningsForConfiguration(ConfigId, MCPConfigWarning);
+        MCPConfig.FindWarningsForConfiguration(ConfigId, TempMCPConfigWarning);
 
         // [THEN] Warning is created for the query tool with non-existing object
 #pragma warning disable AA0210
-        MCPConfigWarning.SetRange("Warning Type", MCPConfigWarning."Warning Type"::"Missing Object");
+        TempMCPConfigWarning.SetRange("Warning Type", TempMCPConfigWarning."Warning Type"::"Missing Object");
 #pragma warning restore AA0210
-        MCPConfigWarning.SetRange("Tool Id", ToolId);
-        Assert.RecordCount(MCPConfigWarning, 1);
+        TempMCPConfigWarning.SetRange("Tool Id", ToolId);
+        Assert.RecordCount(TempMCPConfigWarning, 1);
     end;
 
     #endregion
