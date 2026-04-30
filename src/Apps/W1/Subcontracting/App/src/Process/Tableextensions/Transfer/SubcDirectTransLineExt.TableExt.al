@@ -76,5 +76,12 @@ tableextension 99001523 "Subc. DirectTrans. Line Ext" extends "Direct Trans. Lin
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(99001560; "Transfer WIP Item"; Boolean)
+        {
+            Caption = 'Transfer WIP Item';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies whether this transfer shipment line represents a WIP item transfer.';
+        }
     }
 }
