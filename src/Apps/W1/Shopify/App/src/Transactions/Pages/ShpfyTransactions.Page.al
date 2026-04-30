@@ -289,6 +289,8 @@ page 30134 "Shpfy Transactions"
                 Rec.SetRange("Created At", FilterStartDate, FilterEndDate)
             else
                 Rec.SetRange("Created At", FilterStartDate, CreateDateTime(DMY2Date(31, 12, 9999), 0T));
+        Rec.SetRange(Status, Rec.Status::Success);
+        Rec.SetFilter(Type, '%1|%2|%3', Rec.Type::Capture, Rec.Type::Sale, Rec.Type::Refund);
         Rec.SetRange(Used, false);
         Rec.SetFilter("Posted Invoice No.", '<>%1', '');
 
@@ -309,6 +311,8 @@ page 30134 "Shpfy Transactions"
         Rec.SetRange(Gateway);
         Rec.SetRange("Credit Card Company");
         Rec.SetRange("Created At");
+        Rec.SetRange(Status);
+        Rec.SetRange(Type);
         Rec.SetRange(Used);
         Rec.SetRange("Posted Invoice No.");
     end;

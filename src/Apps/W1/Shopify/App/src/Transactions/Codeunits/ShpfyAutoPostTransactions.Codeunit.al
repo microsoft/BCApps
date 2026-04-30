@@ -12,6 +12,8 @@ using Microsoft.Sales.History;
 codeunit 30236 "Shpfy Auto Post Transactions"
 {
     Access = Internal;
+    Permissions = TableData "Gen. Journal Line" = imd,
+                  TableData "Gen. Journal Batch" = r;
 
     internal procedure AutoPostTransactions(SalesInvoiceHeaderNo: Code[20]; SalesCrMemoHeaderNo: Code[20])
     begin
@@ -56,6 +58,8 @@ codeunit 30236 "Shpfy Auto Post Transactions"
     end;
 
     local procedure PostTransaction(var OrderTransaction: Record "Shpfy Order Transaction"; PostingDate: Date)
+    var
+        Committed: Boolean;
     begin
         OrderTransaction.SetRange(Status, OrderTransaction.Status::Success);
         OrderTransaction.SetRange(Used, false);
@@ -63,11 +67,17 @@ codeunit 30236 "Shpfy Auto Post Transactions"
         OrderTransaction.SetLoadFields(
             "Shopify Transaction Id", "Shopify Order Id", Type, Amount, "Rounding Amount",
             "Presentment Amount", "Presentment Rounding Amount", Gateway, "Credit Card Company",
-            Shop, "Gift Card Id");
+            Shop, "Gift Card Id", "Refund Id");
         if OrderTransaction.FindSet() then
             repeat
-                if ShouldAutoPost(OrderTransaction) then
+                if ShouldAutoPost(OrderTransaction) then begin
+                    if not Committed then begin
+                        // Firewall the just-completed sales post from any auto-post failure that follows.
+                        Commit();
+                        Committed := true;
+                    end;
                     CreateAndPostJournalLine(OrderTransaction, PostingDate);
+                end;
             until OrderTransaction.Next() = 0;
     end;
 
@@ -82,8 +92,7 @@ codeunit 30236 "Shpfy Auto Post Transactions"
         if not PaymentMethodMapping."Post Automatically" then
             exit(false);
 
-        if (PaymentMethodMapping."Auto-Post Jnl. Template" = '') or
-           (PaymentMethodMapping."Auto-Post Jnl. Batch" = '') then
+        if (PaymentMethodMapping."Auto-Post Jnl. Template" = '') or (PaymentMethodMapping."Auto-Post Jnl. Batch" = '') then
             exit(false);
 
         exit(true);
@@ -94,18 +103,16 @@ codeunit 30236 "Shpfy Auto Post Transactions"
         GenJournalLine: Record "Gen. Journal Line";
         PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         SuggestPayments: Report "Shpfy Suggest Payments";
-        AutoGenJnlPost: Codeunit "Shpfy Auto Gen. Jnl.-Post";
     begin
         PaymentMethodMapping.SetLoadFields("Auto-Post Jnl. Template", "Auto-Post Jnl. Batch");
         PaymentMethodMapping.Get(OrderTransaction.Shop, OrderTransaction.Gateway, OrderTransaction."Credit Card Company");
         SuggestPayments.SetJournalParameters(PaymentMethodMapping."Auto-Post Jnl. Template", PaymentMethodMapping."Auto-Post Jnl. Batch", PostingDate);
         SuggestPayments.GetOrderTransactions(OrderTransaction);
         SuggestPayments.CreateGeneralJournalLines();
+        GenJournalLine.SetRange("Journal Template Name", PaymentMethodMapping."Auto-Post Jnl. Template");
+        GenJournalLine.SetRange("Journal Batch Name", PaymentMethodMapping."Auto-Post Jnl. Batch");
         GenJournalLine.SetRange("Shpfy Transaction Id", OrderTransaction."Shopify Transaction Id");
-        if GenJournalLine.FindFirst() then begin
-            BindSubscription(AutoGenJnlPost);
-            GenJournalLine.SendToPosting(Codeunit::"Gen. Jnl.-Post");
-            UnbindSubscription(AutoGenJnlPost);
-        end;
+        if GenJournalLine.FindFirst() then
+            Codeunit.Run(Codeunit::"Gen. Jnl.-Post Line", GenJournalLine);
     end;
 }

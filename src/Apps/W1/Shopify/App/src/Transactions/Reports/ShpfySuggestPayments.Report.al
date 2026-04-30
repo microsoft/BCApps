@@ -210,11 +210,6 @@ report 30118 "Shpfy Suggest Payments"
         IgnorePostedTransactions := NewIgnorePostedTransactions;
     end;
 
-    internal procedure SetOrderTransaction(NewOrderTransaction: Record "Shpfy Order Transaction")
-    begin
-        OrderTransaction := NewOrderTransaction;
-    end;
-
     internal procedure SetJournalParameters(NewTemplateName: Code[10]; NewBatchName: Code[10]; NewPostingDate: Date)
     begin
         GeneralJournalTemplateName := NewTemplateName;
@@ -288,7 +283,10 @@ report 30118 "Shpfy Suggest Payments"
             OrderTransaction.Type::Refund:
                 begin
                     RefundHeader.SetLoadFields("Order Id", "Refund Id");
-                    RefundHeader.SetRange("Order Id", OrderTransaction."Shopify Order Id");
+                    if OrderTransaction."Refund Id" <> 0 then
+                        RefundHeader.SetRange("Refund Id", OrderTransaction."Refund Id")
+                    else
+                        RefundHeader.SetRange("Order Id", OrderTransaction."Shopify Order Id");
                     if RefundHeader.FindSet() then begin
                         repeat
                             SalesCreditMemoHeader.SetLoadFields("Shpfy Refund Id", "No.", Paid);
@@ -381,6 +379,7 @@ report 30118 "Shpfy Suggest Payments"
     internal procedure CreateGeneralJournalLines()
     var
         NoSeriesBatch: Codeunit "No. Series - Batch";
+        CleanedTransactionIds: List of [BigInteger];
         LastLineNo: Integer;
         OrderIdentifier: Text;
     begin
@@ -394,7 +393,10 @@ report 30118 "Shpfy Suggest Payments"
             TempSuggestPayment.SetAutoCalcFields("Shpfy Order No.");
         if TempSuggestPayment.FindSet() then
             repeat
-                RemoveGenJournalLines(TempSuggestPayment."Shpfy Transaction Id");
+                if not CleanedTransactionIds.Contains(TempSuggestPayment."Shpfy Transaction Id") then begin
+                    RemoveGenJournalLines(TempSuggestPayment."Shpfy Transaction Id");
+                    CleanedTransactionIds.Add(TempSuggestPayment."Shpfy Transaction Id");
+                end;
                 LastLineNo += 10000;
                 if OrderNoInDescription then
                     OrderIdentifier := TempSuggestPayment."Shpfy Order No."

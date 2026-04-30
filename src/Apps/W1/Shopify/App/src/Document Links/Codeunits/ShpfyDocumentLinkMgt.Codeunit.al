@@ -63,7 +63,7 @@ codeunit 30262 "Shpfy Document Link Mgt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterPostSalesDoc', '', true, false)]
-    local procedure OnAfterSalesPosting(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; SalesShptHdrNo: Code[20]; SalesInvHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20])
+    local procedure OnAfterSalesPosting(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; SalesShptHdrNo: Code[20]; SalesInvHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20]; CommitIsSuppressed: Boolean)
     var
         AutoPostTransactions: Codeunit "Shpfy Auto Post Transactions";
     begin
@@ -72,7 +72,9 @@ codeunit 30262 "Shpfy Document Link Mgt."
         if PreviewMode then
             exit;
 
-        Commit(); // Ensure Doc. Link To Doc. creation is committed before running the automatic transaction posting.
+        if CommitIsSuppressed then
+            exit;
+
         AutoPostTransactions.AutoPostTransactions(SalesInvHdrNo, SalesCrMemoHdrNo);
     end;
 
