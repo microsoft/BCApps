@@ -2,16 +2,20 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Manufacturing.Subcontracting;
+namespace Microsoft.Peppol;
 
-using Microsoft.Manufacturing.Routing;
-pagecustomization "Subc. RoutingLines" customizes "Routing Lines"
+using Microsoft.Finance.VAT.Clause;
+
+pageextension 37221 "PEPPOL VAT Clauses" extends "VAT Clauses"
 {
     layout
     {
-        modify("Routing Link Code")
+        addlast(group)
         {
-            Visible = true;
+            field("VATEX Code"; Rec."VATEX Code")
+            {
+                ApplicationArea = Basic, Suite;
+            }
         }
     }
 }

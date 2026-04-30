@@ -14,7 +14,7 @@ using System.Utilities;
 report 99001503 "Subc. Create Prod. Routing"
 {
     ApplicationArea = Manufacturing;
-    Caption = 'Create Production BOM, Routing BOM';
+    Caption = 'Create Production BOM, Routing';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 
