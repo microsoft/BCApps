@@ -18,7 +18,7 @@ codeunit 8353 "MCP Config Missing Object" implements "MCP Config Warning"
         MissingObjectWarningLbl: Label '%1 (%2) referenced by this configuration no longer exists in the system.', Comment = '%1=Object type, %2=Object Id';
         MissingObjectFixLbl: Label 'Remove this tool from the configuration.';
 
-    procedure CheckForWarnings(ConfigId: Guid; var TempMCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
+    procedure CheckForWarnings(ConfigId: Guid; var MCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
     var
         AllObj: Record AllObj;
     begin
@@ -28,31 +28,31 @@ codeunit 8353 "MCP Config Missing Object" implements "MCP Config Warning"
                 AllObj.SetRange("Object Type", AllObj."Object Type"::Page);
                 AllObj.SetRange("Object ID", MCPConfigurationTool."Object ID");
                 if AllObj.IsEmpty() then begin
-                    TempMCPConfigWarning."Entry No." := EntryNo;
-                    TempMCPConfigWarning."Config Id" := ConfigId;
-                    TempMCPConfigWarning."Tool Id" := MCPConfigurationTool.SystemId;
-                    TempMCPConfigWarning."Warning Type" := TempMCPConfigWarning."Warning Type"::"Missing Object";
-                    TempMCPConfigWarning.Insert();
+                    MCPConfigWarning."Entry No." := EntryNo;
+                    MCPConfigWarning."Config Id" := ConfigId;
+                    MCPConfigWarning."Tool Id" := MCPConfigurationTool.SystemId;
+                    MCPConfigWarning."Warning Type" := MCPConfigWarning."Warning Type"::"Missing Object";
+                    MCPConfigWarning.Insert();
                     EntryNo += 1;
                 end;
             until MCPConfigurationTool.Next() = 0;
     end;
 
-    procedure WarningMessage(TempMCPConfigWarning: Record "MCP Config Warning"): Text
+    procedure WarningMessage(MCPConfigWarning: Record "MCP Config Warning"): Text
     begin
-        if MCPConfigurationTool.GetBySystemId(TempMCPConfigWarning."Tool Id") then
+        if MCPConfigurationTool.GetBySystemId(MCPConfigWarning."Tool Id") then
             exit(StrSubstNo(MissingObjectWarningLbl, MCPConfigurationTool."Object Type", MCPConfigurationTool."Object Id"));
     end;
 
-    procedure RecommendedAction(TempMCPConfigWarning: Record "MCP Config Warning"): Text
+    procedure RecommendedAction(MCPConfigWarning: Record "MCP Config Warning"): Text
     begin
         exit(MissingObjectFixLbl);
     end;
 
-    procedure ApplyRecommendedAction(var TempMCPConfigWarning: Record "MCP Config Warning")
+    procedure ApplyRecommendedAction(var MCPConfigWarning: Record "MCP Config Warning")
     begin
-        if MCPConfigurationTool.GetBySystemId(TempMCPConfigWarning."Tool Id") then
+        if MCPConfigurationTool.GetBySystemId(MCPConfigWarning."Tool Id") then
             MCPConfigurationTool.Delete();
-        TempMCPConfigWarning.Delete();
+        MCPConfigWarning.Delete();
     end;
 }

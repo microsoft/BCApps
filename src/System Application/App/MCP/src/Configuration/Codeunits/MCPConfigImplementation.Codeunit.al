@@ -381,38 +381,38 @@ codeunit 8351 "MCP Config Implementation"
         exit(not MCPConfigurationWarning.IsEmpty());
     end;
 
-    internal procedure GetWarningMessage(TempMCPConfigWarning: Record "MCP Config Warning"): Text
+    internal procedure GetWarningMessage(MCPConfigWarning: Record "MCP Config Warning"): Text
     var
         IMCPConfigWarning: Interface "MCP Config Warning";
     begin
-        IMCPConfigWarning := TempMCPConfigWarning."Warning Type";
-        exit(IMCPConfigWarning.WarningMessage(TempMCPConfigWarning));
+        IMCPConfigWarning := MCPConfigWarning."Warning Type";
+        exit(IMCPConfigWarning.WarningMessage(MCPConfigWarning));
     end;
 
-    internal procedure GetRecommendedAction(TempMCPConfigWarning: Record "MCP Config Warning"): Text
+    internal procedure GetRecommendedAction(MCPConfigWarning: Record "MCP Config Warning"): Text
     var
         IMCPConfigWarning: Interface "MCP Config Warning";
     begin
-        IMCPConfigWarning := TempMCPConfigWarning."Warning Type";
-        exit(IMCPConfigWarning.RecommendedAction(TempMCPConfigWarning));
+        IMCPConfigWarning := MCPConfigWarning."Warning Type";
+        exit(IMCPConfigWarning.RecommendedAction(MCPConfigWarning));
     end;
 
-    internal procedure ApplyRecommendedActions(var TempMCPConfigWarning: Record "MCP Config Warning")
+    internal procedure ApplyRecommendedActions(var MCPConfigWarning: Record "MCP Config Warning")
     begin
-        if not TempMCPConfigWarning.FindSet() then
+        if not MCPConfigWarning.FindSet() then
             exit;
 
         repeat
-            ApplyRecommendedAction(TempMCPConfigWarning);
-        until TempMCPConfigWarning.Next() = 0;
+            ApplyRecommendedAction(MCPConfigWarning);
+        until MCPConfigWarning.Next() = 0;
     end;
 
-    internal procedure ApplyRecommendedAction(var TempMCPConfigWarning: Record "MCP Config Warning")
+    internal procedure ApplyRecommendedAction(var MCPConfigWarning: Record "MCP Config Warning")
     var
         IMCPConfigWarning: Interface "MCP Config Warning";
     begin
-        IMCPConfigWarning := TempMCPConfigWarning."Warning Type";
-        IMCPConfigWarning.ApplyRecommendedAction(TempMCPConfigWarning);
+        IMCPConfigWarning := MCPConfigWarning."Warning Type";
+        IMCPConfigWarning.ApplyRecommendedAction(MCPConfigWarning);
     end;
     #endregion
 
