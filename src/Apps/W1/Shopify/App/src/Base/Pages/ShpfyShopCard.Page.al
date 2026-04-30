@@ -170,6 +170,10 @@ page 30101 "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                 }
+                field(SyncHSCodeAndCountry; Rec."Sync HS Code and Country")
+                {
+                    ApplicationArea = All;
+                }
                 field(UOMAsVariant; Rec."UoM as Variant")
                 {
                     ApplicationArea = All;

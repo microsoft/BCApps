@@ -563,11 +563,12 @@ page 149031 "AIT Test Suite"
 
         if CurrentSuiteCode = '' then begin
             AITTestSuite.Copy(Rec);
-            AITTestSuite.FindFirst();
+            if not (AITTestSuite.FindFirst()) then
+                exit;
             CurrentSuiteCode := AITTestSuite.Code;
         end;
 
-        Rec.Get(CurrentSuiteCode);
+        if Rec.Get(CurrentSuiteCode) then;
     end;
 
     local procedure ChangeTestSuite()

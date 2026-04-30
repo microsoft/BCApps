@@ -1,0 +1,34 @@
+{
+	"value": [
+		{
+			"id": "e2e00000-0000-0000-0000-000000000001",
+			"registrationType": "Full",
+			"registrationData": {
+				"jurisdiction": "GB",
+				"schemeId": "VAT",
+				"identifier": "GB777777771",
+				"fullAuthorityNetworkValue": "PEPPOL"
+			},
+			"status": {
+				"code": "Completed",
+				"message": "Activation completed"
+			},
+			"company": {
+				"displayName": "E2E Test Company",
+				"location": "GB",
+				"identifier": "e2e-test-comp"
+			},
+			"meta": {
+				"lastModified": "2024-08-16T12:00:00Z",
+				"location": "/activations/e2e00000"
+			},
+			"mandates": [
+				{
+					"countryMandate": "GB-Test-Mandate",
+					"countryCode": "GB",
+					"mandateType": ""
+				}
+			]
+		}
+	]
+}

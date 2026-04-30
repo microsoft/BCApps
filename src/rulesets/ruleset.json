@@ -48,6 +48,11 @@
         "id":  "PTE0026",
         "action":  "None",
         "justification": "TODO(#572306) - (see AS0138) This will require a multi-release effort."
+    },
+    {
+        "id": "AL0920",
+        "action": "None",
+        "justification": "TODO(#632280) - This will be enabled after a few violations are fixed."
     }
   ]
 }
