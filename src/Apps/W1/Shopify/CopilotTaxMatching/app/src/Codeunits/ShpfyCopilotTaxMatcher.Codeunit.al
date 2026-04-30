@@ -1,5 +1,6 @@
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Inventory.Item;
 using System.AI;
@@ -196,7 +197,9 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
 
                             MatchLog.Add(BuildMatchLogEntry(ParentId, LineNo, JurisdictionCode, Capitalize(Confidence), Reason));
 
-                            EnsureTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction);
+                            EnsureTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, GetItemTaxGroupCode(OrderTaxLine));
+                            if Shop."Shipping Charges Account" <> '' then
+                                EnsureTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, GetShippingTaxGroupCode(Shop));
                         end;
                 end;
             end;
@@ -235,11 +238,10 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
                 end;
     end;
 
-    local procedure EnsureTaxDetail(OrderHeader: Record "Shpfy Order Header"; OrderTaxLine: Record "Shpfy Order Tax Line"; TaxJurisdiction: Record "Tax Jurisdiction")
+    local procedure EnsureTaxDetail(OrderHeader: Record "Shpfy Order Header"; OrderTaxLine: Record "Shpfy Order Tax Line"; TaxJurisdiction: Record "Tax Jurisdiction"; TaxGroupCode: Code[20])
     var
         TaxDetail: Record "Tax Detail";
         CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
-        TaxGroupCode: Code[20];
     begin
         // Find the latest Tax Detail valid as of the order's effective date — that's the
         // bracket BC will use when posting tax for this order. If one exists, leave it alone:
@@ -248,8 +250,6 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         // we emit a telemetry signal (event 0000SHK) rather than inserting a new bracket —
         // auto-inserting would propagate the new rate to every order posting after this date,
         // which is admin territory.
-        TaxGroupCode := GetTaxGroupCodeForTaxLine(OrderTaxLine);
-
         TaxDetail.SetRange("Tax Jurisdiction Code", TaxJurisdiction.Code);
         TaxDetail.SetRange("Tax Group Code", TaxGroupCode);
         TaxDetail.SetRange("Tax Type", TaxDetail."Tax Type"::"Sales and Use Tax");
@@ -272,7 +272,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         TaxDetail.Insert(true);
     end;
 
-    local procedure GetTaxGroupCodeForTaxLine(OrderTaxLine: Record "Shpfy Order Tax Line"): Code[20]
+    local procedure GetItemTaxGroupCode(OrderTaxLine: Record "Shpfy Order Tax Line"): Code[20]
     var
         OrderLine: Record "Shpfy Order Line";
         Item: Record Item;
@@ -283,6 +283,17 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
                 exit(Item."Tax Group Code");
 
         exit('');
+    end;
+
+    local procedure GetShippingTaxGroupCode(Shop: Record "Shpfy Shop"): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        if Shop."Shipping Charges Account" = '' then
+            exit('');
+        if not GLAccount.Get(Shop."Shipping Charges Account") then
+            exit('');
+        exit(GLAccount."Tax Group Code");
     end;
 
     local procedure BuildTaxLineJson(OrderTaxLine: Record "Shpfy Order Tax Line"): JsonObject

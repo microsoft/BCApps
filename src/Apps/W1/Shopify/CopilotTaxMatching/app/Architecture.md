@@ -93,6 +93,8 @@ ApplyMatches()
   |     |-- Validate jurisdiction exists, or create if auto-create enabled
   |     |-- Write jurisdiction code to Shpfy Order Tax Line
   |     |-- Ensure Tax Detail bracket valid at the order date exists (always; rate-mismatch is logged, never overridden)
+  |     |     |-- Once for the item line's Tax Group Code (Item.Tax Group Code)
+  |     |     |-- Once for the Shop's Shipping Charges Account Tax Group Code (G/L Account.Tax Group Code), at the same Shopify rate
   |-- FixReportToJurisdictions() if >1 jurisdiction matched
   |-- Return matched jurisdiction list
   |
@@ -262,7 +264,7 @@ The feature reads from and writes to the standard Shopify connector tables and B
 | Tax Jurisdiction | Read for matching; created when `Auto Create Tax Jurisdictions` enabled |
 | Tax Area | Read for exact-match search; created when `Auto Create Tax Areas` enabled |
 | Tax Area Line | Read/created as part of Tax Area |
-| Tax Detail | Always: for every matched jurisdiction, look for the latest Tax Detail with `Effective Date <= order date` for the jurisdiction + tax group + tax type. If none exists, insert a new one at the order date with Shopify's rate. If one exists with the same rate, do nothing. If one exists with a different rate, leave it untouched and log a rate-divergence warning (telemetry `0000SHK`) — admin owns rate updates. |
+| Tax Detail | Seeded twice per matched tax line: once for the item line's Tax Group Code (`Item.Tax Group Code`) and once for the Shop's `Shipping Charges Account` Tax Group Code (`G/L Account.Tax Group Code`). Both calls use Shopify's reported rate from the matched tax line — the assumption is that Shopify charges the same per-jurisdiction rate to items and shipping in essentially all real configurations, so the item-line rate is a valid source for the shipping bracket. For each seed, look for the latest Tax Detail with `Effective Date <= order date` for the jurisdiction + tax group + tax type. If none exists, insert a new one at the order date with Shopify's rate. If one exists with the same rate, do nothing. If one exists with a different rate, leave it untouched and log a rate-divergence warning (telemetry `0000SHK`) — admin owns rate updates. Empty Tax Group Code is a valid value for both seeds (an item or shipping account with no group results in a `(Jurisdiction × '')` Tax Detail row). The shipping seed is skipped only when the Shop has no `Shipping Charges Account` configured at all (no target). |
 
 ## Integration Points
 
@@ -317,7 +319,7 @@ A separate test app (`CopilotTaxMatching/test/`, ID range 30490-30499) uses the 
 - Data-driven YAML scenarios iterated by the framework
 - Real LLM calls (no mocking) for matching tests
 - Test output logged via `AITTestContext.SetQueryResponse()` for eval spreadsheets
-- Categories: Jurisdiction Matching (J, H), Jurisdiction Creation (JC), Tax Detail (TD), Tax Area (TA), Guard (G), End-to-End (F)
+- Categories: Jurisdiction Matching (J, H), Jurisdiction Creation (JC), Tax Detail (TD), Shipping Tax (S), Tax Area (TA), Guard (G), End-to-End (F)
 
 See `TestMatrix.md` for the full test scenario inventory.
 

@@ -128,6 +128,8 @@ codeunit 30494 "Shpfy CTM Match Test"
         SetupInput.ElementExists('existingTaxDetails', ElementExists);
         if ElementExists then
             CTMTestLibrary.SetupExistingTaxDetails(SetupInput.Element('existingTaxDetails'));
+
+        CTMTestLibrary.SetupGLAccounts(SetupInput);
     end;
 
     var

@@ -64,6 +64,24 @@
 
 ---
 
+## Shipping Tax Scenarios
+
+For each matched jurisdiction the matcher seeds a Tax Detail for the Shop's
+`Shipping Charges Account` Tax Group Code at the same Shopify rate as the
+item-line tax line. Idempotent across multiple item lines that match the same
+jurisdiction.
+
+| # | Scenario | Shop Setup | Existing Jurisdictions | Expected Result |
+|---|----------|------------|------------------------|-----------------|
+| S1 | Shipping detail seeded for existing jurisdiction | Shipping Charges Account configured (`GLA-SHIP`, group `SHIPGRP`) | NYSTAX exists | Both `(NYSTAX × TAXABLE)` and `(NYSTAX × SHIPGRP)` Tax Detail rows exist at Shopify rate |
+| S2 | Shipping detail seeded for new jurisdiction | Same + Auto Create Jurisdictions = Yes | None | Jurisdiction created; both `(NYSTAX × TAXABLE)` and `(NYSTAX × SHIPGRP)` Tax Detail rows exist |
+| S3 | No shipping account configured | `Shipping Charges Account` blank | None | Only item-side Tax Detail seeded; no shipping detail; no error |
+| S4 | Shipping account with empty Tax Group Code | `Shipping Charges Account` = `GLA-SHIP`, but G/L Account.Tax Group Code blank | None | Item-group detail seeded plus a `(Jurisdiction × '')` detail for the shipping account (mirrors item-side TD5/TD6) |
+| S5 | Shipping group same as item group | Shipping account's group = `TAXABLE` (same as item) | NYSTAX exists | Single `(NYSTAX × TAXABLE)` row; second call short-circuits via existing-detail check (count = 1) |
+| S6 | Multiple item lines, same jurisdiction | Shipping account's group `SHIPGRP` differs from item | NYSTAX exists | Three item-line tax lines all match NYSTAX; exactly one `(NYSTAX × SHIPGRP)` row created (idempotency) |
+
+---
+
 ## Tax Area Scenarios
 
 | # | Scenario | Auto Create Areas | Existing Tax Areas | Expected Result |

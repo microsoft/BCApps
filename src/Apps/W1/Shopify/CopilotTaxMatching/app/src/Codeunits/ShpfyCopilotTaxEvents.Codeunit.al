@@ -17,7 +17,7 @@ codeunit 30473 "Shpfy Copilot Tax Events"
     InherentEntitlements = X;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnAfterMapShopifyOrder, '', false, false)]
-    local procedure OnAfterMapShopifyOrder(var OrderHeader: Record "Shpfy Order Header"; Result: Boolean)
+    local procedure OnAfterMapShopifyOrder(var ShopifyOrderHeader: Record "Shpfy Order Header"; Result: Boolean)
     var
         Shop: Record "Shpfy Shop";
         CopilotCapability: Codeunit "Copilot Capability";
@@ -34,13 +34,13 @@ codeunit 30473 "Shpfy Copilot Tax Events"
         if not Result then
             exit;
 
-        if OrderHeader."Tax Area Code" <> '' then
+        if ShopifyOrderHeader."Tax Area Code" <> '' then
             exit;
 
-        if OrderHeader."Tax Exempt" then
+        if ShopifyOrderHeader."Tax Exempt" then
             exit;
 
-        if not Shop.Get(OrderHeader."Shop Code") then
+        if not Shop.Get(ShopifyOrderHeader."Shop Code") then
             exit;
 
         if not Shop."Copilot Tax Matching Enabled" then
@@ -53,23 +53,23 @@ codeunit 30473 "Shpfy Copilot Tax Events"
             exit;
 
         // Reset marker before re-matching (e.g. when a user manually cleared Tax Area Code to force a re-run).
-        if OrderHeader."Copilot Tax Match Applied" then begin
-            OrderHeader."Copilot Tax Match Applied" := false;
-            OrderHeader.Modify();
+        if ShopifyOrderHeader."Copilot Tax Match Applied" then begin
+            ShopifyOrderHeader."Copilot Tax Match Applied" := false;
+            ShopifyOrderHeader.Modify();
         end;
 
-        Session.LogMessage('', StrSubstNo(StartingMatchMsg, OrderHeader."Shopify Order Id"),
+        Session.LogMessage('', StrSubstNo(StartingMatchMsg, ShopifyOrderHeader."Shopify Order Id"),
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName());
 
-        if CopilotTaxMatcher.MatchTaxLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog) then begin
+        if CopilotTaxMatcher.MatchTaxLines(ShopifyOrderHeader, Shop, MatchedJurisdictions, MatchLog) then begin
             if MatchedJurisdictions.Count() > 0 then
-                if TaxAreaBuilder.FindOrCreateTaxArea(OrderHeader, Shop, MatchedJurisdictions, ResolvedTaxAreaCode, TaxAreaWasCreated) then begin
-                    OrderHeader."Copilot Tax Match Applied" := true;
-                    OrderHeader.Modify();
+                if TaxAreaBuilder.FindOrCreateTaxArea(ShopifyOrderHeader, Shop, MatchedJurisdictions, ResolvedTaxAreaCode, TaxAreaWasCreated) then begin
+                    ShopifyOrderHeader."Copilot Tax Match Applied" := true;
+                    ShopifyOrderHeader.Modify();
                     FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax marker set on order');
 
-                    CTActivityLog.LogPerLineEntries(OrderHeader, MatchLog);
-                    CTActivityLog.LogTaxAreaEntry(OrderHeader, ResolvedTaxAreaCode, TaxAreaWasCreated, MatchedJurisdictions);
+                    CTActivityLog.LogPerLineEntries(ShopifyOrderHeader, MatchLog);
+                    CTActivityLog.LogTaxAreaEntry(ShopifyOrderHeader, ResolvedTaxAreaCode, TaxAreaWasCreated, MatchedJurisdictions);
                 end;
 
             FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Tax lines matched');

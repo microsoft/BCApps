@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <Root>
     <AITSuite Code="CTM-UNIT"
-              Description="Copilot Tax Matching - Tests"
+              Description="Shopify Copilot Tax Matching - Tests"
               Dataset="CTM-Setup.yaml"
               Capability="Shpfy Tax Matching"
               Frequency="Daily"
@@ -16,6 +16,9 @@
         <Line CodeunitID="30494"
               Description="Tax Detail (TD1-TD8)"
               Dataset="CTM-TS-TaxDetail.yaml" />
+        <Line CodeunitID="30494"
+              Description="Shipping Tax (S1-S6)"
+              Dataset="CTM-TS-ShippingTax.yaml" />
         <Line CodeunitID="30495"
               Description="Tax Area (TA1-TA11)"
               Dataset="CTM-TS-TaxArea.yaml" />

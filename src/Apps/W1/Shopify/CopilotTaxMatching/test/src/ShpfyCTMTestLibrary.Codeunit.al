@@ -1,5 +1,6 @@
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Inventory.Item;
 using System.TestTools.AITestToolkit;
@@ -94,6 +95,58 @@ codeunit 30491 "Shpfy CTM Test Library"
         ShopSettings.ElementExists('taxAreaNamingPattern', ElementExists);
         if ElementExists then
             Shop."Tax Area Naming Pattern" := CopyStr(ShopSettings.Element('taxAreaNamingPattern').ValueAsText(), 1, MaxStrLen(Shop."Tax Area Naming Pattern"));
+
+        ShopSettings.ElementExists('shippingChargesAccount', ElementExists);
+        if ElementExists then
+            Shop."Shipping Charges Account" := CopyStr(ShopSettings.Element('shippingChargesAccount').ValueAsText(), 1, MaxStrLen(Shop."Shipping Charges Account"));
+    end;
+
+    internal procedure SetupGLAccounts(SetupInput: Codeunit "Test Input Json")
+    var
+        AccountsArray: Codeunit "Test Input Json";
+        AccountInput: Codeunit "Test Input Json";
+        ElementExists: Boolean;
+        i: Integer;
+        AccountNo: Code[20];
+        TaxGroupCode: Code[20];
+    begin
+        AccountsArray := SetupInput.ElementExists('glAccounts', ElementExists);
+        if not ElementExists then
+            exit;
+
+        for i := 0 to AccountsArray.GetElementCount() - 1 do begin
+            AccountInput := AccountsArray.ElementAt(i);
+            AccountNo := CopyStr(AccountInput.Element('no').ValueAsText(), 1, MaxStrLen(AccountNo));
+
+            TaxGroupCode := '';
+            AccountInput.ElementExists('taxGroupCode', ElementExists);
+            if ElementExists then
+                TaxGroupCode := CopyStr(AccountInput.Element('taxGroupCode').ValueAsText(), 1, MaxStrLen(TaxGroupCode));
+
+            EnsureGLAccount(AccountNo, TaxGroupCode);
+        end;
+    end;
+
+    local procedure EnsureGLAccount(AccountNo: Code[20]; TaxGroupCode: Code[20])
+    var
+        GLAccount: Record "G/L Account";
+        TaxGroup: Record "Tax Group";
+    begin
+        if GLAccount.Get(AccountNo) then
+            exit;
+
+        if (TaxGroupCode <> '') and not TaxGroup.Get(TaxGroupCode) then begin
+            TaxGroup.Init();
+            TaxGroup.Code := TaxGroupCode;
+            TaxGroup.Description := TaxGroupCode;
+            TaxGroup.Insert(true);
+        end;
+
+        GLAccount.Init();
+        GLAccount."No." := AccountNo;
+        GLAccount.Name := AccountNo;
+        GLAccount."Tax Group Code" := TaxGroupCode;
+        GLAccount.Insert(false);
     end;
 
     internal procedure SetupTaxJurisdictions(SetupInput: Codeunit "Test Input Json")
@@ -343,6 +396,7 @@ codeunit 30491 "Shpfy CTM Test Library"
         TaxDetail: Record "Tax Detail";
         TaxGroup: Record "Tax Group";
         Item: Record Item;
+        GLAccount: Record "G/L Account";
     begin
         OrderTaxLine.DeleteAll();
         OrderLine.DeleteAll();
@@ -355,6 +409,7 @@ codeunit 30491 "Shpfy CTM Test Library"
         TaxJurisdiction.DeleteAll();
         TaxGroup.DeleteAll();
         Item.DeleteAll();
+        GLAccount.DeleteAll();
     end;
 
     local procedure GetNextOrderId(): BigInteger
