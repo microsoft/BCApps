@@ -12,16 +12,6 @@ tableextension 99001500 "Subc. Item Ledger Entry" extends "Item Ledger Entry"
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001510; "Prod. Order No."; Code[20])
-        {
-            Caption = 'Prod. Order No.';
-            DataClassification = CustomerContent;
-        }
-        field(99001511; "Prod. Order Line No."; Integer)
-        {
-            Caption = 'Prod. Order Line No.';
-            DataClassification = CustomerContent;
-        }
         field(99001512; "Subcontr. Purch. Order No."; Code[20])
         {
             Caption = 'Subcontr. Purch. Order No.';
@@ -43,6 +33,6 @@ tableextension 99001500 "Subc. Item Ledger Entry" extends "Item Ledger Entry"
     }
     keys
     {
-        key(Key99001500; "Prod. Order No.", "Prod. Order Line No.", "Subcontr. Purch. Order No.", "Subcontr. PO Line No.") { }
+        key(Key99001500; "Subcontr. Purch. Order No.", "Subcontr. PO Line No.") { }
     }
 }

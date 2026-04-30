@@ -1894,6 +1894,36 @@ Comment = '|%1 = Transfer Order No.';
             'Description 2 must be populated on the Requisition Line from the subcontracting Work Center');
     end;
 
+    [Test]
+    procedure PostingSubcontractingPurchReceiptCreatesILEWithSubcFields()
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+        // [SCENARIO 620746] Posting a subcontracting purchase receipt creates an ILE correctly
+        // after removing the redundant "Prod. Order No." and "Prod. Order Line No." custom fields
+        // from the Subc. Item Ledger Entry table extension (AB#620746).
+
+        // [GIVEN] A complete subcontracting setup with work centers, item with routing, and a purchase order linked to a production order
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [WHEN] The subcontracting purchase receipt is posted
+        CreateSubcontractingPurchOrderPostAndGetPurchRcptLine(PurchRcptLine);
+
+        // [THEN] An ILE is created for the receipt document
+        ItemLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
+        ItemLedgerEntry.SetRange("Document Line No.", PurchRcptLine."Line No.");
+        Assert.RecordIsNotEmpty(ItemLedgerEntry);
+
+        // [THEN] The remaining custom Subcontracting ILE fields exist and are accessible
+        ItemLedgerEntry.FindFirst();
+        Assert.IsTrue(ItemLedgerEntry."Subcontr. Purch. Order No." = '', 'Subcontr. Purch. Order No. must be accessible on ILE.');
+        Assert.IsTrue(ItemLedgerEntry."Subcontr. PO Line No." = 0, 'Subcontr. PO Line No. must be accessible on ILE.');
+        Assert.IsTrue(ItemLedgerEntry."Operation No." = '', 'Operation No. must be accessible on ILE.');
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin

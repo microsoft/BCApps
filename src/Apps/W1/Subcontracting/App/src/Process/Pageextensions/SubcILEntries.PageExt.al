@@ -24,18 +24,6 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 ToolTip = 'Specifies the number of the related purchase order line.';
                 Visible = false;
             }
-            field("Prod. Order No."; Rec."Prod. Order No.")
-            {
-                ApplicationArea = Manufacturing;
-                ToolTip = 'Specifies the number of the related production order.';
-                Visible = false;
-            }
-            field("Prod. Order Line No."; Rec."Prod. Order Line No.")
-            {
-                ApplicationArea = Manufacturing;
-                ToolTip = 'Specifies the number of the related production order line.';
-                Visible = false;
-            }
         }
     }
     actions
