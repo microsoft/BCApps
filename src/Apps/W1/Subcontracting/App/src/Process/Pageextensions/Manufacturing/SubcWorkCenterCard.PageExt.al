@@ -16,12 +16,12 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
             {
                 Caption = 'Subcontracting';
                 Image = SubcontractingWorksheet;
-                Visible = IsSubcontractingWorkCenter;
 
                 action("Subcontractor Prices")
                 {
                     ApplicationArea = Manufacturing;
                     Caption = 'Subcontractor Prices';
+                    Enabled = IsSubcontractingWorkCenter;
                     Image = Price;
                     RunObject = page "Subcontractor Prices";
                     RunPageLink = "Work Center No." = field("No.");
@@ -32,11 +32,6 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
         }
     }
     trigger OnAfterGetCurrRecord()
-    begin
-        IsSubcontractingWorkCenter := Rec."Subcontractor No." <> '';
-    end;
-
-    trigger OnOpenPage()
     begin
         IsSubcontractingWorkCenter := Rec."Subcontractor No." <> '';
     end;

@@ -338,8 +338,8 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         WorkCenterCard.OpenEdit();
         WorkCenterCard.GotoRecord(WorkCenter);
 
-        // [THEN] Subcontractor Prices action is not visible
-        Assert.IsFalse(WorkCenterCard."Subcontractor Prices".Visible(), SubcontractingActionsVisibleErr);
+        // [THEN] Subcontractor Prices action is not enabled
+        Assert.IsFalse(WorkCenterCard."Subcontractor Prices".Enabled(), SubcontractingActionsVisibleErr);
         WorkCenterCard.Close();
     end;
 
@@ -361,8 +361,8 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         WorkCenterCard.OpenEdit();
         WorkCenterCard.GotoRecord(WorkCenter);
 
-        // [THEN] Subcontractor Prices action is visible
-        Assert.IsTrue(WorkCenterCard."Subcontractor Prices".Visible(), SubcontractingActionsNotVisibleErr);
+        // [THEN] Subcontractor Prices action is enabled
+        Assert.IsTrue(WorkCenterCard."Subcontractor Prices".Enabled(), SubcontractingActionsNotVisibleErr);
         WorkCenterCard.Close();
     end;
 
