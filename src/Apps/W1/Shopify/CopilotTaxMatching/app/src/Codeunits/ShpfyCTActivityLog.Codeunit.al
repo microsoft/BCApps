@@ -19,10 +19,10 @@ codeunit 30477 "Shpfy CT Activity Log"
 
     procedure LogPerLineEntries(var OrderHeader: Record "Shpfy Order Header"; MatchLog: JsonArray)
     var
-        TaxLine: Record "Shpfy Order Tax Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         TaxJurisdiction: Record "Tax Jurisdiction";
         ActivityLogBuilder: Codeunit "Activity Log Builder";
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         JurisdictionRef: RecordRef;
         MatchToken: JsonToken;
@@ -45,7 +45,7 @@ codeunit 30477 "Shpfy CT Activity Log"
             Confidence := GetTextField(MatchObj, 'confidence');
             Reason := GetTextField(MatchObj, 'reason');
 
-            if not TaxLine.Get(ParentId, LineNo) then
+            if not OrderTaxLine.Get(ParentId, LineNo) then
                 continue;
             if not TaxJurisdiction.Get(JurisdictionCode) then
                 continue;
@@ -53,15 +53,15 @@ codeunit 30477 "Shpfy CT Activity Log"
             JurisdictionRef.GetTable(TaxJurisdiction);
 
             ActivityLogBuilder
-                .Init(Database::"Shpfy Order Tax Line", TaxLine.FieldNo("Tax Jurisdiction Code"), TaxLine.SystemId)
+                .Init(Database::"Shpfy Order Tax Line", OrderTaxLine.FieldNo("Tax Jurisdiction Code"), OrderTaxLine.SystemId)
                 .SetType(Enum::"Activity Log Type"::"AI")
                 .SetConfidence(Confidence)
-                .SetExplanation(BuildPerLineExplanation(TaxLine, JurisdictionCode, Reason))
+                .SetExplanation(BuildPerLineExplanation(OrderTaxLine, JurisdictionCode, Reason))
                 .SetReferenceSource(Page::"Tax Jurisdictions", JurisdictionRef)
                 .SetReferenceTitle(StrSubstNo(TaxJurisdictionTitleLbl, JurisdictionCode))
                 .Log();
 
-            FeatureTelemetry.LogUptake('0000SHI', ShpfyCopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
+            FeatureTelemetry.LogUptake('', CopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
         end;
     end;
 
@@ -69,7 +69,7 @@ codeunit 30477 "Shpfy CT Activity Log"
     var
         TaxArea: Record "Tax Area";
         ActivityLogBuilder: Codeunit "Activity Log Builder";
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         TaxAreaRef: RecordRef;
         Confidence: Text;
@@ -101,14 +101,14 @@ codeunit 30477 "Shpfy CT Activity Log"
             .SetReferenceTitle(StrSubstNo(TaxAreaTitleLbl, TaxAreaCode))
             .Log();
 
-        FeatureTelemetry.LogUptake('0000SHJ', ShpfyCopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUptake('', CopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
     end;
 
-    local procedure BuildPerLineExplanation(TaxLine: Record "Shpfy Order Tax Line"; JurisdictionCode: Code[10]; Reason: Text): Text
+    local procedure BuildPerLineExplanation(OrderTaxLine: Record "Shpfy Order Tax Line"; JurisdictionCode: Code[10]; Reason: Text): Text
     begin
         if Reason <> '' then
-            exit(StrSubstNo(PerLineExplanationWithReasonLbl, TaxLine.Title, TaxLine."Rate %", JurisdictionCode, Reason));
-        exit(StrSubstNo(PerLineExplanationLbl, TaxLine.Title, TaxLine."Rate %", JurisdictionCode));
+            exit(StrSubstNo(PerLineExplanationWithReasonLbl, OrderTaxLine.Title, OrderTaxLine."Rate %", JurisdictionCode, Reason));
+        exit(StrSubstNo(PerLineExplanationLbl, OrderTaxLine.Title, OrderTaxLine."Rate %", JurisdictionCode));
     end;
 
     local procedure FormatJurisdictions(Jurisdictions: List of [Code[10]]) Result: Text

@@ -225,7 +225,7 @@ page 30145 "Shpfy Refund"
                 trigger OnAction()
                 var
                     OrderLine: Record "Shpfy Order Line";
-                    TaxLine: Record "Shpfy Order Tax Line";
+                    OrderTaxLine: Record "Shpfy Order Tax Line";
                     FilterTxt: Text;
                 begin
                     OrderLine.SetRange("Shopify Order Id", Rec."Order Id");
@@ -234,8 +234,8 @@ page 30145 "Shpfy Refund"
                             FilterTxt += Format(OrderLine."Line Id") + '|';
                         until OrderLine.Next() = 0;
                     FilterTxt := FilterTxt.TrimEnd('|');
-                    TaxLine.SetFilter("Parent Id", FilterTxt);
-                    Page.Run(Page::"Shpfy Order Tax Lines", TaxLine);
+                    OrderTaxLine.SetFilter("Parent Id", FilterTxt);
+                    Page.Run(Page::"Shpfy Order Tax Lines", OrderTaxLine);
                 end;
             }
         }

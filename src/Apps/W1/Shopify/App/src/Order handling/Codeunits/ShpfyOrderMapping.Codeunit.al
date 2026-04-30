@@ -368,16 +368,16 @@ codeunit 30163 "Shpfy Order Mapping"
 
     local procedure MapTaxArea(var OrderHeader: Record "Shpfy Order Header")
     var
-        ShpfyTaxArea: Record "Shpfy Tax Area";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
         OrderMgt: Codeunit "Shpfy Order Mgt.";
     begin
         if OrderHeader."Tax Area Code" <> '' then
             exit;
 
-        if OrderMgt.FindTaxArea(OrderHeader, ShpfyTaxArea) and (ShpfyTaxArea."Tax Area Code" <> '') then begin
-            OrderHeader."Tax Area Code" := ShpfyTaxArea."Tax Area Code";
+        if OrderMgt.FindTaxArea(OrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then begin
+            OrderHeader."Tax Area Code" := ShopifyTaxArea."Tax Area Code";
             if not OrderHeader."Tax Exempt" then
-                OrderHeader."Tax Liable" := ShpfyTaxArea."Tax Liable";
+                OrderHeader."Tax Liable" := ShopifyTaxArea."Tax Liable";
         end;
     end;
 }

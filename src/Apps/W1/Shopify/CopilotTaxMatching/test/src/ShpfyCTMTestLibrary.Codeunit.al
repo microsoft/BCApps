@@ -176,7 +176,7 @@ codeunit 30491 "Shpfy CTM Test Library"
     local procedure CreateOrderLinesFromInput(OrderHeader: Record "Shpfy Order Header"; OrderLinesArray: Codeunit "Test Input Json")
     var
         OrderLine: Record "Shpfy Order Line";
-        TaxLine: Record "Shpfy Order Tax Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         LineInput: Codeunit "Test Input Json";
         TaxLinesArray: Codeunit "Test Input Json";
         TaxLineInput: Codeunit "Test Input Json";
@@ -218,13 +218,13 @@ codeunit 30491 "Shpfy CTM Test Library"
                 for j := 0 to TaxLinesArray.GetElementCount() - 1 do begin
                     TaxLineInput := TaxLinesArray.ElementAt(j);
 
-                    TaxLine.Init();
-                    TaxLine."Parent Id" := LineId;
-                    Evaluate(TaxLine."Line No.", TaxLineInput.Element('lineNo').ValueAsText());
-                    TaxLine.Title := CopyStr(TaxLineInput.Element('title').ValueAsText(), 1, MaxStrLen(TaxLine.Title));
-                    TaxLine."Rate %" := TaxLineInput.Element('ratePct').ValueAsDecimal();
-                    TaxLine."Channel Liable" := TaxLineInput.Element('channelLiable').ValueAsBoolean();
-                    TaxLine.Insert();
+                    OrderTaxLine.Init();
+                    OrderTaxLine."Parent Id" := LineId;
+                    Evaluate(OrderTaxLine."Line No.", TaxLineInput.Element('lineNo').ValueAsText());
+                    OrderTaxLine.Title := CopyStr(TaxLineInput.Element('title').ValueAsText(), 1, MaxStrLen(OrderTaxLine.Title));
+                    OrderTaxLine."Rate %" := TaxLineInput.Element('ratePct').ValueAsDecimal();
+                    OrderTaxLine."Channel Liable" := TaxLineInput.Element('channelLiable').ValueAsBoolean();
+                    OrderTaxLine.Insert();
                 end;
             end;
         end;
@@ -335,7 +335,7 @@ codeunit 30491 "Shpfy CTM Test Library"
     var
         OrderHeader: Record "Shpfy Order Header";
         OrderLine: Record "Shpfy Order Line";
-        TaxLine: Record "Shpfy Order Tax Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         Shop: Record "Shpfy Shop";
         TaxJurisdiction: Record "Tax Jurisdiction";
         TaxArea: Record "Tax Area";
@@ -344,7 +344,7 @@ codeunit 30491 "Shpfy CTM Test Library"
         TaxGroup: Record "Tax Group";
         Item: Record Item;
     begin
-        TaxLine.DeleteAll();
+        OrderTaxLine.DeleteAll();
         OrderLine.DeleteAll();
         OrderHeader.DeleteAll();
         Shop.SetRange(Code, ShopCodeTok);

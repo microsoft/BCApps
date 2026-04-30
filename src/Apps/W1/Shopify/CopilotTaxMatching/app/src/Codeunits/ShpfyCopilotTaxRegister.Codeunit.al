@@ -25,7 +25,7 @@ codeunit 30470 "Shpfy Copilot Tax Register"
 
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Shpfy Tax Matching") then begin
             CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Shpfy Tax Matching", LearnMoreUrlTxt);
-            FeatureTelemetry.LogUptake('0000SH1', FeatureNameTxt, Enum::"Feature Uptake Status"::"Set up");
+            FeatureTelemetry.LogUptake('', FeatureNameTxt, Enum::"Feature Uptake Status"::"Set up");
         end;
     end;
 

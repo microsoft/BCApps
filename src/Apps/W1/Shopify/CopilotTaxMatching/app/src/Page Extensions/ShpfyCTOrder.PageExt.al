@@ -22,7 +22,7 @@ pageextension 30479 "Shpfy CT Order" extends "Shpfy Order"
                 Provider = ShopifyOrderLines;
                 SubPageLink = "Parent Id" = field("Line Id");
                 UpdatePropagation = Both;
-                Visible = ShpfyCopilotTaxMatchingEnabled;
+                Visible = CopilotTaxMatchingEnabled;
             }
         }
     }
@@ -32,11 +32,11 @@ pageextension 30479 "Shpfy CT Order" extends "Shpfy Order"
         Shop: Record "Shpfy Shop";
     begin
         if Shop.Get(Rec."Shop Code") then
-            ShpfyCopilotTaxMatchingEnabled := Shop."Copilot Tax Matching Enabled"
+            CopilotTaxMatchingEnabled := Shop."Copilot Tax Matching Enabled"
         else
-            ShpfyCopilotTaxMatchingEnabled := false;
+            CopilotTaxMatchingEnabled := false;
     end;
 
     var
-        ShpfyCopilotTaxMatchingEnabled: Boolean;
+        CopilotTaxMatchingEnabled: Boolean;
 }

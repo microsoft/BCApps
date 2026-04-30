@@ -18,10 +18,10 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
     procedure MatchTaxLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray): Boolean
     var
         OrderLine: Record "Shpfy Order Line";
-        TaxLine: Record "Shpfy Order Tax Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         TaxJurisdiction: Record "Tax Jurisdiction";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         TaxLinesArray: JsonArray;
         JurisdictionsArray: JsonArray;
         AddressObj: JsonObject;
@@ -31,7 +31,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         JurisdictionsText: Text;
         AddressText: Text;
     begin
-        FeatureTelemetry.LogUptake('0000SH2', ShpfyCopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUptake('', CopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
 
         // Gather unmatched tax lines
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
@@ -39,12 +39,12 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
             exit(false);
 
         repeat
-            TaxLine.SetRange("Parent Id", OrderLine."Line Id");
-            TaxLine.SetRange("Tax Jurisdiction Code", '');
-            if TaxLine.FindSet() then
+            OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
+            OrderTaxLine.SetRange("Tax Jurisdiction Code", '');
+            if OrderTaxLine.FindSet() then
                 repeat
-                    TaxLinesArray.Add(BuildTaxLineJson(TaxLine));
-                until TaxLine.Next() = 0;
+                    TaxLinesArray.Add(BuildTaxLineJson(OrderTaxLine));
+                until OrderTaxLine.Next() = 0;
         until OrderLine.Next() = 0;
 
         if TaxLinesArray.Count() = 0 then
@@ -84,7 +84,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         TaxMatchFunction: Codeunit "Shpfy Tax Match Function";
         SystemPromptTxt: SecretText;
         MatchResults: JsonObject;
@@ -106,21 +106,21 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
 
         if not AOAIOperationResponse.IsSuccess() then begin
-            Session.LogMessage('0000SH3', StrSubstNo(NotSuccessfulRequestErr, AOAIOperationResponse.GetStatusCode(), AOAIOperationResponse.GetError()),
-                Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', ShpfyCopilotTaxRegister.FeatureName());
+            Session.LogMessage('', StrSubstNo(NotSuccessfulRequestErr, AOAIOperationResponse.GetStatusCode(), AOAIOperationResponse.GetError()),
+                Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName());
             exit(false);
         end;
 
         if not AOAIOperationResponse.IsFunctionCall() then begin
-            Session.LogMessage('0000SH4', NoFunctionCallErr,
-                Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', ShpfyCopilotTaxRegister.FeatureName());
+            Session.LogMessage('', NoFunctionCallErr,
+                Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName());
             exit(false);
         end;
 
         AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponses().Get(1);
         if not AOAIFunctionResponse.IsSuccess() then begin
-            Session.LogMessage('0000SH5', StrSubstNo(FunctionCallErr, AOAIFunctionResponse.GetFunctionName()),
-                Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', ShpfyCopilotTaxRegister.FeatureName());
+            Session.LogMessage('', StrSubstNo(FunctionCallErr, AOAIFunctionResponse.GetFunctionName()),
+                Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName());
             exit(false);
         end;
 
@@ -131,8 +131,8 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
     local procedure ApplyMatches(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; MatchResults: JsonObject; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray): Boolean
     var
         TaxJurisdiction: Record "Tax Jurisdiction";
-        TaxLine: Record "Shpfy Order Tax Line";
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         MatchesToken: JsonToken;
         MatchToken: JsonToken;
         MatchObj: JsonObject;
@@ -170,7 +170,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
                     Reason := ReasonToken.AsValue().AsText();
 
             if (JurisdictionCode = '') or ((Confidence = 'low') and not Shop."Auto Create Tax Jurisdictions") then
-                Session.LogMessage('0000SH6', StrSubstNo(SkippedLowConfidenceMsg, TaxLineId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', ShpfyCopilotTaxRegister.FeatureName())
+                Session.LogMessage('', StrSubstNo(SkippedLowConfidenceMsg, TaxLineId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName())
             else begin
                 // Parse tax line ID (format: ParentId-LineNo)
                 Parts := TaxLineId.Split('-');
@@ -179,16 +179,16 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
                     JurisdictionValid := TaxJurisdiction.Get(JurisdictionCode);
                     if not JurisdictionValid then
                         if not Shop."Auto Create Tax Jurisdictions" then
-                            Session.LogMessage('0000SH7', StrSubstNo(JurisdictionNotFoundMsg, JurisdictionCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', ShpfyCopilotTaxRegister.FeatureName())
+                            Session.LogMessage('', StrSubstNo(JurisdictionNotFoundMsg, JurisdictionCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName())
                         else begin
                             CreateTaxJurisdiction(TaxJurisdiction, JurisdictionCode, OrderHeader);
                             JurisdictionValid := true;
                         end;
 
                     if JurisdictionValid then
-                        if TaxLine.Get(ParentId, LineNo) then begin
-                            TaxLine."Tax Jurisdiction Code" := JurisdictionCode;
-                            TaxLine.Modify();
+                        if OrderTaxLine.Get(ParentId, LineNo) then begin
+                            OrderTaxLine."Tax Jurisdiction Code" := JurisdictionCode;
+                            OrderTaxLine.Modify();
                             AnyMatched := true;
 
                             if not MatchedJurisdictions.Contains(JurisdictionCode) then
@@ -196,7 +196,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
 
                             MatchLog.Add(BuildMatchLogEntry(ParentId, LineNo, JurisdictionCode, Capitalize(Confidence), Reason));
 
-                            EnsureTaxDetail(OrderHeader, TaxLine, TaxJurisdiction);
+                            EnsureTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction);
                         end;
                 end;
             end;
@@ -235,10 +235,10 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
                 end;
     end;
 
-    local procedure EnsureTaxDetail(OrderHeader: Record "Shpfy Order Header"; TaxLine: Record "Shpfy Order Tax Line"; TaxJurisdiction: Record "Tax Jurisdiction")
+    local procedure EnsureTaxDetail(OrderHeader: Record "Shpfy Order Header"; OrderTaxLine: Record "Shpfy Order Tax Line"; TaxJurisdiction: Record "Tax Jurisdiction")
     var
         TaxDetail: Record "Tax Detail";
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         TaxGroupCode: Code[20];
     begin
         // Find the latest Tax Detail valid as of the order's effective date — that's the
@@ -248,18 +248,18 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         // we emit a telemetry signal (event 0000SHK) rather than inserting a new bracket —
         // auto-inserting would propagate the new rate to every order posting after this date,
         // which is admin territory.
-        TaxGroupCode := GetTaxGroupCodeForTaxLine(TaxLine);
+        TaxGroupCode := GetTaxGroupCodeForTaxLine(OrderTaxLine);
 
         TaxDetail.SetRange("Tax Jurisdiction Code", TaxJurisdiction.Code);
         TaxDetail.SetRange("Tax Group Code", TaxGroupCode);
         TaxDetail.SetRange("Tax Type", TaxDetail."Tax Type"::"Sales and Use Tax");
         TaxDetail.SetFilter("Effective Date", '<=%1', OrderHeader."Document Date");
         if TaxDetail.FindLast() then begin
-            if TaxDetail."Tax Below Maximum" <> TaxLine."Rate %" then
-                Session.LogMessage('0000SHK',
-                    StrSubstNo(TaxDetailRateMismatchMsg, TaxJurisdiction.Code, TaxGroupCode, TaxDetail."Tax Below Maximum", TaxLine."Rate %"),
+            if TaxDetail."Tax Below Maximum" <> OrderTaxLine."Rate %" then
+                Session.LogMessage('',
+                    StrSubstNo(TaxDetailRateMismatchMsg, TaxJurisdiction.Code, TaxGroupCode, TaxDetail."Tax Below Maximum", OrderTaxLine."Rate %"),
                     Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All,
-                    'Category', ShpfyCopilotTaxRegister.FeatureName());
+                    'Category', CopilotTaxRegister.FeatureName());
             exit;
         end;
 
@@ -268,16 +268,16 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         TaxDetail."Tax Group Code" := TaxGroupCode;
         TaxDetail."Tax Type" := TaxDetail."Tax Type"::"Sales and Use Tax";
         TaxDetail."Effective Date" := OrderHeader."Document Date";
-        TaxDetail."Tax Below Maximum" := TaxLine."Rate %";
+        TaxDetail."Tax Below Maximum" := OrderTaxLine."Rate %";
         TaxDetail.Insert(true);
     end;
 
-    local procedure GetTaxGroupCodeForTaxLine(TaxLine: Record "Shpfy Order Tax Line"): Code[20]
+    local procedure GetTaxGroupCodeForTaxLine(OrderTaxLine: Record "Shpfy Order Tax Line"): Code[20]
     var
         OrderLine: Record "Shpfy Order Line";
         Item: Record Item;
     begin
-        OrderLine.SetRange("Line Id", TaxLine."Parent Id");
+        OrderLine.SetRange("Line Id", OrderTaxLine."Parent Id");
         if OrderLine.FindFirst() then
             if Item.Get(OrderLine."Item No.") then
                 exit(Item."Tax Group Code");
@@ -285,14 +285,14 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         exit('');
     end;
 
-    local procedure BuildTaxLineJson(TaxLine: Record "Shpfy Order Tax Line"): JsonObject
+    local procedure BuildTaxLineJson(OrderTaxLine: Record "Shpfy Order Tax Line"): JsonObject
     var
         TaxLineObj: JsonObject;
     begin
-        TaxLineObj.Add('id', StrSubstNo(TaxLineIdTok, TaxLine."Parent Id", TaxLine."Line No."));
-        TaxLineObj.Add('title', TaxLine.Title);
-        TaxLineObj.Add('rate_pct', TaxLine."Rate %");
-        TaxLineObj.Add('channel_liable', TaxLine."Channel Liable");
+        TaxLineObj.Add('id', StrSubstNo(TaxLineIdTok, OrderTaxLine."Parent Id", OrderTaxLine."Line No."));
+        TaxLineObj.Add('title', OrderTaxLine.Title);
+        TaxLineObj.Add('rate_pct', OrderTaxLine."Rate %");
+        TaxLineObj.Add('channel_liable', OrderTaxLine."Channel Liable");
         exit(TaxLineObj);
     end;
 

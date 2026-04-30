@@ -11,8 +11,8 @@ codeunit 30475 "Shpfy Copilot Tax Install"
 
     trigger OnInstallAppPerDatabase()
     var
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
     begin
-        ShpfyCopilotTaxRegister.RegisterCopilotCapability();
+        CopilotTaxRegister.RegisterCopilotCapability();
     end;
 }

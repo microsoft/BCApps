@@ -22,8 +22,8 @@ codeunit 30495 "Shpfy CTM Tax Area Test"
         OrderHeader: Record "Shpfy Order Header";
         Shop: Record "Shpfy Shop";
         TaxAreaBuilder: Codeunit "Shpfy Tax Area Builder";
-        TestLib: Codeunit "Shpfy CTM Test Library";
-        Verify: Codeunit "Shpfy CTM Verify";
+        CTMTestLibrary: Codeunit "Shpfy CTM Test Library";
+        CTMVerify: Codeunit "Shpfy CTM Verify";
         Input: Codeunit "Test Input Json";
         Expected: Codeunit "Test Input Json";
         JurisdictionCodesInput: Codeunit "Test Input Json";
@@ -35,21 +35,21 @@ codeunit 30495 "Shpfy CTM Tax Area Test"
         i: Integer;
     begin
         // Arrange
-        TestLib.CleanupTestData();
-        Input := TestLib.GetInput();
+        CTMTestLibrary.CleanupTestData();
+        Input := CTMTestLibrary.GetInput();
 
-        Shop := TestLib.SetupShop(Input.Element('setup').Element('shopSettings'));
+        Shop := CTMTestLibrary.SetupShop(Input.Element('setup').Element('shopSettings'));
 
         // Set up jurisdictions needed for tax area lines
-        TestLib.SetupTaxJurisdictions(Input.Element('setup'));
+        CTMTestLibrary.SetupTaxJurisdictions(Input.Element('setup'));
 
         // Set up existing tax areas
         Input.Element('setup').ElementExists('existingTaxAreas', ElementExists);
         if ElementExists then
-            TestLib.SetupExistingTaxAreas(Input.Element('setup').Element('existingTaxAreas'));
+            CTMTestLibrary.SetupExistingTaxAreas(Input.Element('setup').Element('existingTaxAreas'));
 
         // Create order header
-        OrderHeader := TestLib.SetupOrder(Input.Element('setup'), Shop);
+        OrderHeader := CTMTestLibrary.SetupOrder(Input.Element('setup'), Shop);
 
         // Build jurisdiction codes list
         JurisdictionCodesInput := Input.Element('setup').Element('jurisdictionCodes');
@@ -89,7 +89,7 @@ codeunit 30495 "Shpfy CTM Tax Area Test"
             LibraryAssert.AreEqual(Expected.Element('taxLiable').ValueAsBoolean(), OrderHeader."Tax Liable", 'Order Tax Liable');
         end;
 
-        Verify.VerifyTaxAreaCreated(Expected);
+        CTMVerify.VerifyTaxAreaCreated(Expected);
     end;
 
     local procedure EnsureJurisdictionsExist(JurisdictionCodes: List of [Code[10]])

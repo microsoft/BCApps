@@ -81,7 +81,7 @@ codeunit 30492 "Shpfy CTM Verify"
 
     local procedure VerifyTaxLineJurisdictions(ExpectedArray: Codeunit "Test Input Json")
     var
-        TaxLine: Record "Shpfy Order Tax Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         ExpectedItem: Codeunit "Test Input Json";
         ParentId: BigInteger;
         LineNo: Integer;
@@ -93,20 +93,20 @@ codeunit 30492 "Shpfy CTM Verify"
             Evaluate(ParentId, ExpectedItem.Element('parentId').ValueAsText());
             Evaluate(LineNo, ExpectedItem.Element('lineNo').ValueAsText());
 
-            LibraryAssert.IsTrue(TaxLine.Get(ParentId, LineNo),
+            LibraryAssert.IsTrue(OrderTaxLine.Get(ParentId, LineNo),
                 StrSubstNo(TaxLineShouldExistLbl, ParentId, LineNo));
 
             ExpectedItem.ElementExists('jurisdictionCode', ElementExists);
             if ElementExists then
                 LibraryAssert.AreEqual(
                     CopyStr(ExpectedItem.Element('jurisdictionCode').ValueAsText(), 1, 10),
-                    TaxLine."Tax Jurisdiction Code",
+                    OrderTaxLine."Tax Jurisdiction Code",
                     StrSubstNo(TaxLineJurisdictionCodeLbl, ParentId, LineNo));
 
             ExpectedItem.ElementExists('hasJurisdictionCode', ElementExists);
             if ElementExists then
                 if ExpectedItem.Element('hasJurisdictionCode').ValueAsBoolean() then
-                    LibraryAssert.AreNotEqual('', TaxLine."Tax Jurisdiction Code",
+                    LibraryAssert.AreNotEqual('', OrderTaxLine."Tax Jurisdiction Code",
                         StrSubstNo(TaxLineShouldHaveCodeLbl, ParentId, LineNo));
         end;
     end;
@@ -114,46 +114,46 @@ codeunit 30492 "Shpfy CTM Verify"
     local procedure VerifyAllTaxLinesMatched(OrderHeader: Record "Shpfy Order Header")
     var
         OrderLine: Record "Shpfy Order Line";
-        TaxLine: Record "Shpfy Order Tax Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
     begin
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
         if OrderLine.FindSet() then
             repeat
-                TaxLine.SetRange("Parent Id", OrderLine."Line Id");
-                if TaxLine.FindSet() then
+                OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
+                if OrderTaxLine.FindSet() then
                     repeat
-                        LibraryAssert.AreNotEqual('', TaxLine."Tax Jurisdiction Code",
-                            StrSubstNo(TaxLineShouldBeMatchedLbl, TaxLine."Parent Id", TaxLine."Line No."));
-                    until TaxLine.Next() = 0;
+                        LibraryAssert.AreNotEqual('', OrderTaxLine."Tax Jurisdiction Code",
+                            StrSubstNo(TaxLineShouldBeMatchedLbl, OrderTaxLine."Parent Id", OrderTaxLine."Line No."));
+                    until OrderTaxLine.Next() = 0;
             until OrderLine.Next() = 0;
     end;
 
     local procedure VerifyCreatedJurisdictionCountryRegion(OrderHeader: Record "Shpfy Order Header"; ExpectedCountryRegion: Text)
     var
         OrderLine: Record "Shpfy Order Line";
-        TaxLine: Record "Shpfy Order Tax Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         TaxJurisdiction: Record "Tax Jurisdiction";
     begin
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
         if OrderLine.FindSet() then
             repeat
-                TaxLine.SetRange("Parent Id", OrderLine."Line Id");
-                if TaxLine.FindSet() then
+                OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
+                if OrderTaxLine.FindSet() then
                     repeat
-                        if TaxLine."Tax Jurisdiction Code" <> '' then
-                            if TaxJurisdiction.Get(TaxLine."Tax Jurisdiction Code") then
+                        if OrderTaxLine."Tax Jurisdiction Code" <> '' then
+                            if TaxJurisdiction.Get(OrderTaxLine."Tax Jurisdiction Code") then
                                 LibraryAssert.AreEqual(
                                     ExpectedCountryRegion,
                                     Format(TaxJurisdiction."Country/Region"),
                                     StrSubstNo(JurisdictionCountryRegionLbl, TaxJurisdiction.Code));
-                    until TaxLine.Next() = 0;
+                    until OrderTaxLine.Next() = 0;
             until OrderLine.Next() = 0;
     end;
 
     local procedure VerifyReportToAllSame(OrderHeader: Record "Shpfy Order Header")
     var
         OrderLine: Record "Shpfy Order Line";
-        TaxLine: Record "Shpfy Order Tax Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         TaxJurisdiction: Record "Tax Jurisdiction";
         FirstReportTo: Code[10];
         FoundFirst: Boolean;
@@ -161,18 +161,18 @@ codeunit 30492 "Shpfy CTM Verify"
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
         if OrderLine.FindSet() then
             repeat
-                TaxLine.SetRange("Parent Id", OrderLine."Line Id");
-                if TaxLine.FindSet() then
+                OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
+                if OrderTaxLine.FindSet() then
                     repeat
-                        if TaxLine."Tax Jurisdiction Code" <> '' then
-                            if TaxJurisdiction.Get(TaxLine."Tax Jurisdiction Code") then
+                        if OrderTaxLine."Tax Jurisdiction Code" <> '' then
+                            if TaxJurisdiction.Get(OrderTaxLine."Tax Jurisdiction Code") then
                                 if not FoundFirst then begin
                                     FirstReportTo := TaxJurisdiction."Report-to Jurisdiction";
                                     FoundFirst := true;
                                 end else
                                     LibraryAssert.AreEqual(FirstReportTo, TaxJurisdiction."Report-to Jurisdiction",
                                         StrSubstNo(JurisdictionReportToLbl, TaxJurisdiction.Code));
-                    until TaxLine.Next() = 0;
+                    until OrderTaxLine.Next() = 0;
             until OrderLine.Next() = 0;
 
         LibraryAssert.IsTrue(FoundFirst, 'At least one jurisdiction should have Report-to set');
@@ -182,7 +182,7 @@ codeunit 30492 "Shpfy CTM Verify"
     var
         TaxDetail: Record "Tax Detail";
         OrderLine: Record "Shpfy Order Line";
-        TaxLine: Record "Shpfy Order Tax Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         ExpectedItem: Codeunit "Test Input Json";
         TaxGroupCode: Code[20];
         RatePct: Decimal;
@@ -203,20 +203,20 @@ codeunit 30492 "Shpfy CTM Verify"
             OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
             if OrderLine.FindSet() then
                 repeat
-                    TaxLine.SetRange("Parent Id", OrderLine."Line Id");
-                    TaxLine.SetRange("Rate %", RatePct);
-                    TaxLine.SetFilter("Tax Jurisdiction Code", '<>%1', '');
-                    if TaxLine.FindFirst() then begin
-                        TaxDetail.SetRange("Tax Jurisdiction Code", TaxLine."Tax Jurisdiction Code");
+                    OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
+                    OrderTaxLine.SetRange("Rate %", RatePct);
+                    OrderTaxLine.SetFilter("Tax Jurisdiction Code", '<>%1', '');
+                    if OrderTaxLine.FindFirst() then begin
+                        TaxDetail.SetRange("Tax Jurisdiction Code", OrderTaxLine."Tax Jurisdiction Code");
                         TaxDetail.SetRange("Tax Group Code", TaxGroupCode);
                         TaxDetail.SetRange("Tax Below Maximum", RatePct);
                         LibraryAssert.IsTrue(TaxDetail.FindFirst(),
                             StrSubstNo(TaxDetailShouldExistLbl,
-                                TaxLine."Tax Jurisdiction Code", TaxGroupCode, RatePct));
+                                OrderTaxLine."Tax Jurisdiction Code", TaxGroupCode, RatePct));
 
                         if EffectiveDateExists then
                             LibraryAssert.AreEqual(ExpectedEffectiveDate, TaxDetail."Effective Date",
-                                StrSubstNo(TaxDetailEffectiveDateLbl, TaxLine."Tax Jurisdiction Code", TaxGroupCode));
+                                StrSubstNo(TaxDetailEffectiveDateLbl, OrderTaxLine."Tax Jurisdiction Code", TaxGroupCode));
                     end;
                 until OrderLine.Next() = 0;
         end;
@@ -225,25 +225,25 @@ codeunit 30492 "Shpfy CTM Verify"
     local procedure VerifyCreatedJurisdictionDescriptionEqualsCode(OrderHeader: Record "Shpfy Order Header")
     var
         OrderLine: Record "Shpfy Order Line";
-        TaxLine: Record "Shpfy Order Tax Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         TaxJurisdiction: Record "Tax Jurisdiction";
         Checked: Boolean;
     begin
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
         if OrderLine.FindSet() then
             repeat
-                TaxLine.SetRange("Parent Id", OrderLine."Line Id");
-                TaxLine.SetFilter("Tax Jurisdiction Code", '<>%1', '');
-                if TaxLine.FindSet() then
+                OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
+                OrderTaxLine.SetFilter("Tax Jurisdiction Code", '<>%1', '');
+                if OrderTaxLine.FindSet() then
                     repeat
-                        if TaxJurisdiction.Get(TaxLine."Tax Jurisdiction Code") then begin
+                        if TaxJurisdiction.Get(OrderTaxLine."Tax Jurisdiction Code") then begin
                             LibraryAssert.AreEqual(
                                 Format(TaxJurisdiction.Code),
                                 TaxJurisdiction.Description,
                                 StrSubstNo(JurisdictionDescriptionEqualsCodeLbl, TaxJurisdiction.Code));
                             Checked := true;
                         end;
-                    until TaxLine.Next() = 0;
+                    until OrderTaxLine.Next() = 0;
             until OrderLine.Next() = 0;
 
         LibraryAssert.IsTrue(Checked, 'At least one created jurisdiction should have been checked.');

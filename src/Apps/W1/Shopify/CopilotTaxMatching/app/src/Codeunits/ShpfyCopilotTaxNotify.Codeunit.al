@@ -19,38 +19,38 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
 
     procedure QueueNotificationFor(SalesHeader: Record "Sales Header"; OrderHeader: Record "Shpfy Order Header")
     var
-        Notification: Record "Shpfy Copilot Tax Notification";
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        CopilotTaxNotification: Record "Shpfy Copilot Tax Notification";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        if Notification.Get(SalesHeader.SystemId, UserId()) then
+        if CopilotTaxNotification.Get(SalesHeader.SystemId, UserId()) then
             exit;
 
-        Notification.Init();
-        Notification."Sales Header SystemId" := SalesHeader.SystemId;
-        Notification."User Id" := CopyStr(UserId(), 1, MaxStrLen(Notification."User Id"));
-        Notification."Notification ID" := GetFeatureNotificationId();
-        Notification.Created := CurrentDateTime();
-        Notification."Tax Area Code" := SalesHeader."Tax Area Code";
-        Notification.Reviewed := false;
-        if Notification.Insert() then
-            FeatureTelemetry.LogUsage('0000SHC', ShpfyCopilotTaxRegister.FeatureName(), 'Copilot tax notification queued');
+        CopilotTaxNotification.Init();
+        CopilotTaxNotification."Sales Header SystemId" := SalesHeader.SystemId;
+        CopilotTaxNotification."User Id" := CopyStr(UserId(), 1, MaxStrLen(CopilotTaxNotification."User Id"));
+        CopilotTaxNotification."Notification ID" := GetFeatureNotificationId();
+        CopilotTaxNotification.Created := CurrentDateTime();
+        CopilotTaxNotification."Tax Area Code" := SalesHeader."Tax Area Code";
+        CopilotTaxNotification.Reviewed := false;
+        if CopilotTaxNotification.Insert() then
+            FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax notification queued');
     end;
 
     procedure SendForCurrentSalesHeader(SalesHeader: Record "Sales Header")
     var
-        NotificationRow: Record "Shpfy Copilot Tax Notification";
+        CopilotTaxNotification: Record "Shpfy Copilot Tax Notification";
         MyNotifications: Record "My Notifications";
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Notif: Notification;
     begin
         if not GuiAllowed() then
             exit;
 
-        if not NotificationRow.Get(SalesHeader.SystemId, UserId()) then
+        if not CopilotTaxNotification.Get(SalesHeader.SystemId, UserId()) then
             exit;
-        if NotificationRow.Reviewed then
+        if CopilotTaxNotification.Reviewed then
             exit;
 
         if MyNotifications.WritePermission() then
@@ -58,8 +58,8 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
         if not MyNotifications.IsEnabled(GetFeatureNotificationId()) then
             exit;
 
-        Notif.Id := NotificationRow."Notification ID";
-        Notif.Message(StrSubstNo(NotifMsgLbl, NotificationRow."Tax Area Code"));
+        Notif.Id := CopilotTaxNotification."Notification ID";
+        Notif.Message(StrSubstNo(NotifMsgLbl, CopilotTaxNotification."Tax Area Code"));
         Notif.Scope := NotificationScope::LocalScope;
         Notif.SetData('SalesHeaderSystemId', Format(SalesHeader.SystemId));
         Notif.AddAction(ShowDecisionsActionLbl, Codeunit::"Shpfy Copilot Tax Notify", 'OpenShopifyOrder');
@@ -67,14 +67,14 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
         Notif.AddAction(DisableActionLbl, Codeunit::"Shpfy Copilot Tax Notify", 'DisableForUser');
         Notif.Send();
 
-        FeatureTelemetry.LogUsage('0000SHD', ShpfyCopilotTaxRegister.FeatureName(), 'Copilot tax notification sent');
+        FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax notification sent');
     end;
 
     procedure OpenShopifyOrder(Notif: Notification)
     var
         SalesHeader: Record "Sales Header";
-        ShopifyOrderMgt: Codeunit "Shpfy Order Mgt.";
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        OrderMgt: Codeunit "Shpfy Order Mgt.";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         VariantRec: Variant;
     begin
@@ -82,33 +82,33 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
             exit;
 
         VariantRec := SalesHeader;
-        ShopifyOrderMgt.ShowShopifyOrder(VariantRec);
+        OrderMgt.ShowShopifyOrder(VariantRec);
 
-        FeatureTelemetry.LogUsage('0000SHE', ShpfyCopilotTaxRegister.FeatureName(), 'Copilot tax review opened');
+        FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax review opened');
     end;
 
     procedure MarkReviewed(Notif: Notification)
     var
-        NotificationRow: Record "Shpfy Copilot Tax Notification";
+        CopilotTaxNotification: Record "Shpfy Copilot Tax Notification";
         SalesHeader: Record "Sales Header";
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if not TryGetSalesHeader(Notif, SalesHeader) then
             exit;
-        if not NotificationRow.Get(SalesHeader.SystemId, UserId()) then
+        if not CopilotTaxNotification.Get(SalesHeader.SystemId, UserId()) then
             exit;
 
-        NotificationRow.Reviewed := true;
-        NotificationRow.Modify();
+        CopilotTaxNotification.Reviewed := true;
+        CopilotTaxNotification.Modify();
 
-        FeatureTelemetry.LogUsage('0000SHF', ShpfyCopilotTaxRegister.FeatureName(), 'Copilot tax notification marked reviewed');
+        FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax notification marked reviewed');
     end;
 
     procedure DisableForUser(Notif: Notification)
     var
         MyNotifications: Record "My Notifications";
-        ShpfyCopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if MyNotifications.WritePermission() then
@@ -116,7 +116,7 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
                 MyNotifications.InsertDefault(GetFeatureNotificationId(), MyNotificationCaptionLbl, MyNotificationDescriptionLbl, false);
         MarkReviewed(Notif);
 
-        FeatureTelemetry.LogUsage('0000SHH', ShpfyCopilotTaxRegister.FeatureName(), 'Copilot tax notification disabled per user');
+        FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax notification disabled per user');
     end;
 
     local procedure TryGetSalesHeader(Notif: Notification; var SalesHeader: Record "Sales Header"): Boolean

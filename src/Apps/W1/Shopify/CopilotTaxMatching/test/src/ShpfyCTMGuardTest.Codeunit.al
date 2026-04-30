@@ -20,18 +20,18 @@ codeunit 30497 "Shpfy CTM Guard Test"
     var
         OrderHeader: Record "Shpfy Order Header";
         Shop: Record "Shpfy Shop";
-        TestLib: Codeunit "Shpfy CTM Test Library";
-        Verify: Codeunit "Shpfy CTM Verify";
+        CTMTestLibrary: Codeunit "Shpfy CTM Test Library";
+        CTMVerify: Codeunit "Shpfy CTM Verify";
         Input: Codeunit "Test Input Json";
         Expected: Codeunit "Test Input Json";
         ElementExists: Boolean;
     begin
         // Arrange
-        TestLib.CleanupTestData();
-        Input := TestLib.GetInput();
+        CTMTestLibrary.CleanupTestData();
+        Input := CTMTestLibrary.GetInput();
 
-        Shop := TestLib.SetupShop(Input.Element('setup').Element('shopSettings'));
-        OrderHeader := TestLib.SetupOrder(Input.Element('setup'), Shop);
+        Shop := CTMTestLibrary.SetupShop(Input.Element('setup').Element('shopSettings'));
+        OrderHeader := CTMTestLibrary.SetupOrder(Input.Element('setup'), Shop);
 
         // Note: Guard tests verify that certain conditions prevent the feature from running.
         // Since we can't easily trigger the event subscriber (requires Copilot capability registration),
@@ -43,7 +43,7 @@ codeunit 30497 "Shpfy CTM Guard Test"
         Expected.ElementExists('orderUnchanged', ElementExists);
         if ElementExists then
             if Expected.Element('orderUnchanged').ValueAsBoolean() then
-                Verify.VerifyOrderUnchanged(OrderHeader);
+                CTMVerify.VerifyOrderUnchanged(OrderHeader);
 
         Expected.ElementExists('existingTaxAreaKept', ElementExists);
         if ElementExists then begin

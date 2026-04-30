@@ -16,7 +16,7 @@ pageextension 30478 "Shpfy CT Order Tax Lines" extends "Shpfy Order Tax Lines"
             {
                 ApplicationArea = All;
                 ToolTip = 'Specifies the Business Central Tax Jurisdiction matched to this Shopify tax line.';
-                Visible = ShpfyCopilotTaxMatchingEnabled;
+                Visible = CopilotTaxMatchingEnabled;
             }
         }
     }
@@ -27,7 +27,7 @@ pageextension 30478 "Shpfy CT Order Tax Lines" extends "Shpfy Order Tax Lines"
         OrderHeader: Record "Shpfy Order Header";
         Shop: Record "Shpfy Shop";
     begin
-        ShpfyCopilotTaxMatchingEnabled := false;
+        CopilotTaxMatchingEnabled := false;
         OrderLine.SetRange("Line Id", Rec."Parent Id");
         if not OrderLine.FindFirst() then
             exit;
@@ -35,9 +35,9 @@ pageextension 30478 "Shpfy CT Order Tax Lines" extends "Shpfy Order Tax Lines"
             exit;
         if not Shop.Get(OrderHeader."Shop Code") then
             exit;
-        ShpfyCopilotTaxMatchingEnabled := Shop."Copilot Tax Matching Enabled";
+        CopilotTaxMatchingEnabled := Shop."Copilot Tax Matching Enabled";
     end;
 
     var
-        ShpfyCopilotTaxMatchingEnabled: Boolean;
+        CopilotTaxMatchingEnabled: Boolean;
 }

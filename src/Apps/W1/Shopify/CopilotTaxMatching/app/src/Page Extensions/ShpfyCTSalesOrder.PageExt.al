@@ -37,11 +37,11 @@ pageextension 30476 "Shpfy CT Sales Order" extends "Sales Order"
 
                 trigger OnAction()
                 var
-                    ShopifyOrderMgt: Codeunit "Shpfy Order Mgt.";
+                    OrderMgt: Codeunit "Shpfy Order Mgt.";
                     VariantRec: Variant;
                 begin
                     VariantRec := Rec;
-                    ShopifyOrderMgt.ShowShopifyOrder(VariantRec);
+                    OrderMgt.ShowShopifyOrder(VariantRec);
                 end;
             }
         }
@@ -49,9 +49,9 @@ pageextension 30476 "Shpfy CT Sales Order" extends "Sales Order"
 
     trigger OnAfterGetCurrRecord()
     var
-        Notify: Codeunit "Shpfy Copilot Tax Notify";
+        CopilotTaxNotify: Codeunit "Shpfy Copilot Tax Notify";
     begin
         if Rec."Copilot Tax Match Applied" then
-            Notify.SendForCurrentSalesHeader(Rec);
+            CopilotTaxNotify.SendForCurrentSalesHeader(Rec);
     end;
 }
