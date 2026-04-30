@@ -2515,4 +2515,5 @@ Comment = '|%1 = Transfer Order No.';
         Subcontracting: Boolean;
         UnitCostCalculation: Option Time,Units;
         ConfirmDialogCalledCount: Integer;
+
 }
