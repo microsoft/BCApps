@@ -7,9 +7,6 @@ namespace System.MCP;
 
 using System.Azure.Identity;
 using System.Environment;
-#if not CLEAN28
-using System.Environment.Configuration;
-#endif
 using System.Feedback;
 using System.Reflection;
 using System.Utilities;
@@ -29,7 +26,7 @@ codeunit 8351 "MCP Config Implementation"
         ToolsCannotBeAddedToDefaultConfigErr: Label 'Tools cannot be added to the default configuration.';
         PageNotFoundErr: Label 'Page not found.';
         InvalidPageTypeErr: Label 'Only API pages are supported.';
-        InvalidAPIVersionErr: Label 'Only API v2.0 pages are supported.';
+        APIToolNotSupportedErr: Label 'This API page is not available for MCP configuration.';
         DefaultMCPConfigurationDescriptionLbl: Label 'Default MCP configuration';
         DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
         ConfigurationMustBeActiveErr: Label 'Only active configurations can be set as the default.';
@@ -345,10 +342,10 @@ codeunit 8351 "MCP Config Implementation"
 
     internal procedure ValidateConfiguration(var MCPConfiguration: Record "MCP Configuration"; OnActivate: Boolean)
     var
-        MCPConfigurationWarning: Record "MCP Config Warning";
+        TempMCPConfigurationWarning: Record "MCP Config Warning";
     begin
         // Raise warning if any issues found
-        if not FindWarningsForConfiguration(MCPConfiguration.SystemId, MCPConfigurationWarning) then begin
+        if not FindWarningsForConfiguration(MCPConfiguration.SystemId, TempMCPConfigurationWarning) then begin
             if not OnActivate then
                 Message(ConfigValidLbl);
             exit;
@@ -359,7 +356,7 @@ codeunit 8351 "MCP Config Implementation"
                 exit;
 
         MCPConfiguration.Active := false;
-        Page.Run(Page::"MCP Config Warning List", MCPConfigurationWarning);
+        Page.Run(Page::"MCP Config Warning List", TempMCPConfigurationWarning);
     end;
 
     internal procedure FindWarningsForConfiguration(ConfigId: Guid; var MCPConfigurationWarning: Record "MCP Config Warning"): Boolean
@@ -536,8 +533,8 @@ codeunit 8351 "MCP Config Implementation"
         MCPAPIConfigToolLookup: Page "MCP API Config Tool Lookup";
     begin
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
-        PageMetadata.SetFilter(APIPublisher, '<>%1', 'microsoft');
         PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
+        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
 
         MCPAPIConfigToolLookup.LookupMode := true;
         MCPAPIConfigToolLookup.SetTableView(PageMetadata);
@@ -554,7 +551,10 @@ codeunit 8351 "MCP Config Implementation"
     begin
         PageMetadata.SetLoadFields(PageType, APIPublisher, APIGroup);
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
-        PageMetadata.SetFilter(APIPublisher, '<>%1&<>%2', '', 'microsoft');
+        PageMetadata.SetFilter(APIPublisher, '<>%1', '');
+        PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
+        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
+
         if not PageMetadata.FindSet() then
             exit;
 
@@ -598,11 +598,11 @@ codeunit 8351 "MCP Config Implementation"
         if not ValidateAPIPublisher then
             exit(PageMetadata);
 
-        if PageMetadata.APIPublisher = 'microsoft' then
-            Error(InvalidAPIVersionErr);
-
         if PageMetadata."AL Namespace" = 'Microsoft.API.V1' then
-            Error(InvalidAPIVersionErr);
+            Error(APIToolNotSupportedErr);
+
+        if PageMetadata.APIVersion = 'beta' then
+            Error(APIToolNotSupportedErr);
 
         exit(PageMetadata);
     end;
@@ -624,12 +624,12 @@ codeunit 8351 "MCP Config Implementation"
         if (APIGroup = '') or (APIPublisher = '') then
             exit;
 
-        if APIPublisher = 'microsoft' then
-            exit;
-
         PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
         PageMetadata.SetFilter(APIPublisher, APIPublisher);
         PageMetadata.SetFilter(APIGroup, APIGroup);
+        PageMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
+        PageMetadata.SetFilter(APIVersion, '<>%1', 'beta');
+
         if not PageMetadata.FindSet() then
             exit;
 
@@ -722,7 +722,7 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure LookupAPIVersions(PageId: Integer; var APIVersion: Text[30])
     var
         PageMetadata: Record "Page Metadata";
-        MCPAPIVersion: Record "MCP API Version";
+        TempMCPAPIVersion: Record "MCP API Version";
         Versions: List of [Text];
         Version: Text[30];
     begin
@@ -731,12 +731,12 @@ codeunit 8351 "MCP Config Implementation"
 
         Versions := PageMetadata.APIVersion.Split(',');
         foreach Version in Versions do begin
-            MCPAPIVersion."API Version" := Version;
-            MCPAPIVersion.Insert();
+            TempMCPAPIVersion."API Version" := Version;
+            TempMCPAPIVersion.Insert();
         end;
 
-        if Page.RunModal(Page::"MCP API Version Lookup", MCPAPIVersion) = Action::LookupOK then
-            APIVersion := MCPAPIVersion."API Version";
+        if Page.RunModal(Page::"MCP API Version Lookup", TempMCPAPIVersion) = Action::LookupOK then
+            APIVersion := TempMCPAPIVersion."API Version";
     end;
 
     internal procedure GetHighestAPIVersion(PageMetadata: Record "Page Metadata"): Text[30]
@@ -1117,7 +1117,7 @@ codeunit 8351 "MCP Config Implementation"
             exit;
 
         Feedback.WithCustomQuestion(MCPServerFeedbackQst, MCPServerFeedbackQst).WithCustomQuestionType(Enum::FeedbackQuestionType::Text);
-        Feedback.RequestDislikeFeedback('MCP Server', 'Configuration', 'Model Context Protocol (MCP) Server');
+        Feedback.RequestDislikeFeedback('MCP Server', 'MCPServer', 'Model Context Protocol (MCP) Server');
 
         Session.LogMessage('0000RTR', NoActiveConfigsFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
     end;
@@ -1126,7 +1126,7 @@ codeunit 8351 "MCP Config Implementation"
     var
         Feedback: Codeunit "Microsoft User Feedback";
     begin
-        Feedback.RequestFeedback('MCP Server', 'Configuration', 'Model Context Protocol (MCP) Server');
+        Feedback.RequestFeedback('MCP Server', 'MCPServer', 'Model Context Protocol (MCP) Server');
 
         Session.LogMessage('0000RTS', GeneralFeedbackTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', GetTelemetryCategory());
     end;
@@ -1196,14 +1196,4 @@ codeunit 8351 "MCP Config Implementation"
         Session.LogAuditMessage(StrSubstNo(MCPConfigurationAuditDeletedLbl, MCPConfiguration.Name, UserSecurityId(), CompanyName()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
     end;
     #endregion
-
-#if not CLEAN28
-    internal procedure IsFeatureEnabled(): Boolean
-    var
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
-        EnableMcpAccessTok: Label 'EnableMcpAccess', Locked = true;
-    begin
-        exit(FeatureManagementFacade.IsEnabled(EnableMcpAccessTok));
-    end;
-#endif
 }

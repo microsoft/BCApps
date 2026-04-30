@@ -25,7 +25,7 @@ codeunit 30361 "Shpfy Fulfillment API"
         GraphQLType: Enum "Shpfy GraphQL Type";
         Parameters: Dictionary of [Text, Text];
     begin
-        GraphQLType := "Shpfy GraphQL Type"::FulfillOrder;
+        GraphQLType := "Shpfy GraphQL Type"::Fulfillments_FulfillOrder;
         Parameters.Add('FulfillmentOrderId', Format(FulfillmentOrderId));
         JResponse := ShpfyCommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
     end;
@@ -42,12 +42,12 @@ codeunit 30361 "Shpfy Fulfillment API"
         Parameters: Dictionary of [Text, Text];
         JFulfillments: JsonToken;
     begin
-        GraphQLType := "Shpfy GraphQL Type"::GetFulfillmentOrderIds;
+        GraphQLType := "Shpfy GraphQL Type"::Fulfillments_GetFulfillmentOrderIds;
         Parameters.Add('OrderId', OrderId);
         repeat
             JFulfillments := ShpfyCommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             FulfillmentOrderList.AddRange(ParseFulfillmentOrders(JFulfillments));
-            GraphQLType := "Shpfy GraphQL Type"::GetNextFulfillmentOrderIds;
+            GraphQLType := "Shpfy GraphQL Type"::Fulfillments_GetNextFulfillmentOrderIds;
             if Parameters.ContainsKey('After') then
                 Parameters.Set('After', ShpfyJsonHelper.GetValueAsText(JFulfillments, 'data.order.fulfillmentOrders.pageInfo.endCursor'))
             else

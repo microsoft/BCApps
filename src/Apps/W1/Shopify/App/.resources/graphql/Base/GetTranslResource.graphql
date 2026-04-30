@@ -1,0 +1,2 @@
+# cost: 2
+{"query":"{ translatableResource(resourceId: \"gid://shopify/{{ResourceType}}/{{ResourceId}}\") { resourceId translatableContent {key value digest locale} }}"}

@@ -208,6 +208,22 @@ page 36950 "PowerBI Assisted Setup"
                 }
 
             }
+            group(StepReportChoice)
+            {
+                Visible = CurrentStep = Steps::ReportChoice;
+                group(ReportChoiceIntro)
+                {
+                    Caption = 'Report Setup';
+                    InstructionalText = 'You can manually configure which Power BI reports to use for each area, or deploy our out-of-the-box reports directly to your Power BI workspace.';
+                }
+                field(ReportSetupChoice; ReportSetupChoice)
+                {
+                    ApplicationArea = All;
+                    Caption = 'I would like to';
+                    ToolTip = 'Specifies whether to manually configure report settings or deploy pre-built reports.';
+                    OptionCaption = 'Deploy out-of-the-box reports,Configure report settings';
+                }
+            }
             group(Step5)
             {
                 Visible = CurrentStep = Steps::Setting;
@@ -760,6 +776,11 @@ page 36950 "PowerBI Assisted Setup"
 
                 trigger OnAction()
                 begin
+                    if (CurrentStep = Steps::ReportChoice) and (ReportSetupChoice = ReportSetupChoice::"Deploy out-of-the-box reports") then begin
+                        GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"PowerBI Assisted Setup");
+                        CurrPage.Close();
+                        exit;
+                    end;
                     TakeStep(1);
                 end;
             }
@@ -789,7 +810,7 @@ page 36950 "PowerBI Assisted Setup"
         TimeZoneSelection: Codeunit "Time Zone Selection";
         EnvironmentInformation: Codeunit "Environment Information";
         SetupHelper: Codeunit "Power BI Report Setup";
-        Steps: Option Intro,DateTableConfig,UTCOffset,WorkingDays,Setting,Finish;
+        Steps: Option Intro,DateTableConfig,UTCOffset,WorkingDays,ReportChoice,Setting,Finish;
         PrevStep: Option;
         CurrentStep: Option;
         BackEnabled: Boolean;
@@ -815,10 +836,13 @@ page 36950 "PowerBI Assisted Setup"
         ShowLessTxt: Label 'Show Less';
         AdminPermissionRequiredErr: Label 'Setting up Power BI requires the ''%1'' permission set (or equivalent) that your account doesn''t have. Ask your administrator to assign the permission set to you.', Comment = '%1 = permission set name';
         PermisionSetNameTok: Label 'Power BI Core Admin', Locked = true;
+        IsEvalCompany: Boolean;
+        ReportSetupChoice: Option "Deploy out-of-the-box reports","Configure report settings";
 
     trigger OnOpenPage()
     var
         UserSetup: Record "User Setup";
+        CurrentCompany: Record Company;
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
         if not PowerBIReportsSetup.WritePermission() then
@@ -829,6 +853,9 @@ page 36950 "PowerBI Assisted Setup"
         end;
         if NavApp.GetCurrentModuleInfo(AppInfo) then
             AssistedSetupComplete := GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"PowerBI Assisted Setup");
+
+        CurrentCompany.Get(CompanyName());
+        IsEvalCompany := CurrentCompany."Evaluation Company";
 
         if UserSetup.Get(UserId()) then
             TestEmailAddress := UserSetup."E-Mail";
@@ -855,6 +882,11 @@ page 36950 "PowerBI Assisted Setup"
 
         PrevStep := CurrentStep;
         CurrentStep := CurrentStep + Step;
+
+        // Skip ReportChoice for non-evaluation companies
+        if (CurrentStep = Steps::ReportChoice) and (not IsEvalCompany) then
+            CurrentStep := CurrentStep + Step;
+
         NextEnabled := false;
         BackEnabled := true;
         FinishEnabled := false;
@@ -869,13 +901,12 @@ page 36950 "PowerBI Assisted Setup"
                 if CalendarType > 0 then
                     NextEnabled := true;
             Steps::UTCOffset:
-
                 NextEnabled := true;
             Steps::WorkingDays:
-
+                NextEnabled := true;
+            Steps::ReportChoice:
                 NextEnabled := true;
             Steps::Setting:
-
                 NextEnabled := true;
             Steps::Finish:
                 begin
@@ -928,5 +959,10 @@ page 36950 "PowerBI Assisted Setup"
                     TakeStep(0);
                 end;
         end;
+    end;
+
+    procedure IsDeployOOBReportsSelected(): Boolean
+    begin
+        exit(IsEvalCompany and (ReportSetupChoice = ReportSetupChoice::"Deploy out-of-the-box reports"));
     end;
 }

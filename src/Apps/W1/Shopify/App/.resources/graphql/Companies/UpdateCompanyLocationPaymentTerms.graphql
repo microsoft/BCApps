@@ -1,0 +1,2 @@
+# cost: 10
+{"query":"mutation {companyLocationUpdate(companyLocationId: \"gid://shopify/CompanyLocation/{{LocationId}}\", input: {buyerExperienceConfiguration: {paymentTermsTemplateId: \"gid://shopify/PaymentTermsTemplate/{{PaymentTermsId}}\"}}) {companyLocation {id, name}, userErrors {field, message}}}"}

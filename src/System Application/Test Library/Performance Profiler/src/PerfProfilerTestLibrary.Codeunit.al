@@ -29,8 +29,8 @@ codeunit 135104 "Perf. Profiler Test Library"
     /// </summary>
     procedure Initialize(PerformanceProfile: Text)
     var
-        RawProfilingNode: Record "Profiling Node";
-        CallTreeProfilingNode: Record "Profiling Node";
+        TempRawProfilingNode: Record "Profiling Node";
+        TempCallTreeProfilingNode: Record "Profiling Node";
         SamplingPerformanceProfiler: Codeunit "Sampling Performance Profiler";
         TempBlob: Codeunit "Temp Blob";
         SetDataInStr: InStream;
@@ -41,9 +41,9 @@ codeunit 135104 "Perf. Profiler Test Library"
         TempBlob.CreateInStream(SetDataInStr);
 
         SamplingPerformanceProfiler.SetData(SetDataInStr);
-        SamplingPerformanceProfiler.GetProfilingNodes(RawProfilingNode);
-        SamplingPerformanceProfiler.GetProfilingCallTree(CallTreeProfilingNode);
-        ProfilingDataProcessor.Initialize(RawProfilingNode, CallTreeProfilingNode);
+        SamplingPerformanceProfiler.GetProfilingNodes(TempRawProfilingNode);
+        SamplingPerformanceProfiler.GetProfilingCallTree(TempCallTreeProfilingNode);
+        ProfilingDataProcessor.Initialize(TempRawProfilingNode, TempCallTreeProfilingNode);
     end;
 
     /// <summary>

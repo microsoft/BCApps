@@ -11,6 +11,7 @@ using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
+using System.Environment;
 using System.Telemetry;
 
 page 20400 "Qlty. Management Setup"
@@ -236,7 +237,7 @@ page 20400 "Qlty. Management Setup"
                 ApplicationArea = All;
                 Caption = 'Inspection Generation Rules';
                 ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
-                Image = FilterLines;
+                Image = CopyFromTask;
                 RunObject = Page "Qlty. Inspection Gen. Rules";
                 RunPageMode = Edit;
             }
@@ -254,7 +255,7 @@ page 20400 "Qlty. Management Setup"
                 ApplicationArea = All;
                 Caption = 'Tests';
                 ToolTip = 'View the Quality Tests. Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
-                Image = Task;
+                Image = TaskQualityMeasure;
                 RunObject = Page "Qlty. Tests";
                 RunPageMode = Edit;
             }
@@ -273,15 +274,38 @@ page 20400 "Qlty. Management Setup"
                 }
             }
         }
+        area(Processing)
+        {
+            action(InstallDemoData)
+            {
+                ApplicationArea = QualityManagement;
+                Caption = 'Install Demo Data';
+                ToolTip = 'Install the Quality Management Contoso Coffee Demo Dataset app to explore Quality Management with sample data.';
+                Image = Database;
+                Visible = IsSaaS;
+
+                trigger OnAction()
+                var
+                    QltyDemoDataMgmt: Codeunit "Qlty. Demo Data Mgmt.";
+                begin
+                    QltyDemoDataMgmt.InstallOrOpenDemoData();
+                end;
+            }
+        }
     }
 
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         QualityManagementTok: Label 'Quality Management', Locked = true;
+        IsSaaS: Boolean;
 
     trigger OnOpenPage()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
+        IsSaaS := EnvironmentInformation.IsSaaS();
+
         FeatureTelemetry.LogUptake('0000QID', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
         if not Rec.Get() then begin
             QltyAutoConfigure.EnsureBasicSetupExists(false);

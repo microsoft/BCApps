@@ -1,0 +1,2 @@
+# cost: 12
+{"query":"{products(first:200, after:\"{{After}}\", query: \"updated_at:>'{{Time}}'\"){pageInfo{hasNextPage} edges{cursor node{id updatedAt}}}}"}

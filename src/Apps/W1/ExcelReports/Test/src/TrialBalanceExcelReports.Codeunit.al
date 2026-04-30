@@ -10,7 +10,12 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.ExcelReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Receivables;
 
 codeunit 139544 "Trial Balance Excel Reports"
 {
@@ -21,8 +26,11 @@ codeunit 139544 "Trial Balance Excel Reports"
 
     var
         LibraryERM: Codeunit "Library - ERM";
+        LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         Assert: Codeunit Assert;
+        DocumentTypeShouldBeInvoiceErr: Label 'Document Type should be Invoice';
+        DocumentNoShouldMatchErr: Label 'Document No should match the ledger entry';
 
     [Test]
     [HandlerFunctions('EXRTrialBalanceExcelHandler')]
@@ -44,6 +52,33 @@ codeunit 139544 "Trial Balance Excel Reports"
         Assert.AreEqual(5, LibraryReportDataset.RowCount(), 'Only the GLAccounts should be exported');
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="GLAccounts"]');
         Assert.AreEqual(5, LibraryReportDataset.RowCount(), 'The exported items should be GLAccounts');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRTrialBalanceHideNoActivityHandler')]
+    procedure TrialBalanceHidesZeroActivityAccounts()
+    var
+        GLAccount: Record "G/L Account";
+        Variant: Variant;
+        RequestPageXml: Text;
+        ActiveAccountNo: Code[20];
+    begin
+        // [SCENARIO] With Hide Accounts with No Activity enabled, only accounts with activity are exported
+        // [GIVEN] 5 G/L Accounts, only 1 with activity
+        Initialize();
+        CreateSampleGLAccounts(5, GLAccount);
+        ActiveAccountNo := GLAccount."No.";
+        CreateGLEntryWithAmount(ActiveAccountNo, '', '', '', WorkDate(), 100);
+        Commit();
+        // [WHEN] Running the report with Hide Accounts with No Activity enabled
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Trial Balance Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Trial Balance Excel", Variant, RequestPageXml);
+        // [THEN] Only the active account should be exported
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="GLAccounts"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'Only the account with activity should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('AccountNumber', Variant);
+        Assert.AreEqual(ActiveAccountNo, Format(Variant), 'The exported account should be the one with activity');
     end;
 
     [Test]
@@ -307,73 +342,11 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
-    procedure TrialBalanceBufferNetChangeSplitsIntoDebitAndCreditWhenCalledSeveralTimes()
-    var
-        EXRTrialBalanceBuffer: Record "EXR Trial Balance Buffer";
-        ValuesToSplitInCreditAndDebit: array[3] of Decimal;
-    begin
-        // [SCENARIO 547558] Trial Balance Buffer data split into Debit and Credit correctly, even if called multiple times.
-        // [GIVEN] Trial Balance Buffer filled with positive Balance/Net Change
-        ValuesToSplitInCreditAndDebit[1] := 837;
-        // [GIVEN] Trial Balance Buffer filled with negative Balance/Net Change
-        ValuesToSplitInCreditAndDebit[2] := -110;
-        // [GIVEN] Trial Balance Buffer filled with positive Balance/Net Change
-        ValuesToSplitInCreditAndDebit[3] := 998;
-        // [WHEN] Trial Balance Buffer entries are inserted
-        EXRTrialBalanceBuffer."G/L Account No." := 'A';
-        EXRTrialBalanceBuffer.Validate("Starting Balance", ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Validate("Net Change", ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Validate(Balance, ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Validate("Starting Balance (ACY)", ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Validate("Net Change (ACY)", ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Validate("Balance (ACY)", ValuesToSplitInCreditAndDebit[1]);
-        EXRTrialBalanceBuffer.Insert();
-        EXRTrialBalanceBuffer."G/L Account No." := 'B';
-        EXRTrialBalanceBuffer.Validate("Starting Balance", ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Validate("Net Change", ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Validate(Balance, ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Validate("Starting Balance (ACY)", ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Validate("Net Change (ACY)", ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Validate("Balance (ACY)", ValuesToSplitInCreditAndDebit[2]);
-        EXRTrialBalanceBuffer.Insert();
-        EXRTrialBalanceBuffer."G/L Account No." := 'C';
-        EXRTrialBalanceBuffer.Validate("Starting Balance", ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Validate("Net Change", ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Validate(Balance, ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Validate("Starting Balance (ACY)", ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Validate("Net Change (ACY)", ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Validate("Balance (ACY)", ValuesToSplitInCreditAndDebit[3]);
-        EXRTrialBalanceBuffer.Insert();
-        // [THEN] All Entries have the right split in Credit and Debit
-        EXRTrialBalanceBuffer.FindSet();
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit)" + EXRTrialBalanceBuffer."Starting Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Net Change (Debit)" + EXRTrialBalanceBuffer."Net Change (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Balance (Debit)" + EXRTrialBalanceBuffer."Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Starting Balance (Credit)(ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Net Change (Debit) (ACY)" + EXRTrialBalanceBuffer."Net Change (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[1], Abs(EXRTrialBalanceBuffer."Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Balance (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        EXRTrialBalanceBuffer.Next();
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit)" + EXRTrialBalanceBuffer."Starting Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Net Change (Debit)" + EXRTrialBalanceBuffer."Net Change (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Balance (Debit)" + EXRTrialBalanceBuffer."Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Starting Balance (Credit)(ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Net Change (Debit) (ACY)" + EXRTrialBalanceBuffer."Net Change (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(-ValuesToSplitInCreditAndDebit[2], Abs(EXRTrialBalanceBuffer."Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Balance (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        EXRTrialBalanceBuffer.Next();
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit)" + EXRTrialBalanceBuffer."Starting Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Net Change (Debit)" + EXRTrialBalanceBuffer."Net Change (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Balance (Debit)" + EXRTrialBalanceBuffer."Balance (Credit)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Starting Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Starting Balance (Credit)(ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Net Change (Debit) (ACY)" + EXRTrialBalanceBuffer."Net Change (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-        Assert.AreEqual(ValuesToSplitInCreditAndDebit[3], Abs(EXRTrialBalanceBuffer."Balance (Debit) (ACY)" + EXRTrialBalanceBuffer."Balance (Credit) (ACY)"), 'Split in line in credit and debit should be the same as the inserted value.');
-    end;
-
-    [Test]
     procedure QueryPathProducesCorrectAmounts()
     var
         GLAccount: Record "G/L Account";
         TempDimensionValue: Record "Dimension Value" temporary;
-        TrialBalanceData: Record "EXR Trial Balance Buffer";
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
         BeforePeriodAmount: Decimal;
@@ -393,14 +366,49 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetRange("No.", PostingAccount);
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TempTrialBalanceData);
 
         // [THEN] The buffer has correct amounts
-        TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
-        Assert.IsTrue(TrialBalanceData.FindFirst(), 'Buffer record should exist for the posting account');
-        Assert.AreEqual(BeforePeriodAmount, TrialBalanceData."Starting Balance", 'Starting Balance should equal the entry before the period');
-        Assert.AreEqual(InPeriodAmount, TrialBalanceData."Net Change", 'Net Change should equal the entry within the period');
-        Assert.AreEqual(BeforePeriodAmount + InPeriodAmount, TrialBalanceData.Balance, 'Balance should equal Starting Balance + Net Change');
+        TempTrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'Buffer record should exist for the posting account');
+        Assert.AreEqual(BeforePeriodAmount, TempTrialBalanceData."Starting Balance", 'Starting Balance should equal the entry before the period');
+        Assert.AreEqual(InPeriodAmount, TempTrialBalanceData."Net Change", 'Net Change should equal the entry within the period');
+        Assert.AreEqual(BeforePeriodAmount + InPeriodAmount, TempTrialBalanceData.Balance, 'Balance should equal Starting Balance + Net Change');
+    end;
+
+    [Test]
+    procedure GrossDebitAndCreditTurnoverReportedForEachAccount()
+    var
+        GLAccount: Record "G/L Account";
+        TempDimensionValue: Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        DebitAmount: Decimal;
+        CreditAmount: Decimal;
+    begin
+        // [SCENARIO] The query path produces gross debit and credit turnover, not netted amounts.
+        // [GIVEN] A posting account with both debit and credit entries in the same period
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        DebitAmount := 5000;
+        CreditAmount := -8000;
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(1, 3, Date2DMY(WorkDate(), 3)), DebitAmount);
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(15, 3, Date2DMY(WorkDate(), 3)), CreditAmount);
+
+        // [WHEN] Running the query-based trial balance for the current year
+        GLAccount.SetRange("No.", PostingAccount);
+        GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TempTrialBalanceData);
+
+        // [THEN] The buffer has gross debit and credit amounts, not netted
+        TempTrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'Buffer record should exist for the posting account');
+        Assert.AreEqual(DebitAmount + CreditAmount, TempTrialBalanceData."Net Change", 'Net Change should be the algebraic sum');
+        Assert.AreEqual(DebitAmount, TempTrialBalanceData."Net Change (Debit)", 'Net Change (Debit) should be the gross debit amount');
+        Assert.AreEqual(-CreditAmount, TempTrialBalanceData."Net Change (Credit)", 'Net Change (Credit) should be the gross credit amount');
     end;
 
     [Test]
@@ -410,7 +418,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         Dimension: Record Dimension;
         DimensionValue1, DimensionValue2 : Record "Dimension Value";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TrialBalanceData: Record "EXR Trial Balance Buffer";
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         Amount1Dim1, Amount2Dim1, Amount1Dim2 : Decimal;
     begin
@@ -444,29 +452,29 @@ codeunit 139544 "Trial Balance Excel Reports"
         // [WHEN] Running the trial balance for the current year
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
 
         // [THEN] End-Total has per-dimension rows with correct sums
-        TrialBalanceData.Reset();
-        TrialBalanceData.SetRange("G/L Account No.", EndTotalAccount."No.");
-        Assert.AreEqual(2, TrialBalanceData.Count(), 'End-Total should have 2 rows (one per Dim2 value)');
+        TempTrialBalanceData.Reset();
+        TempTrialBalanceData.SetRange("G/L Account No.", EndTotalAccount."No.");
+        Assert.AreEqual(2, TempTrialBalanceData.Count(), 'End-Total should have 2 rows (one per Dim2 value)');
 
-        TrialBalanceData.SetRange("Dimension 2 Code", DimensionValue1.Code);
-        TrialBalanceData.FindFirst();
-        Assert.AreEqual(Amount1Dim1 + Amount2Dim1, TrialBalanceData.Balance, 'End-Total Dim2=Value1 should sum both posting accounts');
+        TempTrialBalanceData.SetRange("Dimension 2 Code", DimensionValue1.Code);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(Amount1Dim1 + Amount2Dim1, TempTrialBalanceData.Balance, 'End-Total Dim2=Value1 should sum both posting accounts');
 
-        TrialBalanceData.SetRange("Dimension 2 Code", DimensionValue2.Code);
-        TrialBalanceData.FindFirst();
-        Assert.AreEqual(Amount1Dim2, TrialBalanceData.Balance, 'End-Total Dim2=Value2 should have only Account1 amount');
+        TempTrialBalanceData.SetRange("Dimension 2 Code", DimensionValue2.Code);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(Amount1Dim2, TempTrialBalanceData.Balance, 'End-Total Dim2=Value2 should have only Account1 amount');
 
         // [THEN] Total account has identical per-dimension rows
-        TrialBalanceData.Reset();
-        TrialBalanceData.SetRange("G/L Account No.", TotalAccount."No.");
-        Assert.AreEqual(2, TrialBalanceData.Count(), 'Total should have 2 rows (one per Dim2 value)');
+        TempTrialBalanceData.Reset();
+        TempTrialBalanceData.SetRange("G/L Account No.", TotalAccount."No.");
+        Assert.AreEqual(2, TempTrialBalanceData.Count(), 'Total should have 2 rows (one per Dim2 value)');
 
-        TrialBalanceData.SetRange("Dimension 2 Code", DimensionValue1.Code);
-        TrialBalanceData.FindFirst();
-        Assert.AreEqual(Amount1Dim1 + Amount2Dim1, TrialBalanceData.Balance, 'Total Dim2=Value1 should sum both posting accounts');
+        TempTrialBalanceData.SetRange("Dimension 2 Code", DimensionValue1.Code);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(Amount1Dim1 + Amount2Dim1, TempTrialBalanceData.Balance, 'Total Dim2=Value1 should sum both posting accounts');
     end;
 
     [Test]
@@ -476,7 +484,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLBudgetName: Record "G/L Budget Name";
         GLBudgetEntry: Record "G/L Budget Entry";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TrialBalanceData: Record "EXR Trial Balance Buffer";
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
         EntryAmount, BudgetInPeriod, BudgetBeforePeriod : Decimal;
@@ -507,13 +515,13 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetRange("No.", PostingAccount);
         GLAccount.SetRange("Date Filter", PeriodStart, PeriodEnd);
         TrialBalance.ConfigureTrialBalance(false, true);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
 
         // [THEN] Budget fields are populated
-        TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
-        Assert.IsTrue(TrialBalanceData.FindFirst(), 'Buffer record should exist');
-        Assert.AreEqual(BudgetInPeriod, TrialBalanceData."Budget (Net)", 'Budget (Net) should be the budget entry within the period');
-        Assert.AreEqual(BudgetBeforePeriod + BudgetInPeriod, TrialBalanceData."Budget (Bal. at Date)", 'Budget (Bal. at Date) should be cumulative up to period end');
+        TempTrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'Buffer record should exist');
+        Assert.AreEqual(BudgetInPeriod, TempTrialBalanceData."Budget (Net)", 'Budget (Net) should be the budget entry within the period');
+        Assert.AreEqual(BudgetBeforePeriod + BudgetInPeriod, TempTrialBalanceData."Budget (Bal. at Date)", 'Budget (Bal. at Date) should be cumulative up to period end');
     end;
 
     [Test]
@@ -522,7 +530,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount: Record "G/L Account";
         BusinessUnit1, BusinessUnit2 : Record "Business Unit";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TrialBalanceData: Record "EXR Trial Balance Buffer";
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         PostingAccount: Code[20];
         AmountBU1, AmountBU2 : Decimal;
@@ -544,19 +552,19 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetRange("No.", PostingAccount);
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(true, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
 
         // [THEN] Two buffer records exist, one per BU, with correct amounts
-        TrialBalanceData.SetRange("G/L Account No.", PostingAccount);
-        Assert.AreEqual(2, TrialBalanceData.Count(), 'Should have one row per Business Unit');
+        TempTrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        Assert.AreEqual(2, TempTrialBalanceData.Count(), 'Should have one row per Business Unit');
 
-        TrialBalanceData.SetRange("Business Unit Code", BusinessUnit1.Code);
-        TrialBalanceData.FindFirst();
-        Assert.AreEqual(AmountBU1, TrialBalanceData.Balance, 'BU1 balance should match its entries');
+        TempTrialBalanceData.SetRange("Business Unit Code", BusinessUnit1.Code);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(AmountBU1, TempTrialBalanceData.Balance, 'BU1 balance should match its entries');
 
-        TrialBalanceData.SetRange("Business Unit Code", BusinessUnit2.Code);
-        TrialBalanceData.FindFirst();
-        Assert.AreEqual(AmountBU2, TrialBalanceData.Balance, 'BU2 balance should match its entries');
+        TempTrialBalanceData.SetRange("Business Unit Code", BusinessUnit2.Code);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(AmountBU2, TempTrialBalanceData.Balance, 'BU2 balance should match its entries');
     end;
 
     [Test]
@@ -564,7 +572,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     var
         GLAccount1, GLAccount2, GLAccount3, GLAccount : Record "G/L Account";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TrialBalanceData: Record "EXR Trial Balance Buffer";
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
     begin
         // [SCENARIO] The query path only returns data for accounts matching the No. filter.
@@ -581,13 +589,13 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetRange("No.", GLAccount2."No.");
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
 
         // [THEN] Only the filtered account appears in the buffer
-        Assert.AreEqual(1, TrialBalanceData.Count(), 'Only one account should be in the buffer');
-        TrialBalanceData.FindFirst();
-        Assert.AreEqual(GLAccount2."No.", TrialBalanceData."G/L Account No.", 'The filtered account should be the one returned');
-        Assert.AreEqual(200, TrialBalanceData.Balance, 'Amount should match the filtered account entry');
+        Assert.AreEqual(1, TempTrialBalanceData.Count(), 'Only one account should be in the buffer');
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(GLAccount2."No.", TempTrialBalanceData."G/L Account No.", 'The filtered account should be the one returned');
+        Assert.AreEqual(200, TempTrialBalanceData.Balance, 'Amount should match the filtered account entry');
     end;
 
     [Test]
@@ -595,7 +603,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     var
         GLAccount: Record "G/L Account";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TrialBalanceData: Record "EXR Trial Balance Buffer";
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         ZeroAccount, NonZeroAccount : Code[20];
     begin
@@ -615,12 +623,122 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount.SetFilter("No.", '%1|%2', ZeroAccount, NonZeroAccount);
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
 
         // [THEN] Only the non-zero account appears
-        Assert.AreEqual(1, TrialBalanceData.Count(), 'Only the non-zero account should be in the buffer');
-        TrialBalanceData.FindFirst();
-        Assert.AreEqual(NonZeroAccount, TrialBalanceData."G/L Account No.", 'The non-zero account should be the one returned');
+        Assert.AreEqual(1, TempTrialBalanceData.Count(), 'Only the non-zero account should be in the buffer');
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(NonZeroAccount, TempTrialBalanceData."G/L Account No.", 'The non-zero account should be the one returned');
+    end;
+
+    [Test]
+    procedure QueryPathStartingBalanceIncludesClosingDateEntries()
+    var
+        GLAccount: Record "G/L Account";
+        TempDimensionValue: Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        ActivityAmount: Decimal;
+        PriorYear: Integer;
+    begin
+        // [SCENARIO] Starting Balance includes closing date entries from the prior fiscal year, emulating what "Close Income Statement" produces.
+        // [GIVEN] A posting account with activity during the prior year
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        PriorYear := Date2DMY(WorkDate(), 3) - 1;
+        ActivityAmount := 5000;
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(15, 6, PriorYear), ActivityAmount);
+        // [GIVEN] A closing entry on ClosingDate(31/12) that zeroes out the account (emulates Close Income Statement)
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', ClosingDate(DMY2Date(31, 12, PriorYear)), -ActivityAmount);
+        // [GIVEN] An entry on the first day of the current year so the old FindFirst logic derives cutoff ..31/12 (normal date), which misses C31/12
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), 100);
+
+        // [WHEN] Running the trial balance for the current year
+        GLAccount.SetRange("No.", PostingAccount);
+        GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TempTrialBalanceData);
+
+        // [THEN] Starting Balance is zero because the closing entry zeroed out the account
+        TempTrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(0, TempTrialBalanceData."Starting Balance", 'Starting Balance should be zero after closing entries')
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRAgedAccPayableExcelHandler')]
+    procedure AgedAccountsPayableExportsDocumentTypeAndNo()
+    var
+        Vendor: Record Vendor;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+        ReportDocumentType: Text;
+        ReportDocumentNo: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 622247] Aged Accounts Payable Excel report exports Document Type and Document No fields correctly for Invoice entries
+        InitializeAgingData();
+
+        // [GIVEN] Vendor "V" with an open vendor ledger entry of type Invoice
+        // Create vendor directly to avoid VAT posting setup requirements in some localizations
+        CreateMinimalVendor(Vendor);
+        CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
+        Commit();
+
+        // [WHEN] Running the Aged Accounts Payable Excel report
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Acc Payable Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Acc Payable Excel", Variant, RequestPageXml);
+
+        // [THEN] The exported data contains the Document Type "Invoice" and the correct Document No
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('DocumentType', Variant);
+        ReportDocumentType := Variant;
+        Assert.AreEqual(Format("Gen. Journal Document Type"::Invoice), ReportDocumentType, DocumentTypeShouldBeInvoiceErr);
+        LibraryReportDataset.FindCurrentRowValue('DocumentNo', Variant);
+        ReportDocumentNo := Variant;
+        Assert.AreEqual(VendorLedgerEntry."Document No.", ReportDocumentNo, DocumentNoShouldMatchErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRAgedAccountsRecExcelHandler')]
+    procedure AgedAccountsRecExportsDocumentTypeAndNo()
+    var
+        Customer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+        ReportDocumentType: Text;
+        ReportDocumentNo: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 622247] Aged Accounts Receivable Excel report exports Document Type and Document No fields correctly for Invoice entries
+        InitializeAgingData();
+
+        // [GIVEN] Customer "C" with an open customer ledger entry of type Invoice
+        // Create customer directly to avoid VAT posting setup requirements in some localizations
+        CreateMinimalCustomer(Customer);
+        CreateCustLedgerEntry(CustLedgerEntry, Customer."No.", "Gen. Journal Document Type"::Invoice);
+        Commit();
+
+        // [WHEN] Running the Aged Accounts Receivable Excel report
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", Variant, RequestPageXml);
+
+        // [THEN] The exported data contains the Document Type "Invoice" and the correct Document No
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.FindCurrentRowValue('DocumentType', Variant);
+        ReportDocumentType := Variant;
+        Assert.AreEqual(Format("Gen. Journal Document Type"::Invoice), ReportDocumentType, DocumentTypeShouldBeInvoiceErr);
+        LibraryReportDataset.FindCurrentRowValue('DocumentNo', Variant);
+        ReportDocumentNo := Variant;
+        Assert.AreEqual(CustLedgerEntry."Document No.", ReportDocumentNo, DocumentNoShouldMatchErr);
     end;
 
     local procedure CreateSampleBusinessUnits(HowMany: Integer)
@@ -735,23 +853,139 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLEntry."Business Unit Code" := BusinessUnitCode;
         GLEntry.Amount := Amount;
         GLEntry."Additional-Currency Amount" := Amount;
-        if Amount > 0 then
-            GLEntry."Debit Amount" := Amount
-        else
+        if Amount > 0 then begin
+            GLEntry."Debit Amount" := Amount;
+            GLEntry."Add.-Currency Debit Amount" := Amount;
+        end else begin
             GLEntry."Credit Amount" := -Amount;
+            GLEntry."Add.-Currency Credit Amount" := -Amount;
+        end;
         GLEntry."Posting Date" := PostingDate;
         GLEntry.Insert();
+    end;
+
+    local procedure InitializeAgingData()
+    var
+        Vendor: Record Vendor;
+        Customer: Record Customer;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        DetailedVendorLedgEntry.DeleteAll();
+        DetailedCustLedgEntry.DeleteAll();
+        VendorLedgerEntry.DeleteAll();
+        CustLedgerEntry.DeleteAll();
+        Vendor.DeleteAll();
+        Customer.DeleteAll();
+    end;
+
+    local procedure CreateMinimalVendor(var Vendor: Record Vendor)
+    begin
+        Vendor.Init();
+        Vendor."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Vendor."No."));
+        Vendor.Name := Vendor."No.";
+        Vendor.Insert();
+    end;
+
+    local procedure CreateMinimalCustomer(var Customer: Record Customer)
+    begin
+        Customer.Init();
+        Customer."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Customer."No."));
+        Customer.Name := Customer."No.";
+        Customer.Insert();
+    end;
+
+    local procedure CreateVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
+    var
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        EntryNo: Integer;
+        Amount: Decimal;
+    begin
+        if VendorLedgerEntry.FindLast() then;
+        EntryNo := VendorLedgerEntry."Entry No." + 1;
+
+        VendorLedgerEntry.Init();
+        VendorLedgerEntry."Entry No." := EntryNo;
+        VendorLedgerEntry."Vendor No." := VendorNo;
+        VendorLedgerEntry."Vendor Name" := VendorNo;
+        VendorLedgerEntry."Document Type" := DocumentType;
+        VendorLedgerEntry."Document No." := 'DOC' + Format(EntryNo);
+        VendorLedgerEntry."Posting Date" := WorkDate();
+        VendorLedgerEntry."Document Date" := WorkDate();
+        VendorLedgerEntry."Due Date" := WorkDate() + 30;
+        VendorLedgerEntry.Open := true;
+        VendorLedgerEntry.Insert();
+
+        // Create detailed vendor ledger entry for remaining amount
+        Amount := -LibraryRandom.RandDec(1000, 2);
+        if DetailedVendorLedgEntry.FindLast() then;
+        DetailedVendorLedgEntry.Init();
+        DetailedVendorLedgEntry."Entry No." := DetailedVendorLedgEntry."Entry No." + 1;
+        DetailedVendorLedgEntry."Vendor Ledger Entry No." := VendorLedgerEntry."Entry No.";
+        DetailedVendorLedgEntry."Vendor No." := VendorNo;
+        DetailedVendorLedgEntry."Posting Date" := WorkDate();
+        DetailedVendorLedgEntry."Entry Type" := DetailedVendorLedgEntry."Entry Type"::"Initial Entry";
+        DetailedVendorLedgEntry.Amount := Amount;
+        DetailedVendorLedgEntry."Amount (LCY)" := Amount;
+        DetailedVendorLedgEntry.Insert();
+    end;
+
+    local procedure CreateCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustomerNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        EntryNo: Integer;
+        Amount: Decimal;
+    begin
+        if CustLedgerEntry.FindLast() then;
+        EntryNo := CustLedgerEntry."Entry No." + 1;
+
+        CustLedgerEntry.Init();
+        CustLedgerEntry."Entry No." := EntryNo;
+        CustLedgerEntry."Customer No." := CustomerNo;
+        CustLedgerEntry."Customer Name" := CustomerNo;
+        CustLedgerEntry."Document Type" := DocumentType;
+        CustLedgerEntry."Document No." := 'DOC' + Format(EntryNo);
+        CustLedgerEntry."Posting Date" := WorkDate();
+        CustLedgerEntry."Document Date" := WorkDate();
+        CustLedgerEntry."Due Date" := WorkDate() + 30;
+        CustLedgerEntry.Open := true;
+        CustLedgerEntry.Insert();
+
+        // Create detailed customer ledger entry for remaining amount
+        Amount := LibraryRandom.RandDec(1000, 2);
+        if DetailedCustLedgEntry.FindLast() then;
+        DetailedCustLedgEntry.Init();
+        DetailedCustLedgEntry."Entry No." := DetailedCustLedgEntry."Entry No." + 1;
+        DetailedCustLedgEntry."Cust. Ledger Entry No." := CustLedgerEntry."Entry No.";
+        DetailedCustLedgEntry."Customer No." := CustomerNo;
+        DetailedCustLedgEntry."Posting Date" := WorkDate();
+        DetailedCustLedgEntry."Entry Type" := DetailedCustLedgEntry."Entry Type"::"Initial Entry";
+        DetailedCustLedgEntry.Amount := Amount;
+        DetailedCustLedgEntry."Amount (LCY)" := Amount;
+        DetailedCustLedgEntry.Insert();
     end;
 
     [RequestPageHandler]
     procedure EXRTrialBalanceExcelHandler(var EXRTrialBalanceExcel: TestRequestPage "EXR Trial Balance Excel")
     begin
+        EXRTrialBalanceExcel.GLAccounts.SetFilter("Date Filter", Format(DMY2Date(1, 1, Date2DMY(WorkDate(), 3))) + '..' + Format(DMY2Date(31, 12, Date2DMY(WorkDate(), 3))));
+        EXRTrialBalanceExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRTrialBalanceHideNoActivityHandler(var EXRTrialBalanceExcel: TestRequestPage "EXR Trial Balance Excel")
+    begin
+        EXRTrialBalanceExcel.GLAccounts.SetFilter("Date Filter", Format(DMY2Date(1, 1, Date2DMY(WorkDate(), 3))) + '..' + Format(DMY2Date(31, 12, Date2DMY(WorkDate(), 3))));
+        EXRTrialBalanceExcel.HideAccountsWithNoActivityField.SetValue(true);
         EXRTrialBalanceExcel.OK().Invoke();
     end;
 
     [RequestPageHandler]
     procedure EXRTrialBalanceBudgetExcelHandler(var EXRTrialBalanceBudgetExcel: TestRequestPage "EXR Trial BalanceBudgetExcel")
     begin
+        EXRTrialBalanceBudgetExcel.GLAccounts.SetFilter("Date Filter", Format(DMY2Date(1, 1, Date2DMY(WorkDate(), 3))) + '..' + Format(DMY2Date(31, 12, Date2DMY(WorkDate(), 3))));
         EXRTrialBalanceBudgetExcel.OK().Invoke();
     end;
 
@@ -760,6 +994,20 @@ codeunit 139544 "Trial Balance Excel Reports"
     begin
         EXRConsolidatedTrialBalance.EndingDateField.Value := Format(DMY2Date(31, 12, WorkDate().Year));
         EXRConsolidatedTrialBalance.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccPayableExcelHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
+    begin
+        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccPayableExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccountsRecExcelHandler(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
+    begin
+        EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccountsRecExcel.OK().Invoke();
     end;
 
 #if not CLEAN27

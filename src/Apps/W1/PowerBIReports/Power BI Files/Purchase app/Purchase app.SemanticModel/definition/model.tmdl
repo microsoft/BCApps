@@ -32,7 +32,7 @@ queryGroup 'Purchase Types'
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["Item","Location","Vendor","Purchaser","Dimension Sets","InvertSignsPurchaseLines","InvertSignsResourceLedgerEntries","InvertSignsGeneralLedgerEntries","ENVIRONMENT","COMPANY","API_ENDPOINT","ConvertUTC","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","GetDimCode","GetDimCodeCaption","GetDimNameCaption","Documents","Purchase Budget","Date Table Setup","Working Days","Standard Calendar Time Intelligence","Fiscal Calendar Time Intelligence","Weekly Calendar Time Intelligence","Purchase Budget Name","Item Category","Purchase Lines","Purchase Value Entries","Resources","G/L Accounts","Purchase Invoice Lines","Purchase Credit Lines","Type","Project","Capacity Ledger Entries","Reason Codes","Item Ledger Document Type","Purchase Document Type","Purchase Line Type"]
+annotation PBI_QueryOrder = ["Item","Location","Vendor","Purchaser","Dimension Sets","InvertSignsPurchaseLines","InvertSignsResourceLedgerEntries","InvertSignsGeneralLedgerEntries","ENVIRONMENT","COMPANY","API_ENDPOINT","ConvertUTC","Dimensions","DimensionSet_Blank","DimensionSets_DataSource","GetDimCode","GetDimCodeCaption","GetDimNameCaption","Documents","Purchase Budget","Date Table Setup","Working Days","Standard Calendar Time Intelligence","Fiscal Calendar Time Intelligence","Weekly Calendar Time Intelligence","Purchase Budget Name","Item Category","Purchase Lines","Purchase Value Entries","Resources","G/L Accounts","Purchase Invoice Lines","Purchase Credit Lines","Type","Project","Capacity Ledger Entries","Reason Codes","Item Ledger Document Type","Purchase Document Type","Purchase Line Type","Company Encoding"]
 
 annotation __TEdtr = 1
 
@@ -73,6 +73,7 @@ ref table 'Reason Codes'
 ref table 'Item Ledger Document Type'
 ref table 'Purchase Document Type'
 ref table 'Purchase Line Type'
+ref table 'Company Encoding'
 
 ref cultureInfo en-US
 ref cultureInfo da-DK

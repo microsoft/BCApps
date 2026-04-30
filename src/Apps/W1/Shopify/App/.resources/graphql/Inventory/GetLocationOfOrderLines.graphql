@@ -1,0 +1,2 @@
+# cost: 25
+{"query": "{order(id: \"gid://shopify/Order/{{OrderId}}\"){lineItems(first: {{OrderLines}}){edges{node{id fulfillmentService{location{legacyResourceId}}}}}}}"}

@@ -45,6 +45,8 @@ page 8054 "Contract Types"
                 {
                     ToolTip = 'Specifies the default value for the associated field in the contract.';
                 }
+                field(AllowDiffCurrInVendUD; Rec."Allow Diff. Curr. in Vend. UD") { }
+                field(AllowDiffCurrInCustUD; Rec."Allow Diff. Curr. in Cust. UD") { }
                 field(NoOfTranslationsCtrl; FieldTranslation.GetNumberOfTranslations(Rec, Rec.FieldNo(Description)))
                 {
                     BlankZero = true;

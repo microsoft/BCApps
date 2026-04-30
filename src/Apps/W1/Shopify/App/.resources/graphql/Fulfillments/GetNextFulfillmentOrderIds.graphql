@@ -1,0 +1,2 @@
+# cost: 14
+{"query": "{order (id: \"gid://shopify/Order/{{OrderId}}\") { fulfillmentOrders (first: 250, after:\"{{After}}\") { pageInfo { endCursor hasNextPage } nodes { id }}}}"}
