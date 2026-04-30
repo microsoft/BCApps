@@ -214,18 +214,15 @@ page 4315 "Agent Card"
 
     local procedure UpdateControls()
     var
+        Agent: Codeunit Agent;
         AgentImpl: Codeunit "Agent Impl.";
         UserSettings: Codeunit "User Settings";
     begin
         if not IsNullGuid(Rec."User Security ID") then begin
             UserSettings.GetUserSettings(Rec."User Security ID", TempUserSettingsRecord);
             ProfileDisplayName := UserSettings.GetProfileName(TempUserSettingsRecord);
+            ModelNameDisplayTxt := Agent.GetModelName(Rec."User Security ID");
         end;
-
-        if Rec."Model Name" = '' then
-            ModelNameDisplayTxt := AutoTxt
-        else
-            ModelNameDisplayTxt := Rec."Model Name";
 
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
     end;
@@ -269,7 +266,6 @@ page 4315 "Agent Card"
         TempUserSettingsRecord: Record "User Settings";
         Language: Codeunit Language;
         ProfileDisplayName, CopilotAvailabilityTxt, ModelNameDisplayTxt : Text;
-        AutoTxt: Label 'Auto';
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';
         OpenConfigurationPageQst: Label 'To activate the agent, use the setup page. Would you like to open this page now?';
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to set up and activate the agent.';
