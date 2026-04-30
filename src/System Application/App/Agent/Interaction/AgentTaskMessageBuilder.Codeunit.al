@@ -27,7 +27,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure Initialize(MessageText: Text): codeunit "Agent Task Message Builder"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskMsgBuilderImpl.Initialize(MessageText);
         exit(this);
     end;
@@ -40,7 +40,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure Initialize(From: Text[250]; MessageText: Text): codeunit "Agent Task Message Builder"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskMsgBuilderImpl.Initialize(From, MessageText);
         exit(this);
     end;
@@ -64,7 +64,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <param name="IgnoreAttachment">Specifies if attachments should be ignored.</param>
     procedure SetIgnoreAttachment(IgnoreAttachment: Boolean): codeunit "Agent Task Message Builder"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskMsgBuilderImpl.SetIgnoreAttachment(IgnoreAttachment);
         exit(this);
     end;
@@ -79,7 +79,7 @@ codeunit 4316 "Agent Task Message Builder"
     [Scope('OnPrem')]
     procedure SetSkipMessageSanitization(SkipSanitizeMessage: Boolean): codeunit "Agent Task Message Builder"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskMsgBuilderImpl.SetSkipMessageSanitization(SkipSanitizeMessage);
         exit(this);
     end;
@@ -91,7 +91,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure SetMessageExternalID(ExternalId: Text[2048]): codeunit "Agent Task Message Builder"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskMsgBuilderImpl.SetMessageExternalID(ExternalId);
         exit(this);
     end;
@@ -103,7 +103,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure SetAgentTask(ParentAgentTask: Record "Agent Task"): codeunit "Agent Task Message Builder"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskMsgBuilderImpl.SetAgentTask(ParentAgentTask);
         exit(this);
     end;
@@ -115,7 +115,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure SetAgentTask(ParentAgentTaskID: BigInteger): codeunit "Agent Task Message Builder"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskMsgBuilderImpl.SetAgentTask(ParentAgentTaskID);
         exit(this);
     end;
@@ -132,7 +132,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </remarks>
     procedure Create(): Record "Agent Task Message"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskMsgBuilderImpl.Create());
     end;
 
@@ -150,7 +150,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </remarks>
     procedure Create(SetTaskStatusToReady: Boolean): Record "Agent Task Message"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskMsgBuilderImpl.Create(SetTaskStatusToReady));
     end;
 
@@ -162,7 +162,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </returns>
     procedure GetAgentTaskMessage(): Record "Agent Task Message"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskMsgBuilderImpl.GetAgentTaskMessage());
     end;
 
@@ -177,7 +177,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream): codeunit "Agent Task Message Builder"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream);
         exit(this);
     end;
@@ -194,7 +194,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>This instance of the Agent Task Message Builder.</returns>
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; Ignored: Boolean): codeunit "Agent Task Message Builder"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskMsgBuilderImpl.AddAttachment(FileName, FileMIMEType, InStream, Ignored);
         exit(this);
     end;
@@ -229,7 +229,7 @@ codeunit 4316 "Agent Task Message Builder"
 #endif
     procedure AddAttachment(var AgentTaskFile: Record "Agent Task File"): codeunit "Agent Task Message Builder"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskMsgBuilderImpl.AddAttachment(AgentTaskFile);
         exit(this);
     end;
@@ -244,7 +244,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// <returns>True if the attachment was uploaded, false otherwise.</returns>
     procedure UploadAttachment(): Boolean
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskMsgBuilderImpl.UploadAttachment());
     end;
 
@@ -256,7 +256,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </returns>
     procedure GetLastAttachment(): Record "Agent Task File"
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskMsgBuilderImpl.GetLastAttachment());
     end;
 
@@ -268,7 +268,7 @@ codeunit 4316 "Agent Task Message Builder"
     /// </returns>
     procedure GetAttachments(var TempAttachments: Record "Agent Task File" temporary): Boolean
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskMsgBuilderImpl.GetAttachments(TempAttachments));
     end;
 }
