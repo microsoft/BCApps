@@ -183,14 +183,14 @@ codeunit 8350 "MCP Config"
         exit(MCPConfigImplementation.GetAPIToolId(ConfigId, ObjectId, ObjectType));
     end;
 
-#if not CLEAN28
+#if not CLEAN29
     /// <summary>
     /// Retrieves the SystemId (GUID) of a tool by its configuration ID and API page.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="APIPageId">The ID of the API page.</param>
     /// <returns>The SystemId (GUID) of the tool if found; otherwise, an empty GUID.</returns>
-    [Obsolete('Use GetAPIToolId with ObjectType parameter instead.', '28.0')]
+    [Obsolete('Use GetAPIToolId with ObjectType parameter instead.', '29.0')]
     procedure GetAPIToolId(ConfigId: Guid; APIPageId: Integer): Guid
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
