@@ -2,11 +2,16 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.QualityManagement.Permissions;
+namespace Microsoft.DemoData.QualityManagement;
 
-using System.Security.AccessControl;
+using Microsoft.QualityManagement.Configuration;
 
-permissionsetextension 20401 "D365 BUS FULL ACCESS - QltyMngmnt" extends "D365 BUS FULL ACCESS"
+codeunit 5709 "Create QM No Series"
 {
-    IncludedPermissionSets = "QltyMngmnt - Edit";
+    trigger OnRun()
+    var
+        QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
+    begin
+        QltyAutoConfigure.EnsureBasicSetupExists(false);
+    end;
 }

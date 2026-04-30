@@ -7,7 +7,6 @@ namespace System.Agents;
 
 using System.Agents.Troubleshooting;
 using System.Environment;
-using System.Environment.Consumption;
 using System.Integration;
 
 codeunit 4300 "Agent Task Impl."
@@ -54,7 +53,7 @@ codeunit 4300 "Agent Task Impl."
         Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry);
     end;
 
-    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; var NewAgentTask: Record "Agent Task")
+    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; BillingContext: Enum "Agent Task Billing Context"; var NewAgentTask: Record "Agent Task")
     begin
         NewAgentTask."Agent User Security ID" := AgentUserSecurityID;
         NewAgentTask."Created By" := UserSecurityId();
@@ -62,6 +61,7 @@ codeunit 4300 "Agent Task Impl."
         NewAgentTask."Needs Attention" := false;
         NewAgentTask.Status := NewAgentTask.Status::Paused;
         NewAgentTask."External ID" := ExternalID;
+        NewAgentTask."Billing Context" := BillingContext;
         NewAgentTask.Insert();
     end;
 
@@ -151,18 +151,6 @@ codeunit 4300 "Agent Task Impl."
     procedure IsTaskStopped(var AgentTask: Record "Agent Task"): Boolean
     begin
         exit((AgentTask.Status = AgentTask.Status::"Stopped by User") or (AgentTask.Status = AgentTask.Status::"Stopped by System"));
-    end;
-
-    procedure GetCopilotCreditsConsumed(AgentTaskID: BigInteger): Decimal
-    var
-        AgentTask: Record "Agent Task";
-        UserAIConsumptionData: Record "User AI Consumption Data";
-    begin
-        if not AgentTask.Get(AgentTaskID) then
-            exit(0);
-        UserAIConsumptionData.SetRange("Agent Task Id", AgentTask.ID);
-        UserAIConsumptionData.CalcSums("Copilot Credits");
-        exit(UserAIConsumptionData."Copilot Credits");
     end;
 
     internal procedure TryGetAgentRecordFromTaskId(TaskId: Integer; var Agent: Record Agent): Boolean

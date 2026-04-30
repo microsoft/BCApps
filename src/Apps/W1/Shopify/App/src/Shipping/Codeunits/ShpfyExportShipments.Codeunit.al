@@ -75,14 +75,11 @@ codeunit 30190 "Shpfy Export Shipments"
     internal procedure CreateFulfillmentOrderRequest(SalesShipmentHeader: Record "Sales Shipment Header"; Shop: Record "Shpfy Shop"; var AssignedFulfillmentOrderIds: Dictionary of [BigInteger, Code[20]]) Requests: List of [Text];
     var
         SalesShipmentLine: Record "Sales Shipment Line";
-        ShippingAgent: Record "Shipping Agent";
         FulfillmentOrderLine: Record "Shpfy FulFillment Order Line";
         TempFulfillmentOrderLine: Record "Shpfy FulFillment Order Line" temporary;
-        TrackingCompany: Enum "Shpfy Tracking Companies";
         PrevFulfillmentOrderId: BigInteger;
-        IsHandled: Boolean;
+        PrevLocationId: BigInteger;
         EmptyFulfillment: Boolean;
-        TrackingUrl: Text;
         GraphQueryStart: Text;
         GraphQuery: TextBuilder;
         LineCount: Integer;
@@ -90,6 +87,7 @@ codeunit 30190 "Shpfy Export Shipments"
         UnfulfillableOrders: List of [BigInteger];
     begin
         Clear(PrevFulfillmentOrderId);
+        PrevLocationId := -1;
 
         SalesShipmentLine.Reset();
         SalesShipmentLine.SetRange("Document No.", SalesShipmentHeader."No.");
@@ -102,46 +100,8 @@ codeunit 30190 "Shpfy Export Shipments"
             until SalesShipmentLine.Next() = 0;
 
             TempFulfillmentOrderLine.Reset();
-            TempFulfillmentOrderLine.SetCurrentKey("Shopify Fulfillment Order Id");
+            TempFulfillmentOrderLine.SetCurrentKey("Shopify Location Id", "Shopify Fulfillment Order Id");
             if TempFulfillmentOrderLine.FindSet() then begin
-                GraphQuery.Append('{"query": "mutation {fulfillmentCreate( fulfillment: {');
-                if GetNotifyCustomer(Shop, SalesShipmentHeader, TempFulfillmentOrderLine."Shopify Location Id") then
-                    GraphQuery.Append('notifyCustomer: true, ')
-                else
-                    GraphQuery.Append('notifyCustomer: false, ');
-                if SalesShipmentHeader."Package Tracking No." <> '' then begin
-                    GraphQuery.Append('trackingInfo: {');
-                    if SalesShipmentHeader."Shipping Agent Code" <> '' then begin
-                        GraphQuery.Append('company: \"');
-                        if ShippingAgent.Get(SalesShipmentHeader."Shipping Agent Code") then
-                            if ShippingAgent."Shpfy Tracking Company" = ShippingAgent."Shpfy Tracking Company"::" " then begin
-                                if ShippingAgent.Name = '' then
-                                    GraphQuery.Append(ShippingAgent.Code)
-                                else
-                                    GraphQuery.Append(ShippingAgent.Name)
-                            end else
-                                GraphQuery.Append(TrackingCompany.Names.Get(TrackingCompany.Ordinals.IndexOf(ShippingAgent."Shpfy Tracking Company".AsInteger())));
-                        GraphQuery.Append('\",');
-                    end;
-
-                    GraphQuery.Append('number: \"');
-                    GraphQuery.Append(SalesShipmentHeader."Package Tracking No.");
-                    GraphQuery.Append('\",');
-                    ShippingEvents.OnBeforeRetrieveTrackingUrl(SalesShipmentHeader, TrackingUrl, IsHandled);
-                    if not IsHandled then
-                        if ShippingAgent."Internet Address" <> '' then
-                            TrackingUrl := ShippingAgent.GetTrackingInternetAddr(SalesShipmentHeader."Package Tracking No.");
-
-                    if TrackingUrl <> '' then begin
-                        GraphQuery.Append('url: \"');
-                        GraphQuery.Append(TrackingUrl);
-                        GraphQuery.Append('\"');
-                    end;
-
-                    GraphQuery.Append('}');
-                end;
-                GraphQuery.Append('lineItemsByFulfillmentOrder: [');
-                GraphQueryStart := GraphQuery.ToText();
                 EmptyFulfillment := true;
                 repeat
                     // Skip fulfillment orders that are assigned and not accepted
@@ -150,6 +110,21 @@ codeunit 30190 "Shpfy Export Shipments"
 
                     if not CanFulfillOrder(TempFulfillmentOrderLine, Shop, UnfulfillableOrders) then
                         continue;
+
+                    // When location changes (or first non-skipped record), finalize the current mutation and start a new one
+                    if PrevLocationId <> TempFulfillmentOrderLine."Shopify Location Id" then begin
+                        if not EmptyFulfillment then begin
+                            FinalizeFulfillmentQuery(GraphQuery);
+                            GraphQueries.Add(GraphQuery.ToText());
+                        end;
+                        GraphQuery.Clear();
+                        GraphQueryStart := BuildFulfillmentQueryStart(Shop, SalesShipmentHeader, TempFulfillmentOrderLine."Shopify Location Id");
+                        GraphQuery.Append(GraphQueryStart);
+                        Clear(PrevFulfillmentOrderId);
+                        LineCount := 0;
+                        EmptyFulfillment := true;
+                    end;
+                    PrevLocationId := TempFulfillmentOrderLine."Shopify Location Id";
 
                     EmptyFulfillment := false;
 
@@ -175,21 +150,75 @@ codeunit 30190 "Shpfy Export Shipments"
                     LineCount += 1;
                     if LineCount = 250 then begin
                         LineCount := 0;
-                        GraphQuery.Append(']}]})');
-                        GraphQuery.Append('{fulfillment { legacyResourceId name createdAt updatedAt deliveredAt displayStatus estimatedDeliveryAt status totalQuantity location { legacyResourceId } trackingInfo { number url company } service { serviceName type } fulfillmentLineItems(first: 10) { pageInfo { endCursor hasNextPage } nodes { id quantity originalTotalSet { presentmentMoney { amount } shopMoney { amount }} lineItem { id isGiftCard }}}}, userErrors {field,message}}}"}');
+                        FinalizeFulfillmentQuery(GraphQuery);
                         GraphQueries.Add(GraphQuery.ToText());
                         GraphQuery.Clear();
                         GraphQuery.Append(GraphQueryStart);
                         Clear(PrevFulfillmentOrderId);
+                        EmptyFulfillment := true;
                     end;
                 until TempFulfillmentOrderLine.Next() = 0;
-                GraphQuery.Append(']}]})');
-                GraphQuery.Append('{fulfillment { legacyResourceId name createdAt updatedAt deliveredAt displayStatus estimatedDeliveryAt status totalQuantity location { legacyResourceId } trackingInfo { number url company } service { serviceName type } fulfillmentLineItems(first: 10) { pageInfo { endCursor hasNextPage } nodes { id quantity originalTotalSet { presentmentMoney { amount } shopMoney { amount }} lineItem { id isGiftCard }}}}, userErrors {field,message}}}"}');
-                if not EmptyFulfillment then
+                if not EmptyFulfillment then begin
+                    FinalizeFulfillmentQuery(GraphQuery);
                     GraphQueries.Add(GraphQuery.ToText());
+                end;
             end;
             exit(GraphQueries);
         end;
+    end;
+
+    local procedure BuildFulfillmentQueryStart(Shop: Record "Shpfy Shop"; SalesShipmentHeader: Record "Sales Shipment Header"; LocationId: BigInteger): Text
+    var
+        ShippingAgent: Record "Shipping Agent";
+        TrackingCompany: Enum "Shpfy Tracking Companies";
+        IsHandled: Boolean;
+        TrackingUrl: Text;
+        GraphQuery: TextBuilder;
+    begin
+        GraphQuery.Append('{"query": "mutation {fulfillmentCreate( fulfillment: {');
+        if GetNotifyCustomer(Shop, SalesShipmentHeader, LocationId) then
+            GraphQuery.Append('notifyCustomer: true, ')
+        else
+            GraphQuery.Append('notifyCustomer: false, ');
+        if SalesShipmentHeader."Package Tracking No." <> '' then begin
+            GraphQuery.Append('trackingInfo: {');
+            if SalesShipmentHeader."Shipping Agent Code" <> '' then begin
+                GraphQuery.Append('company: \"');
+                if ShippingAgent.Get(SalesShipmentHeader."Shipping Agent Code") then
+                    if ShippingAgent."Shpfy Tracking Company" = ShippingAgent."Shpfy Tracking Company"::" " then begin
+                        if ShippingAgent.Name = '' then
+                            GraphQuery.Append(ShippingAgent.Code)
+                        else
+                            GraphQuery.Append(ShippingAgent.Name)
+                    end else
+                        GraphQuery.Append(TrackingCompany.Names.Get(TrackingCompany.Ordinals.IndexOf(ShippingAgent."Shpfy Tracking Company".AsInteger())));
+                GraphQuery.Append('\",');
+            end;
+
+            GraphQuery.Append('number: \"');
+            GraphQuery.Append(SalesShipmentHeader."Package Tracking No.");
+            GraphQuery.Append('\",');
+            ShippingEvents.OnBeforeRetrieveTrackingUrl(SalesShipmentHeader, TrackingUrl, IsHandled);
+            if not IsHandled then
+                if ShippingAgent."Internet Address" <> '' then
+                    TrackingUrl := ShippingAgent.GetTrackingInternetAddr(SalesShipmentHeader."Package Tracking No.");
+
+            if TrackingUrl <> '' then begin
+                GraphQuery.Append('url: \"');
+                GraphQuery.Append(TrackingUrl);
+                GraphQuery.Append('\"');
+            end;
+
+            GraphQuery.Append('}');
+        end;
+        GraphQuery.Append('lineItemsByFulfillmentOrder: [');
+        exit(GraphQuery.ToText());
+    end;
+
+    local procedure FinalizeFulfillmentQuery(var GraphQuery: TextBuilder)
+    begin
+        GraphQuery.Append(']}]})');
+        GraphQuery.Append('{fulfillment { legacyResourceId name createdAt updatedAt deliveredAt displayStatus estimatedDeliveryAt status totalQuantity location { legacyResourceId } trackingInfo { number url company } service { serviceName type } fulfillmentLineItems(first: 10) { pageInfo { endCursor hasNextPage } nodes { id quantity originalTotalSet { presentmentMoney { amount } shopMoney { amount }} lineItem { id isGiftCard }}}}, userErrors {field,message}}}"}');
     end;
 
     local procedure FindFulfillmentOrderLines(SalesShipmentHeader: Record "Sales Shipment Header"; SalesShipmentLine: Record "Sales Shipment Line"; Shop: Record "Shpfy Shop"; var FulfillmentOrderLine: Record "Shpfy FulFillment Order Line"; var TempFulfillmentOrderLine: Record "Shpfy FulFillment Order Line" temporary; var AssignedFulfillmentOrderIds: Dictionary of [BigInteger, Code[20]])

@@ -59,6 +59,12 @@ page 149033 "AIT Log Entries"
                 field("Procedure Name"; Rec."Procedure Name")
                 {
                 }
+                field(Dataset; Rec."Test Input Group Code")
+                {
+                }
+                field("Dataset Line No."; Rec."Test Input Code")
+                {
+                }
                 field("Original Operation"; Rec."Original Operation")
                 {
                     Visible = false;
@@ -67,6 +73,17 @@ page 149033 "AIT Log Entries"
                 field(Status; Rec.Status)
                 {
                     StyleExpr = StatusStyleExpr;
+                }
+                field(ErrorMessageWithCallStack; ErrorMessageWithCallStack)
+                {
+                    Caption = 'Error Message';
+                    ToolTip = 'Specifies the error message. Click to see the error message and call stack.';
+                    Style = Unfavorable;
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(ErrorMessageWithCallStack);
+                    end;
                 }
                 field(Accuracy; Rec."Test Method Line Accuracy")
                 {
@@ -89,12 +106,6 @@ page 149033 "AIT Log Entries"
                 field("Orig. Status"; Rec."Original Status")
                 {
                     Visible = false;
-                }
-                field(Dataset; Rec."Test Input Group Code")
-                {
-                }
-                field("Dataset Line No."; Rec."Test Input Code")
-                {
                 }
                 field("Input Dataset Desc."; Rec."Test Input Description")
                 {
@@ -144,6 +155,7 @@ page 149033 "AIT Log Entries"
                     Caption = 'Error Message';
                     ToolTip = 'Specifies the error message from the eval.';
                     Style = Unfavorable;
+                    Visible = false;
 
                     trigger OnDrillDown()
                     begin
@@ -159,6 +171,7 @@ page 149033 "AIT Log Entries"
                 {
                     Caption = 'Call stack';
                     Editable = false;
+                    Visible = false;
                     ToolTip = 'Specifies the call stack for this error.';
 
                     trigger OnDrillDown()
@@ -249,7 +262,7 @@ page 149033 "AIT Log Entries"
             }
             action("Download Test Output")
             {
-                Caption = 'Download Eval Output';
+                Caption = 'Download eval output';
                 Image = Download;
                 ToolTip = 'Download the eval output.';
 
@@ -262,9 +275,9 @@ page 149033 "AIT Log Entries"
             }
             action("View Test Data")
             {
-                Caption = 'View Eval Data';
+                Caption = 'View eval data';
                 Image = CompareCOA;
-                ToolTip = 'View Eval Data.';
+                ToolTip = 'View eval data.';
 
                 trigger OnAction()
                 begin
@@ -273,7 +286,7 @@ page 149033 "AIT Log Entries"
             }
             action("Download Test Summary")
             {
-                Caption = 'Download Eval Summary';
+                Caption = 'Download eval summary';
                 Image = Export;
                 ToolTip = 'Downloads a summary of the eval results.';
 
@@ -348,6 +361,7 @@ page 149033 "AIT Log Entries"
         OutputText: Text;
         ErrorMessage: Text;
         ErrorCallStack: Text;
+        ErrorMessageWithCallStack: Text;
         StatusStyleExpr: Text;
         TurnsStyleExpr: Text;
         TestRunDuration: Duration;
@@ -370,9 +384,11 @@ page 149033 "AIT Log Entries"
     begin
         case Rec.Status of
             Rec.Status::Success:
-                StatusStyleExpr := 'Favorable';
+                StatusStyleExpr := Format(PageStyle::Favorable);
             Rec.Status::Error:
-                StatusStyleExpr := 'Unfavorable';
+                StatusStyleExpr := Format(PageStyle::Unfavorable);
+            Rec.Status::Skipped:
+                StatusStyleExpr := Format(PageStyle::Ambiguous);
             else
                 StatusStyleExpr := '';
         end;
@@ -382,22 +398,29 @@ page 149033 "AIT Log Entries"
     begin
         case Rec."No. of Turns Passed" of
             Rec."No. of Turns":
-                TurnsStyleExpr := 'Favorable';
+                TurnsStyleExpr := Format(PageStyle::Favorable);
             0:
-                TurnsStyleExpr := 'Unfavorable';
+                TurnsStyleExpr := Format(PageStyle::Unfavorable);
             else
-                TurnsStyleExpr := 'Ambiguous';
+                TurnsStyleExpr := Format(PageStyle::Ambiguous);
         end;
     end;
 
     local procedure SetErrorFields()
+    var
+        CRLF: Text[2];
     begin
         ErrorMessage := '';
         ErrorCallStack := '';
+        ErrorMessageWithCallStack := '';
 
         if Rec.Status = Rec.Status::Error then begin
             ErrorCallStack := Rec.GetErrorCallStack();
             ErrorMessage := Rec.GetMessage();
+
+            CRLF[1] := 13;
+            CRLF[2] := 10;
+            ErrorMessageWithCallStack := ErrorMessage + CRLF + CRLF + ErrorCallStack;
         end;
     end;
 

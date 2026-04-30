@@ -15,14 +15,19 @@ pageextension 149030 "Agent Log Entries" extends "AIT Log Entries"
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
-                Caption = 'Copilot credits';
+                Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this log entry.';
                 Editable = false;
+
+                trigger OnDrillDown()
+                begin
+                    AgentTestContextImpl.OpenAgentConsumptionOverview(AgentTaskIDs);
+                end;
             }
             field("Agent Task IDs"; AgentTaskIDs)
             {
                 ApplicationArea = All;
-                Caption = 'Agent tasks';
+                Caption = 'Agent Tasks Executed';
                 ToolTip = 'Specifies the comma-separated list of Agent Task IDs related to this log entry.';
                 Editable = false;
 

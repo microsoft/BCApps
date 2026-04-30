@@ -62,11 +62,6 @@ function Enable-BreakingChangesCheck {
         }
     }
 
-    if ($appName -eq "Subscription Billing") {
-        Write-Host "Breaking changes check is temporarily disabled for 'Subscription Billing' app"
-        return
-    }
-
     if ($baselineVersion) {
         # Generate the app source cop json file
         Update-AppSourceCopVersion -AppProjectFolder $AppProjectFolder -AppName $appName -BaselineVersion $baselineVersion -BuildMode $BuildMode
