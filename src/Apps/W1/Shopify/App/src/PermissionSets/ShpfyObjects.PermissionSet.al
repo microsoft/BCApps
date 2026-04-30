@@ -103,6 +103,7 @@ permissionset 30104 "Shpfy - Objects"
         report "Shpfy Translator" = X,
         codeunit "Company Details Checklist Item" = X,
         codeunit "Shpfy Authentication Mgt." = X,
+        codeunit "Shpfy Auto Gen. Jnl.-Post" = X,
         codeunit "Shpfy Auto Post Transactions" = X,
         codeunit "Shpfy Background Syncs" = X,
         codeunit "Shpfy Balance Today" = X,
