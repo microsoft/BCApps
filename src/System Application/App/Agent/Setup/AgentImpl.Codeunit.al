@@ -215,6 +215,35 @@ codeunit 4301 "Agent Impl."
         Agent.Modify(true);
     end;
 
+    procedure GetModelId(AgentUserSecurityID: Guid): Code[30]
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        exit(Agent."Model ID")
+    end;
+
+    procedure SetModelId(AgentUserSecurityID: Guid; ModelId: Code[30])
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        Agent."Model ID" := ModelId;
+        Agent.Modify(true);
+    end;
+
+    procedure SetModelIdToAuto(AgentUserSecurityID: Guid)
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        Agent."Model ID" := '';
+        Agent.Modify(true);
+    end;
+
     procedure IsActive(AgentUserSecurityID: Guid): Boolean
     var
         Agent: Record Agent;
