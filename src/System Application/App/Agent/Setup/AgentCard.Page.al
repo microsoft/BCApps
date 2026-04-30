@@ -115,7 +115,7 @@ page 4315 "Agent Card"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Model Name';
-                    Tooltip = 'Specifies the model name used by the agent.';
+                    Tooltip = 'Specifies the model used by the agent.';
                     Editable = false;
                     Importance = Additional;
                 }
