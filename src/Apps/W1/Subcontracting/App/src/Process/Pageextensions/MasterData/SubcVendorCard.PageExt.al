@@ -15,7 +15,7 @@ pageextension 99001516 "Subc. Vendor Card" extends "Vendor Card"
             field("Subcontr. Location Code"; Rec."Subcontr. Location Code")
             {
                 ApplicationArea = Manufacturing;
-                ToolTip = 'Specifies the subcontracting location where items from the vendor must be received by default after having performed an outside work .';
+                ToolTip = 'Specifies the subcontracting location where items from the vendor must be received by default after having performed an outside work.';
             }
             field("Linked to Work Center"; Rec."Linked to Work Center")
             {

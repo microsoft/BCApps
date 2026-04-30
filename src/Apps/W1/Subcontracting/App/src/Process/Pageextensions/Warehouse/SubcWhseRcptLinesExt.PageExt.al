@@ -21,7 +21,7 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order';
                     Image = Production;
-                    ToolTip = 'Specifies the depended Production Order of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related production order.';
                     trigger OnAction()
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then
@@ -34,7 +34,7 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order Routing';
                     Image = Route;
-                    ToolTip = 'Specifies the depended Production Routing of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related production order routing.';
                     trigger OnAction()
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then
@@ -47,7 +47,7 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order Components';
                     Image = Components;
-                    ToolTip = 'Specifies the depended Production Components of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related production order components.';
                     trigger OnAction()
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then
@@ -60,7 +60,7 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Transfer Order';
                     Image = TransferOrder;
-                    ToolTip = 'Specifies the depended Transfer Order of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related transfer order.';
                     trigger OnAction()
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then
@@ -73,7 +73,7 @@ pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines
                     ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Return Transfer Order';
                     Image = ReturnRelated;
-                    ToolTip = 'Specifies the depended Return Transfer Order of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related return transfer order.';
                     trigger OnAction()
                     begin
                         if Rec."Source Type" = Database::"Purchase Line" then

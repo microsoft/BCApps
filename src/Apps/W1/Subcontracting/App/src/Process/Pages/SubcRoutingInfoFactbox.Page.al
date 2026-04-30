@@ -31,7 +31,7 @@ page 99001502 "Subc. Routing Info Factbox"
                 AutoFormatType = 0;
                 Caption = 'Order Quantity';
                 DecimalPlaces = 0 : 5;
-                ToolTip = 'Specifies the depended Quantity in Subcontracting Orders of this Prod. Order Routing Line.';
+                ToolTip = 'Specifies the dependent Quantity in Subcontracting Orders of this Prod. Order Routing Line.';
                 trigger OnDrillDown()
                 begin
                     ShowPurchaseOrders();
@@ -42,7 +42,7 @@ page 99001502 "Subc. Routing Info Factbox"
                 AutoFormatType = 0;
                 Caption = 'Quantity received';
                 DecimalPlaces = 0 : 5;
-                ToolTip = 'Specifies the depended Quantity received in Subcontracting Receipts of this Prod. Order Routing Line.';
+                ToolTip = 'Specifies the dependent Quantity received in Subcontracting Receipts of this Prod. Order Routing Line.';
                 trigger OnDrillDown()
                 begin
                     ShowPurchaseReceipts();
@@ -53,7 +53,7 @@ page 99001502 "Subc. Routing Info Factbox"
                 AutoFormatType = 0;
                 Caption = 'Quantity invoiced';
                 DecimalPlaces = 0 : 5;
-                ToolTip = 'Specifies the depended Quantity invoiced in Subcontracting Invoices of this Prod. Order Routing Line.';
+                ToolTip = 'Specifies the dependent Quantity invoiced in Subcontracting Invoices of this Prod. Order Routing Line.';
                 trigger OnDrillDown()
                 begin
                     ShowPurchaseInvoices();
@@ -66,7 +66,6 @@ page 99001502 "Subc. Routing Info Factbox"
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the number of transfer order lines assigned to this routing line.';
                 trigger OnDrillDown()
-                var
                 begin
                     SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                 end;
@@ -78,7 +77,6 @@ page 99001502 "Subc. Routing Info Factbox"
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the number of Return transfer order lines assigned to this routing line.';
                 trigger OnDrillDown()
-                var
                 begin
                     SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
                 end;
@@ -90,7 +88,6 @@ page 99001502 "Subc. Routing Info Factbox"
                 DecimalPlaces = 0 : 5;
                 ToolTip = 'Specifies the number of components linked to this routing line.';
                 trigger OnDrillDown()
-                var
                 begin
                     ShowProdOrderComponents();
                 end;
