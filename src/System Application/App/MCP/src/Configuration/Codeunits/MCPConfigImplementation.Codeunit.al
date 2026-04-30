@@ -635,7 +635,9 @@ codeunit 8351 "MCP Config Implementation"
     begin
         QueryMetadata.SetLoadFields(EntityName, APIPublisher, APIGroup);
         QueryMetadata.SetFilter(EntityName, '<>%1', '');
-        QueryMetadata.SetFilter(APIPublisher, '<>%1&<>%2', '', 'microsoft');
+        QueryMetadata.SetFilter(APIPublisher, '<>%1', '');
+        QueryMetadata.SetFilter("AL Namespace", '<>%1', 'Microsoft.API.V1');
+
         if not QueryMetadata.FindSet() then
             exit;
 
@@ -718,9 +720,6 @@ codeunit 8351 "MCP Config Implementation"
         APIPublisher := MCPToolsByAPIGroup.GetAPIPublisher();
 
         if (APIGroup = '') or (APIPublisher = '') then
-            exit;
-
-        if APIPublisher = 'microsoft' then
             exit;
 
         AddAPIPageTools(ConfigId, APIPublisher, APIGroup);
