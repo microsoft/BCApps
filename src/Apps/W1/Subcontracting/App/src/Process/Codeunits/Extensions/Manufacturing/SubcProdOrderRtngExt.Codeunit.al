@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.WorkCenter;
-using System.Utilities;
 
 codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
 {
@@ -68,20 +67,8 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
 
     local procedure HandleRoutingLinkCodeValidation(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var xProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
-        ProdOrderRoutingLine2: Record "Prod. Order Routing Line";
-        ConfirmManagement: Codeunit "Confirm Management";
         SubcontractingManagement: Codeunit "Subcontracting Management";
-        UpdateCanceledErr: Label 'Update cancelled.';
-        UpdateRoutingQst: Label '%1 %2 used more than once on this Routing. Do you want to update it anyway?', Comment = '%1=Field Caption, %2=Routing Link Code';
     begin
-        ProdOrderRoutingLine2 := ProdOrderRoutingLine;
-        ProdOrderRoutingLine2.SetRecFilter();
-        ProdOrderRoutingLine2.SetRange("Operation No.");
-        ProdOrderRoutingLine2.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
-        if not ProdOrderRoutingLine2.IsEmpty() then
-            if not ConfirmManagement.GetResponse(StrSubstNo(UpdateRoutingQst, ProdOrderRoutingLine.FieldCaption(ProdOrderRoutingLine."Routing Link Code"), ProdOrderRoutingLine."Routing Link Code"), false) then
-                Error(UpdateCanceledErr);
-
         if ProdOrderRoutingLine."Routing Link Code" <> xProdOrderRoutingLine."Routing Link Code" then
             if xProdOrderRoutingLine."Routing Link Code" <> '' then begin
                 SubcontractingManagement.DelLocationLinkedComponents(xProdOrderRoutingLine, true);
