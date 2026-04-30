@@ -19,7 +19,7 @@ report 99001500 "Subc. Detailed Calculation"
     ApplicationArea = Manufacturing;
     Caption = 'Detailed Calculation';
     DefaultLayout = RDLC;
-    RDLCLayout = 'src\Process\Reports\Rep99001500.SubcDetailedCalculation.rdl';
+    RDLCLayout = './src/Purchase/Rep99001500.SubcDetailedCalculation.rdl';
     UsageCategory = ReportsAndAnalysis;
 
     dataset
