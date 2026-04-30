@@ -51,6 +51,7 @@ codeunit 149917 "Subc SCM Mfg. 70"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryERM: Codeunit "Library - ERM";
         SubcManagementLibrary: Codeunit "Subc. Management Library";
+        SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
         NumberOfLineErr: Label 'Number of line must be same.';
         StatusTxt: Label 'Status must be';
@@ -807,7 +808,9 @@ codeunit 149917 "Subc SCM Mfg. 70"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc SCM Mfg. 70");
 
+        SubSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
         CreateLocationSetup();

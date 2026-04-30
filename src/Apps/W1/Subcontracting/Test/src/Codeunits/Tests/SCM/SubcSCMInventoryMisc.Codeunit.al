@@ -45,6 +45,7 @@ codeunit 149912 "Subc SCM Inventory Misc."
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryUtility: Codeunit "Library - Utility";
         SubcManagementLibrary: Codeunit "Subc. Management Library";
+        SubSetupLibrary: Codeunit "Subc. Setup Library";
         isInitialized: Boolean;
 
     local procedure Initialize()
@@ -58,7 +59,9 @@ codeunit 149912 "Subc SCM Inventory Misc."
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Subc SCM Inventory Misc.");
 
+        SubSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.UpdatePurchasesPayablesSetup();
 

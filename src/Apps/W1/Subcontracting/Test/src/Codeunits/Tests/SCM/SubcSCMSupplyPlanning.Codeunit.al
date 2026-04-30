@@ -57,6 +57,7 @@ codeunit 149913 "Subc SCM Supply Planning"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         SubcManagementLibrary: Codeunit "Subc. Management Library";
+        SubSetupLibrary: Codeunit "Subc. Setup Library";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryDimension: Codeunit "Library - Dimension";
         isInitialized: Boolean;
@@ -745,7 +746,9 @@ codeunit 149913 "Subc SCM Supply Planning"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Subc SCM Supply Planning");
 
+        SubSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         NoSeriesSetup();
         CreateLocationSetup();

@@ -41,6 +41,7 @@ codeunit 149910 "Subc SCM Costing Rollup Sev"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         SubcManagementLibrary: Codeunit "Subc. Management Library";
+        SubSetupLibrary: Codeunit "Subc. Setup Library";
         LibraryERM: Codeunit "Library - ERM";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -62,7 +63,9 @@ codeunit 149910 "Subc SCM Costing Rollup Sev"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Subc SCM Costing Rollup Sev");
 
+        SubSetupLibrary.InitSetupFields();
         LibraryERMCountryData.CreateVATData();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
@@ -534,7 +537,7 @@ codeunit 149910 "Subc SCM Costing Rollup Sev"
         CreateWorkCenter(WorkCenter, IsSubcontracted);
         LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
         CreateRoutingLine(RoutingLine, RoutingHeader, WorkCenter."No.");
-        RoutingLink.FindFirst();
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
         RoutingLine.Validate("Routing Link Code", RoutingLink.Code);
         RoutingLine.Modify(true);
 

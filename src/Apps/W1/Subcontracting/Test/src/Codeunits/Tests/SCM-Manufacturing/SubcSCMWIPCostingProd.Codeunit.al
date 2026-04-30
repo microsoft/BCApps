@@ -49,6 +49,7 @@ codeunit 149914 "Subc SCM WIP Costing Prod."
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         SubcManagementLibrary: Codeunit "Subc. Management Library";
+        SubSetupLibrary: Codeunit "Subc. Setup Library";
         LibraryERM: Codeunit "Library - ERM";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit Assert;
@@ -236,9 +237,11 @@ codeunit 149914 "Subc SCM WIP Costing Prod."
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Subc SCM WIP Costing Prod.");
 
+        SubSetupLibrary.InitSetupFields();
         SetUnitAmountRoundingPrecision();
 
         LibraryERMCountryData.CreateVATData();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.UpdateInventoryPostingSetup();

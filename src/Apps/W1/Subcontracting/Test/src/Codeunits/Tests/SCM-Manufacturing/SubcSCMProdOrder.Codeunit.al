@@ -70,6 +70,7 @@ codeunit 149916 "Subc SCM Prod. Order"
         ShopCalendarMgt: Codeunit "Shop Calendar Management";
         LibraryPriceCalculation: Codeunit "Library - Price Calculation";
         SubcManagementLibrary: Codeunit "Subc. Management Library";
+        SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
         ItemTrackingErr: Label 'You cannot define item tracking on this line because it is linked to production order';
         RecreatePurchaseLineConfirmHandlerQst: Label 'If you change %1, the existing purchase lines will be deleted and new purchase lines based on the new information in the header will be created.\\Do you want to continue?', Comment = '%1 - field caption';
@@ -934,9 +935,11 @@ codeunit 149916 "Subc SCM Prod. Order"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"Subc SCM Prod. Order");
 
+        SubSetupLibrary.InitSetupFields();
         LibrarySetupStorage.Save(Database::"Inventory Setup");
 
         LibraryERMCountryData.CreateVATData();
+        SubSetupLibrary.InitialSetupForGenProdPostingGroup();
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         CreateLocationSetup();
@@ -1080,7 +1083,7 @@ codeunit 149916 "Subc SCM Prod. Order"
         CreateWorkCenter(WorkCenter, IsSubcontracted);
         LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
         CreateRoutingLine(RoutingLine, RoutingHeader, WorkCenter."No.");
-        RoutingLink.FindFirst();
+        LibraryManufacturing.CreateRoutingLink(RoutingLink);
         RoutingLine.Validate("Routing Link Code", RoutingLink.Code);
         RoutingLine.Modify(true);
 
