@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 
 codeunit 139799 "E-Doc. Helper Test"
 {
@@ -20,6 +21,7 @@ codeunit 139799 "E-Doc. Helper Test"
         Assert: Codeunit "Assert";
         LibraryEDoc: Codeunit "Library - E-Document";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryPurchase: Codeunit "Library - Purchase";
 
     trigger OnRun()
     begin
@@ -131,5 +133,61 @@ codeunit 139799 "E-Doc. Helper Test"
 
         // Cleanup
         EDocument.Delete();
+    end;
+
+    [Test]
+    procedure FindVendorByNameAndAddressReturnsVendorWhenNameMatchesAddressDoesNot()
+    var
+        Vendor: Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        VendorNo: Code[20];
+    begin
+        // [SCENARIO] FindVendorByNameAndAddress returns the vendor when name matches but address does not
+        // [GIVEN] A vendor with a known name and address
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Name := 'Contoso Software Solutions AB';
+        Vendor.Address := '100 Main Street';
+        Vendor.Modify();
+
+        // [WHEN] FindVendorByNameAndAddress is called with the matching name and a non-matching address
+        VendorNo := EDocumentImportHelper.FindVendorByNameAndAddress('Contoso Software Solutions AB', 'Completely Different Road');
+
+        // [THEN] The vendor number is returned even though the address did not match
+        Assert.AreEqual(Vendor."No.", VendorNo, 'Vendor should be found by name even when address does not match');
+    end;
+
+    [Test]
+    procedure FindVendorByNameAndAddressReturnsVendorWhenBothNameAndAddressMatch()
+    var
+        Vendor: Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        VendorNo: Code[20];
+    begin
+        // [SCENARIO] FindVendorByNameAndAddress returns the vendor when both name and address match
+        // [GIVEN] A vendor with a known name and address
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Name := 'Fabrikam Supplies International';
+        Vendor.Address := '200 Commerce Avenue';
+        Vendor.Modify();
+
+        // [WHEN] FindVendorByNameAndAddress is called with matching name and matching address
+        VendorNo := EDocumentImportHelper.FindVendorByNameAndAddress('Fabrikam Supplies International', '200 Commerce Avenue');
+
+        // [THEN] The vendor number is returned
+        Assert.AreEqual(Vendor."No.", VendorNo, 'Vendor should be found when both name and address match');
+    end;
+
+    [Test]
+    procedure FindVendorByNameAndAddressReturnsEmptyWhenNoNameMatches()
+    var
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        VendorNo: Code[20];
+    begin
+        // [SCENARIO] FindVendorByNameAndAddress returns empty when no vendor name is similar enough
+        // [WHEN] FindVendorByNameAndAddress is called with a name that does not match any vendor
+        VendorNo := EDocumentImportHelper.FindVendorByNameAndAddress('ZZZ-NoSuchVendorExistsInDatabase-XYZ', '');
+
+        // [THEN] An empty vendor number is returned
+        Assert.AreEqual('', VendorNo, 'Vendor No. should be empty when no name matches');
     end;
 }

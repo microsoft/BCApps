@@ -568,7 +568,6 @@ codeunit 6109 "E-Document Import Helper"
         EDocumentNotification: Codeunit "E-Document Notification";
         NameNearness: Integer;
         AddressNearness: Integer;
-        MatchedByAddress: Boolean;
     begin
         Vendor.SetCurrentKey(Blocked);
         Vendor.SetLoadFields(Name, Address);
@@ -580,11 +579,11 @@ codeunit 6109 "E-Document Import Helper"
                 else
                     AddressNearness := RecordMatchMgt.CalculateStringNearness(VendorAddress, Vendor.Address, MatchThreshold(), NormalizingFactor());
                 if NameNearness >= RequiredNearness() then begin
-                    MatchedByAddress := AddressNearness >= RequiredNearness();
-                    if MatchedByAddress then
+                    if AddressNearness >= RequiredNearness() then
                         exit(Vendor."No.");
                     if EDocEntryNoForNotification <> 0 then
                         EDocumentNotification.AddVendorMatchedByNameNotAddressNotification(EDocEntryNoForNotification);
+                    exit(Vendor."No.");
                 end;
             until Vendor.Next() = 0;
     end;
