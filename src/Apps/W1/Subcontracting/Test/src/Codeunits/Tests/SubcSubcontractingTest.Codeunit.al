@@ -1538,6 +1538,64 @@ Comment = '|%1 = Transfer Order No.';
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure DeleteWorkCenterWithPricesDeletesRelatedPrices()
+    var
+        Item: Record Item;
+        SubcontractorPrice: Record "Subcontractor Price";
+        WorkCenter: Record "Work Center";
+        WorkCenterNo: Code[20];
+    begin
+        // [SCENARIO 620643] Deleting a Work Center deletes all associated Subcontractor Prices
+
+        // [GIVEN] A work center with a subcontractor and multiple Subcontractor Prices
+        Initialize();
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        WorkCenterNo := WorkCenter."No.";
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 0, '');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 10, '');
+
+        // [WHEN] The work center is deleted
+        WorkCenter.Delete(true);
+
+        // [THEN] All Subcontractor Prices for the work center are deleted
+        SubcontractorPrice.SetRange("Work Center No.", WorkCenterNo);
+        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Subcontractor prices must be deleted when work center is deleted');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteItemWithPricesDeletesRelatedPrices()
+    var
+        Item: Record Item;
+        SubcontractorPrice: Record "Subcontractor Price";
+        WorkCenter: Record "Work Center";
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 620643] Deleting an Item deletes all associated Subcontractor Prices
+
+        // [GIVEN] An item with multiple Subcontractor Prices
+        Initialize();
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        ItemNo := Item."No.";
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 0, '');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 10, '');
+
+        // [WHEN] The item is deleted
+        Item.Delete(true);
+
+        // [THEN] All Subcontractor Prices for the item are deleted
+        SubcontractorPrice.SetRange("Item No.", ItemNo);
+        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Subcontractor prices must be deleted when item is deleted');
+    end;
+
+    [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,SubcontrDispatchingListDefaultRequestPageHandler')]
     procedure TestSubcontrDispatchingList()
     var
