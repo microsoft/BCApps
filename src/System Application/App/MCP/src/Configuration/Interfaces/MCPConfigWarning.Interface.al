@@ -9,8 +9,8 @@ interface "MCP Config Warning"
 {
     Access = Internal;
 
-    procedure CheckForWarnings(ConfigId: Guid; var MCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer);
-    procedure WarningMessage(MCPConfigWarning: Record "MCP Config Warning"): Text;
-    procedure RecommendedAction(MCPConfigWarning: Record "MCP Config Warning"): Text;
-    procedure ApplyRecommendedAction(var MCPConfigWarning: Record "MCP Config Warning");
+    procedure CheckForWarnings(ConfigId: Guid; var TempMCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer);
+    procedure WarningMessage(TempMCPConfigWarning: Record "MCP Config Warning"): Text;
+    procedure RecommendedAction(TempMCPConfigWarning: Record "MCP Config Warning"): Text;
+    procedure ApplyRecommendedAction(var TempMCPConfigWarning: Record "MCP Config Warning");
 }

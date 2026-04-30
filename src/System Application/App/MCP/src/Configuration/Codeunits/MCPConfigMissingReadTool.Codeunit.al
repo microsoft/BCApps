@@ -16,39 +16,39 @@ codeunit 8355 "MCP Config Missing Read Tool" implements "MCP Config Warning"
         MissingReadToolWarningLbl: Label '%1 (%2) has Allow Modify enabled but Allow Read is disabled.', Comment = '%1=Object type, %2=Object Id';
         MissingReadToolFixLbl: Label 'Enable Allow Read for this tool.';
 
-    procedure CheckForWarnings(ConfigId: Guid; var MCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
+    procedure CheckForWarnings(ConfigId: Guid; var TempMCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
     begin
         MCPConfigurationTool.SetRange(ID, ConfigId);
         MCPConfigurationTool.SetRange("Allow Modify", true);
         MCPConfigurationTool.SetRange("Allow Read", false);
         if MCPConfigurationTool.FindSet() then
             repeat
-                MCPConfigWarning."Entry No." := EntryNo;
-                MCPConfigWarning."Config Id" := ConfigId;
-                MCPConfigWarning."Tool Id" := MCPConfigurationTool.SystemId;
-                MCPConfigWarning."Warning Type" := MCPConfigWarning."Warning Type"::"Missing Read Tool";
-                MCPConfigWarning.Insert();
+                TempMCPConfigWarning."Entry No." := EntryNo;
+                TempMCPConfigWarning."Config Id" := ConfigId;
+                TempMCPConfigWarning."Tool Id" := MCPConfigurationTool.SystemId;
+                TempMCPConfigWarning."Warning Type" := TempMCPConfigWarning."Warning Type"::"Missing Read Tool";
+                TempMCPConfigWarning.Insert();
                 EntryNo += 1;
             until MCPConfigurationTool.Next() = 0;
     end;
 
-    procedure WarningMessage(MCPConfigWarning: Record "MCP Config Warning"): Text
+    procedure WarningMessage(TempMCPConfigWarning: Record "MCP Config Warning"): Text
     begin
-        if MCPConfigurationTool.GetBySystemId(MCPConfigWarning."Tool Id") then
+        if MCPConfigurationTool.GetBySystemId(TempMCPConfigWarning."Tool Id") then
             exit(StrSubstNo(MissingReadToolWarningLbl, MCPConfigurationTool."Object Type", MCPConfigurationTool."Object ID"));
     end;
 
-    procedure RecommendedAction(MCPConfigWarning: Record "MCP Config Warning"): Text
+    procedure RecommendedAction(TempMCPConfigWarning: Record "MCP Config Warning"): Text
     begin
         exit(MissingReadToolFixLbl);
     end;
 
-    procedure ApplyRecommendedAction(var MCPConfigWarning: Record "MCP Config Warning")
+    procedure ApplyRecommendedAction(var TempMCPConfigWarning: Record "MCP Config Warning")
     begin
-        if MCPConfigurationTool.GetBySystemId(MCPConfigWarning."Tool Id") then begin
+        if MCPConfigurationTool.GetBySystemId(TempMCPConfigWarning."Tool Id") then begin
             MCPConfigurationTool."Allow Read" := true;
             MCPConfigurationTool.Modify();
         end;
-        MCPConfigWarning.Delete();
+        TempMCPConfigWarning.Delete();
     end;
 }

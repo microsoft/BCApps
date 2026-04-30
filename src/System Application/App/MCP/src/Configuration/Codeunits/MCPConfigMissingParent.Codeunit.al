@@ -17,7 +17,7 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
         MissingParentWarningLbl: Label 'This API page is missing parent page(s): %1', Comment = '%1 = comma-separated list of missing parent page IDs';
         MissingParentFixLbl: Label 'Add the parent API pages to the configuration.';
 
-    procedure CheckForWarnings(ConfigId: Guid; var MCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
+    procedure CheckForWarnings(ConfigId: Guid; var TempMCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
         PageMetadata: Record "Page Metadata";
@@ -61,45 +61,45 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
                 MCPConfigurationTool.Get(ConfigId, MCPConfigurationTool."Object Type"::Page, PageId);
 
                 MissingParentsText := FormatPageIdList(MissingParentIds);
-                MCPConfigWarning."Entry No." := EntryNo;
-                MCPConfigWarning."Config Id" := ConfigId;
-                MCPConfigWarning."Tool Id" := MCPConfigurationTool.SystemId;
-                MCPConfigWarning."Warning Type" := MCPConfigWarning."Warning Type"::"Missing Parent Object";
-                MCPConfigWarning."Additional Info" := CopyStr(MissingParentsText, 1, MaxStrLen(MCPConfigWarning."Additional Info"));
-                MCPConfigWarning.Insert();
+                TempMCPConfigWarning."Entry No." := EntryNo;
+                TempMCPConfigWarning."Config Id" := ConfigId;
+                TempMCPConfigWarning."Tool Id" := MCPConfigurationTool.SystemId;
+                TempMCPConfigWarning."Warning Type" := TempMCPConfigWarning."Warning Type"::"Missing Parent Object";
+                TempMCPConfigWarning."Additional Info" := CopyStr(MissingParentsText, 1, MaxStrLen(TempMCPConfigWarning."Additional Info"));
+                TempMCPConfigWarning.Insert();
                 EntryNo += 1;
             end;
         end;
     end;
 
-    procedure WarningMessage(MCPConfigWarning: Record "MCP Config Warning"): Text
+    procedure WarningMessage(TempMCPConfigWarning: Record "MCP Config Warning"): Text
     begin
-        exit(StrSubstNo(MissingParentWarningLbl, MCPConfigWarning."Additional Info"));
+        exit(StrSubstNo(MissingParentWarningLbl, TempMCPConfigWarning."Additional Info"));
     end;
 
-    procedure RecommendedAction(MCPConfigWarning: Record "MCP Config Warning"): Text
+    procedure RecommendedAction(TempMCPConfigWarning: Record "MCP Config Warning"): Text
     begin
         exit(MissingParentFixLbl);
     end;
 
-    procedure ApplyRecommendedAction(var MCPConfigWarning: Record "MCP Config Warning")
+    procedure ApplyRecommendedAction(var TempMCPConfigWarning: Record "MCP Config Warning")
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         PageIdList: List of [Text];
         PageIdText: Text;
         PageId: Integer;
     begin
-        if MCPConfigWarning."Additional Info" = '' then
+        if TempMCPConfigWarning."Additional Info" = '' then
             exit;
 
         // Parse comma-separated page IDs and add each as a tool
-        PageIdList := MCPConfigWarning."Additional Info".Split(',');
+        PageIdList := TempMCPConfigWarning."Additional Info".Split(',');
         foreach PageIdText in PageIdList do
             if Evaluate(PageId, PageIdText.Trim()) then
-                if not MCPConfigImplementation.CheckAPIToolExists(MCPConfigWarning."Config Id", PageId) then
-                    MCPConfigImplementation.CreateAPITool(MCPConfigWarning."Config Id", PageId, false);
+                if not MCPConfigImplementation.CheckAPIToolExists(TempMCPConfigWarning."Config Id", PageId) then
+                    MCPConfigImplementation.CreateAPITool(TempMCPConfigWarning."Config Id", PageId, false);
 
-        MCPConfigWarning.Delete();
+        TempMCPConfigWarning.Delete();
     end;
 
     local procedure FormatPageIdList(PageIds: List of [Integer]): Text
