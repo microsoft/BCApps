@@ -19,9 +19,6 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using System.TestLibraries.Utilities;
 
-/// <summary>
-/// Codeunit Shpfy Auto Post Transaction Test (ID 139614).
-/// </summary>
 codeunit 139614 "Shpfy Auto Post Trans. Test"
 {
     Subtype = Test;
@@ -40,26 +37,26 @@ codeunit 139614 "Shpfy Auto Post Trans. Test"
     [Test]
     procedure UnitTestAutoPostJnlBatchValidateWithBalAccountNo()
     var
-        ShpfyPaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        ShopifyPaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         GenJournalBatch: Record "Gen. Journal Batch";
     begin
         // [SCENARIO] Auto-Post Jnl. Batch field validates successfully when journal batch has a balancing account number
 
         // [GIVEN] A Gen. Journal Batch with a balancing account number
         CreateJournalBatch(GenJournalBatch);
-        ShpfyPaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
+        ShopifyPaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
 
         // [WHEN] Auto-Post Jnl. Batch is validated
-        ShpfyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
+        ShopifyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
 
         // [THEN] Validation passes without error
-        LibraryAssert.AreEqual(GenJournalBatch.Name, ShpfyPaymentMethodMapping."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be set');
+        LibraryAssert.AreEqual(GenJournalBatch.Name, ShopifyPaymentMethodMapping."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be set');
     end;
 
     [Test]
     procedure UnitTestAutoPostJnlBatchValidateWithoutBalAccountNo()
     var
-        ShpfyPaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        ShopifyPaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         GenJournalBatch: Record "Gen. Journal Batch";
     begin
         // [SCENARIO] Auto-Post Jnl. Batch field validation fails when journal batch does not have a balancing account number
@@ -68,25 +65,32 @@ codeunit 139614 "Shpfy Auto Post Trans. Test"
         CreateJournalBatch(GenJournalBatch);
         GenJournalBatch."Bal. Account No." := '';
         GenJournalBatch.Modify();
-        ShpfyPaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
+        ShopifyPaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
 
         // [WHEN] Auto-Post Jnl. Batch is validated
         // [THEN] Validation fails with error
-        asserterror ShpfyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
+        asserterror ShopifyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
     end;
 
     [Test]
     procedure UnitTestAutoPostJnlBatchValidateWithEmptyValue()
     var
-        ShpfyPaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        ShopifyPaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        GenJournalBatch: Record "Gen. Journal Batch";
     begin
-        // [SCENARIO] Auto-Post Jnl. Batch field can be set to empty without validation error
+        // [SCENARIO] Auto-Post Jnl. Batch field can be cleared after being set, without validation error
+
+        // [GIVEN] A Payment Method Mapping with Auto-Post Jnl. Batch already set to a valid batch
+        CreateJournalBatch(GenJournalBatch);
+        ShopifyPaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
+        ShopifyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
+        LibraryAssert.AreEqual(GenJournalBatch.Name, ShopifyPaymentMethodMapping."Auto-Post Jnl. Batch", 'Precondition: Auto-Post Jnl. Batch should be populated');
 
         // [WHEN] Auto-Post Jnl. Batch is set to empty
-        ShpfyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", '');
+        ShopifyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", '');
 
-        // [THEN] Validation passes without error
-        LibraryAssert.AreEqual('', ShpfyPaymentMethodMapping."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be empty');
+        // [THEN] Validation passes without error and the field is cleared
+        LibraryAssert.AreEqual('', ShopifyPaymentMethodMapping."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be empty');
     end;
 
     [Test]
@@ -361,12 +365,12 @@ codeunit 139614 "Shpfy Auto Post Trans. Test"
 
     local procedure CreateShopifyOrder(OrderId: BigInteger)
     var
-        ShpfyOrderHeader: Record "Shpfy Order Header";
+        OrderHeader: Record "Shpfy Order Header";
     begin
-        ShpfyOrderHeader.Init();
-        ShpfyOrderHeader."Shopify Order Id" := OrderId;
-        ShpfyOrderHeader.Processed := true;
-        ShpfyOrderHeader.Insert();
+        OrderHeader.Init();
+        OrderHeader."Shopify Order Id" := OrderId;
+        OrderHeader.Processed := true;
+        OrderHeader.Insert();
     end;
 
     local procedure CreateOrderTransaction(TransactionId: BigInteger; OrderId: BigInteger; RefundId: BigInteger; Gateway: Text[30]; TransactionType: Enum "Shpfy Transaction Type"; Amount: Decimal)
@@ -458,13 +462,13 @@ codeunit 139614 "Shpfy Auto Post Trans. Test"
         GLAccount: Record "G/L Account";
         VATPostingSetup: Record "VAT Posting Setup";
         LibraryERM: Codeunit "Library - ERM";
-        ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
     begin
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandDecInDecimalRange(10, 25, 0));
         GLAccount.Get(LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, Enum::"General Posting Type"::Sale));
         GLAccount."Direct Posting" := true;
 
-        ShpfyInitializeTest.CreateVATPostingSetup(Shop."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
+        InitializeTest.CreateVATPostingSetup(Shop."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
 
         GLAccount.Modify(false);
         exit(GLAccount."No.");

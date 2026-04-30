@@ -390,12 +390,11 @@ report 30118 "Shpfy Suggest Payments"
         if GenJournalLine.FindLast() then
             LastLineNo := GenJournalLine."Line No.";
 
-        RemoveGenJournalLines(TempSuggestPayment."Shpfy Transaction Id");
-
         if OrderNoInDescription then
             TempSuggestPayment.SetAutoCalcFields("Shpfy Order No.");
         if TempSuggestPayment.FindSet() then
             repeat
+                RemoveGenJournalLines(TempSuggestPayment."Shpfy Transaction Id");
                 LastLineNo += 10000;
                 if OrderNoInDescription then
                     OrderIdentifier := TempSuggestPayment."Shpfy Order No."

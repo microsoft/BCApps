@@ -9,9 +9,6 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Sales.History;
 
-/// <summary>
-/// Codeunit Shpfy Auto Post Transactions (ID 30236).
-/// </summary>
 codeunit 30236 "Shpfy Auto Post Transactions"
 {
     Access = Internal;
@@ -29,6 +26,7 @@ codeunit 30236 "Shpfy Auto Post Transactions"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         OrderTransaction: Record "Shpfy Order Transaction";
     begin
+        SalesInvoiceHeader.SetLoadFields("Shpfy Order Id", "Posting Date");
         if not SalesInvoiceHeader.Get(SalesInvoiceHeaderNo) then
             exit;
 
@@ -45,6 +43,7 @@ codeunit 30236 "Shpfy Auto Post Transactions"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         OrderTransaction: Record "Shpfy Order Transaction";
     begin
+        SalesCrMemoHeader.SetLoadFields("Shpfy Refund Id", "Posting Date");
         if not SalesCrMemoHeader.Get(SalesCrMemoHeaderNo) then
             exit;
 
@@ -60,6 +59,11 @@ codeunit 30236 "Shpfy Auto Post Transactions"
     begin
         OrderTransaction.SetRange(Status, OrderTransaction.Status::Success);
         OrderTransaction.SetRange(Used, false);
+        OrderTransaction.SetAutoCalcFields("Payment Method");
+        OrderTransaction.SetLoadFields(
+            "Shopify Transaction Id", "Shopify Order Id", Type, Amount, "Rounding Amount",
+            "Presentment Amount", "Presentment Rounding Amount", Gateway, "Credit Card Company",
+            Shop, "Gift Card Id");
         if OrderTransaction.FindSet() then
             repeat
                 if ShouldAutoPost(OrderTransaction) then
@@ -71,6 +75,7 @@ codeunit 30236 "Shpfy Auto Post Transactions"
     var
         PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
     begin
+        PaymentMethodMapping.SetLoadFields("Post Automatically", "Auto-Post Jnl. Template", "Auto-Post Jnl. Batch");
         if not PaymentMethodMapping.Get(OrderTransaction.Shop, OrderTransaction.Gateway, OrderTransaction."Credit Card Company") then
             exit(false);
 
@@ -91,6 +96,7 @@ codeunit 30236 "Shpfy Auto Post Transactions"
         SuggestPayments: Report "Shpfy Suggest Payments";
         AutoGenJnlPost: Codeunit "Shpfy Auto Gen. Jnl.-Post";
     begin
+        PaymentMethodMapping.SetLoadFields("Auto-Post Jnl. Template", "Auto-Post Jnl. Batch");
         PaymentMethodMapping.Get(OrderTransaction.Shop, OrderTransaction.Gateway, OrderTransaction."Credit Card Company");
         SuggestPayments.SetJournalParameters(PaymentMethodMapping."Auto-Post Jnl. Template", PaymentMethodMapping."Auto-Post Jnl. Batch", PostingDate);
         SuggestPayments.GetOrderTransactions(OrderTransaction);

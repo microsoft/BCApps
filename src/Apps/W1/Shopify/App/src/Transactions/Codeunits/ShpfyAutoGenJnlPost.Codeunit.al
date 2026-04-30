@@ -8,9 +8,6 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 
-/// <summary>
-/// Codeunit Shpfy Auto Gen. Jnl.-Post (ID 30422).
-/// </summary>
 codeunit 30422 "Shpfy Auto Gen. Jnl.-Post"
 {
     EventSubscriberInstance = Manual;

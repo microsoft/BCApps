@@ -5,9 +5,6 @@
 
 namespace Microsoft.Integration.Shopify;
 
-/// <summary>
-/// Page Shpfy Filter Transactions (ID 30176).
-/// </summary>
 page 30176 "Shpfy Filter Transactions"
 {
     Caption = 'Filter Postable Transactions';
