@@ -1486,6 +1486,56 @@ codeunit 139608 "Shpfy Orders API Test"
         LibraryAssert.AreEqual(OrderHeader."Shopify Order No.", SalesHeader."No.", 'Sales Invoice number should equal Shopify Order No.');
     end;
 
+    [Test]
+    procedure UnitTestTipFlagNotPropagatedToSubsequentOrderLines()
+    var
+        OrderLine: Record "Shpfy Order Line";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        JOrderLines: JsonArray;
+        JEmptyArray: JsonArray;
+        JTipLine: JsonObject;
+        JRegularLine: JsonObject;
+        JNull: JsonValue;
+        GidLbl: Label 'gid://shopify/LineItem/%1', Locked = true, Comment = '%1 = Line Id';
+        OrderId: BigInteger;
+        TipLineId: BigInteger;
+        RegularLineId: BigInteger;
+    begin
+        // [SCENARIO] When an order contains a Tip line followed by a regular line, the Tip flag must not carry over to the regular line.
+        Initialize();
+
+        OrderId := LibraryRandom.RandIntInRange(100000, 999999);
+        TipLineId := LibraryRandom.RandIntInRange(10000, 49999);
+        RegularLineId := LibraryRandom.RandIntInRange(50000, 99999);
+
+        // [GIVEN] A Tip order line in JSON form
+        JNull.SetValueToNull();
+        JTipLine.Add('id', StrSubstNo(GidLbl, TipLineId));
+        JTipLine.Add('name', 'Tip');
+        JTipLine.Add('product', JNull);
+        JTipLine.Add('discountAllocations', JEmptyArray);
+
+        // [GIVEN] A regular order line in JSON form that follows the Tip line
+        JRegularLine.Add('id', StrSubstNo(GidLbl, RegularLineId));
+        JRegularLine.Add('name', 'Product');
+        JRegularLine.Add('discountAllocations', JEmptyArray);
+
+        JOrderLines.Add(JTipLine);
+        JOrderLines.Add(JRegularLine);
+
+        // [WHEN] Order lines are imported from the JSON array
+        ImportOrder.ImportCreateAndUpdateOrderLinesFromMock(OrderId, JOrderLines);
+        Commit();
+
+        // [THEN] The Tip line has the Tip flag set to true
+        LibraryAssert.IsTrue(OrderLine.Get(OrderId, TipLineId), 'Tip order line must exist');
+        LibraryAssert.IsTrue(OrderLine.Tip, 'Tip flag must be set on the Tip order line');
+
+        // [THEN] The regular line does not have the Tip flag carried over from the previous Tip line
+        LibraryAssert.IsTrue(OrderLine.Get(OrderId, RegularLineId), 'Regular order line must exist');
+        LibraryAssert.IsFalse(OrderLine.Tip, 'Tip flag must not be propagated to the subsequent regular order line');
+    end;
+
     local procedure CreateTaxArea(var TaxArea: Record "Tax Area"; var ShopifyTaxArea: Record "Shpfy Tax Area"; ShopParam: Record "Shpfy Shop")
     var
         ShopifyCustomerTemplate: Record "Shpfy Customer Template";

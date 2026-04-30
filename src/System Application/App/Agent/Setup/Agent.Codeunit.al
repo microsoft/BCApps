@@ -29,7 +29,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentImpl.CreateAgent(AgentMetadataProvider, UserName, UserDisplayName, TempAgentAccessControl));
     end;
 
@@ -41,7 +41,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.Activate(AgentUserSecurityID);
     end;
 
@@ -53,7 +53,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.Deactivate(AgentUserSecurityID);
     end;
 
@@ -65,7 +65,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentImpl.GetDisplayName(AgentUserSecurityID));
     end;
 
@@ -77,7 +77,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentImpl.GetUserName(AgentUserSecurityID));
     end;
 
@@ -90,7 +90,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.SetDisplayName(AgentUserSecurityID, DisplayName);
     end;
 
@@ -142,7 +142,7 @@ codeunit 4321 Agent
     var
         AgentUtilities: Codeunit "Agent Utilities";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentUtilities.SetInstructions(AgentUserSecurityID, Instructions);
     end;
 
@@ -155,7 +155,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentImpl.IsActive(AgentUserSecurityID));
     end;
 
@@ -169,7 +169,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.PopulateProfileTempRecord(ProfileID, ProfileAppID, TempAllProfile);
     end;
 
@@ -184,7 +184,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.SetProfile(AgentUserSecurityID, ProfileID, ProfileAppID);
     end;
 
@@ -199,7 +199,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.UpdateLocalizationSettings(AgentUserSecurityID, LanguageID, LocaleID, TimeZone);
     end;
 
@@ -212,7 +212,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.GetUserSettings(AgentUserSecurityID, UserSettingsRec);
     end;
 
@@ -226,7 +226,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.AssignPermissionSets(AgentUserSecurityID, TempAccessControlBuffer);
     end;
 
@@ -239,7 +239,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.GetPermissionSets(AgentUserSecurityID, TempAccessControlBuffer);
     end;
 
@@ -252,7 +252,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.GetUserAccess(AgentUserSecurityID, TempAgentAccessControl);
     end;
 
@@ -265,7 +265,7 @@ codeunit 4321 Agent
     var
         AgentImpl: Codeunit "Agent Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentImpl.UpdateAgentAccessControl(AgentUserSecurityID, TempAgentAccessControl);
     end;
 

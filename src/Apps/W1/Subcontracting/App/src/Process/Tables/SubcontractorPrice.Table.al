@@ -127,6 +127,12 @@ table 99001500 "Subcontractor Price"
         key(Key02; "Vendor No.", "Item No.", "Work Center No.", "Variant Code", "Unit of Measure Code", "Currency Code")
         {
         }
+        key(Key03; "Work Center No.")
+        {
+        }
+        key(Key04; "Item No.")
+        {
+        }
     }
     fieldgroups
     {
@@ -160,6 +166,30 @@ table 99001500 "Subcontractor Price"
                 NewSubcontractorPrice."Work Center No." := WorkCenterNo;
                 if NewSubcontractorPrice.Insert() then;
             until SubcontractorPrice.Next() = 0;
+    end;
+
+    internal procedure DeletePricesForVendor(VendorNo: Code[20])
+    begin
+        SetCurrentKey("Vendor No.");
+        SetRange("Vendor No.", VendorNo);
+        if not IsEmpty() then
+            DeleteAll(true);
+    end;
+
+    internal procedure DeletePricesForWorkCenter(WorkCenterNo: Code[20])
+    begin
+        SetCurrentKey("Work Center No.");
+        SetRange("Work Center No.", WorkCenterNo);
+        if not IsEmpty() then
+            DeleteAll(true);
+    end;
+
+    internal procedure DeletePricesForItem(ItemNo: Code[20])
+    begin
+        SetCurrentKey("Item No.");
+        SetRange("Item No.", ItemNo);
+        if not IsEmpty() then
+            DeleteAll(true);
     end;
 
 }
