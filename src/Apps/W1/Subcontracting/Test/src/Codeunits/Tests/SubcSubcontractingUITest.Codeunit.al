@@ -367,6 +367,50 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
+    procedure WorkCenterCardDispatchListDisabledWhenNotSubcontracting()
+    var
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 633206] Subcontractor - Dispatch List action is disabled on Work Center Card when Work Center has no Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center without a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+
+        // [WHEN] The Work Center Card page is opened for the Work Center
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GotoRecord(WorkCenter);
+
+        // [THEN] Subcontractor - Dispatch List action is not enabled
+        Assert.IsFalse(WorkCenterCard."Subcontractor - Dispatch List".Enabled(), SubcontractingActionsEnabledErr);
+        WorkCenterCard.Close();
+    end;
+
+    [Test]
+    procedure WorkCenterCardDispatchListEnabledWhenSubcontracting()
+    var
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 633206] Subcontractor - Dispatch List action is enabled on Work Center Card when Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [WHEN] The Work Center Card page is opened for the Work Center
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GotoRecord(WorkCenter);
+
+        // [THEN] Subcontractor - Dispatch List action is enabled
+        Assert.IsTrue(WorkCenterCard."Subcontractor - Dispatch List".Enabled(), SubcontractingActionsNotEnabledErr);
+        WorkCenterCard.Close();
+    end;
+
+    [Test]
     procedure WorkCenterListSubcontractingActionsDisabledWhenNotSubcontracting()
     var
         WorkCenter: Record "Work Center";
