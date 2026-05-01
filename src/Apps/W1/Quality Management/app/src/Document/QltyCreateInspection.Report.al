@@ -68,9 +68,24 @@ report 20400 "Qlty. Create Inspection"
 
                         trigger OnLookup(var Text: Text): Boolean
                         var
+                            QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+                            TempCompatibleQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
                             QltyInspectSourceConfigList: Page "Qlty. Ins. Source Config. List";
+                            QltyInspectionGenRules: Page "Qlty. Inspection Gen. Rules";
                             OldTableNo: Integer;
                         begin
+                            if (QltInspectionTemplateToCreate <> '') and
+                               not QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule)
+                            then begin
+                                if not Confirm(StrSubstNo(NoCompatibleGenRuleQst, QltInspectionTemplateToCreate)) then
+                                    exit(false);
+                                QltyInspectionGenRule.SetRange("Template Code", QltInspectionTemplateToCreate);
+                                QltyInspectionGenRules.SetTableView(QltyInspectionGenRule);
+                                QltyInspectionGenRules.RunModal();
+                                if not QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) then
+                                    exit(false);
+                            end;
+
                             OldTableNo := QltyInspectSourceConfig."From Table No.";
                             QltyInspectSourceConfig.Reset();
                             QltyInspectSourceConfig.FilterGroup(20);
@@ -221,6 +236,7 @@ report 20400 "Qlty. Create Inspection"
         DidChangeSourceQuantity: Boolean;
         NotAValidQltyInspectionTemplateErr: Label '''%1'' is not a valid Quality Inspection Template. Please re-configure the available Quality Inspection Templates.', Comment = '%1=The template that was expected';
         PleaseChooseARecordFirstErr: Label 'Choose which record you want to create a Quality Inspection for, then try again.';
+        NoCompatibleGenRuleQst: Label 'Could not find any compatible inspection generation rules for the template %1. Do you want to open the Quality Inspection Generation Rules page to create one?', Comment = '%1=the template code';
 
     trigger OnPreReport()
     var
