@@ -1,8 +1,8 @@
 [
     {
-        "FeatureName": "No features listed yet for the 2026 wave 2 release",
-        "Description": "Check back here in a couple of weeks to see and provide feedback on features coming in the upcoming release.",
-        "Category": "Other",
+        "FeatureName": "Faster cleanup of retention policy logs and large system tables",
+        "Description": "Retention policies now use Truncate All for a limited set of supported tables: Change Log Entry, Integration Synch. Job Errors, Error Message, and Error Message Register. Truncate All clears the entire table, making cleanup much faster than row-by-row deletion. ",
+        "Category": "Administration",
         "HelpURL": "",
         "VideoURL": ""
     }
