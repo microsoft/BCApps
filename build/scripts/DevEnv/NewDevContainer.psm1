@@ -93,12 +93,14 @@ function Set-AppVersion()
         [Parameter(Mandatory = $false)]
         [string]$Publisher = 'Microsoft',
         [Parameter(Mandatory = $false)]
+        [string]$TenantDatabaseName = 'default',
+        [Parameter(Mandatory = $false)]
         [string]$DatabaseServer = '.'
     )
 
     Write-Host "Set version $Major.$Minor.0.0 for app $Name published by $Publisher."
 
-    $command = @"
+    $appDbCommand = @"
     UPDATE [$DatabaseName].[dbo].[Published Application]
     SET [Version Major] = $Major, [Version Minor] = $Minor, [Version Build] = 0, [Version Revision] = 0
     WHERE Name = '$Name' and Publisher = '$Publisher';
@@ -106,17 +108,20 @@ function Set-AppVersion()
     UPDATE [$DatabaseName].[dbo].[Application Dependency]
     SET [Dependency Version Major] = $Major, [Dependency Version Minor] = $Minor, [Dependency Version Build] = 0, [Dependency Version Revision] = 0
     WHERE [Dependency Name] = '$Name' and [Dependency Publisher] = '$Publisher';
+"@
 
-    UPDATE [$DatabaseName].[dbo].[NAV App Installed App]
+    $tenantDbCommand = @"
+    UPDATE [$TenantDatabaseName].[dbo].[NAV App Installed App]
     SET [Version Major] = $Major, [Version Minor] = $Minor, [Version Build] = 0, [Version Revision] = 0
     WHERE Name = '$Name' and Publisher = '$Publisher';
 
-    UPDATE [$DatabaseName].[dbo].[`$ndo`$navappschematracking]
+    UPDATE [$TenantDatabaseName].[dbo].[`$ndo`$navappschematracking]
     SET [version] = '$Major.$Minor.0.0', [baselineversion] = '$Major.$Minor.0.0'
     WHERE [name] = '$Name' and [publisher] = '$Publisher';
 "@
 
-    RunSqlCommand -Command $command -Server $DatabaseServer
+    RunSqlCommand -Command $appDbCommand -Server $DatabaseServer
+    RunSqlCommand -Command $tenantDbCommand -Server $DatabaseServer
 }
 
 <#
