@@ -230,9 +230,10 @@ codeunit 4301 "Agent Impl."
     begin
         GetAgent(Agent, AgentUserSecurityID);
 
-        if Agent."Model Name" = '' then
+        if Agent."Model ID" = '' then
             exit(AutoLbl);
 
+        Agent.CalcFields("Model Name");
         exit(Agent."Model Name");
     end;
 
