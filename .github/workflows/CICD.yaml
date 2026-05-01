@@ -295,6 +295,7 @@ jobs:
           name: MergedCodeCoverage
           path: '${{ github.workspace }}/.coverage-inputs/_merged/'
           if-no-files-found: ignore
+          retention-days: 3
 
   DeployALDoc:
     needs: [ Initialization, Build ]
