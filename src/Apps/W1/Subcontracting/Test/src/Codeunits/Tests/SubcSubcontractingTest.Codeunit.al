@@ -1892,11 +1892,10 @@ Comment = '|%1 = Transfer Order No.';
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
         PurchaseHeaderPage: TestPage "Purchase Order";
-        TransferOrder: TestPage "Transfer Order";
     begin
         // [SCENARIO 617373] Posting a direct subcontracting transfer correctly propagates Source Type and Source ID to the Direct Trans. Header
 
-        // [GIVEN] Complete manufacturing setup with direct transfer enabled
+        // [GIVEN] Complete manufacturing setup (no in-transit transfer route, so the report creates a Direct Transfer)
         Initialize();
         UpdateManufacturingSetupWithSubcontractingLocation();
         SetupInventorySetup();
@@ -1913,9 +1912,7 @@ Comment = '|%1 = Transfer Order No.';
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
-        CreateTransferRoute(WorkCenter[2], ProductionOrder);
 
         // [GIVEN] Subcontracting purchase order and transfer order to vendor
         CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
@@ -1945,10 +1942,8 @@ Comment = '|%1 = Transfer Order No.';
         CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
 
-        // [WHEN] Post the direct transfer order
-        TransferOrder.OpenView();
-        TransferOrder.GoToRecord(TransferHeader);
-        TransferOrder.Post.Invoke();
+        // [WHEN] Post the direct transfer
+        Codeunit.Run(Codeunit::"TransferOrder-Post Transfer", TransferHeader);
 
         // [THEN] Direct Trans. Header has Source Type = Subcontracting and Source ID = Vendor No.
         DirectTransHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
@@ -1960,9 +1955,6 @@ Comment = '|%1 = Transfer Order No.';
         Assert.AreEqual(
             Vendor."No.", DirectTransHeader."Source ID",
             'Source ID must be the Vendor No. on Direct Trans. Header');
-
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [PageHandler]
