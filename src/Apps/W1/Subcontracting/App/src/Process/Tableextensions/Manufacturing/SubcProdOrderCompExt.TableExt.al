@@ -38,8 +38,8 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
         {
             AutoFormatType = 0;
             CalcFormula = sum("Item Ledger Entry".Quantity where("Entry Type" = const(Transfer),
-                                                                  "Prod. Order No." = field("Prod. Order No."),
-                                                                  "Prod. Order Line No." = field("Prod. Order Line No."),
+                                                                  "Order No." = field("Prod. Order No."),
+                                                                  "Order Line No." = field("Prod. Order Line No."),
                                                                   "Prod. Order Comp. Line No." = field("Line No."),
                                                                   "Subcontr. Purch. Order No." = field("Purchase Order Filter"),
                                                                   "Location Code" = field("Location Code"),
