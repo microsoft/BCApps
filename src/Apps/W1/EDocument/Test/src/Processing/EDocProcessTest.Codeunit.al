@@ -626,7 +626,7 @@ codeunit 139883 "E-Doc Process Test"
         ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
         ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
         ErrorMessage.FindFirst();
-        Assert.ExpectedMessage('Location Code', ErrorMessage."Message");
+        Assert.ExpectedMessage('While applying additional field "Location Code"', ErrorMessage."Message");
         Assert.ExpectedMessage(Format(PurchaseInvoiceLine.FieldNo("Location Code")), ErrorMessage."Message");
         Assert.ExpectedMessage('INVALID', ErrorMessage."Message");
 
@@ -684,7 +684,7 @@ codeunit 139883 "E-Doc Process Test"
         ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
         ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
         ErrorMessage.FindFirst();
-        Assert.ExpectedMessage('Location Code', ErrorMessage."Message");
+        Assert.ExpectedMessage('While applying additional field "Location Code"', ErrorMessage."Message");
         Assert.ExpectedMessage(FieldValue, ErrorMessage."Message");
 
         // [THEN] No purchase invoice should have been created
@@ -728,7 +728,7 @@ codeunit 139883 "E-Doc Process Test"
         ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
         ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
         ErrorMessage.FindFirst();
-        Assert.ExpectedMessage('Currency Code', ErrorMessage."Message");
+        Assert.ExpectedMessage('While validating field Currency Code', ErrorMessage."Message");
 
         // [THEN] No purchase invoice should have been created
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);

@@ -6,40 +6,18 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.Purchases.Document;
 
-codeunit 6199 "E-Doc. Import Context"
+codeunit 6199 "E-Doc. Import Error Context"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    SingleInstance = true;
     EventSubscriberInstance = Manual;
 
     var
         CurrentContext: Text;
-        IsBound: Boolean;
         AdditionalFieldContextLbl: Label 'While applying additional field "%1" (ID %2) with value ''%3''', Comment = '%1 = Field Name, %2 = Field Number, %3 = Value';
         ValidatingFieldLbl: Label 'While validating field "%1"', Comment = '%1 = Field Caption';
         WrapErrorLbl: Label '%1: %2', Comment = '%1 = Context, %2 = Original Error';
-
-    /// <summary>
-    /// Binds the event subscribers in this codeunit so that field validation context is automatically tracked.
-    /// </summary>
-    procedure Bind()
-    begin
-        if not IsBound then
-            if BindSubscription(this) then
-                IsBound := true;
-    end;
-
-    /// <summary>
-    /// Unbinds the event subscribers in this codeunit so that field validation context is no longer tracked.
-    /// </summary>
-    procedure Unbind()
-    begin
-        if IsBound then
-            if UnbindSubscription(this) then
-                IsBound := false;
-    end;
 
     /// <summary>
     /// Returns whether a context message is currently set.
@@ -63,24 +41,11 @@ codeunit 6199 "E-Doc. Import Context"
     end;
 
     /// <summary>
-    /// Sets the context to describe an additional field being applied, and unbinds the event subscribers.
-    /// </summary>
-    /// <param name="FieldName">The name of the additional field being applied.</param>
-    /// <param name="FieldNo">The ID of the additional field being applied.</param>
-    /// <param name="Value">The value being applied to the field.</param>
-    procedure SetAdditionalFieldContext(FieldName: Text; FieldNo: Integer; Value: Text)
-    begin
-        Unbind();
-        CurrentContext := StrSubstNo(AdditionalFieldContextLbl, FieldName, FieldNo, Value);
-    end;
-
-    /// <summary>
-    /// Clears the additional field context and re-binds the event subscribers.
+    /// Clears the additional field context
     /// </summary>
     procedure ClearAdditionalFieldContext()
     begin
         CurrentContext := '';
-        Bind();
     end;
 
     // Purchase Header OnBeforeValidate subscribers
@@ -257,5 +222,22 @@ codeunit 6199 "E-Doc. Import Context"
     local procedure OnAfterValidatePurchLineShortDim2(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line"; CurrFieldNo: Integer)
     begin
         CurrentContext := '';
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import Error Context", OnSetAdditionalFieldContext, '', false, false)]
+    local procedure SetAdditionalFieldContext(FieldName: Text; FieldNo: Integer; Value: Text)
+    begin
+        CurrentContext := StrSubstNo(AdditionalFieldContextLbl, FieldName, FieldNo, Value);
+    end;
+
+    /// <summary>
+    /// Sets the context to describe an additional field being applied
+    /// </summary>
+    /// <param name="FieldName">The name of the additional field being applied.</param>
+    /// <param name="FieldNo">The ID of the additional field being applied.</param>
+    /// <param name="Value">The value being applied to the field.</param>
+    [IntegrationEvent(false, false)]
+    procedure OnSetAdditionalFieldContext(FieldName: Text; FieldNo: Integer; Value: Text)
+    begin
     end;
 }
