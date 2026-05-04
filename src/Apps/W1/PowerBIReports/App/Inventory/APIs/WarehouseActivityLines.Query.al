@@ -11,6 +11,7 @@ query 36978 "Warehouse Activity Lines"
     Access = Internal;
     Caption = 'Power BI Warehouse Activity Lines';
     QueryType = API;
+    AboutText = 'Provides access to warehouse activity lines for take and place actions including quantities, bins, items, and tracking information. Enables Power BI reports to analyze warehouse pick and put-away activities, workload distribution, and operational efficiency metrics.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';
