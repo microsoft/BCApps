@@ -29,7 +29,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         HasSubManagementSetup: Boolean;
         OperationNo: Code[10];
         PurchOrderCreatedTxt: Label '%1 Purchase Order(s) created.\\Do you want to view them?', Comment = '%1 = No of Purchase Order(s) created.';
-        PurchOrderAlreadyCreatedQst: Label 'Already Purchase Order(s) created.\\Do you want to view them?';
+        PurchOrderAlreadyCreatedQst: Label 'Purchase order(s) have already been created.\\Do you want to view them?';
         CreationOfSubcontractingOrderIsNotAllowedErr: Label 'You cannot create Subcontracting Order, because the Production Order %1 is not released.', Comment = '%1=Production Order No.';
         NoProdOrderLineWithRemQtyErr: Label 'No Prod. Order Line with Remaining Quantity.';
         BlankLocationConfirmQst: Label 'One or more Prod. Order Components with Subcontracting Type Transfer have a blank Location Code. Without a Location Code, you will not be able to create a transfer order to send the components to the subcontractor.\\Do you want to create the Subcontracting Order anyway?';
