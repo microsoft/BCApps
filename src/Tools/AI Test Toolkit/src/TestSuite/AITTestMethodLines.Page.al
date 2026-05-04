@@ -108,7 +108,7 @@ page 149034 "AIT Test Method Lines"
                 {
                     Editable = false;
                     Caption = 'Execution';
-                    ToolTip = 'Specifies the average execution of the eval line. The execution is calculated as the percentage of evals that were executed among the total evals (excluding skipped evals).';
+                    ToolTip = 'Specifies the average execution of the eval line. The execution is calculated as the percentage of evals that were executed among the total evals (including skipped evals).';
                     AutoFormatType = 0;
                 }
                 field(TurnsText; TurnsText)

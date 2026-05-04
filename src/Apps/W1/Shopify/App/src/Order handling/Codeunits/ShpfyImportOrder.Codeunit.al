@@ -636,11 +636,13 @@ codeunit 30161 "Shpfy Import Order"
     var
         JOrderLine: JsonToken;
     begin
-        foreach JOrderLine in JOrderLines do
+        foreach JOrderLine in JOrderLines do begin
+            TempOrderLine.Init();
             if SetOrderLineValuesFromJson(JOrderLine, OrderId, TempOrderLine) then begin
                 TempOrderLine.Insert();
                 DataCaptureDict.Add(TempOrderLine."Line Id", JOrderLine);
             end;
+        end;
     end;
 
     internal procedure TranslateCurrencyCode(ShopifyCurrencyCode: Text): Code[10]

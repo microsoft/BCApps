@@ -205,7 +205,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ConfirmManagement: Codeunit "Confirm Management";
         CreationOfSubcontractingOrderIsNotAllowedErr: Label 'You cannot create Subcontracting Order, because the Production Order %1 is not released.', Comment = '%1=Production Order No.';
         NoProdOrderLineWithRemQtyErr: Label 'No Prod. Order Line with Remaining Quantity.';
-        PurchOrderCreatedTxt: Label 'Already Purchase Order(s) created.\\Do you want to view them?';
+        PurchOrderCreatedTxt: Label 'Purchase order(s) have already been created.\\Do you want to view them?';
     begin
         if ProdOrderRoutingLine.Status <> "Production Order Status"::Released then
             Error(CreationOfSubcontractingOrderIsNotAllowedErr, ProdOrderRoutingLine."Prod. Order No.");
@@ -351,7 +351,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     begin
         GetSubmanagementSetup();
 
-        Item.SetLoadFields("Item Category Code", "Description 2");
+        Item.SetLoadFields("Item Category Code");
         Item.Get(ProdOrderComponent."Item No.");
 
         PurchaseLine.Init();
@@ -385,7 +385,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         end;
 
         PurchaseLine.Description := ProdOrderComponent.Description;
-        PurchaseLine."Description 2" := Item."Description 2";
+        PurchaseLine."Description 2" := ProdOrderComponent."Description 2";
 
         PurchaseLine."Sales Order No." := RequisitionLine."Sales Order No.";
         PurchaseLine."Sales Order Line No." := RequisitionLine."Sales Order Line No.";
@@ -471,7 +471,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         RequisitionLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
 
         RequisitionLine.Description := ProdOrderRoutingLine.Description;
-        RequisitionLine."Description 2" := '';
+        RequisitionLine."Description 2" := ProdOrderRoutingLine."Description 2";
         SetVendorItemNo(RequisitionLine);
 
         if PurchLineExists(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine) then begin
