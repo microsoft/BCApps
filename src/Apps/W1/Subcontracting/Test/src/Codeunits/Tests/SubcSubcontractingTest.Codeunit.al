@@ -2030,7 +2030,7 @@ Comment = '|%1 = Transfer Order No.';
 
     [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
-    procedure DeleteSubcontractingOrderDeletesAssociatedTransferOrder()
+    procedure CannotDeleteSubcontractingOrderWithAssociatedTransferOrder()
     var
         Item: Record Item;
         MachineCenter: array[2] of Record "Machine Center";
@@ -2042,7 +2042,7 @@ Comment = '|%1 = Transfer Order No.';
         PurchaseHeaderPage: TestPage "Purchase Order";
         PurchaseOrderNo: Code[20];
     begin
-        // [SCENARIO 630806] Deleting a Subcontracting Order also deletes the associated Transfer Order
+        // [SCENARIO 630806] Deleting a Subcontracting Order is blocked when an associated Transfer Order exists
         Initialize();
         UpdateManufacturingSetupWithSubcontractingLocation();
         SetupInventorySetup();
@@ -2078,12 +2078,12 @@ Comment = '|%1 = Transfer Order No.';
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
-        // [WHEN] The Subcontracting Order is deleted
-        PurchaseHeader.Delete(true);
+        // [WHEN] The Subcontracting Order is attempted to be deleted
+        asserterror PurchaseHeader.Delete(true);
 
-        // [THEN] The associated Transfer Order is also deleted
+        // [THEN] An error is raised and the Transfer Order still exists
         TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseOrderNo);
-        Assert.RecordIsEmpty(TransferHeader);
+        Assert.RecordIsNotEmpty(TransferHeader);
     end;
 
     [PageHandler]
