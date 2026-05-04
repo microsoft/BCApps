@@ -20,7 +20,6 @@ codeunit 99001503 "Subcontracting Comp. Init."
         if not SubcManagementSetup.Get() then begin
             SubcManagementSetup.Init();
             CreateSubcontrReqWkshTemplateAndNameAndUpdateSetup(SubcManagementSetup);
-            SubcManagementSetup."Direct Transfer" := true;
             SubcManagementSetup."Create Prod. Order Info Line" := true;
             Evaluate(SubcManagementSetup."Subc. Inb. Whse. Handling Time", GetDefaultInboundWhseHandlingTime());
             SubcManagementSetup.Insert(true);

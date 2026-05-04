@@ -99,9 +99,10 @@ codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
     begin
         if ProdOrderRoutingLine.Status = ProdOrderRoutingLine.Status::Released then
             if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then begin
-                WorkCenter.Get(ProdOrderRoutingLine."No.");
-                if (ProdOrderRoutingLine."Routing Link Code" <> '') and (WorkCenter."Subcontractor No." <> '') then
-                    SubcontractingManagement.DelLocationLinkedComponents(ProdOrderRoutingLine, false);
+                WorkCenter.SetLoadFields("Subcontractor No.");
+                if WorkCenter.Get(ProdOrderRoutingLine."No.") then
+                    if (ProdOrderRoutingLine."Routing Link Code" <> '') and (WorkCenter."Subcontractor No." <> '') then
+                        SubcontractingManagement.DelLocationLinkedComponents(ProdOrderRoutingLine, false);
             end;
     end;
 }

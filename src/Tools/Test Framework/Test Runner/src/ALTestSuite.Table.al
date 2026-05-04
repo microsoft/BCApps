@@ -115,5 +115,6 @@ table 130451 "AL Test Suite"
         if "Test Runner Id" = 0 then
             "Test Runner Id" := TestRunnerMgt.GetDefaultTestRunner();
     end;
+
 }
 

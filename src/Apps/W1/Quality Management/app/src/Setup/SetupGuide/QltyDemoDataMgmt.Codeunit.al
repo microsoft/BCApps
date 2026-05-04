@@ -7,11 +7,24 @@ namespace Microsoft.QualityManagement.Setup;
 using System.Apps;
 
 /// <summary>
-/// Handles launching Contoso Demo Tool or showing installation message.
+/// Handles launching Contoso Demo Tool or installing it from the marketplace.
 /// </summary>
 codeunit 20422 "Qlty. Demo Data Mgmt."
 {
     Access = Internal;
+
+    /// <summary>
+    /// Installs the QM demo data app if not installed, otherwise opens the Contoso Demo Tool.
+    /// </summary>
+    procedure InstallOrOpenDemoData()
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        if IsContosoDemoToolInstalled() then
+            OpenContosoDemoTool()
+        else
+            ExtensionManagement.InstallMarketplaceExtension(GetContosoAppId());
+    end;
 
     /// <summary>
     /// Launches the Contoso Demo Tool if installed, otherwise shows installation message.
@@ -31,11 +44,16 @@ codeunit 20422 "Qlty. Demo Data Mgmt."
     procedure IsContosoDemoToolInstalled(): Boolean
     var
         ExtensionManagement: Codeunit "Extension Management";
-        ContosoAppId: Guid;
     begin
-        // Quality Management Contoso Coffee Demo Dataset App ID
-        ContosoAppId := '40bf2bab-2a57-4c34-9002-c11d23fcbff6';
-        exit(ExtensionManagement.IsInstalledByAppId(ContosoAppId));
+        exit(ExtensionManagement.IsInstalledByAppId(GetContosoAppId()));
+    end;
+
+    /// <summary>
+    /// Returns the App ID of the Quality Management Contoso Coffee Demo Dataset app.
+    /// </summary>
+    local procedure GetContosoAppId(): Guid
+    begin
+        exit('40bf2bab-2a57-4c34-9002-c11d23fcbff6');
     end;
 
     local procedure OpenContosoDemoTool()

@@ -104,6 +104,8 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         Evaluate(EDocument."Amount Excl. VAT", GetNodeByPath(TempXMLBuffer, RootPath + '/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount'), 9);
         Evaluate(EDocument."Amount Incl. VAT", GetNodeByPath(TempXMLBuffer, RootPath + '/cac:LegalMonetaryTotal/cbc:PayableAmount'), 9);
 
+        EDocument."Order No." := CopyStr(GetNodeByPath(TempXMLBuffer, RootPath + '/cac:OrderReference/cbc:ID'), 1, MaxStrLen(EDocument."Order No."));
+
         Currency := CopyStr(GetNodeByPath(TempXMLBuffer, RootPath + '/cbc:DocumentCurrencyCode'), 1, MaxStrLen(EDocument."Currency Code"));
         if LCYCode <> Currency then
             EDocument."Currency Code" := Currency;

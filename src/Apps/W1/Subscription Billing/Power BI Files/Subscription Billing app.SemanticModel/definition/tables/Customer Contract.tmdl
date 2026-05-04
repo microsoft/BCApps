@@ -1,0 +1,65 @@
+table 'Customer Contract'
+	lineageTag: b748c247-65fd-49d8-93a8-6221ddd88c2e
+
+	column 'Customer Contract No.'
+		dataType: string
+		isKey
+		lineageTag: 3e6ba627-9755-49e3-b41e-7b1a77dfdf37
+		summarizeBy: none
+		sourceColumn: Customer Contract No.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Contract Type'
+		dataType: string
+		lineageTag: 5e2f6832-7830-452f-b32e-95cb61f2821b
+		summarizeBy: none
+		sourceColumn: Customer Contract Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Contract Description'
+		dataType: string
+		lineageTag: 386570cf-eb0c-418c-aa1e-692ae34c0489
+		summarizeBy: none
+		sourceColumn: Customer Contract Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Contract No. Desc.'
+		dataType: string
+		lineageTag: 68f8dc9b-ac46-47bc-b60f-64e52a4fdf65
+		summarizeBy: none
+		sourceColumn: Customer Contract No. Desc.
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Salesperson Code'
+		dataType: string
+		isHidden
+		lineageTag: a41ff40b-a319-41e5-a6f1-4c86e69c6aa2
+		summarizeBy: none
+		sourceColumn: Salesperson Code
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Customer Contract' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				  Source = BCConnectionSubscriptionBilling,
+				    TableData = Source{[Name="customerContracts",Signature="table"]}[Data],
+				
+				    #"Removed Other Columns" = Table.SelectColumns(TableData,{"no", "salespersonCode", "contractType", "descriptionPreview"}),
+				    #"Added No.Name" = Table.AddColumn( #"Removed Other Columns", "Customer Contract No. Desc.", each [no] & ": " & [descriptionPreview], type text),
+				    #"Renamed Columns" = Table.RenameColumns(#"Added No.Name",{{"contractType", "Customer Contract Type"}, {"descriptionPreview", "Customer Contract Description"}, {"no", "Customer Contract No."}, {"salespersonCode", "Salesperson Code"}})
+				in
+				    #"Renamed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
