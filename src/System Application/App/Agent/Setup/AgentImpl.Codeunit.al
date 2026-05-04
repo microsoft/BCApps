@@ -224,6 +224,19 @@ codeunit 4301 "Agent Impl."
         exit(Agent."Model ID")
     end;
 
+    procedure GetModelName(AgentUserSecurityID: Guid): Text
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        if Agent."Model ID" = '' then
+            exit(AutoLbl);
+
+        Agent.CalcFields("Model Name");
+        exit(Agent."Model Name");
+    end;
+
     procedure SetModelId(AgentUserSecurityID: Guid; ModelId: Code[30])
     var
         Agent: Record Agent;
@@ -569,6 +582,7 @@ codeunit 4301 "Agent Impl."
 
     var
         AgentDoesNotExistErr: Label 'Agent does not exist.';
+        AutoLbl: Label 'Auto';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
         NoAgentsAvailableNotificationLbl: Label 'Business Central agents are currently not available in your country.';
         NoAgentsAvailableNotificationGuidLbl: Label 'bde1d653-40e6-4081-b2cf-f21b1a8622d1', Locked = true;

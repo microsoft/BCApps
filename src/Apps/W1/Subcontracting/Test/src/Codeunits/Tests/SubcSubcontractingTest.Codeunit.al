@@ -1875,6 +1875,49 @@ Comment = '|%1 = Transfer Order No.';
     end;
 
     [Test]
+    [HandlerFunctions('RoutingLinkCodeDuplicateConfirmHandler')]
+    procedure ValidateRoutingLinkCodeOnProdOrderRtngLineShowsConfirmOnce()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 617395] Validating Routing Link Code on a Prod. Order Routing Line shows the
+        // duplicate-use confirmation dialog exactly once. The BaseApp OnValidate already performs
+        // this check; the Subcontracting extension must not duplicate it.
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Work centers, item with routing and BOM, with a routing link code assigned to the subcontracting routing line
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order whose routing lines inherit the routing link code
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] The prod. order routing line for the subcontracting work center (has a routing link code)
+        ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [WHEN] The routing link code is validated (re-validates the existing code, which triggers
+        // the BaseApp duplicate-use check)
+        ConfirmDialogCalledCount := 0;
+        ProdOrderRoutingLine.Validate("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+
+        // [THEN] The confirmation dialog is shown exactly once — from the BaseApp — not twice
+        Assert.AreEqual(
+            1, ConfirmDialogCalledCount,
+            'Routing Link Code duplicate confirmation must be shown exactly once, not twice');
+    end;
+
+    [Test]
     procedure PostingSubcontractingPurchReceiptCreatesILEWithSubcFields()
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -1952,6 +1995,13 @@ Comment = '|%1 = Transfer Order No.';
             else
                 Reply := false;
         end;
+    end;
+
+    [ConfirmHandler]
+    procedure RoutingLinkCodeDuplicateConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        ConfirmDialogCalledCount += 1;
+        Reply := true;
     end;
 
     local procedure RemoveSubcontractingManagementSetupRecord()
@@ -2465,4 +2515,6 @@ Comment = '|%1 = Transfer Order No.';
         IsInitialized: Boolean;
         Subcontracting: Boolean;
         UnitCostCalculation: Option Time,Units;
+        ConfirmDialogCalledCount: Integer;
+
 }
