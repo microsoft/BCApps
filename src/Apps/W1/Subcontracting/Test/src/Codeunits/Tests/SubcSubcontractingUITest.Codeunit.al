@@ -8,6 +8,7 @@ using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Reflection;
@@ -321,6 +322,138 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PlanComp.FieldCaption("Subcontracting Type")));
     end;
 
+    [Test]
+    procedure WorkCenterCardSubcontractingActionsHiddenWhenNotSubcontracting()
+    var
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 633206] Subcontracting action group is not visible on Work Center Card when Work Center has no Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center without a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+
+        // [WHEN] The Work Center Card page is opened for the Work Center
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GotoRecord(WorkCenter);
+
+        // [THEN] Subcontractor Prices action is not enabled
+        Assert.IsFalse(WorkCenterCard."Subcontractor Prices".Enabled(), SubcontractingActionsVisibleErr);
+        WorkCenterCard.Close();
+    end;
+
+    [Test]
+    procedure WorkCenterCardSubcontractingActionsVisibleWhenSubcontracting()
+    var
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 633206] Subcontracting action group is visible on Work Center Card when Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [WHEN] The Work Center Card page is opened for the Work Center
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GotoRecord(WorkCenter);
+
+        // [THEN] Subcontractor Prices action is enabled
+        Assert.IsTrue(WorkCenterCard."Subcontractor Prices".Enabled(), SubcontractingActionsNotVisibleErr);
+        WorkCenterCard.Close();
+    end;
+
+    [Test]
+    procedure WorkCenterCardDispatchListDisabledWhenNotSubcontracting()
+    var
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 633206] Subcontractor - Dispatch List action is disabled on Work Center Card when Work Center has no Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center without a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+
+        // [WHEN] The Work Center Card page is opened for the Work Center
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GotoRecord(WorkCenter);
+
+        // [THEN] Subcontractor - Dispatch List action is not enabled
+        Assert.IsFalse(WorkCenterCard."Subcontractor - Dispatch List".Enabled(), SubcontractingActionsEnabledErr);
+        WorkCenterCard.Close();
+    end;
+
+    [Test]
+    procedure WorkCenterCardDispatchListEnabledWhenSubcontracting()
+    var
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 633206] Subcontractor - Dispatch List action is enabled on Work Center Card when Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [WHEN] The Work Center Card page is opened for the Work Center
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GotoRecord(WorkCenter);
+
+        // [THEN] Subcontractor - Dispatch List action is enabled
+        Assert.IsTrue(WorkCenterCard."Subcontractor - Dispatch List".Enabled(), SubcontractingActionsNotEnabledErr);
+        WorkCenterCard.Close();
+    end;
+
+    [Test]
+    procedure WorkCenterListSubcontractingActionsDisabledWhenNotSubcontracting()
+    var
+        WorkCenter: Record "Work Center";
+        WorkCenterList: TestPage "Work Center List";
+    begin
+        // [SCENARIO 633206] Subcontractor Prices action is disabled on Work Center List when Work Center has no Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center without a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+
+        // [WHEN] The Work Center List page is opened and navigated to the Work Center
+        WorkCenterList.OpenEdit();
+        WorkCenterList.GotoRecord(WorkCenter);
+
+        // [THEN] Subcontractor Prices action is not enabled
+        Assert.IsFalse(WorkCenterList."Subcontractor Prices".Enabled(), SubcontractingActionsEnabledErr);
+        WorkCenterList.Close();
+    end;
+
+    [Test]
+    procedure WorkCenterListSubcontractingActionsEnabledWhenSubcontracting()
+    var
+        WorkCenter: Record "Work Center";
+        WorkCenterList: TestPage "Work Center List";
+    begin
+        // [SCENARIO 633206] Subcontractor Prices action is enabled on Work Center List when Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [WHEN] The Work Center List page is opened and navigated to the Work Center
+        WorkCenterList.OpenEdit();
+        WorkCenterList.GotoRecord(WorkCenter);
+
+        // [THEN] Subcontractor Prices action is enabled
+        Assert.IsTrue(WorkCenterList."Subcontractor Prices".Enabled(), SubcontractingActionsNotEnabledErr);
+        WorkCenterList.Close();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -331,4 +464,8 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
         ControlNotExistMsg: Label 'Control %1 does not exist.', Comment = '%1 = field caption';
+        SubcontractingActionsVisibleErr: Label 'Subcontractor Prices action should not be visible for a non-subcontracting Work Center.';
+        SubcontractingActionsEnabledErr: Label 'Subcontractor Prices action should not be enabled for a non-subcontracting Work Center.';
+        SubcontractingActionsNotVisibleErr: Label 'Subcontractor Prices action should be visible for a subcontracting Work Center.';
+        SubcontractingActionsNotEnabledErr: Label 'Subcontractor Prices action should be enabled for a subcontracting Work Center.';
 }
