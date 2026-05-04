@@ -167,13 +167,15 @@ codeunit 4303 "Agent Task"
     /// <summary>
     /// Archives the agent task.
     /// </summary>
-    /// <param name="AgentTask">The agent task to archive.</param>
+    /// <param name="AgentTaskID">The ID of the agent task to archive.</param>
+    /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
     [Scope('OnPrem')]
-    procedure ArchiveTask(var AgentTask: Record "Agent Task")
+    procedure ArchiveTask(AgentTaskID: BigInteger; UserConfirm: Boolean)
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        AgentTaskImpl.ArchiveTask(AgentTask);
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskImpl.ArchiveTask(AgentTaskID, UserConfirm);
     end;
 
     var
