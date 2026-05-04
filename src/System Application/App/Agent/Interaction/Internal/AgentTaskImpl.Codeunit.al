@@ -152,6 +152,15 @@ codeunit 4300 "Agent Task Impl."
         exit((AgentTask.Status = AgentTask.Status::"Stopped by User") or (AgentTask.Status = AgentTask.Status::"Stopped by System"));
     end;
 
+    procedure ArchiveTask(var AgentTask: Record "Agent Task")
+    begin
+        if AgentTask.Archived = true then
+            exit; // Task is already archived.
+
+        AgentTask.Archived := true;
+        AgentTask.Modify(true);
+    end;
+
     internal procedure TryGetAgentRecordFromTaskId(TaskId: Integer; var Agent: Record Agent): Boolean
     var
         AgentTask: Record "Agent Task";

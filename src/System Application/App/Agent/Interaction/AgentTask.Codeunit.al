@@ -164,6 +164,18 @@ codeunit 4303 "Agent Task"
         exit(AgentTaskImpl.GetDetailsForAgentTaskLogEntry(AgentTaskLogEntry));
     end;
 
+    /// <summary>
+    /// Archives the agent task.
+    /// </summary>
+    /// <param name="AgentTask">The agent task to archive.</param>
+    [Scope('OnPrem')]
+    procedure ArchiveTask(var AgentTask: Record "Agent Task")
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        AgentTaskImpl.ArchiveTask(AgentTask);
+    end;
+
     var
         FeatureAccessManagement: Codeunit "Feature Access Management";
 }
