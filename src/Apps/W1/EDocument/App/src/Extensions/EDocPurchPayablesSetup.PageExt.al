@@ -21,6 +21,11 @@ pageextension 6162 "E-Doc. Purch. Payables Setup" extends "Purchases & Payables 
                 ApplicationArea = All;
                 ToolTip = 'Specifies whether Copilot E-Document line matchings are learned by default (Item References and Text To Account Mappings). This can be overwritten on the matching page.';
             }
+            field("E-Doc. Default Posting Date"; Rec."E-Doc. Default Posting Date")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies the default posting date for purchase documents created from e-documents. Work Date uses the current work date. Document Date uses the document date from the e-document.';
+            }
         }
     }
 }
