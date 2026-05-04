@@ -9,7 +9,6 @@ using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 

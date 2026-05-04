@@ -77,7 +77,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Purchase Line Location when Setup is Purchase
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Component at Location" is Purchase
+        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Purchase
         UpdateSubManagementSetup("Components at Location"::Purchase);
 
         // [GIVEN] A Purchase Line with a Location
@@ -105,7 +105,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Company Location when Setup is Company
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Component at Location" is Company
+        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Company
         UpdateSubManagementSetup("Components at Location"::Company);
 
         // [GIVEN] Company Information has a Location
@@ -130,7 +130,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Manufacturing Location when Setup is Manufacturing
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Component at Location" is Manufacturing
+        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Manufacturing
         UpdateSubManagementSetup("Components at Location"::Manufacturing);
 
         // [GIVEN] Manufacturing Setup has a Location
@@ -290,7 +290,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [GIVEN] proper setup configuration with Manufacturing location
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Component at Location" is Manufacturing
+        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Manufacturing
         UpdateSubManagementSetup("Components at Location"::Manufacturing);
 
         // [GIVEN] Manufacturing Setup with a specific Location Code

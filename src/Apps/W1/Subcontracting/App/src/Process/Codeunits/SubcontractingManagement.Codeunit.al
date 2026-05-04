@@ -522,7 +522,7 @@ codeunit 99001505 "Subcontracting Management"
     end;
 
     /// <summary>
-    /// Gets the transfer-from location code based on the setup field "Component at Location".
+    /// Gets the transfer-from location code based on the setup field "Subc. Comp. at Location".
     /// The location code is retrieved from the purchase line, company information, or manufacturing setup.
     /// </summary>
     /// <returns>The transfer-from location code.</returns>
