@@ -1314,6 +1314,22 @@ codeunit 37201 "PEPPOL30 Impl."
         if VATProductPostingGroupCategory.Insert() then;
     end;
 
+    procedure GetTaxCategories(PurchaseLine: Record "Purchase Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        if not VATPostingSetup.Get(PurchaseLine."VAT Bus. Posting Group", PurchaseLine."VAT Prod. Posting Group") then
+            VATPostingSetup.Init();
+        if not VATProductPostingGroup.Get(PurchaseLine."VAT Prod. Posting Group") then
+            VATProductPostingGroup.Init();
+
+        VATProductPostingGroupCategory.Init();
+        VATProductPostingGroupCategory.Code := VATPostingSetup."Tax Category";
+        VATProductPostingGroupCategory.Description := VATProductPostingGroup.Description;
+        if VATProductPostingGroupCategory.Insert() then;
+    end;
+
     procedure GetInvoiceRoundingLine(var TempSalesLine: Record "Sales Line" temporary; SalesLine: Record "Sales Line")
     begin
         if TempSalesLine."Line No." <> 0 then

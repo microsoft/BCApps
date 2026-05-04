@@ -5,6 +5,7 @@ using Microsoft.Peppol;
 using Microsoft.Finance.VAT.Calculation;
 using System.Utilities;
 using System.Xml;
+using Microsoft.Finance.VAT.Setup;
 
 codeunit 50000 "E-Doc. Purchase Order To XML"
 {
@@ -12,9 +13,10 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
 
     var
         XMLDOMManagement: Codeunit "XML DOM Management";
+        PEPPOL30PurchaseFormat: Enum "PEPPOL 3.0 Purchase Format";
         PurchaseOrderXML: XmlDocument;
         RootNode: XmlNode;
-        GeneratePDF: Boolean;
+        GeneratePDF, IsFormatSet : Boolean;
         CbcNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
         CacNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
         OrderNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:Order-2', Locked = true;
@@ -38,7 +40,7 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
 
     local procedure AddHeaderDataToXML(PurchaseHeader: Record "Purchase Header")
     var
-        PEPPOL30: Codeunit PEPPOL30;
+        PEPPOLDocumentInfo: Interface "PEPPOL Purchase Document Info Provider";
         ChildNode: XmlNode;
         ID: Text;
         SalesOrderID: Text;
@@ -48,7 +50,8 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         AccountingCost: Text;
         CustomerReference: Text;
     begin
-        PEPPOL30.GetGeneralInfoBIS(PurchaseHeader, ID, SalesOrderID, IssueDate, OrderTypeCode, Note, DocumentCurrencyCode, AccountingCost, CustomerReference);
+        PEPPOLDocumentInfo := GetFormat();
+        PEPPOLDocumentInfo.GetGeneralInfoBIS(PurchaseHeader, ID, SalesOrderID, IssueDate, OrderTypeCode, Note, DocumentCurrencyCode, AccountingCost, CustomerReference);
 
         this.InitializeXMLDocument();
         this.XMLDOMManagement.AddElement(this.RootNode, 'CustomizationID', CustomizationIDTok, CbcNamespaceTok, ChildNode);
@@ -90,7 +93,7 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
 
     local procedure AddBuyerCustomerParty(PurchaseHeader: Record "Purchase Header")
     var
-        PEPPOL30: Codeunit PEPPOL30;
+        PEPPOLPartyInfo: Interface "PEPPOL Purchase Party Info Provider";
         BuyerNode: XmlNode;
         PartyNode: XmlNode;
         PartyNameNode: XmlNode;
@@ -124,8 +127,9 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         this.XMLDOMManagement.AddElement(this.RootNode, 'BuyerCustomerParty', '', CacNamespaceTok, BuyerNode);
         this.XMLDOMManagement.AddElement(BuyerNode, 'Party', '', CacNamespaceTok, PartyNode);
 
-        PEPPOL30.GetAccountingSupplierPartyInfoBIS(BuyerCustomerPartyEndpointId, BuyerCustomerPartySchemeID, BuyerCustomerPartySupplierName);
-        
+        PEPPOLPartyInfo := GetFormat();
+        PEPPOLPartyInfo.GetAccountingSupplierPartyInfoBIS(BuyerCustomerPartyEndpointId, BuyerCustomerPartySchemeID, BuyerCustomerPartySupplierName);
+
         this.XMLDOMManagement.AddElement(PartyNode, 'EndpointID', BuyerCustomerPartyEndpointId, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddAttribute(ChildNode, 'schemeID', BuyerCustomerPartySchemeID);
         this.XMLDOMManagement.AddElement(PartyNode, 'PartyIdentification', '', CacNamespaceTok, PartyIdentificationNode);
@@ -133,8 +137,8 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         this.XMLDOMManagement.AddElement(PartyNode, 'PartyName', '', CacNamespaceTok, PartyNameNode);
         this.XMLDOMManagement.AddElement(PartyNameNode, 'Name', BuyerCustomerPartySupplierName, CbcNamespaceTok, ChildNode);
 
-        PEPPOL30.GetBuyerCustomerPartyPostalAddr(PurchaseHeader, BuyerCustomerPartyStreetName, BuyerCustomerAdditionalStreetName, BuyerCustomerPartyCityName, BuyerCustomerPartyPostalZone, BuyerCustomerPartyCountrySubentity, BuyerCustomerPartyIdentificationCode, ListID);
-        
+        PEPPOLPartyInfo.GetBuyerCustomerPartyPostalAddr(PurchaseHeader, BuyerCustomerPartyStreetName, BuyerCustomerAdditionalStreetName, BuyerCustomerPartyCityName, BuyerCustomerPartyPostalZone, BuyerCustomerPartyCountrySubentity, BuyerCustomerPartyIdentificationCode, ListID);
+
         this.XMLDOMManagement.AddElement(PartyNode, 'PostalAddress', '', CacNamespaceTok, PostalAddressNode);
         this.AddNonEmptyNode(PostalAddressNode, 'StreetName', BuyerCustomerPartyStreetName, CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(PostalAddressNode, 'AdditionalStreetName', BuyerCustomerAdditionalStreetName, CbcNamespaceTok, ChildNode);
@@ -145,8 +149,8 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         this.XMLDOMManagement.AddElement(CountryNode, 'IdentificationCode', BuyerCustomerPartyIdentificationCode, CbcNamespaceTok, ChildNode);
         this.AddPartyTaxScheme(PartyNode);
 
-        PEPPOL30.GetAccountingSupplierPartyLegalEntityBIS(BuyerCustomerPartyPartyLegalEntityRegName, BuyerCustomerPartyPartyLegalEntityCompanyID, BuyerCustomerPartyPartyLegalEntitySchemeID, BuyerCustomerPartySupplierRegAddrCityName, BuyerCustomerPartySupplierRegAddrCountryIdCode, BuyerCustomerPartySupplRegAddrCountryIdListId);
-        
+        PEPPOLPartyInfo.GetAccountingSupplierPartyLegalEntityBIS(BuyerCustomerPartyPartyLegalEntityRegName, BuyerCustomerPartyPartyLegalEntityCompanyID, BuyerCustomerPartyPartyLegalEntitySchemeID, BuyerCustomerPartySupplierRegAddrCityName, BuyerCustomerPartySupplierRegAddrCountryIdCode, BuyerCustomerPartySupplRegAddrCountryIdListId);
+
         this.XMLDOMManagement.AddElement(PartyNode, 'PartyLegalEntity', '', CacNamespaceTok, PartyLegalEntityNode);
         this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'RegistrationName', BuyerCustomerPartyPartyLegalEntityRegName, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'CompanyID', BuyerCustomerPartyPartyLegalEntityCompanyID, CbcNamespaceTok, ChildNode);
@@ -155,7 +159,7 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         this.XMLDOMManagement.AddElement(RegistrationAddressNode, 'Country', '', CacNamespaceTok, CountryNode);
         this.XMLDOMManagement.AddElement(CountryNode, 'IdentificationCode', BuyerCustomerPartySupplierRegAddrCountryIdCode, CbcNamespaceTok, ChildNode);
 
-        PEPPOL30.GetBuyerCustomerPartyContact(PurchaseHeader, BuyerCustomerPartyContactName, BuyerCustomerPartyContactTelephone, BuyerCustomerPartyContactElectronicMail);
+        PEPPOLPartyInfo.GetBuyerCustomerPartyContact(PurchaseHeader, BuyerCustomerPartyContactName, BuyerCustomerPartyContactTelephone, BuyerCustomerPartyContactElectronicMail);
         if (BuyerCustomerPartyContactName <> '') or (BuyerCustomerPartyContactTelephone <> '') or (BuyerCustomerPartyContactElectronicMail <> '') then begin
             this.XMLDOMManagement.AddElement(PartyNode, 'Contact', '', CacNamespaceTok, ContactNode);
             this.AddNonEmptyNode(ContactNode, 'Name', BuyerCustomerPartyContactName, CbcNamespaceTok, ChildNode);
@@ -166,7 +170,7 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
 
     local procedure AddSellerSupplierParty(PurchaseHeader: Record "Purchase Header")
     var
-        PEPPOL30: Codeunit PEPPOL30;
+        PEPPOLPartyInfo: Interface "PEPPOL Purchase Party Info Provider";
         SellerNode: XmlNode;
         PartyNode: XmlNode;
         PartyNameNode: XmlNode;
@@ -194,8 +198,9 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         this.XMLDOMManagement.AddElement(this.RootNode, 'SellerSupplierParty', '', CacNamespaceTok, SellerNode);
         this.XMLDOMManagement.AddElement(SellerNode, 'Party', '', CacNamespaceTok, PartyNode);
 
-        PEPPOL30.GetSellerSupplierPartyInfoBIS(PurchaseHeader, SellerSupplierPartyEndpointId, SellerSupplierPartySchemeID, SellerSupplierPartySupplierName);
-        
+        PEPPOLPartyInfo := GetFormat();
+        PEPPOLPartyInfo.GetSellerSupplierPartyInfoBIS(PurchaseHeader, SellerSupplierPartyEndpointId, SellerSupplierPartySchemeID, SellerSupplierPartySupplierName);
+
         this.XMLDOMManagement.AddElement(PartyNode, 'EndpointID', SellerSupplierPartyEndpointId, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddAttribute(ChildNode, 'schemeID', SellerSupplierPartySchemeID);
         this.XMLDOMManagement.AddElement(PartyNode, 'PartyIdentification', '', CacNamespaceTok, PartyIdentificationNode);
@@ -203,8 +208,8 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         this.XMLDOMManagement.AddElement(PartyNode, 'PartyName', '', CacNamespaceTok, PartyNameNode);
         this.XMLDOMManagement.AddElement(PartyNameNode, 'Name', SellerSupplierPartySupplierName, CbcNamespaceTok, ChildNode);
 
-        PEPPOL30.GetSellerSupplierPartyPostalAddr(PurchaseHeader, SellerSupplierStreetName, SellerSupplierAdditionalStreetName, SellerSupplierPartyCityName, SellerSupplierPartyPostalZone, SellerSupplierPartyCountrySubentity, SellerSupplierPartyIdentificationCode, ListID);
-        
+        PEPPOLPartyInfo.GetSellerSupplierPartyPostalAddr(PurchaseHeader, SellerSupplierStreetName, SellerSupplierAdditionalStreetName, SellerSupplierPartyCityName, SellerSupplierPartyPostalZone, SellerSupplierPartyCountrySubentity, SellerSupplierPartyIdentificationCode, ListID);
+
         this.XMLDOMManagement.AddElement(PartyNode, 'PostalAddress', '', CacNamespaceTok, PostalAddressNode);
         this.AddNonEmptyNode(PostalAddressNode, 'StreetName', SellerSupplierStreetName, CbcNamespaceTok, ChildNode);
         this.AddNonEmptyNode(PostalAddressNode, 'AdditionalStreetName', SellerSupplierAdditionalStreetName, CbcNamespaceTok, ChildNode);
@@ -216,8 +221,8 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         this.XMLDOMManagement.AddElement(PartyNode, 'PartyLegalEntity', '', CacNamespaceTok, PartyLegalEntityNode);
         this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'RegistrationName', SellerSupplierPartySupplierName, CbcNamespaceTok, ChildNode);
 
-        PEPPOL30.GetSellerSupplierPartyContact(PurchaseHeader, SellerSupplierPartyContactName, SellerSupplierPartyContactTelephone, SellerSupplierPartyContactTelefax, SellerSupplierPartyContactElectronicMail);
-        
+        PEPPOLPartyInfo.GetSellerSupplierPartyContact(PurchaseHeader, SellerSupplierPartyContactName, SellerSupplierPartyContactTelephone, SellerSupplierPartyContactTelefax, SellerSupplierPartyContactElectronicMail);
+
         if (SellerSupplierPartyContactName <> '') or (SellerSupplierPartyContactTelephone <> '') or (SellerSupplierPartyContactTelefax <> '') or (SellerSupplierPartyContactElectronicMail <> '') then begin
             this.XMLDOMManagement.AddElement(PartyNode, 'Contact', '', CacNamespaceTok, ContactNode);
             this.AddNonEmptyNode(ContactNode, 'Name', SellerSupplierPartyContactName, CbcNamespaceTok, ChildNode);
@@ -229,7 +234,7 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
 
     local procedure AddDelivery(PurchaseHeader: Record "Purchase Header")
     var
-        PEPPOL30: Codeunit PEPPOL30;
+        PEPPOLDeliveryInfo: Interface "PEPPOL Purchase Delivery Info Provider";
         DeliveryNode: XmlNode;
         DeliveryLocationNode: XmlNode;
         AddressNode: XmlNode;
@@ -244,7 +249,8 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         IdentificationCode: Text;
         ListID: Text;
     begin
-        PEPPOL30.GetDeliveryAddress(PurchaseHeader, StreetName, AdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
+        PEPPOLDeliveryInfo := GetFormat();
+        PEPPOLDeliveryInfo.GetDeliveryAddress(PurchaseHeader, StreetName, AdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
 
         this.XMLDOMManagement.AddElement(this.RootNode, 'Delivery', '', CacNamespaceTok, DeliveryNode);
         this.XMLDOMManagement.AddElement(DeliveryNode, 'DeliveryLocation', '', CacNamespaceTok, DeliveryLocationNode);
@@ -260,12 +266,13 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
 
     local procedure AddPaymentTerms(PurchaseHeader: Record "Purchase Header")
     var
-        PEPPOL30: Codeunit PEPPOL30;
+        PEPPOLPaymentInfo: Interface "PEPPOL Purchase Payment Info Provider";
         PaymentTermsNode: XmlNode;
         ChildNode: XmlNode;
         PaymentTermsNote: Text;
     begin
-        PEPPOL30.GetPaymentTermsInfo(PurchaseHeader, PaymentTermsNote);
+        PEPPOLPaymentInfo := GetFormat();
+        PEPPOLPaymentInfo.GetPaymentTermsInfo(PurchaseHeader, PaymentTermsNote);
 
         this.XMLDOMManagement.AddElement(this.RootNode, 'PaymentTerms', '', CacNamespaceTok, PaymentTermsNode);
         this.AddNonEmptyNode(PaymentTermsNode, 'Note', PaymentTermsNote, CbcNamespaceTok, ChildNode);
@@ -273,9 +280,12 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
 
     local procedure AddAnticipatedMonetaryTotal(PurchaseHeader: Record "Purchase Header")
     var
-        PurchaseLine: Record "Purchase Line";
-        VATAmtLine: Record "VAT Amount Line";
-        PEPPOL30: Codeunit PEPPOL30;
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        TempVATAmtLine: Record "VAT Amount Line" temporary;
+        TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary;
+        PurchaseHeaderRecRef, PurchaseLineRecRef : RecordRef;
+        PEPPOL30Common: Codeunit "PEPPOL30 Common";
+        PEPPOLMonetaryInfo: Interface "PEPPOL Purchase Monetary Info Provider";
         MonetaryTotalNode: XmlNode;
         ChildNode: XmlNode;
         LineExtensionAmount: Text;
@@ -295,9 +305,12 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         PayableAmount: Text;
         PayableAmountCurrencyID: Text;
     begin
-        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
-        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        PEPPOL30.GetLegalMonetaryInfo(PurchaseHeader, PurchaseLine, VATAmtLine, LineExtensionAmount, LegalMonetaryTotalCurrencyID, TaxExclusiveAmount, TaxExclusiveAmountCurrencyID, TaxInclusiveAmount, TaxInclusiveAmountCurrencyID, AllowanceTotalAmount, AllowanceTotalAmountCurrencyID, ChargeTotalAmount, ChargeTotalAmountCurrencyID, PrepaidAmount, PrepaidCurrencyID, PayableRoundingAmount, PayableRndingAmountCurrencyID, PayableAmount, PayableAmountCurrencyID);
+        PurchaseHeaderRecRef.GetTable(PurchaseHeader);
+        PEPPOLMonetaryInfo := GetFormat();
+        PEPPOL30Common.GetInvoiceRoundingLine(PurchaseHeaderRecRef, TempPurchaseLine, GetFormat());
+        PEPPOL30Common.SetFilters(PurchaseHeaderRecRef, PurchaseLineRecRef, TempPurchaseLine);
+        PEPPOL30Common.GetTotals(PurchaseHeaderRecRef, PurchaseLineRecRef, TempVATAmtLine, TempVATProductPostingGroup, GetFormat());
+        PEPPOLMonetaryInfo.GetLegalMonetaryInfo(PurchaseHeader, TempPurchaseLine, TempVATAmtLine, LineExtensionAmount, LegalMonetaryTotalCurrencyID, TaxExclusiveAmount, TaxExclusiveAmountCurrencyID, TaxInclusiveAmount, TaxInclusiveAmountCurrencyID, AllowanceTotalAmount, AllowanceTotalAmountCurrencyID, ChargeTotalAmount, ChargeTotalAmountCurrencyID, PrepaidAmount, PrepaidCurrencyID, PayableRoundingAmount, PayableRndingAmountCurrencyID, PayableAmount, PayableAmountCurrencyID);
 
         this.XMLDOMManagement.AddElement(this.RootNode, 'AnticipatedMonetaryTotal', '', CacNamespaceTok, MonetaryTotalNode);
         this.XMLDOMManagement.AddElement(MonetaryTotalNode, 'LineExtensionAmount', LineExtensionAmount, CbcNamespaceTok, ChildNode);
@@ -312,7 +325,7 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
 
     local procedure AddOrderLineToXML(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
     var
-        PEPPOL30: Codeunit PEPPOL30;
+        PEPPOLLineInfo: Interface "PEPPOL Purchase Line Info Provider";
         OrderLineNode: XmlNode;
         LineItemNode: XmlNode;
         ItemNode: XmlNode;
@@ -344,14 +357,15 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         InvoiceLineTaxPercent: Text;
         ClassifiedTaxCategorySchemeID: Text;
     begin
-        PEPPOL30.GetLineGeneralInfo(PurchaseLine, PurchaseHeader, InvoiceLineID, InvoiceLineNote, InvoicedQuantity, InvoiceLineExtensionAmount, LineExtensionAmountCurrencyID, InvoiceLineAccountingCost);
-        
+        PEPPOLLineInfo := GetFormat();
+        PEPPOLLineInfo.GetLineGeneralInfo(PurchaseLine, PurchaseHeader, InvoiceLineID, InvoiceLineNote, InvoicedQuantity, InvoiceLineExtensionAmount, LineExtensionAmountCurrencyID, InvoiceLineAccountingCost);
+
         this.XMLDOMManagement.AddElement(this.RootNode, 'OrderLine', '', CacNamespaceTok, OrderLineNode);
         this.XMLDOMManagement.AddElement(OrderLineNode, 'LineItem', '', CacNamespaceTok, LineItemNode);
         this.XMLDOMManagement.AddElement(LineItemNode, 'ID', InvoiceLineID, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddElement(LineItemNode, 'Quantity', InvoicedQuantity, CbcNamespaceTok, ChildNode);
 
-        PEPPOL30.GetLinePriceInfo(PurchaseLine, PurchaseHeader, InvoiceLinePriceAmount, InvLinePriceAmountCurrencyID, BaseQuantity, UnitCode);
+        PEPPOLLineInfo.GetLinePriceInfo(PurchaseLine, PurchaseHeader, InvoiceLinePriceAmount, InvLinePriceAmountCurrencyID, BaseQuantity, UnitCode);
 
         this.XMLDOMManagement.AddAttribute(ChildNode, 'unitCode', UnitCode);
         this.XMLDOMManagement.AddElement(LineItemNode, 'LineExtensionAmount', InvoiceLineExtensionAmount, CbcNamespaceTok, ChildNode);
@@ -360,7 +374,7 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         this.XMLDOMManagement.AddElement(PriceNode, 'PriceAmount', InvoiceLinePriceAmount, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', InvLinePriceAmountCurrencyID);
 
-        PEPPOL30.GetLineItemInfo(PurchaseLine, Description, Name, SellersItemIdentificationID, StandardItemIdentificationID, StdItemIdIDSchemeID, OriginCountryIdCode, OriginCountryIdCodeListID);
+        PEPPOLLineInfo.GetLineItemInfo(PurchaseLine, Description, Name, SellersItemIdentificationID, StandardItemIdentificationID, StdItemIdIDSchemeID, OriginCountryIdCode, OriginCountryIdCodeListID);
 
         this.XMLDOMManagement.AddElement(LineItemNode, 'Item', '', CacNamespaceTok, ItemNode);
         this.AddNonEmptyNode(ItemNode, 'Description', Description, CbcNamespaceTok, ChildNode);
@@ -371,8 +385,8 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         this.XMLDOMManagement.AddElement(StandardItemIdNode, 'ID', StandardItemIdentificationID, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddAttribute(ChildNode, 'schemeID', StdItemIdIDSchemeID);
 
-        PEPPOL30.GetLineItemClassifiedTaxCategory(PurchaseLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
-        
+        PEPPOLLineInfo.GetLineItemClassifiedTaxCategory(PurchaseLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
+
         this.XMLDOMManagement.AddElement(ItemNode, 'ClassifiedTaxCategory', '', CacNamespaceTok, ClassifiedTaxCategoryNode);
         this.XMLDOMManagement.AddElement(ClassifiedTaxCategoryNode, 'ID', ClassifiedTaxCategoryID, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddElement(ClassifiedTaxCategoryNode, 'Percent', InvoiceLineTaxPercent, CbcNamespaceTok, ChildNode);
@@ -382,7 +396,7 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
 
     local procedure AddPartyTaxScheme(PartyNode: XmlNode)
     var
-        PEPPOL30: Codeunit PEPPOL30;
+        PEPPOLPartyInfo: Interface "PEPPOL Purchase Party Info Provider";
         PartyTaxSchemeNode: XmlNode;
         TaxSchemeNode: XmlNode;
         ChildNode: XmlNode;
@@ -390,8 +404,9 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         CompanyIDSchemeID: Text;
         TaxSchemeID: Text;
     begin
-        PEPPOL30.GetAccountingSupplierPartyTaxScheme(CompanyID, CompanyIDSchemeID, TaxSchemeID);
-        
+        PEPPOLPartyInfo := GetFormat();
+        PEPPOLPartyInfo.GetAccountingSupplierPartyTaxScheme(CompanyID, CompanyIDSchemeID, TaxSchemeID);
+
         this.XMLDOMManagement.AddElement(PartyNode, 'PartyTaxScheme', '', CacNamespaceTok, PartyTaxSchemeNode);
         this.XMLDOMManagement.AddElement(PartyTaxSchemeNode, 'CompanyID', CompanyID, CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddElement(PartyTaxSchemeNode, 'TaxScheme', '', CacNamespaceTok, TaxSchemeNode);
@@ -400,7 +415,7 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
 
     local procedure AddAdditionalDocumentReference(PurchaseHeader: Record "Purchase Header")
     var
-        PEPPOL30: Codeunit PEPPOL30;
+        PEPPOLAttachment: Interface "PEPPOL Purchase Attachment Provider";
         AdditionalDocRefNode: XmlNode;
         AttachmentNode: XmlNode;
         EmbeddedDocNode: XmlNode;
@@ -412,7 +427,8 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
         MimeCode: Text;
         EmbeddedDocumentBinaryObject: Text;
     begin
-        PEPPOL30.GeneratePDFAttachmentAsAdditionalDocRef(PurchaseHeader, AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, Filename, MimeCode, EmbeddedDocumentBinaryObject);
+        PEPPOLAttachment := GetFormat();
+        PEPPOLAttachment.GeneratePDFAttachmentAsAdditionalDocRef(PurchaseHeader, AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, Filename, MimeCode, EmbeddedDocumentBinaryObject);
         if EmbeddedDocumentBinaryObject = '' then
             exit;
 
@@ -428,6 +444,18 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
     begin
         if NodeValue <> '' then
             this.XMLDOMManagement.AddElement(Node, NodeName, NodeValue, Namespace, ChildNode);
+    end;
+
+    local procedure GetFormat(): Enum "PEPPOL 3.0 Purchase Format"
+    var
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+    begin
+        if not IsFormatSet then begin
+            PeppolSetup.GetSetup();
+            PEPPOL30PurchaseFormat := PeppolSetup."PEPPOL 3.0 Purchase Format";
+            IsFormatSet := true;
+        end;
+        exit(PEPPOL30PurchaseFormat);
     end;
 
     /// <summary>
@@ -446,5 +474,15 @@ codeunit 50000 "E-Doc. Purchase Order To XML"
     internal procedure SetGeneratePDF(GeneratePDFValue: Boolean)
     begin
         this.GeneratePDF := GeneratePDFValue;
+    end;
+
+    /// <summary>
+    /// Sets the PEPPOL 3.0 Purchase Format to use when exporting the document.
+    /// </summary>
+    /// <param name="Format">The PEPPOL 3.0 Purchase Format to use.</param>
+    procedure SetFormat(Format: Enum "PEPPOL 3.0 Purchase Format")
+    begin
+        PEPPOL30PurchaseFormat := Format;
+        IsFormatSet := true;
     end;
 }
