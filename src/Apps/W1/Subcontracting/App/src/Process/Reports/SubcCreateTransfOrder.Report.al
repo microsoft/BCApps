@@ -63,7 +63,6 @@ report 99001501 "Subc. Create Transf. Order"
     end;
 
     var
-        ManufacturingSetup: Record "Manufacturing Setup";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
@@ -76,12 +75,9 @@ report 99001501 "Subc. Create Transf. Order"
 
     local procedure InsertTransferHeader(CompLineLocation: Code[10])
     var
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        TransferRoute: Record "Transfer Route";
         TransferToLocationCode: Code[10];
     begin
-        if not ManufacturingSetup.Get() then
-            ManufacturingSetup.Init();
-
         GetTransferToLocationCode(TransferToLocationCode);
 
         TransferHeader.Reset();
@@ -98,10 +94,8 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader.Insert(true);
             TransferHeader.Validate("Transfer-from Code", CompLineLocation);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
-            if ManufacturingSetup."Direct Transfer" then begin
-                SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
+            if not TransferRoute.Get(CompLineLocation, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then
                 TransferHeader.Validate("Direct Transfer", true);
-            end;
 
             TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;
             TransferHeader."Source Subtype" := TransferHeader."Source Subtype"::"2";

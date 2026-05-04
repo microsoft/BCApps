@@ -378,7 +378,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -409,9 +408,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
 
         Assert.RecordIsNotEmpty(TransferLine);
-
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -458,7 +454,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -545,7 +540,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -639,7 +633,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -685,6 +678,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransferFrom1 := TransferHeader."Transfer-from Code";
         TransferTo1 := TransferHeader."Transfer-to Code";
 
+        //[GIVEN] Enable direct transfer for posting
+        TransferHeader.Validate("Direct Transfer", true);
+        TransferHeader.Modify(true);
+
         //[WHEN] Post Transfer Order
         TransferOrder.OpenView();
         TransferOrder.GoToRecord(TransferHeader);
@@ -715,9 +712,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         //[THEN] Check if Transfer-from and Transfer-to Locations are reversed
         Assert.AreEqual(TransferFrom1, TransferTo2, 'Transfer-from and Transfer-to Locations are reversed');
         Assert.AreEqual(TransferTo1, TransferFrom2, 'Transfer-from and Transfer-to Locations are reversed');
-
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1163,7 +1157,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -1200,9 +1193,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderCompPage.GoToRecord(ProdOrderComp);
         asserterror ProdOrderCompPage."Location Code".SetValue(Location.Code);
         Assert.ExpectedError('The component has already been assigned to the subcontracting transfer order');
-
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1252,7 +1242,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -1292,8 +1281,6 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         Assert.AreEqual(ExpectedDate, ProdOrderComp."Due Date", '');
 
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1343,7 +1330,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationAndBinCode(ProductionOrder."No.", LocationCode, BinCode);
 
@@ -1388,8 +1374,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(ProdOrderComp."Location Code", LocationCode, '');
         Assert.AreEqual(ProdOrderComp."Bin Code", BinCode, '');
 
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1440,7 +1424,6 @@ Comment = '|%1 = Transfer Order No.';
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -1482,8 +1465,6 @@ Comment = '|%1 = Transfer Order No.';
         ExpectedErrorMsg := StrSubstNo(AlreadySpecifiedErr, TransferLine."Document No.");
         Assert.ExpectedError(ExpectedErrorMsg);
 
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1538,6 +1519,64 @@ Comment = '|%1 = Transfer Order No.';
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure DeleteWorkCenterWithPricesDeletesRelatedPrices()
+    var
+        Item: Record Item;
+        SubcontractorPrice: Record "Subcontractor Price";
+        WorkCenter: Record "Work Center";
+        WorkCenterNo: Code[20];
+    begin
+        // [SCENARIO 620643] Deleting a Work Center deletes all associated Subcontractor Prices
+
+        // [GIVEN] A work center with a subcontractor and multiple Subcontractor Prices
+        Initialize();
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        WorkCenterNo := WorkCenter."No.";
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 0, '');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 10, '');
+
+        // [WHEN] The work center is deleted
+        WorkCenter.Delete(true);
+
+        // [THEN] All Subcontractor Prices for the work center are deleted
+        SubcontractorPrice.SetRange("Work Center No.", WorkCenterNo);
+        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Subcontractor prices must be deleted when work center is deleted');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteItemWithPricesDeletesRelatedPrices()
+    var
+        Item: Record Item;
+        SubcontractorPrice: Record "Subcontractor Price";
+        WorkCenter: Record "Work Center";
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 620643] Deleting an Item deletes all associated Subcontractor Prices
+
+        // [GIVEN] An item with multiple Subcontractor Prices
+        Initialize();
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        ItemNo := Item."No.";
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 0, '');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 10, '');
+
+        // [WHEN] The item is deleted
+        Item.Delete(true);
+
+        // [THEN] All Subcontractor Prices for the item are deleted
+        SubcontractorPrice.SetRange("Item No.", ItemNo);
+        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Subcontractor prices must be deleted when item is deleted');
+    end;
+
+    [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,SubcontrDispatchingListDefaultRequestPageHandler')]
     procedure TestSubcontrDispatchingList()
     var
@@ -1576,7 +1615,6 @@ Comment = '|%1 = Transfer Order No.';
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -1836,6 +1874,49 @@ Comment = '|%1 = Transfer Order No.';
             'Description 2 must be populated on the Requisition Line from the subcontracting Work Center');
     end;
 
+    [Test]
+    [HandlerFunctions('RoutingLinkCodeDuplicateConfirmHandler')]
+    procedure ValidateRoutingLinkCodeOnProdOrderRtngLineShowsConfirmOnce()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 617395] Validating Routing Link Code on a Prod. Order Routing Line shows the
+        // duplicate-use confirmation dialog exactly once. The BaseApp OnValidate already performs
+        // this check; the Subcontracting extension must not duplicate it.
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Work centers, item with routing and BOM, with a routing link code assigned to the subcontracting routing line
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order whose routing lines inherit the routing link code
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] The prod. order routing line for the subcontracting work center (has a routing link code)
+        ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [WHEN] The routing link code is validated (re-validates the existing code, which triggers
+        // the BaseApp duplicate-use check)
+        ConfirmDialogCalledCount := 0;
+        ProdOrderRoutingLine.Validate("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+
+        // [THEN] The confirmation dialog is shown exactly once — from the BaseApp — not twice
+        Assert.AreEqual(
+            1, ConfirmDialogCalledCount,
+            'Routing Link Code duplicate confirmation must be shown exactly once, not twice');
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
@@ -1884,6 +1965,13 @@ Comment = '|%1 = Transfer Order No.';
             else
                 Reply := false;
         end;
+    end;
+
+    [ConfirmHandler]
+    procedure RoutingLinkCodeDuplicateConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        ConfirmDialogCalledCount += 1;
+        Reply := true;
     end;
 
     local procedure RemoveSubcontractingManagementSetupRecord()
@@ -2228,15 +2316,6 @@ Comment = '|%1 = Transfer Order No.';
         ManufacturingSetup.Modify();
     end;
 
-    local procedure UpdateSubMgmtSetupDirectTransfer(Update: Boolean)
-    var
-        ManufacturingSetup: Record "Manufacturing Setup";
-    begin
-        ManufacturingSetup.Get();
-        ManufacturingSetup."Direct Transfer" := Update;
-        ManufacturingSetup.Modify();
-    end;
-
     local procedure UpdateSubMgmtSetup_ComponentAtLocation(CompAtLocation: Enum "Components at Location")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -2406,4 +2485,6 @@ Comment = '|%1 = Transfer Order No.';
         IsInitialized: Boolean;
         Subcontracting: Boolean;
         UnitCostCalculation: Option Time,Units;
+        ConfirmDialogCalledCount: Integer;
+
 }
