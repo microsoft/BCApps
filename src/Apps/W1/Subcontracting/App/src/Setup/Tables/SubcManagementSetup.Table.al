@@ -37,10 +37,6 @@ table 99001501 "Subc. Management Setup"
             TableRelation = "Requisition Wksh. Name".Name where("Template Type" = const(Subcontracting),
                                                                 "Worksheet Template Name" = field("Subcontracting Template Name"));                                                             
         }
-        field(60; "Direct Transfer"; Boolean)
-        {
-            Caption = 'Direct Transfer for Subcontracting';
-        }
         field(70; "Component Direct Unit Cost"; Option)
         {
             Caption = 'Component Direct Unit Cost';

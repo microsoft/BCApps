@@ -77,6 +77,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
     local procedure InsertTransferHeader(TransferFromLocationCode: Code[10]; TransferToLocationCode: Code[10])
     var
         SubcontractingManagement: Codeunit "Subcontracting Management";
+        TransferRoute: Record "Transfer Route";
     begin
         if not SubcManagementSetup.Get() then
             Clear(SubcManagementSetup);
@@ -97,7 +98,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
             TransferHeader.Validate("Transfer-from Code", TransferFromLocationCode);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
 
-            if SubcManagementSetup."Direct Transfer" then begin
+            if SubcManagementSetup."Direct Transfer" or (not TransferRoute.Get(TransferFromLocationCode, TransferToLocationCode)) or (TransferRoute."In-Transit Code" = '') then begin
                 SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
                 TransferHeader.Validate("Direct Transfer", true);
             end;

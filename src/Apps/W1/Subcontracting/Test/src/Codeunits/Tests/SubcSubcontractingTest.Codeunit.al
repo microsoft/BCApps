@@ -377,7 +377,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -408,9 +407,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
 
         Assert.RecordIsNotEmpty(TransferLine);
-
-        // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -457,7 +453,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -544,7 +539,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -638,7 +632,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -684,6 +677,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransferFrom1 := TransferHeader."Transfer-from Code";
         TransferTo1 := TransferHeader."Transfer-to Code";
 
+        //[GIVEN] Enable direct transfer for posting
+        TransferHeader.Validate("Direct Transfer", true);
+        TransferHeader.Modify(true);
+
         //[WHEN] Post Transfer Order
         TransferOrder.OpenView();
         TransferOrder.GoToRecord(TransferHeader);
@@ -714,9 +711,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         //[THEN] Check if Transfer-from and Transfer-to Locations are reversed
         Assert.AreEqual(TransferFrom1, TransferTo2, 'Transfer-from and Transfer-to Locations are reversed');
         Assert.AreEqual(TransferTo1, TransferFrom2, 'Transfer-from and Transfer-to Locations are reversed');
-
-        // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1152,7 +1146,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -1189,9 +1182,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderCompPage.GoToRecord(ProdOrderComp);
         asserterror ProdOrderCompPage."Location Code".SetValue(Location.Code);
         Assert.ExpectedError('The component has already been assigned to the subcontracting transfer order');
-
-        // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1241,7 +1231,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -1281,8 +1270,6 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         Assert.AreEqual(ExpectedDate, ProdOrderComp."Due Date", '');
 
-        // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1332,7 +1319,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationAndBinCode(ProductionOrder."No.", LocationCode, BinCode);
 
@@ -1376,9 +1362,6 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         Assert.AreEqual(ProdOrderComp."Location Code", LocationCode, '');
         Assert.AreEqual(ProdOrderComp."Bin Code", BinCode, '');
-
-        // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1429,7 +1412,6 @@ Comment = '|%1 = Transfer Order No.';
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -1470,9 +1452,6 @@ Comment = '|%1 = Transfer Order No.';
         asserterror ProdOrderCompPage.ItemTrackingLines.Invoke();
         ExpectedErrorMsg := StrSubstNo(AlreadySpecifiedErr, TransferLine."Document No.");
         Assert.ExpectedError(ExpectedErrorMsg);
-
-        // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1623,7 +1602,6 @@ Comment = '|%1 = Transfer Order No.';
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -2222,6 +2200,29 @@ Comment = '|%1 = Transfer Order No.';
         EsMgmtSetup.Get();
         EsMgmtSetup."Create Prod. Order Info Line" := Update;
         EsMgmtSetup.Modify();
+    end;
+
+    local procedure UpdateSubMgmtSetup_ComponentAtLocation(CompAtLocation: Enum "Components at Location")
+    var
+        EsMgmtSetup: Record "Subc. Management Setup";
+    begin
+        EsMgmtSetup.Get();
+        EsMgmtSetup."Component at Location" := CompAtLocation;
+        EsMgmtSetup.Modify();
+    end;
+
+    local procedure CreateSubcontractingOrderFromProdOrderRtngPage(RoutingNo: Code[20]; WorkCenterNo: Code[20])
+    var
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ReleasedProdOrderRtng: TestPage "Prod. Order Routing";
+    begin
+        ProdOrderRtngLine.SetRange("Routing No.", RoutingNo);
+        ProdOrderRtngLine.SetRange("Work Center No.", WorkCenterNo);
+        ProdOrderRtngLine.FindFirst();
+
+        ReleasedProdOrderRtng.OpenView();
+        ReleasedProdOrderRtng.GoToRecord(ProdOrderRtngLine);
+        ReleasedProdOrderRtng.CreateSubcontracting.Invoke();
     end;
 
     local procedure UpdateSubWhseHandlingTimeInSubManagementSetup()
