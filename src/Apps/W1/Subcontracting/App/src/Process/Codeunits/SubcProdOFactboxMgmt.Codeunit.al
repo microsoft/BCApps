@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
@@ -136,6 +137,7 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
 
     local procedure SetProdOrderInformationByVariant(RecRelatedVariant: Variant; var ProdOrderNo: Code[20]; var ProdOrderLineNo: Integer; var RoutingNo: Code[20]; var OperationNo: Code[10]): Boolean
     var
+        ItemLedgerEntry: Record "Item Ledger Entry";
         PurchaseLine: Record "Purchase Line";
         PurchInvLine: Record "Purch. Inv. Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
@@ -205,7 +207,26 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
                     RoutingNo := TransferReceiptLine."Routing No.";
                     OperationNo := TransferReceiptLine."Operation No.";
                 end;
+            Database::"Item Ledger Entry":
+                begin
+                    ResultRecordRef.SetTable(ItemLedgerEntry);
+                    ProdOrderNo := ItemLedgerEntry."Order No.";
+                    ProdOrderLineNo := ItemLedgerEntry."Order Line No.";
+                    OperationNo := ItemLedgerEntry."Operation No.";
+                    RoutingNo := GetRoutingNoFromProdOrderRoutingLine(ProdOrderNo, ProdOrderLineNo, OperationNo);
+                end;
         end;
         exit((ProdOrderNo <> '') and (ProdOrderLineNo <> 0));
+    end;
+
+    local procedure GetRoutingNoFromProdOrderRoutingLine(ProdOrderNo: Code[20]; ProdOrderLineNo: Integer; OperationNo: Code[10]): Code[20]
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
+        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
+        if ProdOrderRoutingLine.FindFirst() then
+            exit(ProdOrderRoutingLine."Routing No.");
     end;
 }
