@@ -1,0 +1,152 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "771ff56ad0a8e130d4c0",
+  "position": {
+    "x": 444.74071831031608,
+    "y": 145.29378048384828,
+    "z": 1000,
+    "height": 299.44693782646777,
+    "width": 392.47039484356577,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "barChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Vendors"
+                    }
+                  },
+                  "Property": "Vendor No. & Name"
+                }
+              },
+              "queryRef": "Vendors.Vendor No. & Name",
+              "nativeQueryRef": "Vendor No. & Name",
+              "active": true
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription"
+                    }
+                  },
+                  "Property": "Package Code"
+                }
+              },
+              "queryRef": "Subscription.Package Code",
+              "nativeQueryRef": "Package Code"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Subscription Billing KPIs"
+                    }
+                  },
+                  "Property": "Mon. Recurring Cost"
+                }
+              },
+              "queryRef": "Subscription Billing KPIs.Mon. Recurring Cost",
+              "nativeQueryRef": "Mon. Recurring Cost"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Subscription Billing KPIs"
+                  }
+                },
+                "Property": "Mon. Recurring Cost"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "labels": [
+        {
+          "properties": {}
+        }
+      ],
+      "legend": [
+        {
+          "properties": {
+            "showGradientLegend": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Top 5 Vendors by Mon. Recurring Cost Label"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "16D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -22,7 +22,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskImpl.TaskExists(AgentUserSecurityId, ExternalId));
     end;
 
@@ -36,7 +36,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTask: Record "Agent Task";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTask.SetRange("Agent User Security ID", AgentUserSecurityId);
         AgentTask.SetRange("External ID", ExternalId);
         AgentTask.FindFirst();
@@ -53,7 +53,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTask);
     end;
 
@@ -66,7 +66,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskImpl.CanAgentTaskBeSetToReady(AgentTask));
     end;
 
@@ -80,7 +80,7 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         TaskStatus: Enum "Agent Task Status";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskImpl.StopTask(AgentTask, TaskStatus::"Stopped by User", UserConfirm);
     end;
 
@@ -93,7 +93,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskImpl.RestartTask(AgentTask, UserConfirm);
     end;
 
@@ -106,7 +106,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskImpl.IsTaskRunning(AgentTask));
     end;
 
@@ -119,7 +119,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskImpl.IsTaskCompleted(AgentTask));
     end;
 
@@ -132,7 +132,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskImpl.IsTaskStopped(AgentTask));
     end;
 

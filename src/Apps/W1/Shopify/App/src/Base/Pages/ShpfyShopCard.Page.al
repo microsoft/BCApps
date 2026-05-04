@@ -170,6 +170,10 @@ page 30101 "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                 }
+                field(SyncHSCodeAndCountry; Rec."Sync HS Code and Country")
+                {
+                    ApplicationArea = All;
+                }
                 field(UOMAsVariant; Rec."UoM as Variant")
                 {
                     ApplicationArea = All;
@@ -194,6 +198,11 @@ page 30101 "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                     Editable = Rec."SKU Mapping" = Rec."SKU Mapping"::"Item No. + Variant Code";
+                }
+                field(FindMappingByBarcode; Rec."Find Mapping by Barcode")
+                {
+                    ApplicationArea = All;
+                    Visible = false;
                 }
                 field(InventoryTracket; Rec."Inventory Tracked")
                 {
