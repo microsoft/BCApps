@@ -267,7 +267,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
             'WIP Transfer must go TO the subcontractor location.');
 
         // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
         TransferHeader.Delete(true);
     end;
 
@@ -356,9 +355,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
         Assert.AreEqual(Vendor."Subcontr. Location Code", TransferHeader."Transfer-to Code",
             'WIP Transfer must go TO the subcontractor location.');
-
-        // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -395,7 +391,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
             ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -416,9 +411,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Transfer WIP Item", true);
         Assert.RecordIsEmpty(TransferLine);
-
-        // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -510,7 +502,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         Assert.ExpectedError('Nothing to create. No components or WIP to transfer for the specified subcontracting order.');
 
         // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
         WIPLedgerEntry.DeleteAll();
     end;
 
@@ -609,7 +600,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
             'Return WIP Transfer must go TO the Prod. Order Line location (company WH).');
 
         // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
         WIPLedgerEntry.DeleteAll();
     end;
 
@@ -663,7 +653,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
             ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         // [GIVEN] Read subcontractor location codes after all vendor updates
         Vendor1.Get(WorkCenter[1]."Subcontractor No.");
@@ -728,7 +717,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
             'WIP Transfer must go TO Subcontractor 2''s location.');
 
         // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
         WIPLedgerEntry.DeleteAll();
     end;
 
@@ -853,9 +841,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         // [THEN] One WIP transfer originates from Subcontractor 30''s location (SC op 30 path)
         Assert.IsTrue(Loc30TransferFound,
             'A WIP Transfer from Subcontractor 30''s location (SC op 30 path) to Subc. 40 must exist.');
-
-        // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -923,7 +908,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         // [GIVEN] Create a transfer route from the prod order line location to the subcontractor location
         CreateAndUpdateTransferRoute(GetManufacturingSetupCompLocation(), Vendor."Subcontr. Location Code");
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         // [WHEN] Calculate Subcontracts: produces one requisition line per prod order routing line (= 2)
         SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
@@ -979,9 +963,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
                 (TransferLine."Item No." = FamilyItem[1]."No.") or (TransferLine."Item No." = FamilyItem[2]."No."),
                 'Each WIP Transfer Line must reference one of the two family items.');
         until TransferLine.Next() = 0;
-
-        // [TEARDOWN]
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [PageHandler]
@@ -1015,7 +996,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         SubcontractingMgmtLibrary.Initialize();
         SubcontractingMgmtLibrary.UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Purchase);
         LibraryMfgManagement.Initialize();
-        SubcontractingMgmtLibrary.UpdateSubMgmtSetupDirectTransfer(true);
 
         if IsInitialized then
             exit;

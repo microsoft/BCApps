@@ -92,7 +92,7 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader.Insert(true);
             TransferHeader.Validate("Transfer-from Code", TransferFromLocation);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
-            if not TransferRoute.Get(CompLineLocation, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then
+            if not TransferRoute.Get(TransferFromLocation, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then
                 TransferHeader.Validate("Direct Transfer", true);
 
             TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;

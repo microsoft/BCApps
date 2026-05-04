@@ -2202,29 +2202,6 @@ Comment = '|%1 = Transfer Order No.';
         EsMgmtSetup.Modify();
     end;
 
-    local procedure UpdateSubMgmtSetup_ComponentAtLocation(CompAtLocation: Enum "Components at Location")
-    var
-        EsMgmtSetup: Record "Subc. Management Setup";
-    begin
-        EsMgmtSetup.Get();
-        EsMgmtSetup."Component at Location" := CompAtLocation;
-        EsMgmtSetup.Modify();
-    end;
-
-    local procedure CreateSubcontractingOrderFromProdOrderRtngPage(RoutingNo: Code[20]; WorkCenterNo: Code[20])
-    var
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        ReleasedProdOrderRtng: TestPage "Prod. Order Routing";
-    begin
-        ProdOrderRtngLine.SetRange("Routing No.", RoutingNo);
-        ProdOrderRtngLine.SetRange("Work Center No.", WorkCenterNo);
-        ProdOrderRtngLine.FindFirst();
-
-        ReleasedProdOrderRtng.OpenView();
-        ReleasedProdOrderRtng.GoToRecord(ProdOrderRtngLine);
-        ReleasedProdOrderRtng.CreateSubcontracting.Invoke();
-    end;
-
     local procedure UpdateSubWhseHandlingTimeInSubManagementSetup()
     var
         SubManagementSetup: Record "Subc. Management Setup";

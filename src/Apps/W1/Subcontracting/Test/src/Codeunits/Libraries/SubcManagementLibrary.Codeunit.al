@@ -130,15 +130,6 @@ codeunit 139983 "Subc. Management Library"
         LibraryManufacturing.CreateAndRefreshProductionOrder(ProductionOrder, ProdOrderStatus, ProdOrderSourceType, SourceNo, Quantity);
     end;
 
-    procedure UpdateSubMgmtSetupDirectTransfer(DirectTransfer: Boolean)
-    var
-        SubcMgmtSetup: Record "Subc. Management Setup";
-    begin
-        SubcMgmtSetup.Get();
-        SubcMgmtSetup."Direct Transfer" := DirectTransfer;
-        SubcMgmtSetup.Modify();
-    end;
-
     procedure UpdateSubMgmtSetup_ComponentAtLocation(CompAtLocation: Enum "Components at Location")
     var
         SubcMgmtSetup: Record "Subc. Management Setup";
