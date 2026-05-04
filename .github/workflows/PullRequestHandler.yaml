@@ -118,7 +118,7 @@ jobs:
       useArtifactCache: true
 
   Build:
-    needs: [ Initialization, Build1 ]
+    needs: [ Initialization, Build1, CustomJob-VerifyAppChanges ]
     if: (!failure()) && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && fromJson(needs.Initialization.outputs.buildOrderJson)[1].projectsCount > 0
     strategy:
       matrix:
@@ -202,3 +202,25 @@ jobs:
           shell: powershell
           telemetryScopeJson: ${{ needs.Initialization.outputs.telemetryScopeJson }}
           currentJobContext: ${{ toJson(job) }}
+
+  # Custom jobs (AL-Go for GitHub) - run in parallel with Initialization and gate Build1.
+  # See: https://github.com/microsoft/AL-Go/blob/main/Scenarios/CustomizingALGoForGitHub.md#adding-custom-jobs
+  CustomJob-VerifyAppChanges:
+    needs: [ PregateCheck ]
+    if: (!failure() && !cancelled())
+    runs-on: windows-latest
+    name: Verify App Changes
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - uses: microsoft/BCAppsPrivate/.github/actions/TestPreprocessorSymbols@main  # TODO: update to microsoft/BCApps
+
+      - uses: microsoft/BCAppsPrivate/.github/actions/TestObjectIdsAndManifests@main  # TODO: update to microsoft/BCApps
+
+      - uses: microsoft/BCAppsPrivate/.github/actions/VerifyMiappSync@main # TODO: update to microsoft/BCApps/.github/actions/VerifyMiappSync@main
+
+      - uses: microsoft/BCAppsPrivate/.github/actions/ValidateCountryProjects@main # TODO: update to microsoft/BCApps
