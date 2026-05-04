@@ -12,6 +12,7 @@ query 36952 Dimensions
     Access = Internal;
     Caption = 'Power BI Dimensions';
     QueryType = API;
+    AboutText = 'Provides access to the eight global and shortcut dimension configurations from General Ledger Setup, including codes, names, and captions. Enables Power BI reports to retrieve dimension metadata for building dynamic dimension hierarchies and labeling in analytical reports.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

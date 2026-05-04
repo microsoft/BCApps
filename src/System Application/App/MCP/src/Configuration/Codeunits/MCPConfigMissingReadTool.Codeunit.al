@@ -19,6 +19,7 @@ codeunit 8355 "MCP Config Missing Read Tool" implements "MCP Config Warning"
     procedure CheckForWarnings(ConfigId: Guid; var MCPConfigWarning: Record "MCP Config Warning"; var EntryNo: Integer)
     begin
         MCPConfigurationTool.SetRange(ID, ConfigId);
+        MCPConfigurationTool.SetRange("Object Type", MCPConfigurationTool."Object Type"::Page);
         MCPConfigurationTool.SetRange("Allow Modify", true);
         MCPConfigurationTool.SetRange("Allow Read", false);
         if MCPConfigurationTool.FindSet() then
