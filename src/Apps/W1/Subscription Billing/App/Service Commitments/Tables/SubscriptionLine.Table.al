@@ -611,7 +611,7 @@ table 8059 "Subscription Line"
         {
 
         }
-        key(Key4; Partner, "Subscription Contract No.", "Next Billing Date")
+        key(Key4; "Subscription Contract No.", "Next Billing Date", Partner)
         {
         }
     }

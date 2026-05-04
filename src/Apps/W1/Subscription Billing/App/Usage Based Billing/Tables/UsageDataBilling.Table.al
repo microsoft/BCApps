@@ -300,7 +300,10 @@ table 8006 "Usage Data Billing"
             SumIndexFields = Quantity, Amount;
             MaintainSiftIndex = true;
         }
-        key(key2; Partner, "Subscription Contract No.", "Subscription Contract Line No.", "Document Type", "Document No.")
+        key(key2; "Subscription Contract No.", "Subscription Contract Line No.", "Document No.", "Document Type", Partner)
+        {
+        }
+        key(key3; "Usage Data Import Entry No.", "Document No.")
         {
         }
 

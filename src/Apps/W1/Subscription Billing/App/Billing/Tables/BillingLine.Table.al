@@ -243,7 +243,7 @@ table 8061 "Billing Line"
         key(SK6; "Billing Template Code", Partner)
         {
         }
-        key(SK7; Partner, "Subscription Contract No.", "Subscription Contract Line No.", "Document Type", "Document No.")
+        key(SK7; "Subscription Contract No.", "Subscription Contract Line No.", "Document No.", "Document Type", Partner)
         {
         }
     }
