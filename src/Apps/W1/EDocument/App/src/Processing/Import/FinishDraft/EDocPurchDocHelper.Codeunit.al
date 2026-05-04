@@ -62,11 +62,29 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         EDocRecordLink.InsertEDocumentLineLink(EDocumentPurchaseLine, PurchaseLine);
     end;
 
-    procedure ValidateFieldWithContext(var RecVariant: Variant; FieldNo: Integer; Value: Variant)
+    procedure ValidateFieldWithContext(var Rec: Record "Purchase Header"; FieldNo: Integer; Value: Variant)
     var
+        VariantRec: Variant;
+    begin
+        VariantRec := Rec;
+        ValidateFieldWithContext(VariantRec, FieldNo, Value);
+        Rec := VariantRec;
+    end;
+
+    procedure ValidateFieldWithContext(var Rec: Record "Purchase Line"; FieldNo: Integer; Value: Variant)
+    var
+        VariantRec: Variant;
+    begin
+        VariantRec := Rec;
+        ValidateFieldWithContext(VariantRec, FieldNo, Value);
+        Rec := VariantRec;
+    end;
+
+    local procedure ValidateFieldWithContext(var RecVariant: Variant; FieldNo: Integer; Value: Variant)
+    var
+        EDocImportErrorContext: Codeunit "E-Doc. Import Error Context";
         RecRef: RecordRef;
         FldRef: FieldRef;
-        EDocImportErrorContext: Codeunit "E-Doc. Import Error Context";
     begin
         RecRef.GetTable(RecVariant);
         FldRef := RecRef.Field(FieldNo);
