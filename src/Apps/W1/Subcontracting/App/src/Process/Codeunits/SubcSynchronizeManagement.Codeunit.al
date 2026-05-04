@@ -176,20 +176,20 @@ codeunit 99001511 "Subc. Synchronize Management"
             exit;
 
         if ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then begin
-            if not ProductionOrder."Created from Purch. Order" then
-                exit;
             ItemLedgerEntry.SetRange("Order Type", "Inventory Order Type"::Production);
             ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
             if ItemLedgerEntry.IsEmpty() then begin
                 CapacityLedgerEntry.SetRange("Order Type", "Inventory Order Type"::Production);
                 CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
                 if CapacityLedgerEntry.IsEmpty() then begin
-                    ProductionOrder.DeleteProdOrderRelations();
+                    if ProductionOrder."Created from Purch. Order" then begin
+                        ProductionOrder.DeleteProdOrderRelations();
 
-                    // Delete Subcontracting dependent Purchase Lines
-                    PurchaseLine2.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
-                    if PurchaseLine2.FindSet() then
-                        PurchaseLine2.DeleteAll(true);
+                        // Delete Subcontracting dependent Purchase Lines
+                        PurchaseLine2.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+                        if PurchaseLine2.FindSet() then
+                            PurchaseLine2.DeleteAll(true);
+                    end;
 
                     TransferHeader.SetCurrentKey("Source ID", "Source Type", "Source Subtype");
                     TransferHeader.SetRange("Source ID", PurchaseLine."Buy-from Vendor No.");
@@ -203,7 +203,9 @@ codeunit 99001511 "Subc. Synchronize Management"
                         if ItemLedgerEntry.IsEmpty() then
                             TransferHeader.Delete(true);
                     end;
-                    ProductionOrder.Delete();
+
+                    if ProductionOrder."Created from Purch. Order" then
+                        ProductionOrder.Delete();
                 end
             end;
         end;
