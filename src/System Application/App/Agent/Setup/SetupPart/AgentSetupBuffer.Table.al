@@ -192,10 +192,17 @@ table 4310 "Agent Setup Buffer"
     var
         TempFetchedUserSettings: Record "User Settings";
         Agent: Codeunit Agent;
+        UpdateTempUserSettings: Boolean;
     begin
-        if not TempUserSettings.FindFirst() then begin
+        UpdateTempUserSettings := not TempUserSettings.FindFirst();
+        UpdateTempUserSettings := UpdateTempUserSettings or (TempUserSettings."User Security ID" <> Rec."User Security ID");
+
+        if UpdateTempUserSettings then begin
+            TempUserSettings.Reset();
+            TempUserSettings.DeleteAll();
             Agent.GetUserSettings(Rec."User Security ID", TempFetchedUserSettings);
-            TempFetchedUserSettings.Copy(TempUserSettings);
+            TempUserSettings.Copy(TempFetchedUserSettings);
+            TempUserSettings.Insert();
         end;
 
         TempNewUserSetting.Copy(TempUserSettings, true);

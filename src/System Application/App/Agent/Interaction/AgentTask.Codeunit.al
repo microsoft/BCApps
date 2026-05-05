@@ -164,6 +164,20 @@ codeunit 4303 "Agent Task"
         exit(AgentTaskImpl.GetDetailsForAgentTaskLogEntry(AgentTaskLogEntry));
     end;
 
+    /// <summary>
+    /// Archives the agent task.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task to archive.</param>
+    /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
+    [Scope('OnPrem')]
+    procedure ArchiveTask(AgentTaskID: BigInteger; UserConfirm: Boolean)
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskImpl.ArchiveTask(AgentTaskID, UserConfirm);
+    end;
+
     var
         FeatureAccessManagement: Codeunit "Feature Access Management";
 }

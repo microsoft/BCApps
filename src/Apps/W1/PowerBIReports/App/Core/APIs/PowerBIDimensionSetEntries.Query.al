@@ -9,6 +9,7 @@ query 36950 "PowerBI Dimension Set Entries"
     Access = Internal;
     Caption = 'Power BI Dimension Set Entries';
     QueryType = API;
+    AboutText = 'Provides access to flattened dimension set entries with up to eight dimension value codes and names per set. Enables Power BI reports to efficiently join dimensional data with transactional records for multi-dimensional analysis, cost allocation reporting, and segment-based financial analytics.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

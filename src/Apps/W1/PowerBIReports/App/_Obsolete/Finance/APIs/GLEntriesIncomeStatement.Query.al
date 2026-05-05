@@ -12,6 +12,7 @@ query 36962 "G/L Entries - Income Statement"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to G/L entries for income statement accounts including amounts, posting dates, and dimension data. This API has been replaced by the G/L Income Statement - PBI API query.';
     Caption = 'Power BI Income Stmt. G/L Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

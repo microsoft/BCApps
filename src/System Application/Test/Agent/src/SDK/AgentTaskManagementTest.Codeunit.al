@@ -215,6 +215,86 @@ codeunit 133962 "Agent Task Management Test"
 
     #endregion
 
+    #region Task Archive Tests
+
+    [Test]
+    procedure ArchiveStoppedTask()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archive a task that was previously stopped
+
+        // [GIVEN] A test agent with a stopped task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder.Initialize(AgentUserId, 'Stopped Task to be Archived');
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [GIVEN] The task is stopped
+        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped initially');
+        Assert.IsFalse(AgentTaskRecord.Archived, 'Task should not be archived initially');
+
+        // [WHEN] Archiving the stopped task
+        AgentTask.ArchiveTask(AgentTaskRecord.Id, false);
+
+        // [THEN] The task should be archived
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTaskRecord.Archived, 'Task should be archived');
+    end;
+
+    [Test]
+    procedure ArchiveAlreadyArchivedTask()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archive a task that is already archived (should be idempotent)
+
+        // [GIVEN] A test agent with an archived task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder.Initialize(AgentUserId, 'Already Archived Task');
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [GIVEN] The task is already archived
+        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTask.ArchiveTask(AgentTaskRecord.Id, false);
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTaskRecord.Archived, 'Task should be archived initially');
+
+        // [WHEN] Archiving the task again
+        AgentTask.ArchiveTask(AgentTaskRecord.Id, false);
+
+        // [THEN] The task should still be archived (no error, idempotent operation)
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTaskRecord.Archived, 'Task should remain archived');
+    end;
+
+    #endregion
+
     #region Task Restart Tests
 
     [Test]
