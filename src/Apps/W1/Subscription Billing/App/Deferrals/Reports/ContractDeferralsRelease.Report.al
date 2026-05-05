@@ -145,7 +145,7 @@ report 8051 "Contract Deferrals Release"
         PostingAmount: Decimal;
     begin
         ShouldRelease := true;
-        OnBeforeReleaseCustomerContractDeferral(CustomerContractDeferral, ShouldRelease);
+        OnBeforeReleaseCustomerContractDeferral(CustomerContractDeferral, ShouldRelease, PostingDate);
         if not ShouldRelease then begin
             UpdateWindow(CustomerContractDeferral."Subscription Contract No.");
             exit;
@@ -200,7 +200,7 @@ report 8051 "Contract Deferrals Release"
         PostingAmount: Decimal;
     begin
         ShouldRelease := true;
-        OnBeforeReleaseVendorContractDeferral(VendorContractDeferral, ShouldRelease);
+        OnBeforeReleaseVendorContractDeferral(VendorContractDeferral, ShouldRelease, PostingDate);
         if not ShouldRelease then begin
             UpdateWindow(VendorContractDeferral."Subscription Contract No.");
             exit;
@@ -414,12 +414,12 @@ report 8051 "Contract Deferrals Release"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeReleaseCustomerContractDeferral(var CustomerContractDeferral: Record "Cust. Sub. Contract Deferral"; var ShouldReleaseDeferral: Boolean)
+    local procedure OnBeforeReleaseCustomerContractDeferral(var CustomerContractDeferral: Record "Cust. Sub. Contract Deferral"; var ShouldReleaseDeferral: Boolean; PostingDate: Date)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeReleaseVendorContractDeferral(var VendorContractDeferral: Record "Vend. Sub. Contract Deferral"; var ShouldReleaseDeferral: Boolean)
+    local procedure OnBeforeReleaseVendorContractDeferral(var VendorContractDeferral: Record "Vend. Sub. Contract Deferral"; var ShouldReleaseDeferral: Boolean; PostingDate: Date)
     begin
     end;
 }
