@@ -24,7 +24,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentMessageImpl.GetText(AgentTaskMessage));
     end;
 
@@ -37,7 +37,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentMessageImpl.UpdateText(AgentTaskMessage, NewMessageText);
     end;
 
@@ -50,7 +50,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentMessageImpl.IsEditable(AgentTaskMessage));
     end;
 
@@ -62,7 +62,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentMessageImpl.SetStatusToSent(AgentTaskMessage);
     end;
 
@@ -90,7 +90,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentMessageImpl.SetIgnoreAttachment(IgnoreAttachment);
     end;
 
@@ -102,7 +102,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentMessageImpl.DownloadAttachments(AgentTaskMessage);
     end;
 
@@ -115,7 +115,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentMessageImpl.ShowOrDownloadAttachment(TaskId, FileID, false);
     end;
 
@@ -127,7 +127,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentMessageImpl.ShowOrDownloadAttachment(AgentTaskFile, false);
     end;
 
@@ -141,7 +141,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentMessageImpl.GetAttachments(TaskID, MessageID, TempAgentTaskFile);
     end;
 
@@ -154,7 +154,7 @@ codeunit 4307 "Agent Message"
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentMessageImpl.GetFileSizeDisplayText(SizeInBytes));
     end;
 }

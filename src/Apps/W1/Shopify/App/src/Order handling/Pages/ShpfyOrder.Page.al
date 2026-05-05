@@ -1138,7 +1138,6 @@ page 30113 "Shpfy Order"
         OrderCancelFailedErr: Label 'Specifies the order could not be cancelled. You can see the error message from Shopify Log Entries.';
         LogEntriesLbl: Label 'Log Entries';
         WorkDescription: Text;
-        TotalAmount, SubtotalAmount : Decimal;
         PresentmentVisible: Boolean;
 
     trigger OnAfterGetRecord()

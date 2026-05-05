@@ -773,7 +773,7 @@ page 6181 "E-Document Purchase Draft"
         EDocumentProcessing: Codeunit "E-Document Processing";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         GlobalEDocumentHelper: Codeunit "E-Document Helper";
-        RecordLinkTxt, StyleStatusTxt, ServiceStatusStyleTxt, VendorName, DataCaption : Text;
+        RecordLinkTxt, StyleStatusTxt, DataCaption: Text;
         HasErrorsOrWarnings, HasErrors : Boolean;
         ShowFinalizeDraftAction: Boolean;
         ShowAnalyzeDocumentAction: Boolean;
