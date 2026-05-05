@@ -894,14 +894,14 @@ codeunit 139883 "E-Doc Process Test"
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         SavedWorkDate: Date;
     begin
-        // [SCENARIO] When "E-Doc. Default Posting Date" is "Work Date" (default), the created purchase invoice Posting Date equals WorkDate
+        // [SCENARIO] When "E-Doc. Purch.Def. Posting Date" is "Work Date" (default), the created purchase invoice Posting Date equals WorkDate
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
 
-        // [GIVEN] Setup has "E-Doc. Default Posting Date" = "Work Date" (default)
+        // [GIVEN] Setup has "E-Doc. Purch.Def. Posting Date" = "Work Date" (default)
         PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Default Posting Date" := "E-Doc. Default Posting Date"::"Work Date";
+        PurchasesPayablesSetup."E-Doc. Purch.Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Work Date";
         PurchasesPayablesSetup.Modify();
 
         // [WHEN] A PEPPOL invoice (IssueDate = 2026-01-22) is processed with WorkDate = 2027-01-01
@@ -927,14 +927,14 @@ codeunit 139883 "E-Doc Process Test"
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         SavedWorkDate: Date;
     begin
-        // [SCENARIO] When "E-Doc. Default Posting Date" is "Document Date", the created purchase invoice Posting Date equals the e-document's Document Date
+        // [SCENARIO] When "E-Doc. Purch.Def. Posting Date" is "Document Date", the created purchase invoice Posting Date equals the e-document's Document Date
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
 
-        // [GIVEN] Setup has "E-Doc. Default Posting Date" = "Document Date"
+        // [GIVEN] Setup has "E-Doc. Purch.Def. Posting Date" = "Document Date"
         PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Default Posting Date" := "E-Doc. Default Posting Date"::"Document Date";
+        PurchasesPayablesSetup."E-Doc. Purch.Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Document Date";
         PurchasesPayablesSetup.Modify();
 
         // [WHEN] A PEPPOL invoice (IssueDate = 2026-01-22) is processed with WorkDate = 2027-01-01
@@ -960,14 +960,14 @@ codeunit 139883 "E-Doc Process Test"
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         SavedWorkDate: Date;
     begin
-        // [SCENARIO] When "E-Doc. Default Posting Date" is "Work Date", the created purchase credit memo Posting Date equals WorkDate
+        // [SCENARIO] When "E-Doc. Purch.Def. Posting Date" is "Work Date", the created purchase credit memo Posting Date equals WorkDate
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
 
-        // [GIVEN] Setup has "E-Doc. Default Posting Date" = "Work Date"
+        // [GIVEN] Setup has "E-Doc. Purch.Def. Posting Date" = "Work Date"
         PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Default Posting Date" := "E-Doc. Default Posting Date"::"Work Date";
+        PurchasesPayablesSetup."E-Doc. Purch.Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Work Date";
         PurchasesPayablesSetup.Modify();
 
         // [WHEN] A PEPPOL credit note (IssueDate = 2026-02-15) is processed with WorkDate = 2027-01-01
@@ -993,14 +993,14 @@ codeunit 139883 "E-Doc Process Test"
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         SavedWorkDate: Date;
     begin
-        // [SCENARIO] When "E-Doc. Default Posting Date" is "Document Date", the created purchase credit memo Posting Date equals the e-document's Document Date
+        // [SCENARIO] When "E-Doc. Purch.Def. Posting Date" is "Document Date", the created purchase credit memo Posting Date equals the e-document's Document Date
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
 
-        // [GIVEN] Setup has "E-Doc. Default Posting Date" = "Document Date"
+        // [GIVEN] Setup has "E-Doc. Purch.Def. Posting Date" = "Document Date"
         PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Default Posting Date" := "E-Doc. Default Posting Date"::"Document Date";
+        PurchasesPayablesSetup."E-Doc. Purch.Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Document Date";
         PurchasesPayablesSetup.Modify();
 
         // [WHEN] A PEPPOL credit note (IssueDate = 2026-01-22) is processed with WorkDate = 2027-01-01
@@ -1037,7 +1037,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup.DeleteAll();
 
         PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Default Posting Date" := "E-Doc. Default Posting Date"::"Work Date";
+        PurchasesPayablesSetup."E-Doc. Purch.Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Work Date";
         PurchasesPayablesSetup.Modify();
 
         PurchInvHeader.DeleteAll();
