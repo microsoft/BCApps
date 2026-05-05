@@ -867,7 +867,7 @@ page 20406 "Qlty. Inspection"
         IsOpen := Rec.Status = Rec.Status::Open;
         StatusStyleExpr := Rec.GetStatusStyleExpression();
 
-        CanReopen := not Rec.HasMoreRecentReinspection();
+        CanReopen := (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
         if IsOpen then
             if QltyPermissionMgmt.CanChangeItemTracking() then begin
