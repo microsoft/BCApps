@@ -246,16 +246,7 @@ codeunit 4308 "Agent Message Impl."
         until AgentTaskMessageAttachment.Next() = 0;
     end;
 
-    procedure UpdateStatus(TaskID: BigInteger; MessageID: Guid; Status: Option)
-    var
-        AgentTaskMessage: Record "Agent Task Message";
-    begin
-        AgentTaskMessage."Task ID" := TaskID;
-        AgentTaskMessage.ID := MessageID;
-        UpdateStatus(AgentTaskMessage, Status);
-    end;
-
-    procedure UpdateStatus(var AgentTaskMessage: Record "Agent Task Message"; Status: Option)
+    local procedure UpdateStatus(var AgentTaskMessage: Record "Agent Task Message"; Status: Option)
     var
         AgentTaskMessageToModify: Record "Agent Task Message";
     begin
