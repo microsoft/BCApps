@@ -10,6 +10,7 @@ query 36994 "Job Tasks"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to project task data including task hierarchy, task types, totaling definitions, and scheduled dates. Enables Power BI reports to analyze project work breakdown structures and support task-level reporting and filtering.';
     Caption = 'Power BI Project Tasks';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

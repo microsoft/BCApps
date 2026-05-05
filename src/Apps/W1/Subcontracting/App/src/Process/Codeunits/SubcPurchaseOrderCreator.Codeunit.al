@@ -205,7 +205,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ConfirmManagement: Codeunit "Confirm Management";
         CreationOfSubcontractingOrderIsNotAllowedErr: Label 'You cannot create Subcontracting Order, because the Production Order %1 is not released.', Comment = '%1=Production Order No.';
         NoProdOrderLineWithRemQtyErr: Label 'No Prod. Order Line with Remaining Quantity.';
-        PurchOrderCreatedTxt: Label 'Already Purchase Order(s) created.\\Do you want to view them?';
+        PurchOrderCreatedTxt: Label 'Purchase order(s) have already been created.\\Do you want to view them?';
     begin
         if ProdOrderRoutingLine.Status <> "Production Order Status"::Released then
             Error(CreationOfSubcontractingOrderIsNotAllowedErr, ProdOrderRoutingLine."Prod. Order No.");

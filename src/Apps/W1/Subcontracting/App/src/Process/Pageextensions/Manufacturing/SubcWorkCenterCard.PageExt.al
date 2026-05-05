@@ -21,7 +21,7 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
                 {
                     ApplicationArea = Manufacturing;
                     Caption = 'Subcontractor Prices';
-                    Enabled = EnableSubcontractorPrices;
+                    Enabled = IsSubcontractingWorkCenter;
                     Image = Price;
                     RunObject = page "Subcontractor Prices";
                     RunPageLink = "Work Center No." = field("No.");
@@ -30,6 +30,7 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
                 }
             }
         }
+<<<<<<< w/pinkow/TransferWIPItemForMergeIntoMSMain
         addafter(Subcontracting)
         {
             action("WIP Ledger Entries")
@@ -41,18 +42,18 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
                 RunPageLink = "Work Center No." = field("No.");
                 ToolTip = 'View the Subcontractor WIP Ledger Entries that track work-in-progress quantities at this work center''s subcontracting location.';
             }
+=======
+        modify("Subcontractor - Dispatch List")
+        {
+            Enabled = IsSubcontractingWorkCenter;
+>>>>>>> main
         }
     }
     trigger OnAfterGetCurrRecord()
     begin
-        EnableSubcontractorPrices := Rec."Subcontractor No." <> '';
-    end;
-
-    trigger OnOpenPage()
-    begin
-        EnableSubcontractorPrices := Rec."Subcontractor No." <> '';
+        IsSubcontractingWorkCenter := Rec."Subcontractor No." <> '';
     end;
 
     var
-        EnableSubcontractorPrices: Boolean;
+        IsSubcontractingWorkCenter: Boolean;
 }
