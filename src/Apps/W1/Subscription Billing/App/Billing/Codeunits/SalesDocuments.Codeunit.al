@@ -1,5 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -613,6 +614,8 @@ codeunit 8063 "Sales Documents"
                     else
                         SubscriptionLine.Validate("Subscription Line Start Date", CalcDate(SalesSubscriptionLine."Sub. Line Start Formula", SalesLine."Shipment Date"));
                 SubscriptionLine.CopyFromSalesServiceCommitment(SalesSubscriptionLine);
+                if SalesHeader."Prices Including VAT" then
+                    StripVATFromSubscriptionLinePricing(SubscriptionLine, SalesLine, SalesHeader);
                 if SalesSubscriptionLine.Discount then
                     SubscriptionLine.Validate("Calculation Base Amount", SubscriptionLine."Calculation Base Amount" * -1);
 
@@ -634,6 +637,30 @@ codeunit 8063 "Sales Documents"
                 SubscriptionLine.Insert(false);
                 OnCreateSubscriptionHeaderFromSalesLineAfterInsertSubscriptionLine(SubscriptionLine, SalesSubscriptionLine, SalesLine);
             until SalesSubscriptionLine.Next() = 0;
+    end;
+
+    local procedure StripVATFromSubscriptionLinePricing(var SubscriptionLine: Record "Subscription Line"; SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
+    var
+        LocalCurrency: Record Currency;
+        VATRate: Decimal;
+        NetBaseAmount: Decimal;
+    begin
+        case SalesLine."VAT Calculation Type" of
+            SalesLine."VAT Calculation Type"::"Reverse Charge VAT":
+                // Reverse charge VAT is remitted by the buyer and is not embedded in the unit price.
+                // No stripping is needed.
+                exit;
+            else begin
+                VATRate := SalesLine.GetVATPct();
+                if VATRate <> 0 then begin
+                    LocalCurrency.Initialize(SalesHeader."Currency Code");
+                    NetBaseAmount := Round(
+                        SubscriptionLine."Calculation Base Amount" / (1 + VATRate / 100),
+                        LocalCurrency."Unit-Amount Rounding Precision");
+                    SubscriptionLine.Validate("Calculation Base Amount", NetBaseAmount);
+                end;
+            end;
+        end;
     end;
 
     procedure AllSalesLinesAreServiceCommitmentItems(SalesHeader: Record "Sales Header"): Boolean

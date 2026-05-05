@@ -1024,6 +1024,58 @@ codeunit 139915 "Sales Service Commitment Test"
     end;
 
     [Test]
+    procedure PostedSubscriptionLineHasNetAmountWhenPricesIncludingVAT()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        ExpectedNetBaseAmount: Decimal;
+    begin
+        // [SCENARIO] When a Sales Order with Prices Including VAT is posted, the resulting Subscription Line
+        // Calculation Base Amount must be the VAT-exclusive (net) amount, regardless of how the Sales
+        // Subscription Line stored the value before posting.
+
+        // [GIVEN] A subscription item with a non-zero VAT%, and a Sales Order with Prices Including VAT = true
+        Initialize();
+        SetupAdditionalServiceCommPackageLine(Enum::"Service Partner"::Customer, Enum::"Calculation Base Type"::"Document Price");
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        if VATPostingSetup."VAT %" = 0 then begin
+            VATPostingSetup."VAT %" := LibraryRandom.RandDecInRange(10, 25, 0);
+            VATPostingSetup.Modify(false);
+        end;
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(
+            Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+
+        // [WHEN] A sales line with a non-zero unit price is created and the order is posted (shipped)
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+        Currency.InitRoundingPrecision();
+        ExpectedNetBaseAmount := Round(
+            SalesLine."Unit Price" / (1 + VATPostingSetup."VAT %" / 100),
+            Currency."Unit-Amount Rounding Precision");
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] The posted Subscription Line Calculation Base Amount is the net (VAT-exclusive) amount
+        ServiceObject.FilterOnItemNo(Item."No.");
+        ServiceObject.FindFirst();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Customer);
+        ServiceCommitment.SetRange("Calculation Base Type", Enum::"Calculation Base Type"::"Document Price");
+        ServiceCommitment.FindFirst();
+        Assert.AreEqual(
+            ExpectedNetBaseAmount,
+            ServiceCommitment."Calculation Base Amount",
+            'Posted Subscription Line Calculation Base Amount must be the net (VAT-exclusive) amount when Prices Including VAT was enabled.');
+    end;
+
+    [Test]
     procedure CheckSalesServiceCommitmentDiscountCalculation()
     var
         DiscountAmount: Decimal;
