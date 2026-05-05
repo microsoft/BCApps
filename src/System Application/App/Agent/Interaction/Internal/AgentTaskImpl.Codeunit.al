@@ -152,6 +152,22 @@ codeunit 4300 "Agent Task Impl."
         exit((AgentTask.Status = AgentTask.Status::"Stopped by User") or (AgentTask.Status = AgentTask.Status::"Stopped by System"));
     end;
 
+    procedure ArchiveTask(AgentTaskID: BigInteger; UserConfirm: Boolean)
+    var
+        AgentTask: Record "Agent Task";
+    begin
+        AgentTask.Get(AgentTaskID);
+        if AgentTask.Archived = true then
+            exit; // Task is already archived.
+
+        if UserConfirm then
+            if not Confirm(AreYouSureThatYouWantToArchiveTheTaskQst) then
+                exit;
+
+        AgentTask.Archived := true;
+        AgentTask.Modify(true);
+    end;
+
     internal procedure TryGetAgentRecordFromTaskId(TaskId: Integer; var Agent: Record Agent): Boolean
     var
         AgentTask: Record "Agent Task";
@@ -192,4 +208,5 @@ codeunit 4300 "Agent Task Impl."
         MessageTextMustBeProvidedErr: Label 'You must provide a message text.';
         AreYouSureThatYouWantToRestartTheTaskQst: Label 'Are you sure that you want to restart the task?';
         AreYouSureThatYouWantToStopTheTaskQst: Label 'Are you sure that you want to stop the task?';
+        AreYouSureThatYouWantToArchiveTheTaskQst: Label 'Are you sure that you want to archive the task?';
 }
