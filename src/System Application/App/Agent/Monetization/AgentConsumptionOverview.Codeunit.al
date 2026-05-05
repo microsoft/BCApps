@@ -4,14 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Agents;
-using System.Environment.Consumption;
 
 codeunit 4333 "Agent Consumption Overview"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Agent Task" = r,
-                  tabledata "User AI Consumption Data" = r;
+    Permissions = tabledata "Agent Task" = r;
 
     /// <summary>
     /// Gets the total Copilot credits consumed by the agent task.
@@ -20,11 +18,9 @@ codeunit 4333 "Agent Consumption Overview"
     /// <returns>The total Copilot credits consumed by the agent task.</returns>
     procedure GetCopilotCreditsConsumed(TaskId: BigInteger): Decimal
     var
-        UserAIConsumptionData: Record "User AI Consumption Data";
+        AgentUtilities: Codeunit "Agent Utilities";
     begin
-        UserAIConsumptionData.SetRange("Agent Task Id", TaskId);
-        UserAIConsumptionData.CalcSums("Copilot Credits");
-        exit(UserAIConsumptionData."Copilot Credits");
+        exit(AgentUtilities.GetConsumedCopilotCredits(TaskId));
     end;
 
     /// <summary>
