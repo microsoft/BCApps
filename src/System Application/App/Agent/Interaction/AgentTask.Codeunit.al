@@ -56,16 +56,14 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTaskID);
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Set the status of the task to ready if the task is in the state that it can be started again.
     /// The agent task will be be picked up for processing shortly after updating the status.
     /// </summary>
-    /// <remarks>
-    /// This method will be marked as obsolete soon:
-    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
-    /// </remarks>
     /// <param name="AgentTask">The agent task to set to ready.</param>
     /// <returns>The agent task with the status set to ready.</returns>
+    [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
     procedure SetStatusToReady(var AgentTask: Record "Agent Task")
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
@@ -73,6 +71,7 @@ codeunit 4303 "Agent Task"
         FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTask);
     end;
+#endif
 
     /// <summary>
     /// Checks if the task can be set to ready and started again.
@@ -115,15 +114,13 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl.StopTask(AgentTaskID, TaskStatus::"Stopped by User", UserConfirm);
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Stops the agent task.
     /// </summary>
-    /// <remarks>
-    /// This method will be marked as obsolete soon:
-    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
-    /// </remarks>
     /// <param name="AgentTask">The agent task to stop.</param>
     /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
+    [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
     procedure StopTask(var AgentTask: Record "Agent Task"; UserConfirm: Boolean)
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
@@ -132,6 +129,7 @@ codeunit 4303 "Agent Task"
         FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskImpl.StopTask(AgentTask, TaskStatus::"Stopped by User", UserConfirm);
     end;
+#endif
 
     /// <summary>
     /// Restarts the agent task by setting its status to ready.
@@ -146,15 +144,13 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl.RestartTask(AgentTaskID, UserConfirm);
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Restarts the agent task by setting its status to ready.
     /// </summary>
-    /// <remarks>
-    /// This method will be marked as obsolete soon:
-    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
-    /// </remarks>
     /// <param name="AgentTask">The agent task to restart.</param>
     /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
+    [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
     procedure RestartTask(var AgentTask: Record "Agent Task"; UserConfirm: Boolean)
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
@@ -162,6 +158,7 @@ codeunit 4303 "Agent Task"
         FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskImpl.RestartTask(AgentTask, UserConfirm);
     end;
+#endif
 
     /// <summary>
     /// Checks if the agent task is currently running.

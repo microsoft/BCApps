@@ -193,6 +193,7 @@ codeunit 133963 "Agent Message Test"
         Assert.IsTrue(TempAgentTaskFile.IsEmpty(), 'No attachments should exist');
     end;
 
+#if not CLEAN30
     [Test]
     procedure UpdateTextDoesNotOverwriteUnrelatedFields()
     var
@@ -248,6 +249,7 @@ codeunit 133963 "Agent Message Test"
         Assert.AreEqual(UpdatedMessageText, AgentMessage.GetText(AgentTaskMessageRecord), 'Message text should be updated');
         Assert.AreEqual(OriginalFrom, AgentTaskMessageRecord.From, 'From field should not be overwritten by dirty record passed to UpdateText');
     end;
+#endif
 
     #endregion
 
