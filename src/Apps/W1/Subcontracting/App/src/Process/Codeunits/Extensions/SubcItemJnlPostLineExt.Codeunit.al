@@ -67,9 +67,12 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
 
     local procedure UpdateNewItemLedgerEntry(var NewItemLedgerEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")
     begin
+        NewItemLedgerEntry."Order No." := ItemJournalLine."Prod. Order No.";
+        NewItemLedgerEntry."Order Line No." := ItemJournalLine."Prod. Order Line No.";
+        NewItemLedgerEntry."Prod. Order Comp. Line No." := ItemJournalLine."Prod. Order Comp. Line No.";
         NewItemLedgerEntry."Subcontr. Purch. Order No." := ItemJournalLine."Subcontr. Purch. Order No.";
         NewItemLedgerEntry."Subcontr. PO Line No." := ItemJournalLine."Subcontr. PO Line No.";
-        NewItemLedgerEntry."Operation No." := ItemJournalLine."Subc. Operation No.";
+        NewItemLedgerEntry."Subcontr. Operation No." := ItemJournalLine."Subc. Operation No.";
     end;
 
     local procedure UpdateCapLedgerEntry(var CapacityLedgerEntry: Record "Capacity Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")

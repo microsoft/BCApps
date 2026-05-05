@@ -28,7 +28,7 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ItemLedgerEntry.SetRange(ItemLedgerEntry."Order Line No.", ProdOrderComponent."Prod. Order Line No.");
         ItemLedgerEntry.SetRange(ItemLedgerEntry."Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
         ItemLedgerEntry.SetRange(ItemLedgerEntry."Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Operation No.", ProdOrderRoutingLine."Operation No.");
+        ItemLedgerEntry.SetRange(ItemLedgerEntry."Subcontr. Operation No.", ProdOrderRoutingLine."Operation No.");
         ItemLedgerEntry.CalcSums(ItemLedgerEntry.Quantity);
 
         exit(Abs(ItemLedgerEntry.Quantity));
@@ -51,7 +51,7 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
         ItemLedgerEntry.SetRange(ItemLedgerEntry."Order Line No.", ProdOrderComponent."Prod. Order Line No.");
         ItemLedgerEntry.SetRange(ItemLedgerEntry."Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
         ItemLedgerEntry.SetRange(ItemLedgerEntry."Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Operation No.", ProdOrderRoutingLine."Operation No.");
+        ItemLedgerEntry.SetRange(ItemLedgerEntry."Subcontr. Operation No.", ProdOrderRoutingLine."Operation No.");
         Page.Run(Page::"Item Ledger Entries", ItemLedgerEntry);
     end;
 

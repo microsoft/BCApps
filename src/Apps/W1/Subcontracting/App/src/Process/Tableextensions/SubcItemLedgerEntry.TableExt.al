@@ -25,9 +25,9 @@ tableextension 99001500 "Subc. Item Ledger Entry" extends "Item Ledger Entry"
             TableRelation = "Purchase Line"."Line No." where("Document Type" = const(Order),
                                                               "Document No." = field("Subcontr. Purch. Order No."));
         }
-        field(99001514; "Operation No."; Code[10])
+        field(99001514; "Subcontr. Operation No."; Code[10])
         {
-            Caption = 'Operation No.';
+            Caption = 'Subcontr. Operation No.';
             DataClassification = CustomerContent;
         }
     }

@@ -1875,6 +1875,74 @@ Comment = '|%1 = Transfer Order No.';
     end;
 
     [Test]
+    procedure PostingSubcontractingTransferOrderCreatesILEWithSubcFields()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Vendor: Record Vendor;
+        ProdOrderNo: Code[20];
+        ProdOrderLineNo: Integer;
+        SubcOperationNo: Code[10];
+    begin
+        // [SCENARIO 620746] Posting a subcontracting component direct transfer order creates ILEs
+        // with Order No. and Order Line No. (base-app fields that replace the removed redundant
+        // custom "Prod. Order No." and "Prod. Order Line No." fields from the Subc. Item Ledger
+        // Entry table extension) and other subcontracting fields populated (AB#620746).
+
+        // [GIVEN] A subcontracting setup with locations, item, vendor, and a subcontracting purchase order
+        Initialize();
+        SetupInventorySetup();
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        ProdOrderNo := 'SUBC-PROD-001';
+        ProdOrderLineNo := 10000;
+        SubcOperationNo := '10';
+
+        // [GIVEN] A subcontracting purchase order (the linked subcontracting document)
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, "Purchase Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, "Purchase Line Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] Inventory at the transfer-from location for the component
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", LocationFrom.Code, '', LibraryRandom.RandInt(10) + 20);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] A direct transfer order with subcontracting fields linking the line to the prod. order and purchase order
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, '');
+        TransferHeader.Validate("Direct Transfer", true);
+        TransferHeader.Modify(true);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", LibraryRandom.RandInt(5) + 1);
+        TransferLine."Prod. Order No." := ProdOrderNo;
+        TransferLine."Prod. Order Line No." := ProdOrderLineNo;
+        TransferLine."Subcontr. Purch. Order No." := PurchaseHeader."No.";
+        TransferLine."Subcontr. PO Line No." := PurchaseLine."Line No.";
+        TransferLine."Operation No." := SubcOperationNo;
+        TransferLine.Modify();
+
+        // [WHEN] The subcontracting component transfer order is posted
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+
+        // [THEN] ILEs are created and Order No. / Order Line No. (prod. order reference) fields are correctly populated
+        ItemLedgerEntry.SetRange("Order No.", ProdOrderNo);
+        ItemLedgerEntry.SetRange("Order Line No.", ProdOrderLineNo);
+        Assert.RecordIsNotEmpty(ItemLedgerEntry);
+        ItemLedgerEntry.FindFirst();
+        Assert.AreEqual(ProdOrderNo, ItemLedgerEntry."Order No.", 'Order No. must be populated on ILE.');
+        Assert.AreEqual(ProdOrderLineNo, ItemLedgerEntry."Order Line No.", 'Order Line No. must be populated on ILE.');
+        Assert.AreEqual(PurchaseHeader."No.", ItemLedgerEntry."Subcontr. Purch. Order No.", 'Subcontr. Purch. Order No. must be populated on ILE.');
+        Assert.AreEqual(PurchaseLine."Line No.", ItemLedgerEntry."Subcontr. PO Line No.", 'Subcontr. PO Line No. must be populated on ILE.');
+        Assert.AreEqual(SubcOperationNo, ItemLedgerEntry."Subcontr. Operation No.", 'Subcontr. Operation No. must be populated on ILE.');
+    end;
+
+    [Test]
     [HandlerFunctions('RoutingLinkCodeDuplicateConfirmHandler')]
     procedure ValidateRoutingLinkCodeOnProdOrderRtngLineShowsConfirmOnce()
     var
@@ -1915,36 +1983,6 @@ Comment = '|%1 = Transfer Order No.';
         Assert.AreEqual(
             1, ConfirmDialogCalledCount,
             'Routing Link Code duplicate confirmation must be shown exactly once, not twice');
-    end;
-
-    [Test]
-    procedure PostingSubcontractingPurchReceiptCreatesILEWithSubcFields()
-    var
-        ItemLedgerEntry: Record "Item Ledger Entry";
-        PurchRcptLine: Record "Purch. Rcpt. Line";
-    begin
-        // [SCENARIO 620746] Posting a subcontracting purchase receipt creates an ILE correctly
-        // after removing the redundant "Prod. Order No." and "Prod. Order Line No." custom fields
-        // from the Subc. Item Ledger Entry table extension (AB#620746).
-
-        // [GIVEN] A complete subcontracting setup with work centers, item with routing, and a purchase order linked to a production order
-        Initialize();
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-
-        // [WHEN] The subcontracting purchase receipt is posted
-        CreateSubcontractingPurchOrderPostAndGetPurchRcptLine(PurchRcptLine);
-
-        // [THEN] An ILE is created for the receipt document
-        ItemLedgerEntry.SetRange("Document No.", PurchRcptLine."Document No.");
-        ItemLedgerEntry.SetRange("Document Line No.", PurchRcptLine."Line No.");
-        Assert.RecordIsNotEmpty(ItemLedgerEntry);
-
-        // [THEN] The remaining custom Subcontracting ILE fields exist and are accessible
-        ItemLedgerEntry.FindFirst();
-        Assert.IsTrue(ItemLedgerEntry."Subcontr. Purch. Order No." = '', 'Subcontr. Purch. Order No. must be accessible on ILE.');
-        Assert.IsTrue(ItemLedgerEntry."Subcontr. PO Line No." = 0, 'Subcontr. PO Line No. must be accessible on ILE.');
-        Assert.IsTrue(ItemLedgerEntry."Operation No." = '', 'Operation No. must be accessible on ILE.');
     end;
 
     [PageHandler]
