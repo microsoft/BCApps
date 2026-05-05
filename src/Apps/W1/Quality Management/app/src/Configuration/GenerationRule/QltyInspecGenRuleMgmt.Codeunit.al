@@ -11,7 +11,14 @@ using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Utilities;
 
 /// <summary>
-/// Methods to assist with quality inspection generation rule management.
+/// Manages the selection and evaluation of Quality Inspection generation rules.
+/// This codeunit is responsible for business rule matching: given a source record, it determines
+/// which generation rule applies based on source table, condition filters, item filters,
+/// item attribute filters, sort order, and activation trigger.
+/// Source configuration graph traversal is intentionally delegated to "Qlty. Traversal", which
+/// this codeunit uses as a navigation service to discover reachable inspection targets before
+/// evaluating rule criteria. Developers adding generation rule logic should work here; developers
+/// adding new record navigation or relationship lookups should work in "Qlty. Traversal".
 /// </summary>
 codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
 {
@@ -170,19 +177,23 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
     end;
 
     /// <summary>
-    /// Finds the first matching generation rule and record.
-    /// Note that TempQltyInspectionGenRule can be used to supply optional input filters, however it will be replaced upon output.
+    /// Finds the first matching generation rule and source record by walking the pre-computed source configuration traversal set.
+    /// The procedure evaluates generation rules at the current record level first, then recurses upward through parent
+    /// records using "Qlty. Traversal" to navigate to the linked source record for each unvisited configuration path.
+    /// Rule candidates are ordered by Sort Order ascending; the first match across condition filter, item filter,
+    /// and item attribute filter is returned. TempQltyInspectionGenRule can supply optional input filters but will
+    /// be overwritten with the matched rule on output.
     /// </summary>
-    /// <param name="CurrentRecursionDepth"></param>
-    /// <param name="UseActivationFilter"></param>
-    /// <param name="IsManualCreation"></param>
-    /// <param name="TargetRecordRef"></param>
-    /// <param name="OptionalItem"></param>
-    /// <param name="TempAvailableQltyInspectSourceConfig"></param>
-    /// <param name="TempAlreadySearchedsQltyInspectSourceConfig"></param>
-    /// <param name="OptionalSpecificTemplate"></param>
-    /// <param name="TempQltyInspectionGenRule">Filters are copied from the input, but will be replaced on output.</param>
-    /// <returns></returns>
+    /// <param name="CurrentRecursionDepth">Remaining recursion budget; decremented on each call to prevent infinite loops in circular configurations</param>
+    /// <param name="UseActivationFilter">When true, restricts rule matching to the activation trigger determined by IsManualCreation</param>
+    /// <param name="IsManualCreation">When UseActivationFilter is true, selects Manual-only or Automatic-only activation trigger filter</param>
+    /// <param name="TargetRecordRef">The source record to evaluate rules against; updated to the matched parent record on output when recursion finds the rule at a higher level</param>
+    /// <param name="OptionalItem">Optional Item used to evaluate Item Filter and Item Attribute Filter on generation rule candidates</param>
+    /// <param name="TempAvailableQltyInspectSourceConfig">Traversal set pre-populated by QltyTraversal.FindPossibleTargetsBasedOnConfigRecursive; filtered internally by To Table No. during recursive descent</param>
+    /// <param name="TempAlreadySearchedsQltyInspectSourceConfig">Visited set that prevents re-processing the same source configuration path across recursive calls</param>
+    /// <param name="OptionalSpecificTemplate">When non-empty, restricts rule matching to this template code</param>
+    /// <param name="TempQltyInspectionGenRule">Input: optional filters applied to the rule search. Output: the first matched generation rule record</param>
+    /// <returns>True if a matching generation rule was found at this level or any reachable parent level; False otherwise</returns>
     local procedure FindFirstGenerationRuleAndRecordBasedOnRecursive(CurrentRecursionDepth: Integer; UseActivationFilter: Boolean; IsManualCreation: Boolean; var TargetRecordRef: RecordRef; var OptionalItem: Record Item; var TempAvailableQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; var TempAlreadySearchedsQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config." temporary; OptionalSpecificTemplate: Code[20]; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) Found: Boolean
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
