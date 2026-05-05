@@ -9,7 +9,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Sales.Customer;
 using System.Telemetry;
 
-table 6131 "E-Document Sales Header"
+table 50000 "E-Document Sales Header"
 {
     Access = Internal;
     ReplicateData = false;

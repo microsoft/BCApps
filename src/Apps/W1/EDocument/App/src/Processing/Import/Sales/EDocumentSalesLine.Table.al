@@ -12,7 +12,7 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Document;
 
-table 6132 "E-Document Sales Line"
+table 50001 "E-Document Sales Line"
 {
     Access = Internal;
     DataClassification = CustomerContent;
