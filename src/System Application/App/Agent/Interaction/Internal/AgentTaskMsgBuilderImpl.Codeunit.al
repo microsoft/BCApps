@@ -118,7 +118,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
             until TempAgentTaskFileToAttach.Next() = 0;
 
         if SetTaskStatusToReady then
-            AgentTaskImpl.SetTaskStatusToReadyIfPossible(GlobalAgentTask);
+            AgentTaskImpl.SetTaskStatusToReadyIfPossible(GlobalAgentTask.ID);
 
         exit(GlobalAgentTaskMessage);
     end;

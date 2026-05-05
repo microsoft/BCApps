@@ -77,6 +77,7 @@ codeunit 4300 "Agent Task Impl."
         AgentTaskMessageToModify: Record "Agent Task Message";
         ContentOutStream: OutStream;
     begin
+        AgentTaskMessageToModify.Get(AgentTaskMessage."Task ID", AgentTaskMessage.ID);
         Clear(AgentTaskMessageToModify.Content);
         AgentTaskMessageToModify.Content.CreateOutStream(ContentOutStream, GetDefaultEncoding());
         ContentOutStream.Write(MessageText);
@@ -90,19 +91,24 @@ codeunit 4300 "Agent Task Impl."
         StopTask(AgentTask, AgentTaskStatus, UserConfirm);
     end;
 
-    local procedure StopTask(var AgentTask: Record "Agent Task"; AgentTaskStatus: enum "Agent Task Status"; UserConfirm: Boolean)
+    procedure StopTask(var AgentTask: Record "Agent Task"; AgentTaskStatus: enum "Agent Task Status"; UserConfirm: Boolean)
+    var
+        AgentTaskToModify: Record "Agent Task";
     begin
-        if ((AgentTask.Status = AgentTaskStatus) and (AgentTask."Needs Attention" = false)) then
+        AgentTaskToModify.Get(AgentTask.ID);
+        if ((AgentTaskToModify.Status = AgentTaskStatus) and (AgentTaskToModify."Needs Attention" = false)) then
             exit; // Task is already stopped and does not need attention.
 
         if UserConfirm then
             if not Confirm(AreYouSureThatYouWantToStopTheTaskQst) then
                 exit;
 
-        AgentTask.Get(AgentTask.ID);
-        AgentTask.Status := AgentTaskStatus;
-        AgentTask."Needs Attention" := false;
-        AgentTask.Modify(true);
+        AgentTaskToModify.Status := AgentTaskStatus;
+        AgentTaskToModify."Needs Attention" := false;
+        AgentTaskToModify.Modify(true);
+
+        AgentTask.Status := AgentTaskToModify.Status;
+        AgentTask."Needs Attention" := AgentTaskToModify."Needs Attention";
     end;
 
     procedure RestartTask(AgentTaskID: BigInteger; UserConfirm: Boolean)
@@ -113,16 +119,21 @@ codeunit 4300 "Agent Task Impl."
         RestartTask(AgentTask, UserConfirm);
     end;
 
-    local procedure RestartTask(var AgentTask: Record "Agent Task"; UserConfirm: Boolean)
+    procedure RestartTask(var AgentTask: Record "Agent Task"; UserConfirm: Boolean)
+    var
+        AgentTaskToModify: Record "Agent Task";
     begin
         if UserConfirm then
             if not Confirm(AreYouSureThatYouWantToRestartTheTaskQst) then
                 exit;
 
-        AgentTask.Get(AgentTask.ID);
-        AgentTask."Needs Attention" := false;
-        AgentTask.Status := AgentTask.Status::Ready;
-        AgentTask.Modify(true);
+        AgentTaskToModify.Get(AgentTask.ID);
+        AgentTaskToModify."Needs Attention" := false;
+        AgentTaskToModify.Status := AgentTaskToModify.Status::Ready;
+        AgentTaskToModify.Modify(true);
+
+        AgentTask."Needs Attention" := AgentTaskToModify."Needs Attention";
+        AgentTask.Status := AgentTaskToModify.Status;
     end;
 
     procedure TaskExists(AgentUserSecurityID: Guid; ConversationId: Text): Boolean
@@ -183,7 +194,7 @@ codeunit 4300 "Agent Task Impl."
         exit(IsTaskRunning(AgentTask));
     end;
 
-    local procedure IsTaskRunning(var AgentTask: Record "Agent Task"): Boolean
+    procedure IsTaskRunning(var AgentTask: Record "Agent Task"): Boolean
     begin
         exit(AgentTask.Status = AgentTask.Status::Running);
     end;
@@ -196,7 +207,7 @@ codeunit 4300 "Agent Task Impl."
         exit(IsTaskCompleted(AgentTask));
     end;
 
-    local procedure IsTaskCompleted(var AgentTask: Record "Agent Task"): Boolean
+    procedure IsTaskCompleted(var AgentTask: Record "Agent Task"): Boolean
     begin
         exit(AgentTask.Status = AgentTask.Status::Completed);
     end;

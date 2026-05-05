@@ -49,14 +49,15 @@ codeunit 4308 "Agent Message Impl."
 
     procedure UpdateText(var AgentTaskMessage: Record "Agent Task Message"; NewMessageText: Text)
     var
-        AgentTaskImpl: Codeunit "Agent Task Impl.";
         AgentTaskMessageToModify: Record "Agent Task Message";
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
         ContentOutStream: OutStream;
     begin
         AgentTaskMessageToModify.Get(AgentTaskMessage."Task ID", AgentTaskMessage.ID);
         AgentTaskMessageToModify.Content.CreateOutStream(ContentOutStream, AgentTaskImpl.GetDefaultEncoding());
         ContentOutStream.Write(NewMessageText);
         AgentTaskMessageToModify.Modify(true);
+
         AgentTaskMessage.Content := AgentTaskMessageToModify.Content;
     end;
 
@@ -253,6 +254,7 @@ codeunit 4308 "Agent Message Impl."
         AgentTaskMessageToModify.Get(AgentTaskMessage."Task ID", AgentTaskMessage.ID);
         AgentTaskMessageToModify.Status := Status;
         AgentTaskMessageToModify.Modify(true);
+
         AgentTaskMessage.Status := AgentTaskMessageToModify.Status;
     end;
 

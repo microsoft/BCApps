@@ -130,7 +130,7 @@ codeunit 4303 "Agent Task"
         TaskStatus: Enum "Agent Task Status";
     begin
         FeatureAccessManagement.AgentManagementAllowed(true);
-        AgentTaskImpl.StopTask(AgentTask.ID, TaskStatus::"Stopped by User", UserConfirm);
+        AgentTaskImpl.StopTask(AgentTask, TaskStatus::"Stopped by User", UserConfirm);
     end;
 
     /// <summary>
@@ -160,7 +160,7 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
         FeatureAccessManagement.AgentManagementAllowed(true);
-        AgentTaskImpl.RestartTask(AgentTask.ID, UserConfirm);
+        AgentTaskImpl.RestartTask(AgentTask, UserConfirm);
     end;
 
     /// <summary>
@@ -187,7 +187,7 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
         FeatureAccessManagement.AgentManagementAllowed(true);
-        exit(AgentTaskImpl.IsTaskRunning(AgentTask.ID));
+        exit(AgentTaskImpl.IsTaskRunning(AgentTask));
     end;
 
     /// <summary>
@@ -214,7 +214,7 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
         FeatureAccessManagement.AgentManagementAllowed(true);
-        exit(AgentTaskImpl.IsTaskCompleted(AgentTask.ID));
+        exit(AgentTaskImpl.IsTaskCompleted(AgentTask));
     end;
 
     /// <summary>
