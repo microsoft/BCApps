@@ -193,7 +193,7 @@ codeunit 133963 "Agent Message Test"
         Assert.IsTrue(TempAgentTaskFile.IsEmpty(), 'No attachments should exist');
     end;
 
-#if not CLEAN30
+#if not CLEAN29
     [Test]
     procedure UpdateTextDoesNotOverwriteUnrelatedFields()
     var

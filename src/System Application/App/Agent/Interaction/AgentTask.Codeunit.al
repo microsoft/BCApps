@@ -56,14 +56,14 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTaskID);
     end;
 
-#if not CLEAN30
+#if not CLEAN29
     /// <summary>
     /// Set the status of the task to ready if the task is in the state that it can be started again.
     /// The agent task will be be picked up for processing shortly after updating the status.
     /// </summary>
     /// <param name="AgentTask">The agent task to set to ready.</param>
     /// <returns>The agent task with the status set to ready.</returns>
-    [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
+    [Obsolete('Use the overload that takes AgentTaskID instead.', '29.0')]
     procedure SetStatusToReady(var AgentTask: Record "Agent Task")
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
@@ -114,13 +114,13 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl.StopTask(AgentTaskID, TaskStatus::"Stopped by User", UserConfirm);
     end;
 
-#if not CLEAN30
+#if not CLEAN29
     /// <summary>
     /// Stops the agent task.
     /// </summary>
     /// <param name="AgentTask">The agent task to stop.</param>
     /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
-    [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
+    [Obsolete('Use the overload that takes AgentTaskID instead.', '29.0')]
     procedure StopTask(var AgentTask: Record "Agent Task"; UserConfirm: Boolean)
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
@@ -144,13 +144,13 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl.RestartTask(AgentTaskID, UserConfirm);
     end;
 
-#if not CLEAN30
+#if not CLEAN29
     /// <summary>
     /// Restarts the agent task by setting its status to ready.
     /// </summary>
     /// <param name="AgentTask">The agent task to restart.</param>
     /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
-    [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
+    [Obsolete('Use the overload that takes AgentTaskID instead.', '29.0')]
     procedure RestartTask(var AgentTask: Record "Agent Task"; UserConfirm: Boolean)
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";

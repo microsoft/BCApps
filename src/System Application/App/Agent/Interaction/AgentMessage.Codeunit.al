@@ -57,13 +57,13 @@ codeunit 4307 "Agent Message"
         AgentMessageImpl.UpdateText(TaskID, MessageID, NewMessageText);
     end;
 
-#if not CLEAN30
+#if not CLEAN29
     /// <summary>
     /// Updates the message text.
     /// </summary>
     /// <param name="AgentTaskMessage">The message record to update.</param>
     /// <param name="NewMessageText">New message text to set.</param>
-    [Obsolete('Use the overload that takes TaskID and MessageID instead.', '30.0')]
+    [Obsolete('Use the overload that takes TaskID and MessageID instead.', '29.0')]
     procedure UpdateText(var AgentTaskMessage: Record "Agent Task Message"; NewMessageText: Text)
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
@@ -114,13 +114,13 @@ codeunit 4307 "Agent Message"
         AgentMessageImpl.SetStatusToSent(TaskID, MessageID);
     end;
 
-#if not CLEAN30
+#if not CLEAN29
     /// <summary>
     /// Sets the message status to sent.
     /// </summary>
     /// <param name="AgentTaskMessage">Agent task message to update status.</param>
 
-    [Obsolete('Use the overload that takes TaskID and MessageID instead.', '30.0')]
+    [Obsolete('Use the overload that takes TaskID and MessageID instead.', '29.0')]
     procedure SetStatusToSent(var AgentTaskMessage: Record "Agent Task Message")
     var
         AgentMessageImpl: Codeunit "Agent Message Impl.";
