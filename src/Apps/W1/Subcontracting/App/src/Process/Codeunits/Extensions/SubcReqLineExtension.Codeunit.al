@@ -35,4 +35,14 @@ codeunit 99001513 "Subc. Req.Line Extension"
         if (Rec.Type = Rec.Type::Item) and (Rec."No." <> '') and (Rec."Prod. Order No." <> '') then
             Rec.UpdateSubcontractorPrice();
     end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Req. Wksh. Template", 'OnAfterValidateEvent', 'Recurring', true, false)]
+    local procedure ReqWkshTemplateOnAfterValidateRecurring(var Rec: Record "Req. Wksh. Template")
+    begin
+        if not Rec.Recurring then
+            case Rec.Type of
+                Rec.Type::Subcontracting:
+                    Rec."Page ID" := Page::"Subc. Subcontracting Worksheet";
+            end;
+    end;
 }

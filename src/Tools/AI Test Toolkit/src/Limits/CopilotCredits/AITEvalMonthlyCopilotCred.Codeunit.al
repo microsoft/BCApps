@@ -261,7 +261,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
 
     procedure OpenConfigurationPage(Notification: Notification)
     begin
-        OpenConfigurationPage()
+        OpenConfigurationPage();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Eval Monthly Copilot Cred.", OnBeforeInsertEvent, '', false, false)]

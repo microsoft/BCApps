@@ -13,6 +13,8 @@ using System.Utilities;
 codeunit 149034 "AIT Test Suite Mgt."
 {
     Access = Internal;
+    Permissions = tabledata "Test Input Group" = rmid,
+                  tabledata "Test Input" = rmid;
 
     var
         GlobalAITTestSuite: Record "AIT Test Suite";
@@ -124,7 +126,7 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITTestRunInputHandler.SetInput(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
 
-        BindSubscription(AITTestRunInputHandler);
+        if BindSubscription(AITTestRunInputHandler) then;
         RunAITestLine(AITTestMethodLineForLogEntry, false);
         UnbindSubscription(AITTestRunInputHandler);
 

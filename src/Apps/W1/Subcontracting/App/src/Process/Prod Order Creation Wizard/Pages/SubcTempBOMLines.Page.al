@@ -41,6 +41,12 @@ page 99001506 "Subc. Temp BOM Lines"
                 {
                     ToolTip = 'Specifies a description of the item or resource.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description of the item or resource.';
+                    Visible = false;
+                }
                 field("Quantity per"; Rec."Quantity per")
                 {
                     AutoFormatType = 0;
