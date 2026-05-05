@@ -2053,7 +2053,6 @@ Comment = '|%1 = Transfer Order No.';
         // [GIVEN] Standard subcontracting setup with an in-transit transfer route (non-direct)
         Initialize();
         UpdateManufacturingSetupWithSubcontractingLocation();
-        SetupInventorySetup();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
@@ -2154,7 +2153,6 @@ Comment = '|%1 = Transfer Order No.';
         // [GIVEN] Standard subcontracting setup WITHOUT an in-transit transfer route — the outbound TO will be Direct Transfer
         Initialize();
         UpdateManufacturingSetupWithSubcontractingLocation();
-        SetupInventorySetup();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
