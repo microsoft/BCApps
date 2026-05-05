@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.EServices.EDocument.Processing.Import.Sales;
 
 enum 6110 "E-Doc. Proc. Customizations" implements
     IVendorProvider,
@@ -12,7 +13,10 @@ enum 6110 "E-Doc. Proc. Customizations" implements
     IPurchaseLineProvider,
     IUnitOfMeasureProvider,
     IEDocumentCreatePurchaseInvoice,
-    IEDocumentCreatePurchaseCreditMemo
+    IEDocumentCreatePurchaseCreditMemo,
+    ICustomerProvider,
+    ISalesLineProvider,
+    IEDocumentCreateSalesOrder
 {
     Extensible = true;
     DefaultImplementation = IVendorProvider = "E-Doc. Providers",
@@ -20,7 +24,10 @@ enum 6110 "E-Doc. Proc. Customizations" implements
                             IPurchaseLineProvider = "E-Doc. Providers",
                             IUnitOfMeasureProvider = "E-Doc. Providers",
                             IEDocumentCreatePurchaseInvoice = "E-Doc. Create Purchase Invoice",
-                            IEDocumentCreatePurchaseCreditMemo = "E-Doc. Create Purch. Cr. Memo";
+                            IEDocumentCreatePurchaseCreditMemo = "E-Doc. Create Purch. Cr. Memo",
+                            ICustomerProvider = "E-Doc. Sales Providers",
+                            ISalesLineProvider = "E-Doc. Sales Providers",
+                            IEDocumentCreateSalesOrder = "E-Doc. Create Sales Order";
 
     value(0; Default)
     {
