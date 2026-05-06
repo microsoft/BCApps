@@ -26,12 +26,14 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Structure;
 
@@ -2085,6 +2087,12 @@ Comment = '|%1 = Transfer Order No.';
         Reply := true;
     end;
 
+    [ConfirmHandler]
+    procedure ConfirmArchiveOrderHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
+
     local procedure RemoveSubcontractingManagementSetupRecord()
     var
         SubcontractingManagementSetup: Record "Subc. Management Setup";
@@ -2416,6 +2424,79 @@ Comment = '|%1 = Transfer Order No.';
         Item.Validate("Overhead Rate", LibraryRandom.RandDec(5, 2));
         Item.Validate("Indirect Cost %", LibraryRandom.RandDec(5, 2));
         Item.Modify(true);
+    end;
+
+    [Test]
+    procedure CopyDocumentDoesNotCopySubcLocationCode()
+    var
+        FromPurchaseHeader: Record "Purchase Header";
+        ToPurchaseHeader: Record "Purchase Header";
+        Location: Record Location;
+        CopyPurchDoc: Report "Copy Purchase Document";
+    begin
+        // [SCENARIO 633225] Copy Document should not copy the Subcontracting Location Code to the new purchase order
+        Initialize();
+
+        // [GIVEN] A purchase order with Subcontracting Location Code set
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryPurchase.CreatePurchaseOrder(FromPurchaseHeader);
+        FromPurchaseHeader."Subc. Location Code" := Location.Code;
+        FromPurchaseHeader.Modify();
+
+        // [GIVEN] A new target purchase order for the same vendor
+        LibraryPurchase.CreatePurchHeader(ToPurchaseHeader, ToPurchaseHeader."Document Type"::Order, FromPurchaseHeader."Buy-from Vendor No.");
+
+        // [WHEN] Copy Document is used to copy the source order (IncludeHeader = true)
+        Clear(CopyPurchDoc);
+        CopyPurchDoc.SetParameters("Purchase Document Type From"::Order, FromPurchaseHeader."No.", true, false);
+        CopyPurchDoc.SetPurchHeader(ToPurchaseHeader);
+        CopyPurchDoc.UseRequestPage(false);
+        CopyPurchDoc.RunModal();
+
+        // [THEN] Subcontracting Location Code is not copied to the new purchase order
+        ToPurchaseHeader.Get(ToPurchaseHeader."Document Type", ToPurchaseHeader."No.");
+        Assert.AreEqual('', ToPurchaseHeader."Subc. Location Code", 'Subc. Location Code should not be copied by Copy Document');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmArchiveOrderHandler,MessageHandler')]
+    procedure CopyDocumentFromArchiveDoesNotCopySubcLocationCode()
+    var
+        FromPurchaseHeader: Record "Purchase Header";
+        ToPurchaseHeader: Record "Purchase Header";
+        PurchaseHeaderArchive: Record "Purchase Header Archive";
+        Location: Record Location;
+        ArchiveManagement: Codeunit ArchiveManagement;
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        FromDocNo: Code[20];
+    begin
+        // [SCENARIO 633225] Copy Document from archive should not copy the Subcontracting Location Code to the new purchase order
+        Initialize();
+
+        // [GIVEN] A purchase order with Subcontracting Location Code set
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryPurchase.CreatePurchaseOrder(FromPurchaseHeader);
+        FromPurchaseHeader."Subc. Location Code" := Location.Code;
+        FromPurchaseHeader.Modify();
+        FromDocNo := FromPurchaseHeader."No.";
+
+        // [GIVEN] The purchase order is archived
+        ArchiveManagement.ArchivePurchDocument(FromPurchaseHeader);
+
+        // [GIVEN] A new target purchase order for the same vendor
+        LibraryPurchase.CreatePurchHeader(ToPurchaseHeader, ToPurchaseHeader."Document Type"::Order, FromPurchaseHeader."Buy-from Vendor No.");
+
+        // [WHEN] Copy Document is used to copy from the archived order (IncludeHeader = true)
+        PurchaseHeaderArchive.SetRange("Document Type", FromPurchaseHeader."Document Type");
+        PurchaseHeaderArchive.SetRange("No.", FromDocNo);
+        PurchaseHeaderArchive.FindFirst();
+        CopyDocumentMgt.SetProperties(true, false, false, false, false, false, false);
+        CopyDocumentMgt.SetArchDocVal(PurchaseHeaderArchive."Doc. No. Occurrence", PurchaseHeaderArchive."Version No.");
+        CopyDocumentMgt.CopyPurchDoc("Purchase Document Type From"::"Arch. Order", FromDocNo, ToPurchaseHeader);
+
+        // [THEN] Subcontracting Location Code is not copied to the new purchase order
+        ToPurchaseHeader.Get(ToPurchaseHeader."Document Type", ToPurchaseHeader."No.");
+        Assert.AreEqual('', ToPurchaseHeader."Subc. Location Code", 'Subc. Location Code should not be copied from archive by Copy Document');
     end;
 
     local procedure Initialize()
