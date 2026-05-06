@@ -24,7 +24,7 @@ pageextension 6162 "E-Doc. Purch. Payables Setup" extends "Purchases & Payables 
             field("E-Doc. Purch.Def. Posting Date"; Rec."E-Doc. Purch.Def. Posting Date")
             {
                 ApplicationArea = All;
-                ToolTip = 'Specifies the default posting date for purchase documents created from e-documents. Work Date uses the current work date. Document Date uses the document date from the e-document.';
+                ToolTip = 'Specifies how the posting date is set on purchase invoices created from e-documents. Work Date uses the current work date. Document Date uses the document date from the e-document.';
             }
         }
     }
