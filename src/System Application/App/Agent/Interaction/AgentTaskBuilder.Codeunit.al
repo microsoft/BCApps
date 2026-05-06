@@ -94,6 +94,21 @@ codeunit 4315 "Agent Task Builder"
     end;
 
     /// <summary>
+    /// Set the model ID that will be used to process the task.
+    /// If the model ID is not set, the model from the agent will be used, if any.
+    /// If the agent does not have a model, the default model will be used.
+    /// </summary>
+    /// <param name="ModelId">The model ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
+    /// <returns>This instance of the Agent Task Builder.</returns>
+    [Scope('OnPrem')]
+    procedure SetModelId(ModelId: Text[70]): codeunit "Agent Task Builder"
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskBuilderImpl.SetModelId(ModelId);
+        exit(this);
+    end;
+
+    /// <summary>
     /// Add a task message to the task.
     /// Only a single message can be added to the task.
     /// </summary>
