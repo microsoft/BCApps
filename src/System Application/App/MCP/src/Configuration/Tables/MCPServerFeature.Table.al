@@ -5,7 +5,7 @@
 
 namespace System.MCP;
 
-table 8353 "MCP System Tool"
+table 8355 "MCP Server Feature"
 {
     Access = Internal;
     DataClassification = SystemMetadata;
@@ -13,32 +13,29 @@ table 8353 "MCP System Tool"
 
     fields
     {
-        field(1; "Tool Name"; Text[100])
+        field(1; Feature; Enum "MCP Server Feature")
         {
-            Caption = 'Tool Name';
-            ToolTip = 'Specifies the name of the system tool.';
+            Caption = 'Feature';
         }
-        field(2; "Tool Description"; Text[250])
+        field(2; "Description"; Text[500])
         {
-            Caption = 'Tool Description';
-            ToolTip = 'Specifies the description of the system tool.';
+            Caption = 'Description';
+            ToolTip = 'Specifies what enabling this server feature does.';
         }
-        field(3; "Server Feature"; Enum "MCP Server Feature")
+        field(3; "Status"; Option)
         {
-            Caption = 'Server Feature';
-            ToolTip = 'Specifies which server feature exposes this tool.';
+            Caption = 'Status';
+            OptionMembers = Inactive,Active;
+            OptionCaption = 'Inactive,Active';
+            ToolTip = 'Specifies whether this server feature is currently active for the configuration.';
         }
     }
 
     keys
     {
-        key(Key1; "Server Feature", "Tool Name")
+        key(Key1; Feature)
         {
             Clustered = true;
         }
-    }
-
-    fieldgroups
-    {
     }
 }

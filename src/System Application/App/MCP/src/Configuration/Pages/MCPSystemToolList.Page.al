@@ -12,6 +12,7 @@ page 8365 "MCP System Tool List"
     PageType = ListPart;
     SourceTable = "MCP System Tool";
     SourceTableTemporary = true;
+    SourceTableView = sorting("Server Feature", "Tool Name");
     Editable = false;
     InsertAllowed = false;
     ModifyAllowed = false;
@@ -27,27 +28,18 @@ page 8365 "MCP System Tool List"
             repeater(Control1)
             {
                 ShowCaption = false;
+                field("Server Feature"; Rec."Server Feature") { }
                 field("Tool Name"; Rec."Tool Name") { }
                 field("Tool Description"; Rec."Tool Description") { }
             }
         }
     }
 
-    trigger OnOpenPage()
-    begin
-        LoadSystemTools();
-    end;
-
+    internal procedure Reload(IncludeAPITools: Boolean; IncludeALQuery: Boolean)
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
-        IsLoaded: Boolean;
-
-    local procedure LoadSystemTools()
     begin
-        if IsLoaded then
-            exit;
-
-        IsLoaded := true;
-        MCPConfigImplementation.LoadSystemTools(Rec);
+        MCPConfigImplementation.LoadSystemTools(Rec, IncludeAPITools, IncludeALQuery);
+        if Rec.FindFirst() then;
     end;
 }

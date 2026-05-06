@@ -668,6 +668,30 @@ codeunit 8351 "MCP Config Implementation"
             APIGroup := MCPAPIPublisherGroup."API Group";
     end;
 
+    internal procedure ResolvePublisherForGroup(var MCPAPIPublisherGroup: Record "MCP API Publisher Group"; var APIPublisher: Text; APIGroupValue: Text)
+    begin
+        if APIGroupValue = '' then begin
+            APIPublisher := '';
+            exit;
+        end;
+
+        MCPAPIPublisherGroup.Reset();
+        MCPAPIPublisherGroup.SetRange("API Group", APIGroupValue);
+
+        if not MCPAPIPublisherGroup.FindSet() then begin
+            APIPublisher := '';
+            exit;
+        end;
+
+        if MCPAPIPublisherGroup.Count() = 1 then begin
+            APIPublisher := MCPAPIPublisherGroup."API Publisher";
+            exit;
+        end;
+
+        if Page.RunModal(Page::"MCP API Publisher Lookup", MCPAPIPublisherGroup) = Action::LookupOK then
+            APIPublisher := MCPAPIPublisherGroup."API Publisher";
+    end;
+
     internal procedure ValidateAPIPageTool(PageId: Integer; ValidateAPIPublisher: Boolean): Record "Page Metadata"
     var
         PageMetadata: Record "Page Metadata";
@@ -825,7 +849,7 @@ codeunit 8351 "MCP Config Implementation"
         exit('');
     end;
 
-    internal procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool")
+    internal procedure LoadSystemTools(var MCPSystemTool: Record "MCP System Tool"; IncludeAPITools: Boolean; IncludeALQuery: Boolean)
     var
         MCPUtilities: Codeunit "MCP Utilities";
         SystemTools: Dictionary of [Text, Text];
@@ -834,13 +858,25 @@ codeunit 8351 "MCP Config Implementation"
         MCPSystemTool.Reset();
         MCPSystemTool.DeleteAll();
 
-        SystemTools := MCPUtilities.GetSystemToolsInDynamicMode();
-        foreach ToolName in SystemTools.Keys() do
-            InsertSystemTool(MCPSystemTool, CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
+        if IncludeAPITools then begin
+            SystemTools := MCPUtilities.GetSystemToolsInDynamicMode();
+            foreach ToolName in SystemTools.Keys() do
+                // Tools exposed by Dynamic Tool Mode aren't owned by a feature, so leave Server Feature blank (the enum's empty value).
+                InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::" ", CopyStr(ToolName, 1, MaxStrLen(MCPSystemTool."Tool Name")), CopyStr(SystemTools.Get(ToolName), 1, MaxStrLen(MCPSystemTool."Tool Description")));
+        end;
+
+        if IncludeALQuery then begin
+            // MOCK: hardcoded preview of the AL Query system tools. When the platform exposes the real
+            // tool catalog, replace these inserts with a call to MCP Utilities (mirroring
+            // GetSystemToolsInDynamicMode for the AL Query server).
+            InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::"AL Query Server", 'compile_al_query', 'Compile an AL query string and return diagnostics.');
+            InsertSystemTool(MCPSystemTool, MCPSystemTool."Server Feature"::"AL Query Server", 'run_al_query', 'Execute a previously compiled AL query and return the result set.');
+        end;
     end;
 
-    local procedure InsertSystemTool(var MCPSystemTool: Record "MCP System Tool"; ToolName: Text[100]; ToolDescription: Text[250])
+    local procedure InsertSystemTool(var MCPSystemTool: Record "MCP System Tool"; ServerFeature: Enum "MCP Server Feature"; ToolName: Text[100]; ToolDescription: Text[250])
     begin
+        MCPSystemTool."Server Feature" := ServerFeature;
         MCPSystemTool."Tool Name" := ToolName;
         MCPSystemTool."Tool Description" := ToolDescription;
         MCPSystemTool.Insert();
