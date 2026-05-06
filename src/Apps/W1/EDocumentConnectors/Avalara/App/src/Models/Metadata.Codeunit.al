@@ -4,14 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara.Models;
 
-
 /// <summary>
 /// Construct meta data object for Avalara request
 /// https://developer.avalara.com/api-reference/e-invoicing/einvoice/models/SubmitDocument/
 /// </summary>
 codeunit 6375 Metadata
 {
-
     procedure SetWorkflowId(Id: Text): Codeunit Metadata
     begin
         this.WorkflowId := Id;
@@ -54,8 +52,6 @@ codeunit 6375 Metadata
         JsonObject.WriteTo(Data);
     end;
 
-
     var
         WorkflowId, Format, FormatVersion, CountryCode, Mandate : Text;
-
 }

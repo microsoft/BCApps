@@ -193,9 +193,11 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
         }
     }
 
-    var
+    protected var
         TempContractBillingDetailsBuffer: Record "Job Ledger Entry" temporary;
         TempContractBillingDetailsGroupingBuffer: Record "Job Ledger Entry" temporary;
+
+    var        
         SalesInvoiceLine: Record "Sales Invoice Line";
         Customer2: Record Customer;
         ContractBillingPrintout: Codeunit "Sub. Contract Billing Printout";

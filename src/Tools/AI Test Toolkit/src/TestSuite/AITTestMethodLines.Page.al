@@ -5,6 +5,8 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.TestTools.TestRunner;
+
 page 149034 "AIT Test Method Lines"
 {
     Caption = 'Evals';
@@ -106,7 +108,7 @@ page 149034 "AIT Test Method Lines"
                 {
                     Editable = false;
                     Caption = 'Execution';
-                    ToolTip = 'Specifies the average execution of the eval line. The execution is calculated as the percentage of evals that were executed among the total evals (excluding skipped evals).';
+                    ToolTip = 'Specifies the average execution of the eval line. The execution is calculated as the percentage of evals that were executed among the total evals (including skipped evals).';
                     AutoFormatType = 0;
                 }
                 field(TurnsText; TurnsText)
@@ -237,6 +239,32 @@ page 149034 "AIT Test Method Lines"
                         exit;
                     AITTestSuiteMgt.RunAITestLine(Rec, false);
                     CurrPage.Update(false);
+                end;
+            }
+            action(ResetSuiteSetup)
+            {
+                Caption = 'Reset Suite Setup';
+                ToolTip = 'Resets the per-suite setup flag so that the setup data can be created again.';
+                Image = ResetStatus;
+
+                trigger OnAction()
+                var
+                    TestInputGroup: Record "Test Input Group";
+                    SuiteSetupGroup: Record "Test Input Group";
+                    InputDatasetCode: Code[100];
+                begin
+                    InputDatasetCode := Rec.GetTestInputCode();
+                    if not TestInputGroup.Get(InputDatasetCode) then
+                        exit;
+
+                    if TestInputGroup."Suite Setup Group Name" = '' then
+                        exit;
+
+                    SuiteSetupGroup.SetRange("Group Name", TestInputGroup."Suite Setup Group Name");
+                    if SuiteSetupGroup.FindFirst() then begin
+                        SuiteSetupGroup.ResetSuiteSetup();
+                        CurrPage.Update(false);
+                    end;
                 end;
             }
             action(LogEntries)

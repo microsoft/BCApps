@@ -15,7 +15,7 @@ codeunit 139619 "E-Doc. Integration Mock" implements "E-Document Integration"
     ObsoleteState = Pending;
     ObsoleteReason = 'Obsolete in 26.0';
 #pragma warning restore AL0432
-
+#pragma warning disable AL0432 // TODO(#632280) - new compiler validation needs to be relaxed
     procedure Send(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; var IsAsync: Boolean; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage);
     begin
         OnSend(EDocument, TempBlob, IsAsync, HttpRequest, HttpResponse);
@@ -68,6 +68,7 @@ codeunit 139619 "E-Doc. Integration Mock" implements "E-Document Integration"
     begin
 
     end;
+#pragma warning restore AL0432 // TODO(#632280) - new compiler validation needs to be relaxed
 
     [IntegrationEvent(false, false)]
     local procedure OnSend(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; var IsAsync: Boolean; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage)
