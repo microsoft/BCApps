@@ -1,0 +1,39 @@
+name: Update Unstable Tests List
+
+# Updates the per-branch unstable tests artifact after each CI/CD run completes.
+# This artifact is consumed by subsequent CI/CD runs on the same branch to tolerate
+# failures of tests that are known to be unstable.
+#
+# Current behavior (implemented in build/scripts/TestTolerance/UpdateUnstableTests.ps1):
+#   The unstable tests list is recomputed from a recent window of CI/CD runs for the
+#   target branch, rather than being updated incrementally from only the triggering run.
+#   Any test that failed at least once within that window is included in the list.
+#   Tests that did not fail in any of the examined runs are dropped (self-healing).
+
+on:
+  workflow_run:
+    workflows: [' CI/CD']
+    types: [completed]
+    branches: ['main', 'releases/*']
+  workflow_dispatch:
+    inputs:
+      targetBranch:
+        description: 'Branch to update the unstable tests list for'
+        required: true
+        default: 'main'
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  UpdateUnstableTests:
+    if: github.repository_owner == 'microsoft' && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion != 'cancelled')
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Update unstable tests
+        uses: ./.github/actions/UpdateUnstableTests
+        with:
+          branch: ${{ github.event_name == 'workflow_dispatch' && inputs.targetBranch || github.event.workflow_run.head_branch }}

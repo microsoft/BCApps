@@ -1,0 +1,42 @@
+name: Update Unstable Tests
+author: Microsoft Corporation
+description: >
+  Downloads test results from a CI/CD workflow run, applies the unstable-test heuristic,
+  and publishes an updated per-branch unstable-tests artifact.
+inputs:
+  branch:
+    description: Target branch (e.g. 'main', 'releases/26.0')
+    required: true
+  source-repository:
+    description: >
+      Repository to read CI/CD test result artifacts from (owner/repo).
+      Defaults to the current repository when not set.
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Update Unstable Tests
+      id: update
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+        _branch: ${{ inputs.branch }}
+        _repository: ${{ github.repository }}
+        _sourceRepository: ${{ inputs.source-repository }}
+      run: |
+        ${{ github.action_path }}/action.ps1 `
+          -branch $env:_branch `
+          -repository $env:_repository `
+          -sourceRepository $env:_sourceRepository
+
+    - name: Upload unstable tests artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: ${{ steps.update.outputs.artifactName }}
+        path: .unstable-tests/unstable-tests.json
+        if-no-files-found: error
+        retention-days: 90
+branding:
+  icon: terminal
+  color: blue

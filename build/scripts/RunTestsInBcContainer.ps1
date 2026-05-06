@@ -6,6 +6,7 @@ Param(
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot\TestTolerance\TestTolerance.psm1 -Force
 
 function Get-DisabledTests
 {
@@ -82,7 +83,23 @@ if ($DisableTestIsolation)
     $parameters["requiredTestIsolation"] = "Disabled" # filtering on tests that require Disabled Test Isolation
     $parameters["testRunnerCodeunitId"] = "130451" # Test Runner with disabled test isolation
 
-    return Invoke-TestsWithReruns -parameters $parameters -maxReruns 1 # do not retry for Isolation Disabled tests, as they leave traces in the DB
+    $result = Invoke-TestsWithReruns -parameters $parameters -maxReruns 1 # do not retry for Isolation Disabled tests, as they leave traces in the DB
+} else {
+    $result = Invoke-TestsWithReruns -parameters $parameters
 }
 
-return Invoke-TestsWithReruns -parameters $parameters
+if (-not $result -and $parameters.ContainsKey("XUnitResultFileName")) {
+    # Download unstable tests artifact only when tests failed and tolerance may apply
+    $toleranceBranch = Get-ToleranceBranch
+    $tempDownloadDir = Join-Path ([System.IO.Path]::GetTempPath()) "unstable-tests-$([System.Guid]::NewGuid().ToString('N'))"
+    try {
+        $UnstableTestsPath = Receive-UnstableTestsArtifact -Branch $toleranceBranch -OutputDirectory $tempDownloadDir
+        $result = Test-ShouldTolerateFailures -TestResultsPath $parameters["XUnitResultFileName"] -UnstableTestsPath $UnstableTestsPath
+    } finally {
+        if (Test-Path $tempDownloadDir) {
+            Remove-Item -Path $tempDownloadDir -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+return $result
