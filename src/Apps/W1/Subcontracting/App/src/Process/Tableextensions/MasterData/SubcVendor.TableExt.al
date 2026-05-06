@@ -18,6 +18,17 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
             Caption = 'Subcontracting Location Code';
             DataClassification = CustomerContent;
             TableRelation = Location where("Use As In-Transit" = const(false));
+            trigger OnValidate()
+            var
+                Location: Record Location;
+                BinMandatorySubcontrLocationErr: Label 'Location %1 cannot be used as a Subcontracting Location because Bin Mandatory is enabled.', Comment = '%1 = Location Code';
+            begin
+                if "Subcontr. Location Code" = '' then
+                    exit;
+                Location.Get("Subcontr. Location Code");
+                if Location."Bin Mandatory" then
+                    Error(BinMandatorySubcontrLocationErr, "Subcontr. Location Code");
+            end;
         }
         field(99001516; "Linked to Work Center"; Boolean)
         {

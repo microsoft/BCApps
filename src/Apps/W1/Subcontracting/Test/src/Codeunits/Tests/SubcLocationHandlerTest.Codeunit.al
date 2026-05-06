@@ -367,7 +367,13 @@ codeunit 139981 "Subc. Location Handler Test"
     local procedure CreateSubcontractingSetup(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var ProdOrder: Record "Production Order"; var ProdOrderLine: Record "Prod. Order Line"; var ProdOrderComp: Record "Prod. Order Component"; var ProdOrderRtngLine: Record "Prod. Order Routing Line"; var Vendor: Record Vendor; var LocationSub: Record Location; var Item: Record Item; Qty: Decimal; CompLocationCode: Code[10]; CompOrigLocationCode: Code[10])
     var
         RoutingLink: Record "Routing Link";
+        SubManagementSetup: Record "Subc. Management Setup";
     begin
+        // Enable Direct Transfer so Transfer Header creation does not require an In-Transit location
+        SubManagementSetup.Get();
+        SubManagementSetup."Direct Transfer" := true;
+        SubManagementSetup.Modify();
+
         // [GIVEN] Vendor with Subcontractor Location
         if Vendor."No." = '' then begin
             LibraryPurchase.CreateVendor(Vendor);
@@ -429,6 +435,52 @@ codeunit 139981 "Subc. Location Handler Test"
         ProdOrderRtngLine."Operation No." := OperationNo;
         ProdOrderRtngLine."Routing Link Code" := RoutingLinkCode;
         ProdOrderRtngLine.Insert();
+    end;
+
+    [Test]
+    procedure ValidateVendorSubcontrLocationCode_BinMandatoryLocation_RaisesError()
+    var
+        Location: Record Location;
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 633208] Setting Vendor."Subcontr. Location Code" to a Bin Mandatory location raises an error immediately
+        Initialize();
+
+        // [GIVEN] A location with Bin Mandatory enabled
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Bin Mandatory" := true;
+        Location.Modify(true);
+
+        // [GIVEN] A vendor
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] / [THEN] Validating "Subcontr. Location Code" to a Bin Mandatory location raises an error immediately
+        asserterror Vendor.Validate("Subcontr. Location Code", Location.Code);
+        Assert.ExpectedError('Bin Mandatory');
+    end;
+
+    [Test]
+    procedure ValidatePurchHeaderSubcLocationCode_BinMandatoryLocation_RaisesError()
+    var
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 633208] Setting PurchaseHeader."Subc. Location Code" to a Bin Mandatory location raises an error immediately
+        Initialize();
+
+        // [GIVEN] A location with Bin Mandatory enabled
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Bin Mandatory" := true;
+        Location.Modify(true);
+
+        // [GIVEN] A Purchase Header
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, "Purchase Document Type"::Order, Vendor."No.");
+
+        // [WHEN] / [THEN] Validating "Subc. Location Code" to a Bin Mandatory location raises an error immediately
+        asserterror PurchaseHeader.Validate("Subc. Location Code", Location.Code);
+        Assert.ExpectedError('Bin Mandatory');
     end;
 
     [ModalPageHandler]
