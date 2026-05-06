@@ -20,7 +20,6 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Calc. Prod. Order Ext." = X,
         codeunit "Subc. Calc.StandardCost Ext." = X,
         codeunit "Subc. Calc BOM Tree Ext." = X,
-        codeunit "Subc. Calc Subcontracts Ext." = X,
         codeunit "Subc. Carry Out Action Ext." = X,
         codeunit "Subc. Create Prod. Ord. Opt." = X,
         codeunit "Subc. Create Prod. Rtng. Ext." = X,
