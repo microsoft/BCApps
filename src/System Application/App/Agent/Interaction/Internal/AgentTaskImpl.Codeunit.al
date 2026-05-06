@@ -53,7 +53,7 @@ codeunit 4300 "Agent Task Impl."
         Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry);
     end;
 
-    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; ModelId: Text[70]; var NewAgentTask: Record "Agent Task")
+    procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; ModelId: Code[30]; var NewAgentTask: Record "Agent Task")
     begin
         NewAgentTask."Agent User Security ID" := AgentUserSecurityID;
         NewAgentTask."Created By" := UserSecurityId();

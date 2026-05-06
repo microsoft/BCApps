@@ -20,7 +20,7 @@ codeunit 4310 "Agent Task Builder Impl."
         GlobalAgentUserSecurityId: Guid;
         GlobalTaskTitle: Text[150];
         GlobalExternalID: Text[2048];
-        GlobalModelId: Text[70];
+        GlobalModelId: Code[30];
 
     [Scope('OnPrem')]
     procedure Initialize(NewAgentUserSecurityId: Guid; NewTaskTitle: Text[150]): codeunit "Agent Task Builder Impl."
@@ -65,7 +65,7 @@ codeunit 4310 "Agent Task Builder Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure SetModelId(ModelId: Text[70]): codeunit "Agent Task Builder"
+    procedure SetModelId(ModelId: Code[30]): codeunit "Agent Task Builder Impl."
     begin
         GlobalModelId := ModelId;
         exit(this);
