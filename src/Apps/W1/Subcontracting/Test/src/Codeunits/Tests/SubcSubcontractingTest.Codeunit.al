@@ -1752,13 +1752,13 @@ Comment = '|%1 = Transfer Order No.';
 
         // [GIVEN] Released Production Order whose only routing operation is a subcontracting one (so receiving the subcontracting PO posts the Output ILE)
         CreateItemWithSingleSubcontractingOperation(Item, SubcWorkCenter);
-        UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
-        CreateAndRefreshProductionOrder(
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
 
         // [GIVEN] Subcontracting Purchase Order created from the Prod. Order Routing line
-        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210        
@@ -1810,13 +1810,13 @@ Comment = '|%1 = Transfer Order No.';
 
         // [GIVEN] Released Production Order whose only routing operation is a subcontracting one (so receiving the subcontracting PO posts the Output ILE)
         CreateItemWithSingleSubcontractingOperation(Item, SubcWorkCenter);
-        UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
-        CreateAndRefreshProductionOrder(
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
 
         // [GIVEN] Subcontracting Purchase Order created from the Prod. Order Routing line and posted as received
-        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210        
@@ -1996,7 +1996,7 @@ Comment = '|%1 = Transfer Order No.';
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] A released production order whose routing lines inherit the routing link code
-        CreateAndRefreshProductionOrder(
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         // [GIVEN] The prod. order routing line for the subcontracting work center (has a routing link code)
@@ -2039,21 +2039,21 @@ Comment = '|%1 = Transfer Order No.';
 
         // [GIVEN] Standard subcontracting setup with an in-transit transfer route (non-direct)
         Initialize();
-        UpdateManufacturingSetupWithSubcontractingLocation();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
-        CreateAndRefreshProductionOrder(
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
-        CreateTransferRoute(WorkCenter[2], ProductionOrder);
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
 
-        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("No.", ProductionOrder."Source No.");
@@ -2139,20 +2139,20 @@ Comment = '|%1 = Transfer Order No.';
 
         // [GIVEN] Standard subcontracting setup WITHOUT an in-transit transfer route — the outbound TO will be Direct Transfer
         Initialize();
-        UpdateManufacturingSetupWithSubcontractingLocation();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
-        CreateAndRefreshProductionOrder(
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
-        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("No.", ProductionOrder."Source No.");
@@ -2426,8 +2426,6 @@ Comment = '|%1 = Transfer Order No.';
         ProdOrderComp.Modify();
     end;
 
-<<<<<<< w/pinkow/TransferWIPItemForMergeIntoMSMain
-=======
     local procedure CreateItemWithSingleSubcontractingOperation(var Item: Record Item; var SubcWorkCenter: Record "Work Center")
     var
         CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
@@ -2476,8 +2474,9 @@ Comment = '|%1 = Transfer Order No.';
         Vendor.Modify();
     end;
 
->>>>>>> main
-    procedure CreateWorkCenter(var WorkCenterNo: Code[20]; ShopCalendarCode: Code[10]; FlushingMethod: Enum "Flushing Method"; Subcontract: Boolean; UnitCostCalc: Option; CurrencyCode: Code[10])
+    procedure CreateWorkCenter(var WorkCenterNo: Code[20]; ShopCalendarCode: Code[10]; FlushingMethod: Enum "Flushing Method"; Subcontract: Boolean;
+                                                                                                           UnitCostCalc: Option;
+                                                                                                           CurrencyCode: Code[10])
     var
         GenProductPostingGroup: Record "Gen. Product Posting Group";
         VATPostingSetup: Record "VAT Posting Setup";
@@ -2564,7 +2563,10 @@ Comment = '|%1 = Transfer Order No.';
         GeneralPostingSetup.SuggestSetupAccounts();
     end;
 
-    local procedure CreateItem(var Item: Record Item; ItemCostingMethod: Enum "Costing Method"; ItemReorderPolicy: Enum "Reordering Policy"; FlushingMethod: Enum "Flushing Method"; RoutingNo: Code[20]; ProductionBOMNo: Code[20])
+    local procedure CreateItem(var Item: Record Item; ItemCostingMethod: Enum "Costing Method"; ItemReorderPolicy: Enum "Reordering Policy";
+                                                                             FlushingMethod: Enum "Flushing Method";
+                                                                             RoutingNo: Code[20];
+                                                                             ProductionBOMNo: Code[20])
     begin
         // Create Item with required fields where random values not important for test.
         LibraryManufacturing.CreateItemManufacturing(
