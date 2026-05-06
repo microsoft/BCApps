@@ -16,5 +16,12 @@ tableextension 30476 "Shpfy CT Order Header" extends "Shpfy Order Header"
             Editable = false;
             ToolTip = 'Specifies whether Copilot tax matching populated the Tax Area Code on this Shopify order.';
         }
+        field(30477; "Copilot Tax Match Reviewed"; Boolean)
+        {
+            Caption = 'Copilot Tax Match Reviewed';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            ToolTip = 'Specifies whether a user has approved the Copilot tax match for this order. When the shop has Copilot Tax Match Review Required enabled, a Sales Document is not created until this flag is set via the Approve Copilot Tax Match action.';
+        }
     }
 }

@@ -52,9 +52,10 @@ codeunit 30473 "Shpfy Copilot Tax Events"
         if not CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"Shpfy Tax Matching") then
             exit;
 
-        // Reset marker before re-matching (e.g. when a user manually cleared Tax Area Code to force a re-run).
-        if ShopifyOrderHeader."Copilot Tax Match Applied" then begin
+        // Reset markers before re-matching (e.g. when a user manually cleared Tax Area Code to force a re-run).
+        if ShopifyOrderHeader."Copilot Tax Match Applied" or ShopifyOrderHeader."Copilot Tax Match Reviewed" then begin
             ShopifyOrderHeader."Copilot Tax Match Applied" := false;
+            ShopifyOrderHeader."Copilot Tax Match Reviewed" := false;
             ShopifyOrderHeader.Modify();
         end;
 
@@ -74,6 +75,38 @@ codeunit 30473 "Shpfy Copilot Tax Events"
 
             FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Tax lines matched');
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnBeforeCreateSalesHeader, '', false, false)]
+    local procedure OnBeforeCreateSalesHeaderSubscriber(ShopifyOrderHeader: Record "Shpfy Order Header"; var SalesHeader: Record "Sales Header"; var LastCreatedDocumentId: Guid; var Handled: Boolean)
+    var
+        Shop: Record "Shpfy Shop";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        if Handled then
+            exit;
+
+        if not ShopifyOrderHeader."Copilot Tax Match Applied" then
+            exit;
+
+        if ShopifyOrderHeader."Copilot Tax Match Reviewed" then
+            exit;
+
+        if not Shop.Get(ShopifyOrderHeader."Shop Code") then
+            exit;
+
+        if not Shop."Tax Match Review Required" then
+            exit;
+
+        Handled := true;
+        FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Sales Document creation blocked pending Copilot tax match review');
+
+        // In an interactive session surface a clear error so the user knows what to do.
+        // In background flows (job queue, webhook) silently set Handled := true so the
+        // pending order is just skipped this cycle without polluting the error log.
+        if GuiAllowed() then
+            Error(ReviewRequiredErr, ShopifyOrderHeader."Shopify Order No.");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnAfterCreateSalesHeader, '', false, false)]
@@ -102,9 +135,15 @@ codeunit 30473 "Shpfy Copilot Tax Events"
 
         FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax marker propagated to Sales Header');
 
+        // When the user has explicitly approved the match (blocking-mode flow), skip the
+        // review notification: they have already done the review, the prompt would be noise.
+        if OrderHeader."Copilot Tax Match Reviewed" then
+            exit;
+
         CopilotTaxNotify.QueueNotificationFor(SalesHeader, OrderHeader);
     end;
 
     var
         StartingMatchMsg: Label 'Shopify Copilot Tax Matching: Starting match for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
+        ReviewRequiredErr: Label 'The Sales Document for Shopify order %1 cannot be created until the Copilot tax match has been approved. Click Approve Copilot Tax Match on the Shopify order, or clear Copilot Tax Match Review Required on the Shopify Shop Card.', Comment = '%1 = Shopify Order No.';
 }

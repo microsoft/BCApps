@@ -77,9 +77,9 @@ The response is parsed and validated entirely in AL code. The LLM does not execu
 
 ## Transparency to the user
 
-Because automated tax matching has tax and legal implications, every Copilot decision is visibly recorded and actively surfaced for human review. The mantra is "here's what Copilot did, please take a look" — Copilot still applies matches automatically (so auto-create-sales-doc and background job-queue sync flows are not broken), but no decision runs invisibly.
+Because automated tax matching has tax and legal implications, every Copilot decision is visibly recorded, customer-configurable to be blocking, and actively surfaced for human review. The mantra is "here's what Copilot did, please take a look" — no decision runs invisibly.
 
-Three layers deliver this:
+Four layers deliver this:
 
 1. **Audit log** — every matched tax line and the resulting Tax Area each get a System Application `Activity Log` entry of Type `AI`, carrying the LLM's confidence (`Low`/`Medium`/`High`), the LLM's stated reasoning, and a drill-back link to the Tax Jurisdiction or Tax Area record. The platform automatically renders these as confidence indicators on the corresponding fields.
 
@@ -87,13 +87,15 @@ Three layers deliver this:
 
 3. **Active notification** — the first time a user opens a Copilot-matched Sales Order, a non-blocking BC `Notification` fires asking them to review what Copilot did. Three actions: drill into the source order, mark this one reviewed, or suppress the prompt for all future orders for this user (`MyNotifications.Disable`).
 
-**Why no approve/reject gate** — a blocking gate would defeat auto-create-sales-doc and background sync, the two highest-volume import paths. Instead the Sales Order itself is the editable canonical record where overrides take effect, and the audit + badge + notification ensure the AI's decisions are never silent.
+4. **Configurable blocking review (default on)** — a per-shop setting `Copilot Tax Match Review Required` (default `true`) holds back Sales Document creation until a user explicitly approves the Copilot tax match. While blocking is on, an order whose Tax Area was populated by Copilot stays as a Shopify order — the connector's auto-create-sales-doc, manual creation actions, and background job all skip it — until the user opens it, reviews the matched Tax Area + per-line Tax Jurisdiction Codes (with the platform's AI confidence indicators visible inline), and clicks **Approve Copilot Tax Match**. The customer can opt out of blocking by clearing the toggle on the Shopify Shop card; in that mode the Sales Document is created automatically and the user reviews it after the fact via layers 1–3.
+
+**Default is blocking.** A merchant who wants the older auto-flow behavior can switch to non-blocking explicitly. This honors RAI feedback that the conservative default is a human gate, and lets high-throughput merchants opt back into automation as a deliberate decision.
 
 **v1 limitations** documented for awareness:
 
-- The notification row is keyed on the user who *processed* the order. In the job-queue auto-create path, that is the JOBQUEUE user, so the eventual interactive user may not match. The badge and the always-on action are the unaffected fallback paths; per-user-shadow refinement is deferred to v1.1.
+- In non-blocking mode, the notification row is keyed on the user who *processed* the order. In the job-queue auto-create path, that is the JOBQUEUE user, so the eventual interactive user may not match. The badge and the always-on action are the unaffected fallback paths; per-user-shadow refinement is deferred to v1.1.
 - Refunds and credit memos inherit Tax Area via the standard return-doc path and do not get HITL prompts of their own.
-- Chained automation that auto-releases and auto-posts the Sales Document immediately after auto-create can land in a posted state before a human sees it. A narrow gate suppressing one auto-post cycle when `Copilot Tax Match Applied = true` is planned for v1.1.
+- Chained automation that auto-releases and auto-posts the Sales Document immediately after auto-create (relevant only in non-blocking mode) can land in a posted state before a human sees it. A narrow gate suppressing one auto-post cycle when `Copilot Tax Match Applied = true` is planned for v1.1.
 
 ## Guardrails and limitations
 
@@ -108,7 +110,7 @@ Three layers deliver this:
 | Feature gating | Requires Copilot capability to be both registered and active. Admin must explicitly enable per shop. Standard Copilot AI Capabilities page controls apply. |
 | Determinism | Temperature = 0 for consistent results across identical inputs. |
 | Token limits | Max 4096 output tokens. Input is bounded by the number of tax lines per order (typically 1-5) and total jurisdiction count in the tenant. |
-| Silent automation | Every match writes an `Activity Log` entry (Type = AI) with confidence + reason + drill-back. The Sales Order shows a persistent `Copilot Tax Match Applied` badge and an action that drills into the AI decisions. A one-time notification fires on first user view to actively prompt review. |
+| Silent automation | Sales Document creation is held by default until a user explicitly approves the Copilot tax match (`Copilot Tax Match Review Required` defaults to true on the shop). Every match additionally writes an `Activity Log` entry (Type = AI) with confidence + reason + drill-back, the resulting Sales Order shows a persistent `Copilot Tax Match Applied` badge and an action that drills into the AI decisions, and in non-blocking mode a one-time notification fires on first view to actively prompt review. |
 
 ## Model and infrastructure
 

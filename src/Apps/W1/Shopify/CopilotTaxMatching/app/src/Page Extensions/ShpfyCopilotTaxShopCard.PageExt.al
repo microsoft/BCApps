@@ -30,6 +30,10 @@ pageextension 30470 "Shpfy Copilot Tax Shop Card" extends "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                 }
+                field("Tax Match Review Required"; Rec."Tax Match Review Required")
+                {
+                    ApplicationArea = All;
+                }
             }
         }
     }
