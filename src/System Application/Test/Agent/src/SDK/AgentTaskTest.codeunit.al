@@ -580,6 +580,7 @@ codeunit 133960 "Agent Task Test"
     procedure CreateTaskWithoutModelIdAndVerify()
     var
         AgentRecord: Record Agent;
+        AgentModel: Record "Agent Model";
         AgentTaskRecord: Record "Agent Task";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         Any: Codeunit Any;
@@ -608,13 +609,16 @@ codeunit 133960 "Agent Task Test"
 
         AgentTaskRecord := AgentTaskBuilder.Create(true, false);
 
-        // [THEN] GetModelId returns empty
-        RetrievedModelId := AgentTask.GetModelId(AgentTaskRecord.ID);
-        Assert.AreEqual('', RetrievedModelId, 'Model ID should be empty when not set');
+        AgentModel.SetRange("Is Default", true);
+        Assert.IsTrue(AgentModel.FindFirst(), 'There should be a default model in the Agent Model table');
 
-        // [THEN] GetModelName returns empty
+        // [THEN] GetModelId returns the default model
+        RetrievedModelId := AgentTask.GetModelId(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentModel."Model ID", RetrievedModelId, 'Model ID should be empty when not set');
+
+        // [THEN] GetModelName returns the default model
         RetrievedModelName := AgentTask.GetModelName(AgentTaskRecord.ID);
-        Assert.AreEqual('', RetrievedModelName, 'Model name should be empty when model ID is not set');
+        Assert.AreEqual(AgentModel."Model Name", RetrievedModelName, 'Model name should be empty when model ID is not set');
     end;
 
     [Test]
@@ -641,12 +645,14 @@ codeunit 133960 "Agent Task Test"
     procedure CreateTaskWithEmptyModelIdAndVerify()
     var
         AgentRecord: Record Agent;
+        AgentModel: Record "Agent Model";
         AgentTaskRecord: Record "Agent Task";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         Any: Codeunit Any;
         AgentUserId: Guid;
         TaskTitle: Text[150];
         RetrievedModelId: Code[30];
+        RetrievedModelName: Text[70];
         ExternalIdTok: Label 'EXT-TASK-MODEL-004', Locked = true;
     begin
         // [SCENARIO] Explicitly setting an empty model ID behaves the same as not setting one
@@ -661,6 +667,9 @@ codeunit 133960 "Agent Task Test"
 
         TaskTitle := CopyStr(Any.AlphanumericText(MaxStrLen(TaskTitle)), 1, MaxStrLen(TaskTitle));
 
+        AgentModel.SetRange("Is Default", true);
+        Assert.IsTrue(AgentModel.FindFirst(), 'There should be a default model in the Agent Model table');
+
         // [WHEN] A task is created with an explicitly empty model ID
         AgentTaskBuilder
             .Initialize(AgentUserId, TaskTitle)
@@ -669,9 +678,13 @@ codeunit 133960 "Agent Task Test"
 
         AgentTaskRecord := AgentTaskBuilder.Create(true, false);
 
-        // [THEN] GetModelId returns empty
+        // [THEN] GetModelId returns the default model
         RetrievedModelId := AgentTask.GetModelId(AgentTaskRecord.ID);
-        Assert.AreEqual('', RetrievedModelId, 'Model ID should be empty when explicitly set to empty');
+        Assert.AreEqual(AgentModel."Model ID", RetrievedModelId, 'Model ID should be empty when not set');
+
+        // [THEN] GetModelName returns the default model
+        RetrievedModelName := AgentTask.GetModelName(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentModel."Model Name", RetrievedModelName, 'Model name should be empty when model ID is not set');
     end;
 
     [Test]
