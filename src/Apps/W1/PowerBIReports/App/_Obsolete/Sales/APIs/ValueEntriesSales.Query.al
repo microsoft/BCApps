@@ -11,6 +11,7 @@ query 37005 "Value Entries - Sales"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to sales value entries including sales amounts, cost amounts, and invoiced quantities. This API has been replaced by query 37025 Sales Value Entries - PBI API.';
     Caption = 'Power BI Sales Value Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

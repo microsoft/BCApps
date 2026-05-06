@@ -14,6 +14,7 @@ query 37009 "Routing Links - PBI API"
     Access = Internal;
     Caption = 'Power BI Routing Links';
     QueryType = API;
+    AboutText = 'Provides access to routing link master data including codes and descriptions. Routing links connect production BOM components to specific routing operations. Enables Power BI reports to analyze component-to-operation relationships and flushing sequences.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';
