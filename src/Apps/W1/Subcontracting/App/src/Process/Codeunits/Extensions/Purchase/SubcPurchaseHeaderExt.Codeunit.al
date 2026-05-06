@@ -26,7 +26,7 @@ codeunit 99001533 "Subc. Purchase Header Ext"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnBeforeDeleteEvent, '', false, false)]
-    local procedure OnBeforeDeleteEvent_PurchaseHeader(var Rec: Record "Purchase Header"; RunTrigger: Boolean)
+    local procedure CheckTransferOrderOnBeforeDeleteEvent(var Rec: Record "Purchase Header"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary() then
             exit;

@@ -15,6 +15,12 @@ using Microsoft.Purchases.Document;
 
 codeunit 99001511 "Subc. Synchronize Management"
 {
+    var
+        CannotDeleteSubcOrderTitleLbl: Label 'Transfer Order Exists';
+        CannotDeleteSubcOrderWithTransferOrderErr: Label 'You cannot delete Subcontracting Order %1 because Transfer Order %2 is associated with it. Delete or receive the Transfer Order first.', Comment = '%1=Subcontracting Order No., %2=Transfer Order No.';
+        CannotDeleteSubcOrderWithTransferOrdersErr: Label 'You cannot delete Subcontracting Order %1 because Transfer Orders are associated with it. Delete or receive all Transfer Orders first.', Comment = '%1=Subcontracting Order No.';
+        OpenTransferOrderLbl: Label 'Open Transfer Order';
+
     procedure SynchronizeExpectedReceiptDate(var PurchaseLine: Record "Purchase Line"; xRecPurchaseLine: Record "Purchase Line")
     var
         ProductionOrder: Record "Production Order";
@@ -165,10 +171,6 @@ codeunit 99001511 "Subc. Synchronize Management"
     var
         TransferHeader: Record "Transfer Header";
         TransferOrderErrorInfo: ErrorInfo;
-        CannotDeleteSubcOrderTitleLbl: Label 'Transfer Order Exists';
-        CannotDeleteSubcOrderWithTransferOrderErr: Label 'You cannot delete Subcontracting Order %1 because Transfer Order %2 is associated with it. Delete or receive the Transfer Order first.', Comment = '%1=Subcontracting Order No., %2=Transfer Order No.';
-        CannotDeleteSubcOrderWithTransferOrdersErr: Label 'You cannot delete Subcontracting Order %1 because Transfer Orders are associated with it. Delete or receive all Transfer Orders first.', Comment = '%1=Subcontracting Order No.';
-        OpenTransferOrderLbl: Label 'Open Transfer Order';
     begin
         TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
         if TransferHeader.IsEmpty() then
