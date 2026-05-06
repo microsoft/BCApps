@@ -479,13 +479,13 @@ page 20406 "Qlty. Inspection"
 
                 trigger OnAction()
                 var
-                    CreatedReinspectionHeader: Record "Qlty. Inspection Header";
+                    ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection(CreatedReinspectionHeader);
+                    Rec.CreateReinspection(ReinspectionQltyInspectionHeader);
                     CurrPage.Update(false);
-                    if not IsNullGuid(CreatedReinspectionHeader.SystemId) then begin
+                    if not IsNullGuid(ReinspectionQltyInspectionHeader.SystemId) then begin
                         Commit();
-                        Page.Run(Page::"Qlty. Inspection", CreatedReinspectionHeader);
+                        Page.Run(Page::"Qlty. Inspection", ReinspectionQltyInspectionHeader);
                     end;
                 end;
             }
@@ -737,8 +737,6 @@ page 20406 "Qlty. Inspection"
                     QltyDocumentNavigation.NavigateToFindEntries(Rec);
                 end;
             }
-#pragma warning disable AS0031
-#pragma warning disable AS0032
             group(ItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
@@ -824,8 +822,6 @@ page 20406 "Qlty. Inspection"
                     Rec.RunModalRelatedTransfers();
                 end;
             }
-#pragma warning restore AS0032
-#pragma warning restore AS0031
         }
     }
 
@@ -869,7 +865,7 @@ page 20406 "Qlty. Inspection"
         IsOpen := Rec.Status = Rec.Status::Open;
         StatusStyleExpr := Rec.GetStatusStyleExpression();
 
-        CanReopen := not Rec.HasMoreRecentReinspection();
+        CanReopen := (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
         if IsOpen then
             if QltyPermissionMgmt.CanChangeItemTracking() then begin

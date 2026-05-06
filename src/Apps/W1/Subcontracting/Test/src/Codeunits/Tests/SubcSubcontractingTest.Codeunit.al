@@ -19,7 +19,6 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Journal;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Planning;
 using Microsoft.Manufacturing.ProductionBOM;
@@ -109,6 +108,81 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
         Assert.AreEqual(false, PurchaseLine.IsEmpty(), '');
+    end;
+
+    [Test]
+    procedure CreateSubcOrderFromRtngLine_EmptyDefVATProdPostGrp()
+    var
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        OriginalDefVATProdPostGrp: Code[20];
+    begin
+        // [SCENARIO 618715] Creating a Subcontracting Purchase Order from Prod. Order Routing Line
+        // should succeed even when "Def. VAT Prod. Posting Group" is empty on the Gen. Product Posting Group
+        // (US/Sales Tax localization).
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
+        Initialize();
+
+        // [GIVEN] Some Parameters for Creation
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Create subcontracting Work Center (sets Def. VAT Prod. Posting Group during creation)
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        CreateAndRefreshProductionOrder(
+          ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Clear "Def. VAT Prod. Posting Group" on the Work Center's Gen. Product Posting Group
+        // to simulate US/Sales Tax localization where this field is intentionally empty.
+        // Done after all other setup to avoid committing the change during item/production order creation.
+        GenProductPostingGroup.Get(WorkCenter[2]."Gen. Prod. Posting Group");
+        OriginalDefVATProdPostGrp := GenProductPostingGroup."Def. VAT Prod. Posting Group";
+        GenProductPostingGroup."Def. VAT Prod. Posting Group" := '';
+        GenProductPostingGroup.Modify();
+
+        // [GIVEN] Create a VAT Posting Setup for the empty VAT Prod. Posting Group
+        // so the downstream purchase line validation can find a matching setup
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        if not VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", '') then begin
+            VATPostingSetup.Init();
+            VATPostingSetup."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
+            VATPostingSetup."VAT Prod. Posting Group" := '';
+            VATPostingSetup."VAT Calculation Type" := VATPostingSetup."VAT Calculation Type"::"Normal VAT";
+            VATPostingSetup."VAT %" := 0;
+            VATPostingSetup.Insert();
+        end;
+
+        // [WHEN] Create Subcontracting Purchase Order from Prod. Order Routing Line
+        ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
+
+        // [THEN] Purchase Line is created successfully
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        Assert.AreEqual(false, PurchaseLine.IsEmpty(), 'Purchase Line should be created even when Def. VAT Prod. Posting Group is empty.');
+
+        // [TEARDOWN] Restore original Def. VAT Prod. Posting Group to prevent contaminating other tests
+        GenProductPostingGroup.Get(WorkCenter[2]."Gen. Prod. Posting Group");
+        GenProductPostingGroup."Def. VAT Prod. Posting Group" := OriginalDefVATProdPostGrp;
+        GenProductPostingGroup.Modify();
     end;
 
     [Test]
@@ -304,7 +378,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -335,9 +408,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
 
         Assert.RecordIsNotEmpty(TransferLine);
-
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -384,7 +454,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -471,7 +540,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -565,7 +633,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
         CreateTransferRoute(WorkCenter[2], ProductionOrder);
@@ -611,6 +678,10 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransferFrom1 := TransferHeader."Transfer-from Code";
         TransferTo1 := TransferHeader."Transfer-to Code";
 
+        //[GIVEN] Enable direct transfer for posting
+        TransferHeader.Validate("Direct Transfer", true);
+        TransferHeader.Modify(true);
+
         //[WHEN] Post Transfer Order
         TransferOrder.OpenView();
         TransferOrder.GoToRecord(TransferHeader);
@@ -641,9 +712,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         //[THEN] Check if Transfer-from and Transfer-to Locations are reversed
         Assert.AreEqual(TransferFrom1, TransferTo2, 'Transfer-from and Transfer-to Locations are reversed');
         Assert.AreEqual(TransferTo1, TransferFrom2, 'Transfer-from and Transfer-to Locations are reversed');
-
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -708,7 +776,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubManagementSetup: Record "Subc. Management Setup";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        CalculateSubContract: Report "Calculate Subcontracts";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         LibraryUtility: Codeunit "Library - Utility";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
@@ -763,9 +831,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
         RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
 
-        CalculateSubContract.SetWkShLine(RequisitionLine);
-        CalculateSubContract.UseRequestPage(false);
-        CalculateSubContract.RunModal();
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
 
         RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
@@ -849,7 +917,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         RoutingLink: Record "Routing Link";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        CalculateSubContract: Report "Calculate Subcontracts";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         LibraryUtility: Codeunit "Library - Utility";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
@@ -905,9 +973,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
         RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
 
-        CalculateSubContract.SetWkShLine(RequisitionLine);
-        CalculateSubContract.UseRequestPage(false);
-        CalculateSubContract.RunModal();
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
 
         RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
@@ -1089,7 +1157,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -1126,9 +1193,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderCompPage.GoToRecord(ProdOrderComp);
         asserterror ProdOrderCompPage."Location Code".SetValue(Location.Code);
         Assert.ExpectedError('The component has already been assigned to the subcontracting transfer order');
-
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1178,7 +1242,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -1218,8 +1281,6 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         Assert.AreEqual(ExpectedDate, ProdOrderComp."Due Date", '');
 
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1269,7 +1330,6 @@ codeunit 139989 "Subc. Subcontracting Test"
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationAndBinCode(ProductionOrder."No.", LocationCode, BinCode);
 
@@ -1314,8 +1374,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(ProdOrderComp."Location Code", LocationCode, '');
         Assert.AreEqual(ProdOrderComp."Bin Code", BinCode, '');
 
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1366,7 +1424,6 @@ Comment = '|%1 = Transfer Order No.';
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -1408,8 +1465,6 @@ Comment = '|%1 = Transfer Order No.';
         ExpectedErrorMsg := StrSubstNo(AlreadySpecifiedErr, TransferLine."Document No.");
         Assert.ExpectedError(ExpectedErrorMsg);
 
-        // [TEARDOWN]
-        UpdateSubMgmtSetupDirectTransfer(false);
     end;
 
     [Test]
@@ -1464,6 +1519,64 @@ Comment = '|%1 = Transfer Order No.';
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure DeleteWorkCenterWithPricesDeletesRelatedPrices()
+    var
+        Item: Record Item;
+        SubcontractorPrice: Record "Subcontractor Price";
+        WorkCenter: Record "Work Center";
+        WorkCenterNo: Code[20];
+    begin
+        // [SCENARIO 620643] Deleting a Work Center deletes all associated Subcontractor Prices
+
+        // [GIVEN] A work center with a subcontractor and multiple Subcontractor Prices
+        Initialize();
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        WorkCenterNo := WorkCenter."No.";
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 0, '');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 10, '');
+
+        // [WHEN] The work center is deleted
+        WorkCenter.Delete(true);
+
+        // [THEN] All Subcontractor Prices for the work center are deleted
+        SubcontractorPrice.SetRange("Work Center No.", WorkCenterNo);
+        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Subcontractor prices must be deleted when work center is deleted');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeleteItemWithPricesDeletesRelatedPrices()
+    var
+        Item: Record Item;
+        SubcontractorPrice: Record "Subcontractor Price";
+        WorkCenter: Record "Work Center";
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 620643] Deleting an Item deletes all associated Subcontractor Prices
+
+        // [GIVEN] An item with multiple Subcontractor Prices
+        Initialize();
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        ItemNo := Item."No.";
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 0, '');
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 10, '');
+
+        // [WHEN] The item is deleted
+        Item.Delete(true);
+
+        // [THEN] All Subcontractor Prices for the item are deleted
+        SubcontractorPrice.SetRange("Item No.", ItemNo);
+        Assert.IsTrue(SubcontractorPrice.IsEmpty(), 'Subcontractor prices must be deleted when item is deleted');
+    end;
+
+    [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,SubcontrDispatchingListDefaultRequestPageHandler')]
     procedure TestSubcontrDispatchingList()
     var
@@ -1502,7 +1615,6 @@ Comment = '|%1 = Transfer Order No.';
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         UpdateSubMgmtSetupWithReqWkshTemplate();
-        UpdateSubMgmtSetupDirectTransfer(true);
 
         UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
 
@@ -1633,6 +1745,488 @@ Comment = '|%1 = Transfer Order No.';
         Assert.AreEqual(0, ValueEntry."Invoiced Quantity", 'Invoiced Quantity must be zero on value entry.');
     end;
 
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting')]
+    procedure SubcontractingFieldsPopulatedOnIleAfterSubcontractingPurchaseReceipt()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SubcWorkCenter: Record "Work Center";
+    begin
+        // [SCENARIO] Bug 633292 - Output Item Ledger Entry created from posting a subcontracting purchase receipt should have the Subcontracting extension fields populated, so that the Production actions on the Item Ledger Entries page can resolve the linked production order, routing, and components.
+
+        // [GIVEN] Subcontracting setup
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Released Production Order whose only routing operation is a subcontracting one (so receiving the subcontracting PO posts the Output ILE)
+        CreateItemWithSingleSubcontractingOperation(Item, SubcWorkCenter);
+        UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Subcontracting Purchase Order created from the Prod. Order Routing line
+        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210        
+        PurchaseLine.SetRange("Work Center No.", SubcWorkCenter."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+
+        // [WHEN] Receive the subcontracting purchase order
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] An Output Item Ledger Entry exists with Subcontracting extension fields populated from the source purchase line
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.FindFirst();
+
+        Assert.AreEqual(
+          PurchaseHeader."No.", ItemLedgerEntry."Subcontr. Purch. Order No.",
+          'Item Ledger Entry "Subcontr. Purch. Order No." should equal the originating subcontracting purchase order.');
+        Assert.AreEqual(
+          PurchaseLine."Line No.", ItemLedgerEntry."Subcontr. PO Line No.",
+          'Item Ledger Entry "Subcontr. PO Line No." should equal the originating subcontracting purchase line.');
+        Assert.AreEqual(
+          PurchaseLine."Operation No.", ItemLedgerEntry."Operation No.",
+          'Item Ledger Entry "Operation No." (Subc) should equal the originating purchase line operation.');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting')]
+    procedure ProdOFactboxMgmtResolvesProductionOrderForIleFromSubcontractingPurchaseReceipt()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SubcWorkCenter: Record "Work Center";
+        SubcProdOFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
+    begin
+        // [SCENARIO] Bug 633292 - Subc. ProdO. Factbox Mgmt. helpers should resolve a positive number of production order routings and components when given an Item Ledger Entry that originated from a subcontracting purchase receipt. Before the fix, the codeunit had no Item Ledger Entry branch in SetProdOrderInformationByVariant and returned 0 for any ILE variant.
+
+        // [GIVEN] Subcontracting setup
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Released Production Order whose only routing operation is a subcontracting one (so receiving the subcontracting PO posts the Output ILE)
+        CreateItemWithSingleSubcontractingOperation(Item, SubcWorkCenter);
+        UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Subcontracting Purchase Order created from the Prod. Order Routing line and posted as received
+        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210        
+        PurchaseLine.SetRange("Work Center No.", SubcWorkCenter."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.FindFirst();
+
+        // [WHEN] CalcNoOfProductionOrderRoutings / CalcNoOfProductionOrderComponents are called with the ILE variant
+        // [THEN] Both return a positive count, confirming the production order linkage is resolved
+        Assert.IsTrue(
+          SubcProdOFactboxMgmt.CalcNoOfProductionOrderRoutings(ItemLedgerEntry) > 0,
+          'CalcNoOfProductionOrderRoutings should return a positive count for an Item Ledger Entry from a subcontracting receipt.');
+        Assert.IsTrue(
+          SubcProdOFactboxMgmt.CalcNoOfProductionOrderComponents(ItemLedgerEntry) > 0,
+          'CalcNoOfProductionOrderComponents should return a positive count for an Item Ledger Entry from a subcontracting receipt.');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting')]
+    procedure Description2CopiedFromProdOrderComponentToPurchaseLine()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO] Description 2 from Prod. Order Component is propagated to Purchase Line
+        // [FEATURE] Bug 620556 - Subcontracting Description 2 alignment
+
+        // [GIVEN] Complete Setup of Manufacturing
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Purchase);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] A Description 2 value is set on the Prod. Order Component with Subcontracting Type = Purchase
+        ProdOrderComp.SetRange(Status, ProdOrderComp.Status::Released);
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Purchase);
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+        ExpectedDescription2 := 'TestDescription2_Comp';
+        ProdOrderComp."Description 2" := ExpectedDescription2;
+        ProdOrderComp.Modify();
+
+        // [WHEN] Create Subcontracting Purchase Order from Prod. Order Routing
+        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [THEN] Description 2 from Prod. Order Component is propagated to the component Purchase Line
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", ProdOrderComp."Item No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(
+            ExpectedDescription2, PurchaseLine."Description 2",
+            'Description 2 must be propagated from Prod. Order Component to Purchase Line');
+    end;
+
+    [Test]
+    procedure Description2PopulatedOnRequisitionLineFromCalculateSubcontracts()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        LibraryUtility: Codeunit "Library - Utility";
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO] Description 2 from Prod. Order Routing Line is populated on Requisition Line
+        // via Calculate Subcontracts report
+        // [FEATURE] Bug 620556 - Subcontracting Description 2 alignment
+
+        // [GIVEN] Complete Setup of Manufacturing
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] Description 2 is set on the subcontracting Work Center Name 2
+        // (SubcCalcSubcontractsExt copies WorkCenter."Name 2" → RequisitionLine."Description 2")
+        ExpectedDescription2 := 'TestDesc2_WC';
+        WorkCenter[2].Get(WorkCenter[2]."No.");
+        WorkCenter[2].Validate("Name 2", ExpectedDescription2);
+        WorkCenter[2].Modify(true);
+
+        // [GIVEN] Create requisition worksheet
+        ReqWkshTemplate.DeleteAll(true);
+        ReqWkshTemplate.Name := SelectRequisitionTemplateName();
+        RequisitionWkshName.Init();
+        RequisitionWkshName.Validate("Worksheet Template Name", ReqWkshTemplate.Name);
+        RequisitionWkshName.Validate(
+            Name,
+            CopyStr(
+                LibraryUtility.GenerateRandomCode(RequisitionWkshName.FieldNo(Name), Database::"Requisition Wksh. Name"),
+                1, LibraryUtility.GetFieldLength(Database::"Requisition Wksh. Name", RequisitionWkshName.FieldNo(Name))));
+        RequisitionWkshName.Insert(true);
+
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+
+        // [WHEN] Calculate Subcontracts
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+
+        // [THEN] Description 2 on the Requisition Line is populated
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+#pragma warning disable AA0210
+        RequisitionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
+        RequisitionLine.FindFirst();
+        Assert.AreEqual(
+            ExpectedDescription2, RequisitionLine."Description 2",
+            'Description 2 must be populated on the Requisition Line from the subcontracting Work Center');
+    end;
+
+    [Test]
+    [HandlerFunctions('RoutingLinkCodeDuplicateConfirmHandler')]
+    procedure ValidateRoutingLinkCodeOnProdOrderRtngLineShowsConfirmOnce()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 617395] Validating Routing Link Code on a Prod. Order Routing Line shows the
+        // duplicate-use confirmation dialog exactly once. The BaseApp OnValidate already performs
+        // this check; the Subcontracting extension must not duplicate it.
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Work centers, item with routing and BOM, with a routing link code assigned to the subcontracting routing line
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A released production order whose routing lines inherit the routing link code
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] The prod. order routing line for the subcontracting work center (has a routing link code)
+        ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [WHEN] The routing link code is validated (re-validates the existing code, which triggers
+        // the BaseApp duplicate-use check)
+        ConfirmDialogCalledCount := 0;
+        ProdOrderRoutingLine.Validate("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+
+        // [THEN] The confirmation dialog is shown exactly once — from the BaseApp — not twice
+        Assert.AreEqual(
+            1, ConfirmDialogCalledCount,
+            'Routing Link Code duplicate confirmation must be shown exactly once, not twice');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure CreateReturnTransferOrder_AfterPartialShipOfOutbound()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        OutboundFromCode, OutboundToCode : Code[10];
+        QtyPartialShip: Decimal;
+    begin
+        // [SCENARIO] Non-direct (in-transit) transfer: Return from Subcontractor must succeed when the outbound Transfer Order is only partially shipped, and a second Return attempt must be blocked with the existing error.
+        // [SCENARIO] Pre-fix the report errored 'Return from Subcontractor has already been created' on the first call because CheckTransferLineExists matched the unrelated outbound line.
+
+        // [GIVEN] Standard subcontracting setup with an in-transit transfer route (non-direct)
+        Initialize();
+        UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+        CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("No.", ProductionOrder."Source No.");
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        // [GIVEN] Outbound Subcontracting Transfer Order created from the Purchase Order
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+
+        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
+        TransferLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
+        TransferLine.FindFirst();
+
+        TransferHeader.Get(TransferLine."Document No.");
+        OutboundFromCode := TransferHeader."Transfer-from Code";
+        OutboundToCode := TransferHeader."Transfer-to Code";
+
+        // [GIVEN] Inventory at the source location and the outbound TO is partially shipped via Qty. to Ship (Ship only — items move to in-transit, line stays open with positive Outstanding)
+        Location.Get(OutboundFromCode);
+        Item.Get(ProdOrderComp."Item No.");
+        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
+
+        QtyPartialShip := Round(TransferLine.Quantity / 2, 1, '<');
+        TransferLine.Validate("Qty. to Ship", QtyPartialShip);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+
+        // [WHEN] Creating a Return Transfer Order while the outbound TO line is still present (partially shipped)
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] A Return Transfer Order is created with reversed Transfer-from / Transfer-to and quantity capped by the partially-shipped qty
+        ReturnTransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        ReturnTransferHeader.SetRange("Return Order", true);
+        Assert.IsTrue(ReturnTransferHeader.FindFirst(), 'Return Transfer Order should be created after partial ship of outbound');
+        Assert.AreEqual(OutboundToCode, ReturnTransferHeader."Transfer-from Code", 'Return Transfer-from must be the subcontractor location');
+        Assert.AreEqual(OutboundFromCode, ReturnTransferHeader."Transfer-to Code", 'Return Transfer-to must be the original component location');
+
+        TransferLine.Reset();
+        TransferLine.SetRange("Document No.", ReturnTransferHeader."No.");
+        Assert.IsTrue(TransferLine.FindFirst(), 'Return Transfer Line should exist');
+        Assert.AreEqual(QtyPartialShip, TransferLine.Quantity, 'Return quantity should equal the in-transit qty from the partial outbound shipment');
+
+        // [WHEN] Trying to create the Return Transfer Order again, with a Return TO already in place
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        asserterror PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] The duplicate is blocked with the existing error
+        Assert.ExpectedError('Return from Subcontractor has already been created');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure CreateReturnTransferOrder_AfterPartialShipOfOutbound_DirectTransfer()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        OutboundFromCode, OutboundToCode : Code[10];
+        QtyPartialShip: Decimal;
+    begin
+        // [SCENARIO] Direct transfer (no in-transit route): Return from Subcontractor must succeed when the outbound Transfer Order has been partially direct-transferred, and a second Return attempt must be blocked with the existing error.
+        // [SCENARIO] In direct-transfer mode Qty. to Ship is forced to equal Quantity, so a partial transfer is achieved by reducing the line Quantity before posting. After the post the items already sit at the subcontractor and the outbound line is consumed.
+
+        // [GIVEN] Standard subcontracting setup WITHOUT an in-transit transfer route — the outbound TO will be Direct Transfer
+        Initialize();
+        UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+
+        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("No.", ProductionOrder."Source No.");
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        // [GIVEN] Outbound Subcontracting Transfer Order created from the Purchase Order (Direct Transfer because no in-transit route)
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+
+        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
+        TransferLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
+        TransferLine.FindFirst();
+
+        TransferHeader.Get(TransferLine."Document No.");
+        OutboundFromCode := TransferHeader."Transfer-from Code";
+        OutboundToCode := TransferHeader."Transfer-to Code";
+
+        // [GIVEN] Inventory at the source location and the outbound Quantity is reduced to a partial value, then direct-transferred (Ship+Receive in one operation — items land at the subcontractor location)
+        Location.Get(OutboundFromCode);
+        Item.Get(ProdOrderComp."Item No.");
+        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
+
+        QtyPartialShip := Round(TransferLine.Quantity / 2, 1, '<');
+        TransferLine.Validate(Quantity, QtyPartialShip);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+
+        // [WHEN] Creating a Return Transfer Order while items are now at the subcontractor
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] A Return Transfer Order is created with reversed Transfer-from / Transfer-to and quantity capped by the qty that actually arrived at the subcontractor
+        ReturnTransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        ReturnTransferHeader.SetRange("Return Order", true);
+        Assert.IsTrue(ReturnTransferHeader.FindFirst(), 'Return Transfer Order should be created after partial direct transfer');
+        Assert.AreEqual(OutboundToCode, ReturnTransferHeader."Transfer-from Code", 'Return Transfer-from must be the subcontractor location');
+        Assert.AreEqual(OutboundFromCode, ReturnTransferHeader."Transfer-to Code", 'Return Transfer-to must be the original component location');
+
+        TransferLine.Reset();
+        TransferLine.SetRange("Document No.", ReturnTransferHeader."No.");
+        Assert.IsTrue(TransferLine.FindFirst(), 'Return Transfer Line should exist');
+        Assert.AreEqual(QtyPartialShip, TransferLine.Quantity, 'Return quantity should equal the qty already at the subcontractor');
+
+        // [WHEN] Trying to create the Return Transfer Order again, with a Return TO already in place
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        asserterror PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] The duplicate is blocked with the existing error
+        Assert.ExpectedError('Return from Subcontractor has already been created');
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
@@ -1681,6 +2275,13 @@ Comment = '|%1 = Transfer Order No.';
             else
                 Reply := false;
         end;
+    end;
+
+    [ConfirmHandler]
+    procedure RoutingLinkCodeDuplicateConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        ConfirmDialogCalledCount += 1;
+        Reply := true;
     end;
 
     local procedure RemoveSubcontractingManagementSetupRecord()
@@ -1871,6 +2472,41 @@ Comment = '|%1 = Transfer Order No.';
         ProdOrderComp.Modify();
     end;
 
+    local procedure CreateItemWithSingleSubcontractingOperation(var Item: Record Item; var SubcWorkCenter: Record "Work Center")
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        ComponentItem1: Record Item;
+        ComponentItem2: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        ShopCalendarCode: Code[10];
+        WorkCenterNo: Code[20];
+    begin
+        LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
+        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
+
+        CreateWorkCenter(WorkCenterNo, ShopCalendarCode, "Flushing Method"::"Pick + Manual", true, UnitCostCalculation, '');
+        SubcWorkCenter.Get(WorkCenterNo);
+        LibraryManufacturing.CalculateWorkCenterCalendar(SubcWorkCenter, CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", SubcWorkCenter."No.");
+        RoutingLine.Validate("Setup Time", LibraryRandom.RandInt(5));
+        RoutingLine.Validate("Run Time", LibraryRandom.RandInt(5));
+        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        LibraryInventory.CreateItem(ComponentItem1);
+        LibraryInventory.CreateItem(ComponentItem2);
+        LibraryManufacturing.CreateCertifProdBOMWithTwoComp(ProductionBOMHeader, ComponentItem1."No.", ComponentItem2."No.", 1);
+
+        CreateItem(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", RoutingHeader."No.", ProductionBOMHeader."No.");
+    end;
+
     local procedure UpdateVendorWithSubcontractingLocationCode(WorkCenter: Record "Work Center")
     var
         Location: Record Location;
@@ -2025,15 +2661,6 @@ Comment = '|%1 = Transfer Order No.';
         EsMgmtSetup.Modify();
     end;
 
-    local procedure UpdateSubMgmtSetupDirectTransfer(Update: Boolean)
-    var
-        EsMgmtSetup: Record "Subc. Management Setup";
-    begin
-        EsMgmtSetup.Get();
-        EsMgmtSetup."Direct Transfer" := Update;
-        EsMgmtSetup.Modify();
-    end;
-
     local procedure UpdateSubMgmtSetup_ComponentAtLocation(CompAtLocation: Enum "Components at Location")
     var
         EsMgmtSetup: Record "Subc. Management Setup";
@@ -2079,9 +2706,7 @@ Comment = '|%1 = Transfer Order No.';
 
         LibraryInventory.NoSeriesSetup(InventorySetup);
         InventorySetup."Inventory Put-away Nos." := LibraryUtility.GetGlobalNoSeriesCode();
-#pragma warning disable AL0432
-        InventorySetup."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting"::"Direct Transfer";
-#pragma warning restore AL0432
+        InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
         LibraryInventory.UpdateInventoryPostingSetup(Location);
     end;
@@ -2171,15 +2796,15 @@ Comment = '|%1 = Transfer Order No.';
         ReqWkshTemplate: Record "Req. Wksh. Template";
         LibraryUtility: Codeunit "Library - Utility";
     begin
-        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"For. Labor");
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Subcontracting);
         ReqWkshTemplate.SetRange(Recurring, false);
         if not ReqWkshTemplate.FindFirst() then begin
             ReqWkshTemplate.Init();
             ReqWkshTemplate.Validate(
               Name, LibraryUtility.GenerateRandomCode(ReqWkshTemplate.FieldNo(Name), Database::"Req. Wksh. Template"));
             ReqWkshTemplate.Insert(true);
-            ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::"For. Labor");
-            ReqWkshTemplate."Page ID" := Page::"Subcontracting Worksheet";
+            ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
+            ReqWkshTemplate."Page ID" := Page::"Subc. Subcontracting Worksheet";
             ReqWkshTemplate.Modify(true);
         end;
         exit(ReqWkshTemplate.Name);
@@ -2205,4 +2830,6 @@ Comment = '|%1 = Transfer Order No.';
         IsInitialized: Boolean;
         Subcontracting: Boolean;
         UnitCostCalculation: Option Time,Units;
+        ConfirmDialogCalledCount: Integer;
+
 }

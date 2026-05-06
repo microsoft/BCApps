@@ -19,7 +19,7 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
                 Image = SubcontractingWorksheet;
                 RunObject = page "Purchase Lines";
                 RunPageLink = "Document Type" = const(Order), "Prod. Order No." = field("No.");
-                ToolTip = 'Shows Purchase Order Lines for Subcontracting.';
+                ToolTip = 'Show purchase order lines for subcontracting.';
             }
         }
     }

@@ -45,7 +45,7 @@ pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
                     ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Purchase Order';
                     Image = Order;
-                    ToolTip = 'Specifies the depended Purchase Order of this Subcontracting Transfer Order.';
+                    ToolTip = 'View the related subcontracting purchase order.';
                     trigger OnAction()
                     begin
                         ShowPurchaseOrder(Rec);
@@ -56,8 +56,8 @@ pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
     }
     local procedure ShowPurchaseOrder(RecRelatedVariant: Variant)
     var
-        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
     begin
-        SubcFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
+        SubcPurchFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
     end;
 }

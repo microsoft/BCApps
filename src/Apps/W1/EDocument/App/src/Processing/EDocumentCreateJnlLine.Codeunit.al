@@ -203,7 +203,7 @@ codeunit 6137 "E-Document Create Jnl. Line"
         SourceEDocumentService: Record "E-Document Service";
         NoSeriesBatch: Codeunit "No. Series - Batch";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
-        SourceDocumentHeader, CreatedJnlLine : RecordRef;
+        CreatedJnlLine: RecordRef;
         NoBalanceAccountMappingErr: Label 'Could not fill the Bal. Account No. field for vendor ''''%1''''. Choose the Map Text to Account button to map ''''%1'''' to the relevant G/L account.', Comment = '%1 - vendor name';
         NoDebitAccountMappingErr: Label 'Could not fill the %1 field for vendor ''''%2''''. Choose the Map Text to Account button to map ''''%2'''' to the relevant G/L account.', Comment = '%1 - Debit Acc. No. or Credit Acc. No. field caption, %2 - vendor name';
         VatAmountMismatchErr: Label 'VAT amount %1 on the general journal line does not match VAT amount %2 in the electroinc document.', Comment = '%1 - General Journal Line VAT amount, %2 - Electronic Document VAT amount';
