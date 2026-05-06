@@ -4,13 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
@@ -66,7 +64,6 @@ report 99001502 "Subc. Create SubCReturnOrder"
     end;
 
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
@@ -78,16 +75,12 @@ report 99001502 "Subc. Create SubCReturnOrder"
         ReturnTransferOrderAlreadyCreatedErr: Label 'The Return from Subcontractor has already been created.';
         WarningToSpecifyPurchOrderErr: Label 'Warning. Specify a Purchase Order No. for the Subcontractor work.';
 
-    local procedure InsertTransferHeader(SubcontractingType: Enum "Subcontracting Type"; OrigCompLineLocation: Code[10])
+    local procedure InsertTransferHeader(OrigCompLineLocation: Code[10])
     var
         TransferRoute: Record "Transfer Route";
-        TransferFromLocationCode, TransferToLocationCode : Code[10];
+        TransferFromLocationCode: Code[10];
     begin
-        if not SubcManagementSetup.Get() then
-            Clear(SubcManagementSetup);
-
         GetTransferFromLocationCode(TransferFromLocationCode);
-        GetTransferToLocationCode(TransferToLocationCode, SubcontractingType);
 
         TransferHeader.Reset();
         TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
@@ -161,6 +154,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         SubcontractingManagement: Codeunit "Subcontracting Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
+        AvailableToReturn: Decimal;
         QtyPerUom: Decimal;
     begin
         if not ProdOrderLine.Get(ProdOrderLine.Status::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
@@ -183,18 +177,23 @@ report 99001502 "Subc. Create SubCReturnOrder"
         ProdOrderComponent.SetRange("Purchase Order Filter", PurchaseLine."Document No.");
         ProdOrderComponent.SetRange("Subcontracting Type", ProdOrderComponent."Subcontracting Type"::Transfer);
         if ProdOrderComponent.FindSet() then begin
-            CheckTransferLineExists();
+            CheckTransferLineExists(PurchaseLine);
             repeat
                 Item.Get(ProdOrderComponent."Item No.");
                 QtyToPost := MfgCostCalculationMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComponent,
                     Round(PurchaseLine."Outstanding Quantity" * QtyPerUom, UnitofMeasureManagement.QtyRndPrecision()));
-                ProdOrderComponent.CalcFields("Qty. in Transit (Base)", "Qty. transf. to Subcontr");
-                if QtyToPost > (Abs(ProdOrderComponent."Qty. in Transit (Base)") + Abs(ProdOrderComponent."Qty. transf. to Subcontr")) then
-                    QtyToPost := (Abs(ProdOrderComponent."Qty. in Transit (Base)") + Abs(ProdOrderComponent."Qty. transf. to Subcontr"));
+                ProdOrderComponent.CalcFields(
+                    "Qty. in Transit (Base)", "Qty. transf. to Subcontr",
+                    "RetQtyOnTransOrder (Base)", "RetQtyInTransit (Base)");
+                AvailableToReturn :=
+                    Abs(ProdOrderComponent."Qty. in Transit (Base)") + Abs(ProdOrderComponent."Qty. transf. to Subcontr")
+                    - Abs(ProdOrderComponent."RetQtyOnTransOrder (Base)") - Abs(ProdOrderComponent."RetQtyInTransit (Base)");
+                if QtyToPost > AvailableToReturn then
+                    QtyToPost := AvailableToReturn;
                 if QtyToPost > 0 then
                     if InsertLine then begin
 
-                        InsertTransferHeader(ProdOrderComponent."Subcontracting Type", ProdOrderComponent."Orig. Location Code");
+                        InsertTransferHeader(ProdOrderComponent."Orig. Location Code");
 
                         LineNum := LineNum + 10000;
 
@@ -211,6 +210,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
                         TransferLine."Prod. Order No." := PurchaseLine."Prod. Order No.";
                         TransferLine."Prod. Order Line No." := PurchaseLine."Prod. Order Line No.";
                         TransferLine."Prod. Order Comp. Line No." := ProdOrderComponent."Line No.";
+                        TransferLine."Return Order" := true;
 
                         TransferLine.Insert();
 
@@ -247,50 +247,19 @@ report 99001502 "Subc. Create SubCReturnOrder"
             Page.Run(Page::"Transfer Order", TransferHeader);
     end;
 
-    local procedure CheckTransferLineExists()
+    local procedure CheckTransferLineExists(PurchaseLine: Record "Purchase Line")
     var
         TransferLine2: Record "Transfer Line";
     begin
-        if "Purchase Line"."Document No." = '' then
+        if PurchaseLine."Document No." = '' then
             exit;
-        TransferLine2.SetRange("Subcontr. Purch. Order No.", "Purchase Line"."Document No.");
-        TransferLine2.SetRange("Subcontr. PO Line No.", "Purchase Line"."Line No.");
-        TransferLine2.SetRange("Prod. Order No.", "Purchase Line"."Prod. Order No.");
-        TransferLine2.SetRange("Prod. Order Line No.", "Purchase Line"."Prod. Order Line No.");
+        TransferLine2.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        TransferLine2.SetRange("Subcontr. PO Line No.", PurchaseLine."Line No.");
+        TransferLine2.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
+        TransferLine2.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        TransferLine2.SetRange("Return Order", true);
         if not TransferLine2.IsEmpty() then
             Error(ReturnTransferOrderAlreadyCreatedErr);
-    end;
-
-    local procedure GetTransferToLocationCode(var TransferFromLocationCode: Code[10]; SubcontractingType: Enum "Subcontracting Type")
-    var
-        CompanyInformation: Record "Company Information";
-        ManufacturingSetup: Record "Manufacturing Setup";
-    begin
-        if SubcontractingType = "Subcontracting Type"::Purchase then
-            TransferFromLocationCode := "Purchase Line"."Location Code"
-        else begin
-            SubcManagementSetup.TestField("Component at Location");
-            case SubcManagementSetup."Component at Location" of
-                "Components at Location"::Purchase:
-                    begin
-                        "Purchase Line".TestField("Location Code");
-                        TransferFromLocationCode := "Purchase Line"."Location Code";
-                    end;
-                "Components at Location"::Company:
-                    begin
-                        CompanyInformation.Get();
-                        CompanyInformation.TestField("Location Code");
-                        TransferFromLocationCode := CompanyInformation."Location Code";
-                    end;
-                "Components at Location"::Manufacturing:
-                    begin
-                        ManufacturingSetup.Get();
-                        ManufacturingSetup.TestField("Components at Location");
-                        TransferFromLocationCode := ManufacturingSetup."Components at Location";
-                    end;
-                else
-            end;
-        end;
     end;
 
     local procedure GetTransferFromLocationCode(var TransferToLocationCode: Code[10])

@@ -2028,6 +2028,205 @@ Comment = '|%1 = Transfer Order No.';
             'Routing Link Code duplicate confirmation must be shown exactly once, not twice');
     end;
 
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure CreateReturnTransferOrder_AfterPartialShipOfOutbound()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        OutboundFromCode, OutboundToCode : Code[10];
+        QtyPartialShip: Decimal;
+    begin
+        // [SCENARIO] Non-direct (in-transit) transfer: Return from Subcontractor must succeed when the outbound Transfer Order is only partially shipped, and a second Return attempt must be blocked with the existing error.
+        // [SCENARIO] Pre-fix the report errored 'Return from Subcontractor has already been created' on the first call because CheckTransferLineExists matched the unrelated outbound line.
+
+        // [GIVEN] Standard subcontracting setup with an in-transit transfer route (non-direct)
+        Initialize();
+        UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+        CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("No.", ProductionOrder."Source No.");
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        // [GIVEN] Outbound Subcontracting Transfer Order created from the Purchase Order
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+
+        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
+        TransferLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
+        TransferLine.FindFirst();
+
+        TransferHeader.Get(TransferLine."Document No.");
+        OutboundFromCode := TransferHeader."Transfer-from Code";
+        OutboundToCode := TransferHeader."Transfer-to Code";
+
+        // [GIVEN] Inventory at the source location and the outbound TO is partially shipped via Qty. to Ship (Ship only — items move to in-transit, line stays open with positive Outstanding)
+        Location.Get(OutboundFromCode);
+        Item.Get(ProdOrderComp."Item No.");
+        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
+
+        QtyPartialShip := Round(TransferLine.Quantity / 2, 1, '<');
+        TransferLine.Validate("Qty. to Ship", QtyPartialShip);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+
+        // [WHEN] Creating a Return Transfer Order while the outbound TO line is still present (partially shipped)
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] A Return Transfer Order is created with reversed Transfer-from / Transfer-to and quantity capped by the partially-shipped qty
+        ReturnTransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        ReturnTransferHeader.SetRange("Return Order", true);
+        Assert.IsTrue(ReturnTransferHeader.FindFirst(), 'Return Transfer Order should be created after partial ship of outbound');
+        Assert.AreEqual(OutboundToCode, ReturnTransferHeader."Transfer-from Code", 'Return Transfer-from must be the subcontractor location');
+        Assert.AreEqual(OutboundFromCode, ReturnTransferHeader."Transfer-to Code", 'Return Transfer-to must be the original component location');
+
+        TransferLine.Reset();
+        TransferLine.SetRange("Document No.", ReturnTransferHeader."No.");
+        Assert.IsTrue(TransferLine.FindFirst(), 'Return Transfer Line should exist');
+        Assert.AreEqual(QtyPartialShip, TransferLine.Quantity, 'Return quantity should equal the in-transit qty from the partial outbound shipment');
+
+        // [WHEN] Trying to create the Return Transfer Order again, with a Return TO already in place
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        asserterror PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] The duplicate is blocked with the existing error
+        Assert.ExpectedError('Return from Subcontractor has already been created');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure CreateReturnTransferOrder_AfterPartialShipOfOutbound_DirectTransfer()
+    var
+        Bin: Record Bin;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        OutboundFromCode, OutboundToCode : Code[10];
+        QtyPartialShip: Decimal;
+    begin
+        // [SCENARIO] Direct transfer (no in-transit route): Return from Subcontractor must succeed when the outbound Transfer Order has been partially direct-transferred, and a second Return attempt must be blocked with the existing error.
+        // [SCENARIO] In direct-transfer mode Qty. to Ship is forced to equal Quantity, so a partial transfer is achieved by reducing the line Quantity before posting. After the post the items already sit at the subcontractor and the outbound line is consumed.
+
+        // [GIVEN] Standard subcontracting setup WITHOUT an in-transit transfer route — the outbound TO will be Direct Transfer
+        Initialize();
+        UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+
+        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("No.", ProductionOrder."Source No.");
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        // [GIVEN] Outbound Subcontracting Transfer Order created from the Purchase Order (Direct Transfer because no in-transit route)
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+
+        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
+        TransferLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
+        TransferLine.FindFirst();
+
+        TransferHeader.Get(TransferLine."Document No.");
+        OutboundFromCode := TransferHeader."Transfer-from Code";
+        OutboundToCode := TransferHeader."Transfer-to Code";
+
+        // [GIVEN] Inventory at the source location and the outbound Quantity is reduced to a partial value, then direct-transferred (Ship+Receive in one operation — items land at the subcontractor location)
+        Location.Get(OutboundFromCode);
+        Item.Get(ProdOrderComp."Item No.");
+        CreateInventory(Item, Location, Bin, ProdOrderComp."Expected Qty. (Base)");
+
+        QtyPartialShip := Round(TransferLine.Quantity / 2, 1, '<');
+        TransferLine.Validate(Quantity, QtyPartialShip);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+
+        // [WHEN] Creating a Return Transfer Order while items are now at the subcontractor
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] A Return Transfer Order is created with reversed Transfer-from / Transfer-to and quantity capped by the qty that actually arrived at the subcontractor
+        ReturnTransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        ReturnTransferHeader.SetRange("Return Order", true);
+        Assert.IsTrue(ReturnTransferHeader.FindFirst(), 'Return Transfer Order should be created after partial direct transfer');
+        Assert.AreEqual(OutboundToCode, ReturnTransferHeader."Transfer-from Code", 'Return Transfer-from must be the subcontractor location');
+        Assert.AreEqual(OutboundFromCode, ReturnTransferHeader."Transfer-to Code", 'Return Transfer-to must be the original component location');
+
+        TransferLine.Reset();
+        TransferLine.SetRange("Document No.", ReturnTransferHeader."No.");
+        Assert.IsTrue(TransferLine.FindFirst(), 'Return Transfer Line should exist');
+        Assert.AreEqual(QtyPartialShip, TransferLine.Quantity, 'Return quantity should equal the qty already at the subcontractor');
+
+        // [WHEN] Trying to create the Return Transfer Order again, with a Return TO already in place
+        PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
+        asserterror PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] The duplicate is blocked with the existing error
+        Assert.ExpectedError('Return from Subcontractor has already been created');
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
