@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
@@ -25,7 +26,7 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         WIPLedgEntryNo: Integer;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Header", OnUpdateTransLinesOnAfterUpdateFromDirectTransfer, '', false, false)]
-    local procedure "Transfer Header_OnUpdateTransLinesOnAfterUpdateFromDirectTransfer"(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
+    local procedure OnUpdateTransLinesOnAfterUpdateFromDirectTransfer(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
     begin
         if TempTransferLine."Transfer WIP Item" then begin
             TransferLine.Validate("Transfer WIP Item", TempTransferLine."Transfer WIP Item");
@@ -34,7 +35,7 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Header", OnBeforeValidateEvent, "Direct Transfer", false, false)]
-    local procedure "Transfer Header_OnBeforeUpdateTransLines"(var Rec: Record "Transfer Header"; var xRec: Record "Transfer Header"; CurrFieldNo: Integer)
+    local procedure UpdateTransferRoutesOnBeforeUpdateTransLines(var Rec: Record "Transfer Header"; var xRec: Record "Transfer Header"; CurrFieldNo: Integer)
     var
         TransferRoute: Record "Transfer Route";
     begin
@@ -70,13 +71,21 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     local procedure HandleWipTransferOnBeforeCheckEmptyQuantity(ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
     var
         TransferLine: Record "Transfer Line";
+        CannotPostTheseLinesErr: Label 'You cannot post these lines because you have not entered a quantity on one or more of the lines. ';
     begin
+        if ItemJnlLine."Order Type" <> "Inventory Order Type"::Transfer then
+            exit;
         TransferLine.SetLoadFields("Transfer WIP Item");
-        if ItemJnlLine."Order Type" = "Inventory Order Type"::Transfer then
-            if TransferLine.Get(ItemJnlLine."Order No.", ItemJnlLine."Order Line No.") then
-                if TransferLine."Transfer WIP Item" then
-                    IsHandled := true;
+        if not TransferLine.Get(ItemJnlLine."Order No.", ItemJnlLine."Order Line No.") then
+            exit;
+        if not TransferLine."Transfer WIP Item" then
+            exit;
+        if ItemJnlLine."Document Type" = "Item Ledger Document Type"::"Direct Transfer" then
+            if (ItemJnlLine."Quantity" = 0) and (ItemJnlLine."Invoiced Quantity" = 0) then
+                Error(ErrorInfo.Create(CannotPostTheseLinesErr, true));
+        IsHandled := true;
     end;
+
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Shipment Line", OnAfterCopyFromTransferLine, '', false, false)]
     local procedure HandleWipTransferShipmentLineOnAfterCopyFromTransferLine(var TransferShipmentLine: Record "Transfer Shipment Line"; TransferLine: Record "Transfer Line")
@@ -387,6 +396,7 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         xWIPLedgEntryNo: Integer;
     begin
         xWIPLedgEntryNo := WIPLedgEntryNo;
+        OnBeforeInsertWIPLedgerEntry(SubcontractorWIPLedgerEntry, WIPLedgEntryNo);
         ValidateSequenceNo(WIPLedgEntryNo, xWIPLedgEntryNo, Database::"Subcontractor WIP Ledger Entry");
         if SubcontractorWIPLedgerEntry."Quantity (Base)" = 0 then
             exit;
@@ -400,5 +410,10 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         Vendor.SetCurrentKey("Subcontr. Location Code");
         Vendor.SetRange("Subcontr. Location Code", LocationCode);
         exit(not Vendor.IsEmpty());
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertWIPLedgerEntry(var SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry"; var WIPLedgEntryNo: Integer)
+    begin
     end;
 }

@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Inventory.Journal;
-using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
@@ -88,23 +86,5 @@ codeunit 99001563 "Subc. WhsePostShipment Ext"
         else
             WarehouseShipmentLine.Validate("Qty. to Ship", WarehouseShipmentLine."Qty. Outstanding");
         IsHandled := true;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", OnBeforeCheckEmptyQuantity, '', false, false)]
-    local procedure HandleWipTransferOnBeforeCheckEmptyQuantity(ItemJnlLine: Record "Item Journal Line"; var IsHandled: Boolean)
-    var
-        TransferLine: Record "Transfer Line";
-        CannotPostTheseLinesErr: Label 'You cannot post these lines because you have not entered a quantity on one or more of the lines. ';
-    begin
-        if ItemJnlLine."Document Type" = "Item Ledger Document Type"::"Direct Transfer" then begin
-            TransferLine.SetLoadFields("Transfer WIP Item");
-            if TransferLine.Get(ItemJnlLine."Order No.", ItemJnlLine."Document Line No.") then
-                if TransferLine."Transfer WIP Item" then begin
-                    if (ItemJnlLine."Quantity" = 0) and (ItemJnlLine."Invoiced Quantity" = 0) then
-                        Error(ErrorInfo.Create(CannotPostTheseLinesErr, true));
-
-                    IsHandled := true;
-                end;
-        end;
     end;
 }

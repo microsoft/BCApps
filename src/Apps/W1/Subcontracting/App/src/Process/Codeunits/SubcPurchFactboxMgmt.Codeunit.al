@@ -231,7 +231,7 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PageManagement: Codeunit "Page Management";
         RecRef: RecordRef;
         NoOfTransferHeaders: Integer;
-        NoTransferExistsTxt: Label 'No transfer order exists for this purchase order.';
+        NoTransferExistsMsg: Label 'No transfer order exists for this purchase order.';
     begin
         if not RecRelatedVariant.IsRecord() then
             exit;
@@ -301,7 +301,7 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
             NoOfTransferHeaders := TransferHeader.Count();
             case true of
                 NoOfTransferHeaders = 0:
-                    Message(NoTransferExistsTxt);
+                    Message(NoTransferExistsMsg);
                 NoOfTransferHeaders = 1:
                     if TransferHeader.FindFirst() then
                         PageManagement.PageRun(TransferHeader);
