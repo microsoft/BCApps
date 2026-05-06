@@ -2052,7 +2052,6 @@ Comment = '|%1 = Transfer Order No.';
         // [GIVEN] Complete manufacturing setup (no in-transit transfer route, so the report creates a Direct Transfer)
         Initialize();
         UpdateManufacturingSetupWithSubcontractingLocation();
-        SetupInventorySetup();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
