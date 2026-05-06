@@ -2045,7 +2045,6 @@ Comment = '|%1 = Transfer Order No.';
         // [SCENARIO 630806] Deleting a Subcontracting Order is blocked when an associated Transfer Order exists
         Initialize();
         UpdateManufacturingSetupWithSubcontractingLocation();
-        SetupInventorySetup();
 
         // [GIVEN] Some Parameters for Creation
         Subcontracting := true;
