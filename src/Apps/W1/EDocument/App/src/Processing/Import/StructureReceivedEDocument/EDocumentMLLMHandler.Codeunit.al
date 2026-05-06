@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using System.AI;
+using System.Azure.KeyVault;
 using System.Telemetry;
 using System.Text;
 using System.Utilities;
@@ -36,6 +37,8 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         MLLMSchemaValidationFailedMsg: Label 'MLLM response missing required vendor fields (name or address), falling back to ADI.', Locked = true;
         ADIFallbackSucceededMsg: Label 'ADI fallback produced structured data.', Locked = true;
         ADIFallbackFailedMsg: Label 'ADI fallback returned empty result.', Locked = true;
+        SecurityPromptAKVKeyTok: Label 'EDocMLLMExtraction-SecurityPrompt', Locked = true;
+        DocumentNotProcessedErr: Label 'The document could not be processed.';
 
     procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
     var
@@ -48,6 +51,9 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         RegisterCopilotCapabilityIfNeeded();
 
         ResponseText := CallMLLM(EDocumentDataStorage);
+
+        if IsInappropriateContentResponse(ResponseText) then
+            Error(DocumentNotProcessedErr);
 
         if not ValidateAndUnwrapResponse(ResponseText, ResponseJson) then
             exit(FallbackToADI(EDocumentDataStorage));
@@ -91,7 +97,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         AOAIChatCompletionParams.SetTemperature(0);
         AOAIChatCompletionParams.SetJsonMode(true);
 
-        AOAIChatMessages.SetPrimarySystemMessage(NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8));
+        AOAIChatMessages.SetPrimarySystemMessage(BuildSystemPrompt());
 
         AOAIUserMessage.AddFilePart(StrSubstNo(FileDataLbl, Base64Data));
         AOAIUserMessage.AddTextPart(StrSubstNo(UserPromptLbl, EDocMLLMSchemaHelper.GetDefaultSchema()));
@@ -111,6 +117,30 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
         Telemetry.LogMessage('0000SGT', MLLMApiCallSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         exit(AOAIOperationResponse.GetResult());
+    end;
+
+    local procedure BuildSystemPrompt(): SecretText
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        SecurityPromptSecretText: SecretText;
+        SystemPromptText: Text;
+    begin
+        SystemPromptText := NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptAKVKeyTok, SecurityPromptSecretText) then
+            Error(DocumentNotProcessedErr);
+        exit(SecretText.SecretStrSubstNo(SystemPromptText, SecurityPromptSecretText));
+    end;
+
+    local procedure IsInappropriateContentResponse(ResponseText: Text): Boolean
+    var
+        ResponseJson: JsonObject;
+        ErrorToken: JsonToken;
+    begin
+        if ResponseText = '' then
+            exit(false);
+        if not ResponseJson.ReadFrom(ResponseText) then
+            exit(false);
+        exit(ResponseJson.Get('error', ErrorToken));
     end;
 
     local procedure ValidateAndUnwrapResponse(var ResponseText: Text; var ResponseJson: JsonObject): Boolean
