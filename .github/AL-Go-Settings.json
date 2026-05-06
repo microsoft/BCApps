@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/730da166f092a5b269c127281fa69774a9cdb163/Actions/.Modules/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
-  "bcContainerHelperVersion": "preview",
+  "bcContainerHelperVersion": "https://github.com/microsoft/navcontainerhelper/archive/fix/docker-pull-transient-retry.zip",
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
