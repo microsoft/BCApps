@@ -512,13 +512,7 @@ codeunit 139981 "Subc. Location Handler Test"
     local procedure CreateSubcontractingSetup(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var ProdOrder: Record "Production Order"; var ProdOrderLine: Record "Prod. Order Line"; var ProdOrderComp: Record "Prod. Order Component"; var ProdOrderRtngLine: Record "Prod. Order Routing Line"; var Vendor: Record Vendor; var LocationSub: Record Location; var Item: Record Item; Qty: Decimal; CompLocationCode: Code[10]; CompOrigLocationCode: Code[10])
     var
         RoutingLink: Record "Routing Link";
-        SubManagementSetup: Record "Subc. Management Setup";
     begin
-        // Enable Direct Transfer so Transfer Header creation does not require an In-Transit location
-        SubManagementSetup.Get();
-        SubManagementSetup."Direct Transfer" := true;
-        SubManagementSetup.Modify();
-
         // [GIVEN] Vendor with Subcontractor Location
         if Vendor."No." = '' then begin
             LibraryPurchase.CreateVendor(Vendor);
