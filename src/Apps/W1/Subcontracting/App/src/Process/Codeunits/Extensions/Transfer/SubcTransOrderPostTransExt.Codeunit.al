@@ -34,7 +34,6 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
         DirectTransHeader."Return Order" := TransferHeader."Return Order";
         DirectTransHeader."Subcontr. Purch. Order No." := TransferHeader."Subcontr. Purch. Order No.";
         DirectTransHeader."Subcontr. PO Line No." := TransferHeader."Subcontr. PO Line No.";
-        DirectTransHeader.Modify();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Transfer", OnBeforeInsertDirectTransLine, '', false, false)]
