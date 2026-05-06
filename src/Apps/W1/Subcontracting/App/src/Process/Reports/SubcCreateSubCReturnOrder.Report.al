@@ -63,7 +63,6 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
 
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
@@ -79,9 +78,6 @@ report 99001502 "Subc. Create SubCReturnOrder"
         TransferRoute: Record "Transfer Route";
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
-        if not SubcManagementSetup.Get() then
-            Clear(SubcManagementSetup);
-
         TransferHeader.Reset();
         TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
         TransferHeader.SetRange("Source ID", "Purchase Header"."Buy-from Vendor No.");
@@ -160,6 +156,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         SubcontractingManagement: Codeunit "Subcontracting Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
         SubcFromLocationCode: Code[10];
+        AvailableToReturn: Decimal;
         QtyPerUom: Decimal;
     begin
         if not ProdOrderLine.Get(ProdOrderLine.Status::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
@@ -170,7 +167,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         then
             Error(OrderNoDoesNotExistInProdOrderErr, PurchaseLine."Operation No.", PurchOrderNo, PurchaseLine."Routing No.", PurchaseLine."Prod. Order No.");
 
-        if TransferLineAlreadyExists() then
+        if TransferLineAlreadyExists(PurchaseLine) then
             exit(false);
 
         Item.SetLoadFields("Base Unit of Measure", "Rounding Precision");
@@ -190,9 +187,14 @@ report 99001502 "Subc. Create SubCReturnOrder"
                 Item.Get(ProdOrderComponent."Item No.");
                 QtyToPost := MfgCostCalculationMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComponent,
                     Round(PurchaseLine."Outstanding Quantity" * QtyPerUom, UnitofMeasureManagement.QtyRndPrecision()));
-                ProdOrderComponent.CalcFields("Qty. in Transit (Base)", "Qty. transf. to Subcontr");
-                if QtyToPost > (Abs(ProdOrderComponent."Qty. in Transit (Base)") + Abs(ProdOrderComponent."Qty. transf. to Subcontr")) then
-                    QtyToPost := (Abs(ProdOrderComponent."Qty. in Transit (Base)") + Abs(ProdOrderComponent."Qty. transf. to Subcontr"));
+                ProdOrderComponent.CalcFields(
+                    "Qty. in Transit (Base)", "Qty. transf. to Subcontr",
+                    "RetQtyOnTransOrder (Base)", "RetQtyInTransit (Base)");
+                AvailableToReturn :=
+                    Abs(ProdOrderComponent."Qty. in Transit (Base)") + Abs(ProdOrderComponent."Qty. transf. to Subcontr")
+                    - Abs(ProdOrderComponent."RetQtyOnTransOrder (Base)") - Abs(ProdOrderComponent."RetQtyInTransit (Base)");
+                if QtyToPost > AvailableToReturn then
+                    QtyToPost := AvailableToReturn;
                 if QtyToPost > 0 then
                     if InsertLine then begin
 
@@ -213,6 +215,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
                         TransferLine."Prod. Order No." := PurchaseLine."Prod. Order No.";
                         TransferLine."Prod. Order Line No." := PurchaseLine."Prod. Order Line No.";
                         TransferLine."Prod. Order Comp. Line No." := ProdOrderComponent."Line No.";
+                        TransferLine."Return Order" := true;
 
                         TransferLine."Routing No." := ProdOrderRoutingLine."Routing No.";
                         TransferLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
@@ -252,16 +255,17 @@ report 99001502 "Subc. Create SubCReturnOrder"
         SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder("Purchase Line", true, true);
     end;
 
-    local procedure TransferLineAlreadyExists(): Boolean
+    local procedure TransferLineAlreadyExists(PurchaseLine: Record "Purchase Line"): Boolean
     var
         TransferLine2: Record "Transfer Line";
     begin
-        if "Purchase Line"."Document No." = '' then
-            exit(false);
-        TransferLine2.SetRange("Subcontr. Purch. Order No.", "Purchase Line"."Document No.");
-        TransferLine2.SetRange("Subcontr. PO Line No.", "Purchase Line"."Line No.");
-        TransferLine2.SetRange("Prod. Order No.", "Purchase Line"."Prod. Order No.");
-        TransferLine2.SetRange("Prod. Order Line No.", "Purchase Line"."Prod. Order Line No.");
+        if PurchaseLine."Document No." = '' then
+            exit;
+        TransferLine2.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        TransferLine2.SetRange("Subcontr. PO Line No.", PurchaseLine."Line No.");
+        TransferLine2.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
+        TransferLine2.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        TransferLine2.SetRange("Return Order", true);
         if not TransferLine2.IsEmpty() then
             exit(false);
     end;
