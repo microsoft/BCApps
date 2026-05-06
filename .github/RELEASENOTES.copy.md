@@ -2,6 +2,10 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### Optimized dependency artifact downloads for multi-project repositories
+
+The `DownloadProjectDependencies` action now downloads only artifacts from dependency projects instead of all workflow artifacts. For repositories with many AL-Go projects, this reduces build runner bandwidth and speeds up the dependency download step.
+
 ### Issues
 
 - Incremental builds (`modifiedApps` mode) now correctly identify unmodified apps for projects whose `appFolders` reference paths outside the project directory (e.g. using `../`)
