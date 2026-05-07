@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Setup;
 
 codeunit 99001503 "Subcontracting Comp. Init."
 {
@@ -15,36 +16,44 @@ codeunit 99001503 "Subcontracting Comp. Init."
 
     local procedure CreateSubcontractingManagementSetup()
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
-        if not SubcManagementSetup.Get() then begin
-            SubcManagementSetup.Init();
-            CreateLaborReqWkshTemplateAndNameAndUpdateSetup(SubcManagementSetup);
-            SubcManagementSetup."Create Prod. Order Info Line" := true;
-            Evaluate(SubcManagementSetup."Subc. Inb. Whse. Handling Time", GetDefaultInboundWhseHandlingTime());
-            SubcManagementSetup.Insert(true);
+        if not ManufacturingSetup.Get() then begin
+            ManufacturingSetup.Init();
+            ManufacturingSetup.Insert(true);
         end;
+
+        if not CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup(ManufacturingSetup) then
+            exit;
+
+        ManufacturingSetup."Direct Transfer" := true;
+        ManufacturingSetup."Create Prod. Order Info Line" := true;
+        Evaluate(ManufacturingSetup."Subc. Inb. Whse. Handling Time", GetDefaultInboundWhseHandlingTime());
+        ManufacturingSetup.Modify(true);
     end;
 
-    procedure CreateLaborReqWkshTemplateAndNameAndUpdateSetup(var SubcManagementSetup: Record "Subc. Management Setup")
+    procedure CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup(var ManufacturingSetup: Record "Manufacturing Setup"): Boolean
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";
     begin
-        CreateReqWkshTemplate(ReqWkshTemplate, false);
+        if not CreateReqWkshTemplate(ReqWkshTemplate, false) then
+            exit(false);
+
         CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
-        SubcManagementSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
-        SubcManagementSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
+        ManufacturingSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
+        ManufacturingSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
+        exit(true);
     end;
 
-    procedure CreateReqWkshTemplate(var ReqWkshTemplate: Record "Req. Wksh. Template"; Recurring: Boolean)
+    procedure CreateReqWkshTemplate(var ReqWkshTemplate: Record "Req. Wksh. Template"; Recurring: Boolean): Boolean
     var
         ReqWkshTempDescLbl: Label 'Subcontracting', MaxLength = 80;
         ReqWkshTempNameLbl: Label 'SUBCONTR', MaxLength = 10;
     begin
         ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Subcontracting);
         if ReqWkshTemplate.FindFirst() then
-            exit;
+            exit(false);
 
         ReqWkshTemplate.Init();
         ReqWkshTemplate.Validate(Name, ReqWkshTempNameLbl);
@@ -53,6 +62,7 @@ codeunit 99001503 "Subcontracting Comp. Init."
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
         ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
         ReqWkshTemplate.Insert(true);
+        exit(true);
     end;
 
     procedure CreateRequisitionWkshName(var RequisitionWkshName: Record "Requisition Wksh. Name"; WorksheetTemplateName: Text)
