@@ -391,6 +391,7 @@ codeunit 30178 "Shpfy Product Export"
     var
         Product: Record "Shpfy Product";
         ItemAsVariant: Boolean;
+        JustResolvedOption1Name: Boolean;
     begin
         if Shop."Sync Prices" or OnlyUpdatePrice then
             if Item.Blocked or Item."Sales Blocked" then
@@ -433,9 +434,11 @@ codeunit 30178 "Shpfy Product Export"
                 ShopifyVariant."Tariff No." := Item."Tariff No.";
                 ShopifyVariant."Country/Region of Origin Code" := GetCountryISOCode(Item."Country/Region of Origin Code");
             end;
-            if ShopifyVariant."Option 1 Name" = '' then
-                ShopifyVariant."Option 1 Name" := 'Variant';
-            if ShopifyVariant."Option 1 Name" = 'Variant' then
+            if ShopifyVariant."Option 1 Name" = '' then begin
+                ShopifyVariant."Option 1 Name" := ResolveOption1Name(ShopifyVariant."Product Id");
+                JustResolvedOption1Name := true;
+            end;
+            if (ShopifyVariant."Option 1 Name" = 'Variant') or JustResolvedOption1Name then
                 if ItemAsVariant then
                     ShopifyVariant."Option 1 Value" := Item."No."
                 else
@@ -879,6 +882,31 @@ codeunit 30178 "Shpfy Product Export"
                 TempCurrVariant := ShopifyVariant;
                 TempCurrVariant.Insert();
             end;
+    end;
+
+    local procedure ResolveOption1Name(ProductId: BigInteger): Text[50]
+    var
+        ShpfyVariant: Record "Shpfy Variant";
+        VariantOption1Name: Text[50];
+        FirstVariantName: Boolean;
+    begin
+        ShpfyVariant.SetRange("Product Id", ProductId);
+        if not ShpfyVariant.FindSet() then
+            exit('Variant');
+        FirstVariantName := true;
+        repeat
+            if ShpfyVariant."Option 1 Name" <> '' then
+                if FirstVariantName then begin
+                    VariantOption1Name := ShpfyVariant."Option 1 Name";
+                    FirstVariantName := false;
+                end
+                else
+                    if VariantOption1Name <> ShpfyVariant."Option 1 Name" then
+                        exit('Variant');
+        until ShpfyVariant.Next() = 0;
+        if not FirstVariantName then
+            exit(VariantOption1Name);
+        exit('Variant');
     end;
 
     local procedure RevertVariantChanges(VariantId: BigInteger)
