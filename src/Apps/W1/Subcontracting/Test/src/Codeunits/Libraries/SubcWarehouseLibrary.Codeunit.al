@@ -487,11 +487,11 @@ codeunit 149908 "Subc. Warehouse Library"
     end;
 
     /// <summary>
-    /// Updates the subcontracting management setup with a labor requirement worksheet template and name. This is used to set up the subcontracting management parameters for testing scenarios that involve subcontracting and the use of labor requirement worksheets in the subcontracting process.
+    /// Updates the subcontracting management setup with a subcontracting requirement worksheet template and name. This is used to set up the subcontracting management parameters for testing scenarios that involve subcontracting and the use of subcontracting requirement worksheets in the subcontracting process.
     /// </summary>
     procedure UpdateSubMgmtSetupWithReqWkshTemplate()
     begin
-        SubcLibraryMfgManagement.CreateLaborReqWkshTemplateAndNameAndUpdateSetup();
+        SubcLibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
     end;
 
     /// <summary>
@@ -529,16 +529,16 @@ codeunit 149908 "Subc. Warehouse Library"
     var
         PurchaseLine: Record "Purchase Line";
         RequisitionLine: Record "Requisition Line";
-        SubMgmtSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
     begin
         // Get worksheet template and batch from setup
-        SubMgmtSetup.Get();
+        ManufacturingSetup.Get();
 
         // Initialize requisition line for the Calculate Subcontracts report
-        RequisitionLine."Worksheet Template Name" := SubMgmtSetup."Subcontracting Template Name";
-        RequisitionLine."Journal Batch Name" := SubMgmtSetup."Subcontracting Batch Name";
+        RequisitionLine."Worksheet Template Name" := ManufacturingSetup."Subcontracting Template Name";
+        RequisitionLine."Journal Batch Name" := ManufacturingSetup."Subcontracting Batch Name";
 
         // Calculate subcontracting lines to fill the worksheet
         SubcCalculateSubContract.SetWkShLine(RequisitionLine);
@@ -546,8 +546,8 @@ codeunit 149908 "Subc. Warehouse Library"
         SubcCalculateSubContract.RunModal();
 
         // Find requisition lines for the production order
-        RequisitionLine.SetRange("Worksheet Template Name", SubMgmtSetup."Subcontracting Template Name");
-        RequisitionLine.SetRange("Journal Batch Name", SubMgmtSetup."Subcontracting Batch Name");
+        RequisitionLine.SetRange("Worksheet Template Name", ManufacturingSetup."Subcontracting Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", ManufacturingSetup."Subcontracting Batch Name");
 #pragma warning disable AA0210
         RequisitionLine.SetRange("Prod. Order No.", ProductionOrderNo);
 #pragma warning restore AA0210

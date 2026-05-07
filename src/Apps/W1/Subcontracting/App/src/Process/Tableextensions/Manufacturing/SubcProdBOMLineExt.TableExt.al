@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.ProductionBOM;
 
-tableextension 99001501 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
+tableextension 99001531 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
 {
     AllowInCustomizations = AsReadOnly;
     fields
