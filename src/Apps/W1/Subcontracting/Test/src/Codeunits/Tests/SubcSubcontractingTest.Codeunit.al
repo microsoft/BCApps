@@ -111,7 +111,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    procedure CreateSubcOrderFromRtngLine_EmptyDefVATProdPostGrp()
+    procedure CreateSubcOrderFromRtngLineEmptyDefVATProdPostGrp()
     var
         GenProductPostingGroup: Record "Gen. Product Posting Group";
         Item: Record Item;
@@ -1696,7 +1696,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    procedure TestPostItemChargeAssignedToSubcontractingLing_ValueEntryWithCapacityRelation()
+    procedure TestPostItemChargeAssignedToSubcontractingLingValueEntryWithCapacityRelation()
     var
         ItemCharge: Record "Item Charge";
         ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
@@ -2028,7 +2028,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
-    procedure CreateReturnTransferOrder_AfterPartialShipOfOutbound()
+    procedure CreateReturnTransferOrderAfterPartialShipOfOutbound()
     var
         Bin: Record Bin;
         Item: Record Item;
@@ -2128,7 +2128,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
-    procedure CreateReturnTransferOrder_AfterPartialShipOfOutbound_DirectTransfer()
+    procedure CreateReturnTransferOrderAfterPartialShipOfOutboundDirectTransfer()
     var
         Bin: Record Bin;
         Item: Record Item;
@@ -2621,7 +2621,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibrarySetupStorage.Restore();
 
         SubcontractingMgmtLibrary.Initialize();
-        UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Purchase);
+        UpdateSubMgmtSetupComponentAtLocation("Components at Location"::Purchase);
         LibraryMfgManagement.Initialize();
 
         if IsInitialized then
@@ -2659,7 +2659,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         EsMgmtSetup.Modify();
     end;
 
-    local procedure UpdateSubMgmtSetup_ComponentAtLocation(CompAtLocation: Enum "Components at Location")
+    local procedure UpdateSubMgmtSetupComponentAtLocation(CompAtLocation: Enum "Components at Location")
     var
         EsMgmtSetup: Record "Subc. Management Setup";
     begin
@@ -2750,7 +2750,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ManufacturingSetup.Get();
         ManufacturingSetup."Components at Location" := Location.Code;
         ManufacturingSetup.Modify();
-        UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Manufacturing);
+        UpdateSubMgmtSetupComponentAtLocation("Components at Location"::Manufacturing);
     end;
 
     procedure CreateInventory(Item: Record Item; Location: Record Location; Bin: Record Bin; Quantity: Decimal)

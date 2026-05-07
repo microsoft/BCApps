@@ -46,7 +46,7 @@ codeunit 99001505 "Subcontracting Management"
         exit(ReceiptDate);
     end;
 
-    procedure ChangeLocation_OnProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
+    procedure ChangeLocationOnProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
         case ProdOrderComponent."Subcontracting Type" of
             "Subcontracting Type"::InventoryByVendor,
@@ -69,7 +69,7 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
-    procedure ChangeLocation_OnPlanningComponent(var PlanningComponent: Record "Planning Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
+    procedure ChangeLocationOnPlanningComponent(var PlanningComponent: Record "Planning Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
         case PlanningComponent."Subcontracting Type" of
             "Subcontracting Type"::InventoryByVendor,
@@ -377,7 +377,7 @@ codeunit 99001505 "Subcontracting Management"
     begin
         if ProdOrderComponent.Get("Production Order Status"::Released, TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Prod. Order Comp. Line No.") then
             if ProdOrderComponent."Orig. Location Code" <> '' then begin
-                ChangeLocation_OnProdOrderComponent(ProdOrderComponent, '', ProdOrderComponent."Orig. Location Code", ProdOrderComponent."Orig. Bin Code");
+                ChangeLocationOnProdOrderComponent(ProdOrderComponent, '', ProdOrderComponent."Orig. Location Code", ProdOrderComponent."Orig. Bin Code");
                 ProdOrderComponent."Orig. Location Code" := '';
                 ProdOrderComponent."Orig. Bin Code" := '';
 
@@ -411,7 +411,7 @@ codeunit 99001505 "Subcontracting Management"
             OrigLocationCode := PlanningComponent."Orig. Location Code";
             OrigBinCode := PlanningComponent."Orig. Bin Code";
 
-            ChangeLocation_OnPlanningComponent(PlanningComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
+            ChangeLocationOnPlanningComponent(PlanningComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
 
             PlanningComponent.Modify();
         end;
@@ -469,7 +469,7 @@ codeunit 99001505 "Subcontracting Management"
                 OrigLocationCode := ProdOrderComponent."Orig. Location Code";
                 OrigBinCode := ProdOrderComponent."Orig. Bin Code";
 
-                ChangeLocation_OnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
+                ChangeLocationOnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
 
                 ProdOrderComponent.Modify();
             end;
@@ -504,7 +504,7 @@ codeunit 99001505 "Subcontracting Management"
                     OrigLocationCode := ProdOrderComponent."Orig. Location Code";
                     OrigBinCode := ProdOrderComponent."Orig. Bin Code";
 
-                    ChangeLocation_OnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
+                    ChangeLocationOnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
 
                     ProdOrderComponent.Modify();
                 until ProdOrderComponent.Next() = 0;

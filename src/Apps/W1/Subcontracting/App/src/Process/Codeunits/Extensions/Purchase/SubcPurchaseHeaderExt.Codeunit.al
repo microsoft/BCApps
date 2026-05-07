@@ -19,7 +19,7 @@ codeunit 99001533 "Subc. Purchase Header Ext"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnAfterValidateEvent, "Buy-from Vendor No.", false, false)]
-    local procedure OnAfterValidateEvent_BuyFromVendorNo(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
+    local procedure OnAfterValidateEventBuyFromVendorNo(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
     begin
         SubcSynchronizeManagement.DeleteEnhancedDocumentsByChangeOfVendorNo(Rec, xRec);
     end;

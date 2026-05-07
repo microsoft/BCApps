@@ -274,7 +274,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
                 ProdOrderComponent."Due Time" := ProdOrderRoutingLine."Starting Time";
                 if (ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center") then
                     if SubcontractingManagement.GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then
-                        SubcontractingManagement.ChangeLocation_OnProdOrderComponent(ProdOrderComponent, Vendor."Subcontr. Location Code", ProdOrderComponent."Orig. Location Code", ProdOrderComponent."Orig. Bin Code");
+                        SubcontractingManagement.ChangeLocationOnProdOrderComponent(ProdOrderComponent, Vendor."Subcontr. Location Code", ProdOrderComponent."Orig. Location Code", ProdOrderComponent."Orig. Bin Code");
             end;
         end else
             if xProdOrderComponent."Routing Link Code" <> '' then
