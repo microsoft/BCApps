@@ -2,7 +2,7 @@
   "id": "e409d343-14fa-42a4-a1be-fec499383e59",
   "name": "Azure Storage Services Authorization",
   "publisher": "Microsoft",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "brief": "Provides means for authorizing HTTP requests to Azure Storage Services",
   "description": "Provides interfaces and authorization logic for HTTP requests to Azure Storage Services",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
