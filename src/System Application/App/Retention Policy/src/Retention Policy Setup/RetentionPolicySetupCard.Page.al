@@ -203,6 +203,21 @@ page 3901 "Retention Policy Setup Card"
                     RetenPolAllowedTables.OnRefreshAllowedTables();
                 end;
             }
+            action(TruncateAll)
+            {
+                Caption = 'Truncate All';
+                ApplicationArea = All;
+                Image = Delete;
+                ToolTip = 'Truncate all records in the selected table. This action is restricted to specific tables only.';
+                Ellipsis = true;
+
+                trigger OnAction()
+                var
+                    ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+                begin
+                    ApplyRetentionPolicy.TruncateTableRecords(Rec);
+                end;
+            }
         }
     }
 
