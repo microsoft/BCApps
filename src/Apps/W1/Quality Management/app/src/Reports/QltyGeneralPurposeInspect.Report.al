@@ -412,7 +412,7 @@ report 20405 "Qlty. General Purpose Inspect."
         DateLabel = 'Date';
         CompletedByLabel = 'Completed by';
         CompletedDateLabel = 'Completed on';
-        ReportTitleLabel = 'General Purpose Inspection Report';
+        ReportTitleLabel = 'Quality Inspection Report';
         ResultLabel = 'Result';
         //ConditionLabel = 'Condition';
         InspectionLabel = 'Inspection';
