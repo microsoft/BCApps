@@ -8,8 +8,11 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Ledger;
@@ -518,6 +521,85 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         Assert.RecordIsEmpty(WarehouseActivityLine);
     end;
 
+    [Test]
+    procedure CalcRegenPlanForPlanWksh_WIPTransferLine_NotConsideredAsDemandOrSupply()
+    var
+        Customer: Record Customer;
+        FromLocation, ToLocation, InTransitCode : Record Location;
+        Item: Record Item;
+        RequisitionLine: Record "Requisition Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO] Planning Worksheet (Regenerative Plan) does not consider WIP Transfer Lines as demand or supply
+        // because all base quantity fields ("Quantity (Base)", "Outstanding Qty. (Base)", etc.) are 0.
+        // The planning uses SKU-level configuration with Replenishment System = Transfer.
+        Initialize();
+        Quantity := 10;
+
+        // [GIVEN] Locations with Transfer Route and In-Transit Location
+        SubcWarehouseLibrary.CreateLocationWithBinMandatoryOnly(FromLocation);
+        SubcWarehouseLibrary.CreateLocationWithBinMandatoryOnly(ToLocation);
+        LibraryWarehouse.CreateInTransitLocation(InTransitCode);
+
+        // [GIVEN] An item with a SKU at ToLocation configured for Transfer replenishment from FromLocation
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] A WIP Transfer Order for the item (base quantities = 0)
+        SubcWarehouseLibrary.CreateTransferOrderWithWIPItemFlagWithoutRoutingReference(
+            TransferHeader, TransferLine, FromLocation.Code, ToLocation.Code, InTransitCode.Code, Item, Quantity);
+
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, ToLocation.Code, Item."No.", '');
+        StockkeepingUnit.Validate("Replenishment System", StockkeepingUnit."Replenishment System"::Transfer);
+        StockkeepingUnit.Validate("Reordering Policy", StockkeepingUnit."Reordering Policy"::"Lot-for-Lot");
+        StockkeepingUnit.Validate("Transfer-from Code", FromLocation.Code);
+        StockkeepingUnit.Modify(true);
+
+        // [GIVEN] Verify the WIP Transfer Line has base quantities = 0 (precondition)
+        Assert.AreEqual(0, TransferLine."Quantity (Base)", 'Precondition: WIP Transfer Line Quantity (Base) must be 0');
+        Assert.AreEqual(0, TransferLine."Outstanding Qty. (Base)", 'Precondition: WIP Transfer Line Outstanding Qty. (Base) must be 0');
+        Assert.AreEqual(0, TransferLine."Qty. per Unit of Measure", 'Precondition: WIP Transfer Line Qty. per Unit of Measure must be 0');
+
+        // [GIVEN] A Sales Order creating real demand for the item at the To Location
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, "Sales Document Type"::Order, Customer."No.", Item."No.", Quantity, ToLocation.Code, WorkDate());
+
+        // [WHEN] Run Regenerative Plan for Planning Worksheet
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
+        Commit();
+
+        // [THEN] Requisition Lines are created for the Sales Order demand (Replenishment System = Transfer via SKU)
+        RequisitionLine.SetRange("No.", Item."No.");
+        RequisitionLine.SetRange("Ref. Order Type", RequisitionLine."Ref. Order Type"::Transfer);
+        Assert.IsTrue(RequisitionLine.FindFirst(), 'Planning should create a Requisition Line for the Sales Order demand');
+
+        // [THEN] The planned transfer has the full base quantity (from Sales demand), proving the WIP Transfer Line was NOT used as supply
+        Assert.AreEqual(RequisitionLine.Quantity, Quantity, 'Requisition Line Quantity should equal Sales Order quantity');
+        Assert.AreEqual(Quantity, RequisitionLine."Quantity (Base)", 'Requisition Line Quantity (Base) should equal Sales demand quantity, proving WIP Transfer was not counted as supply');
+
+        // [WHEN] Delete the Planning Worksheet lines, remove the WIP flag from the transfer line and run planning again
+        RequisitionLine.Reset();
+        RequisitionLine.SetRange("No.", Item."No.");
+        RequisitionLine.DeleteAll(true);
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.Validate("Transfer WIP Item", false);
+        TransferLine.Modify(true);
+        Commit();
+
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
+        Commit();
+
+        // [THEN] The transfer line is now considered by planning because it carries non-zero base quantities. No new Requisition Line should be created since the existing transfer can cover the demand.
+        RequisitionLine.Reset();
+        RequisitionLine.SetRange("No.", Item."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+    end;
+
     [ConfirmHandler]
     procedure DeleteWhseReceiptConfimHandler(Question: Text[1024]; var Reply: Boolean)
     begin
@@ -545,6 +627,8 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryPlanning: Codeunit "Library - Planning";
+        LibrarySales: Codeunit "Library - Sales";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
