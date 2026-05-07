@@ -552,9 +552,11 @@ report 20405 "Qlty. General Purpose Inspect."
         CombinedText: TextBuilder;
     begin
         CombinedTextResult := '';
+
         for IndexOfTextToCombine := 1 to ArrayLen(InTextToCombine) do
             if InTextToCombine[IndexOfTextToCombine] <> '' then
                 CombinedText.AppendLine(InTextToCombine[IndexOfTextToCombine]);
+
         CombinedTextResult := CombinedText.ToText();
     end;
 }
