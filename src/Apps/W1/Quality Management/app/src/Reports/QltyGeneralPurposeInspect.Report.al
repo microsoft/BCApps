@@ -18,12 +18,12 @@ using System.Security.User;
 
 report 20405 "Qlty. General Purpose Inspect."
 {
-    Caption = 'Quality Management - General Purpose Inspection Report';
+    Caption = 'Quality Inspection - General Purpose Inspection Report';
     ToolTip = 'A printable general purpose inspection report.';
     AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = QualityManagement;
-    DefaultRenderingLayout = QualityManagement_GeneralPurposeInspection_Default;
+    DefaultRenderingLayout = QltyInspection_GeneralPurposeInspection_Default;
     Extensible = true;
     WordMergeDataItem = CurrentInspection;
 
@@ -67,14 +67,14 @@ report 20405 "Qlty. General Purpose Inspect."
             column(QltyInspection_Source_Custom_9; "Source Custom 9") { }
             column(QltyInspection_Source_Custom_10; "Source Custom 10") { }
 
-            column(CompanyInformation_Row1; ArrayCompanyInformation[1]) { }
-            column(CompanyInformation_Row2; ArrayCompanyInformation[2]) { }
-            column(CompanyInformation_Row3; ArrayCompanyInformation[3]) { }
-            column(CompanyInformation_Row4; ArrayCompanyInformation[4]) { }
-            column(CompanyInformation_Row5; ArrayCompanyInformation[5]) { }
-            column(CompanyInformation_Row6; ArrayCompanyInformation[6]) { }
-            column(CompanyInformation_Row7; ArrayCompanyInformation[7]) { }
-            column(CompanyInformation_Row8; ArrayCompanyInformation[8]) { }
+            column(CompanyInformation_Row1; CompanyInformationArray[1]) { }
+            column(CompanyInformation_Row2; CompanyInformationArray[2]) { }
+            column(CompanyInformation_Row3; CompanyInformationArray[3]) { }
+            column(CompanyInformation_Row4; CompanyInformationArray[4]) { }
+            column(CompanyInformation_Row5; CompanyInformationArray[5]) { }
+            column(CompanyInformation_Row6; CompanyInformationArray[6]) { }
+            column(CompanyInformation_Row7; CompanyInformationArray[7]) { }
+            column(CompanyInformation_Row8; CompanyInformationArray[8]) { }
             column(CompanyInformation_All; AllCompanyInformation) { }
 
             column(COAContact_Row1; ContactInformationArray[1]) { }
@@ -317,6 +317,7 @@ report 20405 "Qlty. General Purpose Inspect."
                         ConditionLabelText1 := Caption[1] + ' ' + ConditionSuffixLbl
                     else
                         ConditionLabelText1 := '';
+
                     if Caption[2] <> '' then
                         ConditionLabelText2 := Caption[2] + ' ' + ConditionSuffixLbl
                     else
@@ -392,7 +393,7 @@ report 20405 "Qlty. General Purpose Inspect."
                 CompanyInformation.SetAutoCalcFields(Picture);
                 CompanyInformation.Get();
                 CompanyInformation.CalcFields(Picture);
-                FormatAddress.Company(ArrayCompanyInformation, CompanyInformation);
+                FormatAddress.Company(CompanyInformationArray, CompanyInformation);
 
                 DummyCompanyInfo.Picture := CompanyInformation.Picture;
 
@@ -425,7 +426,7 @@ report 20405 "Qlty. General Purpose Inspect."
                         FormatAddress.ContactAddr(ContactInformationArray, Contact);
                     end;
 
-                CombineToCarriageReturnString(ArrayCompanyInformation, AllCompanyInformation);
+                CombineToCarriageReturnString(CompanyInformationArray, AllCompanyInformation);
                 CombineToCarriageReturnString(ContactInformationArray, AllContactInformation);
             end;
 
@@ -508,7 +509,7 @@ report 20405 "Qlty. General Purpose Inspect."
 
     rendering
     {
-        layout(QualityManagement_GeneralPurposeInspection_Default)
+        layout(QltyInspection_GeneralPurposeInspection_Default)
         {
             Type = Word;
             Caption = 'Word Layout';
@@ -550,7 +551,7 @@ report 20405 "Qlty. General Purpose Inspect."
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyPersonLookup: Codeunit "Qlty. Person Lookup";
         MatrixSourceRecordId: array[10] of RecordId;
-        ArrayCompanyInformation: array[8] of Text[100];
+        CompanyInformationArray: array[8] of Text[100];
         ContactInformationArray: array[8] of Text[100];
         ResultDescription: Text;
         MatrixArrayConditionCellData: array[10] of Text;

@@ -18,12 +18,12 @@ using System.Security.User;
 
 report 20403 "Qlty. Non-Conformance"
 {
-    Caption = 'Quality Management - Non-Conformance Report';
+    Caption = 'Quality Inspection - Non-Conformance Report';
     AdditionalSearchTerms = 'NCR,CAR';
     AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = QualityManagement;
-    DefaultRenderingLayout = QualityManagement_NonConformance_Default;
+    DefaultRenderingLayout = QualityInspection_NonConformance_Default;
     Extensible = true;
     WordMergeDataItem = CurrentInspection;
 
@@ -315,6 +315,7 @@ report 20403 "Qlty. Non-Conformance"
                         ConditionLabelText1 := Caption[1] + ' ' + ConditionSuffixLbl
                     else
                         ConditionLabelText1 := '';
+
                     if Caption[2] <> '' then
                         ConditionLabelText2 := Caption[2] + ' ' + ConditionSuffixLbl
                     else
@@ -483,7 +484,7 @@ report 20403 "Qlty. Non-Conformance"
 
     rendering
     {
-        layout(QualityManagement_NonConformance_Default)
+        layout(QualityInspection_NonConformance_Default)
         {
             Type = Word;
             Caption = 'Word Layout';

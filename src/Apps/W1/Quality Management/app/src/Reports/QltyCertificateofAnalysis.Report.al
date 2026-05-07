@@ -18,11 +18,11 @@ using System.Security.User;
 
 report 20401 "Qlty. Certificate of Analysis"
 {
-    Caption = 'Quality Management - Certificate of Analysis';
+    Caption = 'Quality Inspection - Certificate of Analysis';
     AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = QualityManagement;
-    DefaultRenderingLayout = QualityManagement_CertificateOfAnalysis_Default;
+    DefaultRenderingLayout = QltyInspection_CertificateOfAnalysis_Default;
     Extensible = true;
     WordMergeDataItem = CurrentInspection;
 
@@ -130,7 +130,7 @@ report 20401 "Qlty. Certificate of Analysis"
                 column(Field_ModifiedByUserEmail; InspectionLineModifiedByEmail) { }
                 column(Field_ModifiedByUserPhone; InspectionLineModifiedByPhone) { }
                 column(Test_Value; TestValueText) { }
-                column(Test_Result; "Result Code") { }
+                column(Test_Result; CurrentInspectionLine."Result Code") { }
                 column(Test_ResultDescription; ResultDescription) { }
                 column(Field_LineCommentary; CurrentInspectionLine.GetMeasurementNote()) { }
                 column(PromptedResultCaption_1; MatrixArrayCaptionSet[1])
@@ -275,30 +275,6 @@ report 20401 "Qlty. Certificate of Analysis"
                     else
                         LabelFieldDescription := '';
 
-                    // Word columns: empty for labels, populated for normal and person fields
-                    if not FieldIsLabel then begin
-                        WordDescription := CurrentInspectionLine.Description;
-                        WordResultDescription := ResultDescription;
-                    end else begin
-                        WordDescription := '';
-                        WordResultDescription := '';
-                    end;
-
-                    // TestValueText: person details for person fields, normal value otherwise
-                    if IsPersonField then begin
-                        Clear(CombinedText);
-                        if OptionalTitleIfPerson <> '' then
-                            CombinedText.AppendLine(OptionalTitleIfPerson);
-                        if OptionalNameIfPerson <> '' then
-                            CombinedText.AppendLine(OptionalNameIfPerson);
-                        if OptionalPhoneIfPerson <> '' then
-                            CombinedText.AppendLine(OptionalPhoneIfPerson);
-                        if OptionalEmailIfPerson <> '' then
-                            CombinedText.AppendLine(OptionalEmailIfPerson);
-                        TestValueText := CombinedText.ToText();
-                    end else
-                        TestValueText := CurrentInspectionLine.GetLargeText();
-
                     // Resolve pre-calculated condition label columns for Word Layout
                     Clear(Caption);
                     QltyIResultConditConf.SetRange("Condition Type", QltyIResultConditConf."Condition Type"::Inspection);
@@ -331,6 +307,30 @@ report 20401 "Qlty. Certificate of Analysis"
                         ConditionLabelText2 := Caption[2] + ' ' + ConditionSuffixLbl
                     else
                         ConditionLabelText2 := '';
+
+                    // Word columns: empty for labels, populated for normal and person fields
+                    if not FieldIsLabel then begin
+                        WordDescription := CurrentInspectionLine.Description;
+                        WordResultDescription := ResultDescription;
+                    end else begin
+                        WordDescription := '';
+                        WordResultDescription := '';
+                    end;
+
+                    // TestValueText: person details for person fields, normal value otherwise
+                    if IsPersonField then begin
+                        Clear(CombinedText);
+                        if OptionalTitleIfPerson <> '' then
+                            CombinedText.AppendLine(OptionalTitleIfPerson);
+                        if OptionalNameIfPerson <> '' then
+                            CombinedText.AppendLine(OptionalNameIfPerson);
+                        if OptionalPhoneIfPerson <> '' then
+                            CombinedText.AppendLine(OptionalPhoneIfPerson);
+                        if OptionalEmailIfPerson <> '' then
+                            CombinedText.AppendLine(OptionalEmailIfPerson);
+                        TestValueText := CombinedText.ToText();
+                    end else
+                        TestValueText := CurrentInspectionLine.GetLargeText();
                 end;
             }
 
@@ -458,7 +458,7 @@ report 20401 "Qlty. Certificate of Analysis"
 
     rendering
     {
-        layout(QualityManagement_CertificateOfAnalysis_Default)
+        layout(QltyInspection_CertificateOfAnalysis_Default)
         {
             Type = Word;
             Caption = 'Word Layout';
@@ -493,8 +493,8 @@ report 20401 "Qlty. Certificate of Analysis"
     var
         Item: Record Item;
         DummyCompanyInfo: Record "Company Information";
-        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         CompanyInformation: Record "Company Information";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyPersonLookup: Codeunit "Qlty. Person Lookup";
         MatrixSourceRecordId: array[10] of RecordId;
@@ -531,8 +531,6 @@ report 20401 "Qlty. Certificate of Analysis"
         TestValueText: Text;
         WordDescription: Text;
         WordResultDescription: Text;
-        DefaultDirectorTitleLbl: Label 'Director';
-        DefaultQualityInspectorTitleLbl: Label 'Quality Inspection';
         ProductDescriptionText: Text;
         ItemTrackingText: Text;
         FinishedBySignatureLbl: Text;
@@ -557,6 +555,8 @@ report 20401 "Qlty. Certificate of Analysis"
         EmailLbl: Label 'E-Mail';
         PhoneNoLbl: Label 'Phone No.';
         ConditionSuffixLbl: Label 'Condition';
+        DefaultDirectorTitleLbl: Label 'Director';
+        DefaultQualityInspectorTitleLbl: Label 'Quality Inspection';
 
     local procedure CombineToCarriageReturnString(var InTextToCombine: array[8] of Text[100]; var CombinedTextResult: Text)
     var
