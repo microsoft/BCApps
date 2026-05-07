@@ -2,7 +2,7 @@
   "id": "a6660ad9-7675-4f68-a2f9-a938c21de68a",
   "name": "Azure File Services API",
   "publisher": "Microsoft",
-  "version": "26.13.0.0",
+  "version": "26.14.0.0",
   "brief": "Reproduces the Azure File Share service REST API",
   "description": "Provides a set of AL functionality and Helper libraries to make use of Azure File Share Storage in MSDyn365BC",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",

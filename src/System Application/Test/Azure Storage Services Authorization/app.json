@@ -2,7 +2,7 @@
   "id": "d80e9dc1-c590-422c-aa4a-0b4b44848e8e",
   "name": "Azure Storage Services Authorization Test",
   "publisher": "Microsoft",
-  "version": "26.13.0.0",
+  "version": "26.14.0.0",
   "brief": "Tests for Azure Storage Services Authorization module",
   "description": "",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",

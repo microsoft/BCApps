@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Sets up Cues and KPIs",
   "description": "This module provides setup pages and interface methods to manage cues in Business Central.",
-  "version": "26.13.0.0",
+  "version": "26.14.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",

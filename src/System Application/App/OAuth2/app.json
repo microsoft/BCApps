@@ -2,7 +2,7 @@
   "id": "aa171ba9-d3b0-450d-90fb-546b61e32074",
   "name": "OAuth2",
   "publisher": "Microsoft",
-  "version": "26.13.0.0",
+  "version": "26.14.0.0",
   "brief": "Contains methods supporting authentication via OAuth 2.0 protocol.",
   "description": "Contains helper methods for obtaining the authentication key and secret, or the authorization header in respect to the OAuth 2.0 authorization protocol.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",

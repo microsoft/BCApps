@@ -2,7 +2,7 @@
   "id": "489a0bcb-0619-4bd1-b626-9f30dbe8af4d",
   "name": "Retention Policy Test",
   "publisher": "Microsoft",
-  "version": "26.13.0.0",
+  "version": "26.14.0.0",
   "brief": "Tests for the Retention Policy module",
   "description": "Tests for the Retention Policy module",
   "privacyStatement": "",

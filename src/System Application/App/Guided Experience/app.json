@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Provides different types of guided experience for users.",
   "description": "Provides different types of guided experience for users, such as assisted setup guides, manual setup guides, and checklists.",
-  "version": "26.13.0.0",
+  "version": "26.14.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",

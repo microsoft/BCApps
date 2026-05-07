@@ -2,7 +2,7 @@
   "id": "70b7015c-a198-40d7-af21-660ba444f36f",
   "name": "Azure File Services API Test",
   "publisher": "Microsoft",
-  "version": "26.13.0.0",
+  "version": "26.14.0.0",
   "brief": "Reproduces the Azure File service REST API",
   "description": "Provides a set of AL functionality and Helper libraries to make use of Azure File Storage in MSDyn365BC",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",

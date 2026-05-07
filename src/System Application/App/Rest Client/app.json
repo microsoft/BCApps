@@ -2,7 +2,7 @@
   "id": "812b339d-a9db-4a6e-84e4-fe35cbef0c44",
   "name": "Rest Client",
   "publisher": "Microsoft",
-  "version": "26.13.0.0",
+  "version": "26.14.0.0",
   "brief": "Provides functionality to call REST services from AL",
   "description": "Provides functionality to call REST services from AL",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
