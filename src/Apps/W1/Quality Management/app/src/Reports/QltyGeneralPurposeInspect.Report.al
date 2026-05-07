@@ -104,7 +104,7 @@ report 20405 "Qlty. General Purpose Inspect."
             column(EmailValue; EmailValueText) { }
             column(PhoneNoLabel; PhoneNoLabelText) { }
             column(PhoneNoValue; PhoneNoValueText) { }
-            column(CompanyLogo; DummyCompanyInfo.Picture) { }
+            column(CompanyLogo; CompanyInformation.Picture) { }
 
             dataitem(CurrentInspectionLine; "Qlty. Inspection Line")
             {
@@ -328,27 +328,17 @@ report 20405 "Qlty. General Purpose Inspect."
             begin
                 CompanyInformation.SetAutoCalcFields(Picture);
                 CompanyInformation.Get();
-                CompanyInformation.CalcFields(Picture);
                 FormatAddress.Company(CompanyInformationArray, CompanyInformation);
-
-                DummyCompanyInfo.Picture := CompanyInformation.Picture;
 
                 // Resolve Company Information fields for Word Layout
                 HomePageValueText := CompanyInformation."Home Page";
+                QltyReportMgmt.HideLabelIfBlankValue(HomePageValueText, HomePageLbl, HomePageLabelText);
+
                 EmailValueText := CompanyInformation."E-Mail";
+                QltyReportMgmt.HideLabelIfBlankValue(EmailValueText, EmailLbl, EmailLabelText);
+
                 PhoneNoValueText := CompanyInformation."Phone No.";
-                if HomePageValueText <> '' then
-                    HomePageLabelText := HomePageLbl
-                else
-                    HomePageLabelText := '';
-                if EmailValueText <> '' then
-                    EmailLabelText := EmailLbl
-                else
-                    EmailLabelText := '';
-                if PhoneNoValueText <> '' then
-                    PhoneNoLabelText := PhoneNoLbl
-                else
-                    PhoneNoLabelText := '';
+                QltyReportMgmt.HideLabelIfBlankValue(PhoneNoValueText, PhoneNoLbl, PhoneNoLabelText);
 
                 ApproverTitle := DefaultApproverTitleLbl;
                 ApproverName := '';
@@ -481,11 +471,11 @@ report 20405 "Qlty. General Purpose Inspect."
 
     var
         Item: Record Item;
-        DummyCompanyInfo: Record "Company Information";
         CompanyInformation: Record "Company Information";
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
         QltyPersonLookup: Codeunit "Qlty. Person Lookup";
+        QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
         MatrixSourceRecordId: array[10] of RecordId;
         CompanyInformationArray: array[8] of Text[100];
         ContactInformationArray: array[8] of Text[100];

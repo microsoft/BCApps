@@ -41,4 +41,14 @@ codeunit 20440 "Qlty. Report Mgmt."
         else
             ReportSelections.PrintReport(ReportSelections.Usage::"Quality Management - Certificate of Analysis", QltyInspectionHeader);
     end;
+
+    #region Helper methods
+    internal procedure HideLabelIfBlankValue(Value: Text; LabelText: Text; var OutputLabelText: Text)
+    begin
+        if Value <> '' then
+            OutputLabelText := LabelText
+        else
+            OutputLabelText := '';
+    end;
+    #endregion Helper methods
 }
