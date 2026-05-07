@@ -646,6 +646,126 @@ codeunit 133960 "Agent Task Test"
     end;
 #endif
 
+    [Test]
+    procedure StopTaskByPKDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-013', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] StopTask with PK parameter should only modify Status and Needs Attention without overwriting other fields
+
+        // [GIVEN] A test agent with a task set to ready
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'Stop Task PK Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create();
+
+        // [WHEN] StopTask is called via the PK-based overload
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
+
+        // [THEN] Only Status and Needs Attention should be updated; Title should remain unchanged
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by StopTask PK overload');
+    end;
+
+    [Test]
+    procedure RestartTaskByPKDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-014', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] RestartTask with PK parameter should only modify Status and Needs Attention without overwriting other fields
+
+        // [GIVEN] A test agent with a task that is paused
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'Restart Task PK Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false);
+
+        // [WHEN] RestartTask is called via the PK-based overload
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
+
+        // [THEN] Only Status and Needs Attention should be updated; Title should remain unchanged
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentTaskRecord.Status::Ready, AgentTaskRecord.Status, 'Task should be set to Ready');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by RestartTask PK overload');
+    end;
+
+    [Test]
+    procedure SetStatusToReadyByPKDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-015', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] SetStatusToReady with PK parameter should only modify Status without overwriting other fields
+
+        // [GIVEN] A test agent with a task that is paused
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'SetStatusToReady PK Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false);
+
+        // [WHEN] SetStatusToReady is called via the PK-based overload
+        AgentTask.SetStatusToReady(AgentTaskRecord.ID);
+
+        // [THEN] Only Status should be updated; Title should remain unchanged
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentTaskRecord.Status::Ready, AgentTaskRecord.Status, 'Task should be set to Ready');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by SetStatusToReady PK overload');
+    end;
+
     local procedure UpdateAccessControlToSpecifiedCompany(UserSecurityId: Guid; NewCompanyName: Text[30])
     var
         AccessControl: Record "Access Control";
