@@ -8,5 +8,10 @@
     "codeunitId": 139575,
     "codeunitName": "LP Prediction Test",
     "method": "TestEvaluateMyModelSunshine"
+  },
+  {
+    "codeunitId": 139575,
+    "codeunitName": "LP Prediction Test",
+    "method": "TestBackgroundTaskOnCompanyOpen"
   }
 ]

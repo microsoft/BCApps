@@ -1993,5 +1993,90 @@
     "codeunitId": 139481,
     "codeunitName": "Headlines Test",
     "method": "TestShouldUserGreetingBeVisible"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestUrlsAreSet"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestPublishedAppServiceWithNoTenantService"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestPublishedAppServiceWithMatchingPublishedTenantService"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestPublishedAppServiceWithPublishedTenantService"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestPublishedAppServiceWithNonPublishedTenantService"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestAllTenantsInsertion"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestTenantInsertion"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestInsertServiceNameDisallowed"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestModifyAllTenantsRecord"
+  },
+  {
+    "codeunitId": 132548,
+    "codeunitName": "Page Summary Provider Test",
+    "method": "UrlBySystemId"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestModifyTenantRecord"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestDeleteAllTenantsRecord"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestDeleteTenantRecord"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestCreateWebService"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestCreateTenantWebService"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestDeleteTenantWebService"
+  },
+  {
+    "codeunitId": 139043,
+    "codeunitName": "Web Service Management Test",
+    "method": "TestDeleteWebService"
   }
 ]

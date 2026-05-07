@@ -12,6 +12,7 @@
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "29.0",
+  "numberOfTenantsForTesting": 3,
   "workspaceCompilation": {
     "enabled": true,
     "parallelism": -1

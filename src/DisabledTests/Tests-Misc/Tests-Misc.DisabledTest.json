@@ -3338,5 +3338,115 @@
     "codeunitId": 139018,
     "codeunitName": "Job Queue Entry Tests",
     "method": "RunJQWithinStartTimeAndEndOfDay"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestCopyChart"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestLookupObjectId"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestMeasureNonNumericFieldErrorForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestMeasureNonNumericFieldErrorForQuery"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestDimensionsDuplicateFieldsErrorForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestDuplicateMeasuresForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestInvalidSourceIDError"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestDimensionsNonExistentFieldNameforTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestDimensionsNegativeFieldIdForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestMeasureNonExistentFieldNameForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestMeasureNegativeFieldIdForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestInvalidFilterFieldNameForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestNegativeFilterFieldIDForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestInvalidFilterFieldvalueForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestInvalidFilterFieldNameForQuery"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestTableChartCountMeasureBlankFieldName"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestDimensionsIdAndNameMismatchForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestMeasureFieldIdAndNameMismatchForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestFilterFieldIDAndNameMismatchForTable"
+  },
+  {
+    "codeunitId": 136149,
+    "codeunitName": "Chart Configuration Tool",
+    "method": "TestCustomerBalanceByCityAndMeasureCaptionWithAssistEdit"
+  },
+  {
+    "codeunitId": 136315,
+    "codeunitName": "Send Job To Calendar",
+    "method": "VerifySendToIsJobResource"
+  },
+  {
+    "codeunitId": 136315,
+    "codeunitName": "Send Job To Calendar",
+    "method": "VerifyAttachmentNameIsJobTaskCaption"
   }
 ]

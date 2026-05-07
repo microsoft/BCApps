@@ -48,4 +48,7 @@ if (($appFiles -is [string]) -and (PublishApp -appFile $appFiles)) {
 }
 
 $parameters["appFile"] = $filteredAppFiles
+# Publish with Global scope so apps are available on all tenants in multitenant containers.
+# Note: Global scope is incompatible with useDevEndpoint (which uses Tenant scope).
+$parameters["scope"] = "Global"
 Publish-BcContainerApp @parameters

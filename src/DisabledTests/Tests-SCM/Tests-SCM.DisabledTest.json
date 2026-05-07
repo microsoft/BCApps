@@ -3968,5 +3968,45 @@
     "codeunitId": 137831,
     "codeunitName": "SCM - Warehouse UT",
     "method": "WMSTestPartialPickCreatedWithSalesLotsPartialAvailablePartialReservedTwiceOnInventory"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestItemJournalPreview"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestItemJournalPreviewWithMultipleLines"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestItemJournalPreviewWithAutomaticCostPosting"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestItemJournalPreviewWithBin"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestPhysInventoryJournalPostPreview"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestConsumptionPostPreview"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestPreviewOnProductionJournalDoesNotThrowException"
+  },
+  {
+    "codeunitId": 134777,
+    "codeunitName": "SCM Item Journal Post Preview",
+    "method": "TestPreviewPostingNotShowingErrorFromProductionJournal"
   }
 ]

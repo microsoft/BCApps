@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/59f772f3fb277cd5041c07311ceb5eb0297fdf1d/Actions/.Modules/settings.schema.json",
   "projectName": "Unit Tests (BE)",
-  "gitHubRunner": "GitHub-BCAppsSwec",
+  "gitHubRunner": "GitHub-BCAppsPL",
   "projectsToTest": [
     "build/projects/Apps BE"
   ],
@@ -14,16 +14,12 @@
   "doNotPublishApps": false,
   "testType": "UnitTest",
   "companyName": "Empty Company",
-  "country": "w1",
+  "country": "BE",
   "buildModes": [
     "IntegrationTests",
     "UncategorizedTests",
     "LegacyTestsBucket1",
-    "LegacyTestsBucket2",
-    "LegacyTestsBucket3",
-    "LegacyTestsBucket4",
-    "LegacyTestsBucket5",
-    "LegacyTestsBucket6"
+    "LegacyTestsBucket2"
   ],
   "ConditionalSettings": [
     {
@@ -61,46 +57,6 @@
       "settings": {
         "testType": "Legacy",
         "bucketNumber": 2,
-        "companyName": "CRONUS International Ltd."
-      }
-    },
-    {
-      "buildModes": [
-        "LegacyTestsBucket3"
-      ],
-      "settings": {
-        "testType": "Legacy",
-        "bucketNumber": 3,
-        "companyName": "CRONUS International Ltd."
-      }
-    },
-    {
-      "buildModes": [
-        "LegacyTestsBucket4"
-      ],
-      "settings": {
-        "testType": "Legacy",
-        "bucketNumber": 4,
-        "companyName": "CRONUS International Ltd."
-      }
-    },
-    {
-      "buildModes": [
-        "LegacyTestsBucket5"
-      ],
-      "settings": {
-        "testType": "Legacy",
-        "bucketNumber": 5,
-        "companyName": "CRONUS International Ltd."
-      }
-    },
-    {
-      "buildModes": [
-        "LegacyTestsBucket6"
-      ],
-      "settings": {
-        "testType": "Legacy",
-        "bucketNumber": 6,
         "companyName": "CRONUS International Ltd."
       }
     }

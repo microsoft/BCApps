@@ -3,7 +3,7 @@ Param(
     [string[]]$AppsToUnpublish = @("All")
 )
 
-$parameters.multitenant = $false
+$parameters.multitenant = $true
 $parameters.RunSandboxAsOnPrem = $true
 if ("$env:GITHUB_RUN_ID" -eq "") {
     $parameters.includeAL = $true
