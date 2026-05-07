@@ -5,9 +5,6 @@
 # Default owners
 * @microsoft/dynamics-365-business-central
 
-# Default owners for all app code
-/src @microsoft/d365-bc-app-required
-
 # App Rulesets
 /src/rulesets/ @microsoft/d365-bc-app-rulesets
 
