@@ -136,102 +136,38 @@ report 20403 "Qlty. Non-Conformance"
                 column(Test_Result; CurrentInspectionLine."Result Code") { }
                 column(Test_ResultDescription; ResultDescription) { }
                 column(Field_LineCommentary; CurrentInspectionLine.GetMeasurementNote()) { }
-                column(PromptedResultCaption_1; MatrixArrayCaptionSet[1])
-                {
-                }
-                column(PromptedResultConditionDescription_1; MatrixArrayConditionDescriptionCellData[1])
-                {
-                }
-                column(PromptedResultVisible_1; MatrixVisibleState[1])
-                {
-                }
-                column(PromptedResultCaption_2; MatrixArrayCaptionSet[2])
-                {
-                }
-                column(PromptedResultConditionDescription_2; MatrixArrayConditionDescriptionCellData[2])
-                {
-                }
-                column(PromptedResultVisible_2; MatrixVisibleState[2])
-                {
-                }
-                column(PromptedResultCaption_3; MatrixArrayCaptionSet[3])
-                {
-                }
-                column(PromptedResultConditionDescription_3; MatrixArrayConditionDescriptionCellData[3])
-                {
-                }
-                column(PromptedResultVisible_3; MatrixVisibleState[3])
-                {
-                }
-                column(PromptedResultCaption_4; MatrixArrayCaptionSet[4])
-                {
-                }
-                column(PromptedResultConditionDescription_4; MatrixArrayConditionDescriptionCellData[4])
-                {
-                }
-                column(PromptedResultVisible_4; MatrixVisibleState[4])
-                {
-                }
-                column(PromptedResultCaption_5; MatrixArrayCaptionSet[5])
-                {
-                }
-                column(PromptedResultConditionDescription_5; MatrixArrayConditionDescriptionCellData[5])
-                {
-                }
-                column(PromptedResultVisible_5; MatrixVisibleState[5])
-                {
-                }
-                column(PromptedResultCaption_6; MatrixArrayCaptionSet[6])
-                {
-                }
-                column(PromptedResultConditionDescription_6; MatrixArrayConditionDescriptionCellData[6])
-                {
-                }
-                column(PromptedResultVisible_6; MatrixVisibleState[6])
-                {
-                }
-                column(PromptedResultCaption_7; MatrixArrayCaptionSet[7])
-                {
-                }
-                column(PromptedResultConditionDescription_7; MatrixArrayConditionDescriptionCellData[7])
-                {
-                }
-                column(PromptedResultVisible_7; MatrixVisibleState[7])
-                {
-                }
-                column(PromptedResultCaption_8; MatrixArrayCaptionSet[8])
-                {
-                }
-                column(PromptedResultConditionDescription_8; MatrixArrayConditionDescriptionCellData[8])
-                {
-                }
-                column(PromptedResultVisible_8; MatrixVisibleState[8])
-                {
-                }
-                column(PromptedResultCaption_9; MatrixArrayCaptionSet[9])
-                {
-                }
-                column(PromptedResultConditionDescription_9; MatrixArrayConditionDescriptionCellData[9])
-                {
-                }
-                column(PromptedResultVisible_9; MatrixVisibleState[9])
-                {
-                }
-                column(PromptedResultCaption_10; MatrixArrayCaptionSet[10])
-                {
-                }
-                column(PromptedResultConditionDescription_10; MatrixArrayConditionDescriptionCellData[10])
-                {
-                }
-                column(PromptedResultVisible_10; MatrixVisibleState[10])
-                {
-                }
-                column(LabelField_Description; LabelFieldDescription)
-                {
-                }
-                column(CarriageReturnPersonFieldDetails; CarriageReturnPersonFieldDetails)
-                {
-                }
+                column(PromptedResultCaption_1; MatrixArrayCaptionSet[1]) { }
+                column(PromptedResultConditionDescription_1; MatrixArrayConditionDescriptionCellData[1]) { }
+                column(PromptedResultVisible_1; MatrixVisibleState[1]) { }
+                column(PromptedResultCaption_2; MatrixArrayCaptionSet[2]) { }
+                column(PromptedResultConditionDescription_2; MatrixArrayConditionDescriptionCellData[2]) { }
+                column(PromptedResultVisible_2; MatrixVisibleState[2]) { }
+                column(PromptedResultCaption_3; MatrixArrayCaptionSet[3]) { }
+                column(PromptedResultConditionDescription_3; MatrixArrayConditionDescriptionCellData[3]) { }
+                column(PromptedResultVisible_3; MatrixVisibleState[3]) { }
+                column(PromptedResultCaption_4; MatrixArrayCaptionSet[4]) { }
+                column(PromptedResultConditionDescription_4; MatrixArrayConditionDescriptionCellData[4]) { }
+                column(PromptedResultVisible_4; MatrixVisibleState[4]) { }
+                column(PromptedResultCaption_5; MatrixArrayCaptionSet[5]) { }
+                column(PromptedResultConditionDescription_5; MatrixArrayConditionDescriptionCellData[5]) { }
+                column(PromptedResultVisible_5; MatrixVisibleState[5]) { }
+                column(PromptedResultCaption_6; MatrixArrayCaptionSet[6]) { }
+                column(PromptedResultConditionDescription_6; MatrixArrayConditionDescriptionCellData[6]) { }
+                column(PromptedResultVisible_6; MatrixVisibleState[6]) { }
+                column(PromptedResultCaption_7; MatrixArrayCaptionSet[7]) { }
+                column(PromptedResultConditionDescription_7; MatrixArrayConditionDescriptionCellData[7]) { }
+                column(PromptedResultVisible_7; MatrixVisibleState[7]) { }
+                column(PromptedResultCaption_8; MatrixArrayCaptionSet[8]) { }
+                column(PromptedResultConditionDescription_8; MatrixArrayConditionDescriptionCellData[8]) { }
+                column(PromptedResultVisible_8; MatrixVisibleState[8]) { }
+                column(PromptedResultCaption_9; MatrixArrayCaptionSet[9]) { }
+                column(PromptedResultConditionDescription_9; MatrixArrayConditionDescriptionCellData[9]) { }
+                column(PromptedResultVisible_9; MatrixVisibleState[9]) { }
+                column(PromptedResultCaption_10; MatrixArrayCaptionSet[10]) { }
+                column(PromptedResultConditionDescription_10; MatrixArrayConditionDescriptionCellData[10]) { }
+                column(PromptedResultVisible_10; MatrixVisibleState[10]) { }
+                column(LabelField_Description; LabelFieldDescription) { }
+                column(CarriageReturnPersonFieldDetails; CarriageReturnPersonFieldDetails) { }
 
                 // Pre-calculated columns for Word Layout
                 column(WordDescription; WordDescription) { }
