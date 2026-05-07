@@ -901,7 +901,7 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] Setup has "E-Doc. Def. Posting Date" = "Work Date" (default)
         PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Def. Posting Date"::"Work Date";
+        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Work Date";
         PurchasesPayablesSetup.Modify();
 
         // [WHEN] A PEPPOL invoice (IssueDate = 2026-01-22) is processed with WorkDate = 2027-01-01
@@ -934,7 +934,7 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] Setup has "E-Doc. Def. Posting Date" = "Document Date"
         PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Def. Posting Date"::"Document Date";
+        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Document Date";
         PurchasesPayablesSetup.Modify();
 
         // [WHEN] A PEPPOL invoice (IssueDate = 2026-01-22) is processed with WorkDate = 2027-01-01
@@ -967,7 +967,7 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] Setup has "E-Doc. Def. Posting Date" = "Work Date"
         PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Def. Posting Date"::"Work Date";
+        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Work Date";
         PurchasesPayablesSetup.Modify();
 
         // [WHEN] A PEPPOL credit note (IssueDate = 2026-02-15) is processed with WorkDate = 2027-01-01
@@ -1000,7 +1000,7 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] Setup has "E-Doc. Def. Posting Date" = "Document Date"
         PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Def. Posting Date"::"Document Date";
+        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Document Date";
         PurchasesPayablesSetup.Modify();
 
         // [WHEN] A PEPPOL credit note (IssueDate = 2026-01-22) is processed with WorkDate = 2027-01-01
@@ -1037,7 +1037,7 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup.DeleteAll();
 
         PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Def. Posting Date"::"Work Date";
+        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Work Date";
         PurchasesPayablesSetup.Modify();
 
         PurchInvHeader.DeleteAll();

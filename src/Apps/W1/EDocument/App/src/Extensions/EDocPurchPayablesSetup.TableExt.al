@@ -21,7 +21,7 @@ tableextension 6162 "E-Doc. Purch. Payables Setup" extends "Purchases & Payables
             Caption = 'E-Document Learn Copilot Matchings';
             DataClassification = SystemMetadata;
         }
-        field(6102; "E-Doc. Def. Posting Date"; Enum "E-Doc. Def. Posting Date")
+        field(6102; "E-Doc. Def. Posting Date"; Enum "E-Doc. Purch.Def. Posting Date")
         {
             Caption = 'E-Document Default Posting Date';
             DataClassification = CustomerContent;
