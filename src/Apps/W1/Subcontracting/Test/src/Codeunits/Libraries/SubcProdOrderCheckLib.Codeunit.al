@@ -19,6 +19,8 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
     var
         Assert: Codeunit Assert;
         ProdOrderRefreshed: Boolean;
+        Description2MismatchOnLineLbl: Label 'Description 2 mismatch on Line %1. Expected: %2, Actual: %3', Locked = true;
+        Description2MismatchOnOperationLbl: Label 'Description 2 mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
         DescriptionMismatchOnOperationLbl: Label 'Description mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
         DirectUnitCostMismatchOnOperationLbl: Label 'Direct Unit Cost mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
         DueDateMismatchOnLineLbl: Label 'Due Date mismatch on Line %1. Expected: %2, Actual: %3', Locked = true;
@@ -46,11 +48,13 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
     procedure CreateTempProdOrderComponentFromSetup(var TempProdOrderComponent: Record "Prod. Order Component" temporary; PurchLine: Record "Purchase Line")
     var
         TempProdOrderComponent2: Record "Prod. Order Component" temporary;
+        ManufacturingSetup: Record "Manufacturing Setup";
         SubManagementSetup: Record "Subc. Management Setup";
         LineNo: Integer;
     begin
         // Fill temporary Production Order Component from setup configuration
         SubManagementSetup.Get();
+        ManufacturingSetup.Get();
 
         TempProdOrderComponent2.Copy(TempProdOrderComponent, true);
         if TempProdOrderComponent2.FindLast() then
@@ -62,7 +66,7 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
         TempProdOrderComponent."Line No." := LineNo;
         TempProdOrderComponent."Item No." := SubManagementSetup."Preset Component Item No.";
         TempProdOrderComponent."Location Code" := GetVendorSubcontractingLocation(PurchLine."Buy-from Vendor No.");
-        TempProdOrderComponent."Routing Link Code" := SubManagementSetup."Rtng. Link Code Purch. Prov.";
+        TempProdOrderComponent."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
         TempProdOrderComponent."Flushing Method" := SubManagementSetup."Def. provision flushing method";
 
         TempProdOrderComponent.Insert();
@@ -80,15 +84,17 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
     procedure CreateTempProdOrderRoutingFromSetup(var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; OperationNo: Code[10])
     var
         SubManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         WorkCenter: Record "Work Center";
     begin
         SubManagementSetup.Get();
+        ManufacturingSetup.Get();
 
         TempProdOrderRoutingLine.Init();
         TempProdOrderRoutingLine."Operation No." := OperationNo;
         TempProdOrderRoutingLine.Type := TempProdOrderRoutingLine.Type::"Work Center";
         TempProdOrderRoutingLine."No." := SubManagementSetup."Common Work Center No.";
-        TempProdOrderRoutingLine."Routing Link Code" := SubManagementSetup."Rtng. Link Code Purch. Prov.";
+        TempProdOrderRoutingLine."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
 
         if SubManagementSetup."Common Work Center No." <> '' then
             if WorkCenter.Get(SubManagementSetup."Common Work Center No.") then begin
@@ -184,6 +190,12 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             Assert.AreEqual(TempComponent."Due Date", ActualComponent."Due Date",
                 StrSubstNo(DueDateMismatchOnLineLbl,
                     TempComponent."Line No.", TempComponent."Due Date", ActualComponent."Due Date"));
+
+        // Verify Description 2 if set in temporary record
+        if TempComponent."Description 2" <> '' then
+            Assert.AreEqual(TempComponent."Description 2", ActualComponent."Description 2",
+                StrSubstNo(Description2MismatchOnLineLbl,
+                    TempComponent."Line No.", TempComponent."Description 2", ActualComponent."Description 2"));
     end;
 
     procedure VerifyProdOrderRoutingLinesMatchTempRecords(ProdOrder: Record "Production Order"; var TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary)
@@ -284,12 +296,18 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
             Assert.AreEqual(TempRoutingLine.Description, ActualRoutingLine.Description,
                 StrSubstNo(DescriptionMismatchOnOperationLbl,
                     TempRoutingLine."Operation No.", TempRoutingLine.Description, ActualRoutingLine.Description));
+
+        // Verify Description 2 if set in temporary record
+        if TempRoutingLine."Description 2" <> '' then
+            Assert.AreEqual(TempRoutingLine."Description 2", ActualRoutingLine."Description 2",
+                StrSubstNo(Description2MismatchOnOperationLbl,
+                    TempRoutingLine."Operation No.", TempRoutingLine."Description 2", ActualRoutingLine."Description 2"));
     end;
 
     procedure CreateTempProdOrderComponentFromBOM(var TempProdOrderComponent: Record "Prod. Order Component" temporary; BOMNo: Code[20]; PurchLine: Record "Purchase Line")
     var
-        ProductionBOMLine: Record "Production BOM Line";
         SubManagementSetup: Record "Subc. Management Setup";
+        ProductionBOMLine: Record "Production BOM Line";
         LineNo: Integer;
     begin
         // Create temporary Production Order Components based on BOM lines
@@ -314,6 +332,7 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
                 TempProdOrderComponent."Quantity per" := ProductionBOMLine."Quantity per";
                 TempProdOrderComponent."Unit of Measure Code" := ProductionBOMLine."Unit of Measure Code";
                 TempProdOrderComponent."Routing Link Code" := ProductionBOMLine."Routing Link Code";
+                TempProdOrderComponent."Description 2" := ProductionBOMLine."Description 2";
                 if ProductionBOMLine."Subcontracting Type" in [ProductionBOMLine."Subcontracting Type"::"Purchase", ProductionBOMLine."Subcontracting Type"::InventoryByVendor] then
                     TempProdOrderComponent."Location Code" := GetVendorSubcontractingLocation(PurchLine."Buy-from Vendor No.")
                 else
@@ -374,6 +393,7 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
                 TempProdOrderRoutingLine.Type := RoutingLine.Type;
                 TempProdOrderRoutingLine."No." := RoutingLine."No.";
                 TempProdOrderRoutingLine.Description := RoutingLine.Description;
+                TempProdOrderRoutingLine."Description 2" := RoutingLine."Description 2";
                 TempProdOrderRoutingLine."Setup Time" := RoutingLine."Setup Time";
                 TempProdOrderRoutingLine."Run Time" := RoutingLine."Run Time";
                 TempProdOrderRoutingLine."Wait Time" := RoutingLine."Wait Time";

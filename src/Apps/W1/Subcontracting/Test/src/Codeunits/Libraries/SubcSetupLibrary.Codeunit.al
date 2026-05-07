@@ -22,6 +22,7 @@ codeunit 139988 "Subc. Setup Library"
         Item: Record Item;
         RoutingLink: Record "Routing Link";
         SubManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         WorkCenter: Record "Work Center";
     begin
         // Create Work Center for subcontracting
@@ -39,9 +40,7 @@ codeunit 139988 "Subc. Setup Library"
 
         // Set required fields for production order creation
         SubManagementSetup."Common Work Center No." := WorkCenter."No.";
-        SubManagementSetup."Rtng. Link Code Purch. Prov." := RoutingLink."Code";
         SubManagementSetup."Def. provision flushing method" := "Flushing Method Routing"::Backward;
-        SubManagementSetup."Component at Location" := SubManagementSetup."Component at Location"::Purchase;
         SubManagementSetup."Preset Component Item No." := Item."No.";
 
         // Set all Select fields to Edit as default
@@ -53,6 +52,15 @@ codeunit 139988 "Subc. Setup Library"
         SubManagementSetup.ShowProdRtngCompSelect_Both := SubManagementSetup.ShowProdRtngCompSelect_Both::Edit;
 
         SubManagementSetup.Modify();
+
+        if not ManufacturingSetup.Get() then begin
+            ManufacturingSetup.Init();
+            ManufacturingSetup.Insert();
+        end;
+
+        ManufacturingSetup."Rtng. Link Code Purch. Prov." := RoutingLink."Code";
+        ManufacturingSetup."Subc. Comp. at Location" := ManufacturingSetup."Subc. Comp. at Location"::Purchase;
+        ManufacturingSetup.Modify();
     end;
 
     procedure ConfigureSubManagementForNothingPresentScenario(ShowRtngBOMSelect: Enum "Subc. Show/Edit Type"; ShowProdRtngCompSelect: Enum "Subc. Show/Edit Type")

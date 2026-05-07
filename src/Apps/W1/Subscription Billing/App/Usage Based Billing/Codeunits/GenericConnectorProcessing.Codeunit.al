@@ -222,19 +222,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
                 SetUsageDataGenericImportError(UsageDataGenericImport, '');
                 if not CheckServiceCommitments(UsageDataGenericImport, TempServiceCommitment) then
                     exit;
-                CreateUsageDataBilling.CreateUsageDataBillingFromTempServiceCommitments(
-                    TempServiceCommitment, UsageDataImport."Supplier No.",
-                    UsageDataGenericImport."Usage Data Import Entry No.",
-                    UsageDataGenericImport."Subscription Header No.",
-                    UsageDataGenericImport."Product ID",
-                    UsageDataGenericImport."Product Name",
-                    UsageDataGenericImport."Billing Period Start Date",
-                    UsageDataGenericImport."Billing Period End Date",
-                    UsageDataGenericImport.Cost, UsageDataGenericImport.Quantity,
-                    UsageDataGenericImport."Cost Amount",
-                    UsageDataGenericImport.Price,
-                    UsageDataGenericImport.Amount,
-                    UsageDataGenericImport.GetCurrencyCode());
+                CreateUsageDataBilling.CreateUsageDataBillingFromTempServiceCommitments(TempServiceCommitment, UsageDataImport."Supplier No.", UsageDataGenericImport);
             until UsageDataGenericImport.Next() = 0
         else begin
             UsageDataImport.SetErrorReason(StrSubstNo(NoDataFoundErr, UsageDataImport."Processing Step"));

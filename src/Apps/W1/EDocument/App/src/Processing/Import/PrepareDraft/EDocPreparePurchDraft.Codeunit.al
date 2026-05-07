@@ -205,7 +205,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
     begin
-        EDocumentPurchaseLine.SetLoadFields("E-Document Entry No.", "[BC] Purchase Type No.", "[BC] Deferral Code");
+        EDocumentPurchaseLine.SetLoadFields("E-Document Entry No.", "[BC] Purchase Type No.", "[BC] Deferral Code", Description, "Product Code", Quantity, "Unit of Measure", "Unit Price");
         EDocumentPurchaseLine.ReadIsolation(IsolationLevel::ReadCommitted);
 
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
