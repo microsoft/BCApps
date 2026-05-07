@@ -26,6 +26,7 @@ codeunit 99001505 "Subcontracting Management"
 {
     var
         SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         TempGlobalReservationEntry: Record "Reservation Entry" temporary;
         HasSubManagementSetup: Boolean;
         RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
@@ -34,14 +35,15 @@ codeunit 99001505 "Subcontracting Management"
         UpdateIsCanceledErr: Label 'The update is canceled.';
         WorkCenterVendorDoesntExistErr: Label 'Subcontractor %1 on Work Center %2 does not exist.', Comment = 'Parameter %1 - subcontractor/vendor number, %2 - work center number.';
         PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
+        HasManufacturingSetup: Boolean;
 
     procedure CalcReceiptDateFromProdCompDueDateWithInbWhseHandlingTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
     begin
-        GetSubmanagementSetup();
-        if not HasSubManagementSetup or (Format(SubcManagementSetup."Subc. Inb. Whse. Handling Time") = '') then
+        GetManufacturingSetup();
+        if not HasManufacturingSetup or (Format(ManufacturingSetup."Subc. Inb. Whse. Handling Time") = '') then
             exit(ProdOrderComponent."Due Date");
 
-        ReceiptDate := CalcDate('-' + Format(SubcManagementSetup."Subc. Inb. Whse. Handling Time"), ProdOrderComponent."Due Date");
+        ReceiptDate := CalcDate('-' + Format(ManufacturingSetup."Subc. Inb. Whse. Handling Time"), ProdOrderComponent."Due Date");
 
         exit(ReceiptDate);
     end;
@@ -105,14 +107,15 @@ codeunit 99001505 "Subcontracting Management"
         RoutingLinkCode: Code[10];
         WorkCenterNo: Code[20];
     begin
-        GetSubmanagementSetup();
-        if HasSubManagementSetup then
-            RoutingLinkCode := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
+        GetManufacturingSetup();
+        if HasManufacturingSetup then
+            RoutingLinkCode := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
 
         Vendor.SetLoadFields("Work Center No.");
         if Vendor.Get(SubcSessionState.GetCode(GetKeyCreateProdOrderProcess())) then
             WorkCenterNo := Vendor."Work Center No.";
 
+        GetSubmanagementSetup();
         if WorkCenterNo = '' then
             WorkCenterNo := SubcManagementSetup."Common Work Center No.";
 
@@ -516,20 +519,19 @@ codeunit 99001505 "Subcontracting Management"
     end;
 
     /// <summary>
-    /// Gets the transfer-from location code based on the setup field "Component at Location".
+    /// Gets the transfer-from location code based on the setup field "Subc. Comp. at Location".
     /// The location code is retrieved from the purchase line, company information, or manufacturing setup.
     /// </summary>
     /// <returns>The transfer-from location code.</returns>
     procedure GetComponentsLocationCode(PurchaseLine: Record "Purchase Line"): Code[10]
     var
         CompanyInformation: Record "Company Information";
-        ManufacturingSetup: Record "Manufacturing Setup";
         ComponentsLocationCode: Code[10];
     begin
-        GetSubmanagementSetup();
-        SubcManagementSetup.TestField("Component at Location");
+        GetManufacturingSetup();
+        ManufacturingSetup.TestField("Subc. Comp. at Location");
 
-        case SubcManagementSetup."Component at Location" of
+        case ManufacturingSetup."Subc. Comp. at Location" of
             "Components at Location"::Purchase:
                 begin
                     PurchaseLine.TestField("Location Code");
@@ -560,6 +562,13 @@ codeunit 99001505 "Subcontracting Management"
             exit;
         if SubcManagementSetup.Get() then
             HasSubManagementSetup := true;
+    end;
+
+    local procedure GetManufacturingSetup()
+    begin
+        if HasManufacturingSetup then
+            exit;
+        HasManufacturingSetup := ManufacturingSetup.Get();
     end;
 
     local procedure IsSubcontracting(WorkCenterNo: Code[20]): Boolean
