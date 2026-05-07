@@ -57,6 +57,7 @@ codeunit 4300 "Agent Task Impl."
     procedure AddMessage(From: Text[250]; MessageText: Text; ExternalMessageId: Text[2048]; var CurrentAgentTask: Record "Agent Task"; RequiresReview: Boolean): Record "Agent Task Message"
     var
         AgentTaskMessage: Record "Agent Task Message";
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
         if MessageText = '' then
             Error(MessageTextMustBeProvidedErr);
@@ -68,19 +69,8 @@ codeunit 4300 "Agent Task Impl."
         AgentTaskMessage."Requires Review" := RequiresReview;
         AgentTaskMessage.Insert();
 
-        SetMessageText(AgentTaskMessage, MessageText);
+        AgentMessageImpl.UpdateText(AgentTaskMessage, MessageText);
         exit(AgentTaskMessage);
-    end;
-
-    local procedure SetMessageText(var AgentTaskMessage: Record "Agent Task Message"; MessageText: Text)
-    var
-        AgentTaskMessageToModify: Record "Agent Task Message";
-        ContentOutStream: OutStream;
-    begin
-        AgentTaskMessageToModify.Get(AgentTaskMessage."Task ID", AgentTaskMessage.ID);
-        Clear(AgentTaskMessageToModify.Content);
-        AgentTaskMessageToModify.Content.CreateOutStream(ContentOutStream, GetDefaultEncoding());
-        ContentOutStream.Write(MessageText);
     end;
 
     procedure StopTask(AgentTaskID: BigInteger; AgentTaskStatus: enum "Agent Task Status"; UserConfirm: Boolean)
