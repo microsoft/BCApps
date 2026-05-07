@@ -87,7 +87,7 @@ page 4308 "Agent Task Message Card"
                     var
                         AgentMessage: Codeunit "Agent Message";
                     begin
-                        AgentMessage.UpdateText(Rec, GlobalMessageText);
+                        AgentMessage.UpdateText(Rec."Task ID", Rec.ID, GlobalMessageText);
                     end;
                 }
             }
