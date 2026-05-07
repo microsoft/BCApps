@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+using Microsoft.Purchases.Payables;
 using System.Telemetry;
 using System.Utilities;
 
@@ -27,8 +28,6 @@ page 687 "Payment Practice Card"
                 }
                 field("Reporting Scheme"; Rec."Reporting Scheme")
                 {
-                    Visible = false;
-                    Editable = false;
                 }
                 field("Aggregation Type"; Rec."Aggregation Type")
                 {
@@ -111,6 +110,69 @@ page 687 "Payment Practice Card"
                 field("Pct Overdue Due to Dispute"; Rec."Pct Overdue Due to Dispute")
                 {
                 }
+                group("Small Business Scheme")
+                {
+                    Caption = 'Small Business Scheme';
+                    Visible = Rec."Reporting Scheme" = Rec."Reporting Scheme"::"Small Business";
+
+                    field("Mode Payment Time"; Rec."Mode Payment Time")
+                    {
+                        trigger OnDrillDown()
+                        begin
+                            ShowHeaderDataLines();
+                        end;
+                    }
+
+                    field("Mode Payment Time Min."; Rec."Mode Payment Time Min.")
+                    {
+                        trigger OnDrillDown()
+                        begin
+                            ShowHeaderDataLines();
+                        end;
+                    }
+                    field("Mode Payment Time Max."; Rec."Mode Payment Time Max.")
+                    {
+                        trigger OnDrillDown()
+                        begin
+                            ShowHeaderDataLines();
+                        end;
+                    }
+                    field("Median Payment Time"; Rec."Median Payment Time")
+                    {
+                        trigger OnDrillDown()
+                        begin
+                            ShowHeaderDataLines();
+                        end;
+                    }
+                    field("80th Percentile Payment Time"; Rec."80th Percentile Payment Time")
+                    {
+                        trigger OnDrillDown()
+                        begin
+                            ShowHeaderDataLines();
+                        end;
+                    }
+                    field("95th Percentile Payment Time"; Rec."95th Percentile Payment Time")
+                    {
+                        trigger OnDrillDown()
+                        begin
+                            ShowHeaderDataLines();
+                        end;
+                    }
+                    field("Pct Peppol Enabled"; Rec."Pct Peppol Enabled")
+                    {
+                        trigger OnDrillDown()
+                        begin
+                            ShowHeaderDataLines();
+                        end;
+                    }
+                    field("Pct Small Business Payments"; Rec."Pct Small Business Payments")
+                    {
+                        trigger OnDrillDown()
+                        begin
+                            ShowSmallBusinessVendorLedgerEntries();
+                        end;
+                    }
+                }
             }
             part(Lines; "Payment Practice Lines")
             {
@@ -156,7 +218,7 @@ page 687 "Payment Practice Card"
 
                 trigger OnAction()
                 begin
-                    PrepareLayout(Rec."Aggregation Type");
+                    PrepareLayout(Rec."Aggregation Type", Rec."Reporting Scheme");
                     Rec.SetRecFilter();
                     Report.Run(Report::"Payment Practice", false, true, Rec);
                     FeatureTelemetry.LogUptake('0000KSV', 'Payment Practices', "Feature Uptake Status"::Used);
@@ -190,9 +252,9 @@ page 687 "Payment Practice Card"
         LinesWillBeDeletedQst: Label 'All previously generated lines will be deleted. Do you want to continue?';
         NoEntriesFoundMsg: Label 'The payment practice generator found no entries corresponding to the header type, starting and ending date.';
 
-    local procedure PrepareLayout(PaymentPracticeLinesAggregator: Interface PaymentPracticeLinesAggregator)
+    local procedure PrepareLayout(PaymentPracticeLinesAggregator: Interface PaymentPracticeLinesAggregator; ReportingScheme: Enum "Paym. Prac. Reporting Scheme")
     begin
-        PaymentPracticeLinesAggregator.PrepareLayout();
+        PaymentPracticeLinesAggregator.PrepareLayout(ReportingScheme);
     end;
 
     local procedure ShowHeaderDataLines()
@@ -201,6 +263,15 @@ page 687 "Payment Practice Card"
     begin
         PaymentPracticeData.SetRange("Header No.", Rec."No.");
         Page.RunModal(Page::"Payment Practice Data List", PaymentPracticeData);
+    end;
+
+    local procedure ShowSmallBusinessVendorLedgerEntries()
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
+        VendorLedgerEntry.SetRange("Posting Date", Rec."Starting Date", Rec."Ending Date");
+        Page.RunModal(Page::"Vendor Ledger Entries", VendorLedgerEntry);
     end;
 
     local procedure UpdateVisibility()
