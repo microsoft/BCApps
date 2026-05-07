@@ -2227,10 +2227,76 @@ Comment = '|%1 = Transfer Order No.';
         Assert.ExpectedError('Return from Subcontractor has already been created');
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,HandlePurchaseOrderPage,HandlePurchaseLinesPage')]
+    procedure ShowExistingPurchOrdersOpensListWhenAlreadyCreated()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 633224] First Create Subcontracting Order opens the Purchase Order; running the action again on the same routing line opens the Purchase Lines list.
+
+        // [GIVEN] Manufacturing setup with subcontracting work center, item with routing/BOM, released production order
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [WHEN] Create Subcontracting Order from the routing line for the first time
+        PurchaseOrderPageOpened := false;
+        PurchaseLinesPageOpened := false;
+        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [THEN] The Purchase Order card is shown
+        Assert.IsTrue(PurchaseOrderPageOpened, 'Purchase Order should open after first creation.');
+        Assert.IsFalse(PurchaseLinesPageOpened, 'Purchase Lines list should not open on first creation.');
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        Assert.IsFalse(PurchaseLine.IsEmpty(), 'Purchase line should exist for the production order.');
+
+        // [WHEN] Create Subcontracting Order from the same routing line again
+        PurchaseOrderPageOpened := false;
+        PurchaseLinesPageOpened := false;
+        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        // [THEN] The Purchase Lines list is shown instead of individual Purchase Order cards
+        Assert.IsTrue(PurchaseLinesPageOpened, 'Purchase Lines list should open when purchase orders already exist.');
+        Assert.IsFalse(PurchaseOrderPageOpened, 'Purchase Order card should not open when purchase orders already exist.');
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
         TransfOrderPage.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmYesShowSubcontractingPurchOrders(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
+
+    [PageHandler]
+    procedure HandlePurchaseOrderPage(var PurchaseOrderPage: TestPage "Purchase Order")
+    begin
+        PurchaseOrderPageOpened := true;
+        PurchaseOrderPage.Close();
+    end;
+
+    [PageHandler]
+    procedure HandlePurchaseLinesPage(var PurchaseLinesPage: TestPage "Purchase Lines")
+    begin
+        PurchaseLinesPageOpened := true;
+        PurchaseLinesPage.Close();
     end;
 
     [PageHandler]
@@ -2829,6 +2895,8 @@ Comment = '|%1 = Transfer Order No.';
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
         Subcontracting: Boolean;
+        PurchaseOrderPageOpened: Boolean;
+        PurchaseLinesPageOpened: Boolean;
         UnitCostCalculation: Option Time,Units;
         ConfirmDialogCalledCount: Integer;
 
