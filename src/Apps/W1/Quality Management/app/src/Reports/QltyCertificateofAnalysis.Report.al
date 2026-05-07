@@ -86,7 +86,7 @@ report 20401 "Qlty. Certificate of Analysis"
             // Pre-calculated columns for Word Layout
             column(ItemDescription; ItemDescriptionText) { }
             column(ItemTrackingDescription; ItemTrackingText) { }
-            column(InspectionDescription; SequenceText) { }
+            column(InspectionDescription; QltyReportMgmt.BuildInspectionInformationText(Format(CurrentInspection.Status), CurrentInspection."Result Description")) { }
 
             // Pre-calculated label columns for Word Layout
             column(FinishedBySignatureLabel; FinishedBySignatureLbl) { }
@@ -300,7 +300,7 @@ report 20401 "Qlty. Certificate of Analysis"
 
                 // Pre-calculated columns for Word Layout
                 // Resolve Item Text
-                ItemDescriptionText := QltyReportMgmt.BuildItemDescriptionText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code", Item.Description, Item."Description 2");
+                ItemDescriptionText := QltyReportMgmt.BuildItemDescriptionText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code", CurrentInspection.Description);
 
                 // Resolve Item Tracking
                 ItemTrackingText := QltyReportMgmt.BuildItemTrackingText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
@@ -317,12 +317,6 @@ report 20401 "Qlty. Certificate of Analysis"
                 end;
 
                 FinishedDateOnly := DT2Date(CurrentInspection."Finished Date");
-
-                // Resolve Sequence
-                SequenceText := SequenceLbl;
-                SequenceText += ' ' + Format(CurrentInspection."Re-inspection No.");
-                SequenceText += ' (' + Format(CurrentInspection.Status);
-                SequenceText += ', ' + ResultLbl + ' ' + CurrentInspection."Result Description" + ')';
 
                 // Resolve Finished By Signature Label
                 FinishedBySignatureLbl := FinishedByTitle + ' ' + SignatureSuffixLbl;
@@ -417,7 +411,6 @@ report 20401 "Qlty. Certificate of Analysis"
         FinishedByNameLbl: Text;
         ApproverSignatureLbl: Text;
         ApproverNameLbl: Text;
-        SequenceText: Text;
         FinishedDateOnly: Date;
         HomePageLabelText: Text;
         HomePageValueText: Text;
@@ -429,8 +422,6 @@ report 20401 "Qlty. Certificate of Analysis"
         ConditionLabelText2: Text;
         NameSuffixLbl: Label 'Name';
         SignatureSuffixLbl: Label 'Signature';
-        SequenceLbl: Label 'Sequence';
-        ResultLbl: Label 'Result';
         HomePageLbl: Label 'Home Page';
         EmailLbl: Label 'E-Mail';
         PhoneNoLbl: Label 'Phone No.';

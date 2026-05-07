@@ -47,6 +47,11 @@ codeunit 20440 "Qlty. Report Mgmt."
     end;
 
     #region Helper methods
+    var
+        ReinspectionSequenceLbl: Label 'Re-inspection: %1', Comment = '%1 = the sequence number of the re-inspection';
+        StatusLbl: Label 'Status: %1', Comment = '%1 = the status of the inspection';
+        ResultLbl: Label 'Result: %1', Comment = '%1 = the result of the inspection';
+
     internal procedure ResolveCompanyInformation(var CompanyInformation: Record "Company Information"; var CompanyInformationArray: array[8] of Text[100]; var AllCompanyInformation: Text; var HomePageValueText: Text; HomePageLbl: Text; var HomePageLabelText: Text; var EmailValueText: Text; EmailLbl: Text; var EmailLabelText: Text; var PhoneNoValueText: Text; PhoneNoLbl: Text; var PhoneNoLabelText: Text)
     var
         FormatAddress: Codeunit "Format Address";
@@ -113,7 +118,7 @@ codeunit 20440 "Qlty. Report Mgmt."
         exit(Result.ToText());
     end;
 
-    internal procedure BuildItemDescriptionText(ItemNo: Text; VariantCode: Text; Description: Text; Description2: Text): Text
+    internal procedure BuildItemDescriptionText(ItemNo: Text; VariantCode: Text; InspectionDescription: Text): Text
     var
         Result: TextBuilder;
         NewLine: Text[1];
@@ -129,16 +134,37 @@ codeunit 20440 "Qlty. Report Mgmt."
             Result.Append(VariantCode);
         end;
 
-        if Description <> '' then begin
+        if InspectionDescription <> '' then begin
             if Result.Length() > 0 then
                 Result.Append(NewLine);
-            Result.Append(Description);
+            Result.Append(InspectionDescription);
         end;
 
-        if Description2 <> '' then begin
+        exit(Result.ToText());
+    end;
+
+    internal procedure BuildInspectionInformationText(ReinspectionNo: Integer; Status: Text; ResultDescription: Text): Text
+    var
+        Result: TextBuilder;
+        NewLine: Text[1];
+    begin
+        NewLine[1] := 10;
+
+        if ReinspectionNo <> 0 then
+            Result.Append(StrSubstNo(ReinspectionSequenceLbl, Format(ReinspectionNo)))
+        else
+            Result.Append(NewLine);
+
+        if Status <> '' then begin
             if Result.Length() > 0 then
                 Result.Append(NewLine);
-            Result.Append(Description2);
+            Result.Append(StrSubstNo(StatusLbl, Status));
+        end;
+
+        if ResultDescription <> '' then begin
+            if Result.Length() > 0 then
+                Result.Append(NewLine);
+            Result.Append(StrSubstNo(ResultLbl, ResultDescription));
         end;
 
         exit(Result.ToText());

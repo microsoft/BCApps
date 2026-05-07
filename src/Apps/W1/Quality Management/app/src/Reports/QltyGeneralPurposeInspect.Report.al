@@ -87,7 +87,7 @@ report 20405 "Qlty. General Purpose Inspect."
             // Pre-calculated columns for Word Layout
             column(ItemDescription; ItemDescriptionText) { }
             column(ItemTrackingDescription; ItemTrackingText) { }
-            column(ReinspectionDescription; SequenceText) { }
+            column(ReinspectionDescription; InspectionInformationText) { }
 
             // Pre-calculated label columns for Word Layout
             column(FinishedBySignatureLabel; FinishedBySignatureLbl) { }
@@ -348,7 +348,7 @@ report 20405 "Qlty. General Purpose Inspect."
 
                 // Pre-calculated columns for Word Layout
                 // Resolve Item Text
-                ItemDescriptionText := QltyReportMgmt.BuildItemDescriptionText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code", Item.Description, Item."Description 2");
+                ItemDescriptionText := QltyReportMgmt.BuildItemDescriptionText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code", CurrentInspection.Description);
 
                 // Resolve Item Tracking
                 ItemTrackingText := QltyReportMgmt.BuildItemTrackingText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
@@ -367,10 +367,7 @@ report 20405 "Qlty. General Purpose Inspect."
                 FinishedDateOnly := DT2Date(CurrentInspection."Finished Date");
 
                 // Resolve Sequence
-                SequenceText := SequenceLbl;
-                SequenceText += ' ' + Format(CurrentInspection."Re-inspection No.");
-                SequenceText += ' (' + Format(CurrentInspection.Status);
-                SequenceText += ', ' + ResultLbl + ' ' + CurrentInspection."Result Description" + ')';
+                InspectionInformationText := QltyReportMgmt.BuildInspectionInformationText(CurrentInspection."Re-inspection No.", Format(CurrentInspection.Status), CurrentInspection."Result Description");
 
                 // Resolve Finished By Signature Label
                 FinishedBySignatureLbl := FinishedByTitle + ' ' + SignatureSuffixLbl;
@@ -466,7 +463,7 @@ report 20405 "Qlty. General Purpose Inspect."
         FinishedByNameLbl: Text;
         ApproverSignatureLbl: Text;
         ApproverNameLbl: Text;
-        SequenceText: Text;
+        InspectionInformationText: Text;
         FinishedDateOnly: Date;
         HomePageLabelText: Text;
         HomePageValueText: Text;
@@ -487,8 +484,6 @@ report 20405 "Qlty. General Purpose Inspect."
         TestValueText: Text;
         NameSuffixLbl: Label 'Name';
         SignatureSuffixLbl: Label 'Signature';
-        SequenceLbl: Label 'Sequence';
-        ResultLbl: Label 'Result';
         HomePageLbl: Label 'Home Page';
         EmailLbl: Label 'E-Mail';
         PhoneNoLbl: Label 'Phone No.';
