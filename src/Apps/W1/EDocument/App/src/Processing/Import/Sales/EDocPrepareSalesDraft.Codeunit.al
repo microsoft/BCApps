@@ -31,18 +31,16 @@ codeunit 50002 "EDoc Prepare Sales Draft"
         EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session";
         IUnitOfMeasureProvider: Interface IUnitOfMeasureProvider;
         ISalesLineProvider: Interface ISalesLineProvider;
-        ICustomerProvider: Interface ICustomerProvider;
     begin
         IUnitOfMeasureProvider := EDocImportParameters."Processing Customizations";
         ISalesLineProvider := EDocImportParameters."Processing Customizations";
-        ICustomerProvider := EDocImportParameters."Processing Customizations";
 
         if EDocActivityLogSession.CreateSession() then;
 
         EDocumentSalesHeader.GetFromEDocument(EDocument);
         EDocumentSalesHeader.TestField("E-Document Entry No.");
         if EDocumentSalesHeader."[BC] Customer No." = '' then begin
-            Customer := ICustomerProvider.GetCustomer(EDocument);
+            Customer := GetCustomer(EDocument, EDocImportParameters."Processing Customizations");
             EDocumentSalesHeader."[BC] Customer No." := Customer."No.";
         end;
         EDocumentSalesHeader.Modify();
@@ -68,6 +66,28 @@ codeunit 50002 "EDoc Prepare Sales Draft"
         LogAllActivitySessionChanges(EDocActivityLogSession);
 
         if EDocActivityLogSession.EndSession() then;
+    end;
+
+    procedure GetCustomer(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations") Customer: Record Customer
+    var
+        ICustomerProvider: Interface ICustomerProvider;
+    begin
+        ICustomerProvider := Customizations;
+        Customer := ICustomerProvider.GetCustomer(EDocument);
+    end;
+
+    procedure CleanUpDraft(EDocument: Record "E-Document")
+    var
+        EDocumentSalesHeader: Record "E-Document Sales Header";
+        EDocumentSalesLine: Record "E-Document Sales Line";
+    begin
+        EDocumentSalesHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
+        if not EDocumentSalesHeader.IsEmpty() then
+            EDocumentSalesHeader.DeleteAll(true);
+
+        EDocumentSalesLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        if not EDocumentSalesLine.IsEmpty() then
+            EDocumentSalesLine.DeleteAll(true);
     end;
 
     local procedure LogAllActivitySessionChanges(EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session")

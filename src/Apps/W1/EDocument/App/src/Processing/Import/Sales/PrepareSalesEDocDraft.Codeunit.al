@@ -8,47 +8,63 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 
 codeunit 50000 "Prepare Sales E-Doc. Draft" implements IProcessStructuredData
 {
     Access = Internal;
 
+    var
+        PrepareDraftHelper: Codeunit "EDoc Prepare Sales Draft";
+
     /// <summary>
-    /// Returns the E-Document type for a sales order. No Business Central entity resolution is performed
-    /// because inbound sales orders do not require mapping to purchase-side staging data.
+    /// Resolves the customer and sales lines for the staging draft, then returns the E-Document type.
     /// </summary>
     /// <param name="EDocument">The E-Document record being processed.</param>
     /// <param name="EDocImportParameters">Import parameters that carry processing customizations.</param>
-    /// <returns>The resolved E-Document type, always "Sales Order" for this implementation.</returns>
+    /// <returns>Always "Sales Order".</returns>
     procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"): Enum "E-Document Type"
     begin
+        PrepareDraftHelper.PrepareDraft(EDocument, EDocImportParameters);
         exit("E-Document Type"::"Sales Order");
     end;
 
     /// <summary>
-    /// Opens the draft page for the E-Document. Not implemented for sales orders.
+    /// Opens the draft review page for the sales order E-Document.
     /// </summary>
     /// <param name="EDocument">The E-Document record whose draft page should be opened.</param>
     procedure OpenDraftPage(var EDocument: Record "E-Document")
     begin
+        // Page "E-Document Sales Order Draft" opened here once Step 14 is complete.
     end;
 
     /// <summary>
-    /// Cleans up any records created during draft processing. No cleanup is required for sales orders.
+    /// Deletes the sales staging header and all associated line records for the given E-Document.
     /// </summary>
     /// <param name="EDocument">The E-Document record being cleaned up.</param>
     procedure CleanUpDraft(EDocument: Record "E-Document")
     begin
+        PrepareDraftHelper.CleanUpDraft(EDocument);
     end;
 
     /// <summary>
-    /// Returns the vendor for the E-Document. Not applicable for inbound sales orders,
-    /// which represent a customer's order rather than a vendor transaction.
+    /// Not applicable for inbound sales orders; customer resolution uses ICustomerProvider instead.
     /// </summary>
     /// <param name="EDocument">The E-Document record.</param>
-    /// <param name="Customizations">Processing customizations that may override vendor resolution.</param>
+    /// <param name="Customizations">Processing customizations that may override resolution.</param>
     /// <returns>An empty Vendor record.</returns>
     procedure GetVendor(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations") Vendor: Record Vendor
     begin
+    end;
+
+    /// <summary>
+    /// Returns the resolved customer for the sales order E-Document.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record.</param>
+    /// <param name="Customizations">Processing customizations that may override customer resolution.</param>
+    /// <returns>The resolved Customer record, or an empty record if unresolved.</returns>
+    procedure GetCustomer(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations") Customer: Record Customer
+    begin
+        Customer := PrepareDraftHelper.GetCustomer(EDocument, Customizations);
     end;
 }

@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 
 codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
 {
@@ -34,5 +35,9 @@ codeunit 6403 "EDoc Prepare Cr. Memo Draft" implements IProcessStructuredData
     procedure GetVendor(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations") Vendor: Record Vendor
     begin
         Vendor := PrepareDraftHelper.GetVendor(EDocument, Customizations);
+    end;
+
+    procedure GetCustomer(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations") Customer: Record Customer
+    begin
     end;
 }
