@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Looks up records.",
   "description": "Provides a page where you can look up and select one or more records from a table. For example, this is useful when you want to select a record from table that the user specifies.",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",

@@ -39,7 +39,7 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "application": "27.8.0.0",
+  "application": "27.7.0.0",
   "target": "Cloud",
   "features": [
     "TranslationFile"

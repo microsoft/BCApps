@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Manages Microsoft Entra ID users in Business Central.",
   "description": "Manages the creation and synchronization of Microsoft Entra ID users in Business Central.",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",

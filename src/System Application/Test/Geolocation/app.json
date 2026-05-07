@@ -2,7 +2,7 @@
   "id": "af38009d-413c-4927-acc6-1485c8f9b1f5",
   "name": "Geolocation Tests",
   "publisher": "Microsoft",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "brief": "",
   "description": "Tests for Geolocation module.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",

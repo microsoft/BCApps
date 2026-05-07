@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Provides the tools needed to manage an extension.",
   "description": "Provides features for installing and uninstalling, downloading and uploading, configuring and publishing extensions and their dependencies.",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",

@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Provides tools for working with JSON data.",
   "description": "Provides tools for working with JSON data such as reading, writing and parsing JSON.",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",

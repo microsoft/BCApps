@@ -2,7 +2,7 @@
   "id": "c4cf59d0-e2fe-4af8-b7ce-084aa91ba487",
   "name": "Regex Tests",
   "publisher": "Microsoft",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "brief": "",
   "description": "Tests for Regex module.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",

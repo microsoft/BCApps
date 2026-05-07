@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Barcode providers for Dynamics 365 Business Central",
   "description": "Barcode encoders for easy integration of barcodes in Dynamics 365 Business Central.",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",

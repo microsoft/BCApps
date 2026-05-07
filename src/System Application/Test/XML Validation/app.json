@@ -2,7 +2,7 @@
   "id": "e67710a1-095d-4111-879b-f2012580752b",
   "name": "XML Validation Test",
   "publisher": "Microsoft",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "brief": "Tests for the XML Validation module",
   "description": "Tests for the XML Validation module",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",

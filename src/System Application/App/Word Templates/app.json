@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Create documents that incorporate data from Business Central using mail merge.",
   "description": "Use Word templates to create documents that incorporate data from Business Central using mail merge. For example, mail merge is a great way to personalize bulk communications with business partners by letter or email.",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",

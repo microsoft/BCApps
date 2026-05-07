@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Enables managing of agents",
   "description": "Provides functionality for setting up, enabling and disabling, interacting and auditing agents.",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?LinkId=847985",
   "help": "https://go.microsoft.com/fwlink/?linkid=868966",

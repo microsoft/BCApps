@@ -2,7 +2,7 @@
   "id": "977e6b76-d7c1-41fa-b38b-21399cd140a7",
   "name": "SharePoint Test",
   "publisher": "Microsoft",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "brief": "Tests for the SharePoint module",
   "description": "Provides a set of AL functionality and Helper libraries to make use of SharePoint REST API",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",

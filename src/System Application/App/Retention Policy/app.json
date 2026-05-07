@@ -2,7 +2,7 @@
   "id": "a8177fd4-0adb-4482-889c-2e123a13b50a",
   "name": "Retention Policy",
   "publisher": "Microsoft",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "brief": "Allows setting up Retention Policies on tables.",
   "description": "Allows setting up Retention Policies on tables and deletes expired records.",
   "privacyStatement": "",

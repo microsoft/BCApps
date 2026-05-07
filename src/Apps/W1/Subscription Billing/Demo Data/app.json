@@ -2,7 +2,7 @@
   "id": "8a3db2bc-9378-4d0f-b89a-a7dea0555449",
   "name": "Subscription Billing Demo Data",
   "publisher": "Microsoft",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "brief": "Demo data for Subscription Billing",
   "description": "The app provides demo data for Subscription Billing.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",

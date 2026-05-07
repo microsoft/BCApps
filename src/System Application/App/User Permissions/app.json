@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Checks whether users are assigned to the SUPER permission set or have been made capable to manage other users.",
   "description": "Checks whether users are assigned to the SUPER permission or have been made capable to manage other users. You can also remove the SUPER permission set from a user.",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",

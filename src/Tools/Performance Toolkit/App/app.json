@@ -2,7 +2,7 @@
   "id": "75f1590f-55c5-4501-ae63-bada5534e852",
   "name": "Performance Toolkit",
   "publisher": "Microsoft",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "brief": "Provides tools for performance regression testing.",
   "description": "The Performance Toolkit lets developers use test suites during development to analyze the performance of their code by simulating the work environments in which the code will run.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",

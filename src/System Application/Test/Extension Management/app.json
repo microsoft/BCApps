@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Tests the Extension Management module.",
   "description": "Provides tests for installing and uninstalling extensions and their dependencies. Tests the tooling for retrieving different versions of the extensions.",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "",

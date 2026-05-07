@@ -2,7 +2,7 @@
   "id": "d0a56ac8-6d54-4f20-a401-912d922bacc6",
   "name": "SharePoint Authorization Test",
   "publisher": "Microsoft",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "brief": "Tests for the SharePoint Authorization module",
   "description": "Tests for SharePoint Authorization Module",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",

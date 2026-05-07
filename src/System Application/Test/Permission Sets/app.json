@@ -2,7 +2,7 @@
   "id": "d996210f-839c-41bb-bfb3-dc231bf4fe86",
   "name": "Permission Sets Test",
   "publisher": "Microsoft",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "brief": "Tests for Permission Sets module",
   "description": "Tests for Permission Sets module",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",

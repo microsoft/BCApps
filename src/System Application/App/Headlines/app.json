@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Helps with constructing the text for headlines.",
   "description": "This module provides methods for constructing headlines on Role Centers. It includes constants for the maximum allowed text length, functionality for truncating and emphasizing text, and methods related to the standard greeting headline.",
-  "version": "27.7.0.0",
+  "version": "27.8.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
