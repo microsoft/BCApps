@@ -64,7 +64,7 @@ codeunit 20440 "Qlty. Report Mgmt."
         PhoneNoValueText := CompanyInformation."Phone No.";
         HideLabelIfBlankValue(PhoneNoValueText, PhoneNoLbl, PhoneNoLabelText);
 
-        CombineToCarriageReturnString(CompanyInformationArray, AllCompanyInformation);
+        BuildMultilineText(CompanyInformationArray, AllCompanyInformation);
     end;
 
     internal procedure ResolveCertificateContactInformation(DefaultTitle: Text; var ContactTitle: Text; var ContactName: Text; var ContactInformationArray: array[8] of Text[100]; var AllContactInformation: Text)
@@ -85,23 +85,28 @@ codeunit 20440 "Qlty. Report Mgmt."
                 FormatAddress.ContactAddr(ContactInformationArray, Contact);
             end;
 
-        CombineToCarriageReturnString(ContactInformationArray, AllContactInformation);
+        BuildMultilineText(ContactInformationArray, AllContactInformation);
     end;
 
     internal procedure BuildItemTrackingText(LotNo: Text; SerialNo: Text; PackageNo: Text): Text
     var
         Result: TextBuilder;
+        NewLine: Text[1];
     begin
+        NewLine[1] := 10; // LF character for Word layout line breaks
+
         if LotNo <> '' then
             Result.Append(LotNo);
+
         if SerialNo <> '' then begin
             if Result.Length() > 0 then
-                Result.Append(' ');
+                Result.Append(NewLine);
             Result.Append(SerialNo);
         end;
+
         if PackageNo <> '' then begin
             if Result.Length() > 0 then
-                Result.Append(' ');
+                Result.Append(NewLine);
             Result.Append(PackageNo);
         end;
 
@@ -111,22 +116,28 @@ codeunit 20440 "Qlty. Report Mgmt."
     internal procedure BuildItemDescriptionText(ItemNo: Text; VariantCode: Text; Description: Text; Description2: Text): Text
     var
         Result: TextBuilder;
+        NewLine: Text[1];
     begin
+        NewLine[1] := 10; // LF character for Word layout line breaks
+
         if ItemNo <> '' then
             Result.Append(ItemNo);
+
         if VariantCode <> '' then begin
             if Result.Length() > 0 then
                 Result.Append(' ');
             Result.Append(VariantCode);
         end;
+
         if Description <> '' then begin
             if Result.Length() > 0 then
-                Result.Append(' ');
+                Result.Append(NewLine);
             Result.Append(Description);
         end;
+
         if Description2 <> '' then begin
             if Result.Length() > 0 then
-                Result.Append(' ');
+                Result.Append(NewLine);
             Result.Append(Description2);
         end;
 
@@ -141,7 +152,7 @@ codeunit 20440 "Qlty. Report Mgmt."
             OutputLabelText := '';
     end;
 
-    local procedure CombineToCarriageReturnString(InTextToCombine: array[8] of Text[100]; var CombinedTextResult: Text)
+    local procedure BuildMultilineText(InTextToCombine: array[8] of Text[100]; var CombinedTextResult: Text)
     var
         IndexOfTextToCombine: Integer;
         CombinedText: TextBuilder;
