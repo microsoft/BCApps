@@ -31,13 +31,13 @@ codeunit 99001518 "Subc. Planning Line Mgmt Ext."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Planning Line Management", OnTransferBOMOnBeforeUpdatePlanningComp, '', false, false)]
     local procedure IgnorePurchaseComponentsFromSubcontracting_OnTransferBOMOnBeforeUpdatePlanningComp(var ProductionBOMLine: Record "Production BOM Line"; var UpdateCondition: Boolean; var IsHandled: Boolean; var ReqQty: Decimal)
     begin
-        if ProductionBOMLine."Subcontracting Type" in ["Subcontracting Type"::Purchase, "Subcontracting Type"::Transfer] then
+        if ProductionBOMLine."Subcontracting Type" = "Subcontracting Type"::Purchase then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterFilterLinesWithItemToPlan, '', false, false)]
     local procedure "Prod. Order Component_OnAfterFilterLinesWithItemToPlan"(var ProdOrderComponent: Record "Prod. Order Component"; var Item: Record Item; IncludeFirmPlanned: Boolean)
     begin
-        ProdOrderComponent.SetFilter("Subcontracting Type", '<>%1&<>%2', "Subcontracting Type"::Purchase, "Subcontracting Type"::Transfer);
+        ProdOrderComponent.SetFilter("Subcontracting Type", '<>%1', "Subcontracting Type"::Purchase);
     end;
 }
