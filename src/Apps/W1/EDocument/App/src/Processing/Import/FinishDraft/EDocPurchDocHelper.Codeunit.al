@@ -144,7 +144,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
         PurchasesPayablesSetup.GetRecordOnce();
-        if (PurchasesPayablesSetup."E-Doc. Purch.Def. Posting Date" <> PurchasesPayablesSetup."E-Doc. Purch.Def. Posting Date"::"Document Date") then
+        if (PurchasesPayablesSetup."E-Doc. Def. Posting Date" <> PurchasesPayablesSetup."E-Doc. Def. Posting Date"::"Document Date") then
             exit;
         if EDocumentPurchaseHeader."Document Date" = 0D then
             exit;
