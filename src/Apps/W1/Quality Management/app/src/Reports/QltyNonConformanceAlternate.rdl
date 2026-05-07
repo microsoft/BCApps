@@ -2585,14 +2585,14 @@
       </DefaultValue>
       <Prompt>MeasurementLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="ProductLabel">
+    <ReportParameter Name="ItemLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>ProductLabel</Value>
+          <Value>ItemLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>ProductLabel</Prompt>
+      <Prompt>ItemLabel</Prompt>
     </ReportParameter>
     <ReportParameter Name="ItemTrackingLabel">
       <DataType>String</DataType>
@@ -2889,8 +2889,8 @@ End Function
         <Field Name="COAContact_All">
           <DataField>COAContact_All</DataField>
         </Field>
-        <Field Name="ProductDescription">
-          <DataField>ProductDescription</DataField>
+        <Field Name="ItemDescription">
+          <DataField>ItemDescription</DataField>
         </Field>
         <Field Name="ItemTrackingDescription">
           <DataField>ItemTrackingDescription</DataField>

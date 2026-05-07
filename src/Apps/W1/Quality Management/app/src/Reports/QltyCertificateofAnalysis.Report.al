@@ -84,7 +84,7 @@ report 20401 "Qlty. Certificate of Analysis"
             column(COAContact_All; AllContactInformation) { }
 
             // Pre-calculated columns for Word Layout
-            column(ProductDescription; ProductDescriptionText) { }
+            column(ItemDescription; ItemDescriptionText) { }
             column(ItemTrackingDescription; ItemTrackingText) { }
             column(InspectionDescription; SequenceText) { }
 
@@ -299,28 +299,11 @@ report 20401 "Qlty. Certificate of Analysis"
                     FinishedByTitle := DefaultQualityInspectorTitleLbl;
 
                 // Pre-calculated columns for Word Layout
-                // Resolve Product Text
-                ProductDescriptionText := CurrentInspection."Source Item No.";
-                if CurrentInspection."Source Variant Code" <> '' then
-                    ProductDescriptionText += ' ' + CurrentInspection."Source Variant Code";
-                if Item.Description <> '' then
-                    ProductDescriptionText += ' ' + Item.Description;
-                if Item."Description 2" <> '' then
-                    ProductDescriptionText += ' ' + Item."Description 2";
+                // Resolve Item Text
+                ItemDescriptionText := QltyReportMgmt.BuildItemDescriptionText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code", Item.Description, Item."Description 2");
 
                 // Resolve Item Tracking
-                ItemTrackingText := CurrentInspection."Source Lot No.";
-                if CurrentInspection."Source Serial No." <> '' then begin
-                    if ItemTrackingText <> '' then
-                        ItemTrackingText += ' ';
-                    ItemTrackingText += CurrentInspection."Source Serial No.";
-                end;
-
-                if CurrentInspection."Source Package No." <> '' then begin
-                    if ItemTrackingText <> '' then
-                        ItemTrackingText += ' ';
-                    ItemTrackingText += CurrentInspection."Source Package No.";
-                end;
+                ItemTrackingText := QltyReportMgmt.BuildItemTrackingText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
 
                 // Enhance job title for Finished By user via Salesperson/Purchaser (if not already resolved by Person Lookup)
                 if (FinishedByTitle = '') and (CurrentInspection."Finished By User ID" <> '') then begin
@@ -376,7 +359,7 @@ report 20401 "Qlty. Certificate of Analysis"
         TestDocumentNoLabel = 'Test Document No.';
         MetricLabel = 'Metric';
         MeasurementLabel = 'Measurement';
-        ProductLabel = 'Product';
+        ItemLabel = 'Item';
         ItemTrackingLabel = 'Item Tracking';
         DateLabel = 'Date';
         CompletedByLabel = 'Completed by';
@@ -428,7 +411,7 @@ report 20401 "Qlty. Certificate of Analysis"
         TestValueText: Text;
         WordDescription: Text;
         WordResultDescription: Text;
-        ProductDescriptionText: Text;
+        ItemDescriptionText: Text;
         ItemTrackingText: Text;
         FinishedBySignatureLbl: Text;
         FinishedByNameLbl: Text;

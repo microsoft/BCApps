@@ -88,6 +88,51 @@ codeunit 20440 "Qlty. Report Mgmt."
         CombineToCarriageReturnString(ContactInformationArray, AllContactInformation);
     end;
 
+    internal procedure BuildItemTrackingText(LotNo: Text; SerialNo: Text; PackageNo: Text): Text
+    var
+        Result: TextBuilder;
+    begin
+        if LotNo <> '' then
+            Result.Append(LotNo);
+        if SerialNo <> '' then begin
+            if Result.Length() > 0 then
+                Result.Append(' ');
+            Result.Append(SerialNo);
+        end;
+        if PackageNo <> '' then begin
+            if Result.Length() > 0 then
+                Result.Append(' ');
+            Result.Append(PackageNo);
+        end;
+
+        exit(Result.ToText());
+    end;
+
+    internal procedure BuildItemDescriptionText(ItemNo: Text; VariantCode: Text; Description: Text; Description2: Text): Text
+    var
+        Result: TextBuilder;
+    begin
+        if ItemNo <> '' then
+            Result.Append(ItemNo);
+        if VariantCode <> '' then begin
+            if Result.Length() > 0 then
+                Result.Append(' ');
+            Result.Append(VariantCode);
+        end;
+        if Description <> '' then begin
+            if Result.Length() > 0 then
+                Result.Append(' ');
+            Result.Append(Description);
+        end;
+        if Description2 <> '' then begin
+            if Result.Length() > 0 then
+                Result.Append(' ');
+            Result.Append(Description2);
+        end;
+
+        exit(Result.ToText());
+    end;
+
     local procedure HideLabelIfBlankValue(Value: Text; LabelText: Text; var OutputLabelText: Text)
     begin
         if Value <> '' then
@@ -96,7 +141,7 @@ codeunit 20440 "Qlty. Report Mgmt."
             OutputLabelText := '';
     end;
 
-    local procedure CombineToCarriageReturnString(var InTextToCombine: array[8] of Text[100]; var CombinedTextResult: Text)
+    local procedure CombineToCarriageReturnString(InTextToCombine: array[8] of Text[100]; var CombinedTextResult: Text)
     var
         IndexOfTextToCombine: Integer;
         CombinedText: TextBuilder;
