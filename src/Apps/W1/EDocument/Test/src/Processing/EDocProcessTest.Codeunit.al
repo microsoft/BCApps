@@ -25,11 +25,13 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.IO;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 139883 "E-Doc Process Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
+    TestPermissions = Disabled;
 
     var
         Customer: Record Customer;
@@ -582,6 +584,333 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
+    procedure AdditionalFieldWithInvalidValueEnrichesErrorMessage()
+    var
+        EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
+        PurchaseInvoiceLine: Record "Purch. Inv. Line";
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        EDocPurchLineField: Record "E-Document Line - Field";
+        EDocPurchaseLine: Record "E-Document Purchase Line";
+        ErrorMessage: Record "Error Message";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+    begin
+        // [SCENARIO] An additional field is configured with an invalid value that fails FieldRef.Validate.
+        // The error message should contain the additional field name, ID, and value.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] An additional field is configured for Location Code (Code[10])
+        EDocPurchLineFieldSetup."Field No." := PurchaseInvoiceLine.FieldNo("Location Code");
+        EDocPurchLineFieldSetup.Insert();
+
+        // [GIVEN] An inbound e-document is received and a draft created
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
+
+        // [GIVEN] A value that does not exist as a Location Code
+        EDocPurchLineField."E-Document Entry No." := EDocument."Entry No";
+        EDocPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPurchaseLine.FindFirst();
+        EDocPurchLineField."Line No." := EDocPurchaseLine."Line No.";
+        EDocPurchLineField."Field No." := PurchaseInvoiceLine.FieldNo("Location Code");
+        EDocPurchLineField."Code Value" := 'INVALID';
+        EDocPurchLineField.Insert();
+
+        // [WHEN] Finalizing the draft
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
+
+        // [THEN] The e-document should have an error
+        EDocument.Get(EDocument."Entry No");
+        Assert.IsTrue(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should have errors');
+
+        // [THEN] The error message should reference the additional field name, ID, and value
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        ErrorMessage.FindFirst();
+        Assert.ExpectedMessage('While applying additional field "Location Code"', ErrorMessage."Message");
+        Assert.ExpectedMessage(Format(PurchaseInvoiceLine.FieldNo("Location Code")), ErrorMessage."Message");
+        Assert.ExpectedMessage('INVALID', ErrorMessage."Message");
+
+        // [THEN] No purchase invoice should have been created
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        Assert.RecordIsEmpty(PurchaseHeader);
+    end;
+
+    [Test]
+    procedure AdditionalFieldValueExceedingFieldLengthEnrichesErrorMessage()
+    var
+        EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
+        PurchaseInvoiceLine: Record "Purch. Inv. Line";
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        EDocPurchLineField: Record "E-Document Line - Field";
+        EDocPurchaseLine: Record "E-Document Purchase Line";
+        ErrorMessage: Record "Error Message";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        FieldValue: Code[2048];
+    begin
+        // [SCENARIO] An additional field is configured with a value that exceeds the target field's maximum length.
+        // The error message should reference the additional field name, ID, and the overlong value.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] An additional field is configured for Location Code (Code[10])
+        EDocPurchLineFieldSetup."Field No." := PurchaseInvoiceLine.FieldNo("Location Code");
+        EDocPurchLineFieldSetup.Insert();
+
+        // [GIVEN] An inbound e-document is received and a draft created
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
+
+        // [GIVEN] A value that exceeds the target field length (Code[10])
+        FieldValue := 'LONGLOCCODE1'; // 12 characters, exceeds Code[10]
+        EDocPurchLineField."E-Document Entry No." := EDocument."Entry No";
+        EDocPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPurchaseLine.FindFirst();
+        EDocPurchLineField."Line No." := EDocPurchaseLine."Line No.";
+        EDocPurchLineField."Field No." := PurchaseInvoiceLine.FieldNo("Location Code");
+        EDocPurchLineField."Code Value" := FieldValue;
+        EDocPurchLineField.Insert();
+
+        // [WHEN] Finalizing the draft
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
+
+        // [THEN] The e-document should have an error
+        EDocument.Get(EDocument."Entry No");
+        Assert.IsTrue(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should have errors');
+
+        // [THEN] The error message should reference the additional field name and value
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        ErrorMessage.FindFirst();
+        Assert.ExpectedMessage('While applying additional field "Location Code"', ErrorMessage."Message");
+        Assert.ExpectedMessage(FieldValue, ErrorMessage."Message");
+
+        // [THEN] No purchase invoice should have been created
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        Assert.RecordIsEmpty(PurchaseHeader);
+    end;
+
+    [Test]
+    procedure StandardFieldValidationFailureEnrichesErrorMessage()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        ErrorMessage: Record "Error Message";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+    begin
+        // [SCENARIO] A standard field validation fails during purchase invoice creation.
+        // The error message should contain the field caption.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] An inbound e-document is received and a draft created
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
+
+        // [GIVEN] The draft has an invalid currency code
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+        EDocumentPurchaseHeader."Currency Code" := 'INVCURR';
+        EDocumentPurchaseHeader.Modify();
+
+        // [WHEN] Finalizing the draft
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
+
+        // [THEN] The e-document should have an error
+        EDocument.Get(EDocument."Entry No");
+        Assert.IsTrue(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should have errors');
+
+        // [THEN] The error message should reference the Currency Code field
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        ErrorMessage.FindFirst();
+        Assert.ExpectedMessage('While validating field "Currency Code"', ErrorMessage."Message");
+
+        // [THEN] No purchase invoice should have been created
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        Assert.RecordIsEmpty(PurchaseHeader);
+    end;
+
+    [Test]
+    procedure SuccessfulImportWithAdditionalFieldsHasNoErrors()
+    var
+        EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
+        PurchaseInvoiceLine: Record "Purch. Inv. Line";
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        EDocPurchLineField: Record "E-Document Line - Field";
+        EDocPurchaseLine: Record "E-Document Purchase Line";
+        ErrorMessage: Record "Error Message";
+        Location: Record Location;
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+    begin
+        // [SCENARIO] Additional fields are configured with valid values.
+        // The import should succeed with no errors or warnings.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] An additional field is configured for Location Code
+        EDocPurchLineFieldSetup."Field No." := PurchaseInvoiceLine.FieldNo("Location Code");
+        EDocPurchLineFieldSetup.Insert();
+
+        // [GIVEN] A valid location exists
+        Location.Code := 'VALIDLOC';
+        if Location.Insert() then;
+
+        // [GIVEN] An inbound e-document is received and a draft created
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
+
+        // [GIVEN] The additional field has a valid value
+        EDocPurchLineField."E-Document Entry No." := EDocument."Entry No";
+        EDocPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPurchaseLine.FindFirst();
+        EDocPurchLineField."Line No." := EDocPurchaseLine."Line No.";
+        EDocPurchLineField."Field No." := PurchaseInvoiceLine.FieldNo("Location Code");
+        EDocPurchLineField."Code Value" := 'VALIDLOC';
+        EDocPurchLineField.Insert();
+
+        // [WHEN] Finalizing the draft
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams), 'The finalization should succeed');
+
+        // [THEN] The e-document should have no errors
+        EDocument.Get(EDocument."Entry No");
+        Assert.IsFalse(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should not have errors');
+
+        // [THEN] No error or warning messages should exist
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        Assert.RecordIsEmpty(ErrorMessage);
+
+        // [THEN] A purchase invoice should have been created
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        Assert.RecordIsNotEmpty(PurchaseHeader);
+    end;
+
+    [Test]
+    procedure MultipleAdditionalFieldsFailureOnSecondHasCorrectContext()
+    var
+        EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
+        PurchaseInvoiceLine: Record "Purch. Inv. Line";
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        EDocPurchLineField: Record "E-Document Line - Field";
+        EDocPurchaseLine: Record "E-Document Purchase Line";
+        ErrorMessage: Record "Error Message";
+        Location: Record Location;
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+    begin
+        // [SCENARIO] Two additional fields are configured. The first has a valid value, the second has an invalid value.
+        // The error message should reference the second field, not the first.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] Two additional fields configured: Location Code and Bin Code
+        EDocPurchLineFieldSetup."Field No." := PurchaseInvoiceLine.FieldNo("Location Code");
+        EDocPurchLineFieldSetup.Insert();
+        Clear(EDocPurchLineFieldSetup);
+        EDocPurchLineFieldSetup."Field No." := PurchaseInvoiceLine.FieldNo("Bin Code");
+        EDocPurchLineFieldSetup.Insert();
+
+        // [GIVEN] A valid location exists
+        Location.Code := 'MULTILOC';
+        if Location.Insert() then;
+
+        // [GIVEN] An inbound e-document is received and a draft created
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
+
+        // [GIVEN] First field (Location Code) has a valid value, second field (Bin Code) has an invalid value
+        EDocPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPurchaseLine.FindFirst();
+
+        EDocPurchLineField."E-Document Entry No." := EDocument."Entry No";
+        EDocPurchLineField."Line No." := EDocPurchaseLine."Line No.";
+        EDocPurchLineField."Field No." := PurchaseInvoiceLine.FieldNo("Location Code");
+        EDocPurchLineField."Code Value" := 'MULTILOC';
+        EDocPurchLineField.Insert();
+
+        Clear(EDocPurchLineField);
+        EDocPurchLineField."E-Document Entry No." := EDocument."Entry No";
+        EDocPurchLineField."Line No." := EDocPurchaseLine."Line No.";
+        EDocPurchLineField."Field No." := PurchaseInvoiceLine.FieldNo("Bin Code");
+        EDocPurchLineField."Code Value" := 'INVALIDBIN';
+        EDocPurchLineField.Insert();
+
+        // [WHEN] Finalizing the draft
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
+
+        // [THEN] The e-document should have an error
+        EDocument.Get(EDocument."Entry No");
+        Assert.IsTrue(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should have errors');
+
+        // [THEN] The error message should reference the second field (Bin Code), not the first (Location Code)
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        ErrorMessage.FindFirst();
+        Assert.ExpectedMessage('Bin Code', ErrorMessage."Message");
+        Assert.ExpectedMessage('INVALIDBIN', ErrorMessage."Message");
+
+        // [THEN] No purchase invoice should have been created
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        Assert.RecordIsEmpty(PurchaseHeader);
+    end;
+
+    [Test]
+    procedure NoAdditionalFieldsStandardFieldFailureStillEnriched()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        ErrorMessage: Record "Error Message";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+    begin
+        // [SCENARIO] No additional fields are configured. A standard field validation fails.
+        // The error message should still be enriched with the field context.
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] An inbound e-document is received and a draft created (no additional fields configured)
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The draft for the e-document should be created');
+
+        // [GIVEN] The draft has an invalid currency code
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+        EDocumentPurchaseHeader."Currency Code" := 'BADCURR';
+        EDocumentPurchaseHeader.Modify();
+
+        // [WHEN] Finalizing the draft
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams);
+
+        // [THEN] The e-document should have an error
+        EDocument.Get(EDocument."Entry No");
+        Assert.IsTrue(EDocumentErrorHelper.HasErrors(EDocument), 'The e-document should have errors');
+
+        // [THEN] The error message should contain the Currency Code field context
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId());
+        ErrorMessage.SetRange("Message Type", ErrorMessage."Message Type"::Error);
+        ErrorMessage.FindFirst();
+        Assert.ExpectedMessage('Currency Code', ErrorMessage."Message");
+
+        // [THEN] No purchase invoice should have been created
+        PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
+        Assert.RecordIsEmpty(PurchaseHeader);
+    end;
+
+    [Test]
     procedure PreparingPurchaseDraftFindsItemReference()
     var
         EDocument: Record "E-Document";
@@ -760,6 +1089,84 @@ codeunit 139883 "E-Doc Process Test"
         EditDimensionSetEntries.OK().Invoke();
     end;
 
+    [Test]
+    procedure ProcessingInboundCreditNoteCreatesCorrectDocumentType()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        EDocRecordLink: Record "E-Doc. Record Link";
+    begin
+        // [SCENARIO] A PEPPOL CreditNote processed through the full pipeline creates a Purchase Credit Memo with correct content
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        EDocRecordLink.DeleteAll();
+
+        // [GIVEN] An inbound credit note e-document is received and fully processed
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-0.xml', TempEDocImportParams), 'The credit note e-document should be processed');
+
+        // [THEN] The E-Document type is Purchase Credit Memo
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("E-Document Type"::"Purchase Credit Memo", EDocument."Document Type", 'The document type should be Purchase Credit Memo.');
+
+        // [THEN] A Purchase Credit Memo header is created with correct fields
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual("Purchase Document Type"::"Credit Memo", PurchaseHeader."Document Type", 'The purchase header document type should be Credit Memo.');
+        Assert.AreEqual(EDocument.SystemId, PurchaseHeader."E-Document Link", 'The E-Document link should be set on the purchase header.');
+        Assert.AreEqual('CN-5001', PurchaseHeader."Vendor Cr. Memo No.", 'The vendor credit memo number should match the CreditNote ID.');
+        Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor should be resolved from the CreditNote.');
+        Assert.AreEqual(2500, PurchaseHeader."Doc. Amount Incl. VAT", 'The document amount incl. VAT should match the CreditNote total.');
+        Assert.AreEqual('5', PurchaseHeader."Vendor Order No.", 'The Vendor Order No. should match the OrderReference from the CreditNote.');
+
+        // [THEN] The purchase credit memo has the correct number of lines
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.RecordCount(PurchaseLine, 1);
+
+        // [THEN] Links are created between e-document and purchase records
+        EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Header");
+        EDocRecordLink.SetRange("Target SystemId", PurchaseHeader.SystemId);
+        Assert.RecordCount(EDocRecordLink, 1);
+    end;
+
+    [Test]
+    procedure ProcessingInboundInvoiceStillCreatesCorrectDocumentType()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO] After the refactoring, a PEPPOL Invoice still creates a Purchase Invoice with correct content (regression check)
+        Initialize(Enum::"Service Integration"::"Mock");
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        EDocumentService.Modify();
+
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The invoice e-document should be processed');
+
+        // [THEN] The E-Document type is Purchase Invoice
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("E-Document Type"::"Purchase Invoice", EDocument."Document Type", 'The document type should be Purchase Invoice.');
+
+        // [THEN] A Purchase Invoice header is created with correct fields
+        PurchaseHeader.Get(EDocument."Document Record ID");
+        Assert.AreEqual("Purchase Document Type"::Invoice, PurchaseHeader."Document Type", 'The purchase header document type should be Invoice.');
+        Assert.AreEqual('103033', PurchaseHeader."Vendor Invoice No.", 'The vendor invoice number should match the Invoice ID.');
+        Assert.AreEqual('2', PurchaseHeader."Vendor Order No.", 'The vendor order number should match the OrderReference from the Invoice.');
+        Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor should be resolved from the Invoice.');
+        Assert.AreEqual(14140, PurchaseHeader."Doc. Amount Incl. VAT", 'The document amount incl. VAT should match the Invoice total.');
+
+        // [THEN] The purchase invoice has the correct number of lines (2 from peppol-invoice-0.xml)
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.RecordCount(PurchaseLine, 2);
+    end;
+
     local procedure Initialize(Integration: Enum "Service Integration")
     var
         TransformationRule: Record "Transformation Rule";
@@ -792,7 +1199,7 @@ codeunit 139883 "E-Doc Process Test"
         Currency.Init();
         Currency.Validate(Code, 'XYZ');
         if Currency.Insert(true) then
-            LibraryERM.CreateExchangeRate(Currency.Code, WorkDate(), 1.0, 1.0);
+            LibraryERM.CreateExchangeRate(Currency.Code, Today(), 1.0, 1.0);
 
         EDocument.DeleteAll();
         EDocumentServiceStatus.DeleteAll();
