@@ -2170,7 +2170,7 @@ Comment = '|%1 = Transfer Order No.';
         asserterror PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
 
         // [THEN] The duplicate is blocked with the existing error
-        Assert.ExpectedError('Return from Subcontractor has already been created');
+        Assert.ExpectedError('Nothing to create. No components or WIP items to return for the specified subcontracting order');
     end;
 
     [Test]
@@ -2269,7 +2269,7 @@ Comment = '|%1 = Transfer Order No.';
         asserterror PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
 
         // [THEN] The duplicate is blocked with the existing error
-        Assert.ExpectedError('Return from Subcontractor has already been created');
+        Assert.ExpectedError('Nothing to create. No components or WIP items to return for the specified subcontracting order');
     end;
 
     [PageHandler]
