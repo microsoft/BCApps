@@ -4,15 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Reports;
 
-using Microsoft.CRM.Contact;
 using Microsoft.CRM.Team;
-using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 using System.Security.User;
 
@@ -32,7 +29,7 @@ report 20405 "Qlty. General Purpose Inspect."
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
             RequestFilterFields = "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "No.", "Re-inspection No.", "Template Code";
-            column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { }
+            column(QltyInspectionTemplate_Description; QltyInspectionTemplateHdr.Description) { } // CLEAN
             column(QltyInspection_Description; Description) { }
             column(QltyInspection_Status; Status) { }
             column(QltyInspection_Result_Code; "Result Code") { }
@@ -321,39 +318,10 @@ report 20405 "Qlty. General Purpose Inspect."
             }
 
             trigger OnPreDataItem()
-            var
-                QltyManagementSetup: Record "Qlty. Management Setup";
-                Contact: Record Contact;
-                FormatAddress: Codeunit "Format Address";
             begin
-                CompanyInformation.SetAutoCalcFields(Picture);
-                CompanyInformation.Get();
-                FormatAddress.Company(CompanyInformationArray, CompanyInformation);
+                QltyReportMgmt.ResolveCompanyInformation(CompanyInformation, CompanyInformationArray, AllCompanyInformation, HomePageValueText, HomePageLbl, HomePageLabelText, EmailValueText, EmailLbl, EmailLabelText, PhoneNoValueText, PhoneNoLbl, PhoneNoLabelText);
 
-                // Resolve Company Information fields for Word Layout
-                HomePageValueText := CompanyInformation."Home Page";
-                QltyReportMgmt.HideLabelIfBlankValue(HomePageValueText, HomePageLbl, HomePageLabelText);
-
-                EmailValueText := CompanyInformation."E-Mail";
-                QltyReportMgmt.HideLabelIfBlankValue(EmailValueText, EmailLbl, EmailLabelText);
-
-                PhoneNoValueText := CompanyInformation."Phone No.";
-                QltyReportMgmt.HideLabelIfBlankValue(PhoneNoValueText, PhoneNoLbl, PhoneNoLabelText);
-
-                ApproverTitle := DefaultApproverTitleLbl;
-                ApproverName := '';
-
-                QltyManagementSetup.Get();
-                if QltyManagementSetup."Certificate Contact No." <> '' then
-                    if Contact.Get(QltyManagementSetup."Certificate Contact No.") then begin
-                        ApproverName := Contact.Name;
-                        if Contact."Job Title" <> '' then
-                            ApproverTitle := Contact."Job Title";
-                        FormatAddress.ContactAddr(ContactInformationArray, Contact);
-                    end;
-
-                CombineToCarriageReturnString(CompanyInformationArray, AllCompanyInformation);
-                CombineToCarriageReturnString(ContactInformationArray, AllContactInformation);
+                QltyReportMgmt.ResolveCertificateContactInformation(DefaultApproverTitleLbl, ApproverTitle, ApproverName, ContactInformationArray, AllContactInformation);
             end;
 
             trigger OnAfterGetRecord()
@@ -367,6 +335,7 @@ report 20405 "Qlty. General Purpose Inspect."
                 else
                     Item.Get(CurrentInspection."Source Item No.");
 
+                // CLEAN
                 if QltyInspectionTemplateHdr.Code <> CurrentInspection."Template Code" then begin
                     Clear(QltyInspectionTemplateHdr);
                     if QltyInspectionTemplateHdr.Get(CurrentInspection."Template Code") then;
@@ -545,18 +514,4 @@ report 20405 "Qlty. General Purpose Inspect."
         DefaultApproverTitleLbl: Label 'Approver';
         DefaultQualityInspectorTitleLbl: Label 'Inspector';
         EnteredByNameAndTimestampLbl: Label '%1 %2', Locked = true;
-
-    local procedure CombineToCarriageReturnString(var InTextToCombine: array[8] of Text[100]; var CombinedTextResult: Text)
-    var
-        IndexOfTextToCombine: Integer;
-        CombinedText: TextBuilder;
-    begin
-        CombinedTextResult := '';
-
-        for IndexOfTextToCombine := 1 to ArrayLen(InTextToCombine) do
-            if InTextToCombine[IndexOfTextToCombine] <> '' then
-                CombinedText.AppendLine(InTextToCombine[IndexOfTextToCombine]);
-
-        CombinedTextResult := CombinedText.ToText();
-    end;
 }
