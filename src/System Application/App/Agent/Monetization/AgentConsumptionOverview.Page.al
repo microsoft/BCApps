@@ -109,11 +109,6 @@ page 4333 "Agent Consumption Overview"
                         DrillDownToAgentTaskConsumption();
                     end;
                 }
-
-                field("Is Excluded From Billing"; Rec."Is Excluded From Billing")
-                {
-                    Caption = 'Non-billable';
-                }
             }
             group(TotalsFooterOuterGroup)
             {
