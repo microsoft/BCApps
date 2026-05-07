@@ -7,6 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Utilities;
 
 codeunit 99001533 "Subc. Purchase Header Ext"
 {
@@ -47,5 +48,11 @@ codeunit 99001533 "Subc. Purchase Header Ext"
             Page.Run(Page::"Transfer Order", TransferHeader);
         end else
             Page.Run(Page::"Transfer Orders", TransferHeader);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnAfterCopyPurchHeaderDone, '', false, false)]
+    local procedure ClearSubcLocationCodeOnAfterCopyPurchHeaderDone(var ToPurchaseHeader: Record "Purchase Header")
+    begin
+        ToPurchaseHeader."Subc. Location Code" := '';
     end;
 }

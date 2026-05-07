@@ -83,9 +83,9 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         PurchaseHeader."Pay-to Vendor No." := EDocumentPurchaseHeader."[BC] Vendor No.";
         PurchaseHeader."Posting Description" := EDocumentPurchaseHeader."Posting Description";
         if EDocumentPurchaseHeader."Document Date" <> 0D then
-            PurchaseHeader.Validate("Document Date", EDocumentPurchaseHeader."Document Date");
+            EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Document Date"), EDocumentPurchaseHeader."Document Date");
         if EDocumentPurchaseHeader."Due Date" <> 0D then
-            PurchaseHeader.Validate("Due Date", EDocumentPurchaseHeader."Due Date");
+            EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Due Date"), EDocumentPurchaseHeader."Due Date");
 
         VendorCrMemoNo := CopyStr(EDocumentPurchaseHeader."Sales Invoice No.", 1, MaxStrLen(PurchaseHeader."Vendor Cr. Memo No."));
         VendorLedgerEntry.SetLoadFields("Entry No.");
@@ -96,7 +96,7 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
             Error(CrMemoAlreadyExistsErr, VendorCrMemoNo, EDocumentPurchaseHeader."[BC] Vendor No.");
         end;
 
-        PurchaseHeader.Validate("Vendor Cr. Memo No.", VendorCrMemoNo);
+        EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Vendor Cr. Memo No."), VendorCrMemoNo);
         if EDocumentPurchaseHeader."Purchase Order No." <> '' then
             PurchaseHeader."Vendor Order No." := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseHeader."Vendor Order No."));
         PurchaseHeader.Insert(true);
@@ -104,7 +104,7 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
 
         GLSetup.GetRecordOnce();
         if EDocumentPurchaseHeader."Currency Code" <> GLSetup.GetCurrencyCode('') then
-            PurchaseHeader.Validate("Currency Code", EDocumentPurchaseHeader."Currency Code");
+            EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Currency Code"), EDocumentPurchaseHeader."Currency Code");
 
         if EDocumentPurchaseHeader."Applies-to Doc. No." <> '' then
             PurchaseHeader."Applies-to Doc. No." := CopyStr(EDocumentPurchaseHeader."Applies-to Doc. No.", 1, MaxStrLen(PurchaseHeader."Applies-to Doc. No."));
