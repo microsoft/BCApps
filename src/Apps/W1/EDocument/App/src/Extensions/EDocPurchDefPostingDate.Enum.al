@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-enum 6162 "E-Doc. Default Posting Date"
+enum 6162 "E-Doc. Purch.Def. Posting Date"
 {
     Extensible = false;
     Caption = 'Purchase Invoice Posting Date (E-Docs)';
