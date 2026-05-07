@@ -43,6 +43,7 @@
     "TranslationFile",
     "ExcludeGeneratedTranslations"
   ],
+  "runtime": "17.0",
   "resourceExposurePolicy": {
     "allowDebugging": true,
     "includeSourceInSymbolFile": true,

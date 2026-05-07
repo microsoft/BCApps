@@ -1845,6 +1845,64 @@ Comment = '|%1 = Transfer Order No.';
 
     [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting')]
+    procedure RoutingFactboxMgmtFiltersPurchOrderQtyByRoutingReferenceNo()
+    var
+        Item: Record Item;
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        SubcWorkCenter: Record "Work Center";
+        SubcRoutingFactboxMgmt: Codeunit "Subc. Routing Factbox Mgmt.";
+        ExpectedPurchOrderQty: Decimal;
+    begin
+        // [SCENARIO] Regression test for Subc. Routing Factbox Mgmt.
+        // [SCENARIO] GetPurchOrderQtyFromRoutingLine must filter by "Routing Reference No." and not by "Prod. Order Line No.".
+
+        // [GIVEN] A released production order with a subcontracting routing operation and a created subcontracting purchase order
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateItemWithSingleSubcontractingOperation(Item, SubcWorkCenter);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", SubcWorkCenter."No.");
+
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", SubcWorkCenter."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.FindFirst();
+
+        PurchaseLine.Validate(Quantity, LibraryRandom.RandIntInRange(7, 17));
+        // Force a mismatch to prove the codeunit does not rely on Prod. Order Line No.
+        PurchaseLine."Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No." + 1;
+        PurchaseLine.Modify(true);
+
+        Assert.AreNotEqual(
+            ProdOrderRoutingLine."Routing Reference No.", PurchaseLine."Prod. Order Line No.",
+            'Test setup failed: Prod. Order Line No. must differ from Routing Reference No.');
+
+        // [WHEN] The factbox helper calculates purchase order quantity from the routing line
+        // [THEN] Quantity is returned for the line matched by Routing Reference No.
+        ExpectedPurchOrderQty := PurchaseLine.Quantity;
+        Assert.AreEqual(
+            ExpectedPurchOrderQty,
+            SubcRoutingFactboxMgmt.GetPurchOrderQtyFromRoutingLine(ProdOrderRoutingLine),
+            'GetPurchOrderQtyFromRoutingLine must filter by Routing Reference No., not by Prod. Order Line No.');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting')]
     procedure Description2CopiedFromProdOrderComponentToPurchaseLine()
     var
         Item: Record Item;
