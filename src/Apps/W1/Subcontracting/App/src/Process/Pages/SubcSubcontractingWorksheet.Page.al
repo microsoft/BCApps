@@ -242,7 +242,6 @@ page 99001504 "Subc. Subcontracting Worksheet"
                 field("Standard Task Code"; Rec."Standard Task Code")
                 {
                     ApplicationArea = Manufacturing;
-                    Editable = false;
                 }
                 field("Pricelist Cost"; Rec."Pricelist Cost")
                 {

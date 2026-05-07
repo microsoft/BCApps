@@ -522,6 +522,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
         RequisitionLine.Description := ProdOrderRoutingLine.Description;
         RequisitionLine."Description 2" := ProdOrderRoutingLine."Description 2";
+        RequisitionLine.Validate("Standard Task Code", ProdOrderRoutingLine."Standard Task Code");
         SetVendorItemNo(RequisitionLine);
 
         if PurchLineExists(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine) then begin
