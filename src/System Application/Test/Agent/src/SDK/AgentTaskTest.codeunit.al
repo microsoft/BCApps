@@ -500,6 +500,152 @@ codeunit 133960 "Agent Task Test"
         Assert.AreEqual(MessageText3, AgentMessage.GetText(AgentTaskMessage), 'Third message text should match');
     end;
 
+#if not CLEAN29
+    [Test]
+    procedure StopTaskDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-010', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] StopTask with var record should only modify Status and Needs Attention even when the caller's record has dirty field values
+
+        // [GIVEN] A test agent with a task set to ready
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'Stop Task Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create();
+
+        // Re-read the record to get the committed state
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+
+        // Modify a field on the local record variable without saving to DB
+        AgentTaskRecord.Title := 'Dirty Title';
+
+        // [WHEN] StopTask is called with the dirty record via the old var-record overload
+#pragma warning disable AL0432
+        AgentTask.StopTask(AgentTaskRecord, false);
+#pragma warning restore AL0432
+
+        // [THEN] Only Status and Needs Attention should be updated; the dirty Title should not be persisted
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by dirty record passed to StopTask');
+    end;
+
+    [Test]
+    procedure RestartTaskDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-011', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] RestartTask with var record should only modify Status and Needs Attention even when the caller's record has dirty field values
+
+        // [GIVEN] A test agent with a task that is paused (default after create without setting ready)
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'Restart Task Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false);
+
+        // Re-read the record to get the committed state
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+
+        // Modify a field on the local record variable without saving to DB
+        AgentTaskRecord.Title := 'Dirty Title';
+
+        // [WHEN] RestartTask is called with the dirty record via the old var-record overload
+#pragma warning disable AL0432
+        AgentTask.RestartTask(AgentTaskRecord, false);
+#pragma warning restore AL0432
+
+        // [THEN] Only Status and Needs Attention should be updated; the dirty Title should not be persisted
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentTaskRecord.Status::Ready, AgentTaskRecord.Status, 'Task should be set to Ready');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by dirty record passed to RestartTask');
+    end;
+
+    [Test]
+    procedure SetStatusToReadyDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-012', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] SetStatusToReady with var record should only modify Status even when the caller's record has dirty field values
+
+        // [GIVEN] A test agent with a task that is paused (default after create without setting ready)
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'SetStatusToReady Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false);
+
+        // Re-read the record to get the committed state
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+
+        // Modify a field on the local record variable without saving to DB
+        AgentTaskRecord.Title := 'Dirty Title';
+
+        // [WHEN] SetStatusToReady is called with the dirty record via the old var-record overload
+#pragma warning disable AL0432
+        AgentTask.SetStatusToReady(AgentTaskRecord);
+#pragma warning restore AL0432
+
+        // [THEN] Only Status should be updated; the dirty Title should not be persisted
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentTaskRecord.Status::Ready, AgentTaskRecord.Status, 'Task should be set to Ready');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by dirty record passed to SetStatusToReady');
+    end;
+#endif
+
     local procedure UpdateAccessControlToSpecifiedCompany(UserSecurityId: Guid; NewCompanyName: Text[30])
     var
         AccessControl: Record "Access Control";
