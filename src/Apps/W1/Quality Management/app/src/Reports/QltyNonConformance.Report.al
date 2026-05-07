@@ -41,8 +41,8 @@ report 20403 "Qlty. Non-Conformance"
             column(QltyInspection_Finished_By_Title; FinishedByUserName) { }
             column(QltyInspection_Finished_By_Email; FinishedByEmail) { }
             column(QltyInspection_Finished_By_Phone; FinishedByPhone) { }
-            column(QltyInspection_Director_Title; DirectorTitle) { }
-            column(QltyInspection_Director_Name; DirectorName) { }
+            column(QltyInspection_Director_Title; ApproverTitle) { }
+            column(QltyInspection_Director_Name; ApproverName) { }
             column(QltyInspection_Finished_Date; "Finished Date") { }
             column(QltyInspection_Source_Item_No_; "Source Item No.") { }
             column(QltyInspection_Source_Item_Description; Item.Description) { }
@@ -92,8 +92,8 @@ report 20403 "Qlty. Non-Conformance"
             // Pre-calculated label columns for Word Layout
             column(FinishedBySignatureLabel; FinishedBySignatureLbl) { }
             column(FinishedByNameLabel; FinishedByNameLbl) { }
-            column(DirectorSignatureLabel; DirectorSignatureLbl) { }
-            column(DirectorNameLabel; DirectorNameLbl) { }
+            column(ApproverSignatureLabel; ApproverSignatureLbl) { }
+            column(ApproverNameLabel; ApproverNameLbl) { }
             column(FinishedDateOnly; FinishedDateOnly) { }
             column(HomePageLabel; HomePageLabelText) { }
             column(HomePageValue; HomePageValueText) { }
@@ -294,11 +294,10 @@ report 20403 "Qlty. Non-Conformance"
             }
 
             trigger OnPreDataItem()
-            var
             begin
                 QltyReportMgmt.ResolveCompanyInformation(CompanyInformation, CompanyInformationArray, AllCompanyInformation, HomePageValueText, HomePageLbl, HomePageLabelText, EmailValueText, EmailLbl, EmailLabelText, PhoneNoValueText, PhoneNoLbl, PhoneNoLabelText);
 
-                QltyReportMgmt.ResolveCertificateContactInformation(DefaultDirectorTitleLbl, DirectorTitle, DirectorName, ContactInformationArray, AllContactInformation);
+                QltyReportMgmt.ResolveCertificateContactInformation(DefaultApproverTitleLbl, ApproverTitle, ApproverName, ContactInformationArray, AllContactInformation);
             end;
 
             trigger OnAfterGetRecord()
@@ -370,10 +369,10 @@ report 20403 "Qlty. Non-Conformance"
                 FinishedBySignatureLbl := FinishedByTitle + ' ' + SignatureSuffixLbl;
                 // Resolve Finished By Name
                 FinishedByNameLbl := FinishedByTitle + ' ' + NameSuffixLbl;
-                // Resolve Director Signature Label
-                DirectorSignatureLbl := DirectorTitle + ' ' + SignatureSuffixLbl;
-                // Resolve Director Name Label
-                DirectorNameLbl := DirectorTitle + ' ' + NameSuffixLbl;
+                // Resolve Approver Signature Label
+                ApproverSignatureLbl := ApproverTitle + ' ' + SignatureSuffixLbl;
+                // Resolve Approver Name Label
+                ApproverNameLbl := ApproverTitle + ' ' + NameSuffixLbl;
             end;
         }
     }
@@ -450,8 +449,8 @@ report 20403 "Qlty. Non-Conformance"
         FinishedByTitle: Text;
         FinishedByEmail: Text;
         FinishedByPhone: Text;
-        DirectorTitle: Text;
-        DirectorName: Text;
+        ApproverTitle: Text;
+        ApproverName: Text;
         LabelFieldDescription: Text;
         CarriageReturnPersonFieldDetails: Text;
         WordDescription: Text;
@@ -463,8 +462,8 @@ report 20403 "Qlty. Non-Conformance"
         ItemTrackingText: Text;
         FinishedBySignatureLbl: Text;
         FinishedByNameLbl: Text;
-        DirectorSignatureLbl: Text;
-        DirectorNameLbl: Text;
+        ApproverSignatureLbl: Text;
+        ApproverNameLbl: Text;
         SequenceText: Text;
         FinishedDateOnly: Date;
         HomePageLabelText: Text;
@@ -485,7 +484,7 @@ report 20403 "Qlty. Non-Conformance"
         EmailLbl: Label 'E-Mail';
         PhoneNoLbl: Label 'Phone No.';
         ConditionSuffixLbl: Label 'Condition';
-        DefaultDirectorTitleLbl: Label 'Director';
-        DefaultQualityInspectorTitleLbl: Label 'Quality Inspection';
+        DefaultApproverTitleLbl: Label 'Approver';
+        DefaultQualityInspectorTitleLbl: Label 'Quality Inspector';
         EnteredByNameAndTimestampLbl: Label '%1 %2', Locked = true;
 }

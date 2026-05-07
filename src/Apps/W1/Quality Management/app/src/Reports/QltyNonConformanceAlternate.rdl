@@ -2904,11 +2904,11 @@ End Function
         <Field Name="FinishedByNameLabel">
           <DataField>FinishedByNameLabel</DataField>
         </Field>
-        <Field Name="DirectorSignatureLabel">
-          <DataField>DirectorSignatureLabel</DataField>
+        <Field Name="ApproverSignatureLabel">
+          <DataField>ApproverSignatureLabel</DataField>
         </Field>
-        <Field Name="DirectorNameLabel">
-          <DataField>DirectorNameLabel</DataField>
+        <Field Name="ApproverNameLabel">
+          <DataField>ApproverNameLabel</DataField>
         </Field>
         <Field Name="FinishedDateOnly">
           <DataField>FinishedDateOnly</DataField>

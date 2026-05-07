@@ -512,6 +512,6 @@ report 20405 "Qlty. General Purpose Inspect."
         PhoneNoLbl: Label 'Phone No.';
         ConditionSuffixLbl: Label 'Condition';
         DefaultApproverTitleLbl: Label 'Approver';
-        DefaultQualityInspectorTitleLbl: Label 'Inspector';
+        DefaultQualityInspectorTitleLbl: Label 'Quality Inspector';
         EnteredByNameAndTimestampLbl: Label '%1 %2', Locked = true;
 }
