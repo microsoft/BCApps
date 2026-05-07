@@ -22,6 +22,9 @@ codeunit 139630 "E-Doc. Impl. State"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         EnableOnCheck, DisableOnCreateOutput, DisableOnCreateBatch, IsAsync2, EnableHttpData, ThrowIntegrationRuntimeError, ThrowIntegrationLoggedError : Boolean;
         ThrowRuntimeError, ThrowLoggedError, ThrowBasicInfoError, ThrowCompleteInfoError, OnGetResponseSuccess, ActionHasUpdate : Boolean;
+#if not CLEAN26
+        OnGetApprovalSuccess: Boolean;
+#endif
         LocalHttpResponse: HttpResponseMessage;
         ActionStatus: Enum "E-Document Service Status";
 
