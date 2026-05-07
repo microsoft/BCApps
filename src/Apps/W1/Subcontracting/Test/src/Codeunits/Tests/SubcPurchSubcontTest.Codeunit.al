@@ -50,6 +50,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ErrorMessageDescriptionList: List of [Text];
         ItemTrackingWasOpened: Boolean;
         UnitCostCalculation: Option Time,Units;
+        NotSupportedErr: Label 'Drop Shipment must be equal to', Locked = true;
 
     [Test]
     [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess')]
@@ -225,7 +226,6 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         RoutingLink: Record "Routing Link";
         Vendor: Record Vendor;
         WorkCenter: Record "Work Center";
-        NotSupportedErr: Label 'Drop Shipment must be equal to', Locked = true;
         PurchOrder: TestPage "Purchase Order";
     begin
         // [SCENARIO] Create Production Order from Purchase Order from scratch

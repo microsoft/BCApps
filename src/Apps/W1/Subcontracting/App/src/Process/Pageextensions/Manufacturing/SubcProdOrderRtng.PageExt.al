@@ -55,7 +55,6 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                     PurchaseLine: Record "Purchase Line";
                     SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
                     NoOfCreatedPurchOrder: Integer;
-                    NoPurchOrderCreatedMsg: Label 'No subcontracting order was created for the selected operations in production order %1. Please check whether the operation or operations have already been completed.', Comment = '%1=Production Order No.';
                 begin
                     CurrPage.SetSelectionFilter(ProdOrderRoutingLine);
                     ProdOrderRoutingLine.FindSet();
@@ -83,4 +82,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
             }
         }
     }
+
+    var
+        NoPurchOrderCreatedMsg: Label 'No subcontracting order was created for the selected operations in production order %1. Please check whether the operation or operations have already been completed.', Comment = '%1=Production Order No.';
 }

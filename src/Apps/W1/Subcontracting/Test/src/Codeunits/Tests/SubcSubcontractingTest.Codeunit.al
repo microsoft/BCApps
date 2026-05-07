@@ -1389,8 +1389,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseLine: Record "Purchase Line";
         TransferLine: Record "Transfer Line";
         WorkCenter: array[2] of Record "Work Center";
-        AlreadySpecifiedErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.',
-Comment = '|%1 = Transfer Order No.';
         ProdOrderCompPage: TestPage "Prod. Order Components";
         PurchaseHeaderPage: TestPage "Purchase Order";
         ExpectedErrorMsg: Text;
@@ -2831,5 +2829,6 @@ Comment = '|%1 = Transfer Order No.';
         Subcontracting: Boolean;
         UnitCostCalculation: Option Time,Units;
         ConfirmDialogCalledCount: Integer;
+        AlreadySpecifiedErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.', Comment = '|%1 = Transfer Order No.';
 
 }

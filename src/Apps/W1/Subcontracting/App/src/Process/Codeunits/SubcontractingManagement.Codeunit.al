@@ -28,6 +28,12 @@ codeunit 99001505 "Subcontracting Management"
         SubcManagementSetup: Record "Subc. Management Setup";
         TempGlobalReservationEntry: Record "Reservation Entry" temporary;
         HasSubManagementSetup: Boolean;
+        RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
+        SuccessfullyUpdatedMsg: Label 'Successfully updated.';
+        UpdateIsCancelledErr: Label 'Update cancelled.';
+        UpdateIsCanceledErr: Label 'The update is canceled.';
+        WorkCenterVendorDoesntExistErr: Label 'Subcontractor %1 on Work Center %2 does not exist.', Comment = 'Parameter %1 - subcontractor/vendor number, %2 - work center number.';
+        PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
 
     procedure CalcReceiptDateFromProdCompDueDateWithInbWhseHandlingTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
     begin
@@ -131,9 +137,6 @@ codeunit 99001505 "Subcontracting Management"
         StockkeepingUnit: Record "Stockkeeping Unit";
         ConfirmManagement: Codeunit "Confirm Management";
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
-        RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
-        SuccessfullyUpdatedMsg: Label 'Successfully updated.';
-        UpdateIsCancelledErr: Label 'Update cancelled.';
     begin
 
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
@@ -172,8 +175,6 @@ codeunit 99001505 "Subcontracting Management"
     var
         WorkCenter: Record "Work Center";
         HasSubcontractor, IsHandled : Boolean;
-        WorkCenterVendorDoesntExistErr: Label 'Subcontractor %1 on Work Center %2 does not exist.',
-            Comment = 'Parameter %1 - subcontractor/vendor number, %2 - work center number.';
     begin
         OnBeforeGetSubcontractor(WorkCenterNo, Vendor, HasSubcontractor, IsHandled);//DO NOT DELETE
         if IsHandled then
@@ -427,7 +428,6 @@ codeunit 99001505 "Subcontracting Management"
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
         PurchOrderNo: Code[20];
-        PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
     begin
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
@@ -484,9 +484,6 @@ codeunit 99001505 "Subcontracting Management"
         Subcontracting: Boolean;
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
-        RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
-        SuccessfullyUpdatedMsg: Label 'Successfully updated.';
-        UpdateIsCancelledErr: Label 'The update is canceled.';
     begin
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
@@ -500,7 +497,7 @@ codeunit 99001505 "Subcontracting Management"
                 VendorSubcontractingLocationCode := Vendor."Subcontr. Location Code";
                 if ShowMsg then
                     if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(RoutingLinkUpdConfQst, ProdOrderRoutingLine."Routing Link Code"), true) then
-                        Error(UpdateIsCancelledErr);
+                        Error(UpdateIsCanceledErr);
                 repeat
                     if not (ProdOrderComponent."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase]) then
                         Clear(VendorSubcontractingLocationCode);

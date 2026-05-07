@@ -32,6 +32,13 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         SubcVersionMgmt: Codeunit "Subc. Version Mgmt.";
         HasSubManagementSetup: Boolean;
         SubcRtngBOMSourceType: Enum "Subc. RtngBOMSourceType";
+        TempProdOrderNoLbl: Label 'TEMP-%1', Locked = true, MaxLength = 20;
+        BOMForLbl: Label 'BOM for %1', Comment = '%1 = Item description';
+        TempBOMNoLbl: Label 'TEMP-BOM-%1', Locked = true, MaxLength = 20;
+        RoutingForLbl: Label 'Routing for %1', Comment = '%1 = Item description';
+        TempRoutingNoLbl: Label 'TEMP-RTNG-%1', Locked = true, MaxLength = 20;
+        PutAwayOperationLbl: Label 'Put-Away Operation';
+        SubcontractingOperationLbl: Label 'Subcontracting Operation';
 
     /// <summary>
     /// Initializes the temporary structure for production order processing based on a purchase line.
@@ -58,8 +65,6 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     end;
 
     local procedure CreateTemporaryProductionOrder()
-    var
-        TempProdOrderNoLbl: Label 'TEMP-%1', Locked = true, MaxLength = 20;
     begin
         TempGlobalProductionBOMLine.Reset();
         TempGlobalProductionBOMLine.DeleteAll();
@@ -141,8 +146,6 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     local procedure InitializeTemporaryBOMHeaderFromSetup(Item: Record Item): Code[20]
     var
         BOMNo: Code[20];
-        BOMForLbl: Label 'BOM for %1', Comment = '%1 = Item description';
-        TempBOMNoLbl: Label 'TEMP-BOM-%1', Locked = true, MaxLength = 20;
     begin
         TempGlobalProductionBOMHeader.Init();
         BOMNo := StrSubstNo(TempBOMNoLbl, CopyStr(Format(CreateGuid()), 2, 10));
@@ -197,8 +200,6 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     local procedure InitializeTemporaryRoutingHeaderFromSetup(Item: Record Item): Code[20]
     var
         RoutingNo: Code[20];
-        RoutingForLbl: Label 'Routing for %1', Comment = '%1 = Item description';
-        TempRoutingNoLbl: Label 'TEMP-RTNG-%1', Locked = true, MaxLength = 20;
     begin
         TempGlobalRoutingHeader.Init();
         RoutingNo := StrSubstNo(TempRoutingNoLbl, CopyStr(Format(CreateGuid()), 2, 10));
@@ -227,8 +228,6 @@ codeunit 99001552 "Subc. Temp Data Initializer"
     local procedure InitializeTemporaryRoutingLinesFromSetup(RoutingNo: Code[20]; WorkCenterNo: Code[20])
     var
         Location: Record Location;
-        PutAwayOperationLbl: Label 'Put-Away Operation';
-        SubcontractingOperationLbl: Label 'Subcontracting Operation';
     begin
         TempGlobalRoutingLine.Init();
         TempGlobalRoutingLine."Routing No." := RoutingNo;
