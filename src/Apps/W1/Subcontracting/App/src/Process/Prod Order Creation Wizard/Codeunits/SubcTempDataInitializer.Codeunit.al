@@ -320,6 +320,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
                     TempGlobalProdOrderComponent."Qty. per Unit of Measure" := 1;
                     TempGlobalProdOrderComponent.Validate("Item No.", ProductionBOMLine."No.");
                     TempGlobalProdOrderComponent.Description := ProductionBOMLine.Description;
+                    TempGlobalProdOrderComponent."Description 2" := ProductionBOMLine."Description 2";
                     TempGlobalProdOrderComponent.Validate("Quantity per", ProductionBOMLine."Quantity per" * BOMQuantity);
                     if ProductionBOMLine."Unit of Measure Code" <> '' then
                         TempGlobalProdOrderComponent.Validate("Unit of Measure Code", ProductionBOMLine."Unit of Measure Code");
@@ -361,6 +362,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         TempGlobalProdOrderRoutingLine.Validate("No.", RoutingLine."No.");
         TempGlobalProdOrderRoutingLine.Validate("Work Center No.", RoutingLine."Work Center No.");
         TempGlobalProdOrderRoutingLine.Description := RoutingLine.Description;
+        TempGlobalProdOrderRoutingLine."Description 2" := RoutingLine."Description 2";
         TempGlobalProdOrderRoutingLine.Validate("Setup Time", RoutingLine."Setup Time");
         TempGlobalProdOrderRoutingLine.Validate("Run Time", RoutingLine."Run Time");
         TempGlobalProdOrderRoutingLine.Validate("Wait Time", RoutingLine."Wait Time");

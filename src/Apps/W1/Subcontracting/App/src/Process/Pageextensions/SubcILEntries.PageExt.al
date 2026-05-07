@@ -50,7 +50,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order';
                     Image = Production;
-                    ToolTip = 'Specifies the depended Production Order of this Subcontracting Transfer Order.';
+                    ToolTip = 'View the related production order.';
                     trigger OnAction()
                     begin
                         ShowProductionOrder(Rec);
@@ -61,7 +61,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order Routing';
                     Image = Route;
-                    ToolTip = 'Specifies the depended Production Routing of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related production order routing.';
                     trigger OnAction()
                     begin
                         ShowProductionOrderRouting(Rec);
@@ -72,7 +72,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                     ApplicationArea = Manufacturing;
                     Caption = 'Production Order Components';
                     Image = Components;
-                    ToolTip = 'Specifies the depended Production Components of this Subcontracting Purchase Order.';
+                    ToolTip = 'View the related production order components.';
                     trigger OnAction()
                     begin
                         ShowProductionOrderComponents(Rec);
@@ -83,7 +83,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                     ApplicationArea = Manufacturing;
                     Caption = 'Subcontracting Purchase Order';
                     Image = Order;
-                    ToolTip = 'Specifies the depended Purchase Order of this Subcontracting Transfer Order.';
+                    ToolTip = 'View the related subcontracting purchase order.';
                     trigger OnAction()
                     begin
                         ShowPurchaseOrder(Rec);

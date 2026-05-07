@@ -15,6 +15,7 @@ query 36989 "Prod. Order Lines - Manuf."
     Access = Internal;
     Caption = 'Power BI Production Order Lines';
     QueryType = API;
+    AboutText = 'Provides access to production order line data including quantities, finished quantities, due dates, routings, and cost parameters. Enables Power BI reports to analyze production order progress, output tracking, and manufacturing performance metrics.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

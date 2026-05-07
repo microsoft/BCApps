@@ -21,9 +21,8 @@ page 99001518 "Subc. Purchase Line Factbox"
             field(ShowProdOrder; Rec."Prod. Order No.")
             {
                 Caption = 'Production Order';
-                ToolTip = 'Specifies the depended Production Order of this Subcontracting Purchase Order.';
+                ToolTip = 'Specifies the dependent Production Order of this Subcontracting Purchase Order.';
                 trigger OnDrillDown()
-                var
                 begin
                     ShowProductionOrder(Rec);
                 end;
@@ -31,9 +30,8 @@ page 99001518 "Subc. Purchase Line Factbox"
             field(ShowTransOrder; GetTransferOrderNo(Rec))
             {
                 Caption = 'Transfer Order';
-                ToolTip = 'Specifies the depended Transfer Order of this Subcontracting Purchase Order.';
+                ToolTip = 'Specifies the dependent Transfer Order of this Subcontracting Purchase Order.';
                 trigger OnDrillDown()
-                var
                 begin
                     SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                 end;
@@ -43,7 +41,6 @@ page 99001518 "Subc. Purchase Line Factbox"
                 Caption = 'No. of Transfer Orders';
                 ToolTip = 'Specifies the number of Transfer Orders created for this Subcontracting Purchase Order.';
                 trigger OnDrillDown()
-                var
                 begin
                     SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                 end;
@@ -51,9 +48,8 @@ page 99001518 "Subc. Purchase Line Factbox"
             field(ShowReturnTransOrder; GetReturnTransferOrderNo(Rec))
             {
                 Caption = 'Return Transfer Order';
-                ToolTip = 'Specifies the depended Return Transfer Order of this Subcontracting Purchase Order.';
+                ToolTip = 'Specifies the dependent Return Transfer Order of this Subcontracting Purchase Order.';
                 trigger OnDrillDown()
-                var
                 begin
                     SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
                 end;
@@ -61,9 +57,8 @@ page 99001518 "Subc. Purchase Line Factbox"
             field(ShowProdOrderRouting; GetNoOfProductionOrderRoutings(Rec))
             {
                 Caption = 'Production Routing';
-                ToolTip = 'Specifies the depended Production Routing of this Subcontracting Purchase Order.';
+                ToolTip = 'Specifies the dependent Production Routing of this Subcontracting Purchase Order.';
                 trigger OnDrillDown()
-                var
                 begin
                     ShowProductionOrderRouting(Rec);
                 end;
@@ -71,10 +66,9 @@ page 99001518 "Subc. Purchase Line Factbox"
             field(ShowProdOrderComponents; GetNoOfProductionComponents(Rec))
             {
                 Caption = 'Production Components';
-                ToolTip = 'Specifies the depended Production Components of this Subcontracting Purchase Order.';
+                ToolTip = 'Specifies the dependent Production Components of this Subcontracting Purchase Order.';
 
                 trigger OnDrillDown()
-                var
                 begin
                     ShowProductionOrderComponents(Rec);
                 end;
