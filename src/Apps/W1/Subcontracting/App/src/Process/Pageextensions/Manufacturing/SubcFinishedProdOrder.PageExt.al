@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-pageextension 99001542 "Subc. Finished Prod. Order" extends "Finished Production Order"
+pageextension 99001548 "Subc. Finished Prod. Order" extends "Finished Production Order"
 {
     actions
     {

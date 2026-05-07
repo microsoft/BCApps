@@ -132,11 +132,11 @@ codeunit 139983 "Subc. Management Library"
 
     procedure UpdateSubMgmtSetup_ComponentAtLocation(CompAtLocation: Enum "Components at Location")
     var
-        SubcMgmtSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
-        SubcMgmtSetup.Get();
-        SubcMgmtSetup."Component at Location" := CompAtLocation;
-        SubcMgmtSetup.Modify();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Subc. Comp. at Location" := CompAtLocation;
+        ManufacturingSetup.Modify();
     end;
 
     procedure CreateSubcontractingOrderFromProdOrderRtngPage(RoutingNo: Code[20]; WorkCenterNo: Code[20])
