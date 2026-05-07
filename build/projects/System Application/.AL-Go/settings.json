@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/924e49c5c1b8e90d2bc3177c84c5b7a5d7e36b8a/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/59f772f3fb277cd5041c07311ceb5eb0297fdf1d/Actions/.Modules/settings.schema.json",
   "projectName": "System Application, Business Foundation and Tools",
   "appFolders": [
     "../../../src/System Application/App",
@@ -7,7 +7,8 @@
     "../../../src/Tools/AI Test Toolkit",
     "../../../src/Tools/Performance Toolkit/App",
     "../../../src/Tools/Test Framework/Test Libraries/*",
-    "../../../src/Tools/Test Framework/Test Runner"
+    "../../../src/Tools/Test Framework/Test Runner",
+    "../../../src/Tools/Red Team Scan"
   ],
   "testFolders": [
     "../../../src/System Application/Test Library",

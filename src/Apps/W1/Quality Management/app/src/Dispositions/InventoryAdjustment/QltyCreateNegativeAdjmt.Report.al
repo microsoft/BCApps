@@ -13,12 +13,13 @@ using Microsoft.Warehouse.Structure;
 report 20408 "Qlty. Create Negative Adjmt."
 {
     Caption = 'Quality Management - Create Negative Inventory Adjustment';
-    ApplicationArea = QualityManagement;
     AdditionalSearchTerms = 'write-off, dispose';
+    ToolTip = 'Use this report to decrease inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage';
     ProcessingOnly = true;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = Tasks;
+    ApplicationArea = QualityManagement;
     AllowScheduling = false;
-    ToolTip = 'Use this to decrease inventory quantity, such as when disposing of samples after destructive testing or writing off stock due to damage or spoilage';
 
     dataset
     {
@@ -57,7 +58,7 @@ report 20408 "Qlty. Create Negative Adjmt."
         {
             area(Content)
             {
-                group(SettingsForQuantity)
+                group(Quantity)
                 {
                     Caption = 'Quantity';
                     InstructionalText = 'In destructive testing scenarios, the number of samples that were destroyed. For other scenarios, the quantity of the inspected item that will be written off.';
@@ -104,7 +105,7 @@ report 20408 "Qlty. Create Negative Adjmt."
                             CurrReport.RequestOptionsPage.Update(true);
                         end;
                     }
-                    group(SettingsForSpecificQty)
+                    group(SpecificQty)
                     {
                         ShowCaption = false;
                         Visible = RemoveSpecific;
@@ -184,7 +185,7 @@ report 20408 "Qlty. Create Negative Adjmt."
                         end;
                     }
                 }
-                group(SettingsForReason)
+                group(Reason)
                 {
                     Caption = 'Reason (optional)';
                     InstructionalText = 'Optional reason for the negative adjustment.';
@@ -197,7 +198,7 @@ report 20408 "Qlty. Create Negative Adjmt."
                         Tooltip = 'Specifies an optional reason code to use.';
                     }
                 }
-                group(SettingsForSource)
+                group(Source)
                 {
                     Caption = 'Source (optional)';
                     InstructionalText = 'Optional filters that limit where the inventory is adjusted from if the inspection covers more than one bin.';
@@ -217,7 +218,7 @@ report 20408 "Qlty. Create Negative Adjmt."
                         ToolTip = 'Specifies to optionally limit which bins will be used to pull the inventory from.';
                     }
                 }
-                group(SettingsForPostingBehavior)
+                group(PostingBehavior)
                 {
                     Caption = 'Post Now or Later';
 

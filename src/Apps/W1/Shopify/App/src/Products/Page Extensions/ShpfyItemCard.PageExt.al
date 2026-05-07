@@ -48,10 +48,18 @@ pageextension 30119 "Shpfy Item Card" extends "Item Card"
                     trigger OnAction()
                     var
                         Shop: Record "Shpfy Shop";
+                        ProductExport: Codeunit "Shpfy Product Export";
                         SyncProducts: Codeunit "Shpfy Sync Products";
                     begin
                         if SyncProducts.ConfirmAddItemToShopify(Rec, Shop) then begin
+                            ProductExport.SetShop(Shop);
+                            if not ProductExport.CheckItemCanBeExported(Rec) then
+                                exit;
+                            if not ProductExport.CheckItemAttributesCompatibleForProductOptions(Rec) then
+                                exit;
+
                             SyncProducts.AddItemToShopify(Rec, Shop);
+
                             if Confirm(ViewInShopifyLbl) then
                                 Hyperlink(SyncProducts.GetProductUrl(Rec, Shop.Code));
                             CurrPage.Update(false);
@@ -105,6 +113,7 @@ pageextension 30119 "Shpfy Item Card" extends "Item Card"
     var
         Shop: Record "Shpfy Shop";
         ShopifyProduct: Record "Shpfy Product";
+        ShopifyVariant: Record "Shpfy Variant";
     begin
         IsProductMapped := false;
         ShopifyProduct.SetLoadFields("Item SystemId", "Shop Code");
@@ -117,12 +126,26 @@ pageextension 30119 "Shpfy Item Card" extends "Item Card"
                         exit;
                     end;
             until ShopifyProduct.Next() = 0;
+
+        if not IsProductMapped then begin
+            ShopifyVariant.SetLoadFields("Item SystemId", "Shop Code");
+            ShopifyVariant.SetRange("Item SystemId", Rec.SystemId);
+            if ShopifyVariant.FindSet() then
+                repeat
+                    if Shop.Get(ShopifyVariant."Shop Code") then
+                        if Shop.Enabled then begin
+                            IsProductMapped := true;
+                            exit;
+                        end;
+                until ShopifyVariant.Next() = 0;
+        end;
     end;
 
     local procedure SetAvailableStoresToMap()
     var
         Shop: Record "Shpfy Shop";
         ShopifyProduct: Record "Shpfy Product";
+        ShopifyVariant: Record "Shpfy Variant";
     begin
         AvailableStoresToMap := false;
         Shop.SetRange(Enabled, true);
@@ -131,8 +154,12 @@ pageextension 30119 "Shpfy Item Card" extends "Item Card"
                 ShopifyProduct.SetRange("Item SystemId", Rec.SystemId);
                 ShopifyProduct.SetRange("Shop Code", Shop.Code);
                 if ShopifyProduct.IsEmpty() then begin
-                    AvailableStoresToMap := true;
-                    exit;
+                    ShopifyVariant.SetRange("Item SystemId", Rec.SystemId);
+                    ShopifyVariant.SetRange("Shop Code", Shop.Code);
+                    if ShopifyVariant.IsEmpty() then begin
+                        AvailableStoresToMap := true;
+                        exit;
+                    end;
                 end;
             until Shop.Next() = 0;
     end;

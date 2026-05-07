@@ -224,6 +224,16 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Posting Description';
             DataClassification = CustomerContent;
         }
+        field(39; "Applies-to Doc. No."; Text[100])
+        {
+            Caption = 'Applies-to Doc. No.';
+            DataClassification = CustomerContent;
+        }
+        field(40; "Vendor Invoice No."; Text[100])
+        {
+            Caption = 'Vendor Invoice No.';
+            DataClassification = CustomerContent;
+        }
         #endregion Purchase fields
 
         #region Business Central Data - Validated fields [101-200]
@@ -287,6 +297,6 @@ table 6100 "E-Document Purchase Header"
 
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        DeleteDraftPerformedTxt: Label 'User deleted the draft.';
+        DeleteDraftPerformedTxt: Label 'User deleted the draft.', Locked = true;
 
 }

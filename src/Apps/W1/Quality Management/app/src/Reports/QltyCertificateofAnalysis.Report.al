@@ -16,9 +16,10 @@ using Microsoft.QualityManagement.Utilities;
 
 report 20401 "Qlty. Certificate of Analysis"
 {
-    ApplicationArea = QualityManagement;
-    UsageCategory = ReportsAndAnalysis;
     Caption = 'Quality Management - Certificate of Analysis';
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+    UsageCategory = ReportsAndAnalysis;
+    ApplicationArea = QualityManagement;
     DefaultRenderingLayout = QltyCertificateOfAnalysisDefault;
     Extensible = true;
 
@@ -90,7 +91,7 @@ report 20401 "Qlty. Certificate of Analysis"
 
                 column(Field_Code; "Test Code") { }
                 column(Field_Description; Description) { }
-                column(Numeric_Value; "Numeric Value") { }
+                column(Numeric_Value; "Derived Numeric Value") { }
                 column(Field_Type; "Test Value Type") { }
                 column(Field_IsLabel; FieldIsLabel) { }
                 column(Field_HasEnteredValue; HasEnteredValue) { }
@@ -218,10 +219,10 @@ report 20401 "Qlty. Certificate of Analysis"
 
                     InspectionLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentInspectionLine.SystemModifiedBy);
                     if InspectionLinePreviousModifiedByUserId <> InspectionLineModifiedByUserId then
-                        QltyMiscHelpers.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
+                        QltyPersonLookup.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
                     InspectionLinePreviousModifiedByUserId := InspectionLineModifiedByUserId;
 
-                    IsPersonField := QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
+                    IsPersonField := QltyPersonLookup.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
 
                     FieldIsLabel := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Label"];
                     FieldIsText := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Text"];
@@ -281,7 +282,7 @@ report 20401 "Qlty. Certificate of Analysis"
                 end;
 
                 FinishedByUserName := CurrentInspection."Finished By User ID";
-                QltyMiscHelpers.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
+                QltyPersonLookup.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
                 if (FinishedByTitle = '') and (FinishedByUserName <> '') then
                     FinishedByTitle := DefaultQualityInspectorTitleLbl;
             end;
@@ -295,21 +296,7 @@ report 20401 "Qlty. Certificate of Analysis"
             Type = RDLC;
             Caption = 'Default Layout';
             Summary = 'The default certificate of analysis report.';
-            LayoutFile = './src/Reports/QltyCertificateOfAnalysisDefault.rdl';
-        }
-        layout(QltyCertificateOfAnalysisAlternate)
-        {
-            Type = RDLC;
-            Caption = 'Alternate Layout';
-            Summary = 'Alternate certificate of analysis report.';
             LayoutFile = './src/Reports/QltyCertificateOfAnalysisAlternate.rdl';
-        }
-        layout(QualityManagement_CertificateOfAnalysis_Default)
-        {
-            Type = Word;
-            Caption = 'Word Layout';
-            Summary = 'Word layout for certificate of analysis report.';
-            LayoutFile = './src/Reports/QltyCertificateOfAnalysis.docx';
         }
     }
 
@@ -317,6 +304,7 @@ report 20401 "Qlty. Certificate of Analysis"
         Item: Record Item;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
         MatrixSourceRecordId: array[10] of RecordId;
         CompanyInformationArray: array[8] of Text[100];
         ContactInformationArray: array[8] of Text[100];

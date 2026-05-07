@@ -18,6 +18,7 @@ codeunit 139695 "Shpfy Invoices Test"
     Subtype = Test;
     TestType = Uncategorized;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         Customer: Record Customer;
@@ -26,8 +27,12 @@ codeunit 139695 "Shpfy Invoices Test"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryAssert: Codeunit "Library Assert";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
+        FullDraftOrder: Boolean;
+        ShopifyOrderId: BigInteger;
+        ShopifyOrderNo: Code[50];
 
     #region Test Methods
     [Test]
@@ -138,7 +143,7 @@ codeunit 139695 "Shpfy Invoices Test"
         Initialize();
 
         // [GIVEN] Shopify Shop
-        Shop := CommunicationMgt.GetShopRecord();
+        Shop.Get(Shop.Code);
         Shop."Posted Invoice Sync" := false;
         Shop.Modify(false);
 
@@ -168,7 +173,7 @@ codeunit 139695 "Shpfy Invoices Test"
         Initialize();
 
         // [GIVEN] Shopify Shop
-        Shop := CommunicationMgt.GetShopRecord();
+        Shop.Get(Shop.Code);
         Shop."Posted Invoice Sync" := true;
         Shop.Modify(false);
 
@@ -199,7 +204,7 @@ codeunit 139695 "Shpfy Invoices Test"
         Initialize();
 
         // [GIVEN] Shopify Shop
-        Shop := CommunicationMgt.GetShopRecord();
+        Shop.Get(Shop.Code);
         Shop."Posted Invoice Sync" := true;
         Shop.Modify(false);
 
@@ -232,7 +237,7 @@ codeunit 139695 "Shpfy Invoices Test"
         Initialize();
 
         // [GIVEN] Shopify Shop
-        Shop := CommunicationMgt.GetShopRecord();
+        Shop.Get(Shop.Code);
 
         // [GIVEN] Posted sales invoice
         InvoiceNo := CreateAndPostSalesInvoice(Item, Customer, 1, false, 0);
@@ -269,7 +274,7 @@ codeunit 139695 "Shpfy Invoices Test"
         Initialize();
 
         // [GIVEN] Shopify Shop
-        Shop := CommunicationMgt.GetShopRecord();
+        Shop.Get(Shop.Code);
 
         // [GIVEN] Posted sales invoice with fraction quantity
         InvoiceNo := CreateAndPostSalesInvoice(Item, Customer, LibraryRandom.RandDec(5, 2), false, 0);
@@ -301,7 +306,7 @@ codeunit 139695 "Shpfy Invoices Test"
         Initialize();
 
         // [GIVEN] Shopify Shop
-        Shop := CommunicationMgt.GetShopRecord();
+        Shop.Get(Shop.Code);
 
         // [GIVEN] Posted sales invoice with fraction quantity
         InvoiceNo := CreateAndPostSalesInvoice(Item, Customer, 1, false, 0);
@@ -327,10 +332,10 @@ codeunit 139695 "Shpfy Invoices Test"
     end;
 
     [Test]
+    [HandlerFunctions('InvoicesHttpHandler')]
     procedure UnitTestExportWithoutCreatedDraftOrder()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        InvoicesAPISubscriber: Codeunit "Shpfy Invoices API Subscriber";
         PostedInvoiceExport: Codeunit "Shpfy Posted Invoice Export";
         InvoiceNo: Code[20];
     begin
@@ -338,7 +343,7 @@ codeunit 139695 "Shpfy Invoices Test"
         Initialize();
 
         // [GIVEN] Shopify Shop
-        Shop := CommunicationMgt.GetShopRecord();
+        Shop.Get(Shop.Code);
 
         // [GIVEN] Posted sales invoice with fraction quantity
         InvoiceNo := CreateAndPostSalesInvoice(Item, Customer, 1, false, 0);
@@ -351,22 +356,22 @@ codeunit 139695 "Shpfy Invoices Test"
         CreatePrimaryPaymentTerms();
 
         // [WHEN] Execute the posted sales invoice export
-        InvoicesAPISubscriber.SetFullDraftOrder(false);
-        BindSubscription(InvoicesAPISubscriber);
+        FullDraftOrder := false;
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('DraftOrderCreate');
         PostedInvoiceExport.SetShop(Shop.Code);
         PostedInvoiceExport.Run(SalesInvoiceHeader);
         SalesInvoiceHeader.Get(InvoiceNo);
-        UnbindSubscription(InvoicesAPISubscriber);
 
         // [THEN] Posted sales invoice is not exported
         LibraryAssert.AreEqual(Format(-1), Format(SalesInvoiceHeader."Shpfy Order Id"), 'Shpfy Order Id is not set correctly.');
     end;
 
     [Test]
+    [HandlerFunctions('InvoicesHttpHandler')]
     procedure UnitTestSuccessfulSalesInvoiceExportUpdatesOrderInformation()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        InvoicesAPISubscriber: Codeunit "Shpfy Invoices API Subscriber";
         PostedInvoiceExport: Codeunit "Shpfy Posted Invoice Export";
         OrderId: BigInteger;
         InvoiceNo: Code[20];
@@ -376,7 +381,7 @@ codeunit 139695 "Shpfy Invoices Test"
         Initialize();
 
         // [GIVEN] Shopify Shop
-        Shop := CommunicationMgt.GetShopRecord();
+        Shop.Get(Shop.Code);
 
         // [GIVEN] Shopify order id and no
         OrderId := LibraryRandom.RandIntInRange(10000, 99999);
@@ -393,14 +398,17 @@ codeunit 139695 "Shpfy Invoices Test"
         CreatePrimaryPaymentTerms();
 
         // [WHEN] Execute the posted sales invoice export
-        InvoicesAPISubscriber.SetFullDraftOrder(true);
-        InvoicesAPISubscriber.SetShopifyOrderId(OrderId);
-        InvoicesAPISubscriber.SetShopifyOrderNo(OrderNo);
-        BindSubscription(InvoicesAPISubscriber);
+        FullDraftOrder := true;
+        ShopifyOrderId := OrderId;
+        ShopifyOrderNo := OrderNo;
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('DraftOrderCreate');
+        OutboundHttpRequests.Enqueue('DraftOrderComplete');
+        OutboundHttpRequests.Enqueue('FulfillmentOrder');
+        OutboundHttpRequests.Enqueue('FulfillmentCreate');
         PostedInvoiceExport.SetShop(Shop.Code);
         PostedInvoiceExport.Run(SalesInvoiceHeader);
         SalesInvoiceHeader.Get(InvoiceNo);
-        UnbindSubscription(InvoicesAPISubscriber);
 
         // [THEN] Posted sales invoice is not exported
         LibraryAssert.AreEqual(OrderId, SalesInvoiceHeader."Shpfy Order Id", 'Shpfy Order Id is not set correctly.');
@@ -409,11 +417,11 @@ codeunit 139695 "Shpfy Invoices Test"
     end;
 
     [Test]
+    [HandlerFunctions('InvoicesHttpHandler')]
     procedure UnitTestSuccessfulSalesInvoiceExportCreatesProcessedRecord()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         InvoiceHeader: Record "Shpfy Invoice Header";
-        InvoicesAPISubscriber: Codeunit "Shpfy Invoices API Subscriber";
         PostedInvoiceExport: Codeunit "Shpfy Posted Invoice Export";
         OrderId: BigInteger;
         InvoiceNo: Code[20];
@@ -423,7 +431,7 @@ codeunit 139695 "Shpfy Invoices Test"
         Initialize();
 
         // [GIVEN] Shopify Shop
-        Shop := CommunicationMgt.GetShopRecord();
+        Shop.Get(Shop.Code);
 
         // [GIVEN] Shopify order id and no
         OrderId := LibraryRandom.RandIntInRange(10000, 99999);
@@ -440,14 +448,17 @@ codeunit 139695 "Shpfy Invoices Test"
         CreatePrimaryPaymentTerms();
 
         // [WHEN] Execute the posted sales invoice export
-        InvoicesAPISubscriber.SetFullDraftOrder(true);
-        InvoicesAPISubscriber.SetShopifyOrderId(OrderId);
-        InvoicesAPISubscriber.SetShopifyOrderNo(OrderNo);
-        BindSubscription(InvoicesAPISubscriber);
+        FullDraftOrder := true;
+        ShopifyOrderId := OrderId;
+        ShopifyOrderNo := OrderNo;
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('DraftOrderCreate');
+        OutboundHttpRequests.Enqueue('DraftOrderComplete');
+        OutboundHttpRequests.Enqueue('FulfillmentOrder');
+        OutboundHttpRequests.Enqueue('FulfillmentCreate');
         PostedInvoiceExport.SetShop(Shop.Code);
         PostedInvoiceExport.Run(SalesInvoiceHeader);
         SalesInvoiceHeader.Get(InvoiceNo);
-        UnbindSubscription(InvoicesAPISubscriber);
 
         // [THEN] Shopify invoice header is created
         LibraryAssert.IsTrue(InvoiceHeader.Get(SalesInvoiceHeader."Shpfy Order Id"), 'Shpfy Invoice Header is not created.');
@@ -455,12 +466,12 @@ codeunit 139695 "Shpfy Invoices Test"
     end;
 
     [Test]
+    [HandlerFunctions('InvoicesHttpHandler')]
     procedure UnitTestSuccessfulSalesInvoiceExportCreatesDocumentLink()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
         BCDocumentTypeConvert: Codeunit "Shpfy BC Document Type Convert";
-        InvoicesAPISubscriber: Codeunit "Shpfy Invoices API Subscriber";
         PostedInvoiceExport: Codeunit "Shpfy Posted Invoice Export";
         OrderId: BigInteger;
         InvoiceNo: Code[20];
@@ -470,7 +481,7 @@ codeunit 139695 "Shpfy Invoices Test"
         Initialize();
 
         // [GIVEN] Shopify Shop
-        Shop := CommunicationMgt.GetShopRecord();
+        Shop.Get(Shop.Code);
 
         // [GIVEN] Shopify order id and no
         OrderId := LibraryRandom.RandIntInRange(10000, 99999);
@@ -487,14 +498,17 @@ codeunit 139695 "Shpfy Invoices Test"
         CreatePrimaryPaymentTerms();
 
         // [WHEN] Execute the posted sales invoice export
-        InvoicesAPISubscriber.SetFullDraftOrder(true);
-        InvoicesAPISubscriber.SetShopifyOrderId(OrderId);
-        InvoicesAPISubscriber.SetShopifyOrderNo(OrderNo);
-        BindSubscription(InvoicesAPISubscriber);
+        FullDraftOrder := true;
+        ShopifyOrderId := OrderId;
+        ShopifyOrderNo := OrderNo;
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('DraftOrderCreate');
+        OutboundHttpRequests.Enqueue('DraftOrderComplete');
+        OutboundHttpRequests.Enqueue('FulfillmentOrder');
+        OutboundHttpRequests.Enqueue('FulfillmentCreate');
         PostedInvoiceExport.SetShop(Shop.Code);
         PostedInvoiceExport.Run(SalesInvoiceHeader);
         SalesInvoiceHeader.Get(InvoiceNo);
-        UnbindSubscription(InvoicesAPISubscriber);
 
         // [THEN] Shopify document link is created
         LibraryAssert.IsTrue(
@@ -518,6 +532,7 @@ codeunit 139695 "Shpfy Invoices Test"
         InvoiceHeader: Record "Shpfy Invoice Header";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
+        AccessToken: SecretText;
     begin
         if IsInitialized then
             exit;
@@ -533,11 +548,15 @@ codeunit 139695 "Shpfy Invoices Test"
         DocLinkToBCDoc.DeleteAll(false);
         ShpfyCustomer.DeleteAll(false);
 
-        Shop := CommunicationMgt.GetShopRecord();
+        Shop := InitializeTest.CreateShop();
         Shop."Weight Unit" := Shop."Weight Unit"::Kilograms;
         Shop.Modify(false);
 
+        AccessToken := LibraryRandom.RandText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
+
         IsInitialized := true;
+        Commit();
     end;
 
     local procedure CreateAndPostSalesInvoice(
@@ -626,6 +645,37 @@ codeunit 139695 "Shpfy Invoices Test"
         ShopifyCustomerTemplate."Shop Code" := Shop.Code;
         ShopifyCustomerTemplate."Country/Region Code" := LibraryERM.CreateCountryRegion();
         ShopifyCustomerTemplate.Insert(false);
+    end;
+    #endregion
+
+    #region HttpClientHandler
+    [HttpClientHandler]
+    internal procedure InvoicesHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        Body: Text;
+        ResponseKey: Text;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        ResponseKey := OutboundHttpRequests.DequeueText();
+        case ResponseKey of
+            'DraftOrderCreate':
+                if FullDraftOrder then
+                    Response.Content.WriteFrom(NavApp.GetResourceAsText('Invoices/DraftOrderCreationResult.txt', TextEncoding::UTF8))
+                else
+                    Response.Content.WriteFrom(NavApp.GetResourceAsText('Invoices/DraftOrderEmptyResult.txt', TextEncoding::UTF8));
+            'DraftOrderComplete':
+                begin
+                    Body := NavApp.GetResourceAsText('Invoices/DraftOrderCompleteResult.txt', TextEncoding::UTF8);
+                    Response.Content.WriteFrom(StrSubstNo(Body, ShopifyOrderId, ShopifyOrderNo));
+                end;
+            'FulfillmentOrder':
+                Response.Content.WriteFrom(NavApp.GetResourceAsText('Invoices/FulfillmentOrderResult.txt', TextEncoding::UTF8));
+            'FulfillmentCreate':
+                Response.Content.WriteFrom(NavApp.GetResourceAsText('Invoices/FulfillmentCreateResult.txt', TextEncoding::UTF8));
+        end;
+        exit(false);
     end;
     #endregion
 }

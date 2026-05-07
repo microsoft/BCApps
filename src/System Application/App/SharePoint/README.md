@@ -1,16 +1,166 @@
-Provides functions to interact with SharePoint REST API
+Provides functions to interact with SharePoint.
 
-Use this module to do the following:
-> Navigate Lists and Folders.
+Two clients are available:
+- **SharePoint Client** - Legacy REST API v1
+- **SharePoint Graph Client** - Modern Microsoft Graph API
 
-> Upload and Download files.
+---
 
-> Create folders and list items.
+# SharePoint Graph Client
 
+Modern implementation using Microsoft Graph API. Provides simpler authentication, cleaner interfaces, and better performance.
 
-# Authorization
+## Authorization
 
-## User Credentials
+Use Graph Authorization from the Graph module:
+
+```al
+var
+    GraphAuth: Codeunit "Graph Authorization";
+    GraphAuthorization: Interface "Graph Authorization";
+begin
+    GraphAuthorization := GraphAuth.CreateAuthorizationWithClientCredentials(
+        '<MicrosoftEntraTenantId>', '<ClientId>', '<ClientSecret>',
+        'https://graph.microsoft.com/.default');
+```
+
+## Initialize Client
+
+```al
+var
+    SPGraphClient: Codeunit "SharePoint Graph Client";
+begin
+    SPGraphClient.Initialize('https://contoso.sharepoint.com/sites/MySite/', GraphAuthorization);
+```
+
+## Working with Lists
+
+```al
+var
+    GraphList: Record "SharePoint Graph List" temporary;
+    Response: Codeunit "SharePoint Graph Response";
+begin
+    // Get all lists
+    Response := SPGraphClient.GetLists(GraphList);
+
+    // Create a new list
+    Response := SPGraphClient.CreateList('My List', 'Description', GraphList);
+```
+
+## Working with List Items
+
+```al
+var
+    GraphListItem: Record "SharePoint Graph List Item" temporary;
+begin
+    // Get items from a list
+    Response := SPGraphClient.GetListItems('<ListId>', GraphListItem);
+
+    // Create a new item
+    Response := SPGraphClient.CreateListItem('<ListId>', 'Item Title', GraphListItem);
+```
+
+## Working with Drives and Files
+
+```al
+var
+    GraphDriveItem: Record "SharePoint Graph Drive Item" temporary;
+    TempBlob: Codeunit "Temp Blob";
+    FileInStream: InStream;
+    Response: Codeunit "SharePoint Graph Response";
+begin
+    // Get root folder items
+    Response := SPGraphClient.GetRootItems(GraphDriveItem);
+    if not Response.IsSuccessful() then
+        Error(Response.GetError());
+
+    // Filter to files only and download first one
+    GraphDriveItem.SetRange(IsFolder, false);
+    if GraphDriveItem.FindFirst() then
+        Response := SPGraphClient.DownloadFile(GraphDriveItem.Id, TempBlob);
+
+    // Get items by path
+    Response := SPGraphClient.GetItemsByPath('Documents/Folder1', GraphDriveItem);
+
+    // Upload a file (empty path = root folder)
+    Response := SPGraphClient.UploadFile('', 'file.pdf', FileInStream, GraphDriveItem);
+
+    // Create a folder
+    Response := SPGraphClient.CreateFolder('Documents', 'NewFolder', GraphDriveItem);
+```
+
+## Large File Operations
+
+For files over 4MB, use chunked upload/download:
+
+```al
+begin
+    // Upload large file (uses resumable upload session)
+    Response := SPGraphClient.UploadLargeFile('Documents', 'largefile.zip', FileInStream, GraphDriveItem);
+
+    // Download large file (uses 100MB chunks)
+    Response := SPGraphClient.DownloadLargeFile('<ItemId>', TempBlob);
+```
+
+## Item Management
+
+```al
+var
+    Exists: Boolean;
+    Response: Codeunit "SharePoint Graph Response";
+begin
+    // Check if item exists
+    Response := SPGraphClient.ItemExistsByPath('Documents/file.pdf', Exists);
+
+    // Delete item
+    Response := SPGraphClient.DeleteItemByPath('Documents/file.pdf');
+
+    // Copy item (asynchronous operation)
+    Response := SPGraphClient.CopyItemByPath('Documents/file.pdf', 'Archive', 'file_copy.pdf');
+
+    // Move/rename item
+    Response := SPGraphClient.MoveItemByPath('Documents/file.pdf', 'Archive', '');
+```
+
+## OData Query Parameters
+
+```al
+var
+    OptionalParams: Codeunit "Graph Optional Parameters";
+begin
+    // Filter items
+    SPGraphClient.SetODataFilter(OptionalParams, 'name eq ''document.docx''');
+
+    // Select specific fields
+    SPGraphClient.SetODataSelect(OptionalParams, 'id,name,size');
+
+    // Order results
+    SPGraphClient.SetODataOrderBy(OptionalParams, 'name asc');
+
+    Response := SPGraphClient.GetRootItems(GraphDriveItem, OptionalParams);
+```
+
+## Error Handling
+
+All methods return `SharePoint Graph Response` codeunit:
+
+```al
+var
+    Response: Codeunit "SharePoint Graph Response";
+begin
+    Response := SPGraphClient.GetLists(GraphList);
+    if not Response.IsSuccessful() then
+        Error(Response.GetError());
+```
+
+---
+
+# SharePoint Client (Legacy REST API)
+
+Legacy implementation using SharePoint REST API v1.
+
+## Authorization
+
 Use "SharePoint Authorization module".
 
 ## Example

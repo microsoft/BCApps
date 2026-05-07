@@ -5,7 +5,6 @@
 
 namespace Microsoft.Finance.ExcelReports;
 
-using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
@@ -22,6 +21,9 @@ query 4405 "EXR Trial Balance"
             column(AccountNumber; "No.")
             {
             }
+            filter(AccountNo; "No.")
+            {
+            }
             dataitem(GLEntry; "G/L Entry")
             {
                 DataItemLink = "G/L Account No." = GLAccount."No.";
@@ -30,28 +32,34 @@ query 4405 "EXR Trial Balance"
                 {
                     Method = sum;
                 }
+                column(DebitAmount; "Debit Amount")
+                {
+                    Method = sum;
+                }
+                column(CreditAmount; "Credit Amount")
+                {
+                    Method = sum;
+                }
                 column(ACYAmount; "Additional-Currency Amount")
                 {
                     Method = sum;
                 }
-                filter(PostingDate; "Posting Date")
+                column(ACYDebitAmount; "Add.-Currency Debit Amount")
+                {
+                    Method = sum;
+                }
+                column(ACYCreditAmount; "Add.-Currency Credit Amount")
+                {
+                    Method = sum;
+                }
+                column(DimensionValue1Code; "Global Dimension 1 Code")
                 {
                 }
-                dataitem(DimensionValue1; "Dimension Value")
+                column(DimensionValue2Code; "Global Dimension 2 Code")
                 {
-                    DataItemLink = Code = GLEntry."Global Dimension 1 Code";
-                    SqlJoinType = LeftOuterJoin;
-                    column(DimensionValue1Code; Code)
-                    {
-                    }
-                    dataitem(DimensionValue2; "Dimension Value")
-                    {
-                        DataItemLink = Code = GLEntry."Global Dimension 2 Code";
-                        SqlJoinType = LeftOuterJoin;
-                        column(DimensionValue2Code; Code)
-                        {
-                        }
-                    }
+                }
+                filter(PostingDate; "Posting Date")
+                {
                 }
             }
         }

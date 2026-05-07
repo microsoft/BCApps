@@ -22,7 +22,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
     {
         area(Content)
         {
-            repeater(Control1)
+            repeater(Components)
             {
                 ShowCaption = false;
                 field("Item No."; Rec."Item No.")
@@ -43,6 +43,12 @@ page 99001508 "Subc. Temp Prod Order Comp"
                 field(Description; Rec.Description)
                 {
                     ToolTip = 'Specifies a description of the item on the line.';
+                }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description of the item on the line.';
+                    Visible = false;
                 }
                 field("Location Code"; Rec."Location Code")
                 {
@@ -84,7 +90,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
                         end;
 
                         if Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Transfer then
-                            Rec.Validate("Location Code", CopyStr(SingleInstanceDictionary.GetCode('SetSubcontractingLocationCodeFromVendor'), 1, MaxStrLen(Rec."Location Code")))
+                            Rec.Validate("Location Code", CopyStr(SubcSessionState.GetCode('SetSubcontractingLocationCodeFromVendor'), 1, MaxStrLen(Rec."Location Code")))
                         else
                             Rec.Validate("Location Code", Rec."Orig. Location Code");
                     end;
@@ -139,7 +145,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
 
     var
         SubcManagementSetup: Record "Subc. Management Setup";
-        SingleInstanceDictionary: Codeunit "Single Instance Dictionary";
+        SubcSessionState: Codeunit "Subc. Session State";
         PresetSubValues: Boolean;
         SubManagementSetupRead: Boolean;
 

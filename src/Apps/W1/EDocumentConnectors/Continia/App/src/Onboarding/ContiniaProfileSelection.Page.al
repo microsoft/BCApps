@@ -32,7 +32,7 @@ page 6394 "Continia Profile Selection"
                         NetworkProfileList: Page "Continia Network Profile List";
                     begin
                         NetworkProfile.FilterGroup(2);
-                        NetworkProfile.SetRange(Network, CurrentNetwork);
+                        NetworkProfile.SetRange(Network, CurrentParticipation.Network);
                         NetworkProfile.FilterGroup(0);
                         NetworkProfileList.LookupMode(true);
 
@@ -46,6 +46,9 @@ page 6394 "Continia Profile Selection"
                         NetworkProfileList.SetRecord(NetworkProfile);
                         if NetworkProfileList.RunModal() = Action::LookupOK then begin
                             NetworkProfileList.GetRecord(NetworkProfile);
+                            Rec.Network := CurrentParticipation.Network;
+                            Rec."Identifier Type Id" := CurrentParticipation."Identifier Type Id";
+                            Rec."Identifier Value" := CurrentParticipation."Identifier Value";
                             Rec."Network Profile Id" := NetworkProfile.Id;
                             ProfileName := NetworkProfile.Description;
                             Text := NetworkProfile.Description;
@@ -143,12 +146,12 @@ page 6394 "Continia Profile Selection"
         ActivatedNetworkProfiles := Original;
     end;
 
-    internal procedure SetCurrentNetwork(NewCurrentNetwork: Enum "Continia E-Delivery Network")
+    internal procedure SetCurrentParticipation(ContiniaParticipation: Record "Continia Participation")
     begin
-        CurrentNetwork := NewCurrentNetwork;
+        CurrentParticipation := ContiniaParticipation;
     end;
 
     var
-        CurrentNetwork: Enum "Continia E-Delivery Network";
+        CurrentParticipation: Record "Continia Participation";
 }
 

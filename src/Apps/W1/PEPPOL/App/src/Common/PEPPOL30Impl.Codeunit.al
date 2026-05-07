@@ -249,8 +249,13 @@ codeunit 37201 "PEPPOL30 Impl."
             SupplierEndpointID := CompanyInfo.GLN;
             SupplierSchemeID := GetGLNSchemeIDByFormat(IsBISBilling);
         end else begin
-            SupplierEndpointID :=
-              FormatVATRegistrationNo(CompanyInfo.GetVATRegistrationNumber(), CompanyInfo."Country/Region Code", IsBISBilling, false);
+            SupplierEndpointID := CompanyInfo.GetVATRegistrationNumber();
+            if IsBISBilling then begin
+                SupplierEndpointID := DelChr(SupplierEndpointID);
+
+                if UseVATSchemeID(CompanyInfo."Country/Region Code") then
+                    SupplierEndpointID := CompanyInfo.FormatVATRegistrationNo(SupplierEndpointID, CompanyInfo."Country/Region Code");
+            end;
             SupplierSchemeID := GetVATScheme(CompanyInfo."Country/Region Code");
         end;
 
@@ -288,7 +293,7 @@ codeunit 37201 "PEPPOL30 Impl."
         CompanyInfo: Record "Company Information";
     begin
         CompanyInfo.Get();
-        CompanyID := FormatVATRegistrationNo(CompanyInfo.GetVATRegistrationNumber(), CompanyInfo."Country/Region Code", true, true);
+        CompanyID := CompanyInfo.FormatVATRegistrationNo(CompanyInfo.GetVATRegistrationNumber(), CompanyInfo."Country/Region Code");
         CompanyIDSchemeID := GetVATScheme(CompanyInfo."Country/Region Code");
         TaxSchemeID := VATTxt;
     end;
@@ -328,8 +333,13 @@ codeunit 37201 "PEPPOL30 Impl."
             PartyLegalEntityCompanyID := CompanyInfo.GLN;
             PartyLegalEntitySchemeID := GetGLNSchemeIDByFormat(IsBISBilling);
         end else begin
-            PartyLegalEntityCompanyID :=
-              FormatVATRegistrationNo(CompanyInfo.GetVATRegistrationNumber(), CompanyInfo."Country/Region Code", IsBISBilling, false);
+            PartyLegalEntityCompanyID := CompanyInfo.GetVATRegistrationNumber();
+            if IsBISBilling then begin
+                PartyLegalEntityCompanyID := DelChr(PartyLegalEntityCompanyID);
+
+                if UseVATSchemeID(CompanyInfo."Country/Region Code") then
+                    PartyLegalEntityCompanyID := CompanyInfo.FormatVATRegistrationNo(PartyLegalEntityCompanyID, CompanyInfo."Country/Region Code");
+            end;
             PartyLegalEntitySchemeID := GetVATSchemeByFormat(CompanyInfo."Country/Region Code", IsBISBilling);
         end;
 
@@ -380,9 +390,13 @@ codeunit 37201 "PEPPOL30 Impl."
             CustomerEndpointID := Cust.GLN;
             CustomerSchemeID := GetGLNSchemeIDByFormat(IsBISBilling);
         end else begin
-            CustomerEndpointID :=
-              FormatVATRegistrationNo(
-                SalesHeader.GetCustomerVATRegistrationNumber(), SalesHeader."Bill-to Country/Region Code", IsBISBilling, false);
+            CustomerEndpointID := SalesHeader.GetCustomerVATRegistrationNumber();
+            if IsBISBilling then begin
+                CustomerEndpointID := DelChr(CustomerEndpointID);
+
+                if UseVATSchemeID(SalesHeader."Bill-to Country/Region Code") then
+                    CustomerEndpointID := Cust.FormatVATRegistrationNo(CustomerEndpointID, SalesHeader."Bill-to Country/Region Code");
+            end;
             CustomerSchemeID := GetVATScheme(SalesHeader."Bill-to Country/Region Code");
         end;
 
@@ -431,10 +445,13 @@ codeunit 37201 "PEPPOL30 Impl."
     end;
 
     local procedure GetAccountingCustomerPartyTaxSchemeByFormat(SalesHeader: Record "Sales Header"; var CustPartyTaxSchemeCompanyID: Text; var CustPartyTaxSchemeCompIDSchID: Text; var CustTaxSchemeID: Text; IsBISBilling: Boolean)
+    var
+        Customer: Record Customer;
     begin
-        CustPartyTaxSchemeCompanyID :=
-          FormatVATRegistrationNo(
-            SalesHeader.GetCustomerVATRegistrationNumber(), SalesHeader."Bill-to Country/Region Code", IsBISBilling, true);
+        if IsBISBilling then
+            CustPartyTaxSchemeCompanyID := Customer.FormatVATRegistrationNo(SalesHeader.GetCustomerVATRegistrationNumber(), SalesHeader."Bill-to Country/Region Code")
+        else
+            CustPartyTaxSchemeCompanyID := SalesHeader.GetCustomerVATRegistrationNumber();
         if IsBISBilling then
             CustPartyTaxSchemeCompIDSchID := ''
         else
@@ -464,9 +481,13 @@ codeunit 37201 "PEPPOL30 Impl."
                 CustPartyLegalEntityCompanyID := Customer.GLN;
                 CustPartyLegalEntityIDSchemeID := GetGLNSchemeIDByFormat(IsBISBilling);
             end else begin
-                CustPartyLegalEntityCompanyID :=
-                  FormatVATRegistrationNo(
-                    SalesHeader.GetCustomerVATRegistrationNumber(), SalesHeader."Bill-to Country/Region Code", IsBISBilling, false);
+                CustPartyLegalEntityCompanyID := SalesHeader.GetCustomerVATRegistrationNumber();
+                if IsBISBilling then begin
+                    CustPartyLegalEntityCompanyID := DelChr(CustPartyLegalEntityCompanyID);
+
+                    if UseVATSchemeID(SalesHeader."Bill-to Country/Region Code") then
+                        CustPartyLegalEntityCompanyID := Customer.FormatVATRegistrationNo(CustPartyLegalEntityCompanyID, SalesHeader."Bill-to Country/Region Code");
+                end;
                 CustPartyLegalEntityIDSchemeID := GetVATSchemeByFormat(SalesHeader."Bill-to Country/Region Code", IsBISBilling);
             end;
         end;
@@ -674,7 +695,7 @@ codeunit 37201 "PEPPOL30 Impl."
         TaxTotalCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
     end;
 
-    procedure GetTaxSubtotalInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var TaxableAmount: Text; var TaxAmountCurrencyID: Text; var SubtotalTaxAmount: Text; var TaxSubtotalCurrencyID: Text; var TransactionCurrencyTaxAmount: Text; var TransCurrTaxAmtCurrencyID: Text; var TaxTotalTaxCategoryID: Text; var SchemeID: Text; var TaxCategoryPercent: Text; var TaxTotalTaxSchemeID: Text)
+    procedure GetTaxSubtotalInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var TaxableAmount: Text; var TaxAmountCurrencyID: Text; var SubtotalTaxAmount: Text; var TaxSubtotalCurrencyID: Text; var TransactionCurrencyTaxAmount: Text; var TransCurrTaxAmtCurrencyID: Text; var TaxTotalTaxCategoryID: Text; var schemeID: Text; var TaxCategoryPercent: Text; var TaxTotalTaxSchemeID: Text)
     var
         GLSetup: Record "General Ledger Setup";
     begin
@@ -693,7 +714,7 @@ codeunit 37201 "PEPPOL30 Impl."
             TransCurrTaxAmtCurrencyID := GLSetup."LCY Code";
         end;
         TaxTotalTaxCategoryID := VATAmtLine."Tax Category";
-        SchemeID := '';
+        schemeID := '';
         TaxCategoryPercent := Format(VATAmtLine."VAT %", 0, 9);
         TaxTotalTaxSchemeID := VATTxt;
     end;
@@ -1015,6 +1036,7 @@ codeunit 37201 "PEPPOL30 Impl."
         if SalesLine."Allow Invoice Disc." then
             VATAmtLine."Inv. Disc. Base Amount" := SalesLine."Line Amount";
         VATAmtLine."Invoice Discount Amount" := SalesLine."Inv. Discount Amount";
+        VATAmtLine."Pmt. Discount Amount" += SalesLine."Pmt. Discount Amount";
 
         if VATAmtLine.InsertLine() then begin
             VATAmtLine."Line Amount" += SalesLine."Line Amount";
@@ -1234,19 +1256,15 @@ codeunit 37201 "PEPPOL30 Impl."
 
     internal procedure FormatVATRegistrationNo(VATRegistrationNo: Text; CountryCode: Code[10]; IsBISBilling: Boolean; IsPartyTaxScheme: Boolean): Text
     var
-        CountryRegion: Record "Country/Region";
+        CompanyInfo: Record "Company Information";
     begin
-        if VATRegistrationNo = '' then
-            exit;
+        VATRegistrationNo := CompanyInfo.GetVATRegistrationNumber();
         if IsBISBilling then begin
             VATRegistrationNo := DelChr(VATRegistrationNo);
 
-            if IsPartyTaxScheme or (UseVATSchemeID(CountryCode)) then
-                if CountryRegion.Get(CountryCode) and (CountryRegion."ISO Code" <> '') then
-                    if StrPos(VATRegistrationNo, CountryRegion."ISO Code") <> 1 then
-                        VATRegistrationNo := CountryRegion."ISO Code" + VATRegistrationNo;
+            if UseVATSchemeID(CompanyInfo."Country/Region Code") then
+                VATRegistrationNo := CompanyInfo.FormatVATRegistrationNo(VATRegistrationNo, CompanyInfo."Country/Region Code");
         end;
-
         exit(VATRegistrationNo);
     end;
 

@@ -20,7 +20,7 @@ page 99001507 "Subc. Temp Routing Lines"
     {
         area(Content)
         {
-            repeater(Control1)
+            repeater(RoutingLines)
             {
                 ShowCaption = false;
                 field("Operation No."; Rec."Operation No.")
@@ -38,6 +38,12 @@ page 99001507 "Subc. Temp Routing Lines"
                 field(Description; Rec.Description)
                 {
                     ToolTip = 'Specifies a description of the operation.';
+                }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description of the operation.';
+                    Visible = false;
                 }
                 field("Setup Time"; Rec."Setup Time")
                 {

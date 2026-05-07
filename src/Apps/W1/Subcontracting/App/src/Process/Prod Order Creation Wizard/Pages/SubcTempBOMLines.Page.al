@@ -21,7 +21,7 @@ page 99001506 "Subc. Temp BOM Lines"
     {
         area(Content)
         {
-            repeater(Control1)
+            repeater(BOMLines)
             {
                 ShowCaption = false;
                 field("Line No."; Rec."Line No.")
@@ -40,6 +40,12 @@ page 99001506 "Subc. Temp BOM Lines"
                 field(Description; Rec.Description)
                 {
                     ToolTip = 'Specifies a description of the item or resource.';
+                }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description of the item or resource.';
+                    Visible = false;
                 }
                 field("Quantity per"; Rec."Quantity per")
                 {

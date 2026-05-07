@@ -5,7 +5,6 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
-using Microsoft.Manufacturing.Journal;
 
 codeunit 99001503 "Subcontracting Comp. Init."
 {
@@ -21,7 +20,6 @@ codeunit 99001503 "Subcontracting Comp. Init."
         if not SubcManagementSetup.Get() then begin
             SubcManagementSetup.Init();
             CreateLaborReqWkshTemplateAndNameAndUpdateSetup(SubcManagementSetup);
-            SubcManagementSetup."Direct Transfer" := true;
             SubcManagementSetup."Create Prod. Order Info Line" := true;
             Evaluate(SubcManagementSetup."Subc. Inb. Whse. Handling Time", GetDefaultInboundWhseHandlingTime());
             SubcManagementSetup.Insert(true);
@@ -44,7 +42,7 @@ codeunit 99001503 "Subcontracting Comp. Init."
         ReqWkshTempDescLbl: Label 'Subcontracting', MaxLength = 80;
         ReqWkshTempNameLbl: Label 'SUBCONTR', MaxLength = 10;
     begin
-        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::"For. Labor");
+        ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Subcontracting);
         if ReqWkshTemplate.FindFirst() then
             exit;
 
@@ -52,8 +50,8 @@ codeunit 99001503 "Subcontracting Comp. Init."
         ReqWkshTemplate.Validate(Name, ReqWkshTempNameLbl);
         ReqWkshTemplate.Validate(Description, ReqWkshTempDescLbl);
         ReqWkshTemplate.Recurring := Recurring;
-        ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::"For. Labor");
-        ReqWkshTemplate.Validate("Page ID", Page::"Subcontracting Worksheet");
+        ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
+        ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
         ReqWkshTemplate.Insert(true);
     end;
 

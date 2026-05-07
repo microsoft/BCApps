@@ -42,6 +42,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         SetShopifyCatalogsType();
         CreateInvoicesFromOrdersUpgrade();
         OrderTransactionShopCodeUpgrade();
+        HasAdvancedShopifyPlanUpgrade();
     end;
 
     internal procedure UpgradeTemplatesData()
@@ -248,11 +249,29 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         Shop.SetRange("Customer Posting Group", '');
         if Shop.FindSet(true) then
             repeat
-                Shop.CopyPriceCalculationFieldsFromCustomerTempl(Shop."Customer Templ. Code");
-                Shop.Modify();
+                CopyPriceCalculationFieldsFromCustomerTempl(Shop, Shop."Customer Templ. Code");
             until Shop.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(GetPriceCalculationUpgradeTag());
+    end;
+
+    local procedure CopyPriceCalculationFieldsFromCustomerTempl(var Shop: Record "Shpfy Shop"; TemplateCode: Code[20])
+    var
+        CustomerTempl: Record "Customer Templ.";
+    begin
+        if TemplateCode = '' then
+            exit;
+        if not CustomerTempl.Get(TemplateCode) then
+            exit;
+        Shop."Gen. Bus. Posting Group" := CustomerTempl."Gen. Bus. Posting Group";
+        Shop."VAT Bus. Posting Group" := CustomerTempl."VAT Bus. Posting Group";
+        Shop."Tax Area Code" := CustomerTempl."Tax Area Code";
+        Shop."Tax Liable" := CustomerTempl."Tax Liable";
+        Shop."VAT Country/Region Code" := CustomerTempl."Country/Region Code";
+        Shop."Customer Posting Group" := CustomerTempl."Customer Posting Group";
+        Shop."Prices Including VAT" := CustomerTempl."Prices Including VAT";
+        Shop."Allow Line Disc." := CustomerTempl."Allow Line Disc.";
+        Shop.Modify();
     end;
 
     local procedure LoggingModeUpgrade()
@@ -496,6 +515,24 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         UpgradeTag.SetUpgradeTag(GetOrderTransactionShopCodeUpgradeTag());
     end;
 
+    local procedure HasAdvancedShopifyPlanUpgrade()
+    var
+        Shop: Record "Shpfy Shop";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        ShopDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(GetHasAdvancedShopifyPlanUpgradeTag()) then
+            exit;
+
+        ShopDataTransfer.SetTables(Database::"Shpfy Shop", Database::"Shpfy Shop");
+        ShopDataTransfer.AddSourceFilter(Shop.FieldNo("B2B Enabled"), '=%1', true);
+        ShopDataTransfer.AddConstantValue(true, Shop.FieldNo("Advanced Shopify Plan"));
+        ShopDataTransfer.UpdateAuditFields := false;
+        ShopDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(GetHasAdvancedShopifyPlanUpgradeTag());
+    end;
+
     internal procedure GetAllowOutgoingRequestseUpgradeTag(): Code[250]
     begin
         exit('MS-445989-AllowOutgoingRequestseUpgradeTag-20220816');
@@ -571,6 +608,11 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         exit('MS-610671-OrderTransactionShopCodeUpgrade-20251022');
     end;
 
+    local procedure GetHasAdvancedShopifyPlanUpgradeTag(): Code[250]
+    begin
+        exit('MS-630316-HasAdvancedShopifyPlanUpgrade-20260408');
+    end;
+
     local procedure GetDateBeforeFeature(): DateTime
     begin
         exit(CreateDateTime(DMY2Date(1, 8, 2022), 0T));
@@ -590,5 +632,6 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         PerCompanyUpgradeTags.Add(GetShopifyCatalogsTypeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetCreateInvoicesFromOrdersUpgradeTag());
         PerCompanyUpgradeTags.Add(GetOrderTransactionShopCodeUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetHasAdvancedShopifyPlanUpgradeTag());
     end;
 }

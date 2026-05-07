@@ -311,7 +311,6 @@ page 6121 "E-Document"
                     Caption = 'View file';
                     ToolTip = 'View the source file.';
                     Image = ViewDetails;
-                    Visible = NewEDocumentExperienceActive;
 
                     trigger OnAction()
                     begin
@@ -343,12 +342,12 @@ page 6121 "E-Document"
 
                     trigger OnAction()
                     var
-                        EDocImportParameters: Record "E-Doc. Import Parameters";
+                        TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     begin
-                        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-                        EDocImportParameters."Purch. Journal V1 Behavior" := EDocImportParameters."Purch. Journal V1 Behavior"::"Create purchase document";
-                        EDocImportParameters."Create Document V1 Behavior" := true;
-                        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+                        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+                        TempEDocImportParameters."Purch. Journal V1 Behavior" := TempEDocImportParameters."Purch. Journal V1 Behavior"::"Create purchase document";
+                        TempEDocImportParameters."Create Document V1 Behavior" := true;
+                        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
                         if EDocumentErrorHelper.HasErrors(Rec) then
                             Message(DocNotCreatedMsg, Rec."Document Type");
                     end;
@@ -362,12 +361,12 @@ page 6121 "E-Document"
 
                     trigger OnAction()
                     var
-                        EDocImportParameters: Record "E-Doc. Import Parameters";
+                        TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     begin
-                        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-                        EDocImportParameters."Purch. Journal V1 Behavior" := EDocImportParameters."Purch. Journal V1 Behavior"::"Create journal line";
-                        EDocImportParameters."Create Document V1 Behavior" := true;
-                        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+                        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+                        TempEDocImportParameters."Purch. Journal V1 Behavior" := TempEDocImportParameters."Purch. Journal V1 Behavior"::"Create journal line";
+                        TempEDocImportParameters."Create Document V1 Behavior" := true;
+                        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
                         if EDocumentErrorHelper.HasErrors(Rec) then
                             Message(DocNotCreatedMsg, Rec."Document Type");
                     end;
@@ -501,14 +500,11 @@ page 6121 "E-Document"
     }
 
     trigger OnOpenPage()
-    var
-        EDocumentsSetup: Record "E-Documents Setup";
     begin
         ShowMapToOrder := false;
         HasErrorsOrWarnings := false;
         HasErrors := false;
         IsProcessed := false;
-        NewEDocumentExperienceActive := EDocumentsSetup.IsNewEDocumentExperienceActive();
 
         if Rec."Entry No" <> 0 then
             Rec.SetRecFilter(); // Filter the record to only this instance to avoid navigation 
@@ -639,7 +635,6 @@ page 6121 "E-Document"
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         EDocumentHelper: Codeunit "E-Document Processing";
         ErrorsAndWarningsNotification: Notification;
-        NewEDocumentExperienceActive: Boolean;
         ShowClearanceInfo: Boolean;
         RecordLinkTxt, StyleStatusTxt : Text;
         ShowRelink, ShowMapToOrder, HasErrorsOrWarnings, HasErrors, IsIncomingDoc, IsProcessed, SubmitClearanceVisible : Boolean;

@@ -5,7 +5,6 @@
 
 namespace System.DataAdministration;
 
-using System.Environment.Configuration;
 using System.Reflection;
 
 codeunit 3903 "Retention Policy Setup Impl."
@@ -21,10 +20,6 @@ codeunit 3903 "Retention Policy Setup Impl."
                   tabledata "Retention Policy Setup Line" = ri;
 
     var
-        ManualSetupTitleTxt: Label 'Retention policies';
-        ManualSetupShortTitleTxt: Label 'Retention policies';
-        ManualSetupDescriptionTxt: Label 'Set up retention policies for log tables to automatically delete expired records.';
-        ManualSetupKeyWordsTxt: Label 'Retention, Delete, Cleanup, Log';
         RetentionPeriodUsedErr: Label 'You cannot delete the retention period %1 because one or more retention policies are using it.', Comment = '%1 = a retention period code';
         RetentionPeriodLockedErr: Label 'You cannot modify the retention period %1 because one or more mandatory retention policies are using it.', Comment = '%1 = a retention period code';
         TableNotAllowedErrorLbl: Label 'Table %1 %2 is not in the list of allowed tables.', Comment = '%1 = table number, %2 = table name';
@@ -234,16 +229,6 @@ codeunit 3903 "Retention Policy Setup Impl."
         RetentionPolicyLogCategory: Enum "Retention Policy Log Category";
     begin
         exit(RetentionPolicyLogCategory::"Retention Policy - Setup")
-    end;
-
-    procedure AddRetentionPolicyOnRegisterManualSetup(GuidedExperience: Codeunit "Guided Experience")
-    var
-        ManualSetupCategory: Enum "Manual Setup Category";
-        CurrModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCurrentModuleInfo(CurrModuleInfo);
-        GuidedExperience.InsertManualSetup(ManualSetupTitleTxt, ManualSetupShortTitleTxt, ManualSetupDescriptionTxt, 5, ObjectType::Page,
-            Page::"Retention Policy Setup List", ManualSetupCategory::Uncategorized, ManualSetupKeyWordsTxt);
     end;
 
     procedure VerifyRetentionPolicySetupOnbeforeDeleteRetentionPeriod(var RetentionPeriod: Record "Retention Period")

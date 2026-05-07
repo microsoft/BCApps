@@ -8,7 +8,6 @@ namespace System.Agents;
 using System.AI;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Environment.Consumption;
 using System.Reflection;
 using System.Security.AccessControl;
 
@@ -126,12 +125,12 @@ codeunit 4301 "Agent Impl."
 
     local procedure SetProfile(Agent: Record Agent; var AllProfile: Record "All Profile")
     var
-        UserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
-        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
-        UpdateUserSettingsWithProfile(AllProfile, UserSettingsRecord);
-        UpdateAgentUserSettings(UserSettingsRecord);
+        UserSettings.GetUserSettings(Agent."User Security ID", TempUserSettingsRecord);
+        UpdateUserSettingsWithProfile(AllProfile, TempUserSettingsRecord);
+        UpdateAgentUserSettings(TempUserSettingsRecord);
     end;
 
     procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; LanguageID: Integer; LocaleID: Integer; TimeZone: Text[180])
@@ -147,16 +146,16 @@ codeunit 4301 "Agent Impl."
     procedure UpdateLocalizationSettings(AgentUserSecurityID: Guid; var NewUserSettingsRec: Record "User Settings")
     var
         Agent: Record Agent;
-        UserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
         GetAgent(Agent, AgentUserSecurityID);
 
-        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
-        UserSettingsRecord."Language ID" := NewUserSettingsRec."Language ID";
-        UserSettingsRecord."Locale ID" := NewUserSettingsRec."Locale ID";
-        UserSettingsRecord."Time Zone" := NewUserSettingsRec."Time Zone";
-        UpdateAgentUserSettings(UserSettingsRecord);
+        UserSettings.GetUserSettings(Agent."User Security ID", TempUserSettingsRecord);
+        TempUserSettingsRecord."Language ID" := NewUserSettingsRec."Language ID";
+        TempUserSettingsRecord."Locale ID" := NewUserSettingsRec."Locale ID";
+        TempUserSettingsRecord."Time Zone" := NewUserSettingsRec."Time Zone";
+        UpdateAgentUserSettings(TempUserSettingsRecord);
     end;
 
     procedure GetUserSettings(AgentUserSecurityID: Guid; var UserSettingsRec: Record "User Settings")
@@ -176,16 +175,16 @@ codeunit 4301 "Agent Impl."
     local procedure AssignCompany(AgentUserSecurityID: Guid; CompanyName: Text)
     var
         Agent: Record Agent;
-        UserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
         GetAgent(Agent, AgentUserSecurityID);
 
-        UserSettings.GetUserSettings(Agent."User Security ID", UserSettingsRecord);
+        UserSettings.GetUserSettings(Agent."User Security ID", TempUserSettingsRecord);
 #pragma warning disable AA0139
-        UserSettingsRecord.Company := CompanyName;
+        TempUserSettingsRecord.Company := CompanyName;
 #pragma warning restore AA0139
-        UpdateAgentUserSettings(UserSettingsRecord);
+        UpdateAgentUserSettings(TempUserSettingsRecord);
     end;
 
     procedure GetUserName(AgentUserSecurityID: Guid): Code[50]
@@ -213,6 +212,48 @@ codeunit 4301 "Agent Impl."
         GetAgent(Agent, AgentUserSecurityID);
 
         Agent."Display Name" := DisplayName;
+        Agent.Modify(true);
+    end;
+
+    procedure GetModelId(AgentUserSecurityID: Guid): Code[30]
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        exit(Agent."Model ID")
+    end;
+
+    procedure GetModelName(AgentUserSecurityID: Guid): Text
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        if Agent."Model ID" = '' then
+            exit(AutoLbl);
+
+        Agent.CalcFields("Model Name");
+        exit(Agent."Model Name");
+    end;
+
+    procedure SetModelId(AgentUserSecurityID: Guid; ModelId: Code[30])
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        Agent."Model ID" := ModelId;
+        Agent.Modify(true);
+    end;
+
+    procedure SetModelIdToAuto(AgentUserSecurityID: Guid)
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        Agent."Model ID" := '';
         Agent.Modify(true);
     end;
 
@@ -266,13 +307,6 @@ codeunit 4301 "Agent Impl."
             exit(true);
         end;
         exit(false);
-    end;
-
-    procedure CanShowMonetizationData(): Boolean
-    var
-        DummyUserAIConsumptionData: Record "User AI Consumption Data";
-    begin
-        exit(DummyUserAIConsumptionData.ReadPermission());
     end;
 
     local procedure UpdateUserSettingsWithProfile(var TempAllProfile: Record "All Profile" temporary; var UserSettingsRec: Record "User Settings")
@@ -399,11 +433,16 @@ codeunit 4301 "Agent Impl."
 
     procedure SelectAgent(var Agent: Record "Agent")
     begin
+        SelectAgent(Agent, false);
+    end;
+
+    procedure SelectAgent(var Agent: Record "Agent"; AlwaysShowUI: Boolean)
+    begin
         Agent.SetRange(State, Agent.State::Enabled);
         if Agent.Count() = 0 then
             Error(NoActiveAgentsErr);
 
-        if Agent.Count() = 1 then begin
+        if (Agent.Count() = 1) and (not AlwaysShowUI) then begin
             Agent.FindFirst();
             exit;
         end;
@@ -543,6 +582,7 @@ codeunit 4301 "Agent Impl."
 
     var
         AgentDoesNotExistErr: Label 'Agent does not exist.';
+        AutoLbl: Label 'Auto';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
         NoAgentsAvailableNotificationLbl: Label 'Business Central agents are currently not available in your country.';
         NoAgentsAvailableNotificationGuidLbl: Label 'bde1d653-40e6-4081-b2cf-f21b1a8622d1', Locked = true;

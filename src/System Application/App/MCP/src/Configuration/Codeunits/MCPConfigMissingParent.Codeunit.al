@@ -39,7 +39,7 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
         repeat
             if PageMetadata.Get(MCPConfigurationTool."Object ID") then
                 if PageMetadata.PageType = PageMetadata.PageType::API then
-                    PageIdVersions.Add(MCPConfigurationTool."Object ID", PageMetadata.APIVersion);
+                    PageIdVersions.Add(MCPConfigurationTool."Object ID", MCPConfigurationTool."API Version");
         until MCPConfigurationTool.Next() = 0;
 
         // Get parent mappings from platform
@@ -84,6 +84,7 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
 
     procedure ApplyRecommendedAction(var MCPConfigWarning: Record "MCP Config Warning")
     var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         PageIdList: List of [Text];
         PageIdText: Text;
@@ -96,8 +97,8 @@ codeunit 8354 "MCP Config Missing Parent" implements "MCP Config Warning"
         PageIdList := MCPConfigWarning."Additional Info".Split(',');
         foreach PageIdText in PageIdList do
             if Evaluate(PageId, PageIdText.Trim()) then
-                if not MCPConfigImplementation.CheckAPIToolExists(MCPConfigWarning."Config Id", PageId) then
-                    MCPConfigImplementation.CreateAPITool(MCPConfigWarning."Config Id", PageId, false);
+                if not MCPConfigImplementation.CheckAPIToolExists(MCPConfigWarning."Config Id", PageId, MCPConfigurationTool."Object Type"::Page) then
+                    MCPConfigImplementation.CreateAPIPageTool(MCPConfigWarning."Config Id", PageId, false);
 
         MCPConfigWarning.Delete();
     end;

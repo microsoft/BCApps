@@ -479,7 +479,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure FindRoutingLinesForProdOrderLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"): Boolean
     begin
-        ProdOrderRoutingLine.SetLoadFields("Work Center No.", "Operation No.", Description, "Routing No.", "Routing Reference No.");
+        ProdOrderRoutingLine.SetLoadFields("Work Center No.", "Operation No.", Description, "Description 2", "Routing No.", "Routing Reference No.");
         ProdOrderRoutingLine.SetRange(Status, ProdOrderLine.Status);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
         ProdOrderRoutingLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
@@ -525,6 +525,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
         PurchaseLine.Description := ProdOrderRoutingLine.Description;
+        PurchaseLine."Description 2" := ProdOrderRoutingLine."Description 2";
         PurchaseLine."Routing No." := ProdOrderRoutingLine."Routing No.";
         PurchaseLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
         PurchaseLine."Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -817,6 +818,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ProductionBOMHeader.Init();
         ProductionBOMHeader."No." := BOMNo;
         ProductionBOMHeader.Description := TempProductionBOMHeader.Description;
+        ProductionBOMHeader."Description 2" := TempProductionBOMHeader."Description 2";
         ProductionBOMHeader.Validate("Unit of Measure Code", TempProductionBOMHeader."Unit of Measure Code");
         ProductionBOMHeader.Insert(true);
         BOMCreated := true;
@@ -871,6 +873,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         RoutingHeader.Init();
         RoutingHeader."No." := RoutingNo;
         RoutingHeader.Description := TempRoutingHeader.Description;
+        RoutingHeader."Description 2" := TempRoutingHeader."Description 2";
         RoutingHeader.Insert(true);
         RoutingCreated := true;
 
@@ -1154,6 +1157,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ProdOrderComponent.Validate("Item No.", TempProdOrderComponent."Item No.");
         ProdOrderComponent.Validate("Variant Code", TempProdOrderComponent."Variant Code");
         ProdOrderComponent.Description := TempProdOrderComponent.Description;
+        ProdOrderComponent."Description 2" := TempProdOrderComponent."Description 2";
         ProdOrderComponent.Validate("Quantity per", TempProdOrderComponent."Quantity per");
         ProdOrderComponent.Validate("Unit of Measure Code", TempProdOrderComponent."Unit of Measure Code");
         ProdOrderComponent.Validate("Location Code", TempProdOrderComponent."Location Code");
@@ -1185,6 +1189,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ProdOrderRoutingLine.Validate(Type, TempProdOrderRoutingLine.Type);
         ProdOrderRoutingLine.Validate("No.", TempProdOrderRoutingLine."No.");
         ProdOrderRoutingLine.Description := TempProdOrderRoutingLine.Description;
+        ProdOrderRoutingLine."Description 2" := TempProdOrderRoutingLine."Description 2";
         ProdOrderRoutingLine."Setup Time" := TempProdOrderRoutingLine."Setup Time";
         ProdOrderRoutingLine."Run Time" := TempProdOrderRoutingLine."Run Time";
         ProdOrderRoutingLine."Wait Time" := TempProdOrderRoutingLine."Wait Time";

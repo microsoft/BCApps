@@ -11,6 +11,7 @@ query 36967 "Value Entries - Item"
     Access = Internal;
     Caption = 'Power BI Inventory Value';
     QueryType = API;
+    AboutText = 'Provides access to item value entries including actual and expected costs, cost posted to G/L, valuation dates, and entry types. Enables Power BI reports to analyze inventory valuation, cost of goods sold, and inventory value reconciliation with the general ledger.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

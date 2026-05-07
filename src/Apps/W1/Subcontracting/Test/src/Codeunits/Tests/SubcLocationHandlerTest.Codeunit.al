@@ -10,9 +10,12 @@ using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
@@ -29,20 +32,22 @@ codeunit 139981 "Subc. Location Handler Test"
 
     var
         Assert: Codeunit Assert;
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
         WizardFinishedSuccessfully: Boolean;
+        CreateSubcontractingOrderAnywayQst: Label 'Do you want to create the Subcontracting Order anyway?';
 
     local procedure Initialize()
     begin
@@ -68,10 +73,10 @@ codeunit 139981 "Subc. Location Handler Test"
     [Test]
     procedure TestGetComponentsLocationCode_Purchase()
     var
-        PurchaseLine: Record "Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        SubManagementSetup: Record "Subc. Management Setup";
         Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SubManagementSetup: Record "Subc. Management Setup";
         SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
@@ -98,9 +103,9 @@ codeunit 139981 "Subc. Location Handler Test"
     [Test]
     procedure TestGetComponentsLocationCode_Company()
     var
+        Location: Record Location;
         PurchaseLine: Record "Purchase Line";
         SubManagementSetup: Record "Subc. Management Setup";
-        Location: Record Location;
         SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
@@ -124,9 +129,9 @@ codeunit 139981 "Subc. Location Handler Test"
     [Test]
     procedure TestGetComponentsLocationCode_Manufacturing()
     var
+        Location: Record Location;
         PurchaseLine: Record "Purchase Line";
         SubManagementSetup: Record "Subc. Management Setup";
-        Location: Record Location;
         SubcontractingMgmt: Codeunit "Subcontracting Management";
         CompLocationCode: Code[10];
     begin
@@ -154,17 +159,17 @@ codeunit 139981 "Subc. Location Handler Test"
     [HandlerFunctions('HandleTransferOrder')]
     procedure TestTransferOrderCreation_SameLocation()
     var
+        Item: Record Item;
+        LocationOrig: Record Location;
+        LocationSub: Record Location;
+        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ProdOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        ProdOrder: Record "Production Order";
-        ProdOrderLine: Record "Prod. Order Line";
-        ProdOrderComp: Record "Prod. Order Component";
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        Vendor: Record Vendor;
-        LocationSub: Record Location;
-        LocationOrig: Record Location;
-        Item: Record Item;
         TransferHeader: Record "Transfer Header";
+        Vendor: Record Vendor;
         CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
     begin
         // [SCENARIO] Transfer Order creation uses Origin Location if Component Location equals Subcontractor Location
@@ -197,23 +202,23 @@ codeunit 139981 "Subc. Location Handler Test"
     [HandlerFunctions('HandleTransferOrder')]
     procedure TestTransferOrderCreation_PostAndRecreate()
     var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        LocationOrig: Record Location;
+        LocationSub: Record Location;
+        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ProdOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        ProdOrder: Record "Production Order";
-        ProdOrderLine: Record "Prod. Order Line";
-        ProdOrderComp: Record "Prod. Order Component";
-        ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        Vendor: Record Vendor;
-        LocationSub: Record Location;
-        LocationOrig: Record Location;
-        Item: Record Item;
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        ItemJournalLine: Record "Item Journal Line";
+        Vendor: Record Vendor;
         CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
-        QtyTotal: Decimal;
         QtyFirstTransfer: Decimal;
         QtyRemaining: Decimal;
+        QtyTotal: Decimal;
     begin
         // [SCENARIO] Create Transfer Order, reduce quantity, post, and create new Transfer Order for remaining
         Initialize();
@@ -280,12 +285,12 @@ codeunit 139981 "Subc. Location Handler Test"
     [HandlerFunctions('HandlePurchProvisionWizard')]
     procedure TestProdOrderLocationFromMfgSetup_PurchaseLocationMustBeDifferent()
     var
-        PurchLine: Record "Purchase Line";
-        ProdOrder: Record "Production Order";
-        ProdOrderLine: Record "Prod. Order Line";
-        SubManagementSetup: Record "Subc. Management Setup";
-        ManufacturingSetup: Record "Manufacturing Setup";
         LocationMfg: Record Location;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrder: Record "Production Order";
+        PurchLine: Record "Purchase Line";
+        SubManagementSetup: Record "Subc. Management Setup";
         CreateProdOrdOpt: Codeunit "Subc. Create Prod. Ord. Opt.";
         ItemNo: Code[20];
     begin
@@ -332,6 +337,100 @@ codeunit 139981 "Subc. Location Handler Test"
         // [THEN] Verify Purchase Location is different from Manufacturing Setup Location
         Assert.AreNotEqual(ManufacturingSetup."Components at Location", PurchLine."Location Code",
             'Purchase Location Code must be different from Manufacturing Setup Location Code');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmCreateSubcOrderAnyway_No')]
+    procedure CreateSubcOrderFromRtngLine_BlankCompLocation_UserDeclines()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        NoOfCreatedPurchOrder: Integer;
+    begin
+        // [SCENARIO] Bug 633228: When a Transfer-type Prod. Order Component has a blank Location Code,
+        // creating a Subcontracting Order from the routing line raises a confirmation. If the user
+        // declines, no Purchase Order is created.
+
+        // [GIVEN] Manufacturing setup with subcontracting work center, item, and Transfer-type BOM line
+        Initialize();
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+          ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5, '');
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Transfer-type Prod. Order Component has a blank Location Code
+        SetTransferProdOrderCompLocationCode(ProductionOrder."No.", '');
+
+        // [WHEN] Create Subcontracting Order from Prod. Order Routing; the user declines the "anyway" confirmation
+        ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        NoOfCreatedPurchOrder := SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
+
+        // [THEN] No Purchase Order is created
+        Assert.AreEqual(0, NoOfCreatedPurchOrder, 'No Purchase Order should be created when user declines.');
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        Assert.RecordIsEmpty(PurchaseLine);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmCreateSubcOrderAnyway_No')]
+    procedure CreateSubcOrderFromRtngLine_CompLocationEqualsSubcLocation_UserDeclines()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        NoOfCreatedPurchOrder: Integer;
+    begin
+        // [SCENARIO] Bug 633228: When a Transfer-type Prod. Order Component has Location Code equal to
+        // the vendor's Subcontracting Location Code, creating a Subcontracting Order from the routing
+        // line raises a confirmation. If the user declines, no Purchase Order is created.
+
+        // [GIVEN] Manufacturing setup with subcontracting work center, item, and Transfer-type BOM line
+        Initialize();
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+          ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5, '');
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Transfer-type Prod. Order Component Location Code equals the vendor's Subcontracting Location Code
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        SetTransferProdOrderCompLocationCode(ProductionOrder."No.", Vendor."Subcontr. Location Code");
+
+        // [WHEN] Create Subcontracting Order from Prod. Order Routing; the user declines the "anyway" confirmation
+        ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        NoOfCreatedPurchOrder := SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
+
+        // [THEN] No Purchase Order is created
+        Assert.AreEqual(0, NoOfCreatedPurchOrder, 'No Purchase Order should be created when user declines.');
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        Assert.RecordIsEmpty(PurchaseLine);
     end;
 
     local procedure UpdateSubManagementSetup(ComponentAtLocation: Enum "Components at Location")
@@ -431,6 +530,57 @@ codeunit 139981 "Subc. Location Handler Test"
         ProdOrderRtngLine.Insert();
     end;
 
+    local procedure UpdateProdBomWithSubcontractingType(Item: Record Item; SubcontractingType: Enum "Subcontracting Type")
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+    begin
+        ProductionBOMHeader.Get(Item."Production BOM No.");
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::New);
+        ProductionBOMHeader.Modify(true);
+
+        ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMHeader."No.");
+        ProductionBOMLine.FindLast();
+        ProductionBOMLine."Subcontracting Type" := SubcontractingType;
+        ProductionBOMLine.Modify(true);
+
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+    end;
+
+    local procedure UpdateVendorWithSubcontractingLocationCode(WorkCenter: Record "Work Center")
+    var
+        Location: Record Location;
+        Vendor: Record Vendor;
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor.Get(WorkCenter."Subcontractor No.");
+        Vendor."Subcontr. Location Code" := Location.Code;
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+    end;
+
+    local procedure SetTransferProdOrderCompLocationCode(ProdOrderNo: Code[20]; LocationCode: Code[10])
+    var
+        ProdOrderComp: Record "Prod. Order Component";
+    begin
+        ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+#pragma warning restore AA0210
+        ProdOrderComp.FindFirst();
+        ProdOrderComp."Location Code" := LocationCode;
+        ProdOrderComp.Modify();
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmCreateSubcOrderAnyway_No(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedMessage(CreateSubcontractingOrderAnywayQst, Question);
+        Reply := false;
+    end;
+
     [ModalPageHandler]
     procedure HandlePurchProvisionWizard(var PurchProvisionWizard: TestPage "Subc. PurchProvisionWizard")
     begin
@@ -452,5 +602,4 @@ codeunit 139981 "Subc. Location Handler Test"
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
     end;
-
 }

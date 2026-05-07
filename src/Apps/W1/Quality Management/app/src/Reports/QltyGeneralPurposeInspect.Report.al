@@ -16,10 +16,11 @@ using Microsoft.QualityManagement.Utilities;
 
 report 20405 "Qlty. General Purpose Inspect."
 {
-    ApplicationArea = QualityManagement;
-    UsageCategory = ReportsAndAnalysis;
     Caption = 'Quality Management - General Purpose Inspection Report';
     ToolTip = 'A printable general purpose inspection report.';
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
+    UsageCategory = ReportsAndAnalysis;
+    ApplicationArea = QualityManagement;
     DefaultRenderingLayout = QltyGeneralPurposeInspectionDefault;
     Extensible = true;
 
@@ -91,7 +92,7 @@ report 20405 "Qlty. General Purpose Inspect."
 
                 column(Field_Code; "Test Code") { }
                 column(Field_Description; Description) { }
-                column(Numeric_Value; "Numeric Value") { }
+                column(Numeric_Value; "Derived Numeric Value") { }
                 column(Field_Type; "Test Value Type") { }
                 column(Field_IsLabel; FieldIsLabel) { }
                 column(Field_HasEnteredValue; HasEnteredValue) { }
@@ -225,10 +226,10 @@ report 20405 "Qlty. General Purpose Inspect."
 
                     InspectionLineModifiedByUserId := QltyMiscHelpers.GetUserNameByUserSecurityID(CurrentInspectionLine.SystemModifiedBy);
                     if InspectionLinePreviousModifiedByUserId <> InspectionLineModifiedByUserId then
-                        QltyMiscHelpers.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
+                        QltyPersonLookup.GetBasicPersonDetails(InspectionLineModifiedByUserId, InspectionLineModifiedByUserName, InspectionLineModifiedByJobTitle, InspectionLineModifiedByEmail, InspectionLineModifiedByPhone, DummyRecordId);
                     InspectionLinePreviousModifiedByUserId := InspectionLineModifiedByUserId;
 
-                    IsPersonField := QltyMiscHelpers.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
+                    IsPersonField := QltyPersonLookup.GetBasicPersonDetailsFromInspectionLine(CurrentInspectionLine, OptionalNameIfPerson, OptionalTitleIfPerson, OptionalEmailIfPerson, OptionalPhoneIfPerson, DummyRecordId);
 
                     FieldIsLabel := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Label"];
                     FieldIsText := CurrentInspectionLine."Test Value Type" in [CurrentInspectionLine."Test Value Type"::"Value Type Text"];
@@ -308,7 +309,7 @@ report 20405 "Qlty. General Purpose Inspect."
                 end;
 
                 FinishedByUserName := CurrentInspection."Finished By User ID";
-                QltyMiscHelpers.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
+                QltyPersonLookup.GetBasicPersonDetails(CurrentInspection."Finished By User ID", FinishedByUserName, FinishedByTitle, FinishedByEmail, FinishedByPhone, DummyRecordId);
                 if (FinishedByTitle = '') and (FinishedByUserName <> '') then
                     FinishedByTitle := DefaultQualityInspectorTitleLbl;
             end;
@@ -322,21 +323,7 @@ report 20405 "Qlty. General Purpose Inspect."
             Type = RDLC;
             Caption = 'Default Layout';
             Summary = 'The default general purpose quality inspection report.';
-            LayoutFile = './src/Reports/QltyGeneralPurposeInspectionDefault.rdl';
-        }
-        layout(QltyGeneralPurposeInspectionAlternate)
-        {
-            Type = RDLC;
-            Caption = 'Alternate Layout';
-            Summary = 'An alternate general purpose quality inspection report.';
             LayoutFile = './src/Reports/QltyGeneralPurposeInspectionAlternate.rdl';
-        }
-        layout(QualityManagement_GeneralPurposeInspection_Default)
-        {
-            Type = Word;
-            Caption = 'Word Layout';
-            Summary = 'Word layout for general purpose quality inspection report.';
-            LayoutFile = './src/Reports/QltyGeneralPurposeInspection.docx';
         }
     }
 
@@ -344,6 +331,7 @@ report 20405 "Qlty. General Purpose Inspect."
         Item: Record Item;
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+        QltyPersonLookup: Codeunit "Qlty. Person Lookup";
         MatrixSourceRecordId: array[10] of RecordId;
         ArrayCompanyInformation: array[8] of Text[100];
         ContactInformationArray: array[8] of Text[100];

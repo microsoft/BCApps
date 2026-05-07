@@ -11,6 +11,7 @@ query 36968 "Item Ledger Entries - PBI API"
     Access = Internal;
     Caption = 'Power BI Item Ledger Entries';
     QueryType = API;
+    AboutText = 'Provides access to item ledger entries including entry types, quantities, costs, locations, serial and lot numbers, and posting dates. Enables Power BI reports to analyze inventory movements, track stock levels, and perform inventory valuation and turnover analysis.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

@@ -23,7 +23,8 @@ using System.Reflection;
 /// </summary>
 codeunit 20424 "Qlty. Workflow Response"
 {
-    Permissions = tabledata "Workflow Step Instance" = r;
+    Permissions = tabledata "Workflow Step Instance" = r,
+                  tabledata "Qlty. Workflow Config. Value" = im;
 
     var
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
@@ -403,16 +404,16 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <returns></returns>
     procedure GetStepConfigurationValue(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text): Text
     var
-        CustomQltyExpressConfigValue: Record "Qlty. Express Config. Value";
+        QltyWorkflowConfigValue: Record "Qlty. Workflow Config. Value";
     begin
-        if not CustomQltyExpressConfigValue.ReadPermission() then
+        if not QltyWorkflowConfigValue.ReadPermission() then
             exit;
 
-        CustomQltyExpressConfigValue.SetRange("Table ID", Database::"Workflow Step Argument");
-        CustomQltyExpressConfigValue.SetRange("Record ID", WorkflowStepArgument.RecordId());
-        CustomQltyExpressConfigValue.SetRange("Template Key", CopyStr(CurrentKey, 1, MaxStrLen(CustomQltyExpressConfigValue."Template Key")));
-        if CustomQltyExpressConfigValue.FindFirst() then;
-        exit(CustomQltyExpressConfigValue.Value);
+        QltyWorkflowConfigValue.SetRange("Table ID", Database::"Workflow Step Argument");
+        QltyWorkflowConfigValue.SetRange("Record ID", WorkflowStepArgument.RecordId());
+        QltyWorkflowConfigValue.SetRange("Template Key", CopyStr(CurrentKey, 1, MaxStrLen(QltyWorkflowConfigValue."Template Key")));
+        if QltyWorkflowConfigValue.FindFirst() then;
+        exit(QltyWorkflowConfigValue.Value);
     end;
 
     /// <summary>
@@ -445,22 +446,22 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="Value"></param>
     procedure SetStepConfigurationValue(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text; Value: Text)
     var
-        CustomQltyExpressConfigValue: Record "Qlty. Express Config. Value";
+        QltyWorkflowConfigValue: Record "Qlty. Workflow Config. Value";
     begin
-        if not CustomQltyExpressConfigValue.ReadPermission() then
+        if not QltyWorkflowConfigValue.ReadPermission() then
             exit;
 
-        CustomQltyExpressConfigValue.SetRange("Table ID", Database::"Workflow Step Argument");
-        CustomQltyExpressConfigValue.SetRange("Record ID", WorkflowStepArgument.RecordId());
-        CustomQltyExpressConfigValue.SetRange("Template Key", CopyStr(CurrentKey, 1, MaxStrLen(CustomQltyExpressConfigValue."Template Key")));
-        if not CustomQltyExpressConfigValue.FindFirst() then begin
-            CustomQltyExpressConfigValue."Table ID" := Database::"Workflow Step Argument";
-            CustomQltyExpressConfigValue."Record ID" := WorkflowStepArgument.RecordId();
-            CustomQltyExpressConfigValue."Template Key" := CopyStr(CurrentKey, 1, MaxStrLen(CustomQltyExpressConfigValue."Template Key"));
-            CustomQltyExpressConfigValue.Insert();
+        QltyWorkflowConfigValue.SetRange("Table ID", Database::"Workflow Step Argument");
+        QltyWorkflowConfigValue.SetRange("Record ID", WorkflowStepArgument.RecordId());
+        QltyWorkflowConfigValue.SetRange("Template Key", CopyStr(CurrentKey, 1, MaxStrLen(QltyWorkflowConfigValue."Template Key")));
+        if not QltyWorkflowConfigValue.FindFirst() then begin
+            QltyWorkflowConfigValue."Table ID" := Database::"Workflow Step Argument";
+            QltyWorkflowConfigValue."Record ID" := WorkflowStepArgument.RecordId();
+            QltyWorkflowConfigValue."Template Key" := CopyStr(CurrentKey, 1, MaxStrLen(QltyWorkflowConfigValue."Template Key"));
+            QltyWorkflowConfigValue.Insert();
         end;
-        CustomQltyExpressConfigValue.Value := CopyStr(Value, 1, MaxStrLen(CustomQltyExpressConfigValue.Value));
-        CustomQltyExpressConfigValue.Modify();
+        QltyWorkflowConfigValue.Value := CopyStr(Value, 1, MaxStrLen(QltyWorkflowConfigValue.Value));
+        QltyWorkflowConfigValue.Modify();
     end;
 
     /// <summary>
@@ -483,7 +484,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument">Workflow Step Argument</param>
     /// <param name="CurrentKey">Configuration Key</param>
     /// <returns>Value as Date</returns>
-    procedure SetStepConfigurationValueAsDate(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text; DateValue: Date)
+    internal procedure SetStepConfigurationValueAsDate(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text; DateValue: Date)
     begin
         SetStepConfigurationValue(WorkflowStepArgument, CurrentKey, Format(DateValue, 0, 9));
     end;
@@ -539,7 +540,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key for a source location filter
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownSourceLocationFilter(): Text
+    internal procedure GetWellKnownSourceLocationFilter(): Text
     begin
         exit('SRCLOCFILTER');
     end;
@@ -548,7 +549,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key for a source bin filter
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownSourceBinFilter(): Text
+    internal procedure GetWellKnownSourceBinFilter(): Text
     begin
         exit('SRCBINFILTER');
     end;
@@ -566,7 +567,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key for a field
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownKeyField(): Text
+    internal procedure GetWellKnownKeyField(): Text
     begin
         exit('FIELD');
     end;
@@ -575,7 +576,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key for a value expression
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownKeyValueExpression(): Text
+    internal procedure GetWellKnownKeyValueExpression(): Text
     begin
         exit('VALUEEXPR');
     end;
@@ -584,7 +585,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key for a database table 
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownKeyDatabaseTable(): Text
+    internal procedure GetWellKnownKeyDatabaseTable(): Text
     begin
         exit('DBTBLNAME');
     end;
@@ -593,7 +594,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key for a database table filter.
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownKeyDatabaseTableFilter(): Text
+    internal procedure GetWellKnownKeyDatabaseTableFilter(): Text
     begin
         exit('DBTBLFLTREXPR');
     end;
@@ -611,7 +612,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key value for whether or not to use the movement worksheet
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownUseMoveSheet(): Text
+    internal procedure GetWellKnownUseMoveSheet(): Text
     begin
         exit('USEMOVESHEET');
     end;
@@ -620,7 +621,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key value for new lot no.
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownNewLotNo(): Text
+    internal procedure GetWellKnownNewLotNo(): Text
     begin
         exit('NEWLOTNO');
     end;
@@ -647,7 +648,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key value for new expiration date.
     /// </summary>
     /// <returns></returns>
-    procedure GetWellKnownNewExpDate(): Text
+    internal procedure GetWellKnownNewExpDate(): Text
     begin
         exit('NEWEXPDATE');
     end;
@@ -694,7 +695,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument">Workflow Step Argument</param>
     /// <param name="CurrentKey">Configuration Key</param>
     /// <returns>Qlty. Move Behavior Enum</returns>
-    procedure GetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"
+    internal procedure GetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"
     var
         Value: Text;
     begin
@@ -737,7 +738,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <param name="WorkflowStepArgument">Workflow Step Argument</param>
     /// <param name="CurrentKey">Configuration Key</param>
     /// <returns>Qlty. Item Adj. Post Behavior Enum</returns>
-    procedure GetStepConfigurationValueAsAdjPostingEnum(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) QltyItemAdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior"
+    internal procedure GetStepConfigurationValueAsAdjPostingEnum(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) QltyItemAdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior"
     var
         Value: Text;
     begin
