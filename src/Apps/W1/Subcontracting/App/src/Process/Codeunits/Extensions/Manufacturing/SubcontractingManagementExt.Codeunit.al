@@ -15,6 +15,6 @@ codeunit 99001527 "Subcontracting Management Ext."
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
         if SubContractorWorkCenterNo = '' then
-            SubContractorWorkCenterNo := CopyStr(SubcSessionState.GetCode(SubcontractingManagement.GetDictionaryKey_Sub_CreateProdOrderProcess()), 1, 20);
+            SubContractorWorkCenterNo := CopyStr(SubcSessionState.GetCode(SubcontractingManagement.GetKeyCreateProdOrderProcess()), 1, 20);
     end;
 }

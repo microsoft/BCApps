@@ -19,9 +19,6 @@ codeunit 99001519 "Subc. Work Center Extension"
         if not RunTrigger then
             exit;
 
-        SubcontractorPrice.SetCurrentKey("Work Center No.");
-        SubcontractorPrice.SetRange("Work Center No.", Rec."No.");
-        if not SubcontractorPrice.IsEmpty() then
-            SubcontractorPrice.DeleteAll(true);
+        SubcontractorPrice.DeletePricesForWorkCenter(Rec."No.");
     end;
 }

@@ -1170,7 +1170,7 @@ table 8052 "Customer Subscription Contract"
         exit(not CustomerContractDeferral.IsEmpty());
     end;
 
-    internal procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
+    procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
     begin
         HideValidationDialog := NewHideValidationDialog;
     end;

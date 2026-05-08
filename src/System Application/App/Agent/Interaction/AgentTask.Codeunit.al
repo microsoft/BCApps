@@ -22,7 +22,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskImpl.TaskExists(AgentUserSecurityId, ExternalId));
     end;
 
@@ -36,7 +36,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTask: Record "Agent Task";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTask.SetRange("Agent User Security ID", AgentUserSecurityId);
         AgentTask.SetRange("External ID", ExternalId);
         AgentTask.FindFirst();
@@ -47,18 +47,49 @@ codeunit 4303 "Agent Task"
     /// Set the status of the task to ready if the task is in the state that it can be started again.
     /// The agent task will be be picked up for processing shortly after updating the status.
     /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task to set to ready.</param>
+    procedure SetStatusToReady(AgentTaskID: BigInteger)
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTaskID);
+    end;
+
+    /// <summary>
+    /// Set the status of the task to ready if the task is in the state that it can be started again.
+    /// The agent task will be be picked up for processing shortly after updating the status.
+    /// </summary>
+    /// <remarks>
+    /// This method will be marked as obsolete soon:
+    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
+    /// </remarks>
     /// <param name="AgentTask">The agent task to set to ready.</param>
     /// <returns>The agent task with the status set to ready.</returns>
     procedure SetStatusToReady(var AgentTask: Record "Agent Task")
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskImpl.SetTaskStatusToReadyIfPossible(AgentTask);
     end;
 
     /// <summary>
     /// Checks if the task can be set to ready and started again.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task to check.</param>
+    /// <returns>True if agent task can be set to ready, false otherwise</returns>
+    procedure CanSetStatusToReady(AgentTaskID: BigInteger): Boolean
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentTaskImpl.CanAgentTaskBeSetToReady(AgentTaskID));
+    end;
+
+    /// <summary>
+    /// Checks if the task can be set to ready and started again.
+    /// The record is not retrieved again; the caller must ensure the record is up to date.
     /// </summary>
     /// <param name="AgentTask">The agent task to check.</param>
     /// <returns>True if agent task can be set to ready, false otherwise</returns>
@@ -66,13 +97,31 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskImpl.CanAgentTaskBeSetToReady(AgentTask));
     end;
 
     /// <summary>
     /// Stops the agent task.
     /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task to stop.</param>
+    /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
+    procedure StopTask(AgentTaskID: BigInteger; UserConfirm: Boolean)
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+        TaskStatus: Enum "Agent Task Status";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskImpl.StopTask(AgentTaskID, TaskStatus::"Stopped by User", UserConfirm);
+    end;
+
+    /// <summary>
+    /// Stops the agent task.
+    /// </summary>
+    /// <remarks>
+    /// This method will be marked as obsolete soon:
+    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
+    /// </remarks>
     /// <param name="AgentTask">The agent task to stop.</param>
     /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
     procedure StopTask(var AgentTask: Record "Agent Task"; UserConfirm: Boolean)
@@ -80,25 +129,56 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         TaskStatus: Enum "Agent Task Status";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskImpl.StopTask(AgentTask, TaskStatus::"Stopped by User", UserConfirm);
     end;
 
     /// <summary>
     /// Restarts the agent task by setting its status to ready.
     /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task to restart.</param>
+    /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
+    procedure RestartTask(AgentTaskID: BigInteger; UserConfirm: Boolean)
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskImpl.RestartTask(AgentTaskID, UserConfirm);
+    end;
+
+    /// <summary>
+    /// Restarts the agent task by setting its status to ready.
+    /// </summary>
+    /// <remarks>
+    /// This method will be marked as obsolete soon:
+    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
+    /// </remarks>
     /// <param name="AgentTask">The agent task to restart.</param>
     /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
     procedure RestartTask(var AgentTask: Record "Agent Task"; UserConfirm: Boolean)
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskImpl.RestartTask(AgentTask, UserConfirm);
     end;
 
     /// <summary>
     /// Checks if the agent task is currently running.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task to check.</param>
+    /// <returns>True if the task is running, false otherwise.</returns>
+    procedure IsTaskRunning(AgentTaskID: BigInteger): Boolean
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentTaskImpl.IsTaskRunning(AgentTaskID));
+    end;
+
+    /// <summary>
+    /// Checks if the agent task is currently running.
+    /// The record is not retrieved again; the caller must ensure the record is up to date.
     /// </summary>
     /// <param name="AgentTask">The agent task to check.</param>
     /// <returns>True if the task is running, false otherwise.</returns>
@@ -106,12 +186,26 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskImpl.IsTaskRunning(AgentTask));
     end;
 
     /// <summary>
     /// Checks if the agent task is completed.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task to check.</param>
+    /// <returns>True if the task is completed, false otherwise.</returns>
+    procedure IsTaskCompleted(AgentTaskID: BigInteger): Boolean
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentTaskImpl.IsTaskCompleted(AgentTaskID));
+    end;
+
+    /// <summary>
+    /// Checks if the agent task is completed.
+    /// The record is not retrieved again; the caller must ensure the record is up to date.
     /// </summary>
     /// <param name="AgentTask">The agent task to check.</param>
     /// <returns>True if the task is completed, false otherwise.</returns>
@@ -119,12 +213,26 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskImpl.IsTaskCompleted(AgentTask));
     end;
 
     /// <summary>
     /// Checks if the agent task is stopped (by user or system).
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task to check.</param>
+    /// <returns>True if the task is stopped, false otherwise.</returns>
+    procedure IsTaskStopped(AgentTaskID: BigInteger): Boolean
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentTaskImpl.IsTaskStopped(AgentTaskID));
+    end;
+
+    /// <summary>
+    /// Checks if the agent task is stopped (by user or system).
+    /// The record is not retrieved again; the caller must ensure the record is up to date.
     /// </summary>
     /// <param name="AgentTask">The agent task to check.</param>
     /// <returns>True if the task is stopped, false otherwise.</returns>
@@ -132,7 +240,7 @@ codeunit 4303 "Agent Task"
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        FeatureAccessManagement.AgentManagementAllowed(true);
         exit(AgentTaskImpl.IsTaskStopped(AgentTask));
     end;
 
@@ -162,6 +270,20 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
         exit(AgentTaskImpl.GetDetailsForAgentTaskLogEntry(AgentTaskLogEntry));
+    end;
+
+    /// <summary>
+    /// Archives the agent task.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task to archive.</param>
+    /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
+    [Scope('OnPrem')]
+    procedure ArchiveTask(AgentTaskID: BigInteger; UserConfirm: Boolean)
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskImpl.ArchiveTask(AgentTaskID, UserConfirm);
     end;
 
     var
