@@ -4,10 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
 
 tableextension 99001524 "Subc. DirectTransHeader Ext." extends "Direct Trans. Header"
 {
@@ -25,13 +23,6 @@ tableextension 99001524 "Subc. DirectTransHeader Ext." extends "Direct Trans. He
             Caption = 'Subcontr. Purch. Order Line No.';
             DataClassification = CustomerContent;
             Editable = false;
-        }
-        field(99001535; "Source Subtype"; Option)
-        {
-            Caption = 'Source Subtype';
-            DataClassification = CustomerContent;
-            OptionCaption = '0,1,2,3,4,5,6,7,8,9,10';
-            OptionMembers = "0","1","2","3","4","5","6","7","8","9","10";
         }
         field(99001536; "Source ID"; Code[20])
         {
@@ -61,33 +52,17 @@ tableextension 99001524 "Subc. DirectTransHeader Ext." extends "Direct Trans. He
     keys
     {
         key(Key99001500; "Subcontr. Purch. Order No.") { }
-        key(Key99001501; "Source ID", "Source Type", "Source Subtype") { }
+        key(Key99001501; "Source ID", "Source Type") { }
     }
 
     local procedure HandleSubcontractingSourceLookup(var DirectTransHeader: Record "Direct Trans. Header")
     var
-        Customer: Record Customer;
-        Item: Record Item;
         Vendor: Record Vendor;
     begin
-        if DirectTransHeader."Source Type" = DirectTransHeader."Source Type"::Subcontracting then
-            case DirectTransHeader."Source Subtype" of
-                DirectTransHeader."Source Subtype"::"1":
-                    begin
-                        Customer.SetRange("No.", DirectTransHeader."Source ID");
-                        Page.RunModal(0, Customer);
-                    end;
-                DirectTransHeader."Source Subtype"::"2":
-                    begin
-                        Vendor.SetRange("No.", DirectTransHeader."Source ID");
-                        Page.RunModal(0, Vendor);
-                    end;
-                DirectTransHeader."Source Subtype"::"3":
-                    begin
-                        Item.SetRange("No.", DirectTransHeader."Source ID");
-                        Page.RunModal(0, Item);
-                    end;
-            end;
+        if DirectTransHeader."Source Type" = DirectTransHeader."Source Type"::Subcontracting then begin
+            Vendor.SetRange("No.", DirectTransHeader."Source ID");
+            Page.RunModal(0, Vendor);
+        end;
     end;
 
 }

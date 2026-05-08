@@ -17,48 +17,12 @@ page 99001510 "Subc. Management Setup"
     {
         area(Content)
         {
-            group(General)
-            {
-                Caption = 'General';
-                field("Create Prod. Order Info Line"; Rec."Create Prod. Order Info Line")
-                {
-                    ToolTip = 'Specifies whether an additional Information Line of the Production Order Line will be created in a Subcontracting Purchase Order.';
-                }
-                field("Subc. Inb. Whse. Handling Time"; Rec."Subc. Inb. Whse. Handling Time")
-                {
-                    ToolTip = 'Specifies the time to calculate the Receipt Date in Transfer Line. The Calculation will be Due Date from Prod. Order Component minus the entered date formula.';
-                }
-            }
-            group(Subcontracting)
-            {
-                Caption = 'Subcontracting';
-                field("Subcontracting Template Name"; Rec."Subcontracting Template Name")
-                {
-                    ToolTip = 'Specifies the name of the subcontracting journal template to be used for the direct creation of subcontracting orders from a released routing.';
-                }
-                field("Subcontracting Batch Name"; Rec."Subcontracting Batch Name")
-                {
-                    ToolTip = 'Specifies the name of the subcontracting journal batch to be used for the direct creation of subcontracting orders from a released routing.';
-                }
-                field("Component Direct Unit Cost"; Rec."Component Direct Unit Cost")
-                {
-                    ToolTip = 'Specifies which direct unit cost to use in the subcontracting purchase order. Standard: uses standard pricing. Prod. Order Component: transfers the calculated direct unit cost from the production order component line.';
-                }
-                field(RefSubItemChargeToRcptSubLines; Rec.RefItemChargeToRcptSubLines)
-                {
-                    ToolTip = 'Specifies whether to enable item charge assignment to subcontracting purchase receipt lines. When turned on, the item charge is posted as a new value entry of type "Direct Cost" and is automatically assigned to a capacity entry of the production order.';
-                }
-            }
             group(Provision)
             {
                 Caption = 'Purchase Provision';
                 field("Preset Component Item No."; Rec."Preset Component Item No.")
                 {
                     ToolTip = 'Specifies the item number of the preset component for purchase provision. This item will be used as a default when creating a purchase provision.';
-                }
-                field("Rtng. Link Code Subcontracting"; Rec."Rtng. Link Code Purch. Prov.")
-                {
-                    ToolTip = 'Specifies the value of the Routing Link Code for purchase provision.';
                 }
                 field("Common Work Center No."; Rec."Common Work Center No.")
                 {
@@ -71,14 +35,6 @@ page 99001510 "Subc. Management Setup"
                 field("Default Provision Flushing Method"; Rec."Def. provision flushing method")
                 {
                     ToolTip = 'Specifies the default flushing method used for purchase provision components. This determines how component consumption is automatically posted during production.';
-                }
-                field("Direct Transfer"; Rec."Direct Transfer")
-                {
-                    ToolTip = 'Specifies that the transfer for subcontracting components does not use an in-transit location. When you transfer directly, the Qty. to Receive field will be locked with the same value as the quantity to ship.';
-                }
-                field("Component at Location"; Rec."Component at Location")
-                {
-                    ToolTip = 'Specifies which location code is to be used as the transfer-from location when creating a transfer order of external production components (provision).';
                 }
             }
             group("Prod. Order Create UI")
