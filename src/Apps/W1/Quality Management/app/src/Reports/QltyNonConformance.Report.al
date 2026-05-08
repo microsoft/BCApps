@@ -102,7 +102,6 @@ report 20403 "Qlty. Non-Conformance"
             column(FinishedByNameLabel; FinishedByNameLbl) { }
             column(ApproverSignatureLabel; ApproverSignatureLbl) { }
             column(ApproverNameLabel; ApproverNameLbl) { }
-            column(FinishedDateOnly; FinishedDateOnly) { }
 
             dataitem(CurrentInspectionLine; "Qlty. Inspection Line")
             {
@@ -325,7 +324,7 @@ report 20403 "Qlty. Non-Conformance"
 
                 // Pre-calculated columns for Word Layout
                 // Resolve Item Text
-                ItemDescriptionText := QltyReportMgmt.BuildItemDescriptionText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code", CurrentInspection.Description);
+                ItemDescriptionText := QltyReportMgmt.BuildItemDescriptionText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code", Item.Description);
 
                 // Resolve Item Tracking
                 ItemTrackingText := QltyReportMgmt.BuildItemTrackingText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
@@ -340,8 +339,6 @@ report 20403 "Qlty. Non-Conformance"
                     if FinishedByTitle = '' then
                         FinishedByTitle := DefaultQualityInspectorTitleLbl;
                 end;
-
-                FinishedDateOnly := DT2Date(CurrentInspection."Finished Date");
 
                 // Resolve Finished By Signature Label
                 FinishedBySignatureLbl := FinishedByTitle + ' ' + SignatureSuffixLbl;
@@ -375,20 +372,19 @@ report 20403 "Qlty. Non-Conformance"
 
     labels
     {
-        TestDocumentNoLabel = 'Test Document No.';
-        MetricLabel = 'Metric';
-        MeasurementLabel = 'Measurement';
+        PageLabel = 'Page';
+        ReportTitleLabel = 'Non-Conformance Report';
         ItemLabel = 'Item';
         ItemTrackingLabel = 'Item Tracking';
-        DateLabel = 'Date';
-        CompletedByLabel = 'Completed by';
-        CompletedDateLabel = 'Completed on';
-        ReportTitleLabel = 'Non-Conformance Report';
+        FinishedByLabel = 'Finished by';
+        FinishedOnLabel = 'Finished on';
+        TestLabel = 'Test';
+        TestValueLabel = 'Test Value';
         ResultLabel = 'Result';
         ConditionLabel = 'Condition';
         InspectionLabel = 'Inspection';
+        DateLabel = 'Date';
         EnteredByLabel = 'Entered by';
-        FieldLabel = 'Field';
     }
 
     var
@@ -442,7 +438,6 @@ report 20403 "Qlty. Non-Conformance"
         FinishedByNameLbl: Text;
         ApproverSignatureLbl: Text;
         ApproverNameLbl: Text;
-        FinishedDateOnly: Date;
         HomePageLabelText: Text;
         HomePageValueText: Text;
         EmailLabelText: Text;

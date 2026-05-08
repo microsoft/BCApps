@@ -306,7 +306,7 @@ report 20401 "Qlty. Certificate of Analysis"
 
                 // Pre-calculated columns for Word Layout
                 // Resolve Item Text
-                ItemDescriptionText := QltyReportMgmt.BuildItemDescriptionText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code", CurrentInspection.Description);
+                ItemDescriptionText := QltyReportMgmt.BuildItemDescriptionText(CurrentInspection."Source Item No.", CurrentInspection."Source Variant Code", Item.Description);
 
                 // Resolve Item Tracking
                 ItemTrackingText := QltyReportMgmt.BuildItemTrackingText(CurrentInspection."Source Lot No.", CurrentInspection."Source Serial No.", CurrentInspection."Source Package No.");
