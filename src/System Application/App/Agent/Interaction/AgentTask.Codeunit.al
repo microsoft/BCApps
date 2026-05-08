@@ -166,4 +166,5 @@ codeunit 4303 "Agent Task"
 
     var
         FeatureAccessManagement: Codeunit "Feature Access Management";
+
 }
