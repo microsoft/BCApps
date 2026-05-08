@@ -490,7 +490,7 @@ function Invoke-CopilotCli {
         $stderr = $stderrTask.Result
 
         if ($process.ExitCode -ne 0) {
-            Write-Warning "Copilot CLI exited with code $($process.ExitCode)"
+            throw "Copilot CLI exited with code $($process.ExitCode)"
         }
 
         $output = if ($stdout.Trim()) { $stdout } else { $stderr }
