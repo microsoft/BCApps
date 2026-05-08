@@ -62,7 +62,7 @@ codeunit 4307 "Agent Message"
     /// </summary>
     /// <remarks>
     /// This method will be marked as obsolete soon:
-    /// [Obsolete('Use the overload that takes TaskID and MessageID instead.', '30.0')]
+    /// [Obsolete('Use the overload that takes TaskID and MessageID instead.', '29.0')]
     /// </remarks>
     /// <param name="AgentTaskMessage">The message record to update.</param>
     /// <param name="NewMessageText">New message text to set.</param>
@@ -120,7 +120,7 @@ codeunit 4307 "Agent Message"
     /// </summary>
     /// <remarks>
     /// This method will be marked as obsolete soon:
-    /// [Obsolete('Use the overload that takes TaskID and MessageID instead.', '30.0')]
+    /// [Obsolete('Use the overload that takes TaskID and MessageID instead.', '29.0')]
     /// </remarks>
     /// <param name="AgentTaskMessage">Agent task message to update status.</param>
     procedure SetStatusToSent(var AgentTaskMessage: Record "Agent Task Message")
