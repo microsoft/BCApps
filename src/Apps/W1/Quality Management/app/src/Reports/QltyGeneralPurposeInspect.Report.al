@@ -102,7 +102,6 @@ report 20405 "Qlty. General Purpose Inspect."
             column(FinishedByNameLabel; FinishedByNameLbl) { }
             column(ApproverSignatureLabel; ApproverSignatureLbl) { }
             column(ApproverNameLabel; ApproverNameLbl) { }
-            column(FinishedDateOnly; FinishedDateOnly) { }
 
             dataitem(CurrentInspectionLine; "Qlty. Inspection Line")
             {
@@ -365,8 +364,6 @@ report 20405 "Qlty. General Purpose Inspect."
                         FinishedByTitle := DefaultQualityInspectorTitleLbl;
                 end;
 
-                FinishedDateOnly := DT2Date(CurrentInspection."Finished Date");
-
                 // Resolve Finished By Signature Label
                 FinishedBySignatureLbl := FinishedByTitle + ' ' + SignatureSuffixLbl;
                 // Resolve Finished By Name
@@ -399,19 +396,17 @@ report 20405 "Qlty. General Purpose Inspect."
 
     labels
     {
-        TestDocumentNoLabel = 'Test Document No.';
-        //MetricLabel = 'Metric';
-        //MeasurementLabel = 'Measurement';
+        PageLabel = 'Page';
+        ReportTitleLabel = 'Quality Inspection Report';
         ItemLabel = 'Item';
         ItemTrackingLabel = 'Item Tracking';
-        DateLabel = 'Date';
-        CompletedByLabel = 'Completed by';
-        CompletedDateLabel = 'Completed on';
-        ReportTitleLabel = 'Quality Inspection Report';
+        FinishedByLabel = 'Finished by';
+        FinishedOnLabel = 'Finished on';
+        TestLabel = 'Test';
+        TestValueLabel = 'Test Value';
         ResultLabel = 'Result';
-        //ConditionLabel = 'Condition';
         InspectionLabel = 'Inspection';
-        FieldLabel = 'Field';
+        DateLabel = 'Date';
         LastModifiedByLabel = 'Last modified by';
     }
 
@@ -461,7 +456,6 @@ report 20405 "Qlty. General Purpose Inspect."
         FinishedByNameLbl: Text;
         ApproverSignatureLbl: Text;
         ApproverNameLbl: Text;
-        FinishedDateOnly: Date;
         HomePageLabelText: Text;
         HomePageValueText: Text;
         EmailLabelText: Text;

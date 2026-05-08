@@ -2085,14 +2085,23 @@
     </ReportSection>
   </ReportSections>
   <ReportParameters>
-    <ReportParameter Name="TestDocumentNoLabel">
+    <ReportParameter Name="PageLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>TestDocumentNoLabel</Value>
+          <Value>PageLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>TestDocumentNoLabel</Prompt>
+      <Prompt>PageLabel</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ReportTitleLabel">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ReportTitleLabel</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ReportTitleLabel</Prompt>
     </ReportParameter>
     <ReportParameter Name="ItemLabel">
       <DataType>String</DataType>
@@ -2112,41 +2121,41 @@
       </DefaultValue>
       <Prompt>ItemTrackingLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="DateLabel">
+    <ReportParameter Name="FinishedByLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>DateLabel</Value>
+          <Value>FinishedByLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>DateLabel</Prompt>
+      <Prompt>FinishedByLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="CompletedByLabel">
+    <ReportParameter Name="FinishedOnLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>CompletedByLabel</Value>
+          <Value>FinishedOnLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>CompletedByLabel</Prompt>
+      <Prompt>FinishedOnLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="CompletedDateLabel">
+    <ReportParameter Name="TestLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>CompletedDateLabel</Value>
+          <Value>TestLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>CompletedDateLabel</Prompt>
+      <Prompt>TestLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="ReportTitleLabel">
+    <ReportParameter Name="TestValueLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>ReportTitleLabel</Value>
+          <Value>TestValueLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>ReportTitleLabel</Prompt>
+      <Prompt>TestValueLabel</Prompt>
     </ReportParameter>
     <ReportParameter Name="ResultLabel">
       <DataType>String</DataType>
@@ -2166,14 +2175,14 @@
       </DefaultValue>
       <Prompt>InspectionLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="FieldLabel">
+    <ReportParameter Name="DateLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>FieldLabel</Value>
+          <Value>DateLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>FieldLabel</Prompt>
+      <Prompt>DateLabel</Prompt>
     </ReportParameter>
     <ReportParameter Name="LastModifiedByLabel">
       <DataType>String</DataType>
@@ -2433,9 +2442,6 @@ End Function
         </Field>
         <Field Name="ApproverNameLabel">
           <DataField>ApproverNameLabel</DataField>
-        </Field>
-        <Field Name="FinishedDateOnly">
-          <DataField>FinishedDateOnly</DataField>
         </Field>
         <Field Name="Field_Code">
           <DataField>Field_Code</DataField>
