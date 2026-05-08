@@ -34,8 +34,14 @@ codeunit 50000 "Prepare Sales E-Doc. Draft" implements IProcessStructuredData
     /// </summary>
     /// <param name="EDocument">The E-Document record whose draft page should be opened.</param>
     procedure OpenDraftPage(var EDocument: Record "E-Document")
+    var
+        EDocumentSalesHeader: Record "E-Document Sales Header";
+        EDocSalesDraft: Page "E-Document Sales Draft";
     begin
-        // Page "E-Document Sales Order Draft" opened here once Step 14 is complete.
+        if EDocumentSalesHeader.Get(EDocument."Entry No") then begin
+            EDocSalesDraft.SetRecord(EDocumentSalesHeader);
+            EDocSalesDraft.Run();
+        end;
     end;
 
     /// <summary>

@@ -14,6 +14,7 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
+using Microsoft.Sales.Document;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
@@ -693,6 +694,11 @@ codeunit 6140 "E-Doc. Import"
                 begin
                     SourceDocumentHeader.Open(Database::"Purchase Header", true);
                     SourceDocumentLine.Open(Database::"Purchase Line", true);
+                end;
+            EDocument."Document Type"::"Sales Order":
+                begin
+                    SourceDocumentHeader.Open(Database::"Sales Header", true);
+                    SourceDocumentLine.Open(Database::"Sales Line", true);
                 end;
             else begin
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(DocTypeIsNotSupportedErr, EDocument."Document Type"));

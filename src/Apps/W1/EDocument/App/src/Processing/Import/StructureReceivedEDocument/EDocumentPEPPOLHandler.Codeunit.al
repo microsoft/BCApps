@@ -7,15 +7,17 @@ namespace Microsoft.eServices.EDocument.Format;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using System.Utilities;
 
 /// <summary>
-/// Reads PEPPOL BIS 3.0 Invoice and CreditNote XML into v2 import draft staging tables.
+/// Reads PEPPOL BIS 3.0 Invoice, CreditNote, and Order XML into v2 import draft staging tables.
 /// This codeunit orchestrates *what* to parse and in what order.
 /// Reusable extraction logic lives in "E-Document PEPPOL Utility".
 /// Spec reference: https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-invoice/tree/
 ///                 https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-creditnote/tree/
+///                 https://docs.peppol.eu/poacc/upgrade-3/syntax/Order/tree/
 /// </summary>
 codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
 {
@@ -30,18 +32,27 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocSalesHeader: Record "E-Document Sales Header";
         DocStream: InStream;
         PeppolXML: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
         RootElement: XmlElement;
+        OrderNamespaceLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:Order-2', Locked = true;
     begin
-        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
-
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
         XmlDocument.ReadFrom(DocStream, PeppolXML);
         PeppolUtility.InitializePEPPOL3Namespaces(XmlNamespaces);
+        XmlNamespaces.AddNamespace('order', OrderNamespaceLbl);
 
         PeppolXML.GetRoot(RootElement);
+
+        case UpperCase(RootElement.LocalName()) of
+            'INVOICE', 'CREDITNOTE':
+                EDocumentPurchaseHeader.InsertForEDocument(EDocument);
+            'ORDER':
+                EDocSalesHeader.InsertForEDocument(EDocument);
+        end;
+
         case UpperCase(RootElement.LocalName()) of
             'INVOICE':
                 begin
@@ -49,6 +60,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
                     InsertPurchaseLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/inv:Invoice/cac:InvoiceLine', 'cac:InvoiceLine', 'cbc:InvoicedQuantity');
                     InsertAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/inv:Invoice');
                     InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/inv:Invoice');
+                    EDocumentPurchaseHeader.Modify();
                 end;
             'CREDITNOTE':
                 begin
@@ -56,9 +68,19 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
                     InsertPurchaseLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/cre:CreditNote/cac:CreditNoteLine', 'cac:CreditNoteLine', 'cbc:CreditedQuantity');
                     InsertAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/cre:CreditNote');
                     InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/cre:CreditNote');
+                    EDocumentPurchaseHeader.Modify();
+                end;
+            'ORDER':
+                begin
+                    PopulateSalesOrderHeader(PeppolXML, XmlNamespaces, EDocSalesHeader);
+                    InsertSalesOrderLines(EDocSalesHeader."E-Document Entry No.", PeppolXML, XmlNamespaces);
+                    if EDocSalesHeader."Sub Total" = 0 then
+                        ComputeSalesTotalsFromLines(EDocSalesHeader);
+                    InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/order:Order');
+                    EDocSalesHeader.Modify();
                 end;
         end;
-        EDocumentPurchaseHeader.Modify();
+
         EDocument.Direction := EDocument.Direction::Incoming;
 
         case UpperCase(RootElement.LocalName()) of
@@ -66,6 +88,8 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
                 exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
             'CREDITNOTE':
                 exit(Enum::"E-Doc. Process Draft"::"Purchase Credit Memo");
+            'ORDER':
+                exit(Enum::"E-Doc. Process Draft"::"Sales Order");
             else
                 exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
         end;
@@ -120,7 +144,223 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
 
     #endregion Header Orchestration
 
-    #region Line Orchestration
+    #region Sales Order Header
+
+    local procedure PopulateSalesOrderHeader(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Sales Header")
+    var
+        Value: Text;
+        RootPath: Text;
+    begin
+        RootPath := '/order:Order';
+
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cbc:ID', Value) then
+            Header."Buyer Order No." := CopyStr(Value, 1, MaxStrLen(Header."Buyer Order No."));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cbc:SalesOrderID', Value) then
+            Header."Seller Sales Order No." := CopyStr(Value, 1, MaxStrLen(Header."Seller Sales Order No."));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cbc:OrderTypeCode', Value) then
+            Header."Order Type Code" := CopyStr(Value, 1, MaxStrLen(Header."Order Type Code"));
+
+        PeppolUtility.SetDateValueInField(PeppolXML, XmlNamespaces, RootPath + '/cbc:IssueDate', Header."Document Date");
+        // First cac:Delivery block StartDate; SelectSingleNode returns first match in document order
+        PeppolUtility.SetDateValueInField(PeppolXML, XmlNamespaces, RootPath + '/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:StartDate', Header."Requested Delivery Date");
+
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cbc:DocumentCurrencyCode', Value) then
+            PeppolUtility.SetCurrencyIfForeign(Value, Header."Currency Code");
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cbc:CustomerReference', Value) then
+            Header."Customer Reference" := CopyStr(Value, 1, MaxStrLen(Header."Customer Reference"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cbc:Note', Value) then
+            Header.Note := CopyStr(Value, 1, MaxStrLen(Header.Note));
+
+        PopulateBuyerParty(PeppolXML, XmlNamespaces, RootPath, Header);
+        PopulateSellerParty(PeppolXML, XmlNamespaces, RootPath, Header);
+        PopulateOriginatorParty(PeppolXML, XmlNamespaces, RootPath, Header);
+        PopulateAccountingCustomerParty(PeppolXML, XmlNamespaces, RootPath, Header);
+
+        // AnticipatedMonetaryTotal is 0..1 — amounts stay 0 when absent; fallback computed after lines
+        PeppolUtility.SetNumberValueInField(PeppolXML, XmlNamespaces, RootPath + '/cac:AnticipatedMonetaryTotal/cbc:LineExtensionAmount', Header."Sub Total");
+        PeppolUtility.SetNumberValueInField(PeppolXML, XmlNamespaces, RootPath + '/cac:AnticipatedMonetaryTotal/cbc:AllowanceTotalAmount', Header."Total Discount");
+        PeppolUtility.SetNumberValueInField(PeppolXML, XmlNamespaces, RootPath + '/cac:AnticipatedMonetaryTotal/cbc:PayableAmount', Header.Total);
+        PeppolUtility.SetNumberValueInField(PeppolXML, XmlNamespaces, RootPath + '/cac:TaxTotal/cbc:TaxAmount', Header."Total VAT");
+    end;
+
+    local procedure PopulateBuyerParty(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Sales Header")
+    var
+        XmlNode: XmlNode;
+        Value: Text;
+        PartyPath: Text;
+    begin
+        PartyPath := RootPath + '/cac:BuyerCustomerParty/cac:Party';
+
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyName/cbc:Name', Value) then
+            Header."Buyer Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Buyer Company Name"));
+        if Header."Buyer Company Name" = '' then
+            if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyLegalEntity/cbc:RegistrationName', Value) then
+                Header."Buyer Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Buyer Company Name"));
+
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyLegalEntity/cbc:CompanyID', Value) then
+            Header."Buyer Company Id" := CopyStr(Value, 1, MaxStrLen(Header."Buyer Company Id"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyTaxScheme/cbc:CompanyID', Value) then
+            Header."Buyer VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Buyer VAT Id"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PostalAddress/cbc:StreetName', Value) then
+            Header."Buyer Address" := CopyStr(Value, 1, MaxStrLen(Header."Buyer Address"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:Contact/cbc:Name', Value) then
+            Header."Buyer Address Recipient" := CopyStr(Value, 1, MaxStrLen(Header."Buyer Address Recipient"));
+
+        if PeppolXML.SelectSingleNode(PartyPath + '/cbc:EndpointID/@schemeID', XmlNamespaces, XmlNode) then
+            if XmlNode.AsXmlAttribute().Value() = '0088' then
+                if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID', Value) then
+                    Header."Buyer GLN" := CopyStr(Value, 1, MaxStrLen(Header."Buyer GLN"));
+    end;
+
+    local procedure PopulateSellerParty(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Sales Header")
+    var
+        XmlNode: XmlNode;
+        Value: Text;
+        PartyPath: Text;
+    begin
+        PartyPath := RootPath + '/cac:SellerSupplierParty/cac:Party';
+
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyName/cbc:Name', Value) then
+            Header."Seller Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Seller Company Name"));
+        if Header."Seller Company Name" = '' then
+            if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyLegalEntity/cbc:RegistrationName', Value) then
+                Header."Seller Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Seller Company Name"));
+
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyTaxScheme/cbc:CompanyID', Value) then
+            Header."Seller VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Seller VAT Id"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PostalAddress/cbc:StreetName', Value) then
+            Header."Seller Address" := CopyStr(Value, 1, MaxStrLen(Header."Seller Address"));
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:Contact/cbc:Name', Value) then
+            Header."Seller Address Recipient" := CopyStr(Value, 1, MaxStrLen(Header."Seller Address Recipient"));
+
+        if PeppolXML.SelectSingleNode(PartyPath + '/cbc:EndpointID/@schemeID', XmlNamespaces, XmlNode) then
+            if XmlNode.AsXmlAttribute().Value() = '0088' then
+                if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID', Value) then
+                    Header."Seller GLN" := CopyStr(Value, 1, MaxStrLen(Header."Seller GLN"));
+    end;
+
+    local procedure PopulateOriginatorParty(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Sales Header")
+    var
+        Value: Text;
+        PartyPath: Text;
+    begin
+        PartyPath := RootPath + '/cac:OriginatorCustomerParty/cac:Party';
+
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyName/cbc:Name', Value) then
+            Header."Originator Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Originator Company Name"));
+        if Header."Originator Company Name" = '' then
+            if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyLegalEntity/cbc:RegistrationName', Value) then
+                Header."Originator Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Originator Company Name"));
+    end;
+
+    local procedure PopulateAccountingCustomerParty(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Sales Header")
+    var
+        Value: Text;
+        PartyPath: Text;
+    begin
+        PartyPath := RootPath + '/cac:AccountingCustomerParty/cac:Party';
+
+        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyName/cbc:Name', Value) then
+            Header."Accounting Customer Name" := CopyStr(Value, 1, MaxStrLen(Header."Accounting Customer Name"));
+        if Header."Accounting Customer Name" = '' then
+            if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyLegalEntity/cbc:RegistrationName', Value) then
+                Header."Accounting Customer Name" := CopyStr(Value, 1, MaxStrLen(Header."Accounting Customer Name"));
+    end;
+
+    local procedure ComputeSalesTotalsFromLines(var Header: Record "E-Document Sales Header")
+    var
+        EDocSalesLine: Record "E-Document Sales Line";
+    begin
+        EDocSalesLine.SetRange("E-Document Entry No.", Header."E-Document Entry No.");
+        if EDocSalesLine.FindSet() then
+            repeat
+                Header."Sub Total" += EDocSalesLine."Line Extension Amount";
+            until EDocSalesLine.Next() = 0;
+        Header.Total := Header."Sub Total" + Header."Total VAT";
+    end;
+
+    #endregion Sales Order Header
+
+    #region Sales Order Lines
+
+    local procedure InsertSalesOrderLines(EDocumentEntryNo: Integer; PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager)
+    var
+        EDocSalesLine: Record "E-Document Sales Line";
+        OrderLineNodes: XmlNodeList;
+        OrderLineNode: XmlNode;
+        LineItemXML: XmlDocument;
+        i: Integer;
+    begin
+        if not PeppolXML.SelectNodes('/order:Order/cac:OrderLine/cac:LineItem', XmlNamespaces, OrderLineNodes) then
+            exit;
+
+        for i := 1 to OrderLineNodes.Count do begin
+            Clear(EDocSalesLine);
+            EDocSalesLine.Validate("E-Document Entry No.", EDocumentEntryNo);
+            EDocSalesLine."Line No." := EDocSalesLine.GetNextLineNo(EDocumentEntryNo);
+            OrderLineNodes.Get(i, OrderLineNode);
+            LineItemXML.ReplaceNodes(OrderLineNode);
+            PopulateSalesLine(LineItemXML, XmlNamespaces, EDocSalesLine);
+            EDocSalesLine.Insert();
+        end;
+    end;
+
+    local procedure PopulateSalesLine(LineItemXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Line: Record "E-Document Sales Line")
+    var
+        AllowanceNodes: XmlNodeList;
+        AllowanceNode: XmlNode;
+        AllowanceXML: XmlDocument;
+        AllowanceIndicator: Text;
+        AllowanceAmount: Decimal;
+        Value: Text;
+        i: Integer;
+    begin
+        if PeppolUtility.TryGetStringValue(LineItemXML, XmlNamespaces, 'cac:LineItem/cbc:ID', Value) then
+            Line."External Line Id" := CopyStr(Value, 1, MaxStrLen(Line."External Line Id"));
+
+        PeppolUtility.SetNumberValueInField(LineItemXML, XmlNamespaces, 'cac:LineItem/cbc:Quantity', Line.Quantity);
+        if PeppolUtility.TryGetStringValue(LineItemXML, XmlNamespaces, 'cac:LineItem/cbc:Quantity/@unitCode', Value) then
+            Line."Unit of Measure" := CopyStr(Value, 1, MaxStrLen(Line."Unit of Measure"));
+
+        PeppolUtility.SetNumberValueInField(LineItemXML, XmlNamespaces, 'cac:LineItem/cbc:LineExtensionAmount', Line."Line Extension Amount");
+        PeppolUtility.SetNumberValueInField(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:Price/cbc:PriceAmount', Line."Unit Price");
+
+        if PeppolUtility.TryGetStringValue(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:Item/cbc:Name', Value) then
+            Line.Description := CopyStr(Value, 1, MaxStrLen(Line.Description));
+        if Line.Description = '' then
+            if PeppolUtility.TryGetStringValue(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:Item/cbc:Description', Value) then
+                Line.Description := CopyStr(Value, 1, MaxStrLen(Line.Description));
+
+        if PeppolUtility.TryGetStringValue(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:Item/cac:SellersItemIdentification/cbc:ID', Value) then
+            Line."Seller Item Id" := CopyStr(Value, 1, MaxStrLen(Line."Seller Item Id"));
+        if PeppolUtility.TryGetStringValue(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:Item/cac:BuyersItemIdentification/cbc:ID', Value) then
+            Line."Buyer Item Id" := CopyStr(Value, 1, MaxStrLen(Line."Buyer Item Id"));
+        if PeppolUtility.TryGetStringValue(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:Item/cac:StandardItemIdentification/cbc:ID', Value) then
+            Line."Standard Item Id" := CopyStr(Value, 1, MaxStrLen(Line."Standard Item Id"));
+
+        PeppolUtility.SetNumberValueInField(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent', Line."VAT Rate");
+
+        if LineItemXML.SelectNodes('cac:LineItem/cac:AllowanceCharge', XmlNamespaces, AllowanceNodes) then
+            for i := 1 to AllowanceNodes.Count do begin
+                AllowanceAmount := 0;
+                AllowanceNodes.Get(i, AllowanceNode);
+                AllowanceXML.ReplaceNodes(AllowanceNode);
+                if PeppolUtility.TryGetStringValue(AllowanceXML, XmlNamespaces, 'cac:AllowanceCharge/cbc:ChargeIndicator', AllowanceIndicator) then
+                    if UpperCase(AllowanceIndicator) = 'FALSE' then begin
+                        PeppolUtility.SetNumberValueInField(AllowanceXML, XmlNamespaces, 'cac:AllowanceCharge/cbc:Amount', AllowanceAmount);
+                        Line."Line Discount Amount" += AllowanceAmount;
+                    end;
+            end;
+
+        if PeppolUtility.TryGetStringValue(LineItemXML, XmlNamespaces, 'cac:LineItem/cbc:LineExtensionAmount/@currencyID', Value) then
+            PeppolUtility.SetCurrencyIfForeign(Value, Line."Currency Code");
+
+        PeppolUtility.SetDateValueInField(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:StartDate', Line."Requested Delivery Date");
+    end;
+
+    #endregion Sales Order Lines
+
+    #region Purchase Line Orchestration
 
     local procedure InsertPurchaseLines(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; EDocumentEntryNo: Integer; LineXPath: Text; LineElementName: Text; QuantityElementName: Text)
     var
@@ -192,7 +432,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         EDocumentPurchaseLine.Insert();
     end;
 
-    #endregion Line Orchestration
+    #endregion Purchase Line Orchestration
 
     #region Attachment Orchestration
 
