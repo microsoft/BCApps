@@ -224,6 +224,7 @@ table 6101 "E-Document Purchase Line"
             begin
                 if "[BC] VAT Prod. Posting Group" = '' then begin
                     "[BC] VAT Rate Mismatch" := true;
+                    LogVATRateMismatch();
                     exit;
                 end;
                 if not EDocumentPurchaseHeader.Get("E-Document Entry No.") then
@@ -239,6 +240,7 @@ table 6101 "E-Document Purchase Line"
                     "[BC] VAT Rate Mismatch" := VATPostingSetup."VAT %" <> "VAT Rate";
                 end else
                     "[BC] VAT Rate Mismatch" := true;
+                LogVATRateMismatch();
             end;
 
             trigger OnLookup()
