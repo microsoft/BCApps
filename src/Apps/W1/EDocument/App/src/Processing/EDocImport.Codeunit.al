@@ -970,7 +970,7 @@ codeunit 6140 "E-Doc. Import"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeLogErrorIfItemNotFound(var EDocument: Record "E-Document"; var SourceDocumentLine: RecordRef; EDocService: Record "E-Document Service"; var ItemFound: Boolean)
+    local procedure OnBeforeLogErrorIfItemNotFound(EDocument: Record "E-Document"; SourceDocumentLine: RecordRef; EDocService: Record "E-Document Service"; var ItemFound: Boolean)
     begin
     end;
 

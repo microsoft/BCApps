@@ -1698,7 +1698,7 @@ codeunit 139628 "E-Doc. Receive Test"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", 'OnBeforeLogErrorIfItemNotFound', '', false, false)]
-    local procedure CaptureOnBeforeLogErrorIfItemNotFound(var EDocument: Record "E-Document"; var SourceDocumentLine: RecordRef; EDocService: Record "E-Document Service"; var ItemFound: Boolean)
+    local procedure CaptureOnBeforeLogErrorIfItemNotFound(EDocument: Record "E-Document"; SourceDocumentLine: RecordRef; EDocService: Record "E-Document Service"; var ItemFound: Boolean)
     begin
         OnBeforeLogErrorIfItemNotFoundCount += 1;
         LastItemFoundOnEntry := ItemFound;
