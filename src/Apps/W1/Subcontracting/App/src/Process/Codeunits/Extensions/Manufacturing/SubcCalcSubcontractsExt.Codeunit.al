@@ -16,10 +16,11 @@ codeunit 99001529 "Subc. Calc Subcontracts Ext."
     var
         WorkCenter: Record "Work Center";
     begin
-        RequisitionLine."Description 2" := '';
-        WorkCenter.SetLoadFields("Name 2");
-        if WorkCenter.Get(ProdOrderRoutingLine."Work Center No.") then
-            RequisitionLine."Description 2" := WorkCenter."Name 2";
+        if RequisitionLine."Description 2" = '' then begin
+            WorkCenter.SetLoadFields("Name 2");
+            if WorkCenter.Get(ProdOrderRoutingLine."Work Center No.") then
+                RequisitionLine."Description 2" := WorkCenter."Name 2";
+        end;
 
         RequisitionLine.Validate("Standard Task Code", ProdOrderRoutingLine."Standard Task Code");
     end;
