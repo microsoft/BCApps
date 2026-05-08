@@ -2889,29 +2889,20 @@ End Function
         <Field Name="COAContact_All">
           <DataField>COAContact_All</DataField>
         </Field>
+        <Field Name="ReinspectionSequenceInformation">
+          <DataField>ReinspectionSequenceInformation</DataField>
+        </Field>
+        <Field Name="InspectionInformation">
+          <DataField>InspectionInformation</DataField>
+        </Field>
         <Field Name="ItemDescription">
           <DataField>ItemDescription</DataField>
         </Field>
         <Field Name="ItemTrackingDescription">
           <DataField>ItemTrackingDescription</DataField>
         </Field>
-        <Field Name="InspectionDescription">
-          <DataField>InspectionDescription</DataField>
-        </Field>
-        <Field Name="FinishedBySignatureLabel">
-          <DataField>FinishedBySignatureLabel</DataField>
-        </Field>
-        <Field Name="FinishedByNameLabel">
-          <DataField>FinishedByNameLabel</DataField>
-        </Field>
-        <Field Name="ApproverSignatureLabel">
-          <DataField>ApproverSignatureLabel</DataField>
-        </Field>
-        <Field Name="ApproverNameLabel">
-          <DataField>ApproverNameLabel</DataField>
-        </Field>
-        <Field Name="FinishedDateOnly">
-          <DataField>FinishedDateOnly</DataField>
+        <Field Name="CompanyLogo">
+          <DataField>CompanyLogo</DataField>
         </Field>
         <Field Name="HomePageLabel">
           <DataField>HomePageLabel</DataField>
@@ -2931,8 +2922,20 @@ End Function
         <Field Name="PhoneNoValue">
           <DataField>PhoneNoValue</DataField>
         </Field>
-        <Field Name="CompanyLogo">
-          <DataField>CompanyLogo</DataField>
+        <Field Name="FinishedBySignatureLabel">
+          <DataField>FinishedBySignatureLabel</DataField>
+        </Field>
+        <Field Name="FinishedByNameLabel">
+          <DataField>FinishedByNameLabel</DataField>
+        </Field>
+        <Field Name="ApproverSignatureLabel">
+          <DataField>ApproverSignatureLabel</DataField>
+        </Field>
+        <Field Name="ApproverNameLabel">
+          <DataField>ApproverNameLabel</DataField>
+        </Field>
+        <Field Name="FinishedDateOnly">
+          <DataField>FinishedDateOnly</DataField>
         </Field>
         <Field Name="Field_Code">
           <DataField>Field_Code</DataField>

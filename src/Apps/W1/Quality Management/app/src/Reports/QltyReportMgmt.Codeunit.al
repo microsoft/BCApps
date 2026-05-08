@@ -118,7 +118,7 @@ codeunit 20440 "Qlty. Report Mgmt."
         exit(Result.ToText());
     end;
 
-    internal procedure BuildItemDescriptionText(ItemNo: Text; VariantCode: Text; InspectionDescription: Text): Text
+    internal procedure BuildItemDescriptionText(ItemNo: Text; VariantCode: Text; Description: Text): Text
     var
         Result: TextBuilder;
         NewLine: Text[1];
@@ -134,36 +134,38 @@ codeunit 20440 "Qlty. Report Mgmt."
             Result.Append(VariantCode);
         end;
 
-        if InspectionDescription <> '' then begin
+        if Description <> '' then begin
             if Result.Length() > 0 then
                 Result.Append(NewLine);
-            Result.Append(InspectionDescription);
+            Result.Append(Description);
         end;
 
         exit(Result.ToText());
     end;
 
-    internal procedure BuildInspectionInformationText(ReinspectionNo: Integer; Status: Text; ResultDescription: Text): Text
+    internal procedure BuildReinspectionSequenceInformationText(ReinspectionNo: Integer): Text
+    var
+        NewLine: Text[1];
+    begin
+        NewLine[1] := 10;
+
+        if ReinspectionNo <> 0 then
+            exit(NewLine + StrSubstNo(ReinspectionSequenceLbl, Format(ReinspectionNo)));
+
+        exit('');
+    end;
+
+    internal procedure BuildInspectionInformationText(Status: Text; ResultDescription: Text): Text
     var
         Result: TextBuilder;
         NewLine: Text[1];
     begin
         NewLine[1] := 10;
 
-        if ReinspectionNo <> 0 then
-            Result.Append(StrSubstNo(ReinspectionSequenceLbl, Format(ReinspectionNo)))
-        else
-            Result.Append(NewLine);
-
-        if Status <> '' then begin
-            if Result.Length() > 0 then
-                Result.Append(NewLine);
-            Result.Append(StrSubstNo(StatusLbl, Status));
-        end;
+        Result.Append(StrSubstNo(StatusLbl, Status));
 
         if ResultDescription <> '' then begin
-            if Result.Length() > 0 then
-                Result.Append(NewLine);
+            Result.Append(NewLine);
             Result.Append(StrSubstNo(ResultLbl, ResultDescription));
         end;
 

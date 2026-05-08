@@ -84,23 +84,23 @@ report 20401 "Qlty. Certificate of Analysis"
             column(COAContact_All; AllContactInformation) { }
 
             // Pre-calculated columns for Word Layout
+            column(ReinspectionSequenceInformation; QltyReportMgmt.BuildReinspectionSequenceInformationText(CurrentInspection."Re-inspection No.")) { }
+            column(InspectionInformation; QltyReportMgmt.BuildInspectionInformationText(Format(CurrentInspection.Status), CurrentInspection."Result Description")) { }
             column(ItemDescription; ItemDescriptionText) { }
             column(ItemTrackingDescription; ItemTrackingText) { }
-            column(InspectionDescription; QltyReportMgmt.BuildInspectionInformationText(Format(CurrentInspection.Status), CurrentInspection."Result Description")) { }
 
             // Pre-calculated label columns for Word Layout
-            column(FinishedBySignatureLabel; FinishedBySignatureLbl) { }
-            column(FinishedByNameLabel; FinishedByNameLbl) { }
-            column(ApproverSignatureLabel; ApproverSignatureLbl) { }
-            column(ApproverNameLabel; ApproverNameLbl) { }
-            column(FinishedDateOnly; FinishedDateOnly) { }
+            column(CompanyLogo; CompanyInformation.Picture) { }
             column(HomePageLabel; HomePageLabelText) { }
             column(HomePageValue; HomePageValueText) { }
             column(EmailLabel; EmailLabelText) { }
             column(EmailValue; EmailValueText) { }
             column(PhoneNoLabel; PhoneNoLabelText) { }
             column(PhoneNoValue; PhoneNoValueText) { }
-            column(CompanyLogo; CompanyInformation.Picture) { }
+            column(FinishedBySignatureLabel; FinishedBySignatureLbl) { }
+            column(FinishedByNameLabel; FinishedByNameLbl) { }
+            column(ApproverSignatureLabel; ApproverSignatureLbl) { }
+            column(ApproverNameLabel; ApproverNameLbl) { }
 
             dataitem(CurrentInspectionLine; "Qlty. Inspection Line")
             {
@@ -165,6 +165,7 @@ report 20401 "Qlty. Certificate of Analysis"
                 // Pre-calculated columns for Word Layout
                 column(WordDescription; WordDescription) { }
                 column(WordResultDescription; WordResultDescription) { }
+                column(WordUnfavorableResultDescription; WordUnfavorableResultDescription) { }
 
                 // Pre-calculated condition label columns for Word Layout
                 column(ConditionLabel_1; ConditionLabelText1) { }
@@ -244,9 +245,14 @@ report 20401 "Qlty. Certificate of Analysis"
                         ConditionLabelText2 := '';
 
                     // Word columns: empty for labels, populated for normal and person fields
+                    WordUnfavorableResultDescription := '';
                     if not FieldIsLabel then begin
                         WordDescription := CurrentInspectionLine.Description;
                         WordResultDescription := ResultDescription;
+                        if CurrentInspectionLine.GetResultStyle() = 'Unfavorable' then begin
+                            WordUnfavorableResultDescription := WordResultDescription;
+                            WordResultDescription := '';
+                        end;
                     end else begin
                         WordDescription := '';
                         WordResultDescription := '';
@@ -316,8 +322,6 @@ report 20401 "Qlty. Certificate of Analysis"
                         FinishedByTitle := DefaultQualityInspectorTitleLbl;
                 end;
 
-                FinishedDateOnly := DT2Date(CurrentInspection."Finished Date");
-
                 // Resolve Finished By Signature Label
                 FinishedBySignatureLbl := FinishedByTitle + ' ' + SignatureSuffixLbl;
                 // Resolve Finished By Name
@@ -350,18 +354,18 @@ report 20401 "Qlty. Certificate of Analysis"
 
     labels
     {
-        TestDocumentNoLabel = 'Test Document No.';
-        MetricLabel = 'Metric';
-        MeasurementLabel = 'Measurement';
+        PageLabel = 'Page';
+        ReportTitleLabel = 'Certificate of Analysis';
         ItemLabel = 'Item';
         ItemTrackingLabel = 'Item Tracking';
-        DateLabel = 'Date';
-        CompletedByLabel = 'Completed by';
-        CompletedDateLabel = 'Completed on';
-        ReportTitleLabel = 'Certificate of Analysis';
+        FinishedByLabel = 'Finished by';
+        FinishedOnLabel = 'Finished on';
+        TestLabel = 'Test';
+        TestValueLabel = 'Test Value';
         ResultLabel = 'Result';
         ConditionLabel = 'Condition';
         InspectionLabel = 'Inspection';
+        DateLabel = 'Date';
     }
 
     var
@@ -404,14 +408,13 @@ report 20401 "Qlty. Certificate of Analysis"
         LabelFieldDescription: Text;
         TestValueText: Text;
         WordDescription: Text;
-        WordResultDescription: Text;
+        WordResultDescription, WordUnfavorableResultDescription : Text;
         ItemDescriptionText: Text;
         ItemTrackingText: Text;
         FinishedBySignatureLbl: Text;
         FinishedByNameLbl: Text;
         ApproverSignatureLbl: Text;
         ApproverNameLbl: Text;
-        FinishedDateOnly: Date;
         HomePageLabelText: Text;
         HomePageValueText: Text;
         EmailLabelText: Text;

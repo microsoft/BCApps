@@ -85,23 +85,24 @@ report 20405 "Qlty. General Purpose Inspect."
             column(COAContact_All; AllContactInformation) { }
 
             // Pre-calculated columns for Word Layout
+            column(ReinspectionSequenceInformation; QltyReportMgmt.BuildReinspectionSequenceInformationText(CurrentInspection."Re-inspection No.")) { }
+            column(InspectionInformation; QltyReportMgmt.BuildInspectionInformationText(Format(CurrentInspection.Status), CurrentInspection."Result Description")) { }
             column(ItemDescription; ItemDescriptionText) { }
             column(ItemTrackingDescription; ItemTrackingText) { }
-            column(ReinspectionDescription; InspectionInformationText) { }
 
             // Pre-calculated label columns for Word Layout
-            column(FinishedBySignatureLabel; FinishedBySignatureLbl) { }
-            column(FinishedByNameLabel; FinishedByNameLbl) { }
-            column(ApproverSignatureLabel; ApproverSignatureLbl) { }
-            column(ApproverNameLabel; ApproverNameLbl) { }
-            column(FinishedDateOnly; FinishedDateOnly) { }
+            column(CompanyLogo; CompanyInformation.Picture) { }
             column(HomePageLabel; HomePageLabelText) { }
             column(HomePageValue; HomePageValueText) { }
             column(EmailLabel; EmailLabelText) { }
             column(EmailValue; EmailValueText) { }
             column(PhoneNoLabel; PhoneNoLabelText) { }
             column(PhoneNoValue; PhoneNoValueText) { }
-            column(CompanyLogo; CompanyInformation.Picture) { }
+            column(FinishedBySignatureLabel; FinishedBySignatureLbl) { }
+            column(FinishedByNameLabel; FinishedByNameLbl) { }
+            column(ApproverSignatureLabel; ApproverSignatureLbl) { }
+            column(ApproverNameLabel; ApproverNameLbl) { }
+            column(FinishedDateOnly; FinishedDateOnly) { }
 
             dataitem(CurrentInspectionLine; "Qlty. Inspection Line")
             {
@@ -366,9 +367,6 @@ report 20405 "Qlty. General Purpose Inspect."
 
                 FinishedDateOnly := DT2Date(CurrentInspection."Finished Date");
 
-                // Resolve Sequence
-                InspectionInformationText := QltyReportMgmt.BuildInspectionInformationText(CurrentInspection."Re-inspection No.", Format(CurrentInspection.Status), CurrentInspection."Result Description");
-
                 // Resolve Finished By Signature Label
                 FinishedBySignatureLbl := FinishedByTitle + ' ' + SignatureSuffixLbl;
                 // Resolve Finished By Name
@@ -463,7 +461,6 @@ report 20405 "Qlty. General Purpose Inspect."
         FinishedByNameLbl: Text;
         ApproverSignatureLbl: Text;
         ApproverNameLbl: Text;
-        InspectionInformationText: Text;
         FinishedDateOnly: Date;
         HomePageLabelText: Text;
         HomePageValueText: Text;

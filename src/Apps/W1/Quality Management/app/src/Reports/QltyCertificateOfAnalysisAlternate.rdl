@@ -2332,32 +2332,23 @@
     </ReportSection>
   </ReportSections>
   <ReportParameters>
-    <ReportParameter Name="TestDocumentNoLabel">
+    <ReportParameter Name="PageLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>TestDocumentNoLabel</Value>
+          <Value>PageLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>TestDocumentNoLabel</Prompt>
+      <Prompt>PageLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="MetricLabel">
+    <ReportParameter Name="ReportTitleLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>MetricLabel</Value>
+          <Value>ReportTitleLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>MetricLabel</Prompt>
-    </ReportParameter>
-    <ReportParameter Name="MeasurementLabel">
-      <DataType>String</DataType>
-      <DefaultValue>
-        <Values>
-          <Value>MeasurementLabel</Value>
-        </Values>
-      </DefaultValue>
-      <Prompt>MeasurementLabel</Prompt>
+      <Prompt>ReportTitleLabel</Prompt>
     </ReportParameter>
     <ReportParameter Name="ItemLabel">
       <DataType>String</DataType>
@@ -2377,41 +2368,41 @@
       </DefaultValue>
       <Prompt>ItemTrackingLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="DateLabel">
+    <ReportParameter Name="FinishedByLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>DateLabel</Value>
+          <Value>FinishedByLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>DateLabel</Prompt>
+      <Prompt>FinishedByLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="CompletedByLabel">
+    <ReportParameter Name="FinishedOnLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>CompletedByLabel</Value>
+          <Value>FinishedOnLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>CompletedByLabel</Prompt>
+      <Prompt>FinishedOnLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="CompletedDateLabel">
+    <ReportParameter Name="TestLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>CompletedDateLabel</Value>
+          <Value>TestLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>CompletedDateLabel</Prompt>
+      <Prompt>TestLabel</Prompt>
     </ReportParameter>
-    <ReportParameter Name="ReportTitleLabel">
+    <ReportParameter Name="TestValueLabel">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>ReportTitleLabel</Value>
+          <Value>TestValueLabel</Value>
         </Values>
       </DefaultValue>
-      <Prompt>ReportTitleLabel</Prompt>
+      <Prompt>TestValueLabel</Prompt>
     </ReportParameter>
     <ReportParameter Name="ResultLabel">
       <DataType>String</DataType>
@@ -2439,6 +2430,15 @@
         </Values>
       </DefaultValue>
       <Prompt>InspectionLabel</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DateLabel">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DateLabel</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DateLabel</Prompt>
     </ReportParameter>
   </ReportParameters>
   <Code>Public Function BlankZero(ByVal Value As Decimal)
@@ -2645,29 +2645,20 @@ End Function
         <Field Name="COAContact_All">
           <DataField>COAContact_All</DataField>
         </Field>
+        <Field Name="ReinspectionSequenceInformation">
+          <DataField>ReinspectionSequenceInformation</DataField>
+        </Field>
+        <Field Name="InspectionInformation">
+          <DataField>InspectionInformation</DataField>
+        </Field>
         <Field Name="ItemDescription">
           <DataField>ItemDescription</DataField>
         </Field>
         <Field Name="ItemTrackingDescription">
           <DataField>ItemTrackingDescription</DataField>
         </Field>
-        <Field Name="InspectionDescription">
-          <DataField>InspectionDescription</DataField>
-        </Field>
-        <Field Name="FinishedBySignatureLabel">
-          <DataField>FinishedBySignatureLabel</DataField>
-        </Field>
-        <Field Name="FinishedByNameLabel">
-          <DataField>FinishedByNameLabel</DataField>
-        </Field>
-        <Field Name="ApproverSignatureLabel">
-          <DataField>ApproverSignatureLabel</DataField>
-        </Field>
-        <Field Name="ApproverNameLabel">
-          <DataField>ApproverNameLabel</DataField>
-        </Field>
-        <Field Name="FinishedDateOnly">
-          <DataField>FinishedDateOnly</DataField>
+        <Field Name="CompanyLogo">
+          <DataField>CompanyLogo</DataField>
         </Field>
         <Field Name="HomePageLabel">
           <DataField>HomePageLabel</DataField>
@@ -2687,8 +2678,17 @@ End Function
         <Field Name="PhoneNoValue">
           <DataField>PhoneNoValue</DataField>
         </Field>
-        <Field Name="CompanyLogo">
-          <DataField>CompanyLogo</DataField>
+        <Field Name="FinishedBySignatureLabel">
+          <DataField>FinishedBySignatureLabel</DataField>
+        </Field>
+        <Field Name="FinishedByNameLabel">
+          <DataField>FinishedByNameLabel</DataField>
+        </Field>
+        <Field Name="ApproverSignatureLabel">
+          <DataField>ApproverSignatureLabel</DataField>
+        </Field>
+        <Field Name="ApproverNameLabel">
+          <DataField>ApproverNameLabel</DataField>
         </Field>
         <Field Name="Field_Code">
           <DataField>Field_Code</DataField>
@@ -2857,6 +2857,9 @@ End Function
         </Field>
         <Field Name="WordResultDescription">
           <DataField>WordResultDescription</DataField>
+        </Field>
+        <Field Name="WordUnfavorableResultDescription">
+          <DataField>WordUnfavorableResultDescription</DataField>
         </Field>
         <Field Name="ConditionLabel_1">
           <DataField>ConditionLabel_1</DataField>
