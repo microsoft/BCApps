@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+using Microsoft.Purchases.Vendor;
+
 page 686 "Payment Practice Data List"
 {
     ApplicationArea = All;
@@ -55,6 +57,16 @@ page 686 "Payment Practice Data List"
                 {
                     ToolTip = 'Specifies the company size code of the vendor that is the source for this entry.';
                 }
+                field(SmallBusiness; IsSmallBusiness)
+                {
+                    Caption = 'Small Business';
+                    ToolTip = 'Specifies whether the vendor is classified as a small business.';
+                }
+                field(PeppolEnabled; IsPeppolEnabled)
+                {
+                    Caption = 'PEPPOL Enabled';
+                    ToolTip = 'Specifies whether the vendor has a GLN and is PEPPOL enabled.';
+                }
                 field("Agreed Payment Days"; Rec."Agreed Payment Days")
                 {
                     ToolTip = 'Specifies the number of days that was the agreed period for payment for the invoice.';
@@ -80,4 +92,22 @@ page 686 "Payment Practice Data List"
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    var
+        CompanySize: Record "Company Size";
+        Vendor: Record Vendor;
+    begin
+        IsSmallBusiness := false;
+        if CompanySize.Get(Rec."Company Size Code") then
+            IsSmallBusiness := CompanySize."Small Business";
+
+        IsPeppolEnabled := false;
+        if Vendor.Get(Rec."CV No.") then
+            IsPeppolEnabled := Vendor.GLN <> '';
+    end;
+
+    var
+        IsSmallBusiness: Boolean;
+        IsPeppolEnabled: Boolean;
 }

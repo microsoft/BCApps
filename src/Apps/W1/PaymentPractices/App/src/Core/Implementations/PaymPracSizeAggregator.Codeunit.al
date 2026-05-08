@@ -15,8 +15,9 @@ codeunit 686 "Paym. Prac. Size Aggregator" implements PaymentPracticeLinesAggreg
         PaymentPracticeMath: Codeunit "Payment Practice Math";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         WrongHeaderTypeErr: Label 'Payment Practice Header Type must be Vendor for this aggregation type.';
+        WrongHeaderAggErr: Label 'Payment Practice Aggregation Type must be Period for the Small Business reporting scheme.';
 
-    procedure PrepareLayout();
+    procedure PrepareLayout(ReportingScheme: Enum "Paym. Prac. Reporting Scheme");
     var
         DesignTimeReportSelection: Codeunit "Design-time Report Selection";
     begin
@@ -60,5 +61,7 @@ codeunit 686 "Paym. Prac. Size Aggregator" implements PaymentPracticeLinesAggreg
     begin
         if PaymentPracticeHeader."Header Type" in [PaymentPracticeHeader."Header Type"::Customer, PaymentPracticeHeader."Header Type"::"Vendor+Customer"] then
             Error(WrongHeaderTypeErr);
+        if PaymentPracticeHeader."Aggregation Type" = PaymentPracticeHeader."Aggregation Type"::"Company Size" then
+            Error(WrongHeaderAggErr);
     end;
 }

@@ -53,12 +53,18 @@ codeunit 134196 "Payment Practices Library"
     end;
 
     procedure CreateCompanySizeCode(): Code[20]
+    begin
+        exit(CreateCompanySizeCode(false));
+    end;
+
+    procedure CreateCompanySizeCode(IsSmallBusiness: Boolean): Code[20]
     var
         CompanySize: Record "Company Size";
     begin
         CompanySize.Init();
         CompanySize.Code := LibraryUtility.GenerateGUID();
         CompanySize.Description := CompanySize.Code;
+        CompanySize."Small Business" := IsSmallBusiness;
         CompanySize.Insert();
         exit(CompanySize.Code);
     end;
@@ -178,7 +184,6 @@ codeunit 134196 "Payment Practices Library"
         PaymentPracticeData.DeleteAll();
         PaymentPracticeHeader.DeleteAll();
     end;
-
 
     procedure CreatePaymentPracticeHeaderWithScheme(var PaymentPracticeHeader: Record "Payment Practice Header"; HeaderType: Enum "Paym. Prac. Header Type"; AggregationType: Enum "Paym. Prac. Aggregation Type"; ReportingScheme: Enum "Paym. Prac. Reporting Scheme")
     begin
