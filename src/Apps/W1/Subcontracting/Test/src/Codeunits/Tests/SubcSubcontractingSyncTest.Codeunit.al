@@ -440,7 +440,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
         ManufacturingSetup.Get();
-        ManufacturingSetup."Subc. Comp. at Location" := CompAtLocation;
+        ManufacturingSetup."Subc. Default Comp. Location" := CompAtLocation;
         ManufacturingSetup.Modify();
     end;
 

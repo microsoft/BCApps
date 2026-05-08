@@ -26,7 +26,6 @@ codeunit 99001503 "Subcontracting Comp. Init."
         if not CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup(ManufacturingSetup) then
             exit;
 
-        ManufacturingSetup."Direct Transfer" := true;
         ManufacturingSetup."Create Prod. Order Info Line" := true;
         Evaluate(ManufacturingSetup."Subc. Inb. Whse. Handling Time", GetDefaultInboundWhseHandlingTime());
         ManufacturingSetup.Modify(true);

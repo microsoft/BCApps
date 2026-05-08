@@ -59,7 +59,7 @@ codeunit 139988 "Subc. Setup Library"
         end;
 
         ManufacturingSetup."Rtng. Link Code Purch. Prov." := RoutingLink."Code";
-        ManufacturingSetup."Subc. Comp. at Location" := ManufacturingSetup."Subc. Comp. at Location"::Purchase;
+        ManufacturingSetup."Subc. Default Comp. Location" := ManufacturingSetup."Subc. Default Comp. Location"::Purchase;
         ManufacturingSetup.Modify();
     end;
 
