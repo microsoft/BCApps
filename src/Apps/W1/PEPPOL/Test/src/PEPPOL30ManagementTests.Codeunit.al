@@ -3349,6 +3349,68 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Assert.AreEqual('', CustTaxSchemeID, 'Tax Scheme ID should be empty for Tax Category O.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure LineAmountsConsistentWhenPricesInclVATNoDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
+        InvoiceLineID: Text;
+        InvoiceLineNote: Text;
+        InvoicedQuantity: Text;
+        InvoiceLineExtensionAmount: Text;
+        LineExtensionAmountCurrencyID: Text;
+        InvoiceLineAccountingCost: Text;
+        InvoiceLinePriceAmount: Text;
+        InvLinePriceAmountCurrencyID: Text;
+        BaseQuantity: Text;
+        UnitCode: Text;
+        PriceAmount: Decimal;
+        LineExtensionAmt: Decimal;
+        SalesInvoiceNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 630795] PEPPOL LineExtensionAmount equals PriceAmount times Quantity when Prices Including VAT is used
+        Initialize();
+
+        // [GIVEN] Customer "C" with PEPPOL identifier
+        LibrarySales.CreateCustomer(Customer);
+        AddCustPEPPOLIdentifier(Customer."No.");
+
+        // [GIVEN] Sales Invoice for "C" with "Prices Including VAT" = TRUE and Quantity = 7
+        CreateItemWithPrice(Item, 139);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 7);
+
+        // [WHEN] Post the Sales Invoice and retrieve PEPPOL line amounts
+        SalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceHeader.Get(SalesInvoiceNo);
+        SalesHeader.TransferFields(SalesInvoiceHeader);
+        FindSalesInvoiceLine(SalesInvoiceLine, SalesInvoiceNo);
+        SalesLine.TransferFields(SalesInvoiceLine);
+
+        PEPPOLLineInfoProvider := GetFormat();
+        PEPPOLLineInfoProvider.GetLineGeneralInfo(
+          SalesLine, SalesHeader, InvoiceLineID, InvoiceLineNote, InvoicedQuantity,
+          InvoiceLineExtensionAmount, LineExtensionAmountCurrencyID, InvoiceLineAccountingCost);
+        PEPPOLLineInfoProvider.GetLinePriceInfo(
+          SalesLine, SalesHeader, InvoiceLinePriceAmount, InvLinePriceAmountCurrencyID,
+          BaseQuantity, UnitCode);
+
+        // [THEN] LineExtensionAmount equals PriceAmount times Quantity per PEPPOL BIS 3.0
+        Evaluate(PriceAmount, InvoiceLinePriceAmount, 9);
+        Evaluate(LineExtensionAmt, InvoiceLineExtensionAmount, 9);
+        Assert.AreEqual(PriceAmount * SalesInvoiceLine.Quantity, LineExtensionAmt,
+          'LineExtensionAmount must equal PriceAmount * Quantity per PEPPOL BIS 3.0');
+    end;
+
     var
     local procedure Initialize()
     var
@@ -3993,6 +4055,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Assert.AreEqual(UnitOfMeasure."International Standard Code", unitCode, '');
         Assert.AreEqual('UNECERec20', unitCodeListID, '');
         SalesInvoiceLineLineAmount := SalesInvoiceLine."Line Amount";
+        if SalesHeader."Prices Including VAT" and (SalesLine."VAT %" <> 0) then
+            SalesInvoiceLineLineAmount := Round(SalesInvoiceLineLineAmount / (1 + SalesLine."VAT %" / 100), 0.01);
         Assert.AreEqual(Format(SalesInvoiceLineLineAmount, 0, 9), InvoiceLineExtensionAmount, '');
         Assert.AreEqual(SalesHeader."Currency Code", LineExtensionAmountCurrencyID, '');
         Assert.AreEqual('', InvoiceLineAccountingCost, '');
