@@ -11,6 +11,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
+using Microsoft.Purchases.Setup;
 
 /// <summary>
 /// Shared logic for creating BC purchase documents (invoices and credit memos) from e-document draft data.
@@ -167,5 +168,17 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
 
         Clear(PurchaseHeader."E-Document Link");
         PurchaseHeader.Modify();
+    end;
+
+    procedure ApplyDefaultPostingDateFromSetup(var PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.GetRecordOnce();
+        if (PurchasesPayablesSetup."E-Doc. Def. Posting Date" <> PurchasesPayablesSetup."E-Doc. Def. Posting Date"::"Document Date") then
+            exit;
+        if EDocumentPurchaseHeader."Document Date" = 0D then
+            exit;
+        PurchaseHeader.Validate("Posting Date", EDocumentPurchaseHeader."Document Date");
     end;
 }
