@@ -12,13 +12,13 @@ pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
     {
         addlast(Control1)
         {
-            field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
+            field("Subc. Purch. Order No."; Rec."Subc. Purch. Order No.")
             {
                 ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the number of the related purchase order.';
                 Visible = false;
             }
-            field("Subcontr. PO Line No."; Rec."Subcontr. PO Line No.")
+            field("Subc. Purch. Order Line No."; Rec."Subc. Purch. Order Line No.")
             {
                 ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the number of the related purchase order line.';

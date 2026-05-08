@@ -19,7 +19,7 @@ tableextension 99001509 "Subc. Purchase Header" extends "Purchase Header"
             TableRelation = Location where("Use As In-Transit" = const(false));
             ToolTip = 'Specifies the code for the location where the subcontracted items are stored for pickup and delivery.';
         }
-        field(99001521; "Subcontracting Order"; Boolean)
+        field(99001521; "Subc. Order"; Boolean)
         {
             CalcFormula = exist("Purchase Line" where("Document Type" = const(Order),
                                                        "Document No." = field("No."),

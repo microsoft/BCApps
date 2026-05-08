@@ -48,9 +48,9 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         if not GetPurchaseOrderNoByVariant(RecRelatedVariant, PurchOrderNo, PurchOrderLineNo) then
             exit(0);
 
-        TransferLine.SetCurrentKey("Subcontr. Purch. Order No.");
-        TransferLine.SetRange("Subcontr. Purch. Order No.", PurchOrderNo);
-        TransferLine.SetRange("Subcontr. PO Line No.", PurchOrderLineNo);
+        TransferLine.SetCurrentKey("Subc. Purch. Order No.");
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
+        TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
         exit(TransferLine.Count());
     end;
 
@@ -100,11 +100,11 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         if not GetPurchaseOrderNoByVariant(RecRelatedVariant, PurchOrderNo, PurchOrderLineNo) then
             exit('');
 
-        TransferLine.SetCurrentKey("Subcontr. Purch. Order No.");
-        TransferLine.SetRange("Subcontr. Purch. Order No.", PurchOrderNo);
-        TransferLine.SetRange("Subcontr. PO Line No.", PurchOrderLineNo);
-        TransferLine.SetFilter("Operation No.", '%1', '');
-        TransferLine.SetFilter("Routing No.", '%1', '');
+        TransferLine.SetCurrentKey("Subc. Purch. Order No.");
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
+        TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
+        TransferLine.SetFilter("Subc. Operation No.", '%1', '');
+        TransferLine.SetFilter("Subc. Routing No.", '%1', '');
         TransferLine.SetLoadFields(SystemId);
         if TransferLine.IsEmpty() then
             exit('');
@@ -196,11 +196,11 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
                 end;
         end;
 
-        TransferLine.SetCurrentKey("Subcontr. Purch. Order No.", "Prod. Order No.", "Prod. Order Line No.", "Operation No.");
-        TransferLine.SetRange("Subcontr. Purch. Order No.", PurchOrderNo);
-        TransferLine.SetRange("Prod. Order No.", ProdOrderNo);
-        TransferLine.SetRange("Prod. Order Line No.", ProdOrderLineNo);
-        TransferLine.SetRange("Operation No.", ProdOperation);
+        TransferLine.SetCurrentKey("Subc. Purch. Order No.", "Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderNo);
+        TransferLine.SetRange("Subc. Prod. Order Line No.", ProdOrderLineNo);
+        TransferLine.SetRange("Subc. Operation No.", ProdOperation);
 
         if not TransferLine.IsEmpty() then begin
             TransferLine.SetLoadFields(SystemId);
@@ -261,17 +261,17 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
                 exit;
         end;
 
-        TransferLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.");
-        TransferLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        TransferLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderLine."Prod. Order No.");
+        TransferLine.SetRange("Subc. Prod. Order Line No.", ProdOrderLine."Line No.");
         if IsReturn then begin
-            TransferLine.SetRange("Routing Reference No.", 0);
-            TransferLine.SetRange("Routing No.", '');
-            TransferLine.SetRange("Operation No.", '');
+            TransferLine.SetRange("Subc. Routing Reference No.", 0);
+            TransferLine.SetRange("Subc. Routing No.", '');
+            TransferLine.SetRange("Subc. Operation No.", '');
         end else begin
-            TransferLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
-            TransferLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
-            TransferLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+            TransferLine.SetRange("Subc. Routing Reference No.", ProdOrderLine."Routing Reference No.");
+            TransferLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+            TransferLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
         end;
 
         if not TransferLine.IsEmpty() then
@@ -368,32 +368,32 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
             Database::"Transfer Line":
                 begin
                     ResultRecordRef.SetTable(TransferLine);
-                    PurchOrderNo := TransferLine."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := TransferLine."Subcontr. PO Line No.";
+                    PurchOrderNo := TransferLine."Subc. Purch. Order No.";
+                    PurchOrderLineNo := TransferLine."Subc. Purch. Order Line No.";
                 end;
             Database::"Transfer Shipment Line":
                 begin
                     ResultRecordRef.SetTable(TransferShipmentLine);
-                    PurchOrderNo := TransferShipmentLine."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := TransferShipmentLine."Subcontr. PO Line No.";
+                    PurchOrderNo := TransferShipmentLine."Subc. Purch. Order No.";
+                    PurchOrderLineNo := TransferShipmentLine."Subc. Purch. Order Line No.";
                 end;
             Database::"Transfer Receipt Line":
                 begin
                     ResultRecordRef.SetTable(TransferReceiptLine);
-                    PurchOrderNo := TransferReceiptLine."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := TransferReceiptLine."Subcontr. PO Line No.";
+                    PurchOrderNo := TransferReceiptLine."Subc. Purch. Order No.";
+                    PurchOrderLineNo := TransferReceiptLine."Subc. Purch. Order Line No.";
                 end;
             Database::"Item Ledger Entry":
                 begin
                     ResultRecordRef.SetTable(ItemLedgerEntry);
-                    PurchOrderNo := ItemLedgerEntry."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := ItemLedgerEntry."Subcontr. PO Line No.";
+                    PurchOrderNo := ItemLedgerEntry."Subc. Purch. Order No.";
+                    PurchOrderLineNo := ItemLedgerEntry."Subc. Purch. Order Line No.";
                 end;
             Database::"Capacity Ledger Entry":
                 begin
                     ResultRecordRef.SetTable(CapacityLedgerEntry);
-                    PurchOrderNo := CapacityLedgerEntry."Subcontr. Purch. Order No.";
-                    PurchOrderLineNo := CapacityLedgerEntry."Subcontr. PO Line No.";
+                    PurchOrderNo := CapacityLedgerEntry."Subc. Purch. Order No.";
+                    PurchOrderLineNo := CapacityLedgerEntry."Subc. Purch. Order Line No.";
                 end;
             Database::"Prod. Order Routing Line":
                 begin
@@ -505,10 +505,10 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
 
     local procedure FilterTransferLineToSubcontractorPurchaseOrder(PurchOrderNo: Code[20]; PurchOrderLineNo: Integer; var TransferLine: Record "Transfer Line")
     begin
-        TransferLine.SetCurrentKey("Subcontr. Purch. Order No.");
-        TransferLine.SetRange("Subcontr. Purch. Order No.", PurchOrderNo);
-        TransferLine.SetRange("Subcontr. PO Line No.", PurchOrderLineNo);
-        TransferLine.SetFilter("Operation No.", '<>%1', '');
-        TransferLine.SetFilter("Routing No.", '<>%1', '');
+        TransferLine.SetCurrentKey("Subc. Purch. Order No.");
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
+        TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
+        TransferLine.SetFilter("Subc. Operation No.", '<>%1', '');
+        TransferLine.SetFilter("Subc. Routing No.", '<>%1', '');
     end;
 }

@@ -16,7 +16,7 @@ codeunit 99001533 "Subc. Purchase Header Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnAfterCopyBuyFromVendorFieldsFromVendor, '', false, false)]
     local procedure OnAfterCopyBuyFromVendorFieldsFromVendor(var PurchaseHeader: Record "Purchase Header"; Vendor: Record Vendor; xPurchaseHeader: Record "Purchase Header")
     begin
-        PurchaseHeader."Subc. Location Code" := Vendor."Subcontr. Location Code";
+        PurchaseHeader."Subc. Location Code" := Vendor."Subc. Location Code";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnAfterValidateEvent, "Buy-from Vendor No.", false, false)]

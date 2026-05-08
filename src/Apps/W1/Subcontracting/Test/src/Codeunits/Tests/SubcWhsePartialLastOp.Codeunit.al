@@ -123,7 +123,7 @@ codeunit 149902 "Subc. Whse Partial Last Op"
 
         // [GIVEN] Configure Vendor with Subcontracting Location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -214,7 +214,7 @@ codeunit 149902 "Subc. Whse Partial Last Op"
 
         // [GIVEN] Configure Vendor with Subcontracting Location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -310,7 +310,7 @@ codeunit 149902 "Subc. Whse Partial Last Op"
 
         // [GIVEN] Configure Vendor with Subcontracting Location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -437,7 +437,7 @@ codeunit 149902 "Subc. Whse Partial Last Op"
 
         // [GIVEN] Configure Vendor with Subcontracting Location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 

@@ -34,8 +34,8 @@ report 99001501 "Subc. Create Transf. Order"
             }
             trigger OnAfterGetRecord()
             begin
-                "Purchase Header".CalcFields("Subcontracting Order");
-                if not "Subcontracting Order" then
+                "Purchase Header".CalcFields("Subc. Order");
+                if not "Subc. Order" then
                     Error(OrderNoIsNotSubcontractorErr, PurchOrderNo);
 
                 if not CheckExistComponent() then
@@ -172,17 +172,17 @@ report 99001501 "Subc. Create Transf. Order"
         ProdOrderComponent.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
-        ProdOrderComponent.SetRange("Purchase Order Filter", PurchaseLine."Document No.");
+        ProdOrderComponent.SetRange("Subc. Purchase Order Filter", PurchaseLine."Document No.");
         ProdOrderComponent.SetRange("Subcontracting Type", ProdOrderComponent."Subcontracting Type"::Transfer);
         if ProdOrderComponent.FindSet() then
             repeat
                 Item.SetLoadFields("Rounding Precision", "Order Tracking Policy");
                 Item.Get(ProdOrderComponent."Item No.");
                 QtyToPost := MfgCostCalculationMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComponent, Round(PurchaseLine.Quantity * QtyPerUom, UnitofMeasureManagement.QtyRndPrecision()));
-                ProdOrderComponent.CalcFields("Qty. on Trans Order (Base)", "Qty. in Transit (Base)", "Qty. transf. to Subcontr");
-                if QtyToPost > (ProdOrderComponent."Qty. on Trans Order (Base)" +
-                                ProdOrderComponent."Qty. in Transit (Base)" +
-                                Abs(ProdOrderComponent."Qty. transf. to Subcontr"))
+                ProdOrderComponent.CalcFields("Subc. Qty.on TransOrder (Base)", "Subc. Qty. in Transit (Base)", "Subc. Qty. transf. to Subcontr");
+                if QtyToPost > (ProdOrderComponent."Subc. Qty.on TransOrder (Base)" +
+                                ProdOrderComponent."Subc. Qty. in Transit (Base)" +
+                                Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr"))
                 then
                     if InsertLine then begin
                         TransferFromLocationCode := GetTransferFromLocationForComponent(ProdOrderComponent);
@@ -203,30 +203,30 @@ report 99001501 "Subc. Create Transf. Order"
                         TransferLine."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
 
                         QtyToPost := QtyToPost -
-                            (ProdOrderComponent."Qty. on Trans Order (Base)" +
-                             ProdOrderComponent."Qty. in Transit (Base)" +
-                             Abs(ProdOrderComponent."Qty. transf. to Subcontr"));
+                            (ProdOrderComponent."Subc. Qty.on TransOrder (Base)" +
+                             ProdOrderComponent."Subc. Qty. in Transit (Base)" +
+                             Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr"));
 
                         TransferLine.Validate(Quantity, Round(QtyToPost / ProdOrderComponent."Qty. per Unit of Measure", Item."Rounding Precision", '>'));
 
                         if ProdOrderComponent."Due Date" <> 0D then
                             TransferLine.Validate("Receipt Date", SubcontractingManagement.CalcReceiptDateFromProdCompDueDateWithInbWhseHandlingTime(ProdOrderComponent));
 
-                        TransferLine."Subcontr. Purch. Order No." := PurchaseLine."Document No.";
-                        TransferLine."Subcontr. PO Line No." := PurchaseLine."Line No.";
-                        TransferLine."Prod. Order No." := PurchaseLine."Prod. Order No.";
-                        TransferLine."Prod. Order Line No." := PurchaseLine."Prod. Order Line No.";
-                        TransferLine."Prod. Order Comp. Line No." := ProdOrderComponent."Line No.";
-                        TransferLine."Routing No." := PurchaseLine."Routing No.";
-                        TransferLine."Routing Reference No." := PurchaseLine."Routing Reference No.";
-                        TransferLine."Work Center No." := PurchaseLine."Work Center No.";
-                        TransferLine."Operation No." := PurchaseLine."Operation No.";
+                        TransferLine."Subc. Purch. Order No." := PurchaseLine."Document No.";
+                        TransferLine."Subc. Purch. Order Line No." := PurchaseLine."Line No.";
+                        TransferLine."Subc. Prod. Order No." := PurchaseLine."Prod. Order No.";
+                        TransferLine."Subc. Prod. Order Line No." := PurchaseLine."Prod. Order Line No.";
+                        TransferLine."Subc. Prod. Ord. Comp Line No." := ProdOrderComponent."Line No.";
+                        TransferLine."Subc. Routing No." := PurchaseLine."Routing No.";
+                        TransferLine."Subc. Routing Reference No." := PurchaseLine."Routing Reference No.";
+                        TransferLine."Subc. Work Center No." := PurchaseLine."Work Center No.";
+                        TransferLine."Subc. Operation No." := PurchaseLine."Operation No.";
                         TransferLine.Modify();
 
-                        if ProdOrderComponent."Orig. Location Code" = '' then
-                            ProdOrderComponent."Orig. Location Code" := ProdOrderComponent."Location Code";
-                        if ProdOrderComponent."Orig. Bin Code" = '' then
-                            ProdOrderComponent."Orig. Bin Code" := ProdOrderComponent."Bin Code";
+                        if ProdOrderComponent."Subc. Original Location Code" = '' then
+                            ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
+                        if ProdOrderComponent."Subc. Orig. Bin Code" = '' then
+                            ProdOrderComponent."Subc. Orig. Bin Code" := ProdOrderComponent."Bin Code";
 
                         SubcontractingManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
                         if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
@@ -268,12 +268,12 @@ report 99001501 "Subc. Create Transf. Order"
     begin
         SubcontrLocationCode := "Purchase Header"."Subc. Location Code";
         if SubcontrLocationCode = '' then
-            SubcontrLocationCode := Vendor."Subcontr. Location Code";
+            SubcontrLocationCode := Vendor."Subc. Location Code";
 
         if (ProdOrderComponent."Location Code" = SubcontrLocationCode) and
-           (ProdOrderComponent."Orig. Location Code" <> '')
+           (ProdOrderComponent."Subc. Original Location Code" <> '')
         then
-            ResultLocationCode := ProdOrderComponent."Orig. Location Code"
+            ResultLocationCode := ProdOrderComponent."Subc. Original Location Code"
         else
             ResultLocationCode := ProdOrderComponent."Location Code";
         exit(ResultLocationCode);
@@ -283,9 +283,9 @@ report 99001501 "Subc. Create Transf. Order"
     begin
         TransferToLocationCode := "Purchase Header"."Subc. Location Code";
         if TransferToLocationCode = '' then begin
-            TransferToLocationCode := Vendor."Subcontr. Location Code";
+            TransferToLocationCode := Vendor."Subc. Location Code";
             if TransferToLocationCode = '' then
-                Vendor.TestField("Subcontr. Location Code");
+                Vendor.TestField("Subc. Location Code");
         end;
     end;
 }

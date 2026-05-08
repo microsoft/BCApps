@@ -88,7 +88,7 @@ page 99001503 "Subc. Prod. Order Components"
                         SubcCompFactboxMgmt.ShowPurchOrderQtyReceivedBaseFromProdOrderComp(Rec);
                     end;
                 }
-                field("Qty. on Transfer Order (Base)"; Rec."Qty. on Trans Order (Base)")
+                field("Subc. Qty.on Transfer Order (Base)"; Rec."Subc. Qty.on TransOrder (Base)")
                 {
                     ToolTip = 'Specifies the item amount that is on the transfer order.';
                 }
@@ -96,7 +96,7 @@ page 99001503 "Subc. Prod. Order Components"
                 {
                     ToolTip = 'Specifies the item amount that is on the transfer order to be returned.';
                 }
-                field("Qty. in Transit (Base)"; Rec."Qty. in Transit (Base)")
+                field("Subc.Qty. in Transit (Base)"; Rec."Subc. Qty. in Transit (Base)")
                 {
                     ToolTip = 'Specifies the items that are in transit.';
                     Visible = false;
@@ -106,7 +106,7 @@ page 99001503 "Subc. Prod. Order Components"
                     ToolTip = 'Specifies the items that are in transit for return.';
                     Visible = false;
                 }
-                field("Qty. transf. to Subcontractor"; Rec."Qty. transf. to Subcontr")
+                field("Qty. transf. to Subcontractor"; Rec."Subc. Qty. transf. to Subcontr")
                 {
                     ToolTip = 'Specifies the item amount transferred to the subcontractor.';
                 }

@@ -86,11 +86,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Purchase Header");
         PageControl.SetRange(PageNo, Page::"Purchase Order");
-        PageControl.SetRange(FieldNo, PurchHeader.FieldNo("Subcontracting Order"));
+        PageControl.SetRange(FieldNo, PurchHeader.FieldNo("Subc. Order"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PurchHeader.FieldCaption("Subcontracting Order")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PurchHeader.FieldCaption("Subc. Order")));
     end;
 
     [Test]
@@ -109,11 +109,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::Vendor);
         PageControl.SetRange(PageNo, Page::"Vendor Card");
-        PageControl.SetRange(FieldNo, Vendor.FieldNo("Subcontr. Location Code"));
+        PageControl.SetRange(FieldNo, Vendor.FieldNo("Subc. Location Code"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, Vendor.FieldCaption("Subcontr. Location Code")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, Vendor.FieldCaption("Subc. Location Code")));
     end;
 
     [Test]
@@ -132,11 +132,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::Vendor);
         PageControl.SetRange(PageNo, Page::"Vendor Card");
-        PageControl.SetRange(FieldNo, Vendor.FieldNo("Linked to Work Center"));
+        PageControl.SetRange(FieldNo, Vendor.FieldNo("Subc. Linked to Work Center"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, Vendor.FieldCaption("Linked to Work Center")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, Vendor.FieldCaption("Subc. Linked to Work Center")));
     end;
 
     [Test]

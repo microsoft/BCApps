@@ -17,12 +17,12 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Transfer", OnAfterCreateItemJnlLine, '', false, false)]
     local procedure OnAfterCreateItemJnlLine(var ItemJnlLine: Record "Item Journal Line"; TransLine: Record "Transfer Line"; DirectTransHeader: Record "Direct Trans. Header"; DirectTransLine: Record "Direct Trans. Line")
     begin
-        ItemJnlLine."Prod. Order No." := DirectTransLine."Prod. Order No.";
-        ItemJnlLine."Prod. Order Line No." := DirectTransLine."Prod. Order Line No.";
+        ItemJnlLine."Subc. Prod. Order No." := DirectTransLine."Prod. Order No.";
+        ItemJnlLine."Subc. Prod. Order Line No." := DirectTransLine."Prod. Order Line No.";
         ItemJnlLine."Prod. Order Comp. Line No." := DirectTransLine."Prod. Order Comp. Line No.";
-        ItemJnlLine."Subcontr. Purch. Order No." := DirectTransLine."Subcontr. Purch. Order No.";
-        ItemJnlLine."Subcontr. PO Line No." := DirectTransLine."Subcontr. PO Line No.";
-        ItemJnlLine."Subc. Operation No." := TransLine."Operation No."
+        ItemJnlLine."Subc. Purch. Order No." := DirectTransLine."Subcontr. Purch. Order No.";
+        ItemJnlLine."Subc. Purch. Order Line No." := DirectTransLine."Subcontr. PO Line No.";
+        ItemJnlLine."Subc. Operation No." := TransLine."Subc. Operation No."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Transfer", OnInsertDirectTransHeaderOnBeforeGetNextNo, '', false, false)]
@@ -41,10 +41,10 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin
-        if (TransferLine."Prod. Order No." = '') or (TransferLine."Prod. Order Line No." = 0) or (TransferLine."Prod. Order Comp. Line No." = 0) then
+        if (TransferLine."Subc. Prod. Order No." = '') or (TransferLine."Subc. Prod. Order Line No." = 0) or (TransferLine."Subc. Prod. Ord. Comp Line No." = 0) then
             exit;
 
-        if not ProdOrderComponent.Get(ProdOrderComponent.Status::Released, TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Prod. Order Comp. Line No.") then
+        if not ProdOrderComponent.Get(ProdOrderComponent.Status::Released, TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Prod. Ord. Comp Line No.") then
             exit;
 
         ProdOrderComponent.Validate("Location Code");
@@ -265,7 +265,7 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
 
     local procedure FindProdOrderComponentsForTransferLine(var TransferLine: Record "Transfer Line"; var ProdOrderComponent: Record "Prod. Order Component"): Boolean
     begin
-        exit(ProdOrderComponent.Get("Production Order Status"::Released, TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Prod. Order Comp. Line No."));
+        exit(ProdOrderComponent.Get("Production Order Status"::Released, TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Prod. Ord. Comp Line No."));
     end;
 
     local procedure ShouldCreateSurplusForComponent(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderComponent: Record "Prod. Order Component"): Boolean

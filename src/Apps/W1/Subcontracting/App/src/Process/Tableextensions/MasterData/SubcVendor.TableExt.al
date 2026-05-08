@@ -13,20 +13,20 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001515; "Subcontr. Location Code"; Code[10])
+        field(99001515; "Subc. Location Code"; Code[10])
         {
             Caption = 'Subcontracting Location Code';
             DataClassification = CustomerContent;
             TableRelation = Location where("Use As In-Transit" = const(false));
         }
-        field(99001516; "Linked to Work Center"; Boolean)
+        field(99001516; "Subc. Linked to Work Center"; Boolean)
         {
             CalcFormula = exist("Work Center" where("Subcontractor No." = field("No.")));
             Caption = 'Linked to Work Center';
             Editable = false;
             FieldClass = FlowField;
         }
-        field(99001517; "Work Center No."; Code[20])
+        field(99001517; "Subc. Work Center No."; Code[20])
         {
             Caption = 'Work Center No.';
             DataClassification = CustomerContent;

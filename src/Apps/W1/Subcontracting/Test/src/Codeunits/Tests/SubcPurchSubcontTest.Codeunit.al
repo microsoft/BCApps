@@ -85,14 +85,14 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
         SubcontractorPrices."Direct Unit Cost" := 99;
         SubcontractorPrices.Modify();
-        Vendor."Subcontr. Location Code" := Location2.Code;
+        Vendor."Subc. Location Code" := Location2.Code;
         Vendor.Modify();
 
         LibraryPurchase.CreateVendor(Vendor);
         SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
         SubcontractorPrices2."Direct Unit Cost" := 11;
         SubcontractorPrices2.Modify();
-        Vendor."Subcontr. Location Code" := Location2.Code;
+        Vendor."Subc. Location Code" := Location2.Code;
         Vendor.Modify();
 
         LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
@@ -168,7 +168,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', ItemVariant.Code, WorkDate(), '', 0, Vendor."Currency Code");
         SubcontractorPrices2."Direct Unit Cost" := 11;
         SubcontractorPrices2.Modify();
-        Vendor."Subcontr. Location Code" := Location2.Code;
+        Vendor."Subc. Location Code" := Location2.Code;
         Vendor.Modify();
 
         SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
@@ -240,7 +240,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryWarehouse.CreateLocation(Location);
         LibraryWarehouse.CreateLocation(Location2);
         LibraryPurchase.CreateVendor(Vendor);
-        Vendor."Subcontr. Location Code" := Location2.Code;
+        Vendor."Subc. Location Code" := Location2.Code;
         Vendor.Modify();
 
         LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);

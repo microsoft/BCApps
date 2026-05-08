@@ -213,9 +213,9 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         WorkCenterNo: Code[20];
     begin
         GetManufacturingSetup();
-        Vendor.SetLoadFields("Work Center No.");
+        Vendor.SetLoadFields("Subc. Work Center No.");
         Vendor.Get(TempGlobalPurchaseLine."Buy-from Vendor No.");
-        WorkCenterNo := Vendor."Work Center No.";
+        WorkCenterNo := Vendor."Subc. Work Center No.";
         if WorkCenterNo = '' then begin
             SubcManagementSetup.TestField("Common Work Center No.");
             WorkCenterNo := SubcManagementSetup."Common Work Center No.";
@@ -268,7 +268,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         BuildTemporaryComponents();
 
         GetVendor();
-        SubcSessionState.SetCode('SetSubcontractingLocationCodeFromVendor', TempGlobalVendor."Subcontr. Location Code");
+        SubcSessionState.SetCode('SetSubcontractingLocationCodeFromVendor', TempGlobalVendor."Subc. Location Code");
     end;
 
     local procedure BuildTemporaryComponents()
@@ -573,8 +573,8 @@ codeunit 99001552 "Subc. Temp Data Initializer"
                 "Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase:
                     begin
                         GetVendor();
-                        TempGlobalProdOrderComponent.Validate("Location Code", TempGlobalVendor."Subcontr. Location Code");
-                        TempGlobalProdOrderComponent."Orig. Location Code" := ComponentsLocationCode;
+                        TempGlobalProdOrderComponent.Validate("Location Code", TempGlobalVendor."Subc. Location Code");
+                        TempGlobalProdOrderComponent."Subc. Original Location Code" := ComponentsLocationCode;
                     end;
                 "Subcontracting Type"::Transfer:
                     TempGlobalProdOrderComponent.Validate("Location Code", ComponentsLocationCode);

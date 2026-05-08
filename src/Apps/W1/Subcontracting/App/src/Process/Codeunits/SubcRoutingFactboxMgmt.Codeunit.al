@@ -150,11 +150,11 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
-        TransferLine.SetCurrentKey(TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Routing Reference No.", TransferLine."Routing No.", TransferLine."Operation No.");
-        TransferLine.SetRange(TransferLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        TransferLine.SetRange(TransferLine."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        TransferLine.SetRange(TransferLine."Routing No.", ProdOrderRoutingLine."Routing No.");
-        TransferLine.SetRange(TransferLine."Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Routing No.", TransferLine."Subc. Operation No.");
+        TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        TransferLine.SetRange(TransferLine."Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        TransferLine.SetRange(TransferLine."Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        TransferLine.SetRange(TransferLine."Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
         exit(TransferLine.Count());
     end;
 
@@ -167,10 +167,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
-        TransferLine.SetCurrentKey(TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Routing Reference No.", TransferLine."Operation No.");
-        TransferLine.SetRange(TransferLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        TransferLine.SetRange(TransferLine."Routing Reference No.", 0);
-        TransferLine.SetRange(TransferLine."Operation No.", '');
+        TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Operation No.");
+        TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        TransferLine.SetRange(TransferLine."Subc. Routing Reference No.", 0);
+        TransferLine.SetRange(TransferLine."Subc. Operation No.", '');
         exit(TransferLine.Count());
     end;
 
@@ -182,11 +182,11 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
-        TransferLine.SetCurrentKey(TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Routing Reference No.", TransferLine."Routing No.", TransferLine."Operation No.");
-        TransferLine.SetRange(TransferLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        TransferLine.SetRange(TransferLine."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        TransferLine.SetRange(TransferLine."Routing No.", ProdOrderRoutingLine."Routing No.");
-        TransferLine.SetRange(TransferLine."Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Routing No.", TransferLine."Subc. Operation No.");
+        TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        TransferLine.SetRange(TransferLine."Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        TransferLine.SetRange(TransferLine."Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        TransferLine.SetRange(TransferLine."Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
         Page.Run(Page::"Transfer Lines", TransferLine);
     end;
 
@@ -198,10 +198,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
     var
         TransferLine: Record "Transfer Line";
     begin
-        TransferLine.SetCurrentKey(TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Routing Reference No.", TransferLine."Operation No.");
-        TransferLine.SetRange(TransferLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        TransferLine.SetRange(TransferLine."Routing Reference No.", 0);
-        TransferLine.SetRange(TransferLine."Operation No.", '');
+        TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Operation No.");
+        TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        TransferLine.SetRange(TransferLine."Subc. Routing Reference No.", 0);
+        TransferLine.SetRange(TransferLine."Subc. Operation No.", '');
         Page.Run(Page::"Transfer Lines", TransferLine);
     end;
 

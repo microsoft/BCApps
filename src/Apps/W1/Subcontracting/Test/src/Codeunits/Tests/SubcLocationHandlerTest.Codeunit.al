@@ -413,7 +413,7 @@ codeunit 139981 "Subc. Location Handler Test"
 
         // [GIVEN] Transfer-type Prod. Order Component Location Code equals the vendor's Subcontracting Location Code
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        SetTransferProdOrderCompLocationCode(ProductionOrder."No.", Vendor."Subcontr. Location Code");
+        SetTransferProdOrderCompLocationCode(ProductionOrder."No.", Vendor."Subc. Location Code");
 
         // [WHEN] Create Subcontracting Order from Prod. Order Routing; the user declines the "anyway" confirmation
         ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
@@ -466,7 +466,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [GIVEN] Vendor with Subcontractor Location
         if Vendor."No." = '' then begin
             LibraryPurchase.CreateVendor(Vendor);
-            Vendor."Subcontr. Location Code" := LocationSub.Code;
+            Vendor."Subc. Location Code" := LocationSub.Code;
             Vendor.Modify();
         end;
 
@@ -487,7 +487,7 @@ codeunit 139981 "Subc. Location Handler Test"
         ProdOrderComp.Validate("Quantity per", 1);
         ProdOrderComp."Location Code" := CompLocationCode;
         if CompOrigLocationCode <> '' then
-            ProdOrderComp."Orig. Location Code" := CompOrigLocationCode;
+            ProdOrderComp."Subc. Original Location Code" := CompOrigLocationCode;
         ProdOrderComp."Subcontracting Type" := ProdOrderComp."Subcontracting Type"::Transfer;
         ProdOrderComp."Routing Link Code" := RoutingLink.Code;
         ProdOrderComp.Modify();
@@ -551,7 +551,7 @@ codeunit 139981 "Subc. Location Handler Test"
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Get(WorkCenter."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();

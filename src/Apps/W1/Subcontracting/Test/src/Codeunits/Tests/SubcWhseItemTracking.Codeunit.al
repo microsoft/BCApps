@@ -127,7 +127,7 @@ codeunit 149905 "Subc. Whse Item Tracking"
 
         // [GIVEN] Update Vendor with Subcontracting Location Code
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -250,7 +250,7 @@ codeunit 149905 "Subc. Whse Item Tracking"
 
         // [GIVEN] Update Vendor with Subcontracting Location Code
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -368,7 +368,7 @@ codeunit 149905 "Subc. Whse Item Tracking"
 
         // [GIVEN] Update Vendor with Subcontracting Location Code
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -492,7 +492,7 @@ codeunit 149905 "Subc. Whse Item Tracking"
 
         // [GIVEN] Update Vendor with Subcontracting Location Code
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 

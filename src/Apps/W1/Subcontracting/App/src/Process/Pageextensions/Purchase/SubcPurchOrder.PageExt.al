@@ -12,7 +12,7 @@ pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
     {
         addafter(Status)
         {
-            field("Subcontracting Order"; Rec."Subcontracting Order")
+            field("Subc. Order"; Rec."Subc. Order")
             {
                 ApplicationArea = Manufacturing;
             }

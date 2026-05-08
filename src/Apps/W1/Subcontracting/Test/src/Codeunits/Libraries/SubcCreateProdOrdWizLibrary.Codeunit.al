@@ -99,7 +99,7 @@ codeunit 139986 "Subc. CreateProdOrdWizLibrary"
 
         // Create vendor with subcontracting location
         LibraryPurchase.CreateVendor(Vendor);
-        Vendor."Subcontr. Location Code" := VendorLocation.Code;
+        Vendor."Subc. Location Code" := VendorLocation.Code;
         Vendor.Modify();
 
         // Create purchase order with purchase line
