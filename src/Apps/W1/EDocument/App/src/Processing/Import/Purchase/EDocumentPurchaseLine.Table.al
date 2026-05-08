@@ -21,6 +21,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
+using System.Log;
 using System.Reflection;
 using System.Utilities;
 
@@ -427,6 +428,43 @@ table 6101 "E-Document Purchase Line"
     procedure GetBCVendor(): Record Vendor
     begin
         exit(GetEDocumentPurchaseHeader().GetBCVendor());
+    end;
+
+    internal procedure LogVATRateMismatch()
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        Vendor: Record Vendor;
+        VATPostingSetup: Record "VAT Posting Setup";
+        ActivityLog: Codeunit "Activity Log Builder";
+        VATPostingSetupRef: RecordRef;
+        Reasoning: Text[250];
+        VATRateMismatchReasonLbl: Label 'VAT rate %1% extracted from the document could not be matched to a VAT Posting Setup for vendor''s VAT Business Posting Group %2.', Comment = '%1 = extracted VAT rate %, %2 = VAT Bus. Posting Group code';
+        VATRateMismatchTitleLbl: Label 'VAT Posting Setup for %1', Comment = '%1 = VAT Bus. Posting Group code';
+    begin
+        if not Rec."[BC] VAT Rate Mismatch" then
+            exit;
+        if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
+            exit;
+        if EDocumentPurchaseHeader."[BC] Vendor No." = '' then
+            exit;
+        if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+            exit;
+
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", Vendor."VAT Bus. Posting Group");
+        VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
+            VATPostingSetup."VAT Calculation Type"::"Normal VAT",
+            VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+        VATPostingSetupRef.GetTable(VATPostingSetup);
+
+        Reasoning := CopyStr(StrSubstNo(VATRateMismatchReasonLbl, Rec."VAT Rate", Vendor."VAT Bus. Posting Group"), 1, MaxStrLen(Reasoning));
+
+        ActivityLog
+            .Init(Database::"E-Document Purchase Line", Rec.FieldNo("[BC] VAT Prod. Posting Group"), Rec.SystemId)
+            .SetExplanation(Reasoning)
+            .SetType(Enum::"Activity Log Type"::"AL")
+            .SetReferenceSource(Page::"VAT Posting Setup", VATPostingSetupRef)
+            .SetReferenceTitle(StrSubstNo(VATRateMismatchTitleLbl, Vendor."VAT Bus. Posting Group"))
+            .Log();
     end;
 
 }
