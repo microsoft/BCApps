@@ -224,7 +224,7 @@ codeunit 4301 "Agent Impl."
         exit(Agent."Model ID")
     end;
 
-    procedure GetModelName(AgentUserSecurityID: Guid): Text
+    procedure GetModelName(AgentUserSecurityID: Guid): Text[70]
     var
         Agent: Record Agent;
     begin
