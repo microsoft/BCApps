@@ -1,5 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Archive;
 using Microsoft.Sales.Document;
@@ -385,6 +386,32 @@ codeunit 8069 "Sales Subscription Line Mgmt."
     begin
         ToSalesLine.Get(ToSalesLine."Document Type", ToSalesLine."Document No.", ToSalesLine."Line No.");
         AddSalesServiceCommitmentsForSalesLine(ToSalesLine, false);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", OnValidatePricesIncludingVATOnBeforeSalesLineModify, '', false, false)]
+    local procedure RecalculateSalesSubscriptionLineAmountsOnBeforeSalesLineModify(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; Currency: Record Currency; RecalculatePrice: Boolean)
+    var
+        SalesSubscriptionLine: Record "Sales Subscription Line";
+        VatFactor: Decimal;
+    begin
+        if not RecalculatePrice then
+            exit;
+        if SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Full VAT" then
+            exit;
+        VatFactor := 1 + SalesLine.GetVATPct() / 100;
+        if VatFactor = 0 then
+            VatFactor := 1;
+        if not SalesHeader."Prices Including VAT" then
+            VatFactor := 1 / VatFactor;
+        SalesSubscriptionLine.FilterOnSalesLine(SalesLine);
+        SalesSubscriptionLine.SetRange(Partner, Enum::"Service Partner"::Customer);
+        if not SalesSubscriptionLine.FindSet(true) then
+            exit;
+        repeat
+            SalesSubscriptionLine.Validate("Calculation Base Amount",
+                Round(SalesSubscriptionLine."Calculation Base Amount" * VatFactor, Currency."Unit-Amount Rounding Precision"));
+            SalesSubscriptionLine.Modify(false);
+        until SalesSubscriptionLine.Next() = 0;
     end;
 
     [IntegrationEvent(false, false)]

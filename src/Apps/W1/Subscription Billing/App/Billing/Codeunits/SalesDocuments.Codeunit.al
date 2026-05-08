@@ -1,5 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -613,6 +614,7 @@ codeunit 8063 "Sales Documents"
                     else
                         SubscriptionLine.Validate("Subscription Line Start Date", CalcDate(SalesSubscriptionLine."Sub. Line Start Formula", SalesLine."Shipment Date"));
                 SubscriptionLine.CopyFromSalesServiceCommitment(SalesSubscriptionLine);
+                SubscriptionLine.EnsureCalculationBaseAmountExcludesVAT(SalesLine, SalesHeader);
                 if SalesSubscriptionLine.Discount then
                     SubscriptionLine.Validate("Calculation Base Amount", SubscriptionLine."Calculation Base Amount" * -1);
 
