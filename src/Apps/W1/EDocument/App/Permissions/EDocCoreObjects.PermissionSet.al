@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.Document;
 using Microsoft.eServices.EDocument.Format;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Integration.Action;
@@ -151,5 +152,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "Send Runner" = X,
         codeunit SendContext = X,
         codeunit "Sent Document Approval" = X,
-        codeunit "Sent Document Cancellation" = X;
+        codeunit "Sent Document Cancellation" = X,
+        codeunit "E-Doc Reporting Triggers" = X,
+        report "E-Doc Standard Purchase Order" = X;
 }
