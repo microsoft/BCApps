@@ -1794,7 +1794,7 @@ Comment = '|%1 = Transfer Order No.';
         ItemLedgerEntry.FindFirst();
 
         Assert.AreEqual(
-          PurchaseHeader."No.", ItemLedgerEntry."Subc. Purch. Order Line No.",
+          PurchaseHeader."No.", ItemLedgerEntry."Subc. Purch. Order No.",
           'Item Ledger Entry "Subcontr. Purch. Order No." should equal the originating subcontracting purchase order.');
         Assert.AreEqual(
           PurchaseLine."Line No.", ItemLedgerEntry."Subc. Purch. Order Line No.",
