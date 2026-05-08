@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Setup;
 
-pageextension 99001542 "Manufacturing Setup Subc." extends "Manufacturing Setup"
+pageextension 99001542 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
 {
     layout
     {
