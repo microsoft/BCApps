@@ -62,7 +62,7 @@ codeunit 4303 "Agent Task"
     /// </summary>
     /// <remarks>
     /// This method will be marked as obsolete soon:
-    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
+    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '29.0')]
     /// </remarks>
     /// <param name="AgentTask">The agent task to set to ready.</param>
     /// <returns>The agent task with the status set to ready.</returns>
@@ -120,7 +120,7 @@ codeunit 4303 "Agent Task"
     /// </summary>
     /// <remarks>
     /// This method will be marked as obsolete soon:
-    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
+    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '29.0')]
     /// </remarks>
     /// <param name="AgentTask">The agent task to stop.</param>
     /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
@@ -151,7 +151,7 @@ codeunit 4303 "Agent Task"
     /// </summary>
     /// <remarks>
     /// This method will be marked as obsolete soon:
-    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '30.0')]
+    /// [Obsolete('Use the overload that takes AgentTaskID instead.', '29.0')]
     /// </remarks>
     /// <param name="AgentTask">The agent task to restart.</param>
     /// <param name="UserConfirm">Whether to show a confirmation dialog to the user.</param>
