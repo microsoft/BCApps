@@ -113,7 +113,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    procedure CreateSubcOrderFromRtngLine_EmptyDefVATProdPostGrp()
+    procedure CreateSubcOrderFromRtngLineEmptyDefVATProdPostGrp()
     var
         GenProductPostingGroup: Record "Gen. Product Posting Group";
         Item: Record Item;
@@ -1391,8 +1391,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseLine: Record "Purchase Line";
         TransferLine: Record "Transfer Line";
         WorkCenter: array[2] of Record "Work Center";
-        AlreadySpecifiedErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.',
-Comment = '|%1 = Transfer Order No.';
         ProdOrderCompPage: TestPage "Prod. Order Components";
         PurchaseHeaderPage: TestPage "Purchase Order";
         ExpectedErrorMsg: Text;
@@ -1700,7 +1698,7 @@ Comment = '|%1 = Transfer Order No.';
     end;
 
     [Test]
-    procedure TestPostItemChargeAssignedToSubcontractingLing_ValueEntryWithCapacityRelation()
+    procedure TestPostItemChargeAssignedToSubcontractingLingValueEntryWithCapacityRelation()
     var
         ItemCharge: Record "Item Charge";
         ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
@@ -2114,7 +2112,7 @@ Comment = '|%1 = Transfer Order No.';
 
     [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
-    procedure CreateReturnTransferOrder_AfterPartialShipOfOutbound()
+    procedure CreateReturnTransferOrderAfterPartialShipOfOutbound()
     var
         Bin: Record Bin;
         Item: Record Item;
@@ -2214,7 +2212,7 @@ Comment = '|%1 = Transfer Order No.';
 
     [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
-    procedure CreateReturnTransferOrder_AfterPartialShipOfOutbound_DirectTransfer()
+    procedure CreateReturnTransferOrderAfterPartialShipOfOutboundDirectTransfer()
     var
         Bin: Record Bin;
         Item: Record Item;
@@ -2852,7 +2850,7 @@ Comment = '|%1 = Transfer Order No.';
         LibrarySetupStorage.Restore();
 
         SubcontractingMgmtLibrary.Initialize();
-        UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Purchase);
+        UpdateSubMgmtSetupComponentAtLocation("Components at Location"::Purchase);
         LibraryMfgManagement.Initialize();
 
         if IsInitialized then
@@ -2890,7 +2888,7 @@ Comment = '|%1 = Transfer Order No.';
         ManufacturingSetup.Modify();
     end;
 
-    local procedure UpdateSubMgmtSetup_ComponentAtLocation(CompAtLocation: Enum "Components at Location")
+    local procedure UpdateSubMgmtSetupComponentAtLocation(CompAtLocation: Enum "Components at Location")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
@@ -2981,7 +2979,7 @@ Comment = '|%1 = Transfer Order No.';
         ManufacturingSetup.Get();
         ManufacturingSetup."Components at Location" := Location.Code;
         ManufacturingSetup.Modify();
-        UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Manufacturing);
+        UpdateSubMgmtSetupComponentAtLocation("Components at Location"::Manufacturing);
     end;
 
     procedure CreateInventory(Item: Record Item; Location: Record Location; Bin: Record Bin; Quantity: Decimal)
@@ -3062,5 +3060,6 @@ Comment = '|%1 = Transfer Order No.';
         PurchaseLinesPageOpened: Boolean;
         UnitCostCalculation: Option Time,Units;
         ConfirmDialogCalledCount: Integer;
+        AlreadySpecifiedErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.', Comment = '|%1 = Transfer Order No.';
 
 }

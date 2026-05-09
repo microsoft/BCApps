@@ -9,6 +9,13 @@ using Microsoft.Manufacturing.Setup;
 
 codeunit 99001503 "Subcontracting Comp. Init."
 {
+    var
+        ReqWkshTempDescLbl: Label 'Subcontracting', MaxLength = 80;
+        ReqWkshTempNameLbl: Label 'SUBCONTR', MaxLength = 10;
+        ReqWkshDescLbl: Label 'Subcontracting', MaxLength = 100;
+        ReqWkshNameLbl: Label 'SUBCONTR', MaxLength = 10;
+        DefaultInboundWhseHandlingTimeLbl: Label '<1D>', Locked = true;
+
     procedure CreateBasicSubcontractingMgtSetup()
     begin
         CreateSubcontractingManagementSetup();
@@ -47,9 +54,6 @@ codeunit 99001503 "Subcontracting Comp. Init."
     end;
 
     procedure CreateReqWkshTemplate(var ReqWkshTemplate: Record "Req. Wksh. Template"; Recurring: Boolean): Boolean
-    var
-        ReqWkshTempDescLbl: Label 'Subcontracting', MaxLength = 80;
-        ReqWkshTempNameLbl: Label 'SUBCONTR', MaxLength = 10;
     begin
         ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Subcontracting);
         if ReqWkshTemplate.FindFirst() then
@@ -66,9 +70,6 @@ codeunit 99001503 "Subcontracting Comp. Init."
     end;
 
     procedure CreateRequisitionWkshName(var RequisitionWkshName: Record "Requisition Wksh. Name"; WorksheetTemplateName: Text)
-    var
-        ReqWkshDescLbl: Label 'Subcontracting', MaxLength = 100;
-        ReqWkshNameLbl: Label 'SUBCONTR', MaxLength = 10;
     begin
         RequisitionWkshName.SetRange("Worksheet Template Name", WorksheetTemplateName);
         if RequisitionWkshName.FindFirst() then
@@ -82,8 +83,6 @@ codeunit 99001503 "Subcontracting Comp. Init."
     end;
 
     local procedure GetDefaultInboundWhseHandlingTime(): Text
-    var
-        DefaultInboundWhseHandlingTimeLbl: Label '<1D>', Locked = true;
     begin
         exit(DefaultInboundWhseHandlingTimeLbl);
     end;
