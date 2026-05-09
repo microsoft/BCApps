@@ -15,7 +15,7 @@ pageextension 99001514 "Subc. ProdBOMVersionLines" extends "Production BOM Versi
             field("Subcontracting Type"; Rec."Subcontracting Type")
             {
                 ApplicationArea = Manufacturing;
-                ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production BOM Line.';
+                ToolTip = 'Specifies how components are supplied to the subcontractor for the production BOM line.';
             }
         }
     }

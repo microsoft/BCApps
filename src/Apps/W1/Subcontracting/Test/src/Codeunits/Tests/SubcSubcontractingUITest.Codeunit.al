@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
@@ -452,6 +453,28 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [THEN] Subcontractor Prices action is enabled
         Assert.IsTrue(WorkCenterList."Subcontractor Prices".Enabled(), SubcontractingActionsNotEnabledErr);
         WorkCenterList.Close();
+    end;
+
+    [Test]
+    procedure ComponentSupplyMethodCaptionsAreClear()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        PlanningComponent: Record "Planning Component";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ComponentSupplyMethod: Enum "Component Supply Method";
+    begin
+        // [SCENARIO 633674] Subcontracting Type captions are renamed to Component Supply Method terminology.
+        Initialize();
+
+        // [THEN] Field captions clearly describe the component supply behavior.
+        Assert.AreEqual('Component Supply Method', ProductionBOMLine.FieldCaption("Subcontracting Type"), 'Production BOM Line field caption must be updated.');
+        Assert.AreEqual('Component Supply Method', PlanningComponent.FieldCaption("Subcontracting Type"), 'Planning Component field caption must be updated.');
+        Assert.AreEqual('Component Supply Method', ProdOrderComponent.FieldCaption("Subcontracting Type"), 'Prod. Order Component field caption must be updated.');
+
+        // [THEN] Enum value captions use the new names from bug 633674.
+        Assert.AreEqual('Vendor-Supplied', Format(ComponentSupplyMethod::Purchase), 'Purchase caption must be Vendor-Supplied.');
+        Assert.AreEqual('Consignment at Vendor', Format(ComponentSupplyMethod::InventoryByVendor), 'InventoryByVendor caption must be Consignment at Vendor.');
+        Assert.AreEqual('Transfer to Vendor', Format(ComponentSupplyMethod::Transfer), 'Transfer caption must be Transfer to Vendor.');
     end;
 
     var

@@ -13,11 +13,11 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001524; "Subcontracting Type"; Enum "Subcontracting Type")
+        field(99001524; "Subcontracting Type"; Enum "Component Supply Method")
         {
-            Caption = 'Subcontracting Type';
+            Caption = 'Component Supply Method';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Planning Component.';
+            ToolTip = 'Specifies how components are supplied to the subcontractor for the planning component.';
             trigger OnValidate()
             var
                 SubcontractingManagement: Codeunit "Subcontracting Management";

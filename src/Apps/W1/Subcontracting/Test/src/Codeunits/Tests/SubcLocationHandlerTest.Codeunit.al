@@ -357,7 +357,7 @@ codeunit 139981 "Subc. Location Handler Test"
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
         SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::Transfer);
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
@@ -404,7 +404,7 @@ codeunit 139981 "Subc. Location Handler Test"
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
         SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::Transfer);
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
@@ -526,7 +526,7 @@ codeunit 139981 "Subc. Location Handler Test"
         ProdOrderRtngLine.Insert();
     end;
 
-    local procedure UpdateProdBomWithSubcontractingType(Item: Record Item; SubcontractingType: Enum "Subcontracting Type")
+    local procedure UpdateProdBomWithSubcontractingType(Item: Record Item; SubcontractingType: Enum "Component Supply Method")
     var
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionBOMLine: Record "Production BOM Line";

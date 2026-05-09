@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 99001500 "Subcontracting Type"
+enum 99001500 "Component Supply Method"
 {
     Extensible = true;
     value(0; Empty)
@@ -13,14 +13,14 @@ enum 99001500 "Subcontracting Type"
     }
     value(1; Purchase)
     {
-        Caption = 'Purchase with Service';
+        Caption = 'Vendor-Supplied';
     }
     value(2; InventoryByVendor)
     {
-        Caption = 'Inventory by Vendor';
+        Caption = 'Consignment at Vendor';
     }
     value(3; Transfer)
     {
-        Caption = 'Transfer';
+        Caption = 'Transfer to Vendor';
     }
 }

@@ -84,7 +84,7 @@ page 99001506 "Subc. Temp BOM Lines"
                 }
                 field("Subcontracting Type"; Rec."Subcontracting Type")
                 {
-                    ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production BOM Line.';
+                    ToolTip = 'Specifies how components are supplied to the subcontractor for the production BOM line.';
                     ApplicationArea = Manufacturing;
                     trigger OnValidate()
                     begin

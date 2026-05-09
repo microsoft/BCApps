@@ -79,7 +79,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
                 }
                 field("Subcontracting Type"; Rec."Subcontracting Type")
                 {
-                    ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production BOM Line.';
+                    ToolTip = 'Specifies how components are supplied to the subcontractor for the production order component.';
                     trigger OnValidate()
                     begin
                         if Rec."Subcontracting Type" = Rec."Subcontracting Type"::Purchase then

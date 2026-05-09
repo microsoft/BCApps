@@ -72,7 +72,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         TransferShipmentLine: Record "Transfer Shipment Line";
         ConfirmManagement: Codeunit "Confirm Management";
     begin
-        if ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer then
+        if ProdOrderComponent."Subcontracting Type" <> "Component Supply Method"::Transfer then
             exit;
 
         TransferShipmentLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
@@ -143,7 +143,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         if ProdOrderComponent."Location Code" = xProdOrderComponent."Location Code" then
             exit;
 
-        if ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer then
+        if ProdOrderComponent."Subcontracting Type" <> "Component Supply Method"::Transfer then
             exit;
 
         TransferLine.SetCurrentKey("Prod. Order No.", "Routing No.", "Routing Reference No.", "Operation No.", "Subcontr. Purch. Order No.");
