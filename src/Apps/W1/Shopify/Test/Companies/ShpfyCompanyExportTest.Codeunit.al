@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Integration.Shopify;
 using Microsoft.Sales.Customer;
@@ -154,6 +155,65 @@ codeunit 139636 "Shpfy Company Export Test"
         LibraryAssert.IsTrue(Result, 'Result');
         LibraryAssert.IsTrue(CompanyLocation."Province Code" = '', 'Province Code');
         LibraryAssert.IsTrue(CompanyLocation."Province Name" = '', 'Province Name');
+    end;
+
+    [Test]
+    procedure UnitTestFillInShopifyCompanyLocationISOCountryCodeMapping()
+    var
+        Customer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        CompanyLocation: Record "Shpfy Company Location";
+        ShopifyShop: Record "Shpfy Shop";
+        TaxArea: Record "Shpfy Tax Area";
+        Result: Boolean;
+    begin
+        // [SCENARIO] When BC's Country/Region Code differs from its ISO Code (e.g. "EL" vs "GR" for Greece),
+        // the Shopify company location export uses the ISO code for both Tax Area lookups and the Shopify-side location.
+
+        // [GIVEN] A Country/Region with mismatched BC code and ISO code (Greece: BC = "EL", ISO = "GR")
+        if not CountryRegion.Get('EL') then begin
+            CountryRegion.Init();
+            CountryRegion.Code := 'EL';
+            CountryRegion."ISO Code" := 'GR';
+            CountryRegion.Insert();
+        end else
+            if CountryRegion."ISO Code" <> 'GR' then begin
+                CountryRegion."ISO Code" := 'GR';
+                CountryRegion.Modify();
+            end;
+
+        // [GIVEN] A Customer in that country with a county set
+        Customer.FindFirst();
+        Customer."Country/Region Code" := 'EL';
+        Customer.County := 'ATT';
+        Customer.Modify();
+
+        // [GIVEN] A Shpfy Tax Area keyed by the Shopify-side ISO code, not BC's local code
+        TaxArea."Country/Region Code" := 'GR';
+        TaxArea.County := 'Attica';
+        TaxArea."County Code" := 'ATT';
+        TaxArea.Insert();
+
+        ShopifyShop := InitializeTest.CreateShop();
+        ShopifyShop."Name Source" := Enum::"Shpfy Name Source"::CompanyName;
+        ShopifyShop."Name 2 Source" := Enum::"Shpfy Name Source"::None;
+        ShopifyShop."Contact Source" := Enum::"Shpfy Name Source"::None;
+        ShopifyShop."County Source" := Enum::"Shpfy County Source"::Code;
+        CompanyLocation.Init();
+
+        // [GIVEN] Shop
+        CompanyExport.SetShop(ShopifyShop);
+
+        // [WHEN] Filling in Shopify company location data
+        Result := CompanyExport.FillInShopifyCompanyLocation(Customer, CompanyLocation);
+
+        // [THEN] CompanyLocation."Country/Region Code" is the ISO code, not BC's local code
+        LibraryAssert.IsTrue(Result, 'Result');
+        LibraryAssert.AreEqual('GR', CompanyLocation."Country/Region Code", 'Country/Region Code should be ISO');
+
+        // [THEN] Province lookup against the ISO-keyed Shpfy Tax Area succeeded
+        LibraryAssert.AreEqual('ATT', CompanyLocation."Province Code", 'Province Code');
+        LibraryAssert.AreEqual('Attica', CompanyLocation."Province Name", 'Province Name');
     end;
 
 
