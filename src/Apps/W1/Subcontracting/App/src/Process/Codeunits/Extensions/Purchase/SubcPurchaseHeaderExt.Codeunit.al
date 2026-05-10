@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
@@ -23,6 +24,30 @@ codeunit 99001533 "Subc. Purchase Header Ext"
     local procedure OnAfterValidateEventBuyFromVendorNo(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
     begin
         SubcSynchronizeManagement.DeleteEnhancedDocumentsByChangeOfVendorNo(Rec, xRec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnBeforeDeleteEvent, '', false, false)]
+    local procedure CheckTransferOrderOnBeforeDeleteEvent(var Rec: Record "Purchase Header"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        if not RunTrigger then
+            exit;
+        SubcSynchronizeManagement.CheckTransferOrderExistsForPurchaseHeader(Rec);
+    end;
+
+    internal procedure ShowTransferOrdersForPurchHeader(TransferOrderErrorInfo: ErrorInfo)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+    begin
+        PurchaseHeader.Get(TransferOrderErrorInfo.RecordId);
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        if TransferHeader.Count() = 1 then begin
+            TransferHeader.FindFirst();
+            Page.Run(Page::"Transfer Order", TransferHeader);
+        end else
+            Page.Run(Page::"Transfer Orders", TransferHeader);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnAfterCopyPurchHeaderDone, '', false, false)]
