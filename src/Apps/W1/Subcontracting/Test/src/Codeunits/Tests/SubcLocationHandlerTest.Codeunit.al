@@ -429,6 +429,52 @@ codeunit 139981 "Subc. Location Handler Test"
         Assert.RecordIsEmpty(PurchaseLine);
     end;
 
+    [Test]
+    procedure ValidateVendorSubcontrLocationCode_BinMandatoryLocation_RaisesError()
+    var
+        Location: Record Location;
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 633208] Setting Vendor."Subcontr. Location Code" to a Bin Mandatory location raises an error immediately
+        Initialize();
+
+        // [GIVEN] A location with Bin Mandatory enabled
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Bin Mandatory" := true;
+        Location.Modify(true);
+
+        // [GIVEN] A vendor
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] / [THEN] Validating "Subcontr. Location Code" to a Bin Mandatory location raises an error immediately
+        asserterror Vendor.Validate("Subcontr. Location Code", Location.Code);
+        Assert.ExpectedError('Bin Mandatory');
+    end;
+
+    [Test]
+    procedure ValidatePurchHeaderSubcLocationCode_BinMandatoryLocation_RaisesError()
+    var
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 633208] Setting PurchaseHeader."Subc. Location Code" to a Bin Mandatory location raises an error immediately
+        Initialize();
+
+        // [GIVEN] A location with Bin Mandatory enabled
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Bin Mandatory" := true;
+        Location.Modify(true);
+
+        // [GIVEN] A Purchase Header
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, "Purchase Document Type"::Order, Vendor."No.");
+
+        // [WHEN] / [THEN] Validating "Subc. Location Code" to a Bin Mandatory location raises an error immediately
+        asserterror PurchaseHeader.Validate("Subc. Location Code", Location.Code);
+        Assert.ExpectedError('Bin Mandatory');
+    end;
+
     local procedure UpdateSubManagementSetup(ComponentAtLocation: Enum "Components at Location")
     var
         ManufacturingSetup: Record "Manufacturing Setup";

@@ -18,6 +18,17 @@ tableextension 99001509 "Subc. Purchase Header" extends "Purchase Header"
             DataClassification = CustomerContent;
             TableRelation = Location where("Use As In-Transit" = const(false));
             ToolTip = 'Specifies the code for the location where the subcontracted items are stored for pickup and delivery.';
+            trigger OnValidate()
+            var
+                Location: Record Location;
+                BinMandatorySubcontrLocationErr: Label 'Location %1 cannot be used as a Subcontracting Location because Bin Mandatory is enabled.', Comment = '%1 = Location Code';
+            begin
+                if "Subc. Location Code" = '' then
+                    exit;
+                Location.Get("Subc. Location Code");
+                if Location."Bin Mandatory" then
+                    Error(BinMandatorySubcontrLocationErr, "Subc. Location Code");
+            end;
         }
         field(99001521; "Subcontracting Order"; Boolean)
         {
