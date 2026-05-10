@@ -77,20 +77,20 @@ page 99001508 "Subc. Temp Prod Order Comp"
                 {
                     ToolTip = 'Specifies the routing link code when you calculate the production order.';
                 }
-                field("Subcontracting Type"; Rec."Subcontracting Type")
+                field("Component Supply Method"; Rec."Component Supply Method")
                 {
                     ToolTip = 'Specifies how components are supplied to the subcontractor for the production order component.';
                     trigger OnValidate()
                     begin
-                        if Rec."Subcontracting Type" = Rec."Subcontracting Type"::Purchase then
-                            Rec.FieldError("Subcontracting Type");
+                        if Rec."Component Supply Method" = Rec."Component Supply Method"::VendorSupplied then
+                            Rec.FieldError("Component Supply Method");
 
-                        if (Rec."Routing Link Code" = '') and (Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Empty) then begin
+                        if (Rec."Routing Link Code" = '') and (Rec."Component Supply Method" <> Rec."Component Supply Method"::Empty) then begin
                             GetManufacturingSetup();
                             Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
                         end;
 
-                        if Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Transfer then
+                        if Rec."Component Supply Method" <> Rec."Component Supply Method"::TransferToVendor then
                             Rec.Validate("Location Code", CopyStr(SubcSessionState.GetCode('SetSubcontractingLocationCodeFromVendor'), 1, MaxStrLen(Rec."Location Code")))
                         else
                             Rec.Validate("Location Code", Rec."Orig. Location Code");
@@ -110,7 +110,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
         Rec."Prod. Order Line No." := xRec."Prod. Order Line No.";
         Rec.Status := xRec.Status;
         Rec."Routing Link Code" := xRec."Routing Link Code";
-        Rec."Subcontracting Type" := xRec."Subcontracting Type";
+        Rec."Component Supply Method" := xRec."Component Supply Method";
         Rec."Location Code" := xRec."Location Code";
         Rec."Orig. Location Code" := xRec."Orig. Location Code";
 

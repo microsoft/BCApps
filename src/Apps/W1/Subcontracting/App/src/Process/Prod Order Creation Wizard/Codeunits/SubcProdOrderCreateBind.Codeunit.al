@@ -49,7 +49,7 @@ codeunit 99001555 "Subc. ProdOrderCreateBind"
         ManufacturingSetup.SetLoadFields("Rtng. Link Code Purch. Prov.");
         ManufacturingSetup.Get();
         if (ProdOrderComponent."Routing Link Code" <> ManufacturingSetup."Rtng. Link Code Purch. Prov.") or
-           (ProdOrderComponent."Subcontracting Type" <> "Component Supply Method"::Transfer) then
+           (ProdOrderComponent."Component Supply Method" <> "Component Supply Method"::TransferToVendor) then
             exit;
 
         ComponentsLocationCode := SubcontractingManagement.GetComponentsLocationCode(SubcontractingPurchaseLine);

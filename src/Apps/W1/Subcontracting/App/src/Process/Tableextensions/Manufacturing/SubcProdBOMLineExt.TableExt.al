@@ -11,7 +11,7 @@ tableextension 99001531 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001522; "Subcontracting Type"; Enum "Component Supply Method")
+        field(99001522; "Component Supply Method"; Enum "Component Supply Method")
         {
             Caption = 'Component Supply Method';
             DataClassification = CustomerContent;

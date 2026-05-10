@@ -50,13 +50,13 @@ codeunit 99001505 "Subcontracting Management"
 
     procedure ChangeLocationOnProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
-        case ProdOrderComponent."Subcontracting Type" of
-            "Component Supply Method"::InventoryByVendor,
-            "Component Supply Method"::Purchase:
+        case ProdOrderComponent."Component Supply Method" of
+            "Component Supply Method"::ConsignmentAtVendor,
+            "Component Supply Method"::VendorSupplied:
                 if (VendorSubcontrLocation <> '') and (ProdOrderComponent."Location Code" <> VendorSubcontrLocation) then
                     ProdOrderComponent.Validate("Location Code", VendorSubcontrLocation);
 
-            "Component Supply Method"::Transfer,
+            "Component Supply Method"::TransferToVendor,
             "Component Supply Method"::Empty:
                 begin
                     if (ProdOrderComponent."Location Code" <> OriginalLocationCode) and (OriginalLocationCode <> '') then begin
@@ -73,13 +73,13 @@ codeunit 99001505 "Subcontracting Management"
 
     procedure ChangeLocationOnPlanningComponent(var PlanningComponent: Record "Planning Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
-        case PlanningComponent."Subcontracting Type" of
-            "Component Supply Method"::InventoryByVendor,
-            "Component Supply Method"::Purchase:
+        case PlanningComponent."Component Supply Method" of
+            "Component Supply Method"::ConsignmentAtVendor,
+            "Component Supply Method"::VendorSupplied:
                 if (VendorSubcontrLocation <> '') and (PlanningComponent."Location Code" <> VendorSubcontrLocation) then
                     PlanningComponent.Validate("Location Code", VendorSubcontrLocation);
 
-            "Component Supply Method"::Transfer,
+            "Component Supply Method"::TransferToVendor,
             "Component Supply Method"::Empty:
                 begin
                     if (PlanningComponent."Location Code" <> OriginalLocationCode) and (OriginalLocationCode <> '') then begin
@@ -409,7 +409,7 @@ codeunit 99001505 "Subcontracting Management"
 
             if not GetSubcontractor(PlanningRoutingLine."No.", Vendor) then
                 Clear(Vendor);
-            if PlanningComponent."Subcontracting Type" in ["Component Supply Method"::InventoryByVendor, "Component Supply Method"::Purchase] then
+            if PlanningComponent."Component Supply Method" in ["Component Supply Method"::ConsignmentAtVendor, "Component Supply Method"::VendorSupplied] then
                 VendorSubcontractingLocationCode := Vendor."Subcontr. Location Code";
             OrigLocationCode := PlanningComponent."Orig. Location Code";
             OrigBinCode := PlanningComponent."Orig. Bin Code";
@@ -460,14 +460,14 @@ codeunit 99001505 "Subcontracting Management"
                     end;
                 until (PurchaseLine.Next() = 0) or ProdOrderCompFound;
             if ProdOrderCompFound then
-                Error(PurchOrderExistErr, ProdOrderComponent."Item No.", PurchOrderNo, ProdOrderComponent.FieldCaption(ProdOrderComponent."Subcontracting Type"));
+                Error(PurchOrderExistErr, ProdOrderComponent."Item No.", PurchOrderNo, ProdOrderComponent.FieldCaption(ProdOrderComponent."Component Supply Method"));
 
             if ProdOrderRoutingLine.Type = "Capacity Type"::"Work Center" then begin
                 if not GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then
                     Clear(Vendor);
 
                 VendorSubcontractingLocationCode := Vendor."Subcontr. Location Code";
-                if not (ProdOrderComponent."Subcontracting Type" in ["Component Supply Method"::InventoryByVendor, "Component Supply Method"::Purchase]) then
+                if not (ProdOrderComponent."Component Supply Method" in ["Component Supply Method"::ConsignmentAtVendor, "Component Supply Method"::VendorSupplied]) then
                     Clear(VendorSubcontractingLocationCode);
                 OrigLocationCode := ProdOrderComponent."Orig. Location Code";
                 OrigBinCode := ProdOrderComponent."Orig. Bin Code";
@@ -502,7 +502,7 @@ codeunit 99001505 "Subcontracting Management"
                     if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(RoutingLinkUpdConfQst, ProdOrderRoutingLine."Routing Link Code"), true) then
                         Error(UpdateIsCanceledErr);
                 repeat
-                    if not (ProdOrderComponent."Subcontracting Type" in ["Component Supply Method"::InventoryByVendor, "Component Supply Method"::Purchase]) then
+                    if not (ProdOrderComponent."Component Supply Method" in ["Component Supply Method"::ConsignmentAtVendor, "Component Supply Method"::VendorSupplied]) then
                         Clear(VendorSubcontractingLocationCode);
                     OrigLocationCode := ProdOrderComponent."Orig. Location Code";
                     OrigBinCode := ProdOrderComponent."Orig. Bin Code";

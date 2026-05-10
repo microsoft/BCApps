@@ -12,7 +12,7 @@ pageextension 99001513 "Subc. ProdOrderCompLine" extends "Prod. Order Comp. Line
     {
         addlast(Control1)
         {
-            field("Subcontracting Type"; Rec."Subcontracting Type")
+            field("Component Supply Method"; Rec."Component Supply Method")
             {
                 ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies how components are supplied to the subcontractor for the production component.';

@@ -13,7 +13,7 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001524; "Subcontracting Type"; Enum "Component Supply Method")
+        field(99001524; "Component Supply Method"; Enum "Component Supply Method")
         {
             Caption = 'Component Supply Method';
             DataClassification = CustomerContent;

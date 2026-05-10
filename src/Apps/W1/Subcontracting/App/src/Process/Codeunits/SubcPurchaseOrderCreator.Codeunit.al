@@ -125,7 +125,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
                     ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
                     ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
                     ProdOrderComponent.SetRange("Prod. Order Line No.", RequisitionLine."Prod. Order Line No.");
-                    ProdOrderComponent.SetRange("Subcontracting Type", "Component Supply Method"::Purchase);
+                    ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::VendorSupplied);
                     ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
                     if ProdOrderComponent.FindSet() then
                         repeat
@@ -285,7 +285,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
-        ProdOrderComponent.SetRange("Subcontracting Type", "Component Supply Method"::Transfer);
+        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::TransferToVendor);
 
         ProdOrderComponent.SetRange("Location Code", '');
         if not ProdOrderComponent.IsEmpty() then

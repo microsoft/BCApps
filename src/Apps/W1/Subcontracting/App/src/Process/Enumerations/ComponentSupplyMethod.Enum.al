@@ -7,19 +7,23 @@ namespace Microsoft.Manufacturing.Subcontracting;
 enum 99001500 "Component Supply Method"
 {
     Extensible = true;
+    // No supply method is selected.
     value(0; Empty)
     {
         Caption = ' ', Locked = true;
     }
-    value(1; Purchase)
+    // The subcontractor provides the required component materials.
+    value(1; VendorSupplied)
     {
         Caption = 'Vendor-Supplied';
     }
-    value(2; InventoryByVendor)
+    // Your company owns the components and stores them at the subcontractor location (consignment stock).
+    value(2; ConsignmentAtVendor)
     {
         Caption = 'Consignment at Vendor';
     }
-    value(3; Transfer)
+    // Components are sent to the subcontractor through a transfer order.
+    value(3; TransferToVendor)
     {
         Caption = 'Transfer to Vendor';
     }
