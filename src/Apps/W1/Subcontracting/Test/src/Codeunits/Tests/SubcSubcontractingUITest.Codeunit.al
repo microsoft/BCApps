@@ -271,11 +271,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Production BOM Line");
         PageControl.SetRange(PageNo, Page::"Production BOM Lines");
-        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
@@ -294,10 +294,10 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Production BOM Line");
         PageControl.SetRange(PageNo, Page::"Production BOM Version Lines");
-        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
@@ -316,11 +316,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Planning Component");
         PageControl.SetRange(PageNo, Page::"Planning Components");
-        PageControl.SetRange(FieldNo, PlanComp.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, PlanComp.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PlanComp.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PlanComp.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
@@ -467,14 +467,14 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Initialize();
 
         // [THEN] Field captions clearly describe the component supply behavior.
-        Assert.AreEqual('Component Supply Method', ProductionBOMLine.FieldCaption("Subcontracting Type"), 'Production BOM Line field caption must be updated.');
-        Assert.AreEqual('Component Supply Method', PlanningComponent.FieldCaption("Subcontracting Type"), 'Planning Component field caption must be updated.');
-        Assert.AreEqual('Component Supply Method', ProdOrderComponent.FieldCaption("Subcontracting Type"), 'Prod. Order Component field caption must be updated.');
+        Assert.AreEqual('Component Supply Method', ProductionBOMLine.FieldCaption("Component Supply Method"), 'Production BOM Line field caption must be updated.');
+        Assert.AreEqual('Component Supply Method', PlanningComponent.FieldCaption("Component Supply Method"), 'Planning Component field caption must be updated.');
+        Assert.AreEqual('Component Supply Method', ProdOrderComponent.FieldCaption("Component Supply Method"), 'Prod. Order Component field caption must be updated.');
 
         // [THEN] Enum value captions use the new names from bug 633674.
-        Assert.AreEqual('Vendor-Supplied', Format(ComponentSupplyMethod::Purchase), 'Purchase caption must be Vendor-Supplied.');
-        Assert.AreEqual('Consignment at Vendor', Format(ComponentSupplyMethod::InventoryByVendor), 'InventoryByVendor caption must be Consignment at Vendor.');
-        Assert.AreEqual('Transfer to Vendor', Format(ComponentSupplyMethod::Transfer), 'Transfer caption must be Transfer to Vendor.');
+        Assert.AreEqual('Vendor-Supplied', Format(ComponentSupplyMethod::VendorSupplied), 'Purchase caption must be Vendor-Supplied.');
+        Assert.AreEqual('Consignment at Vendor', Format(ComponentSupplyMethod::ConsignmentAtVendor), 'InventoryByVendor caption must be Consignment at Vendor.');
+        Assert.AreEqual('Transfer to Vendor', Format(ComponentSupplyMethod::TransferToVendor), 'Transfer caption must be Transfer to Vendor.');
     end;
 
     var
