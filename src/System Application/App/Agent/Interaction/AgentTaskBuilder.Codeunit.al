@@ -109,6 +109,19 @@ codeunit 4315 "Agent Task Builder"
     end;
 
     /// <summary>
+    /// Set the billing context for the task.
+    /// </summary>
+    /// <param name="BillingContext">The billing context to set on the task.</param>
+    /// <returns>This instance of the Agent Task Builder.</returns>
+    [Scope('OnPrem')]
+    procedure SetBillingContext(BillingContext: Enum "Agent Task Billing Context"): codeunit "Agent Task Builder"
+    begin
+        FeatureAccessManagement.AgentTaskManagementPreviewEnabled(true);
+        AgentTaskBuilderImpl.SetBillingContext(BillingContext);
+        exit(this);
+    end;
+
+    /// <summary>
     /// Add a task message to the task.
     /// Only a single message can be added to the task.
     /// </summary>
