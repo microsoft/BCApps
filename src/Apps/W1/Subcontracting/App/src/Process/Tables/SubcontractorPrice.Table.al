@@ -68,8 +68,6 @@ table 99001500 "Subcontractor Price"
         {
             Caption = 'Starting Date';
             trigger OnValidate()
-            var
-                InvalidStartingDateErr: Label '%1 cannot be after %2', Comment = '%1=Field Caption for starting date, %2=Field Caption for ending date';
             begin
                 if ("Starting Date" > "Ending Date") and ("Ending Date" <> 0D) then
                     Error(InvalidStartingDateErr, FieldCaption("Starting Date"), FieldCaption("Ending Date"));
@@ -127,6 +125,12 @@ table 99001500 "Subcontractor Price"
         key(Key02; "Vendor No.", "Item No.", "Work Center No.", "Variant Code", "Unit of Measure Code", "Currency Code")
         {
         }
+        key(Key03; "Work Center No.")
+        {
+        }
+        key(Key04; "Item No.")
+        {
+        }
     }
     fieldgroups
     {
@@ -149,6 +153,9 @@ table 99001500 "Subcontractor Price"
         TestField("Item No.");
     end;
 
+    var
+        InvalidStartingDateErr: Label '%1 cannot be after %2', Comment = '%1=Field Caption for starting date, %2=Field Caption for ending date';
+
     procedure CopySubcontractorPriceToVendorsSubcontractorPrice(var SubcontractorPrice: Record "Subcontractor Price"; VendNo: Code[20]; WorkCenterNo: Code[20])
     var
         NewSubcontractorPrice: Record "Subcontractor Price";
@@ -160,6 +167,30 @@ table 99001500 "Subcontractor Price"
                 NewSubcontractorPrice."Work Center No." := WorkCenterNo;
                 if NewSubcontractorPrice.Insert() then;
             until SubcontractorPrice.Next() = 0;
+    end;
+
+    internal procedure DeletePricesForVendor(VendorNo: Code[20])
+    begin
+        SetCurrentKey("Vendor No.");
+        SetRange("Vendor No.", VendorNo);
+        if not IsEmpty() then
+            DeleteAll(true);
+    end;
+
+    internal procedure DeletePricesForWorkCenter(WorkCenterNo: Code[20])
+    begin
+        SetCurrentKey("Work Center No.");
+        SetRange("Work Center No.", WorkCenterNo);
+        if not IsEmpty() then
+            DeleteAll(true);
+    end;
+
+    internal procedure DeletePricesForItem(ItemNo: Code[20])
+    begin
+        SetCurrentKey("Item No.");
+        SetRange("Item No.", ItemNo);
+        if not IsEmpty() then
+            DeleteAll(true);
     end;
 
 }

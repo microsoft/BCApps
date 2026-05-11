@@ -14,7 +14,7 @@ using System.Utilities;
 report 99001503 "Subc. Create Prod. Routing"
 {
     ApplicationArea = Manufacturing;
-    Caption = 'Create Production BOM, Routing BOM';
+    Caption = 'Create Production BOM, Routing';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 
@@ -39,8 +39,6 @@ report 99001503 "Subc. Create Prod. Routing"
 
             trigger OnPostDataItem()
             var
-                StatusProdBOMLbl: Label 'Status Production BOM:';
-                StatusRoutingLbl: Label 'Status Routing';
                 StatusTxt: Text;
                 SumStatusTxt: Text;
             begin
@@ -68,11 +66,6 @@ report 99001503 "Subc. Create Prod. Routing"
             trigger OnPreDataItem()
             var
                 ConfirmManagement: Codeunit "Confirm Management";
-                ConfirmBOMQst: Label 'Do you really want to create BOMs for %1 items?', Comment = '%1=Number of Items';
-                ConfirmBothQst: Label 'Do you really want to create routings and BOMs for %1 items?', Comment = '%1=Number of Items';
-                ConfirmRoutingQst: Label 'Do you really want to create routings for %1 items?', Comment = '%1=Number of Items';
-                WindowFromLbl: Label '##1#########\', Locked = true;
-                WindowToLbl: Label '##2#########\', Locked = true;
             begin
                 ManufacturingSetup.Get();
                 if GuiAllowed() and not HideDialogWindows then begin
@@ -130,6 +123,19 @@ report 99001503 "Subc. Create Prod. Routing"
         ItemCount: Integer;
         StatusProdBOMList: List of [Text];
         StatusRoutingList: List of [Text];
+        StatusProdBOMLbl: Label 'Status Production BOM:';
+        StatusRoutingLbl: Label 'Status Routing';
+        ConfirmBOMQst: Label 'Do you really want to create BOMs for %1 items?', Comment = '%1=Number of Items';
+        ConfirmBothQst: Label 'Do you really want to create routings and BOMs for %1 items?', Comment = '%1=Number of Items';
+        ConfirmRoutingQst: Label 'Do you really want to create routings for %1 items?', Comment = '%1=Number of Items';
+        WindowFromLbl: Label '##1#########\', Locked = true;
+        WindowToLbl: Label '##2#########\', Locked = true;
+        CreateBOMLbl: Label 'Create Production BOM.';
+        ProdBOMCreatedMsg: Label 'Production BOM %1 was created for item %2.', Comment = '%1=Production BOM No., %2=Item No.';
+        ProdBOMExistsMsg: Label 'Production BOM %1 already exists.', Comment = '%1=Production BOM No.';
+        CreateRoutingLbl: Label 'Create Routing.';
+        RoutingCreatedMsg: Label 'Routing %1 was created for item %2.', Comment = '%1=Routing No., %2=Item No.';
+        RoutingExistsMsg: Label 'Routing %1 already exists.', Comment = '%1=Routing No.';
 
     trigger OnInitReport()
     begin
@@ -159,9 +165,6 @@ report 99001503 "Subc. Create Prod. Routing"
     local procedure HandleProductionBOM(var CurrentItem: Record Item)
     var
         ProductionBOMHeader: Record "Production BOM Header";
-        CreateBOMLbl: Label 'Create Production BOM.';
-        ProdBOMCreatedMsg: Label 'Production BOM %1 was created for item %2.', Comment = '%1=Production BOM No., %2=Item No.';
-        ProdBOMExistsMsg: Label 'Production BOM %1 already exists.', Comment = '%1=Production BOM No.';
         NextNoType: Option ProdBOM,Routing;
     begin
         if GuiAllowed() and not HideDialogWindows then
@@ -187,9 +190,6 @@ report 99001503 "Subc. Create Prod. Routing"
     local procedure HandleRouting(var CurrentItem: Record Item)
     var
         RoutingHeader: Record "Routing Header";
-        CreateRoutingLbl: Label 'Create Routing.';
-        RoutingCreatedMsg: Label 'Routing %1 was created for item %2.', Comment = '%1=Routing No., %2=Item No.';
-        RoutingExistsMsg: Label 'Routing %1 already exists.', Comment = '%1=Routing No.';
         NextNoType: Option ProdBOM,Routing;
     begin
         if GuiAllowed() and not HideDialogWindows then

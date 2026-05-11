@@ -18,6 +18,14 @@ codeunit 4308 "Agent Message Impl."
         GlobalIgnoreAttachment: Boolean;
         AttachmentsFilenameLbl: Label 'attachments_task%1_%2.zip', Comment = 'Filename format for downloading multiple attachments as a zip file. %1 = task ID, %2 = date/time stamp', Locked = true;
 
+    procedure GetText(TaskID: BigInteger; MessageID: Guid): Text
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+    begin
+        AgentTaskMessage.Get(TaskID, MessageID);
+        exit(GetText(AgentTaskMessage));
+    end;
+
     procedure GetText(var AgentTaskMessage: Record "Agent Task Message"): Text
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
@@ -30,15 +38,35 @@ codeunit 4308 "Agent Message Impl."
         exit(ContentText);
     end;
 
+    procedure UpdateText(TaskID: BigInteger; MessageID: Guid; NewMessageText: Text)
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+    begin
+        AgentTaskMessage."Task ID" := TaskID;
+        AgentTaskMessage.ID := MessageID;
+        UpdateText(AgentTaskMessage, NewMessageText);
+    end;
+
     procedure UpdateText(var AgentTaskMessage: Record "Agent Task Message"; NewMessageText: Text)
     var
+        AgentTaskMessageToModify: Record "Agent Task Message";
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         ContentOutStream: OutStream;
     begin
-        Clear(AgentTaskMessage.Content);
-        AgentTaskMessage.Content.CreateOutStream(ContentOutStream, AgentTaskImpl.GetDefaultEncoding());
+        AgentTaskMessageToModify.Get(AgentTaskMessage."Task ID", AgentTaskMessage.ID);
+        AgentTaskMessageToModify.Content.CreateOutStream(ContentOutStream, AgentTaskImpl.GetDefaultEncoding());
         ContentOutStream.Write(NewMessageText);
-        AgentTaskMessage.Modify(true);
+        AgentTaskMessageToModify.Modify(true);
+
+        AgentTaskMessage.Content := AgentTaskMessageToModify.Content;
+    end;
+
+    procedure IsEditable(TaskID: BigInteger; MessageID: Guid): Boolean
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+    begin
+        AgentTaskMessage.Get(TaskID, MessageID);
+        exit(IsEditable(AgentTaskMessage));
     end;
 
     procedure IsEditable(var AgentTaskMessage: Record "Agent Task Message"): Boolean
@@ -47,6 +75,15 @@ codeunit 4308 "Agent Message Impl."
             exit(false);
 
         exit((AgentTaskMessage.Status = AgentTaskMessage.Status::Draft) or (AgentTaskMessage.Status = AgentTaskMessage.Status::" "));
+    end;
+
+    procedure SetStatusToSent(TaskID: BigInteger; MessageID: Guid)
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+    begin
+        AgentTaskMessage."Task ID" := TaskID;
+        AgentTaskMessage.ID := MessageID;
+        SetStatusToSent(AgentTaskMessage);
     end;
 
     procedure SetStatusToSent(var AgentTaskMessage: Record "Agent Task Message")
@@ -59,7 +96,7 @@ codeunit 4308 "Agent Message Impl."
         GlobalIgnoreAttachment := IgnoreAttachment;
     end;
 
-    procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; var TempAgentTaskFile: Record "Agent Task File" temporary)
+    procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; var TempAgentTaskFile: Record "Agent Task File" temporary; IgnoredReason: Text[250])
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         FileInstream: InStream;
@@ -69,10 +106,15 @@ codeunit 4308 "Agent Message Impl."
             exit;
 
         TempAgentTaskFile.Content.CreateInStream(FileInstream, AgentTaskImpl.GetDefaultEncoding());
-        AddAttachment(AgentTaskMessage, TempAgentTaskFile."File Name", TempAgentTaskFile."File MIME Type", FileInstream);
+        AddAttachment(AgentTaskMessage, TempAgentTaskFile."File Name", TempAgentTaskFile."File MIME Type", FileInstream, IgnoredReason);
     end;
 
     procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream)
+    begin
+        AddAttachment(AgentTaskMessage, FileName, FileMIMEType, InStream, '');
+    end;
+
+    procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; IgnoredReason: Text[250])
     var
         AgentTaskFile: Record "Agent Task File";
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
@@ -92,6 +134,7 @@ codeunit 4308 "Agent Message Impl."
         AgentTaskMessageAttachment."Message ID" := AgentTaskMessage.ID;
         AgentTaskMessageAttachment."File ID" := AgentTaskFile.ID;
         AgentTaskMessageAttachment.Ignored := GlobalIgnoreAttachment;
+        AgentTaskMessageAttachment."Ignored Reason" := CopyStr(IgnoredReason, 1, MaxStrLen(AgentTaskMessageAttachment."Ignored Reason"));
         AgentTaskMessageAttachment.Insert();
     end;
 
@@ -204,10 +247,15 @@ codeunit 4308 "Agent Message Impl."
         until AgentTaskMessageAttachment.Next() = 0;
     end;
 
-    procedure UpdateStatus(var AgentTaskMessage: Record "Agent Task Message"; Status: Option)
+    local procedure UpdateStatus(var AgentTaskMessage: Record "Agent Task Message"; Status: Option)
+    var
+        AgentTaskMessageToModify: Record "Agent Task Message";
     begin
-        AgentTaskMessage.Status := Status;
-        AgentTaskMessage.Modify(true);
+        AgentTaskMessageToModify.Get(AgentTaskMessage."Task ID", AgentTaskMessage.ID);
+        AgentTaskMessageToModify.Status := Status;
+        AgentTaskMessageToModify.Modify(true);
+
+        AgentTaskMessage.Status := AgentTaskMessageToModify.Status;
     end;
 
     procedure GetFileSizeDisplayText(SizeInBytes: Decimal): Text

@@ -10,6 +10,7 @@ query 37018 "Opportunity Entries - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to CRM opportunity entries including sales cycle stages, estimated values, probabilities, and completion metrics. Enables Power BI reports to analyze sales pipeline progression, conversion rates, and opportunity history over time.';
     Caption = 'Power BI Opportunity Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

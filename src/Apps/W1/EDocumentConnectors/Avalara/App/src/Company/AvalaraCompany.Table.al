@@ -1,0 +1,40 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.EServices.EDocumentConnector.Avalara;
+
+/// <summary>
+/// Temporary table holding Avalara company data retrieved from the API for company selection.
+/// </summary>
+table 6373 "Avalara Company"
+{
+    Caption = 'Avalara Company';
+    DataClassification = CustomerContent;
+    TableType = Temporary;
+
+    fields
+    {
+        field(1; Id; Integer)
+        {
+            AutoIncrement = true;
+            Caption = 'Id';
+        }
+        field(2; "Company Name"; Text[250])
+        {
+            Caption = 'Company Name';
+        }
+        field(3; "Company Id"; Text[250])
+        {
+            Caption = 'Company Id';
+        }
+    }
+
+    keys
+    {
+        key(Key1; Id)
+        {
+            Clustered = true;
+        }
+    }
+}

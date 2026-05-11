@@ -11,6 +11,7 @@ using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
+using System.Environment;
 using System.Telemetry;
 
 page 20400 "Qlty. Management Setup"
@@ -273,15 +274,38 @@ page 20400 "Qlty. Management Setup"
                 }
             }
         }
+        area(Processing)
+        {
+            action(InstallDemoData)
+            {
+                ApplicationArea = QualityManagement;
+                Caption = 'Install Demo Data';
+                ToolTip = 'Install the Quality Management Contoso Coffee Demo Dataset app to explore Quality Management with sample data.';
+                Image = Database;
+                Visible = IsSaaS;
+
+                trigger OnAction()
+                var
+                    QltyDemoDataMgmt: Codeunit "Qlty. Demo Data Mgmt.";
+                begin
+                    QltyDemoDataMgmt.InstallOrOpenDemoData();
+                end;
+            }
+        }
     }
 
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         QualityManagementTok: Label 'Quality Management', Locked = true;
+        IsSaaS: Boolean;
 
     trigger OnOpenPage()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
+        IsSaaS := EnvironmentInformation.IsSaaS();
+
         FeatureTelemetry.LogUptake('0000QID', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
         if not Rec.Get() then begin
             QltyAutoConfigure.EnsureBasicSetupExists(false);

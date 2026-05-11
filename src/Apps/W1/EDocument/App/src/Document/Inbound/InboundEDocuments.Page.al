@@ -267,9 +267,11 @@ page 6105 "Inbound E-Documents"
                 var
                     TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     EDocImport: Codeunit "E-Doc. Import";
+                    EDocumentErrorHelper: Codeunit "E-Document Error Helper";
                 begin
                     TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
                     EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
+                    EDocumentErrorHelper.ThrowIfHasErrors(Rec);
                 end;
             }
             action(PrepareDraftDocument)
@@ -284,11 +286,13 @@ page 6105 "Inbound E-Documents"
                 var
                     TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     EDocImport: Codeunit "E-Doc. Import";
+                    EDocumentErrorHelper: Codeunit "E-Document Error Helper";
                     ImportEDocumentProcess: Codeunit "Import E-Document Process";
                 begin
                     TempEDocImportParameters := Rec.GetEDocumentService().GetDefaultImportParameters();
                     TempEDocImportParameters."Desired E-Document Status" := TempEDocImportParameters."Desired E-Document Status"::"Draft Ready";
                     EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
+                    EDocumentErrorHelper.ThrowIfHasErrors(Rec);
                     if ImportEDocumentProcess.IsEDocumentInStateGE(Rec, Enum::"Import E-Doc. Proc. Status"::"Ready for draft") then
                         EDocumentHelper.OpenDraftPage(Rec)
                 end;
@@ -305,6 +309,7 @@ page 6105 "Inbound E-Documents"
                 var
                     TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     EDocImport: Codeunit "E-Doc. Import";
+                    EDocumentErrorHelper: Codeunit "E-Document Error Helper";
                     ImportEDocumentProcess: Codeunit "Import E-Document Process";
                 begin
                     if ImportEDocumentProcess.IsEDocumentInStateGE(Rec, Enum::"Import E-Doc. Proc. Status"::"Ready for draft") then
@@ -312,6 +317,7 @@ page 6105 "Inbound E-Documents"
                     else begin
                         TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
                         EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
+                        EDocumentErrorHelper.ThrowIfHasErrors(Rec);
                     end;
                 end;
             }
