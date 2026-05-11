@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,11 +22,13 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     TableNo = "Purchase Line";
 
     var
+        ManufacturingSetup: Record "Manufacturing Setup";
         SubcManagementSetup: Record "Subc. Management Setup";
         SubcTempDataInitializer: Codeunit "Subc. Temp Data Initializer";
         SubcVersionMgmt: Codeunit "Subc. Version Mgmt.";
         BOMCreated, BOMVersionCreated : Boolean;
         HasSubManagementSetup: Boolean;
+        HasManufacturingSetup: Boolean;
         ProdCompRoutingModified: Boolean;
         ProdOrderCompRoutingCreated: Boolean;
         RoutingCreated, RoutingVersionCreated : Boolean;
@@ -630,20 +632,19 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure ValidateMandatoryFields(PurchaseLine: Record "Purchase Line")
     var
-        ManufacturingSetup: Record "Manufacturing Setup";
         Vendor: Record Vendor;
     begin
-        GetSubManagementSetupCached();
-        SubcManagementSetup.TestField("Rtng. Link Code Purch. Prov.");
-        SubcManagementSetup.TestField("Component at Location");
-        SubcManagementSetup.TestField("Preset Component Item No.");
-        SubcManagementSetup.TestField("Common Work Center No.");
+        GetManufacturingSetupCached();
+        ManufacturingSetup.TestField("Rtng. Link Code Purch. Prov.");
+        ManufacturingSetup.TestField("Subc. Default Comp. Location");
 
-        ManufacturingSetup.Get();
         ManufacturingSetup.TestField("Released Order Nos.");
-        ManufacturingSetup.TestField("Planned Order Nos.");
         ManufacturingSetup.TestField("Production BOM Nos.");
         ManufacturingSetup.TestField("Routing Nos.");
+
+        GetSubManagementSetupCached();
+        SubcManagementSetup.TestField("Preset Component Item No.");
+        SubcManagementSetup.TestField("Common Work Center No.");
 
         Vendor.Get(PurchaseLine."Buy-from Vendor No.");
         Vendor.TestField("Subcontr. Location Code");
@@ -671,6 +672,17 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
             exit;
         if SubcManagementSetup.Get() then
             HasSubManagementSetup := true;
+    end;
+
+    /// <summary>
+    /// Gets Manufacturing Setup with caching
+    /// </summary>
+    local procedure GetManufacturingSetupCached()
+    begin
+        if HasManufacturingSetup then
+            exit;
+        if ManufacturingSetup.Get() then
+            HasManufacturingSetup := true;
     end;
 
     /// <summary>
@@ -804,7 +816,6 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure CreateBOMIfNotExists(var TempProductionBOMHeader: Record "Production BOM Header" temporary; var TempProductionBOMLine: Record "Production BOM Line" temporary; var BOMNo: Code[20])
     var
-        ManufacturingSetup: Record "Manufacturing Setup";
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionBOMLine: Record "Production BOM Line";
         NoSeries: Codeunit "No. Series";
@@ -812,7 +823,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         if SubcVersionMgmt.CheckBOMExists(BOMNo, '') then
             exit;
 
-        ManufacturingSetup.Get();
+        GetManufacturingSetupCached();
         BOMNo := NoSeries.GetNextNo(ManufacturingSetup."Production BOM Nos.");
 
         ProductionBOMHeader.Init();
@@ -856,7 +867,6 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure CreateRoutingIfNotExists(var TempRoutingHeader: Record "Routing Header" temporary; var TempRoutingLine: Record "Routing Line" temporary; var RoutingNo: Code[20])
     var
-        ManufacturingSetup: Record "Manufacturing Setup";
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
         NoSeries: Codeunit "No. Series";
@@ -867,7 +877,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         if SubcVersionMgmt.CheckRoutingExists(RoutingNo, '') then
             exit;
 
-        ManufacturingSetup.Get();
+        GetManufacturingSetupCached();
         RoutingNo := NoSeries.GetNextNo(ManufacturingSetup."Routing Nos.");
 
         RoutingHeader.Init();

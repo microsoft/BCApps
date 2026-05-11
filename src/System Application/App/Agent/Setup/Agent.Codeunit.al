@@ -109,6 +109,19 @@ codeunit 4321 Agent
     end;
 
     /// <summary>
+    /// Gets the model name of the agent.
+    /// </summary>
+    /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
+    /// <returns>The model name of the agent, or Auto if the agent uses the current default model.</returns>
+    procedure GetModelName(AgentUserSecurityID: Guid): Text[70]
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentImpl.GetModelName(AgentUserSecurityID));
+    end;
+
+    /// <summary>
     /// Sets the model ID of the agent.
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>

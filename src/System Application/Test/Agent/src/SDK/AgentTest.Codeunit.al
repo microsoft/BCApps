@@ -245,6 +245,32 @@ codeunit 133961 "Agent Test"
     end;
 
     [Test]
+    procedure GetModelName()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        ModelName: Text;
+    begin
+        Initialize();
+
+        // [SCENARIO] Get model name of an agent in auto mode
+
+        // [GIVEN] An agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Getting the model name
+        ModelName := Agent.GetModelName(AgentId);
+
+        // [THEN] The model name should be Auto for a newly created agent
+        Assert.AreEqual('Auto', ModelName, 'Model name should be Auto for a new agent');
+    end;
+
+    [Test]
     procedure SetModelId()
     var
         AgentRecord: Record Agent;

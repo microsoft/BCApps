@@ -11,6 +11,7 @@ query 37110 "Sales Inv Project Ledger Entry"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to project ledger entries linked to sales invoices including item sales with prices, costs, and dimension data. Enables Power BI reports to analyze project-related sales revenue and profitability by customer and salesperson.';
     Caption = 'Power BI Sales Inv. Project Ledger Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

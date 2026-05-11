@@ -33,6 +33,7 @@ codeunit 139997 "Subc. Wiz. Source Test"
         WizardFinishedSuccessfully: Boolean;
         WizardWasOpened: Boolean;
         ExpectedSourceType: Enum "Subc. RtngBOMSourceType";
+        SubManSetupLbl: Label 'Subcontracting Management Setup', Locked = true;
 
     // ==================== SCENARIO G: Source Data Validation ====================
 
@@ -291,8 +292,6 @@ codeunit 139997 "Subc. Wiz. Source Test"
 
     [ModalPageHandler]
     procedure HandlePurchProvisionWizardVerifySetupSource(var PurchProvisionWizard: TestPage "Subc. PurchProvisionWizard")
-    var
-        SubManSetupLbl: Label 'Subcontracting Management Setup', Locked = true;
     begin
         // [SCENARIO G5] Verify that BomRtngFromSource reflects new setup
         WizardWasOpened := true;
@@ -311,8 +310,6 @@ codeunit 139997 "Subc. Wiz. Source Test"
 
     [ModalPageHandler]
     procedure HandlePurchProvisionWizardVerifyEmptySource(var PurchProvisionWizard: TestPage "Subc. PurchProvisionWizard")
-    var
-        SubManSetupLbl: Label 'Subcontracting Management Setup', Locked = true;
     begin
         // [SCENARIO G4] Verify that BomRtngFromSource shows Empty when no setup exists
         WizardWasOpened := true;
@@ -331,8 +328,6 @@ codeunit 139997 "Subc. Wiz. Source Test"
 
     [ModalPageHandler]
     procedure HandlePurchProvisionWizardVerifyNewSetupSource(var PurchProvisionWizard: TestPage "Subc. PurchProvisionWizard")
-    var
-        SubManSetupLbl: Label 'Subcontracting Management Setup', Locked = true;
     begin
         // [SCENARIO G5] Verify that BomRtngFromSource reflects new setup
         WizardWasOpened := true;
