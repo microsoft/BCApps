@@ -25,18 +25,9 @@ codeunit 99001503 "Subcontracting Comp. Init."
     var
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
-<<<<<<< w/grosss/MoveSubcontractingWorksheetTestsToSubcApp_FomMSMain
-        if not SubcManagementSetup.Get() then begin
-            SubcManagementSetup.Init();
-            CreateSubcontrReqWkshTemplateAndNameAndUpdateSetup(SubcManagementSetup);
-            SubcManagementSetup."Create Prod. Order Info Line" := true;
-            Evaluate(SubcManagementSetup."Subc. Inb. Whse. Handling Time", GetDefaultInboundWhseHandlingTime());
-            SubcManagementSetup.Insert(true);
-=======
         if not ManufacturingSetup.Get() then begin
             ManufacturingSetup.Init();
             ManufacturingSetup.Insert(true);
->>>>>>> main
         end;
 
         if not CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup(ManufacturingSetup) then
@@ -47,11 +38,7 @@ codeunit 99001503 "Subcontracting Comp. Init."
         ManufacturingSetup.Modify(true);
     end;
 
-<<<<<<< w/grosss/MoveSubcontractingWorksheetTestsToSubcApp_FomMSMain
-    procedure CreateSubcontrReqWkshTemplateAndNameAndUpdateSetup(var SubcManagementSetup: Record "Subc. Management Setup")
-=======
     procedure CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup(var ManufacturingSetup: Record "Manufacturing Setup"): Boolean
->>>>>>> main
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";

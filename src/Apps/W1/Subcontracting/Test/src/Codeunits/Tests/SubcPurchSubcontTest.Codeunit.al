@@ -464,17 +464,11 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Purch. Subcont. Test");
         LibrarySetupStorage.Restore();
 
-<<<<<<< w/grosss/MoveSubcontractingWorksheetTestsToSubcApp_FomMSMain
-        SubcManagementLibrary.Initialize();
-        LibraryMfgManagement.Initialize();
-
-=======
->>>>>>> main
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Purch. Subcont. Test");
 
-        SubcontractingMgmtLibrary.Initialize();
+        SubcManagementLibrary.Initialize();
         LibraryMfgManagement.Initialize();
         SubSetupLibrary.InitSetupFields();
         SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Subc. Show/Edit Type"::Hide, "Subc. Show/Edit Type"::Hide);

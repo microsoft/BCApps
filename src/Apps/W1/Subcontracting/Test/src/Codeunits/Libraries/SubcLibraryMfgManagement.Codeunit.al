@@ -202,11 +202,7 @@ codeunit 139984 "Subc. Library Mfg. Management"
         exit(ProdOrderRoutingLine."Routing Reference No.");
     end;
 
-<<<<<<< w/grosss/MoveSubcontractingWorksheetTestsToSubcApp_FomMSMain
-    procedure CreateSubcontrReqWkshTemplateAndNameAndUpdateSetup()
-=======
     procedure CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup()
->>>>>>> main
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";

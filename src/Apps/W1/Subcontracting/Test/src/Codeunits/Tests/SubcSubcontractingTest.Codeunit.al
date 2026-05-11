@@ -1592,8 +1592,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         WorkCenter.Modify(true);
         LibraryInventory.CreateItem(Item);
         WorkCenterNo := WorkCenter."No.";
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 0, '');
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 10, '');
+        SubcManagementLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 0, '');
+        SubcManagementLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenterNo, WorkCenter."Subcontractor No.", Item."No.", '', '', WorkDate(), '', 10, '');
 
         // [WHEN] The work center is deleted
         WorkCenter.Delete(true);
@@ -1621,8 +1621,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         WorkCenter.Modify(true);
         LibraryInventory.CreateItem(Item);
         ItemNo := Item."No.";
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 0, '');
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 10, '');
+        SubcManagementLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 0, '');
+        SubcManagementLibrary.CreateSubContractingPrice(SubcontractorPrice, WorkCenter."No.", WorkCenter."Subcontractor No.", ItemNo, '', '', WorkDate(), '', 10, '');
 
         // [WHEN] The item is deleted
         Item.Delete(true);
@@ -2905,7 +2905,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting Test");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
+        SubcManagementLibrary.Initialize();
         UpdateSubMgmtSetupComponentAtLocation("Components at Location"::Purchase);
         LibraryMfgManagement.Initialize();
 

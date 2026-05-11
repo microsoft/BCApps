@@ -405,13 +405,8 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting Sync Test");
         LibrarySetupStorage.Restore();
 
-<<<<<<< w/grosss/MoveSubcontractingWorksheetTestsToSubcApp_FomMSMain
         SubcManagementLibrary.Initialize();
-        UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Purchase);
-=======
-        SubcontractingMgmtLibrary.Initialize();
         UpdateSubMgmtSetupComponentAtLocation("Components at Location"::Purchase);
->>>>>>> main
         LibraryMfgManagement.Initialize();
 
         if IsInitialized then
@@ -436,11 +431,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
 
     local procedure UpdateSubMgmtSetupWithReqWkshTemplate()
     begin
-<<<<<<< w/grosss/MoveSubcontractingWorksheetTestsToSubcApp_FomMSMain
-        LibraryMfgManagement.CreateSubcontrReqWkshTemplateAndNameAndUpdateSetup();
-=======
         LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
->>>>>>> main
     end;
 
     local procedure UpdateSubMgmtSetupComponentAtLocation(CompAtLocation: Enum "Components at Location")
