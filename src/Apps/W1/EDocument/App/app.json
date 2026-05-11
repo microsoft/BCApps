@@ -37,6 +37,11 @@
       "id": "967eceac-106e-4102-b76a-fe5dc3d799e5",
       "name": "Payables Agent Tests",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "e2ae191d-8829-44c3-a373-3749a2742d4e",
+      "name": "Enforced Digital Vouchers",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],
