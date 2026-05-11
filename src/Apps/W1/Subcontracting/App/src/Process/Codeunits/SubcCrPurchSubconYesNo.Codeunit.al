@@ -11,10 +11,13 @@ codeunit 99001509 "Subc. CrPurchSubcon(Yes/No)"
 {
     TableNo = "Purchase Line";
 
+    var
+        NothingToCreateErr: Label 'There is nothing to create.';
+        PostConfirmQst: Label 'Do you want to create a production order from %1, %2 line no. %3?', Comment = '%1=Document Type, %2=Document No., %3=Line No.';
+
     trigger OnRun()
     var
         PurchaseLine: Record "Purchase Line";
-        NothingToCreateErr: Label 'There is nothing to create.';
     begin
         if not Rec.Find() then
             Error(NothingToCreateErr);
@@ -53,7 +56,6 @@ codeunit 99001509 "Subc. CrPurchSubcon(Yes/No)"
     local procedure ConfirmCreateProductionOrder(var PurchaseLine: Record "Purchase Line"): Boolean
     var
         ConfirmManagement: Codeunit "Confirm Management";
-        PostConfirmQst: Label 'Do you want to create a production order from %1, %2 line no. %3?', Comment = '%1=Document Type, %2=Document No., %3=Line No.';
     begin
         if not ConfirmManagement.GetResponse(StrSubstNo(PostConfirmQst, Format(PurchaseLine."Document Type"), PurchaseLine."Document No.", PurchaseLine."Line No."), true) then
             exit(false);
