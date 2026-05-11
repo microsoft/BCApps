@@ -211,6 +211,75 @@ codeunit 130130 "MCP Config Test"
 
     #endregion
 
+    #region AL Query Server
+
+    // MOCK: the AL Query Server facade procedures are intentional no-ops until the platform adds
+    // real fields to MCP Configuration. These tests only verify that each procedure is callable
+    // without errors. Replace with real state assertions (e.g., reading the new Rec fields) once
+    // the platform-side fields exist.
+
+    [Test]
+    procedure TestEnableALQueryServer()
+    var
+        ConfigId: Guid;
+    begin
+        // MOCK: smoke test for the facade procedure.
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableALQueryServer(ConfigId, true);
+    end;
+
+    [Test]
+    procedure TestDisableALQueryServer()
+    var
+        ConfigId: Guid;
+    begin
+        // MOCK: smoke test for the facade procedure.
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.EnableALQueryServer(ConfigId, false);
+    end;
+
+    [Test]
+    procedure TestEnableALQueryMaxRowsPerQuery()
+    var
+        ConfigId: Guid;
+    begin
+        // MOCK: smoke test for the facade procedure.
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.SetALQueryMaxRowsPerQuery(ConfigId, 5000);
+    end;
+
+    [Test]
+    procedure TestDisableALQueryMaxRowsPerQuery()
+    var
+        ConfigId: Guid;
+    begin
+        // MOCK: smoke test for the facade procedure.
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.SetALQueryMaxRowsPerQuery(ConfigId, 0);
+    end;
+
+    [Test]
+    procedure TestEnableALQueryTimeoutSeconds()
+    var
+        ConfigId: Guid;
+    begin
+        // MOCK: smoke test for the facade procedure.
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.SetALQueryTimeoutSeconds(ConfigId, 120);
+    end;
+
+    [Test]
+    procedure TestDisableALQueryTimeoutSeconds()
+    var
+        ConfigId: Guid;
+    begin
+        // MOCK: smoke test for the facade procedure.
+        ConfigId := CreateMCPConfig(false, false, true, false);
+        MCPConfig.SetALQueryTimeoutSeconds(ConfigId, 0);
+    end;
+
+    #endregion
+
     #region Tools
 
     [Test]

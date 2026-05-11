@@ -251,6 +251,23 @@ codeunit 8351 "MCP Config Implementation"
         LogConfigurationModified(MCPConfiguration, xMCPConfiguration);
     end;
 
+    // MOCK: AL Query Server activation and its sub-settings have no platform-side persistence yet.
+    // These procedures are intentional no-ops. When the platform adds `EnableALQuery`,
+    // `MaxRowsPerQuery`, and `QueryTimeoutSeconds` fields to `MCP Configuration`, implement each
+    // body by: GetBySystemId(ConfigId) (Error with ConfigurationNotFoundErr if missing) →
+    // assign the new value to the appropriate Rec field → Modify() → LogConfigurationModified.
+    internal procedure EnableALQueryServer(ConfigId: Guid; Enable: Boolean)
+    begin
+    end;
+
+    internal procedure SetALQueryMaxRowsPerQuery(ConfigId: Guid; Value: Integer)
+    begin
+    end;
+
+    internal procedure SetALQueryTimeoutSeconds(ConfigId: Guid; Value: Integer)
+    begin
+    end;
+
     local procedure CheckAllowCreateUpdateDeleteTools(ConfigId: Guid)
     var
         MCPConfiguration: Record "MCP Configuration";

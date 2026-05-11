@@ -22,8 +22,8 @@ page 8369 "MCP Server Feature Settings"
             {
                 ShowCaption = false;
 
-                // MOCK: page-local placeholders for AL Query Server settings. The real fields belong on
-                // MCP Configuration once the platform adds them. Remove this group when that happens.
+                // MOCK: page-local stand-ins for the AL Query Server sub-settings until the platform
+                // adds real fields on MCP Configuration. Reset every time the dialog opens.
                 field(MaxRowsPerQuery; MaxRowsPerQueryLocal)
                 {
                     Caption = 'Maximum Rows per Query';
@@ -36,14 +36,14 @@ page 8369 "MCP Server Feature Settings"
                     ToolTip = 'Specifies the maximum execution time for a single AL query, in seconds.';
                     Visible = Feature = Feature::"AL Query Server";
                 }
-                field(AllowedObjectScope; AllowedObjectScopeLocal)
-                {
-                    Caption = 'Allowed Object Scope';
-                    OptionCaption = 'All Read-Only Objects,Configured API Tools Only,Custom...';
-                    ToolTip = 'Specifies which objects the AL Query server may read.';
-                    Visible = Feature = Feature::"AL Query Server";
-                }
             }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
         }
     }
 
@@ -59,11 +59,8 @@ page 8369 "MCP Server Feature Settings"
     var
         ConfigSystemId: Guid;
         Feature: Enum "MCP Server Feature";
-        // MOCK: page-local mock storage. Resets each time the dialog is opened. Replace with real
-        // MCP Configuration fields once the platform supplies them, then drop these locals.
         MaxRowsPerQueryLocal: Integer;
         QueryTimeoutSecondsLocal: Integer;
-        AllowedObjectScopeLocal: Option "All Read-Only Objects","Configured API Tools Only","Custom...";
 
     internal procedure SetContext(NewConfigSystemId: Guid; NewFeature: Enum "MCP Server Feature")
     begin
@@ -73,12 +70,15 @@ page 8369 "MCP Server Feature Settings"
 
     internal procedure SaveChanges()
     begin
-        // MOCK: nothing to persist while AL Query settings are page-local. Hook real writes here when
-        // the platform-side fields land (e.g., ParentConfig.GetBySystemId + Modify per feature).
-        case Feature of
-            Feature::"AL Query Server":
-                ;
-        end;
+        // MOCK: nothing to persist while the AL Query Server sub-settings are page-local. When the
+        // platform-side fields land, write the locals back to MCP Configuration here, e.g.:
+        //   case Feature of
+        //       Feature::"AL Query Server":
+        //           begin
+        //               MCPConfig.SetALQueryMaxRowsPerQuery(ConfigSystemId, MaxRowsPerQueryLocal);
+        //               MCPConfig.SetALQueryTimeoutSeconds(ConfigSystemId, QueryTimeoutSecondsLocal);
+        //           end;
+        //   end;
     end;
 
     local procedure UpdateCaption()
