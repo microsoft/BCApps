@@ -161,15 +161,15 @@ function Get-ReviewComments { return Get-AllPages "/pulls/$PrNumber/comments" }
 function Get-IssueComments  { return Get-AllPages "/issues/$PrNumber/comments" }
 
 function Initialize-ReviewRunner {
-    $runnerCodeReviewDir = Join-Path $RunnerWorkspace 'code review'
+    $runnerCodeReviewDir = Join-Path $RunnerWorkspace 'Code Review'
 
     if (Test-Path $RunnerWorkspace) {
         Remove-Item -LiteralPath $RunnerWorkspace -Recurse -Force
     }
 
     New-Item -Path $runnerCodeReviewDir -ItemType Directory -Force | Out-Null
-    Copy-Item -Path (Join-Path $TrustedWorkspace 'src/Tools/code review/skills') -Destination $runnerCodeReviewDir -Recurse -Force
-    Copy-Item -Path (Join-Path $TrustedWorkspace 'src/Tools/code review/instructions') -Destination $runnerCodeReviewDir -Recurse -Force
+    Copy-Item -Path (Join-Path $TrustedWorkspace 'src/Tools/Code Review/skills') -Destination $runnerCodeReviewDir -Recurse -Force
+    Copy-Item -Path (Join-Path $TrustedWorkspace 'src/Tools/Code Review/instructions') -Destination $runnerCodeReviewDir -Recurse -Force
 }
 
 function Checkout-PrBranch {
