@@ -131,13 +131,13 @@ report 6199 "E-Doc Standard Purchase Order"
             column(CompanyRegistrationNumber_Lbl; CompanyInfo.GetRegistrationNumberLbl())
             {
             }
-            column(CompanyVATRegNo; "VAT Registration No.")
+            column(CompanyVATRegNo; CompanyInfo.GetVATRegistrationNumber())
             {
             }
             column(CompanyVATRegNo_Lbl; CompanyInfo.GetVATRegistrationNumberLbl())
             {
             }
-            column(CompanyVATRegistrationNo; "VAT Registration No.")
+            column(CompanyVATRegistrationNo; CompanyInfo.GetVATRegistrationNumber())
             {
             }
             column(CompanyVATRegistrationNo_Lbl; CompanyInfo.GetVATRegistrationNumberLbl())
@@ -230,7 +230,7 @@ report 6199 "E-Doc Standard Purchase Order"
             column(VATNoText; VATNoText)
             {
             }
-            column(VATRegNo_PurchHeader; CompanyInfo.GetVATRegistrationNumber())
+            column(VATRegNo_PurchHeader; "VAT Registration No.")
             {
             }
             column(PurchaserText; PurchaserText)
@@ -621,13 +621,13 @@ report 6199 "E-Doc Standard Purchase Order"
 
                 trigger OnAfterGetRecord()
                 begin
-                    if OmitLastLine and ("Line No." = LastPurchaseLineNo) then
-                        CurrReport.Skip();
-
                     AllowInvDisctxt := Format("Allow Invoice Disc.");
                     TotalSubTotal += "Line Amount";
                     TotalInvoiceDiscountAmount -= "Inv. Discount Amount";
                     TotalAmount += Amount;
+
+                    if OmitLastLine and ("Line No." = LastPurchaseLineNo) then
+                        CurrReport.Skip();
 
                     ItemNo := "No.";
 
