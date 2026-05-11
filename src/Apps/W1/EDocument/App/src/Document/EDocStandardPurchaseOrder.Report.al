@@ -41,28 +41,28 @@ report 6199 "E-Doc Standard Purchase Order"
             DataItemTableView = sorting("Document Type", "No.") where("Document Type" = const(Order));
             RequestFilterFields = "No.", "Buy-from Vendor No.", "No. Printed";
             RequestFilterHeading = 'Standard Purchase - Order';
-            column(CompanyAddress1; CompanyAddr[1])
+            column(CompanyAddress1; BuyFromAddr[1])
             {
             }
-            column(CompanyAddress2; CompanyAddr[2])
+            column(CompanyAddress2; BuyFromAddr[2])
             {
             }
-            column(CompanyAddress3; CompanyAddr[3])
+            column(CompanyAddress3; BuyFromAddr[3])
             {
             }
-            column(CompanyAddress4; CompanyAddr[4])
+            column(CompanyAddress4; BuyFromAddr[4])
             {
             }
-            column(CompanyAddress5; CompanyAddr[5])
+            column(CompanyAddress5; BuyFromAddr[5])
             {
             }
-            column(CompanyAddress6; CompanyAddr[6])
+            column(CompanyAddress6; BuyFromAddr[6])
             {
             }
-            column(CompanyAddress7; CompanyAddr[7])
+            column(CompanyAddress7; BuyFromAddr[7])
             {
             }
-            column(CompanyAddress8; CompanyAddr[8])
+            column(CompanyAddress8; BuyFromAddr[8])
             {
             }
             column(CompanyHomePage_Lbl; HomePageCaptionLbl)
@@ -74,13 +74,13 @@ report 6199 "E-Doc Standard Purchase Order"
             column(CompanyEmail_Lbl; EmailIDCaptionLbl)
             {
             }
-            column(CompanyEMail; CompanyInfo."E-Mail")
+            column(CompanyEMail; BuyFromContact."E-Mail")
             {
             }
             column(CompanyPicture; DummyCompanyInfo.Picture)
             {
             }
-            column(CompanyPhoneNo; CompanyInfo."Phone No.")
+            column(CompanyPhoneNo; BuyFromContact."Phone No.")
             {
             }
             column(CompanyPhoneNo_Lbl; CompanyInfoPhoneNoCaptionLbl)
@@ -131,13 +131,13 @@ report 6199 "E-Doc Standard Purchase Order"
             column(CompanyRegistrationNumber_Lbl; CompanyInfo.GetRegistrationNumberLbl())
             {
             }
-            column(CompanyVATRegNo; CompanyInfo.GetVATRegistrationNumber())
+            column(CompanyVATRegNo; "VAT Registration No.")
             {
             }
             column(CompanyVATRegNo_Lbl; CompanyInfo.GetVATRegistrationNumberLbl())
             {
             }
-            column(CompanyVATRegistrationNo; CompanyInfo.GetVATRegistrationNumber())
+            column(CompanyVATRegistrationNo; "VAT Registration No.")
             {
             }
             column(CompanyVATRegistrationNo_Lbl; CompanyInfo.GetVATRegistrationNumberLbl())
@@ -230,7 +230,7 @@ report 6199 "E-Doc Standard Purchase Order"
             column(VATNoText; VATNoText)
             {
             }
-            column(VATRegNo_PurchHeader; "VAT Registration No.")
+            column(VATRegNo_PurchHeader; CompanyInfo.GetVATRegistrationNumber())
             {
             }
             column(PurchaserText; PurchaserText)
@@ -248,28 +248,28 @@ report 6199 "E-Doc Standard Purchase Order"
             column(BuyFrmVendNo_PurchHeader; "Buy-from Vendor No.")
             {
             }
-            column(BuyFromAddr1; BuyFromAddr[1])
+            column(BuyFromAddr1; CompanyAddr[1])
             {
             }
-            column(BuyFromAddr2; BuyFromAddr[2])
+            column(BuyFromAddr2; CompanyAddr[2])
             {
             }
-            column(BuyFromAddr3; BuyFromAddr[3])
+            column(BuyFromAddr3; CompanyAddr[3])
             {
             }
-            column(BuyFromAddr4; BuyFromAddr[4])
+            column(BuyFromAddr4; CompanyAddr[4])
             {
             }
-            column(BuyFromAddr5; BuyFromAddr[5])
+            column(BuyFromAddr5; CompanyAddr[5])
             {
             }
-            column(BuyFromAddr6; BuyFromAddr[6])
+            column(BuyFromAddr6; CompanyAddr[6])
             {
             }
-            column(BuyFromAddr7; BuyFromAddr[7])
+            column(BuyFromAddr7; CompanyAddr[7])
             {
             }
-            column(BuyFromAddr8; BuyFromAddr[8])
+            column(BuyFromAddr8; CompanyAddr[8])
             {
             }
             column(BuyFromContactPhoneNoLbl; BuyFromContactPhoneNoLbl)
@@ -290,13 +290,13 @@ report 6199 "E-Doc Standard Purchase Order"
             column(PayToContactEmailLbl; PayToContactEmailLbl)
             {
             }
-            column(BuyFromContactPhoneNo; BuyFromContact."Phone No.")
+            column(BuyFromContactPhoneNo; CompanyInfo."Phone No.")
             {
             }
             column(BuyFromContactMobilePhoneNo; BuyFromContact."Mobile Phone No.")
             {
             }
-            column(BuyFromContactEmail; BuyFromContact."E-Mail")
+            column(BuyFromContactEmail; CompanyInfo."E-Mail")
             {
             }
             column(PayToContactPhoneNo; PayToContact."Phone No.")
