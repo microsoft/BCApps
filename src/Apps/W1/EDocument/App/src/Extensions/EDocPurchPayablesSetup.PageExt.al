@@ -21,6 +21,11 @@ pageextension 6162 "E-Doc. Purch. Payables Setup" extends "Purchases & Payables 
                 ApplicationArea = All;
                 ToolTip = 'Specifies whether Copilot E-Document line matchings are learned by default (Item References and Text To Account Mappings). This can be overwritten on the matching page.';
             }
+            field("Apply VAT Diff. For Purch EDoc"; Rec."Apply VAT Diff. For Purch EDoc")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies whether VAT difference should be applied when matching incoming E-Document line with Purchase Order line';
+            }
         }
     }
 }

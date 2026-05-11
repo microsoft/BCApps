@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
@@ -122,6 +123,42 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         DocumentAttachmentMgt.DeleteAttachedDocuments(EDocument);
 
         EDocImpSessionTelemetry.SetBool('Totals Validation', TryValidateDocumentTotals(PurchaseHeader));
+    end;
+
+    procedure ApplyVATDifferenceToLines(PurchaseHeader: Record "Purchase Header"; AppliedVATAmountDiff: Decimal; TotalLineAmount: Decimal)
+    var
+        PurchaseLine: Record "Purchase Line";
+        Currency: Record Currency;
+        LineAmount: Decimal;
+        VATDiffRemainder: Decimal;
+        VATDiffForLine: Decimal;
+    begin
+        if AppliedVATAmountDiff = 0 then
+            exit;
+        if TotalLineAmount = 0 then
+            exit;
+
+        if PurchaseHeader."Currency Code" = '' then
+            Currency.InitRoundingPrecision()
+        else
+            Currency.Get(PurchaseHeader."Currency Code");
+
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetFilter(Type, '<>%1', PurchaseLine.Type::" ");
+        if not PurchaseLine.FindSet() then
+            exit;
+
+        VATDiffRemainder := 0;
+        repeat
+            LineAmount := PurchaseLine."Line Amount" - PurchaseLine."Inv. Discount Amount";
+            if LineAmount <> 0 then begin
+                VATDiffForLine := VATDiffRemainder + AppliedVATAmountDiff * LineAmount / TotalLineAmount;
+                PurchaseLine."VAT Difference" := Round(VATDiffForLine, Currency."Amount Rounding Precision");
+                VATDiffRemainder := VATDiffForLine - PurchaseLine."VAT Difference";
+                PurchaseLine.Modify();
+            end;
+        until PurchaseLine.Next() = 0;
     end;
 
     procedure RevertCreatedDocument(EDocument: Record "E-Document")

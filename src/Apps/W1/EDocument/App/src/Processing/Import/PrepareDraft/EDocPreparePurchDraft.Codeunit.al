@@ -8,9 +8,11 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.AI;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.UOM;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using System.Log;
 
@@ -97,6 +99,8 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
                 // Log telemetry and activity sessions
                 EDocImpSessionTelemetry.SetLine(EDocumentPurchaseLine.SystemId);
             until EDocumentPurchaseLine.Next() = 0;
+
+        ComputeAndApplyVATAmountDifference(EDocumentPurchaseHeader);
         EDocumentPurchaseHeader.LogHeaderLinesMismatch();
         EDocumentPurchaseHeader.Modify();
 
@@ -245,5 +249,69 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
             Commit();
             if Codeunit.Run(Codeunit::"E-Doc. Deferral Matching", EDocumentPurchaseLine) then;
         end;
+    end;
+
+    local procedure ComputeAndApplyVATAmountDifference(var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        ActivityLog: Codeunit "Activity Log Builder";
+        VATAmountDiff: Decimal;
+        Reasoning: Text[250];
+        VATDiffAppliedLbl: Label 'Applied VAT amount difference of %1 to reconcile document Total VAT %2 with computed Total Line VAT Amount %3.', Comment = '%1 = VAT difference, %2 = Total VAT, %3 = Total Line VAT Amount';
+        VATDiffSkippedSetupLbl: Label 'VAT amount difference of %1 was not applied because Apply VAT Diff. For Purch. E-Doc. is disabled in Purchases & Payables Setup.', Comment = '%1 = VAT difference';
+        VATDiffSkippedAllowLbl: Label 'VAT amount difference of %1 was not applied because Allow VAT Difference is disabled in Purchases & Payables Setup.', Comment = '%1 = VAT difference';
+        VATDiffSkippedMaxLbl: Label 'VAT amount difference of %1 was not applied because it exceeds the Max. VAT Difference Allowed of %2 in General Ledger Setup.', Comment = '%1 = VAT difference, %2 = Max. VAT Difference Allowed';
+    begin
+        EDocumentPurchaseHeader."Applied VAT Amount Diff." := 0;
+
+        if (EDocumentPurchaseHeader."Total VAT" = 0) or (EDocumentPurchaseHeader."Total Line VAT Amount" = EDocumentPurchaseHeader."Total VAT") then
+            exit;
+
+        VATAmountDiff := EDocumentPurchaseHeader."Total VAT" - EDocumentPurchaseHeader."Total Line VAT Amount";
+
+        if not PurchasesPayablesSetup.Get() then
+            exit;
+
+        if not PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc" then begin
+            Reasoning := CopyStr(StrSubstNo(VATDiffSkippedSetupLbl, VATAmountDiff), 1, MaxStrLen(Reasoning));
+            ActivityLog
+                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Applied VAT Amount Diff."), EDocumentPurchaseHeader.SystemId)
+                .SetExplanation(Reasoning)
+                .SetType(Enum::"Activity Log Type"::"AL")
+                .Log();
+            exit;
+        end;
+
+        if not PurchasesPayablesSetup."Allow VAT Difference" then begin
+            Reasoning := CopyStr(StrSubstNo(VATDiffSkippedAllowLbl, VATAmountDiff), 1, MaxStrLen(Reasoning));
+            ActivityLog
+                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Applied VAT Amount Diff."), EDocumentPurchaseHeader.SystemId)
+                .SetExplanation(Reasoning)
+                .SetType(Enum::"Activity Log Type"::"AL")
+                .Log();
+            exit;
+        end;
+
+        if not GeneralLedgerSetup.Get() then
+            exit;
+        if Abs(VATAmountDiff) > GeneralLedgerSetup."Max. VAT Difference Allowed" then begin
+            Reasoning := CopyStr(StrSubstNo(VATDiffSkippedMaxLbl, VATAmountDiff, GeneralLedgerSetup."Max. VAT Difference Allowed"), 1, MaxStrLen(Reasoning));
+            ActivityLog
+                .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Applied VAT Amount Diff."), EDocumentPurchaseHeader.SystemId)
+                .SetExplanation(Reasoning)
+                .SetType(Enum::"Activity Log Type"::"AL")
+                .Log();
+            exit;
+        end;
+
+        EDocumentPurchaseHeader."Applied VAT Amount Diff." := VATAmountDiff;
+
+        Reasoning := CopyStr(StrSubstNo(VATDiffAppliedLbl, VATAmountDiff, EDocumentPurchaseHeader."Total VAT", EDocumentPurchaseHeader."Total Line VAT Amount"), 1, MaxStrLen(Reasoning));
+        ActivityLog
+            .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Applied VAT Amount Diff."), EDocumentPurchaseHeader.SystemId)
+            .SetExplanation(Reasoning)
+            .SetType(Enum::"Activity Log Type"::"AL")
+            .Log();
     end;
 }

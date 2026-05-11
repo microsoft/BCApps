@@ -8,7 +8,6 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
-using System.Log;
 using System.Telemetry;
 
 table 6100 "E-Document Purchase Header"
@@ -259,6 +258,32 @@ table 6100 "E-Document Purchase Header"
             AutoFormatExpression = Rec."Currency Code";
             Editable = false;
         }
+        field(44; "Applied VAT Amount Diff."; Decimal)
+        {
+            Caption = 'Applied VAT Amount Diff.';
+            DataClassification = CustomerContent;
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Currency Code";
+            Editable = false;
+        }
+        field(45; "Line Amount Mismatch"; Boolean)
+        {
+            Caption = 'Line Amount Mismatch';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(46; "VAT Amount Mismatch"; Boolean)
+        {
+            Caption = 'VAT Amount Mismatch';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(47; "Total Mismatch"; Boolean)
+        {
+            Caption = 'Total Mismatch';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
         #endregion Purchase fields
 
         #region Business Central Data - Validated fields [101-200]
@@ -316,39 +341,10 @@ table 6100 "E-Document Purchase Header"
     end;
 
     internal procedure LogHeaderLinesMismatch()
-    var
-        ActivityLog: Codeunit "Activity Log Builder";
-        Reasoning: Text[250];
-        SubTotalMismatchReasonLbl: Label 'The document Sub Total %1 does not match the computed Total Line Amount %2.', Comment = '%1 = Sub Total from document, %2 = computed Total Line Amount';
-        VATMismatchReasonLbl: Label 'The document Total VAT %1 does not match the computed Total Line VAT Amount %2.', Comment = '%1 = Total VAT from document, %2 = computed Total Line VAT Amount';
-        TotalMismatchReasonLbl: Label 'The document Total %1 does not match the computed Total Line Amt. Incl. VAT %2.', Comment = '%1 = Total from document, %2 = computed Total Line Amt. Incl. VAT';
     begin
-        if (Rec."Sub Total" <> 0) and (Rec."Sub Total" <> Rec."Total Line Amount") then begin
-            Reasoning := CopyStr(StrSubstNo(SubTotalMismatchReasonLbl, Rec."Sub Total", Rec."Total Line Amount"), 1, MaxStrLen(Reasoning));
-            ActivityLog
-                .Init(Database::"E-Document Purchase Header", Rec.FieldNo("Total Line Amount"), Rec.SystemId)
-                .SetExplanation(Reasoning)
-                .SetType(Enum::"Activity Log Type"::"AL")
-                .Log();
-        end;
-
-        if (Rec."Total VAT" <> 0) and (Rec."Total VAT" <> Rec."Total Line VAT Amount") then begin
-            Reasoning := CopyStr(StrSubstNo(VATMismatchReasonLbl, Rec."Total VAT", Rec."Total Line VAT Amount"), 1, MaxStrLen(Reasoning));
-            ActivityLog
-                .Init(Database::"E-Document Purchase Header", Rec.FieldNo("Total Line VAT Amount"), Rec.SystemId)
-                .SetExplanation(Reasoning)
-                .SetType(Enum::"Activity Log Type"::"AL")
-                .Log();
-        end;
-
-        if (Rec.Total <> 0) and (Rec.Total <> Rec."Total Line Amt. Incl. VAT") then begin
-            Reasoning := CopyStr(StrSubstNo(TotalMismatchReasonLbl, Rec.Total, Rec."Total Line Amt. Incl. VAT"), 1, MaxStrLen(Reasoning));
-            ActivityLog
-                .Init(Database::"E-Document Purchase Header", Rec.FieldNo("Total Line Amt. Incl. VAT"), Rec.SystemId)
-                .SetExplanation(Reasoning)
-                .SetType(Enum::"Activity Log Type"::"AL")
-                .Log();
-        end;
+        Rec."Line Amount Mismatch" := (Rec."Sub Total" <> 0) and (Rec."Sub Total" <> Rec."Total Line Amount");
+        Rec."VAT Amount Mismatch" := (Rec."Total VAT" <> 0) and (Rec."Total VAT" <> Rec."Total Line VAT Amount");
+        Rec."Total Mismatch" := (Rec.Total <> 0) and (Rec.Total <> Rec."Total Line Amt. Incl. VAT");
     end;
 
     internal procedure FeatureName(): Text
