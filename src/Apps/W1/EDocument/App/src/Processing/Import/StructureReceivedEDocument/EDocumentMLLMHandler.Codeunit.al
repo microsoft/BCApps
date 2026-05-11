@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using System.AI;
+using System.Azure.KeyVault;
 using System.Telemetry;
 using System.Text;
 using System.Utilities;
@@ -26,7 +27,8 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         FeatureNameLbl: Label 'E-Document MLLM Extraction', Locked = true;
         FileDataLbl: Label 'data:application/pdf;base64,%1', Locked = true;
         SystemPromptResourceTok: Label 'Prompts/EDocMLLMExtraction-SystemPrompt.md', Locked = true;
-        UserPromptLbl: Label 'Extract invoice data into this UBL JSON structure: %1. \n\nExtract ONLY visible values. Return JSON only.', Locked = true;
+        UserPromptLbl: Label 'Extract invoice data into this UBL JSON structure: %1. \n\nExtract ONLY visible values. Return JSON only. %2', Locked = true;
+        SecurityPromptAKVKeyTok: Label 'EDocMLLMExtraction-SecurityPromptV281', Locked = true;
         MLLMExtractionStartedMsg: Label 'MLLM extraction started.', Locked = true;
         MLLMExtractionSucceededMsg: Label 'MLLM extraction succeeded.', Locked = true;
         MLLMApiCallSucceededMsg: Label 'MLLM API call succeeded.', Locked = true;
@@ -36,6 +38,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         MLLMSchemaValidationFailedMsg: Label 'MLLM response missing required vendor fields (name or address), falling back to ADI.', Locked = true;
         ADIFallbackSucceededMsg: Label 'ADI fallback produced structured data.', Locked = true;
         ADIFallbackFailedMsg: Label 'ADI fallback returned empty result.', Locked = true;
+        DocumentNotProcessedErr: Label 'The document could not be processed.';
 
     procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
     var
@@ -48,6 +51,9 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         RegisterCopilotCapabilityIfNeeded();
 
         ResponseText := CallMLLM(EDocumentDataStorage);
+
+        if IsInappropriateContentResponse(ResponseText) then
+            Error(DocumentNotProcessedErr);
 
         if not ValidateAndUnwrapResponse(ResponseText, ResponseJson) then
             exit(FallbackToADI(EDocumentDataStorage));
@@ -62,6 +68,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         exit(this);
     end;
 
+    [NonDebuggable]
     local procedure CallMLLM(EDocumentDataStorage: Record "E-Doc. Data Storage"): Text
     var
         Base64Convert: Codeunit "Base64 Convert";
@@ -94,7 +101,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         AOAIChatMessages.SetPrimarySystemMessage(NavApp.GetResourceAsText(SystemPromptResourceTok, TextEncoding::UTF8));
 
         AOAIUserMessage.AddFilePart(StrSubstNo(FileDataLbl, Base64Data));
-        AOAIUserMessage.AddTextPart(StrSubstNo(UserPromptLbl, EDocMLLMSchemaHelper.GetDefaultSchema()));
+        AOAIUserMessage.AddTextPart(SecretText.SecretStrSubstNo(UserPromptLbl, EDocMLLMSchemaHelper.GetDefaultSchema(), GetSecurityClause()).Unwrap());
         AOAIChatMessages.AddUserMessage(AOAIUserMessage);
 
         StartTime := CurrentDateTime();
@@ -111,6 +118,35 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
 
         Telemetry.LogMessage('0000SGT', MLLMApiCallSucceededMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         exit(AOAIOperationResponse.GetResult());
+    end;
+
+    local procedure GetSecurityClause() Result: SecretText
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+    begin
+        if not AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptAKVKeyTok, Result) then
+            Error(DocumentNotProcessedErr);
+    end;
+
+    local procedure IsInappropriateContentResponse(ResponseText: Text): Boolean
+    var
+        ResponseJson: JsonObject;
+        ContentToken: JsonToken;
+        ErrorToken: JsonToken;
+        InnerText: Text;
+    begin
+        if ResponseText = '' then
+            exit(false);
+        if not ResponseJson.ReadFrom(ResponseText) then
+            exit(false);
+
+        if ResponseJson.Get('content', ContentToken) and ContentToken.IsValue() then begin
+            InnerText := ContentToken.AsValue().AsText();
+            Clear(ResponseJson);
+            if not ResponseJson.ReadFrom(InnerText) then
+                exit(false);
+        end;
+        exit(ResponseJson.Get('error', ErrorToken));
     end;
 
     local procedure ValidateAndUnwrapResponse(var ResponseText: Text; var ResponseJson: JsonObject): Boolean
