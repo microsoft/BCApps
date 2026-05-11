@@ -291,7 +291,6 @@ codeunit 4303 "Agent Task"
     /// </summary>
     /// <param name="AgentTaskID">The ID of the agent task.</param>
     /// <returns>The model ID of the agent task. Must be valid value from Agent Model table.</returns>
-    [Scope('OnPrem')]
     procedure GetModelId(AgentTaskID: BigInteger): Code[30]
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
@@ -305,7 +304,6 @@ codeunit 4303 "Agent Task"
     /// </summary>
     /// <param name="AgentTaskID">The ID of the agent task.</param>
     /// <returns>The model name of the agent task.</returns>
-    [Scope('OnPrem')]
     procedure GetModelName(AgentTaskID: BigInteger): Text[70]
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
