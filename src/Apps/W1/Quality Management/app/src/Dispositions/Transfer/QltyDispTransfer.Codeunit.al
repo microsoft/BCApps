@@ -51,7 +51,9 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <returns></returns>
+#pragma warning disable AL0920
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+#pragma warning restore AL0920
     var
         Location: Record Location;
         TransferRoute: Record "Transfer Route";
