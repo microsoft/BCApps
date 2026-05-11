@@ -698,11 +698,11 @@ codeunit 30189 "Shpfy Variant API"
                 GraphQuery.Append(Format(ShopifyVariant."Compare at Price", 0, 9));
                 GraphQuery.Append('\"');
                 if IsBulkOperationEnabled then
-                    CompareAtPrice := Format(ShopifyVariant."Compare at Price", 0, 9);
+                    CompareAtPrice := ', "compareAtPrice": "' + Format(ShopifyVariant."Compare at Price", 0, 9) + '"';
             end else begin
                 HasChange := true;
                 GraphQuery.Append(', compareAtPrice: null');
-                CompareAtPrice := '0';
+                CompareAtPrice := ', "compareAtPrice": null';
             end;
         if ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost" then begin
             HasChange := true;
@@ -720,8 +720,6 @@ codeunit 30189 "Shpfy Variant API"
                 IBulkOperation := BulkOperationType::UpdateProductPrice;
                 if Price = '' then
                     Price := Format(ShopifyVariant.Price, 0, 9);
-                if CompareAtPrice = '' then
-                    CompareAtPrice := Format(ShopifyVariant."Compare at Price", 0, 9);
                 if UnitCost = '' then
                     UnitCost := Format(ShopifyVariant."Unit Cost", 0, 9);
 

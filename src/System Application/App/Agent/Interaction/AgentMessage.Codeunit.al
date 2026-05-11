@@ -119,7 +119,6 @@ codeunit 4307 "Agent Message"
     /// Sets the message status to sent.
     /// </summary>
     /// <param name="AgentTaskMessage">Agent task message to update status.</param>
-
     [Obsolete('Use the overload that takes TaskID and MessageID instead.', '29.0')]
     procedure SetStatusToSent(var AgentTaskMessage: Record "Agent Task Message")
     var
