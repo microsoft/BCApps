@@ -362,8 +362,8 @@ codeunit 148152 "Extend Contract Test"
     [Test]
     procedure ExtendContractTransfersCustomerPriceGroupToSubscriptionLine()
     var
-        ExtendContractMgt: Codeunit "Extend Sub. Contract Mgt.";
         TempExtendServiceCommPackage: Record "Subscription Package" temporary;
+        ExtendContractMgt: Codeunit "Extend Sub. Contract Mgt.";
     begin
         // [SCENARIO] When Extend Contract is used for a customer with a Customer Price Group,
         // the Customer Price Group is transferred to both the Subscription Header and the Subscription Line.
