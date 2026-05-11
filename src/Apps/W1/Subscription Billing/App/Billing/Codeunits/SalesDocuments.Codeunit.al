@@ -1,6 +1,5 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
