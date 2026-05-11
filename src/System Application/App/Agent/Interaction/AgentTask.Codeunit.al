@@ -148,6 +148,32 @@ codeunit 4303 "Agent Task"
         exit(AgentTaskImpl.GetCopilotCreditsConsumed(AgentTaskID));
     end;
 
+    /// <summary>
+    /// Gets the model ID of the agent task.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task.</param>
+    /// <returns>The model ID of the agent task. Must be valid value from Agent Model table.</returns>
+    procedure GetModelId(AgentTaskID: BigInteger): Code[30]
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentTaskImpl.GetModelId(AgentTaskID));
+    end;
+
+    /// <summary>
+    /// Gets the model name of the agent task.
+    /// </summary>
+    /// <param name="AgentTaskID">The ID of the agent task.</param>
+    /// <returns>The model name of the agent task.</returns>
+    procedure GetModelName(AgentTaskID: BigInteger): Text[70]
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentTaskImpl.GetModelName(AgentTaskID));
+    end;
+
     var
         FeatureAccessManagement: Codeunit "Feature Access Management";
 
