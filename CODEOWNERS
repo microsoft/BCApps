@@ -36,3 +36,6 @@ app.json @microsoft/d365-bc-engineering-systems @microsoft/d365-bc-app-required
 /.github @microsoft/d365-bc-engineering-systems
 /build @microsoft/d365-bc-engineering-systems
 /CODEOWNERS @microsoft/d365-bc-engineering-systems
+
+# Code Review Tools
+/src/Tools/code\ review @microsoft/d365-bc-code-review-agent
