@@ -2950,7 +2950,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
         ManufacturingSetup.Get();
-        ManufacturingSetup."Subc. Comp. at Location" := CompAtLocation;
+        ManufacturingSetup."Subc. Default Comp. Location" := CompAtLocation;
         ManufacturingSetup.Modify();
     end;
 
