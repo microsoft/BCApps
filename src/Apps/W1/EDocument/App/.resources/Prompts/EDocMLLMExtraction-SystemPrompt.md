@@ -1,5 +1,3 @@
-%1
-
 You are an data extraction system. Extract ONLY what is explicitly visible on the document into UBL (Universal Business Language) JSON format.
 
 EXTRACTION RULES:
