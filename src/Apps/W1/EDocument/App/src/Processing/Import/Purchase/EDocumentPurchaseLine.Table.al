@@ -458,6 +458,8 @@ table 6101 "E-Document Purchase Line"
         VATRateMismatchReasonLbl: Label 'VAT rate %1% extracted from the document could not be matched to a VAT Posting Setup for vendor''s VAT Business Posting Group %2.', Comment = '%1 = extracted VAT rate %, %2 = VAT Bus. Posting Group code';
         VATRateMismatchTitleLbl: Label 'VAT Posting Setup for %1', Comment = '%1 = VAT Bus. Posting Group code';
     begin
+        if not Rec."[BC] VAT Rate Mismatch" then
+            exit;
         VATPostingSetup.SetRange("VAT Bus. Posting Group", VendVATBusPostingGroupCode);
         VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
             VATPostingSetup."VAT Calculation Type"::"Normal VAT",
@@ -469,7 +471,7 @@ table 6101 "E-Document Purchase Line"
         ActivityLog
             .Init(Database::"E-Document Purchase Line", Rec.FieldNo("[BC] VAT Prod. Posting Group"), Rec.SystemId)
             .SetExplanation(Reasoning)
-            .SetType(Enum::"Activity Log Type"::"AL")
+            .SetType(Enum::"Activity Log Type"::AL)
             .SetReferenceSource(Page::"VAT Posting Setup", VATPostingSetupRef)
             .SetReferenceTitle(StrSubstNo(VATRateMismatchTitleLbl, VendVATBusPostingGroupCode))
             .Log();

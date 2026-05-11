@@ -37,6 +37,8 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         IUnitOfMeasureProvider: Interface IUnitOfMeasureProvider;
         IPurchaseLineProvider: Interface IPurchaseLineProvider;
         IPurchaseOrderProvider: Interface IPurchaseOrderProvider;
+        LineAmount: Decimal;
+        LineVATAmount: Decimal;
     begin
         IUnitOfMeasureProvider := EDocImportParameters."Processing Customizations";
         IPurchaseLineProvider := EDocImportParameters."Processing Customizations";
@@ -81,13 +83,21 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
 
         Clear(EDocumentPurchaseLine);
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentPurchaseHeader."Total Line Amount" := 0;
+        EDocumentPurchaseHeader."Total Line VAT Amount" := 0;
+        EDocumentPurchaseHeader."Total Line Amt. Incl. VAT" := 0;
         if EDocumentPurchaseLine.FindSet() then
             repeat
-                // Update total line amount on the header
-                EDocumentPurchaseHeader."Total Line Amount" := Round(EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount");
+                // Update total line amounts on the header
+                LineAmount := Round(EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount");
+                LineVATAmount := Round(LineAmount * EDocumentPurchaseLine."VAT Rate" / 100);
+                EDocumentPurchaseHeader."Total Line Amount" += LineAmount;
+                EDocumentPurchaseHeader."Total Line VAT Amount" += LineVATAmount;
+                EDocumentPurchaseHeader."Total Line Amt. Incl. VAT" += LineAmount + LineVATAmount;
                 // Log telemetry and activity sessions
                 EDocImpSessionTelemetry.SetLine(EDocumentPurchaseLine.SystemId);
             until EDocumentPurchaseLine.Next() = 0;
+        EDocumentPurchaseHeader.LogHeaderLinesMismatch();
         EDocumentPurchaseHeader.Modify();
 
         LogAllActivitySessionChanges(EDocActivityLogSession);

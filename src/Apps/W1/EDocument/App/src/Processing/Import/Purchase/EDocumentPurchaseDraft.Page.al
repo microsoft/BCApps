@@ -204,7 +204,16 @@ page 6181 "E-Document Purchase Draft"
                 {
                     ToolTip = 'Specifies the total of the lines amount values from all lines of the draft.';
                     Importance = Promoted;
-                    Editable = false;
+                }
+                field("Total Line VAT Amount"; EDocumentPurchaseHeader."Total Line VAT Amount")
+                {
+                    ToolTip = 'Specifies the total VAT amount computed from all lines of the draft.';
+                    Importance = Promoted;
+                }
+                field("Total Line Amt. Incl. VAT"; EDocumentPurchaseHeader."Total Line Amt. Incl. VAT")
+                {
+                    ToolTip = 'Specifies the total amount including VAT computed from all lines of the draft.';
+                    Importance = Promoted;
                 }
                 field("Amount Excl. VAT"; EDocumentPurchaseHeader."Sub Total")
                 {
@@ -780,7 +789,7 @@ page 6181 "E-Document Purchase Draft"
         EDocumentProcessing: Codeunit "E-Document Processing";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         GlobalEDocumentHelper: Codeunit "E-Document Helper";
-        RecordLinkTxt, StyleStatusTxt, DataCaption: Text;
+        RecordLinkTxt, StyleStatusTxt, DataCaption : Text;
         HasErrorsOrWarnings, HasErrors : Boolean;
         ShowFinalizeDraftAction: Boolean;
         ShowAnalyzeDocumentAction: Boolean;

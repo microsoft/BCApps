@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
-using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item.Catalog;
@@ -406,8 +405,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
     local procedure UpdateCalculatedAmounts(UpdateParentRecord: Boolean)
     var
         TotalEDocPurchaseLine: Record "E-Document Purchase Line";
-        EDocumentImportHelper: Codeunit "E-Document Import Helper";
         LineSubtotal: Decimal;
+        LineVATAmount: Decimal;
         DiscountExceedsSubtotalErr: Label 'Discount should not exceed the subtotal of the line';
     begin
         LineSubtotal := Rec.Quantity * Rec."Unit Price";
@@ -423,15 +422,20 @@ page 6183 "E-Doc. Purchase Draft Subform"
             exit;
         if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
             exit;
-        EDocumentPurchaseHeader."Sub Total" := 0;
         EDocumentPurchaseHeader."Total Line Amount" := 0;
+        EDocumentPurchaseHeader."Total Line VAT Amount" := 0;
+        EDocumentPurchaseHeader."Total Line Amt. Incl. VAT" := 0;
         TotalEDocPurchaseLine.SetRange("E-Document Entry No.", Rec."E-Document Entry No.");
         if TotalEDocPurchaseLine.FindSet() then
             repeat
-                EDocumentPurchaseHeader."Sub Total" += Round(TotalEDocPurchaseLine.Quantity * TotalEDocPurchaseLine."Unit Price", EDocumentImportHelper.GetCurrencyRoundingPrecision(EDocumentPurchaseHeader."Currency Code")) - TotalEDocPurchaseLine."Total Discount";
+                LineSubtotal := TotalEDocPurchaseLine.Quantity * TotalEDocPurchaseLine."Unit Price";
+                LineAmount := LineSubtotal - TotalEDocPurchaseLine."Total Discount";
+                LineVATAmount := Round(LineAmount * TotalEDocPurchaseLine."VAT Rate" / 100);
                 EDocumentPurchaseHeader."Total Line Amount" += LineAmount;
+                EDocumentPurchaseHeader."Total Line VAT Amount" += LineVATAmount;
+                EDocumentPurchaseHeader."Total Line Amt. Incl. VAT" += LineAmount + LineVATAmount;
             until TotalEDocPurchaseLine.Next() = 0;
-        EDocumentPurchaseHeader.Total := EDocumentPurchaseHeader."Sub Total" + EDocumentPurchaseHeader."Total VAT" - EDocumentPurchaseHeader."Total Discount";
+        EDocumentPurchaseHeader.LogHeaderLinesMismatch();
         EDocumentPurchaseHeader.Modify();
         CurrPage.Update();
     end;
