@@ -62,7 +62,6 @@ codeunit 4315 "Agent Task Builder"
     /// <param name="RequiresMessage">Specifies whether a message is required, default is true.</param>
     /// <returns>Agent task that was created.</returns>
     /// <remarks>The builder keeps the state, do not reuse the same instance of the builder to create multiple tasks.</remarks>
-    [Scope('OnPrem')]
     procedure Create(SetTaskStatusToReady: Boolean; RequiresMessage: Boolean): Record "Agent Task"
     begin
         FeatureAccessManagement.AgentManagementAllowed(true);
@@ -100,8 +99,7 @@ codeunit 4315 "Agent Task Builder"
     /// </summary>
     /// <param name="ModelId">The model ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
-    [Scope('OnPrem')]
-    procedure SetModelId(ModelId: Text[70]): codeunit "Agent Task Builder"
+    procedure SetModelId(ModelId: Code[30]): codeunit "Agent Task Builder"
     begin
         FeatureAccessManagement.AgentManagementAllowed(true);
         AgentTaskBuilderImpl.SetModelId(ModelId);

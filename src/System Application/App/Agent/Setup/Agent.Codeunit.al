@@ -113,7 +113,6 @@ codeunit 4321 Agent
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent.</param>
     /// <returns>The model name of the agent, or Auto if the agent uses the current default model.</returns>
-    [Scope('OnPrem')]
     procedure GetModelName(AgentUserSecurityID: Guid): Text[70]
     var
         AgentImpl: Codeunit "Agent Impl.";
