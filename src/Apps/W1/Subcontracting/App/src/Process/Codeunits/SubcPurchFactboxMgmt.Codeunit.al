@@ -234,7 +234,6 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PageManagement: Codeunit "Page Management";
         RecRef: RecordRef;
         NoOfTransferHeaders: Integer;
-        NoTransferExistsMsg: Label 'No transfer order exists for this purchase order.';
     begin
         if not RecRelatedVariant.IsRecord() then
             exit;
