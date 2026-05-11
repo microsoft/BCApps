@@ -722,7 +722,7 @@ page 20408 "Qlty. Inspection List"
         CanUnassign := false;
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
         CanCreateReinspection := RowActionsAreEnabled;
-        CanReopen := RowActionsAreEnabled and not Rec.HasMoreRecentReinspection();
+        CanReopen := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
         CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
 
         if (Rec."Assigned User ID" = '') or ((Rec."Assigned User ID" <> UserId()) and QltyPermissionMgmt.CanChangeOtherInspections()) then
