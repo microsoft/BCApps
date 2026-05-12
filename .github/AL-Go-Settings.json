@@ -31,17 +31,6 @@
           "CLEAN29"
         ]
       }
-    },
-    {
-      "branches": [
-        "main",
-        "releases/*.x"
-      ],
-      "settings": {
-        "buildModes": [
-          "Clean"
-        ]
-      }
     }
   ],
   "customALGoFiles": {

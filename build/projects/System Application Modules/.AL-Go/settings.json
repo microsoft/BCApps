@@ -12,5 +12,18 @@
     "../../../src/Business Foundation/Test Library/*"
   ],
   "doNotPublishApps": true,
-  "rulesetFile": "../../../src/rulesets/internal.module.ruleset.json"
+  "rulesetFile": "../../../src/rulesets/internal.module.ruleset.json",
+  "ConditionalSettings": [
+    {
+      "branches": [
+        "main",
+        "releases/*.x"
+      ],
+      "settings": {
+        "buildModes": [
+          "Clean"
+        ]
+      }
+    }
+  ]
 }

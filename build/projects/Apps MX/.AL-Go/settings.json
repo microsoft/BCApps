@@ -231,6 +231,17 @@
           "Strict"
         ]
       }
+    },
+    {
+      "branches": [
+        "main",
+        "releases/*.x"
+      ],
+      "settings": {
+        "buildModes": [
+          "Clean"
+        ]
+      }
     }
   ]
 }
