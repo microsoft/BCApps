@@ -612,6 +612,7 @@ page 20462 "Qlty. Prod. Gen. Rule S. Guide"
             QltyInspectionGenRule.Init();
             QltyInspectionGenRule.SetEntryNo();
             QltyInspectionGenRule.UpdateSortOrder();
+            QltyInspectionGenRule."Source Table No." := Database::"Prod. Order Routing Line";
             QltyInspectionGenRule.Insert();
         end;
         QltyInspectionGenRule.Validate("Template Code", TemplateCode);
