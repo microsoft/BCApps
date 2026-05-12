@@ -152,13 +152,26 @@ if ($TestType -eq "UnitTest") {
     $result = $result -and $isolationResult
 }
 
-if (-not $result -and $parameters.ContainsKey("XUnitResultFileName")) {
+# If tests failed, check if we can tolerate failures based on the test results and unstable tests list
+$testResultFileName = if ($parameters.ContainsKey("JUnitResultFileName") -and -not [string]::IsNullOrWhiteSpace($parameters["JUnitResultFileName"])) {
+    $parameters["JUnitResultFileName"]
+} elseif ($parameters.ContainsKey("XUnitResultFileName") -and -not [string]::IsNullOrWhiteSpace($parameters["XUnitResultFileName"])) {
+    $parameters["XUnitResultFileName"]
+} else {
+    $null
+}
+
+if (-not $result -and $testResultFileName) {
+    Write-Host "Tests failed. Checking test tolerance using results file: $testResultFileName"
+
     # Download unstable tests artifact only when tests failed and tolerance may apply
     $toleranceBranch = Get-ToleranceBranch
+    Write-Host "Tolerance branch: $toleranceBranch"
     $tempDownloadDir = Join-Path ([System.IO.Path]::GetTempPath()) "unstable-tests-$([System.Guid]::NewGuid().ToString('N'))"
     try {
         $UnstableTestsPath = Receive-UnstableTestsArtifact -Branch $toleranceBranch -OutputDirectory $tempDownloadDir
-        $result = Test-ShouldTolerateFailures -TestResultsPath $parameters["XUnitResultFileName"] -UnstableTestsPath $UnstableTestsPath
+        $result = Test-ShouldTolerateFailures -TestResultsPath $testResultFileName -UnstableTestsPath $UnstableTestsPath
+        Write-Host "Test tolerance result: $result"
     } finally {
         if (Test-Path $tempDownloadDir) {
             Remove-Item -Path $tempDownloadDir -Recurse -Force -ErrorAction SilentlyContinue

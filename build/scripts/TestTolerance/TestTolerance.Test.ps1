@@ -322,6 +322,23 @@ Describe "TestTolerance" {
         It "returns null on unsupported branch" {
             Receive-UnstableTestsArtifact -Branch 'feature/foo' -OutputDirectory $script:tempRoot | Should -BeNullOrEmpty
         }
+
+        It "returns null when no token is available" {
+            $savedGhToken = $env:GH_TOKEN
+            $savedGithubToken = $env:GITHUB_TOKEN
+            $savedToken = $env:_token
+            try {
+                $env:GH_TOKEN = $null
+                $env:GITHUB_TOKEN = $null
+                $env:_token = $null
+                Receive-UnstableTestsArtifact -Branch 'main' -OutputDirectory $script:tempRoot | Should -BeNullOrEmpty
+            }
+            finally {
+                $env:GH_TOKEN = $savedGhToken
+                $env:GITHUB_TOKEN = $savedGithubToken
+                $env:_token = $savedToken
+            }
+        }
     }
 
     Context "Update-UnstableTestsList" {

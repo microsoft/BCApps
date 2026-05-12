@@ -468,26 +468,35 @@ function Test-ShouldTolerateFailures {
     )
 
     if ([string]::IsNullOrWhiteSpace($UnstableTestsPath) -or -not (Test-Path -Path $UnstableTestsPath -PathType Leaf)) {
+        Write-Host "Unstable tests file not found or not provided. Skipping tolerance check."
         return $false
     }
 
     if (-not (Test-Path -Path $TestResultsPath -PathType Leaf)) {
+        Write-Host "Test results file not found at '$TestResultsPath'. Skipping tolerance check."
         return $false
     }
 
+    Write-Host "Reading unstable tests list from '$UnstableTestsPath'..."
     $unstableTests = Read-UnstableTestsList -Path $UnstableTestsPath
     if ($unstableTests.Count -eq 0) {
+        Write-Host "Unstable tests list is empty. Skipping tolerance check."
         return $false
     }
+    Write-Host "Found $($unstableTests.Count) unstable test(s) in the list."
 
+    Write-Host "Parsing failed tests from '$TestResultsPath'..."
     $failedTests = @(Get-FailedTestsFromResults -Path $TestResultsPath | Where-Object { $_ })
     if ($failedTests.Count -eq 0) {
+        Write-Host "No failed tests found in results. Nothing to tolerate."
         return $true
     }
+    Write-Host "Found $($failedTests.Count) failed test(s) in results."
 
     $resolution = Resolve-TestTolerance -FailedTests ([System.Collections.Generic.List[object]]$failedTests) -UnstableTests $unstableTests
 
     if ($resolution.Unresolved.Count -gt 0) {
+        Write-Host "$($resolution.Unresolved.Count) failure(s) are NOT in the unstable tests list and cannot be tolerated."
         return $false
     }
 
@@ -508,13 +517,13 @@ function Test-ShouldTolerateFailures {
 .Synopsis
     Downloads the unstable tests artifact for the given branch from GitHub Actions.
 .Description
-    Uses the gh CLI to find the most recent artifact named 'unstable-tests-<branch>'
+    Uses the GitHub REST API to find the most recent artifact named 'unstable-tests-<branch>'
     in the current repository, downloads it, and extracts the JSON file to a local directory.
     Returns the path to the extracted unstable-tests.json, or $null if the artifact is not found
     or any step fails.
 
-    Requires the GH_TOKEN (or GITHUB_TOKEN) and GITHUB_REPOSITORY environment variables to be set.
-    GH_TOKEN must be explicitly set in the workflow step environment; it is not injected automatically.
+    Requires the GH_TOKEN, GITHUB_TOKEN, or _token environment variable and GITHUB_REPOSITORY to be set.
+    If no token variable is available the function skips the download and returns $null.
 #>
 function Receive-UnstableTestsArtifact {
     [CmdletBinding()]
@@ -532,12 +541,24 @@ function Receive-UnstableTestsArtifact {
         return $null
     }
 
+    $token = if (-not [string]::IsNullOrEmpty($env:GH_TOKEN)) { $env:GH_TOKEN }
+             elseif (-not [string]::IsNullOrEmpty($env:GITHUB_TOKEN)) { $env:GITHUB_TOKEN }
+             elseif (-not [string]::IsNullOrEmpty($env:_token)) { $env:_token }
+             else { $null }
+
+    if (-not $token) {
+        Write-Host "No GitHub token found (checked GH_TOKEN, GITHUB_TOKEN, _token). Skipping unstable tests artifact download."
+        return $null
+    }
+
     $artifactName = Get-UnstableTestsArtifactName -Branch $Branch
     $repo = $env:GITHUB_REPOSITORY
+    $headers = @{ Authorization = "Bearer $token"; Accept = 'application/vnd.github+json' }
 
     try {
         Write-Host "Looking up unstable tests artifact '$artifactName' ..."
-        $response = gh api "/repos/$repo/actions/artifacts?name=$([uri]::EscapeDataString($artifactName))&per_page=1" | ConvertFrom-Json
+        $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/actions/artifacts?name=$([uri]::EscapeDataString($artifactName))&per_page=1" `
+            -Headers $headers
 
         if ($response.total_count -eq 0 -or $response.artifacts.Count -eq 0) {
             Write-Host "No unstable tests artifact found for branch '$Branch'."
@@ -557,10 +578,8 @@ function Receive-UnstableTestsArtifact {
         }
 
         $zipPath = Join-Path $OutputDirectory 'unstable-tests.zip'
-        # Use Invoke-WebRequest instead of gh api because gh api has no option to save binary responses to a file.
-        $token = (gh auth token)
         Invoke-WebRequest -Uri "https://api.github.com/repos/$repo/actions/artifacts/$($artifact.id)/zip" `
-            -Headers @{ Authorization = "Bearer $token"; Accept = 'application/vnd.github+json' } `
+            -Headers $headers `
             -OutFile $zipPath
 
         Expand-Archive -Path $zipPath -DestinationPath $OutputDirectory -Force
