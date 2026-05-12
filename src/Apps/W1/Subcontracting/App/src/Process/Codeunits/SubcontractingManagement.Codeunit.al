@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -519,19 +519,19 @@ codeunit 99001505 "Subcontracting Management"
     end;
 
     /// <summary>
-    /// Gets the transfer-from location code based on the setup field "Subc. Comp. at Location".
+    /// Gets the location code for production order components based on the setup field "Subc. Default Comp. Location".
     /// The location code is retrieved from the purchase line, company information, or manufacturing setup.
     /// </summary>
-    /// <returns>The transfer-from location code.</returns>
+    /// <returns>The components location code.</returns>
     procedure GetComponentsLocationCode(PurchaseLine: Record "Purchase Line"): Code[10]
     var
         CompanyInformation: Record "Company Information";
         ComponentsLocationCode: Code[10];
     begin
         GetManufacturingSetup();
-        ManufacturingSetup.TestField("Subc. Comp. at Location");
+        ManufacturingSetup.TestField("Subc. Default Comp. Location");
 
-        case ManufacturingSetup."Subc. Comp. at Location" of
+        case ManufacturingSetup."Subc. Default Comp. Location" of
             "Components at Location"::Purchase:
                 begin
                     PurchaseLine.TestField("Location Code");

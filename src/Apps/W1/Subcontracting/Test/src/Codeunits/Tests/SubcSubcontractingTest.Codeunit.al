@@ -50,6 +50,63 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure CannotDeleteSubcontractingOrderWithAssociatedTransferOrder()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        PurchaseOrderNo: Code[20];
+    begin
+        // [SCENARIO 630806] Deleting a Subcontracting Order is blocked when an associated Transfer Order exists
+        Initialize();
+        UpdateManufacturingSetupWithSubcontractingLocation();
+
+        // [GIVEN] Some Parameters for Creation
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Work and Machine Centers, an Item with Routing and Prod. BOM configured for Transfer subcontracting
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A Released Production Order (not created from a Purchase Order)
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+        CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        // [GIVEN] A Subcontracting Order created from the Production Order Routing
+        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseOrderNo := PurchaseHeader."No.";
+
+        // [GIVEN] A Transfer Order created from the Subcontracting Order
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [WHEN] The Subcontracting Order is attempted to be deleted
+        asserterror PurchaseHeader.Delete(true);
+
+        // [THEN] An error is raised and the Transfer Order still exists
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseOrderNo);
+        Assert.RecordIsNotEmpty(TransferHeader);
+    end;
+
+    [Test]
     procedure InsertRecordOnOpenPageSubcontractingManagementSetup()
     var
         SubcontractingMgmtSetupPage: TestPage "Subc. Management Setup";
@@ -2893,7 +2950,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ManufacturingSetup: Record "Manufacturing Setup";
     begin
         ManufacturingSetup.Get();
-        ManufacturingSetup."Subc. Comp. at Location" := CompAtLocation;
+        ManufacturingSetup."Subc. Default Comp. Location" := CompAtLocation;
         ManufacturingSetup.Modify();
     end;
 

@@ -62,5 +62,5 @@ page 8086 "Sub. Billing Headline RC"
         RCHeadlinesPageCommon: Codeunit "RC Headlines Page Common";
         DefaultFieldsVisible: Boolean;
         UserGreetingVisible: Boolean;
-        DocumentationUrlTxt: Label 'https://learn.microsoft.com/en-us/dynamics365/business-central/srb/welcome';
+        DocumentationUrlTxt: Label 'https://aka.ms/bcsubscriptionbilling', Locked = true;
 }

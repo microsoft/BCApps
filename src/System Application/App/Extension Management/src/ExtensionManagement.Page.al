@@ -387,24 +387,21 @@ page 2500 "Extension Management"
 
     local procedure ShowUninstalledExtensionsNotification()
     var
-        Uninstalled: Record "Extension Database Snapshot";
-        Notif: Notification;
+        ExtensionDatabaseSnapshot: Record "Extension Database Snapshot";
+        OrphanedDataNotification: Notification;
     begin
-        if not Uninstalled.ReadPermission() then
-            exit;
+        OrphanedDataNotification.Id := OrphanedDataNotificationIdTok;
+        OrphanedDataNotification.Scope := NotificationScope::LocalScope;
 
-        Notif.Id := OrphanedDataNotificationIdTok;
-        Notif.Scope := NotificationScope::LocalScope;
+        OrphanedDataNotification.Recall();
 
-        Notif.Recall();
-
-        Uninstalled.SetFilter(Status, '<>%1', Uninstalled.Status::Installed);
-        Uninstalled.SetFilter("Is Reviewed", '%1', false);
-        if not Uninstalled.IsEmpty() then begin
-            Notif.Message(UninstalledExtensionsMsg);
-            Notif.AddAction(ShowOrphanedDataLbl, Codeunit::"Extension Operation Impl", 'HandleOrphanedDataNotification');
-            Notif.AddAction(MarkAllAsReviewedLbl, Codeunit::"Extension Operation Impl", 'MarkOrphanedDataAsReviewed');
-            Notif.Send();
+        ExtensionDatabaseSnapshot.SetFilter(Status, '<>%1', ExtensionDatabaseSnapshot.Status::Installed);
+        ExtensionDatabaseSnapshot.SetFilter("Is Reviewed", '%1', false);
+        if not ExtensionDatabaseSnapshot.IsEmpty() then begin
+            OrphanedDataNotification.Message(UninstalledExtensionsMsg);
+            OrphanedDataNotification.AddAction(ShowOrphanedDataLbl, Codeunit::"Extension Operation Impl", 'HandleOrphanedDataNotification');
+            OrphanedDataNotification.AddAction(MarkAllAsReviewedLbl, Codeunit::"Extension Operation Impl", 'MarkOrphanedDataAsReviewed');
+            OrphanedDataNotification.Send();
         end;
     end;
 
