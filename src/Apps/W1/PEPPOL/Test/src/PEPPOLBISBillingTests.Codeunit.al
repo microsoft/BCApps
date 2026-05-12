@@ -1718,6 +1718,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
           LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("Your Reference"), DATABASE::"Sales Header"));
         SalesHeader.Validate("Shipment Date", LibraryRandom.RandDate(10));
         SalesHeader.Validate("Currency Code", CurrencyCode);
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.Modify(true);
     end;
 
