@@ -62,7 +62,6 @@ $RunnerWorkspace  = $env:REVIEW_RUNNER_WORKSPACE ?? (Join-Path (Split-Path -Pare
 $AnalysisWorkspace = $env:REVIEW_TARGET_WORKSPACE ?? (Join-Path $RunnerWorkspace 'review-target')
 $SummaryMarker    = '<!-- copilot-pr-review-summary -->'
 $BaseUrl          = "https://api.github.com/repos/$Repository"
-$ReviewDomains    = @('Security', 'Privacy', 'Performance', 'Style', 'Accessibility', 'Upgrade')
 
 $SeverityOrder = @{ Critical = 0; High = 1; Medium = 2; Low = 3 }
 $script:LastParsingErrors = [System.Collections.Generic.List[string]]::new()
