@@ -62,8 +62,8 @@ page 4316 "Agent List"
             action(AgentSetup)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Setup';
-                ToolTip = 'Set up the agent';
+                Caption = 'Configure';
+                ToolTip = 'Configure the agent';
                 Image = SetupLines;
                 Enabled = Rec."Can Curr. User Configure Agent";
 
