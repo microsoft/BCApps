@@ -22,6 +22,9 @@ codeunit 4333 "Agent Consumption Overview"
     var
         UserAIConsumptionData: Record "User AI Consumption Data";
     begin
+        if TaskId = 0 then
+            exit(0);
+
         UserAIConsumptionData.SetRange("Agent Task Id", TaskId);
         UserAIConsumptionData.CalcSums("Copilot Credits");
         exit(UserAIConsumptionData."Copilot Credits");
