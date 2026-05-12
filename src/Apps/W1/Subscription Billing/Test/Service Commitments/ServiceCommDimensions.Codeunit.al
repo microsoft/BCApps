@@ -2,6 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Purchases.Document;
@@ -865,6 +866,55 @@ codeunit 148160 "Service Comm. Dimensions"
         ServiceCommitment.TestField("Dimension Set ID", NewDimSetID);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ExchangeRateSelectionModalPageHandler')]
+    procedure RespectDefaultDimensionPrioritiesOnCustomerContractCreation()
+    var
+        Customer: Record Customer;
+        CustomerContract: Record "Customer Subscription Contract";
+        DefaultDimension: Record "Default Dimension";
+        Dimension: Record Dimension;
+        CustomerDimensionValue: Record "Dimension Value";
+        ItemDimensionValue: Record "Dimension Value";
+        Item: Record Item;
+        ServiceCommitment: Record "Subscription Line";
+        ServiceObject: Record "Subscription Header";
+        SourceCodeSetup: Record "Source Code Setup";
+    begin
+        // [SCENARIO #8084] Default Dimension Priorities are respected when a Customer Subscription Contract spawns Subscription Lines
+        Initialize();
+
+        // [GIVEN] Default Dimension Priorities for source code "Sales": Item = 1 (highest), Customer = 2
+        SourceCodeSetup.Get();
+        SetDefaultDimensionPriority(SourceCodeSetup.Sales, Database::Item, 1);
+        SetDefaultDimensionPriority(SourceCodeSetup.Sales, Database::Customer, 2);
+
+        // [GIVEN] A shared dimension with two distinct values for Customer and Item
+        LibraryDimension.CreateDimension(Dimension);
+        LibraryDimension.CreateDimensionValue(CustomerDimensionValue, Dimension.Code);
+        LibraryDimension.CreateDimensionValue(ItemDimensionValue, Dimension.Code);
+
+        // [GIVEN] Customer carries that dimension with one value, Item with another
+        ContractTestLibrary.CreateCustomer(Customer);
+        LibraryDimension.CreateDefaultDimension(DefaultDimension, Database::Customer, Customer."No.", Dimension.Code, CustomerDimensionValue.Code);
+        ContractTestLibrary.CreateItemForServiceObject(Item, false);
+        LibraryDimension.CreateDefaultDimension(DefaultDimension, Database::Item, Item."No.", Dimension.Code, ItemDimensionValue.Code);
+
+        // [GIVEN] A Service Object created from the Item
+        ContractTestLibrary.CreateServiceObjectForItemWithServiceCommitments(ServiceObject, Enum::"Invoicing Via"::Contract, false, Item, 1, 0);
+        ServiceObject.SetHideValidationDialog(true);
+        ServiceObject.Validate("End-User Customer No.", Customer."No.");
+        ServiceObject.Modify(false);
+
+        // [WHEN] The Service Object is assigned to a Customer Subscription Contract
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+
+        // [THEN] The Subscription Line carries Item's dim value (Item priority outranks Customer)
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.FindFirst();
+        VerifyDimensionSetValue(ServiceCommitment."Dimension Set ID", Dimension.Code, ItemDimensionValue.Code);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -966,6 +1016,22 @@ codeunit 148160 "Service Comm. Dimensions"
         TempDimensionSetEntry.Modify(false);
         SalesLine.Validate("Dimension Set ID", DimensionManagement.GetDimensionSetID(TempDimensionSetEntry));
         SalesLine.Modify(true);
+    end;
+
+    local procedure SetDefaultDimensionPriority(SourceCode: Code[10]; TableID: Integer; Priority: Integer)
+    var
+        DefaultDimensionPriority: Record "Default Dimension Priority";
+    begin
+        if DefaultDimensionPriority.Get(SourceCode, TableID) then begin
+            DefaultDimensionPriority.Validate(Priority, Priority);
+            DefaultDimensionPriority.Modify(true);
+        end else begin
+            DefaultDimensionPriority.Init();
+            DefaultDimensionPriority."Source Code" := SourceCode;
+            DefaultDimensionPriority."Table ID" := TableID;
+            DefaultDimensionPriority.Validate(Priority, Priority);
+            DefaultDimensionPriority.Insert(true);
+        end;
     end;
 
     local procedure VerifyDimensionSetValue(DimensionSetID: Integer; DimensionCode: Code[20]; ExpectedDimensionValueCode: Code[20])

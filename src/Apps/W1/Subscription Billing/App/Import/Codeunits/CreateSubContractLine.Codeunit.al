@@ -86,7 +86,7 @@ codeunit 8007 "Create Sub. Contract Line"
             OldDimSetID := ServiceCommitment."Dimension Set ID";
             ServiceCommitment."Subscription Contract No." := CustomerContractLine."Subscription Contract No.";
             ServiceCommitment."Subscription Contract Line No." := CustomerContractLine."Line No.";
-            ServiceCommitment.GetCombinedDimensionSetID(ServiceCommitment."Dimension Set ID", CustomerContract."Dimension Set ID");
+            ServiceCommitment.SetDefaultDimensions(true);
             ServiceCommitment.Modify(true);
             ServiceCommitment.UpdateRelatedVendorServiceCommDimensions(OldDimSetID, ServiceCommitment."Dimension Set ID");
         end;
@@ -132,7 +132,7 @@ codeunit 8007 "Create Sub. Contract Line"
             ServiceCommitment."Subscription Contract No." := VendorContractLine."Subscription Contract No.";
             ServiceCommitment."Subscription Contract Line No." := VendorContractLine."Line No.";
 
-            ServiceCommitment.GetCombinedDimensionSetID(ServiceCommitment."Dimension Set ID", VendorContract."Dimension Set ID");
+            ServiceCommitment.SetDefaultDimensions(true);
             ServiceCommitment.Modify(false);
             VendorContractLine.UpdateServiceCommitmentDimensions();
         end;

@@ -2109,7 +2109,7 @@ table 8052 "Customer Subscription Contract"
         ServiceCommitment."Subscription Contract No." := CustomerContractLine."Subscription Contract No.";
         ServiceCommitment."Subscription Contract Line No." := CustomerContractLine."Line No.";
 
-        ServiceCommitment.GetCombinedDimensionSetID(ServiceCommitment."Dimension Set ID", CustomerContract."Dimension Set ID");
+        ServiceCommitment.SetDefaultDimensions(true);
         if "Currency Code" <> ServiceCommitment."Currency Code" then begin
             CalculateCurrencyFactor(ServiceCommitment."Subscription Line Start Date", CustomerContract."Currency Code");
             ServiceCommitment.SetCurrencyData(CurrencyFactor, CurrencyFactorDate, CustomerContract."Currency Code");
