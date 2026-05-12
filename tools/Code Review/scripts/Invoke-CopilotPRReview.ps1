@@ -165,8 +165,8 @@ function Initialize-ReviewRunner {
     }
 
     New-Item -Path $runnerCodeReviewDir -ItemType Directory -Force | Out-Null
-    Copy-Item -Path (Join-Path $TrustedWorkspace 'src/Tools/Code Review/skills') -Destination $runnerCodeReviewDir -Recurse -Force
-    Copy-Item -Path (Join-Path $TrustedWorkspace 'src/Tools/Code Review/instructions') -Destination $runnerCodeReviewDir -Recurse -Force
+    Copy-Item -Path (Join-Path $TrustedWorkspace 'tools/Code Review/skills') -Destination $runnerCodeReviewDir -Recurse -Force
+    Copy-Item -Path (Join-Path $TrustedWorkspace 'tools/Code Review/instructions') -Destination $runnerCodeReviewDir -Recurse -Force
 }
 
 function Checkout-PrBranch {

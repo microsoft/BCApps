@@ -121,7 +121,7 @@ jobs:
           COPILOT_REVIEW_AGENT_RELEASE_VERSION: ${{ vars.COPILOT_REVIEW_AGENT_RELEASE_VERSION || '0' }}
           BASE_BRANCH: ${{ steps.pr.outputs.base_ref }}
         run: |
-          & "${{ github.workspace }}/trusted/src/Tools/Code Review/scripts/Invoke-CopilotPRReview.ps1"
+          & "${{ github.workspace }}/trusted/tools/Code Review/scripts/Invoke-CopilotPRReview.ps1"
 
       - name: Upload review artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
