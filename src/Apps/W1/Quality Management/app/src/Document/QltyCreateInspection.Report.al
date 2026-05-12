@@ -9,6 +9,7 @@ using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
+using Microsoft.Utilities;
 using System.Utilities;
 
 report 20400 "Qlty. Create Inspection"
@@ -221,6 +222,7 @@ report 20400 "Qlty. Create Inspection"
         DidChangeSourceQuantity: Boolean;
         NotAValidQltyInspectionTemplateErr: Label '''%1'' is not a valid Quality Inspection Template. Please re-configure the available Quality Inspection Templates.', Comment = '%1=The template that was expected';
         PleaseChooseARecordFirstErr: Label 'Choose which record you want to create a Quality Inspection for, then try again.';
+        NoLookupPageForSourceTableErr: Label 'The source configuration ''%1'' is mapped to table ''%2'', which has no list or lookup page available. Choose a different Source.', Comment = '%1=Source configuration code, %2=From Table caption';
 
     trigger OnPreReport()
     var
@@ -325,15 +327,25 @@ report 20400 "Qlty. Create Inspection"
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
         QltyTraversal: Codeunit "Qlty. Traversal";
+        PageManagement: Codeunit "Page Management";
+        LookupPageId: Integer;
     begin
         if QltyInspectSourceConfig."From Table No." <> 0 then begin
             ClearVariables();
 
             TargetRecordRef.Open(QltyInspectSourceConfig."From Table No.");
             TargetRecordRef.SetView(QltyInspectSourceConfig."From Table Filter");
+
+            LookupPageId := PageManagement.GetPageID(TargetRecordRef);
+            if LookupPageId = 0 then begin
+                QltyInspectSourceConfig.CalcFields("From Table Caption");
+                TargetRecordRef.Close();
+                Error(NoLookupPageForSourceTableErr, QltyInspectSourceConfig.Code, QltyInspectSourceConfig."From Table Caption");
+            end;
+
             VariantForRecordRef := TargetRecordRef;
 
-            if Page.RunModal(0, VariantForRecordRef) = Action::LookupOK then begin
+            if Page.RunModal(LookupPageId, VariantForRecordRef) = Action::LookupOK then begin
                 ClearParameters();
                 TargetRecordRef := VariantForRecordRef;
                 Target := TargetRecordRef.RecordId();
