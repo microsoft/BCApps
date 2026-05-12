@@ -2402,7 +2402,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to exist at this point');
         ProdOrderLine.SetRange(Status, ProdOrderLine.Status::Released);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-        Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected only one production order line initially');
+Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to exist before manually creating them');
 
         // [GIVEN] Create two production order lines for the same item but different locations
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation[1]);
