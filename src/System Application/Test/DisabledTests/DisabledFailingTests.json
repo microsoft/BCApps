@@ -1,0 +1,50 @@
+[
+    {
+        "bug": "634925",
+        "codeunitId": 133960,
+        "codeunitName": "Agent Task Test",
+        "method": "CreateTaskWithModelIdAndVerify"
+    },
+    {
+        "bug": "634925",
+        "codeunitId": 133960,
+        "codeunitName": "Agent Task Test",
+        "method": "CreateTaskWithoutModelIdAndVerify"
+    },
+    {
+        "bug": "634925",
+        "codeunitId": 133960,
+        "codeunitName": "Agent Task Test",
+        "method": "CreateTaskWithEmptyModelIdAndVerify"
+    },
+    {
+        "bug": "634925",
+        "codeunitId": 133960,
+        "codeunitName": "Agent Task Test",
+        "method": "CreateMultipleTasksWithDifferentModelIds"
+    },
+    {
+        "bug": "634925",
+        "codeunitId": 133960,
+        "codeunitName": "Agent Task Test",
+        "method": "CreateTaskWithDefaultModelIdAndVerify"
+    },
+    {
+        "bug": "634925",
+        "codeunitId": 133961,
+        "codeunitName": "Agent Test",
+        "method": "SetModelIdToDefaultModel"
+    },
+    {
+        "bug": "634925",
+        "codeunitId": 133103,
+        "codeunitName": "Dataverse Table Builder Test",
+        "method": "TestGenerateTableExtension"
+    },
+    {
+        "bug": "634925",
+        "codeunitId": 133103,
+        "codeunitName": "Dataverse Table Builder Test",
+        "method": "TestCommitGenerationWithoutStarting"
+    }
+]
