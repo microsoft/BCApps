@@ -39,6 +39,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         ADIFallbackSucceededMsg: Label 'ADI fallback produced structured data.', Locked = true;
         ADIFallbackFailedMsg: Label 'ADI fallback returned empty result.', Locked = true;
         DocumentNotProcessedErr: Label 'The document could not be processed.';
+        InappropriateContentErr: Label 'The document could not be processed because it contains inappropriate content.';
 
     procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
     var
@@ -53,7 +54,7 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         ResponseText := CallMLLM(EDocumentDataStorage);
 
         if IsInappropriateContentResponse(ResponseText) then
-            Error(DocumentNotProcessedErr);
+            Error(InappropriateContentErr);
 
         if not ValidateAndUnwrapResponse(ResponseText, ResponseJson) then
             exit(FallbackToADI(EDocumentDataStorage));
