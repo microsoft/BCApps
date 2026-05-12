@@ -280,6 +280,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
 
     trigger OnInsert()
     begin
+        Rec.TestField("Source Table No.");
         UpdateSortOrder();
         SetEntryNo();
         SetIntentAndDefaultTriggerValuesFromSetup();
@@ -287,6 +288,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
 
     trigger OnModify()
     begin
+        Rec.TestField("Source Table No.");
         UpdateSortOrder();
         if (xRec."Source Table No." <> Rec."Source Table No.") or (Rec.Intent = Rec.Intent::Unknown) or not GuiAllowed() then
             SetIntentAndDefaultTriggerValuesFromSetup();
