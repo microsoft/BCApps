@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root>
+  <DataExchDef Code="CNB-EXCHANGE-RATES" Name="Směnné kurzy České národní banky" Type="3" FileType="0" ReadingWritingCodeunit="1203">
+    <DataExchLineDef LineType="0" Code="CURREXCHANGE" Name="Nadřazený uzel pro kód měny" ColumnCount="0" DataLineTag="/kurzy/tabulka/radek">
+      <DataExchColumnDef ColumnNo="10000" Name="kurzy" Show="false" DataType="0" Path="/kurzy" TextPaddingRequired="false" />
+      <DataExchColumnDef ColumnNo="20000" Name="banka" Show="false" DataType="0" Path="/kurzy/@banka" TextPaddingRequired="false" />
+      <DataExchColumnDef ColumnNo="30000" Name="datum" Show="false" DataType="0" Path="/kurzy/@datum" TextPaddingRequired="false" />
+      <DataExchColumnDef ColumnNo="40000" Name="poradi" Show="false" DataType="0" Path="/kurzy/@poradi" TextPaddingRequired="false" />
+      <DataExchColumnDef ColumnNo="50000" Name="tabulka" Show="false" DataType="0" Path="/kurzy/tabulka" TextPaddingRequired="false" />
+      <DataExchColumnDef ColumnNo="60000" Name="typ" Show="false" DataType="0" Path="/kurzy/tabulka/@typ" TextPaddingRequired="false" />
+      <DataExchColumnDef ColumnNo="70000" Name="radek" Show="false" DataType="0" Path="/kurzy/tabulka/radek" TextPaddingRequired="false" />
+      <DataExchColumnDef ColumnNo="80000" Name="kod" Show="false" DataType="0" Path="/kurzy/tabulka/radek/@kod" TextPaddingRequired="false" />
+      <DataExchColumnDef ColumnNo="90000" Name="mena" Show="false" DataType="0" Path="/kurzy/tabulka/radek/@mena" TextPaddingRequired="false" />
+      <DataExchColumnDef ColumnNo="100000" Name="mnozstvi" Show="false" DataType="0" Path="/kurzy/tabulka/radek/@mnozstvi" TextPaddingRequired="false" />
+      <DataExchColumnDef ColumnNo="110000" Name="kurz" Show="false" DataType="0" Path="/kurzy/tabulka/radek/@kurz" TextPaddingRequired="false" />
+      <DataExchColumnDef ColumnNo="120000" Name="zeme" Show="false" DataType="0" Path="/kurzy/tabulka/radek/@zeme" TextPaddingRequired="false" />
+      <DataExchMapping TableId="330" Name="Mapování výměny měny" MappingCodeunit="1280">
+        <DataExchFieldMapping ColumnNo="30000" FieldID="2" UseDefaultValue="true" TransformationRule="CZ_DATE_FORMAT" />
+        <DataExchFieldMapping ColumnNo="80000" FieldID="1" UseDefaultValue="true" />
+        <DataExchFieldMapping ColumnNo="100000" FieldID="3" UseDefaultValue="true" />
+        <DataExchFieldMapping ColumnNo="110000" FieldID="6" UseDefaultValue="true" TransformationRule="CZ_DECIMAL_FORMAT" />
+      </DataExchMapping>
+    </DataExchLineDef>
+  </DataExchDef>
+</root>
