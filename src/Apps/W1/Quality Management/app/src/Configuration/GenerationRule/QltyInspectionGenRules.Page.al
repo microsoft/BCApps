@@ -52,7 +52,8 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 }
                 field("Source Table No."; Rec."Source Table No.")
                 {
-                    Visible = false;
+                    Visible = true;
+                    ShowMandatory = true;
 
                     trigger OnAssistEdit()
                     begin
