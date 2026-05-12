@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.EServices.EDocument.Processing.Import.Sales;
+namespace Microsoft.eServices.EDocument.Processing.Import.Sales;
 
 using Microsoft.eServices.EDocument;
 using System.Log;
@@ -15,7 +15,7 @@ using Microsoft.Sales.Customer;
 /// Shared logic for preparing sales order drafts. Resolves customer and sales lines
 /// from staging data populated by the PEPPOL handler.
 /// </summary>
-codeunit 50002 "EDoc Prepare Sales Draft"
+codeunit 6199 "EDoc Prepare Sales Draft"
 {
     Access = Internal;
 

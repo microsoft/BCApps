@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.EServices.EDocument.Processing.Import.Sales;
+namespace Microsoft.eServices.EDocument.Processing.Import.Sales;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
@@ -14,7 +14,7 @@ using Microsoft.Sales.Document;
 /// <summary>
 /// Shared logic for creating BC sales documents (orders and blanket orders) from e-document draft data.
 /// </summary>
-codeunit 50004 "E-Doc. Sales Doc. Helper"
+codeunit 6427 "E-Doc. Sales Doc. Helper"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -31,7 +31,7 @@ codeunit 50004 "E-Doc. Sales Doc. Helper"
         EDocRecordLink: Record "E-Doc. Record Link";
         DimensionManagement: Codeunit DimensionManagement;
         SalesLineCombinedDimensions: array[10] of Integer;
-        GlobalDim1, GlobalDim2: Code[20];
+        GlobalDim1, GlobalDim2 : Code[20];
     begin
         SalesLine."Document Type" := SalesHeader."Document Type";
         SalesLine."Document No." := SalesHeader."No.";

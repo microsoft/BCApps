@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.EServices.EDocument.Processing.Import.Sales;
+namespace Microsoft.eServices.EDocument.Processing.Import.Sales;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
@@ -13,7 +13,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using System.Log;
 
-codeunit 50001 "E-Doc. Sales Providers" implements ICustomerProvider, ISalesLineProvider
+codeunit 6409 "E-Doc. Sales Providers" implements ICustomerProvider, ISalesLineProvider
 {
     Access = Internal;
 
@@ -38,6 +38,7 @@ codeunit 50001 "E-Doc. Sales Providers" implements ICustomerProvider, ISalesLine
     var
         EDocSalesHeader: Record "E-Document Sales Header";
         EDocErrorHelper: Codeunit "E-Document Error Helper";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
         ServiceParticipant: Record "Service Participant";
         EDocumentHasNoBuyerInformation: Boolean;
     begin
@@ -48,7 +49,8 @@ codeunit 50001 "E-Doc. Sales Providers" implements ICustomerProvider, ISalesLine
             (EDocSalesHeader."Buyer VAT Id" = '') and
             (EDocSalesHeader."Buyer Company Id" = '') and
             (EDocSalesHeader."Buyer Company Name" = '') and
-            (EDocSalesHeader."Buyer Address" = '');
+            (EDocSalesHeader."Buyer Address" = '') and
+            (EDocSalesHeader."Buyer External Id" = '');
 
         if EDocumentHasNoBuyerInformation then begin
             if EDocument."Read into Draft Impl." <> "E-Doc. Read into Draft"::"Blank Draft" then
@@ -73,6 +75,19 @@ codeunit 50001 "E-Doc. Sales Providers" implements ICustomerProvider, ISalesLine
                 exit;
         end;
 
+        if EDocSalesHeader."Buyer External Id" <> '' then begin
+            Clear(Customer);
+            ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Customer);
+            ServiceParticipant.SetRange("Participant Identifier", EDocSalesHeader."Buyer External Id");
+            ServiceParticipant.SetRange(Service, EDocument.GetEDocumentService().Code);
+            if not ServiceParticipant.FindFirst() then begin
+                ServiceParticipant.SetRange(Service);
+                if ServiceParticipant.FindFirst() then;
+            end;
+            if Customer.Get(ServiceParticipant.Participant) then
+                exit;
+        end;
+
         if EDocSalesHeader."Buyer VAT Id" <> '' then begin
             Clear(Customer);
             Customer.SetRange("VAT Registration No.", CopyStr(EDocSalesHeader."Buyer VAT Id", 1, MaxStrLen(Customer."VAT Registration No.")));
@@ -82,8 +97,7 @@ codeunit 50001 "E-Doc. Sales Providers" implements ICustomerProvider, ISalesLine
 
         if EDocSalesHeader."Buyer Company Name" <> '' then begin
             Clear(Customer);
-            Customer.SetRange(Name, EDocSalesHeader."Buyer Company Name");
-            if Customer.FindFirst() then
+            if Customer.Get(EDocumentImportHelper.FindCustomerByNameAndAddress(EDocSalesHeader."Buyer Company Name", EDocSalesHeader."Buyer Address")) then
                 exit;
         end;
 

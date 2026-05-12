@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.EServices.EDocument.Processing.Import.Sales;
+namespace Microsoft.eServices.EDocument.Processing.Import.Sales;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
@@ -10,7 +10,7 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
-codeunit 50000 "Prepare Sales E-Doc. Draft" implements IProcessStructuredData
+codeunit 6408 "Prepare Sales E-Doc. Draft" implements IProcessStructuredData
 {
     Access = Internal;
 

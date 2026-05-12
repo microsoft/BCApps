@@ -2,11 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.EServices.EDocument.Processing.Import.Sales;
+namespace Microsoft.eServices.EDocument.Processing.Import.Sales;
 
 using Microsoft.Finance.Dimension;
 
-page 50001 "E-Doc. Sales Draft Subform"
+page 6154 "E-Doc. Sales Draft Subform"
 {
     AutoSplitKey = true;
     Caption = 'Lines';

@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.EServices.EDocument.Processing.Import.Sales;
+namespace Microsoft.eServices.EDocument.Processing.Import.Sales;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
@@ -14,7 +14,7 @@ using System.Telemetry;
 /// <summary>
 /// Creates a BC Sales Order or Blanket Order from an inbound Peppol Order e-document draft.
 /// </summary>
-codeunit 50003 "E-Doc. Create Sales Order" implements IEDocumentFinishDraft, IEDocumentCreateSalesOrder
+codeunit 6405 "E-Doc. Create Sales Order" implements IEDocumentFinishDraft, IEDocumentCreateSalesOrder
 {
     Access = Internal;
 
@@ -22,6 +22,7 @@ codeunit 50003 "E-Doc. Create Sales Order" implements IEDocumentFinishDraft, IED
         Telemetry: Codeunit Telemetry;
         DraftLineDoesNotContainTypeAndNumberErr: Label 'One of the draft lines do not contain the type and number. Please, specify these fields manually.';
         DuplicateSalesOrderErr: Label 'A sales order with external document number %1 already exists for customer %2.', Comment = '%1 = External Document No., %2 = Customer No.';
+        UnsupportedOrderTypeCodeErr: Label 'Order type code ''%1'' is not supported. Supported codes are: blank or 105 (standard order) and 221 (blanket order).', Comment = '%1 = OrderTypeCode value from the inbound PEPPOL document';
 
     /// <summary>
     /// Creates a BC sales document from the e-document draft by delegating to the customizations interface.
@@ -119,8 +120,13 @@ codeunit 50003 "E-Doc. Create Sales Order" implements IEDocumentFinishDraft, IED
 
     local procedure GetSalesDocumentType(OrderTypeCode: Text[10]): Enum "Sales Document Type"
     begin
-        if OrderTypeCode = '221' then
-            exit("Sales Document Type"::"Blanket Order");
-        exit("Sales Document Type"::Order);
+        case OrderTypeCode of
+            '', '220':
+                exit("Sales Document Type"::Order);
+            '221':
+                exit("Sales Document Type"::"Blanket Order");
+            else
+                Error(UnsupportedOrderTypeCodeErr, OrderTypeCode);
+        end;
     end;
 }

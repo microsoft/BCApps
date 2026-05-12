@@ -2,14 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.EServices.EDocument.Processing.Import.Sales;
+namespace Microsoft.eServices.EDocument.Processing.Import.Sales;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Sales.Customer;
 using System.Telemetry;
 
-table 50000 "E-Document Sales Header"
+table 6153 "E-Document Sales Header"
 {
     Access = Internal;
     ReplicateData = false;
@@ -157,6 +157,11 @@ table 50000 "E-Document Sales Header"
         field(26; "Order Type Code"; Text[10])
         {
             Caption = 'Order Type Code';
+            DataClassification = CustomerContent;
+        }
+        field(27; "Buyer External Id"; Text[250])
+        {
+            Caption = 'Buyer External Id';
             DataClassification = CustomerContent;
         }
         #endregion Sales fields

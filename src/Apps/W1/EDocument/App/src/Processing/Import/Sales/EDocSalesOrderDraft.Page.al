@@ -2,14 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.EServices.EDocument.Processing.Import.Sales;
+namespace Microsoft.eServices.EDocument.Processing.Import.Sales;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Sales.Customer;
 using System.Utilities;
 
-page 50000 "E-Document Sales Draft"
+page 6153 "E-Document Sales Draft"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Sales Document Draft';
@@ -88,6 +88,12 @@ page 50000 "E-Document Sales Draft"
                     ApplicationArea = Suite;
                     Editable = false;
                     ToolTip = 'Specifies the extracted buyer Global Location Number.';
+                }
+                field("Buyer External Id"; Rec."Buyer External Id")
+                {
+                    ApplicationArea = Suite;
+                    Editable = false;
+                    ToolTip = 'Specifies the extracted buyer external identifier used by the e-document service.';
                 }
                 field("Buyer Address"; Rec."Buyer Address")
                 {

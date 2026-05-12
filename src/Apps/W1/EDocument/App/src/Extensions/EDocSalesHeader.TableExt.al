@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+using Microsoft.eServices.EDocument;
+
 tableextension 6172 "E-Doc. Sales Header" extends "Sales Header"
 {
     fields
@@ -20,4 +22,10 @@ tableextension 6172 "E-Doc. Sales Header" extends "Sales Header"
         {
         }
     }
+
+    internal procedure IsLinkedToEDoc(EDocumentToExclude: Record "E-Document"): Boolean
+    begin
+        exit(not IsNullGuid("E-Document Link") and ("E-Document Link" <> EDocumentToExclude.SystemId));
+    end;
+
 }

@@ -74,6 +74,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
                 begin
                     PopulateSalesOrderHeader(PeppolXML, XmlNamespaces, EDocSalesHeader);
                     InsertSalesOrderLines(EDocSalesHeader."E-Document Entry No.", PeppolXML, XmlNamespaces);
+                    InsertSalesAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocSalesHeader."E-Document Entry No.");
                     if EDocSalesHeader."Sub Total" = 0 then
                         ComputeSalesTotalsFromLines(EDocSalesHeader);
                     InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/order:Order');
@@ -275,6 +276,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         if EDocSalesLine.FindSet() then
             repeat
                 Header."Sub Total" += EDocSalesLine."Line Extension Amount";
+                Header."Total Discount" += EDocSalesLine."Line Discount Amount";
             until EDocSalesLine.Next() = 0;
         Header.Total := Header."Sub Total" + Header."Total VAT";
     end;
@@ -338,7 +340,10 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         if PeppolUtility.TryGetStringValue(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:Item/cac:StandardItemIdentification/cbc:ID', Value) then
             Line."Standard Item Id" := CopyStr(Value, 1, MaxStrLen(Line."Standard Item Id"));
 
-        PeppolUtility.SetNumberValueInField(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent', Line."VAT Rate");
+        if not PeppolUtility.TryGetStringValue(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:Item/cac:ClassifiedTaxCategory/cbc:Percent', Value) or (Value = '') then
+            PeppolUtility.SetNumberValueInField(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent', Line."VAT Rate")
+        else
+            Evaluate(Line."VAT Rate", Value, 9);
 
         if LineItemXML.SelectNodes('cac:LineItem/cac:AllowanceCharge', XmlNamespaces, AllowanceNodes) then
             for i := 1 to AllowanceNodes.Count do begin
@@ -356,6 +361,54 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
             PeppolUtility.SetCurrencyIfForeign(Value, Line."Currency Code");
 
         PeppolUtility.SetDateValueInField(LineItemXML, XmlNamespaces, 'cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:StartDate', Line."Requested Delivery Date");
+    end;
+
+    local procedure InsertSalesAllowanceChargeLines(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; EDocumentEntryNo: Integer)
+    var
+        ChargeXML: XmlDocument;
+        ChargeNodes: XmlNodeList;
+        ChargeNode: XmlNode;
+        ChargeIndicator: Text;
+        i: Integer;
+    begin
+        if not PeppolXML.SelectNodes('/order:Order/cac:AllowanceCharge', XmlNamespaces, ChargeNodes) then
+            exit;
+
+        for i := 1 to ChargeNodes.Count do begin
+            ChargeNodes.Get(i, ChargeNode);
+            ChargeXML.ReplaceNodes(ChargeNode);
+
+            if PeppolUtility.TryGetStringValue(ChargeXML, XmlNamespaces, 'cac:AllowanceCharge/cbc:ChargeIndicator', ChargeIndicator) then
+                if UpperCase(ChargeIndicator) = 'TRUE' then
+                    InsertSingleSalesChargeLine(ChargeXML, XmlNamespaces, EDocumentEntryNo);
+        end;
+    end;
+
+    local procedure InsertSingleSalesChargeLine(ChargeXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; EDocumentEntryNo: Integer)
+    var
+        EDocSalesLine: Record "E-Document Sales Line";
+        ChargeAmount: Decimal;
+        Value: Text;
+        CurrencyCode: Text;
+    begin
+        Clear(EDocSalesLine);
+        EDocSalesLine.Validate("E-Document Entry No.", EDocumentEntryNo);
+        EDocSalesLine."Line No." := EDocSalesLine.GetNextLineNo(EDocumentEntryNo);
+        EDocSalesLine.Quantity := 1;
+
+        PeppolUtility.SetNumberValueInField(ChargeXML, XmlNamespaces, 'cac:AllowanceCharge/cbc:Amount', ChargeAmount);
+        EDocSalesLine."Unit Price" := ChargeAmount;
+        EDocSalesLine."Line Extension Amount" := ChargeAmount;
+
+        if PeppolUtility.TryGetStringValue(ChargeXML, XmlNamespaces, 'cac:AllowanceCharge/cbc:AllowanceChargeReason', Value) then
+            EDocSalesLine.Description := CopyStr(Value, 1, MaxStrLen(EDocSalesLine.Description));
+
+        PeppolUtility.SetNumberValueInField(ChargeXML, XmlNamespaces, 'cac:AllowanceCharge/cac:TaxCategory/cbc:Percent', EDocSalesLine."VAT Rate");
+
+        if PeppolUtility.TryGetStringValue(ChargeXML, XmlNamespaces, 'cac:AllowanceCharge/cbc:Amount/@currencyID', CurrencyCode) then
+            PeppolUtility.SetCurrencyIfForeign(CurrencyCode, EDocSalesLine."Currency Code");
+
+        EDocSalesLine.Insert();
     end;
 
     #endregion Sales Order Lines

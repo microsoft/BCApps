@@ -245,7 +245,7 @@ codeunit 6108 "E-Document Processing"
             EDocument."Document Type"::"Sales Order":
                 begin
                     SourceDocumentLines.Open(Database::"Sales Line");
-                    SourceDocumentLines.Field(1).SetRange("Sales Document Type"::Order);
+                    SourceDocumentLines.Field(1).SetFilter('%1|%2', "Sales Document Type"::Order, "Sales Document Type"::"Blanket Order");
                     SourceDocumentLines.Field(2).SetRange(EDocument."Document No.");
                 end;
             EDocument."Document Type"::"Sales Invoice":

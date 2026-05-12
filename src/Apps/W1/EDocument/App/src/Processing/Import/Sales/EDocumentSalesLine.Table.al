@@ -2,17 +2,21 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.EServices.EDocument.Processing.Import.Sales;
+namespace Microsoft.eServices.EDocument.Processing.Import.Sales;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Document;
+using Microsoft.Utilities;
 
-table 50001 "E-Document Sales Line"
+table 6154 "E-Document Sales Line"
 {
     Access = Internal;
     DataClassification = CustomerContent;
@@ -127,7 +131,17 @@ table 50001 "E-Document Sales Line"
         {
             Caption = 'No.';
             ToolTip = 'Specifies the item or resource number.';
-            TableRelation = if ("[BC] Sales Line Type" = const(Item)) Item
+            TableRelation = if ("[BC] Sales Line Type" = const(" ")) "Standard Text"
+            else
+            if ("[BC] Sales Line Type" = const("G/L Account")) "G/L Account" where("Direct Posting" = const(true))
+            else
+            if ("[BC] Sales Line Type" = const("Fixed Asset")) "Fixed Asset"
+            else
+            if ("[BC] Sales Line Type" = const("Charge (Item)")) "Item Charge"
+            else
+            if ("[BC] Sales Line Type" = const(Item)) Item
+            else
+            if ("[BC] Sales Line Type" = const("Allocation Account")) "Allocation Account"
             else
             if ("[BC] Sales Line Type" = const(Resource)) Resource;
         }
