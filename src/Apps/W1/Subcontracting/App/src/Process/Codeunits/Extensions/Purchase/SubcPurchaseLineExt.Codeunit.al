@@ -20,6 +20,10 @@ codeunit 99001534 "Subc. Purchase Line Ext"
         Comment = '%1 = PurchaseLine Outstanding Qty, %2 = Tablecaption PurchaseLine, %3 = ProdOrderLine Remaining Qty, %4 = Tablecaption ProdOrderLine, %5 = Current ProdOrderLine Qty, %6 = New PurchaseLine Qty';
         NotLastOperationLineErr: Label 'Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.';
         CannotOpenProductionOrderErr: Label 'Cannot open Production Order %1.', Comment = '%1=Production Order No.';
+        ChangeVariantNoNotAllowedErr: Label 'You cannot change %1 because the order line is associated with production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
+        ShowProductionOrderActionLbl: Label 'Show Prod. Order';
+        AdjustQtyActionLbl: Label 'Adjust Quantity';
+        OpenItemTrackingAnywayActionLbl: Label 'Open anyway';
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEvent(var Rec: Record "Purchase Line"; RunTrigger: Boolean)
@@ -77,8 +81,6 @@ codeunit 99001534 "Subc. Purchase Line Ext"
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnValidateVariantCodeOnBeforeDropShipmentError, '', false, false)]
     local procedure OnValidateVariantCodeOnBeforeDropShipmentError(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
-    var
-        ChangeVariantNoNotAllowedErr: Label 'You cannot change %1 because the order line is associated with production order %2.', Comment = '%1=Field Caption, %2=Production Order No.';
     begin
         if PurchaseLine."Prod. Order No." <> '' then
             Error(ChangeVariantNoNotAllowedErr, PurchaseLine.FieldCaption(PurchaseLine."Variant Code"), PurchaseLine."Prod. Order No.");
@@ -114,9 +116,6 @@ codeunit 99001534 "Subc. Purchase Line Ext"
 
     local procedure CheckOverDeliveryQty(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line")
     var
-        ShowProductionOrderActionLbl: Label 'Show Prod. Order';
-        AdjustQtyActionLbl: Label 'Adjust Quantity';
-        OpenItemTrackingAnywayActionLbl: Label 'Open anyway';
         CannotInvoiceErrorInfo: ErrorInfo;
     begin
         if PurchaseLine.Quantity > ProdOrderLine.Quantity then begin
