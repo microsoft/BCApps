@@ -1,0 +1,132 @@
+name: Copilot PR Review Privileged
+
+on:
+  workflow_run:
+    workflows:
+      - Copilot PR Review
+    types:
+      - completed
+
+concurrency:
+  group: copilot-pr-review-privileged-${{ github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  review:
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    environment: copilot-pr-review
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Resolve PR details
+        id: pr
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          $headers = @{
+            Accept = 'application/vnd.github+json'
+            Authorization = "Bearer $env:GITHUB_TOKEN"
+            'User-Agent' = 'bcapps-copilot-pr-reviewer'
+          }
+
+          $expectedHeadSha = '${{ github.event.workflow_run.head_sha }}'
+
+          $prNumber = '${{ github.event.workflow_run.pull_requests[0].number }}'
+          if (-not $prNumber) {
+            $headOwner = '${{ github.event.workflow_run.head_repository.owner.login }}'
+            $headBranch = '${{ github.event.workflow_run.head_branch }}'
+            $baseBranch = '${{ github.event.workflow_run.pull_requests[0].base.ref }}'
+
+            if (-not $headOwner -or -not $headBranch) {
+              throw 'No pull request number in workflow_run payload and insufficient head repo/branch metadata for fallback lookup.'
+            }
+
+            $encodedHead = [System.Uri]::EscapeDataString("${headOwner}:$headBranch")
+            $query = "state=open&head=$encodedHead"
+            if ($baseBranch) {
+              $encodedBase = [System.Uri]::EscapeDataString($baseBranch)
+              $query = "$query&base=$encodedBase"
+            }
+
+            $searchUri = "https://api.github.com/repos/${{ github.repository }}/pulls?$query&per_page=30"
+            $candidates = Invoke-RestMethod -Uri $searchUri -Headers $headers -Method GET
+
+            $matchingCandidates = @($candidates | Where-Object { $_.head.sha -eq $expectedHeadSha })
+            if ($matchingCandidates.Count -eq 1) {
+              $prNumber = [string]$matchingCandidates[0].number
+            }
+            elseif ($matchingCandidates.Count -gt 1) {
+              throw 'Fallback PR lookup returned multiple PRs matching the workflow_run head SHA.'
+            }
+          }
+
+          if (-not $prNumber) {
+            throw 'No pull request number found in workflow_run payload or fallback PR lookup.'
+          }
+
+          $uri = "https://api.github.com/repos/${{ github.repository }}/pulls/$prNumber"
+          $pr = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
+
+          if ($expectedHeadSha -and $pr.head.sha -ne $expectedHeadSha) {
+            throw 'Resolved PR head SHA does not match workflow_run head SHA.'
+          }
+
+          "number=$($pr.number)" >> $env:GITHUB_OUTPUT
+          "head_sha=$($pr.head.sha)" >> $env:GITHUB_OUTPUT
+          "base_ref=$($pr.base.ref)" >> $env:GITHUB_OUTPUT
+
+      - name: Checkout trusted base code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: refs/heads/main
+          path: trusted
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v6.4.0
+        with:
+          node-version: 24
+
+      - name: Install Copilot CLI
+        run: npm install --global @github/copilot
+
+      - name: Run Copilot PR review
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.COPILOT_GH_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          REVIEW_WORKSPACE: ${{ github.workspace }}/trusted
+          REVIEW_OUTPUT_DIR: ${{ github.workspace }}/review-output
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+          COPILOT_MODEL: ${{ vars.COPILOT_REVIEW_MODEL }}
+          MINIMUM_SEVERITY: ${{ vars.COPILOT_REVIEW_MINIMUM_SEVERITY || 'Medium' }}
+          MAX_FINDINGS_PER_DOMAIN: ${{ vars.COPILOT_REVIEW_MAX_FINDINGS_PER_DOMAIN || '25' }}
+          COPILOT_REVIEW_FAIL_ON_PARSE_ERROR: ${{ vars.COPILOT_REVIEW_FAIL_ON_PARSE_ERROR || 'true' }}
+          COPILOT_REVIEW_SKIP_IF_EXISTING_FOR_HEAD: ${{ vars.COPILOT_REVIEW_SKIP_IF_EXISTING_FOR_HEAD || 'true' }}
+          COPILOT_REVIEW_EMBED_DIFF: ${{ vars.COPILOT_REVIEW_EMBED_DIFF || 'false' }}
+          COPILOT_REVIEW_AGENT_LABEL: ${{ vars.COPILOT_REVIEW_AGENT_LABEL || 'copilot-pr-review' }}
+          COPILOT_REVIEW_AGENT_RELEASE_DATE: ${{ vars.COPILOT_REVIEW_AGENT_RELEASE_DATE }}
+          COPILOT_REVIEW_AGENT_RELEASE_VERSION: ${{ vars.COPILOT_REVIEW_AGENT_RELEASE_VERSION || '0' }}
+          BASE_BRANCH: ${{ steps.pr.outputs.base_ref }}
+        run: |
+          & "${{ github.workspace }}/trusted/src/Tools/Code Review/scripts/Invoke-CopilotPRReview.ps1"
+
+      - name: Upload review artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: copilot-pr-review-output-${{ steps.pr.outputs.number }}
+          path: ${{ github.workspace }}/review-output
+          if-no-files-found: warn

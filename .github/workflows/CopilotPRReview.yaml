@@ -1,7 +1,7 @@
 name: Copilot PR Review
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
     types:
@@ -14,60 +14,35 @@ concurrency:
   group: copilot-pr-review-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: read
-  issues: write
-  pull-requests: write
 
 jobs:
-  review:
+  intake:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     defaults:
       run:
         shell: pwsh
     steps:
-      - name: Checkout trusted base code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: refs/heads/${{ github.event.pull_request.base.ref }}
-          path: trusted
-          fetch-depth: 0
-          persist-credentials: true
-
-      - name: Setup Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v6.4.0
-        with:
-          node-version: 20
-
-      - name: Install Copilot CLI
-        run: npm install --global @github/copilot
-
-      - name: Run Copilot PR review
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GH_TOKEN: ${{ secrets.COPILOT_GH_TOKEN || secrets.COPILOT_API_KEY }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          REVIEW_WORKSPACE: ${{ github.workspace }}/trusted
-          REVIEW_OUTPUT_DIR: ${{ github.workspace }}/review-output
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-          COPILOT_MODEL: ${{ vars.COPILOT_REVIEW_MODEL }}
-          MINIMUM_SEVERITY: ${{ vars.COPILOT_REVIEW_MINIMUM_SEVERITY || 'Medium' }}
-          MAX_FINDINGS_PER_DOMAIN: ${{ vars.COPILOT_REVIEW_MAX_FINDINGS_PER_DOMAIN || '25' }}
-          COPILOT_REVIEW_FAIL_ON_PARSE_ERROR: ${{ vars.COPILOT_REVIEW_FAIL_ON_PARSE_ERROR || 'true' }}
-          COPILOT_REVIEW_SKIP_IF_EXISTING_FOR_HEAD: ${{ vars.COPILOT_REVIEW_SKIP_IF_EXISTING_FOR_HEAD || 'true' }}
-          COPILOT_REVIEW_EMBED_DIFF: ${{ vars.COPILOT_REVIEW_EMBED_DIFF || 'false' }}
-          COPILOT_REVIEW_AGENT_LABEL: ${{ vars.COPILOT_REVIEW_AGENT_LABEL || 'copilot-pr-review' }}
-          COPILOT_REVIEW_AGENT_RELEASE_DATE: ${{ vars.COPILOT_REVIEW_AGENT_RELEASE_DATE }}
-          COPILOT_REVIEW_AGENT_RELEASE_VERSION: ${{ vars.COPILOT_REVIEW_AGENT_RELEASE_VERSION || '0' }}
-          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+      - name: Save PR metadata
         run: |
-          & "${{ github.workspace }}/trusted/src/Tools/Code Review/scripts/Invoke-CopilotPRReview.ps1"
+          $outputDir = Join-Path $env:GITHUB_WORKSPACE 'review-input'
+          New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
 
-      - name: Upload review artifacts
+          @{
+            prNumber = "${{ github.event.pull_request.number }}"
+            headSha = "${{ github.event.pull_request.head.sha }}"
+            baseRef = "${{ github.event.pull_request.base.ref }}"
+            repository = "${{ github.repository }}"
+          } | ConvertTo-Json -Depth 5 | Set-Content -Path (Join-Path $outputDir 'pr-metadata.json') -Encoding UTF8
+
+      - name: Upload review input
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: copilot-pr-review-output-${{ github.event.pull_request.number }}
-          path: ${{ github.workspace }}/review-output
-          if-no-files-found: warn
+          name: copilot-pr-review-input-${{ github.event.pull_request.number }}
+          path: ${{ github.workspace }}/review-input
+          if-no-files-found: error
