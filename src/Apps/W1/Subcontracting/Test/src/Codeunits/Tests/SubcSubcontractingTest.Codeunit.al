@@ -2396,7 +2396,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        // [GIVEN] One released production order created directly from item
+        // [GIVEN] Verify no production order lines exist before manual creation
         LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 0);
 
         // [GIVEN] Add second production order line to the same production order
