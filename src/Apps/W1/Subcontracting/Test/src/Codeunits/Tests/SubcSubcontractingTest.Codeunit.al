@@ -2399,7 +2399,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [GIVEN] Verify no production order lines exist before manual creation
         LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 0);
 
-        // [GIVEN] Add second production order line to the same production order
+Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to exist at this point');
         ProdOrderLine.SetRange(Status, ProdOrderLine.Status::Released);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected only one production order line initially');
