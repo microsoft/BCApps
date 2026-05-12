@@ -73,24 +73,10 @@ report 20400 "Qlty. Create Inspection"
                             QltyInspectSourceConfigList: Page "Qlty. Ins. Source Config. List";
                             QltyInspectionGenRules: Page "Qlty. Inspection Gen. Rules";
                             OldTableNo: Integer;
-                            QuestionToShow: Text;
-                            HasCompatibleRules: Boolean;
                         begin
                             if QltInspectionTemplateToCreate <> '' then
-                                while true do begin
-                                    TempCompatibleQltyInspectionGenRule.Reset();
-                                    TempCompatibleQltyInspectionGenRule.DeleteAll();
-                                    HasCompatibleRules := QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule);
-                                    if not HasCompatibleRules then
-                                        QuestionToShow := StrSubstNo(NoCompatibleGenRuleQst, QltInspectionTemplateToCreate)
-                                    else begin
-                                        TempCompatibleQltyInspectionGenRule.SetRange("Source Table No.", 0);
-                                        if TempCompatibleQltyInspectionGenRule.IsEmpty() then
-                                            break;
-                                        QuestionToShow := StrSubstNo(GenRuleMissingTableQst, QltInspectionTemplateToCreate);
-                                    end;
-
-                                    if not Confirm(QuestionToShow) then
+                                while not QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) do begin
+                                    if not Confirm(StrSubstNo(NoCompatibleGenRuleQst, QltInspectionTemplateToCreate)) then
                                         exit(false);
 
                                     Clear(QltyInspectionGenRule);
@@ -251,7 +237,6 @@ report 20400 "Qlty. Create Inspection"
         NotAValidQltyInspectionTemplateErr: Label '''%1'' is not a valid Quality Inspection Template. Please re-configure the available Quality Inspection Templates.', Comment = '%1=The template that was expected';
         PleaseChooseARecordFirstErr: Label 'Choose which record you want to create a Quality Inspection for, then try again.';
         NoCompatibleGenRuleQst: Label 'Could not find any compatible inspection generation rules for the template %1. Do you want to open the Quality Inspection Generation Rules page to create one?', Comment = '%1=the template code';
-        GenRuleMissingTableQst: Label 'There is a generation rule for the template %1, but it is missing a source table. Do you want to open the Quality Inspection Generation Rules page to set the table?', Comment = '%1=the template code';
 
     trigger OnPreReport()
     var

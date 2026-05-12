@@ -890,7 +890,7 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
             QltyInspectionGenRule.Init();
             QltyInspectionGenRule.SetEntryNo();
             QltyInspectionGenRule.UpdateSortOrder();
-            QltyInspectionGenRule."Source Table No." := 0;
+            QltyInspectionGenRule."Source Table No." := DetermineSourceTableNoForCurrentIntent();
             QltyInspectionGenRule.Insert(true);
         end;
         QltyInspectionGenRule.Validate("Template Code", TemplateCode);
@@ -949,6 +949,20 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
                 Error('');
 
         CurrPage.Close();
+    end;
+
+    local procedure DetermineSourceTableNoForCurrentIntent(): Integer
+    begin
+        case true of
+            IsPurchaseLine:
+                exit(Database::"Purchase Line");
+            IsReturnReceipt:
+                exit(Database::"Sales Line");
+            IsTransferLine:
+                exit(Database::"Transfer Line");
+            IsWarehouseReceipt:
+                exit(Database::"Warehouse Journal Line");
+        end;
     end;
 
     /// <summary>

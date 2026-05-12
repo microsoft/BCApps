@@ -667,7 +667,7 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
             QltyInspectionGenRule.Init();
             QltyInspectionGenRule.SetEntryNo();
             QltyInspectionGenRule.UpdateSortOrder();
-            QltyInspectionGenRule."Source Table No." := 0;
+            QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
             QltyInspectionGenRule.Insert();
         end;
         QltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
