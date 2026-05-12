@@ -76,6 +76,8 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                         if NoOfCreatedPurchOrder = 1 then begin
                             SubcPurchaseOrderCreator.ClearOperationNoForCreatedPurchaseOrder();
                             SubcPurchaseOrderCreator.SetOperationNoForCreatedPurchaseOrder(Rec."Operation No.");
+                            SubcPurchaseOrderCreator.ClearRoutingReferenceNoForCreatedPurchaseOrder();
+                            SubcPurchaseOrderCreator.SetRoutingReferenceNoForCreatedPurchaseOrder(Rec."Routing Reference No.");
                         end;
                         SubcPurchaseOrderCreator.ShowCreatedPurchaseOrder(Rec."Prod. Order No.", NoOfCreatedPurchOrder);
                     end;
