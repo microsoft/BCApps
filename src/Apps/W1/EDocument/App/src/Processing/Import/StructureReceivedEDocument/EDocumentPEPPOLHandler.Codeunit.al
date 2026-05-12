@@ -28,6 +28,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
     var
         PeppolUtility: Codeunit "E-Document PEPPOL Utility";
         BillingReferenceEmptyTelemetryTxt: Label 'CreditNote BillingReference is empty - no originating invoice reference found.', Locked = true;
+        UnsupportedRootElementErr: Label 'Unsupported XML root element: %1. Only Invoice, CreditNote, and Order are supported.', Comment = '%1 = XML root element name';
 
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
@@ -92,7 +93,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
             'ORDER':
                 exit(Enum::"E-Doc. Process Draft"::"Sales Order");
             else
-                exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
+                Error(UnsupportedRootElementErr, RootElement.LocalName());
         end;
     end;
 
