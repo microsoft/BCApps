@@ -1,4 +1,4 @@
-name: Copilot PR Review Privileged
+name: Copilot PR Review Runner
 
 on:
   workflow_run:
@@ -8,7 +8,7 @@ on:
       - completed
 
 concurrency:
-  group: copilot-pr-review-privileged-${{ github.event.workflow_run.id }}
+  group: copilot-pr-review-runner-${{ github.event.workflow_run.id }}
   cancel-in-progress: true
 
 env:
