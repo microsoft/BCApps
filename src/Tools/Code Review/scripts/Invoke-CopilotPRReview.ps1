@@ -48,8 +48,6 @@ $MaxContextSize   = [int]($env:MAX_REVIEW_CONTEXT_SIZE ?? 150000)
 $MaxFindings      = [int]($env:MAX_FINDINGS_PER_DOMAIN ?? 25)
 $FailOnParseErrorRaw = (($env:COPILOT_REVIEW_FAIL_ON_PARSE_ERROR ?? 'true') + '').Trim().ToLowerInvariant()
 $FailOnParseError = @('1','true','yes','on') -contains $FailOnParseErrorRaw
-$SkipIfExistingForHeadRaw = (($env:COPILOT_REVIEW_SKIP_IF_EXISTING_FOR_HEAD ?? 'true') + '').Trim().ToLowerInvariant()
-$SkipIfExistingForHead = @('1','true','yes','on') -contains $SkipIfExistingForHeadRaw
 $EmbedDiffInPromptRaw = (($env:COPILOT_REVIEW_EMBED_DIFF ?? 'false') + '').Trim().ToLowerInvariant()
 $EmbedDiffInPrompt = @('1','true','yes','on') -contains $EmbedDiffInPromptRaw
 $CommentDelay     = [double]($env:COMMENT_DELAY_SECONDS ?? 0.5)
@@ -1117,12 +1115,6 @@ Save-ReviewArtifacts -RawOutput $output -Findings $findings -ParseErrors $script
 if ($FailOnParseError -and $findings.Count -eq 0 -and $script:LastParsingErrors.Count -gt 0) {
     $errorPreview = ($script:LastParsingErrors | Select-Object -First 3) -join ' || '
     throw "Copilot output JSON parsing failed; refusing to post an empty review summary. Set COPILOT_REVIEW_FAIL_ON_PARSE_ERROR=false to bypass. Parse errors: $errorPreview"
-}
-
-if ($SkipIfExistingForHead -and (Has-AgentCommentsForCurrentHead)) {
-    Write-Host "Agent comments already exist for head $PrHeadSha. Skipping posting on rerun to avoid duplicate findings."
-    Write-Host 'Review complete.'
-    exit 0
 }
 
 # Group findings by resolved domain so comment headers and summary use domain labels.
