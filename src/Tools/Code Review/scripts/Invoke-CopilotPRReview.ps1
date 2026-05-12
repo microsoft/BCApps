@@ -698,20 +698,6 @@ function Get-AgentMetadataBlock {
     ) -join "`n"
 }
 
-function Get-SummaryVersionsMetadata {
-    $domainVersions = $ReviewDomains | ForEach-Object { "$($_.ToLowerInvariant())=$AgentVersion" }
-    return "<!-- agent_summary_versions: $($domainVersions -join ';') -->"
-}
-
-function Get-SummaryLabelsMetadata {
-    $domainLabels = $ReviewDomains | ForEach-Object { "$($_.ToLowerInvariant())=$AgentLabel" }
-    return "<!-- agent_summary_labels: $($domainLabels -join ';') -->"
-}
-
-function Get-SummaryIterationMetadata {
-    return "<!-- agent_review_iteration: $ReviewIteration -->"
-}
-
 $AgentReleaseDate = Resolve-AgentReleaseDate
 $AgentReleaseVersion = Resolve-AgentReleaseVersion
 $AgentLabel = Resolve-AgentLabel
@@ -873,25 +859,6 @@ function Get-ExistingCommentKeys {
     }
 }
 
-function Has-AgentCommentsForCurrentHead {
-    $metadataPattern = '<!--\s*agent_label:\s*([a-z0-9-]+)\s*-->'
-
-    foreach ($comment in (Get-ReviewComments)) {
-        $body = $comment.body ?? ''
-        $commitId = ($comment.commit_id ?? $comment.original_commit_id ?? '')
-
-        if (-not $commitId -or ($commitId -ne $PrHeadSha)) {
-            continue
-        }
-
-        if ($body -match $metadataPattern) {
-            return $true
-        }
-    }
-
-    return $false
-}
-
 function Test-NearDuplicateLocation {
     param(
         [System.Collections.Generic.List[object]] $ExistingLocations,
@@ -1005,43 +972,6 @@ function Post-Findings {
 # ---------------------------------------------------------------------------
 # Summary comment upsert
 # ---------------------------------------------------------------------------
-function Update-Summary {
-    param([hashtable] $Summary)
-
-    $lines = [System.Collections.Generic.List[string]]::new()
-    $lines.Add($SummaryMarker)
-    $lines.Add('## Copilot PR Review Summary')
-    $lines.Add((Get-SummaryVersionsMetadata))
-    $lines.Add((Get-SummaryLabelsMetadata))
-    $lines.Add((Get-SummaryIterationMetadata))
-    $lines.Add('')
-
-    if ($Summary.Count -eq 0) {
-        $lines.Add('No findings were posted.')
-    } else {
-        foreach ($domain in ($Summary.Keys | Sort-Object)) {
-            $r = $Summary[$domain]
-            $lines.Add("- ${domain}: $($r.findings) findings, $($r.inline) inline comments, $($r.fallback) fallback comments")
-        }
-    }
-
-    $body = $lines -join "`n"
-
-    $existingCommentId = $null
-    foreach ($comment in (Get-IssueComments)) {
-        if (($comment.body ?? '') -match [regex]::Escape($SummaryMarker)) {
-            $existingCommentId = [long]$comment.id
-            break
-        }
-    }
-
-    if ($existingCommentId) {
-        Update-IssueComment -CommentId $existingCommentId -Body $body
-    } else {
-        New-IssueComment -Body $body
-    }
-}
-
 function Save-ReviewArtifacts {
     param([string] $RawOutput, [object[]] $Findings, [string[]] $ParseErrors)
 
