@@ -1134,5 +1134,4 @@ foreach ($domain in ($findingsByDomain.Keys | Sort-Object)) {
     $summary[$domain] = @{ findings = $domainFindings.Count; inline = $posted.inline; fallback = $posted.fallback }
 }
 
-Update-Summary -Summary $summary
 Write-Host 'Review complete.'
