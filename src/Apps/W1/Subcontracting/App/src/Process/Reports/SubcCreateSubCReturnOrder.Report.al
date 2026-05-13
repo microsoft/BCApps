@@ -89,7 +89,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         TransferHeader.SetRange("Completely Shipped", false);
         TransferHeader.SetRange("Transfer-from Code", TransferFromLocationCode);
         TransferHeader.SetRange("Transfer-to Code", OrigCompLineLocation);
-        TransferHeader.SetRange("Return Order", true);
+        TransferHeader.SetRange("Subc. Return Order", true);
         if not TransferHeader.FindFirst() then begin
             TransferHeader.Init();
             TransferHeader."No." := '';
@@ -100,12 +100,12 @@ report 99001502 "Subc. Create SubCReturnOrder"
             if not TransferRoute.Get(TransferFromLocationCode, OrigCompLineLocation) or (TransferRoute."In-Transit Code" = '') then
                 TransferHeader.Validate("Direct Transfer", true);
 
-            TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;
+            TransferHeader."Subc. Source Type" := TransferHeader."Subc. Source Type"::Subcontracting;
             TransferHeader."Source Subtype" := TransferHeader."Source Subtype"::"2";
             TransferHeader."Source ID" := "Purchase Header"."Buy-from Vendor No.";
             TransferHeader."Subcontr. Purch. Order No." := "Purchase Header"."No.";
             TransferHeader."Subcontr. PO Line No." := "Purchase Line"."Line No.";
-            TransferHeader."Return Order" := true;
+            TransferHeader."Subc. Return Order" := true;
             TransferHeader."Transfer-from Name" := Vendor.Name;
             TransferHeader."Transfer-from Name 2" := Vendor."Name 2";
             TransferHeader."Transfer-from Address" := Vendor.Address;

@@ -40,12 +40,12 @@ tableextension 99001521 "Subc. Trans Rcpt Header Ext." extends "Transfer Receipt
             Caption = 'Source Ref. No.';
             DataClassification = CustomerContent;
         }
-        field(99001540; "Source Type"; Enum "Transfer Source Type")
+        field(99001540; "Subc. Source Type"; Enum "Transfer Source Type")
         {
             Caption = 'Source Type';
             DataClassification = CustomerContent;
         }
-        field(99001541; "Return Order"; Boolean)
+        field(99001541; "Subc. Return Order"; Boolean)
         {
             Caption = 'Return Order';
             DataClassification = CustomerContent;
@@ -54,6 +54,6 @@ tableextension 99001521 "Subc. Trans Rcpt Header Ext." extends "Transfer Receipt
     keys
     {
         key(Key99001500; "Subcontr. Purch. Order No.") { }
-        key(Key99001501; "Source ID", "Source Type", "Source Subtype") { }
+        key(Key99001501; "Source ID", "Subc. Source Type", "Source Subtype") { }
     }
 }

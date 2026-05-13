@@ -86,7 +86,7 @@ report 99001501 "Subc. Create Transf. Order"
         TransferHeader.SetRange("Completely Shipped", false);
         TransferHeader.SetRange("Transfer-from Code", CompLineLocation);
         TransferHeader.SetRange("Transfer-to Code", TransferToLocationCode);
-        TransferHeader.SetRange("Return Order", false);
+        TransferHeader.SetRange("Subc. Return Order", false);
         if not TransferHeader.FindFirst() then begin
             TransferHeader.Init();
             TransferHeader."No." := '';
@@ -96,7 +96,7 @@ report 99001501 "Subc. Create Transf. Order"
             if not TransferRoute.Get(CompLineLocation, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then
                 TransferHeader.Validate("Direct Transfer", true);
 
-            TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;
+            TransferHeader."Subc. Source Type" := TransferHeader."Subc. Source Type"::Subcontracting;
             TransferHeader."Source Subtype" := TransferHeader."Source Subtype"::"2";
             TransferHeader."Source ID" := "Purchase Header"."Buy-from Vendor No.";
             TransferHeader."Subcontr. Purch. Order No." := "Purchase Header"."No.";

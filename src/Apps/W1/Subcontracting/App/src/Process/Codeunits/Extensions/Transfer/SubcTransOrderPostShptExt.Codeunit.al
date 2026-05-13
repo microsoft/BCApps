@@ -15,7 +15,7 @@ codeunit 99001539 "Subc. TransOrderPostShpt Ext"
         ItemJournalLine."Subc. Prod. Order No." := TransferShipmentLine."Subc. Prod. Order No.";
         ItemJournalLine."Subc. Prod. Order Line No." := TransferShipmentLine."Subc. Prod. Order Line No.";
         ItemJournalLine."Source No." := TransferShipmentHeader."Source ID";
-        ItemJournalLine."Source Type" := TransferShipmentHeader."Source Type";
+        ItemJournalLine."Source Type" := TransferShipmentHeader."Subc. Source Type";
         ItemJournalLine."Prod. Order Comp. Line No." := TransferShipmentLine."Subc. Prod. Ord. Comp Line No.";
         ItemJournalLine."Subc. Purch. Order No." := TransferShipmentLine."Subc. Purch. Order No.";
         ItemJournalLine."Subc. Purch. Order Line No." := TransferShipmentLine."Subc. Purch. Order Line No.";

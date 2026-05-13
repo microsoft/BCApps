@@ -416,7 +416,7 @@ codeunit 99001508 "Subc. Price Management"
 
         SubcontractorPrice.SetRange("Vendor No.", RequisitionLine."Vendor No.");
         SubcontractorPrice.SetFilter("Work Center No.", '%1|%2', RequisitionLine."Work Center No.", '');
-        SubcontractorPrice.SetRange("Standard Task Code", RequisitionLine."Standard Task Code");
+        SubcontractorPrice.SetRange("Standard Task Code", RequisitionLine."Subc. Standard Task Code");
         SubcontractorPrice.SetRange("Variant Code", RequisitionLine."Variant Code");
         SubcontractorPrice.SetFilter("Item No.", '%1|%2', RequisitionLine."No.", '');
         SubcontractorPrice.SetRange("Starting Date", 0D, OrderDate);
@@ -440,12 +440,12 @@ codeunit 99001508 "Subc. Price Management"
                 ConvertPriceToCurrency(RequisitionLine."Currency Code", SubcontractorPrice."Currency Code", PriceListCost, DirectCost);
             end;
             RequisitionLine."Direct Unit Cost" := DirectCost;
-            RequisitionLine."Pricelist Cost" := PriceListCost;
-            RequisitionLine."UoM for Pricelist" := PriceListUOM;
+            RequisitionLine."Subc. Pricelist Cost" := PriceListCost;
+            RequisitionLine."Subc. UoM for Pricelist" := PriceListUOM;
             RequisitionLine."Base UM Qty/PL UM Qty" := PriceListQtyPerUOM;
             if RequisitionLine."Base UM Qty/PL UM Qty" = 0 then
                 RequisitionLine."Base UM Qty/PL UM Qty" := 1;
-            if RequisitionLine."Unit of Measure Code" = RequisitionLine."UoM for Pricelist" then
+            if RequisitionLine."Unit of Measure Code" = RequisitionLine."Subc. UoM for Pricelist" then
                 RequisitionLine."PL UM Qty/Base UM Qty" := RequisitionLine.Quantity
             else
                 RequisitionLine."PL UM Qty/Base UM Qty" := RequisitionLine.GetQuantityBase() / RequisitionLine."Base UM Qty/PL UM Qty";

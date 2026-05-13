@@ -17,7 +17,7 @@ codeunit 99001540 "Subc. TransOrderPostRcpt Ext"
         ItemJournalLine."Subc. Prod. Order No." := TransferReceiptLine."Subc. Prod. Order No.";
         ItemJournalLine."Subc. Prod. Order Line No." := TransferReceiptLine."Subc. Prod. Order Line No.";
         ItemJournalLine."Source No." := TransferReceiptHeader."Source ID";
-        ItemJournalLine."Source Type" := TransferReceiptHeader."Source Type";
+        ItemJournalLine."Source Type" := TransferReceiptHeader."Subc. Source Type";
         ItemJournalLine."Prod. Order Comp. Line No." := TransferReceiptLine."Subc. Prod. Ord. Comp Line No.";
         ItemJournalLine."Subc. Purch. Order No." := TransferReceiptLine."Subc. Purch. Order No.";
         ItemJournalLine."Subc. Purch. Order Line No." := TransferReceiptLine."Subc. Purch. Order Line No.";

@@ -28,10 +28,10 @@ codeunit 99001547 "Subc. TransOrderPostTrans Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Transfer", OnInsertDirectTransHeaderOnBeforeGetNextNo, '', false, false)]
     local procedure OnInsertDirectTransHeaderOnBeforeGetNextNo(var DirectTransHeader: Record "Direct Trans. Header"; TransferHeader: Record "Transfer Header")
     begin
-        DirectTransHeader."Source Type" := TransferHeader."Source Type";
+        DirectTransHeader."Source Type" := TransferHeader."Subc. Source Type";
         DirectTransHeader."Source ID" := TransferHeader."Source ID";
         DirectTransHeader."Source Ref. No." := TransferHeader."Source Ref. No.";
-        DirectTransHeader."Return Order" := TransferHeader."Return Order";
+        DirectTransHeader."Return Order" := TransferHeader."Subc. Return Order";
         DirectTransHeader."Subcontr. Purch. Order No." := TransferHeader."Subcontr. Purch. Order No.";
         DirectTransHeader."Subcontr. PO Line No." := TransferHeader."Subcontr. PO Line No.";
     end;

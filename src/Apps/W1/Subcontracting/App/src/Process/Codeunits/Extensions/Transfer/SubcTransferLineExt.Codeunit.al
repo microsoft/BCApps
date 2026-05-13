@@ -11,7 +11,7 @@ codeunit 99001544 "Subc. Transfer Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterGetTransHeader, '', false, false)]
     local procedure OnAfterGetTransHeader(var TransferLine: Record "Transfer Line"; TransferHeader: Record "Transfer Header")
     begin
-        TransferLine."Subc. Return Order" := TransferHeader."Return Order";
+        TransferLine."Subc. Return Order" := TransferHeader."Subc. Return Order";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterDeleteEvent, '', false, false)]

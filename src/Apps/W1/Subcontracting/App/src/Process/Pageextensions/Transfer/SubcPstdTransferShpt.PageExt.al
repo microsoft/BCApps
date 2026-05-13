@@ -12,7 +12,7 @@ pageextension 99001527 "Subc. Pstd. Transfer Shpt" extends "Posted Transfer Ship
     {
         addlast(General)
         {
-            field(SourceType; Rec."Source Type")
+            field("Subc. Source Type"; Rec."Subc. Source Type")
             {
                 ApplicationArea = Location;
                 Editable = false;
@@ -36,7 +36,7 @@ pageextension 99001527 "Subc. Pstd. Transfer Shpt" extends "Posted Transfer Ship
                 Editable = false;
                 Visible = false;
             }
-            field("Return Order"; Rec."Return Order")
+            field("Subc. Return Order"; Rec."Subc. Return Order")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;
