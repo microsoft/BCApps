@@ -271,7 +271,7 @@ codeunit 1565 "Privacy Notice Impl."
         exit(false);
     end;
 
-    local procedure ShowPrivacyNotice(PrivacyNotice: Record "Privacy Notice"): Boolean
+    internal procedure ShowPrivacyNotice(PrivacyNotice: Record "Privacy Notice"): Boolean
     var
         PrivacyNoticeCodeunit: Codeunit "Privacy Notice";
         PrivacyNoticePage: Page "Privacy Notice";

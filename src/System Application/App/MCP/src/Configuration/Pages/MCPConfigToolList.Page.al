@@ -26,10 +26,6 @@ page 8352 "MCP Config Tool List"
             repeater(Control1)
             {
                 ShowCaption = false;
-                field("Object Type"; Rec."Object Type")
-                {
-                    ToolTip = 'Specifies the type of the object.';
-                }
                 field("Object Id"; Rec."Object Id")
                 {
                     ToolTip = 'Specifies the ID of the object.';
@@ -101,6 +97,34 @@ page 8352 "MCP Config Tool List"
                     Editable = false;
                     ToolTip = 'Specifies the name of the object.';
                 }
+                field("Allow Read"; Rec."Allow Read")
+                {
+                    ToolTip = 'Specifies whether read operations are allowed for this tool.';
+                }
+                field("Allow Create"; Rec."Allow Create")
+                {
+                    ToolTip = 'Specifies whether create operations are allowed for this tool.';
+                    Editable = AllowCreateEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
+                }
+                field("Allow Modify"; Rec."Allow Modify")
+                {
+                    ToolTip = 'Specifies whether modify operations are allowed for this tool.';
+                    Editable = AllowModifyEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
+                }
+                field("Allow Delete"; Rec."Allow Delete")
+                {
+                    ToolTip = 'Specifies whether delete operations are allowed for this tool.';
+                    Editable = AllowDeleteEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
+                }
+                field("Allow Bound Actions"; Rec."Allow Bound Actions")
+                {
+                    ToolTip = 'Specifies whether bound actions are allowed for this tool.';
+                    Editable = AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
+                }
+                field("Object Type"; Rec."Object Type")
+                {
+                    ToolTip = 'Specifies the type of the object.';
+                }
                 field("API Version"; Rec."API Version")
                 {
                     Caption = 'API Version';
@@ -132,30 +156,6 @@ page 8352 "MCP Config Tool List"
                                 MCPConfigImplementation.ValidateAPIQueryVersion(Rec."Object Id", Rec."API Version");
                         end;
                     end;
-                }
-                field("Allow Read"; Rec."Allow Read")
-                {
-                    ToolTip = 'Specifies whether read operations are allowed for this tool.';
-                }
-                field("Allow Create"; Rec."Allow Create")
-                {
-                    ToolTip = 'Specifies whether create operations are allowed for this tool.';
-                    Editable = AllowCreateEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
-                }
-                field("Allow Modify"; Rec."Allow Modify")
-                {
-                    ToolTip = 'Specifies whether modify operations are allowed for this tool.';
-                    Editable = AllowModifyEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
-                }
-                field("Allow Delete"; Rec."Allow Delete")
-                {
-                    ToolTip = 'Specifies whether delete operations are allowed for this tool.';
-                    Editable = AllowDeleteEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
-                }
-                field("Allow Bound Actions"; Rec."Allow Bound Actions")
-                {
-                    ToolTip = 'Specifies whether bound actions are allowed for this tool.';
-                    Editable = AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
                 }
             }
         }

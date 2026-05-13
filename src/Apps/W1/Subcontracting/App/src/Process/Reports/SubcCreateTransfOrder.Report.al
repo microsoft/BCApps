@@ -54,6 +54,7 @@ report 99001501 "Subc. Create Transf. Order"
             trigger OnPreDataItem()
             begin
                 PurchOrderNo := CopyStr("Purchase Header".GetFilter("No."), 1, MaxStrLen(PurchOrderNo));
+                LastModifiedTransferOrderNo := '';
                 if PurchOrderNo = '' then
                     Error(WarningToSpecifyPurchOrderErr);
             end;
@@ -64,6 +65,7 @@ report 99001501 "Subc. Create Transf. Order"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
+        LastModifiedTransferOrderNo: Code[20];
         PurchOrderNo: Code[20];
         LineNo: Integer;
         NothingToCreateErr: Label 'Nothing to create. No components or WIP to transfer for the specified subcontracting order.';
@@ -86,6 +88,7 @@ report 99001501 "Subc. Create Transf. Order"
         TransferHeader.SetRange("Transfer-from Code", TransferFromLocation);
         TransferHeader.SetRange("Transfer-to Code", TransferToLocationCode);
         TransferHeader.SetRange("Return Order", false);
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", "Purchase Header"."No.");
         if not TransferHeader.FindFirst() then begin
             TransferHeader.Init();
             TransferHeader."No." := '';
@@ -111,9 +114,11 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader."Trsf.-from Country/Region Code" := Vendor."Country/Region Code";
 
             TransferHeader.Modify();
+            LastModifiedTransferOrderNo := TransferHeader."No.";
 
             LineNo := 0;
         end else begin
+            LastModifiedTransferOrderNo := TransferHeader."No.";
             TransferLine.SetRange("Document No.", TransferHeader."No.");
             if TransferLine.FindLast() then
                 LineNo := TransferLine."Line No."
@@ -255,7 +260,6 @@ report 99001501 "Subc. Create Transf. Order"
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
     begin
         Commit(); // Used for following call of Transfer Pages
-
         SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder("Purchase Line", true, false);
     end;
 
