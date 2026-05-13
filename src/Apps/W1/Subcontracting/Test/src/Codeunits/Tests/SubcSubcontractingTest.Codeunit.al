@@ -288,7 +288,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists
         ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
 #pragma warning disable AA0210
-        ProductionBOMLine.SetRange("Component Supply Method", ProductionBOMLine."Component Supply Method"::VendorSupplied);
+        ProductionBOMLine.SetRange("Component Supply Method", ProductionBOMLine."Component Supply Method"::"Vendor-Supplied");
 #pragma warning restore AA0210
         ProductionBOMLine.FindFirst();
 
@@ -391,7 +391,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [THEN] Check if Production BOM Line with additional Component for Subcontracting Type exists
         ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
-        ProductionBOMLine.SetRange("Component Supply Method", ProductionBOMLine."Component Supply Method"::VendorSupplied);
+        ProductionBOMLine.SetRange("Component Supply Method", ProductionBOMLine."Component Supply Method"::"Vendor-Supplied");
         Assert.RecordIsNotEmpty(ProductionBOMLine);
     end;
 
@@ -459,7 +459,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -716,7 +716,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -752,7 +752,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -810,7 +810,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderComp.SetFilter("Routing Link Code", '<>%1', '');
         ProdOrderComp.FindFirst();
         ActualLocationCode := ProdOrderComp."Location Code";
-        ProdOrderComp.Validate("Component Supply Method", ProdOrderComp."Component Supply Method"::VendorSupplied);
+        ProdOrderComp.Validate("Component Supply Method", ProdOrderComp."Component Supply Method"::"Vendor-Supplied");
         ProdOrderComp.Modify();
 
         // [THEN] Check if Component Location differs from Origin Location Code ==> Vendor Subcontracting Location Code
@@ -1239,7 +1239,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -1326,7 +1326,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] Compare Due Date from Prod Order Comp with Receipt Date from Subc. Transfer Line
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -1412,7 +1412,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -1426,7 +1426,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -1504,7 +1504,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN] Check if Purchase Line with additional Component for Subcontracting Type exists, Mock Reservation Entries on TransferLine and try to open Item Tracking Lines from Prod order Comp. Page
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -1948,7 +1948,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderComp.SetRange(Status, ProdOrderComp.Status::Released);
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::VendorSupplied);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Vendor-Supplied");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         ExpectedDescription2 := 'TestDescription2_Comp';
@@ -2138,7 +2138,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -2220,7 +2220,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -2319,7 +2319,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -2639,7 +2639,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -2655,7 +2655,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
@@ -2676,7 +2676,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         ProdOrderComp."Due Date" := CalcDate('<+10D>', WorkDate());
@@ -3020,7 +3020,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderComp.SetRange(Status, ProductionOrder.Status);
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         LibraryWarehouse.CreateInTransitLocation(TransitLocation);

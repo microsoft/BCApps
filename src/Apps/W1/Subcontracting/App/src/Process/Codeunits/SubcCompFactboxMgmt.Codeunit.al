@@ -67,7 +67,7 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
     begin
         if ProdOrderComponent."Routing Link Code" = '' then
             exit(0);
-        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::VendorSupplied then
+        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
             exit(0);
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
@@ -94,7 +94,7 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
     begin
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
-        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::VendorSupplied then
+        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
             exit;
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
@@ -121,7 +121,7 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
     begin
         if ProdOrderComponent."Routing Link Code" = '' then
             exit(0);
-        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::VendorSupplied then
+        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
             exit(0);
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
@@ -148,7 +148,7 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
     begin
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
-        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::VendorSupplied then
+        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
             exit;
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 

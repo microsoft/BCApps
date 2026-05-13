@@ -82,7 +82,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
                     ToolTip = 'Specifies how components are supplied to the subcontractor for the production order component.';
                     trigger OnValidate()
                     begin
-                        if Rec."Component Supply Method" = Rec."Component Supply Method"::VendorSupplied then
+                        if Rec."Component Supply Method" = Rec."Component Supply Method"::"Vendor-Supplied" then
                             Rec.FieldError("Component Supply Method");
 
                         if (Rec."Routing Link Code" = '') and (Rec."Component Supply Method" <> Rec."Component Supply Method"::Empty) then begin
@@ -90,7 +90,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
                             Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
                         end;
 
-                        if Rec."Component Supply Method" <> Rec."Component Supply Method"::TransferToVendor then
+                        if Rec."Component Supply Method" <> Rec."Component Supply Method"::"Transfer to Vendor" then
                             Rec.Validate("Location Code", CopyStr(SubcSessionState.GetCode('SetSubcontractingLocationCodeFromVendor'), 1, MaxStrLen(Rec."Location Code")))
                         else
                             Rec.Validate("Location Code", Rec."Orig. Location Code");

@@ -167,7 +167,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         TempGlobalProductionBOMLine.Validate("No.", SubcManagementSetup."Preset Component Item No.");
         TempGlobalProductionBOMLine."Quantity per" := 1;
         TempGlobalProductionBOMLine."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
-        TempGlobalProductionBOMLine."Component Supply Method" := "Component Supply Method"::ConsignmentAtVendor;
+        TempGlobalProductionBOMLine."Component Supply Method" := "Component Supply Method"::"Consignment at Vendor";
         TempGlobalProductionBOMLine.Insert();
     end;
 
@@ -569,13 +569,13 @@ codeunit 99001552 "Subc. Temp Data Initializer"
 
         if TempGlobalProdOrderComponent."Routing Link Code" = ManufacturingSetup."Rtng. Link Code Purch. Prov." then
             case TempGlobalProdOrderComponent."Component Supply Method" of
-                "Component Supply Method"::ConsignmentAtVendor, "Component Supply Method"::VendorSupplied:
+                "Component Supply Method"::"Consignment at Vendor", "Component Supply Method"::"Vendor-Supplied":
                     begin
                         GetVendor();
                         TempGlobalProdOrderComponent.Validate("Location Code", TempGlobalVendor."Subcontr. Location Code");
                         TempGlobalProdOrderComponent."Orig. Location Code" := ComponentsLocationCode;
                     end;
-                "Component Supply Method"::TransferToVendor:
+                "Component Supply Method"::"Transfer to Vendor":
                     TempGlobalProdOrderComponent.Validate("Location Code", ComponentsLocationCode);
             end;
 

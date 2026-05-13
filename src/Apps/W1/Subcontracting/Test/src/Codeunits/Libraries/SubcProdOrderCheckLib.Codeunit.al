@@ -333,7 +333,7 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
                 TempProdOrderComponent."Unit of Measure Code" := ProductionBOMLine."Unit of Measure Code";
                 TempProdOrderComponent."Routing Link Code" := ProductionBOMLine."Routing Link Code";
                 TempProdOrderComponent."Description 2" := ProductionBOMLine."Description 2";
-                if ProductionBOMLine."Component Supply Method" in [ProductionBOMLine."Component Supply Method"::VendorSupplied, ProductionBOMLine."Component Supply Method"::ConsignmentAtVendor] then
+                if ProductionBOMLine."Component Supply Method" in [ProductionBOMLine."Component Supply Method"::"Vendor-Supplied", ProductionBOMLine."Component Supply Method"::"Consignment at Vendor"] then
                     TempProdOrderComponent."Location Code" := GetVendorSubcontractingLocation(PurchLine."Buy-from Vendor No.")
                 else
                     TempProdOrderComponent."Location Code" := PurchLine."Location Code";

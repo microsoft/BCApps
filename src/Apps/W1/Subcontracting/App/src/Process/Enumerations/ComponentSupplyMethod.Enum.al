@@ -13,22 +13,17 @@ enum 99001500 "Component Supply Method"
         Caption = ' ', Locked = true;
     }
     // The subcontractor provides the required component materials.
-    value(1; VendorSupplied)
+    value(1; "Vendor-Supplied")
     {
         Caption = 'Vendor-Supplied';
     }
     // Your company owns the components and stores them at the subcontractor location (consignment stock).
-    value(2; ConsignmentAtVendor)
+    value(2; "Consignment at Vendor")
     {
         Caption = 'Consignment at Vendor';
     }
     // Components are sent to the subcontractor through a transfer order.
-    value(3; TransferToVendor)
-    {
-        Caption = 'Transfer to Vendor';
-    }
-    // Transfer to Vendor
-    value(3; TransferToVendor)
+    value(3; "Transfer to Vendor")
     {
         Caption = 'Transfer to Vendor';
     }

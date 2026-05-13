@@ -17,7 +17,7 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
         {
             Caption = 'Component Supply Method';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies how components are supplied to the subcontractor for the planning component.';
+            ToolTip = 'Specifies how components are supplied to the subcontractor for the planning component. Vendor-supplied - components are provided by the subcontractor. Consignment at Vendor - components are owned by your company but stored at the subcontractor location. Transfer to Vendor - components are sent to the subcontractor through a transfer order.';
             trigger OnValidate()
             var
                 SubcontractingManagement: Codeunit "Subcontracting Management";

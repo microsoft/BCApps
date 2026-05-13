@@ -88,7 +88,7 @@ page 99001506 "Subc. Temp BOM Lines"
                     ApplicationArea = Manufacturing;
                     trigger OnValidate()
                     begin
-                        if Rec."Component Supply Method" = Rec."Component Supply Method"::VendorSupplied then
+                        if Rec."Component Supply Method" = Rec."Component Supply Method"::"Vendor-Supplied" then
                             Rec.FieldError("Component Supply Method");
 
                         if (Rec."Routing Link Code" = '') and (Rec."Component Supply Method" <> Rec."Component Supply Method"::Empty) then begin

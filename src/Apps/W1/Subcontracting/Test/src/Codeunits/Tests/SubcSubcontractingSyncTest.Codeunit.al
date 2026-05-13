@@ -86,7 +86,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         PurchLine.DeleteAll();
         ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
 #pragma warning disable AA0210
-        ProductionBOMLine.SetRange("Component Supply Method", ProductionBOMLine."Component Supply Method"::VendorSupplied);
+        ProductionBOMLine.SetRange("Component Supply Method", ProductionBOMLine."Component Supply Method"::"Vendor-Supplied");
 #pragma warning restore AA0210
         ProductionBOMLine.FindFirst();
 #pragma warning restore

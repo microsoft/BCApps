@@ -534,7 +534,7 @@ codeunit 139981 "Subc. Location Handler Test"
         ProdOrderComp."Location Code" := CompLocationCode;
         if CompOrigLocationCode <> '' then
             ProdOrderComp."Orig. Location Code" := CompOrigLocationCode;
-        ProdOrderComp."Component Supply Method" := ProdOrderComp."Component Supply Method"::TransferToVendor;
+        ProdOrderComp."Component Supply Method" := ProdOrderComp."Component Supply Method"::"Transfer to Vendor";
         ProdOrderComp."Routing Link Code" := RoutingLink.Code;
         ProdOrderComp.Modify();
 
@@ -609,7 +609,7 @@ codeunit 139981 "Subc. Location Handler Test"
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         ProdOrderComp."Location Code" := LocationCode;
