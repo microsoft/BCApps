@@ -25,7 +25,7 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
         }
         addafter("Item Ledger E&ntries")
         {
-            action("Subcontracting Transfer Entries")
+            action("Subc. Transfer Entries")
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Subcontracting Transfer Entries';

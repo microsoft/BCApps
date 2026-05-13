@@ -24,7 +24,7 @@ pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
                 ToolTip = 'Specifies the number of the related purchase order line.';
                 Visible = false;
             }
-            field("Subcontractor No."; Rec."Subcontractor No.")
+            field("Subc. Subcontractor No."; Rec."Subc. Subcontractor No.")
             {
                 ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the number of the related subcontractor.';

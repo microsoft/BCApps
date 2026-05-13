@@ -76,7 +76,7 @@ codeunit 99001515 "Subc. ItemJnlPostLine Ext"
 
     local procedure UpdateCapLedgerEntry(var CapacityLedgerEntry: Record "Capacity Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")
     begin
-        CapacityLedgerEntry."Subcontractor No." := ItemJournalLine."Source No.";
+        CapacityLedgerEntry."Subc. Subcontractor No." := ItemJournalLine."Source No.";
         CapacityLedgerEntry."Subc. Purch. Order No." := ItemJournalLine."Subc. Purch. Order No.";
         CapacityLedgerEntry."Subc. Purch. Order Line No." := ItemJournalLine."Subc. Purch. Order Line No.";
     end;

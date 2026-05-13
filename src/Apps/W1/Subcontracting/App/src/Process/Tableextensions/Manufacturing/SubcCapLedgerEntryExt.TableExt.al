@@ -12,7 +12,7 @@ tableextension 99001504 "Subc. Cap Ledger Entry Ext." extends "Capacity Ledger E
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001500; "Subcontractor No."; Code[20])
+        field(99001500; "Subc. Subcontractor No."; Code[20])
         {
             Caption = 'Subcontractor No.';
             DataClassification = CustomerContent;

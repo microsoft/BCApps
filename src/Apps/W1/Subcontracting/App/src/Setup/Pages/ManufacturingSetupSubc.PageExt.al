@@ -12,7 +12,7 @@ pageextension 99001542 "Manufacturing Setup Subc." extends "Manufacturing Setup"
     {
         addlast(Content)
         {
-            group(Subcontracting)
+            group(SubcAppSubcontracting)
             {
                 Caption = 'Subcontracting';
 
