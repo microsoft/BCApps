@@ -69,6 +69,7 @@ pageextension 99001503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
                         PurchaseLine.SetRange("Prod. Order No.", Rec."Prod. Order No.");
                         PurchaseLine.SetRange("Routing No.", Rec."Routing No.");
+                        PurchaseLine.SetRange("Routing Reference No.", Rec."Routing Reference No.");
                         PurchaseLine.SetRange("Operation No.", Rec."Operation No.");
                         if PurchaseLine.IsEmpty() then
                             Message(NoPurchOrderCreatedMsg, ProdOrderRoutingLine."Prod. Order No.")

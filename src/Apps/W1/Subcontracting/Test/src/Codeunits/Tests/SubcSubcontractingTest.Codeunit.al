@@ -2396,15 +2396,15 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        // [GIVEN] Verify no production order lines exist before manual creation
+        // [GIVEN] One released production order created directly from item
         LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 0);
 
-Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to exist at this point');
+        // [GIVEN] No production order lines exist yet for this order
         ProdOrderLine.SetRange(Status, ProdOrderLine.Status::Released);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to exist before manually creating them');
+        Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to exist before manually creating them');
 
-        // [GIVEN] Create two production order lines for the same item but different locations
+        // [GIVEN] Two production order lines on the same production order, on different locations
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation[1]);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation[2]);
         LibraryManufacturing.CreateProdOrderLine(ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", '', ProductionLocation[1].Code, LibraryRandom.RandInt(10) + 2);
@@ -2412,19 +2412,7 @@ Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to
         LibraryManufacturing.CreateProdOrderLine(ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", '', ProductionLocation[2].Code, LibraryRandom.RandInt(10) + 2);
         ProdOrderLineNo[2] := ProdOrderLine."Line No.";
         Assert.AreNotEqual(ProdOrderLineNo[1], ProdOrderLineNo[2], 'Expected two distinct production order lines');
-        // [WHEN] Creating a Subcontracting Purchase Order for each Prod. Order routing line
-        for I := 1 to 2 do begin
-            ProdOrderRoutingLine.Reset();
-            // ... routing line filters ...
-            ProdOrderRtng.OpenView();
-            ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
-            ProdOrderRtng.CreateSubcontracting.Invoke();
-            ProdOrderRtng.Close();
 
-            // [THEN] A new Purchase Order is created (not the false 'already created' warning)
-            Assert.AreEqual('1 Purchase Order(s) created.\\Do you want to view them?', LibraryVariableStorage.DequeueText(), 'Expected "created" confirmation for each prod order line');
-            LibraryVariableStorage.AssertEmpty();
-        end;
         // [GIVEN] Refresh the production order to update the routing and component lines
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, true, true, false);
 
@@ -2450,6 +2438,75 @@ Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,CapturePurchaseOrderPageNo')]
+    procedure CreateSubcontractingPONavigatesToOwnPOWhenLinesShareRoutingAndOperation()
+    var
+        Item: Record Item;
+        ProductionLocation: array[2] of Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        ProdOrderRtng: TestPage "Prod. Order Routing";
+        I: Integer;
+        ProdOrderLineNo: array[2] of Integer;
+        OpenedPurchaseOrderNo: Code[20];
+    begin
+        // [SCENARIO 634238] When a Released Production Order has multiple Prod. Order lines sharing routing/operation,
+        // confirming "view them" on the just-created Subcontracting Order must open the PO tied to the invoked
+        // routing line, not the unrelated PO of a sibling line.
+
+        // [GIVEN] Subcontracting setup with two prod order lines sharing routing/operation but different Routing Reference No.
+        Initialize();
+        UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 0);
+
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation[1]);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation[2]);
+        LibraryManufacturing.CreateProdOrderLine(ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", '', ProductionLocation[1].Code, LibraryRandom.RandInt(10) + 2);
+        ProdOrderLineNo[1] := ProdOrderLine."Line No.";
+        LibraryManufacturing.CreateProdOrderLine(ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", '', ProductionLocation[2].Code, LibraryRandom.RandInt(10) + 2);
+        ProdOrderLineNo[2] := ProdOrderLine."Line No.";
+
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, true, true, false);
+
+        // [WHEN] Creating a Subcontracting Order from each routing line and confirming "view them"
+        for I := 1 to 2 do begin
+            ProdOrderRoutingLine.Reset();
+            ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo[I]);
+            ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+            ProdOrderRoutingLine.FindFirst();
+
+            ProdOrderRtng.OpenView();
+            ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+            ProdOrderRtng.CreateSubcontracting.Invoke();
+            ProdOrderRtng.Close();
+
+            // [THEN] The page handler opens the Purchase Order whose line carries this routing line's Routing Reference No.
+            OpenedPurchaseOrderNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(OpenedPurchaseOrderNo));
+            PurchaseLine.Reset();
+            PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+            PurchaseLine.SetRange("Document No.", OpenedPurchaseOrderNo);
+            PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+            PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            PurchaseLine.SetRange("Routing Reference No.", ProdOrderLineNo[I]);
+            Assert.IsFalse(PurchaseLine.IsEmpty(), StrSubstNo('Opened Purchase Order %1 should contain a line tied to Routing Reference No. %2', OpenedPurchaseOrderNo, ProdOrderLineNo[I]));
+            LibraryVariableStorage.AssertEmpty();
+        end;
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,HandlePurchaseOrderPage,HandlePurchaseLinesPage')]
     procedure ShowExistingPurchOrdersOpensListWhenAlreadyCreated()
     var
@@ -2469,7 +2526,6 @@ Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
-        UpdateSubMgmtSetupWithReqWkshTemplate();
 
         // [WHEN] Create Subcontracting Order from the routing line for the first time
         PurchaseOrderPageOpened := false;
@@ -2511,6 +2567,13 @@ Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to
     procedure HandlePurchaseOrderPage(var PurchaseOrderPage: TestPage "Purchase Order")
     begin
         PurchaseOrderPageOpened := true;
+        PurchaseOrderPage.Close();
+    end;
+
+    [PageHandler]
+    procedure CapturePurchaseOrderPageNo(var PurchaseOrderPage: TestPage "Purchase Order")
+    begin
+        LibraryVariableStorage.Enqueue(PurchaseOrderPage."No.".Value);
         PurchaseOrderPage.Close();
     end;
 
