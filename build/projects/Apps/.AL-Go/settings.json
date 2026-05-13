@@ -11,6 +11,7 @@
     "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates",
     "../../../src/Layers/W1/Application",
     "../../../src/Layers/W1/BaseApp",
+    "../../../src/Layers/W1/DemoTool",
     "../../../src/Apps/W1/*/app",
     "../../../src/Apps/W1/*/*/app"
   ],

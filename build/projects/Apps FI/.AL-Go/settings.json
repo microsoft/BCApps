@@ -100,6 +100,7 @@
     "../../../src/Business Foundation/Test Library",
     "../../../src/Layers/W1/Application",
     "../../../src/Layers/W1/BaseApp",
+    "../../../src/Layers/W1/DemoTool",
     "../../../src/Layers/W1/Tests/ApplicationTestLibrary",
     "../../../src/System Application/App",
     "../../../src/Tools/AI Test Toolkit",

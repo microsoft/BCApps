@@ -169,6 +169,10 @@ function Wait-ForTenantReady {
     }
 }
 
+<#
+.SYNOPSIS
+    Runs the Contoso demo data generation codeunit (5691) via OData.
+#>
 function Invoke-ContosoDemoTool() {
     param(
         [string]$ContainerName,
@@ -190,35 +194,366 @@ function Invoke-ContosoDemoTool() {
     Invoke-NavContainerCodeunit -CodeunitId 5691 -containerName $ContainerName -CompanyName $CompanyName
 }
 
+<#
+.SYNOPSIS
+    Runs the legacy DemoTool (codeunit 101899) via ClientContext page action.
+.DESCRIPTION
+    Stages DemoTool resources into the container, then uses the web client to
+    open page 101900 and invoke "Create Demo Data from Config".
+#>
 function Invoke-LegacyDemoDataTool() {
     param(
         [string]$ContainerName,
-        [string]$CompanyName = (Get-TestCompanyName)
+        [string]$CompanyName = (Get-TestCompanyName),
+        [PSCredential]$Credential,
+        [string]$Tenant = "default"
     )
 
-    # Allow access to configuration packages
-    Set-BcContainerServerConfiguration -ContainerName $ContainerName -keyName EnforceUserPathForAlFileOperations -keyValue $false
-    Restart-BcContainerServiceTier -ContainerName $ContainerName
-    Wait-ForTenantReady -ContainerName $ContainerName
+    $ErrorActionPreference = "Stop"
 
     Write-Host "Initializing company"
     Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
 
-    # Use the W1.ENU rapidstart from the BC platform artifacts. The platform package always
-    # uses W1.ENU regardless of the container's localization. Search C:\ directly so we don't
-    # have to track BC version-specific paths.
-    $rapidstartFile = Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
-        $found = Get-ChildItem -Path "C:\" -Recurse -Filter "NAV*.W1.ENU.EXTENDED.rapidstart" -ErrorAction SilentlyContinue | Select-Object -First 1
-        if (-not $found) {
-            throw "Could not find any NAV*.W1.ENU.EXTENDED.rapidstart anywhere under C:\."
-        }
-        $found.FullName
-    }
+    $countryCode = Get-CountryCodeFromSettings
 
-    Write-Host "Importing configuration package: $rapidstartFile"
-    Invoke-NavContainerCodeunit -Codeunitid 8620 -containerName $ContainerName -CompanyName $CompanyName -MethodName "ImportAndApplyRapidStartPackage" -Argument $rapidstartFile
+    Initialize-DemoToolResources -ContainerName $ContainerName -CountryCode $countryCode
+
+    Invoke-DemoToolPageAction -ContainerName $ContainerName -CompanyName $CompanyName -Credential $Credential -Tenant $Tenant
 }
 
+<#
+.SYNOPSIS
+    Opens page 101900 via ClientContext and invokes the "Create Demo Data from Config" action.
+.DESCRIPTION
+    Connects to the container's web client, opens the Demonstration Data Tool page,
+    copies resource files to all GUID session folders, then invokes the action.
+#>
+function Invoke-DemoToolPageAction() {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [string]$CompanyName,
+        [PSCredential]$Credential,
+        [string]$Tenant = "default"
+    )
+
+    $ErrorActionPreference = "Stop"
+
+    $clientContext = New-BcClientContext -ContainerName $ContainerName -CompanyName $CompanyName -Credential $Credential -Tenant $Tenant
+
+    try {
+        Write-Host "Opening page 101900 (Demonstration Data Tool)"
+        $form = $clientContext.OpenForm(101900)
+        if ($null -eq $form) {
+            throw "Failed to open page 101900"
+        }
+
+        # Copy resources to ALL GUID user profile directories AFTER the page is open.
+        # Opening the page establishes the session's GUID folder — copying now ensures
+        # that folder has DemoDataConfig.xml when codeunit 101899 reads from TemporaryPath().
+        Write-Host "Copying DemoTool resources to all GUID user profile folders"
+        Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+            $guidDirs = @(Get-ChildItem "C:\ProgramData\Microsoft\Microsoft Dynamics NAV\*\Server\*\users" -Directory -Recurse -Depth 1 -ErrorAction SilentlyContinue |
+                Where-Object { $_.Name -match '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' })
+            if (-not $guidDirs -or $guidDirs.Count -eq 0) {
+                throw "No user profile GUID directories found"
+            }
+            foreach ($guidDir in $guidDirs) {
+                Write-Host "Copying DemoTool resources to $($guidDir.FullName)"
+                Copy-Item -Path "C:\DemoToolResources\*" -Destination $guidDir.FullName -Recurse -Force
+            }
+            Write-Host "Copied to $($guidDirs.Count) GUID folder(s)"
+        }
+
+        $actionName = "Create Demo Data from Config"
+        Write-Host "Invoking action '$actionName'"
+        $action = $clientContext.GetActionByName($form, $actionName)
+        if ($null -eq $action) {
+            throw "Action '$actionName' not found on page 101900"
+        }
+
+        # Start a transcript to capture ERROR DIALOG messages from the ClientContext event handler.
+        # The event handler's throw runs in an event context and doesn't propagate to InvokeAction,
+        # so we detect errors by scanning the transcript output afterwards.
+        $transcriptPath = Join-Path $env:TEMP "DemoToolTranscript.txt"
+        Start-Transcript -Path $transcriptPath -Force | Out-Null
+        try {
+            $clientContext.InvokeAction($action)
+        } finally {
+            Stop-Transcript | Out-Null
+        }
+
+        $transcript = Get-Content $transcriptPath -Raw
+        if ($transcript -match "ERROR DIALOG:\s*(.+)") {
+            throw "DemoTool failed: $($Matches[1])"
+        }
+
+        Write-Host "DemoTool action completed successfully"
+
+        $clientContext.CloseForm($form)
+    }
+    finally {
+        if ($null -ne $clientContext) {
+            $clientContext.Dispose()
+        }
+    }
+}
+
+<#
+.SYNOPSIS
+    Sets up ClientContext DLLs and returns a connected ClientContext instance.
+.DESCRIPTION
+    Copies ClientContext scripts and DLLs from BcContainerHelper and the container,
+    loads them, and creates a web client connection to the specified container.
+#>
+function New-BcClientContext() {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [string]$CompanyName,
+        [PSCredential]$Credential,
+        [string]$Tenant = "default"
+    )
+
+    $ErrorActionPreference = "Stop"
+
+    if (-not $Credential) {
+        throw "No credential provided. The pipeline must pass credentials for the Client Context connection."
+    }
+
+    $customConfig = Get-BcContainerServerConfiguration -ContainerName $ContainerName
+    $publicWebBaseUrl = "$($customConfig.PublicWebBaseUrl)".TrimEnd('/')
+    if ([string]::IsNullOrEmpty($publicWebBaseUrl)) {
+        throw "Container $ContainerName has no PublicWebBaseUrl configured. WebClient is required."
+    }
+
+    $clientServicesCredentialType = $customConfig.ClientServicesCredentialType
+
+    $serviceUrl = "$publicWebBaseUrl/cs?tenant=$([Uri]::EscapeDataString($Tenant))"
+    if (-not [string]::IsNullOrEmpty($CompanyName)) {
+        $serviceUrl += "&company=$([Uri]::EscapeDataString($CompanyName))"
+    }
+
+    # Set up PsTestTool folder with ClientContext scripts and DLLs
+    $PsTestToolFolder = Join-Path $bcContainerHelperConfig.hostHelperFolder "Extensions\$ContainerName\PsTestTool"
+    if (-not (Test-Path $PsTestToolFolder)) {
+        New-Item -Path $PsTestToolFolder -ItemType Directory -Force | Out-Null
+    }
+
+    $bcHelperModulePath = (Get-Module BcContainerHelper).ModuleBase
+    Copy-Item -Path (Join-Path $bcHelperModulePath "AppHandling\ClientContext.ps1") -Destination $PsTestToolFolder -Force
+    Copy-Item -Path (Join-Path $bcHelperModulePath "AppHandling\PsTestFunctions.ps1") -Destination $PsTestToolFolder -Force
+
+    $clientDllPath = Join-Path $PsTestToolFolder "Microsoft.Dynamics.Framework.UI.Client.dll"
+    $newtonSoftDllPath = Join-Path $PsTestToolFolder "Newtonsoft.Json.dll"
+
+    if (-not ((Test-Path $clientDllPath) -and (Test-Path $newtonSoftDllPath))) {
+        Invoke-ScriptInBcContainer -containerName $ContainerName { Param([string] $myNewtonSoftDllPath, [string] $myClientDllPath)
+            $nstFolder = "C:\Program Files\Microsoft Dynamics NAV\*\Service"
+            $newtonSoftDllPath = (Get-Item "$nstFolder\Management\Newtonsoft.Json.dll" -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+            if (-not $newtonSoftDllPath) { $newtonSoftDllPath = (Get-Item "$nstFolder\Newtonsoft.Json.dll" | Select-Object -First 1).FullName }
+            Copy-Item -Path $newtonSoftDllPath -Destination $myNewtonSoftDllPath -Force
+
+            $testAssemblies = "C:\Test Assemblies"
+            Copy-Item -Path (Join-Path $testAssemblies "Microsoft.Dynamics.Framework.UI.Client.dll") -Destination $myClientDllPath -Force
+            $destFolder = [System.IO.Path]::GetDirectoryName($myClientDllPath)
+            foreach ($dll in @('Microsoft.Internal.AntiSSRF.dll', 'System.Threading.Tasks.Extensions.dll')) {
+                $srcDll = Join-Path $testAssemblies $dll
+                if (Test-Path $srcDll) { Copy-Item -Path $srcDll -Destination $destFolder -Force }
+            }
+            Write-Host "Client DLLs copied"
+        } -argumentList (Get-BcContainerPath -containerName $ContainerName -path $newtonSoftDllPath), (Get-BcContainerPath -containerName $ContainerName -path $clientDllPath)
+    } else {
+        Write-Host "Client DLLs already present in $PsTestToolFolder"
+    }
+
+    # Load Client Context via PsTestFunctions.ps1 (handles Add-Type DLL loading)
+    . (Join-Path $PsTestToolFolder "PsTestFunctions.ps1") -newtonSoftDllPath $newtonSoftDllPath -clientDllPath $clientDllPath -clientContextScriptPath (Join-Path $PsTestToolFolder "ClientContext.ps1")
+
+    Write-Host "Connecting to $serviceUrl"
+    return New-ClientContext -serviceUrl $serviceUrl -auth $clientServicesCredentialType -credential $credential -interactionTimeout ([timespan]::FromHours(2)) -culture "en-US"
+}
+
+<#
+.SYNOPSIS
+    Returns the country code from the AL-Go project settings. Defaults to "W1".
+#>
+function Get-CountryCodeFromSettings() {
+    $country = Get-ALGoSetting -Key "country"
+    if ($country) {
+        return $country.ToUpper()
+    }
+    return "W1"
+}
+
+<#
+.SYNOPSIS
+    Stages DemoTool resource files (Pictures, O365, DemoDataConfig.xml) into the container.
+.DESCRIPTION
+    Merges resources from W1 base, optional region (DACH/NA/APAC), and country layers,
+    then copies them to C:\DemoToolResources inside the container.
+#>
+function Initialize-DemoToolResources() {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [string]$CountryCode = "W1",
+        [string]$DemoDataType = "Extended"
+    )
+
+    $ErrorActionPreference = "Stop"
+    $repoRoot = Get-BaseFolder
+
+    # Build layer chain: W1 -> region -> country (later layers overwrite earlier)
+    $regionMap = @{ AT='DACH'; DE='DACH'; CH='DACH'; CA='NA'; MX='NA'; US='NA'; AU='APAC'; NZ='APAC' }
+    $layers = @("W1")
+    if ($regionMap.ContainsKey($CountryCode)) { $layers += $regionMap[$CountryCode] }
+    if ($CountryCode -ne "W1") { $layers += $CountryCode }
+
+    Write-Host "DemoTool resource layers: $($layers -join ' -> ')"
+
+    # Stage all resources locally, layered (later layers overwrite earlier)
+    $stagingPath = Join-Path $env:TEMP "DemoToolResources"
+    if (Test-Path $stagingPath) { Remove-Item $stagingPath -Recurse -Force }
+    New-Item -Path $stagingPath -ItemType Directory -Force | Out-Null
+
+    foreach ($layer in $layers) {
+        if ($layer -eq "W1") {
+            $picturesPath = Join-Path $repoRoot "src\DemoTool\Pictures"
+            $o365Path = Join-Path $repoRoot "src\DemoTool\O365"
+        } else {
+            $picturesPath = Join-Path $repoRoot "src\GDL\$layer\App\DemoTool\Pictures"
+            $o365Path = $null
+        }
+
+        if ($picturesPath -and (Test-Path $picturesPath)) {
+            Write-Host "Staging Pictures from $layer layer"
+            Copy-Item -Path "$picturesPath\*" -Destination $stagingPath -Recurse -Force
+        }
+        if ($o365Path -and (Test-Path $o365Path)) {
+            Write-Host "Staging O365 from $layer layer"
+            Copy-Item -Path $o365Path -Destination $stagingPath -Recurse -Force
+        }
+    }
+
+    # Find the most specific DemoDataConfig.xml (country > region > W1) and stage it
+    $configSource = $null
+    for ($i = $layers.Count - 1; $i -ge 0; $i--) {
+        if ($layers[$i] -eq "W1") {
+            $candidatePath = Join-Path $repoRoot "src\DemoTool\DemoDataConfig.xml"
+        } else {
+            $candidatePath = Join-Path $repoRoot "src\GDL\$($layers[$i])\DevBase\DemoTool\DemoDataConfig.xml"
+        }
+        if (Test-Path $candidatePath) {
+            $configSource = $candidatePath
+            break
+        }
+    }
+    if (-not $configSource) {
+        throw "DemoDataConfig.xml not found in any layer: $($layers -join ', ')"
+    }
+    Write-Host "Using DemoDataConfig.xml from: $configSource"
+
+    $configXml = [xml](Get-Content $configSource)
+    $configXml.DemoDataSetup.DataType = $DemoDataType
+
+    # en-IN (16393) is not available in the container's Windows Language table because
+    # Server Core doesn't have the en-IN language pack. Use en-US (1033) instead.
+    $dataLanguageId = $configXml.DemoDataSetup.DataLanguageID
+    if ($dataLanguageId -eq "16393") {
+        Write-Host "Replacing DataLanguageID 16393 (en-IN) with 1033 (en-US) for container compatibility"
+        $configXml.DemoDataSetup.DataLanguageID = "1033"
+    }
+
+    $configXml.Save((Join-Path $stagingPath "DemoDataConfig.xml"))
+
+    # Copy staged resources into the container at a staging path
+    Write-Host "Copying DemoTool resources to container"
+    Copy-ItemToBcContainer -containerName $ContainerName -localPath $stagingPath -containerPath "C:\DemoToolResources"
+    Remove-Item $stagingPath -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+<#
+.SYNOPSIS
+    Installs all published apps in the container on the default tenant.
+#>
+function Install-AllApps() {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName
+    )
+
+    # Install all published-but-not-installed apps in dependency order
+    Write-Host "Installing all published apps..."
+    $publishedApps = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
+    $uninstalledApps = $publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled }
+
+    if ($uninstalledApps.Count -eq 0) {
+        Write-Host "All apps already installed"
+        return
+    }
+
+    Write-Host "Installing $($uninstalledApps.Count) apps"
+    foreach ($app in $uninstalledApps) {
+        Write-Host "Installing $($app.Name) ($($app.Version))"
+        Install-BcContainerApp -containerName $ContainerName -appName $app.Name -appVersion $app.Version
+    }
+    Write-Host "All apps installed"
+}
+
+<#
+.SYNOPSIS
+    Installs only the base app groups (Base, TestFramework, LocalBaseExtensions) needed before running DemoTool.
+.DESCRIPTION
+    Uses Get-ApplicationGroup from ALAppBuild.psm1 to determine which apps belong to the
+    base groups, then installs only those. Remaining apps are installed after DemoTool runs.
+#>
+function Install-BaseAppsForDemoTool() {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [string]$CountryCode = "W1"
+    )
+
+    # Install only the apps needed before DemoTool runs.
+    # This matches the internal build's BuildTestDatabase.ps1 which installs
+    # Base, TestFramework, LocalBaseExtensions groups + DemoTool before running the DemoTool.
+    $repoRoot = Get-BaseFolder
+    $env:INETROOT = $repoRoot
+
+    if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
+        function global:Write-Log {
+            param([Parameter(Position = 0)][string]$Message, [string]$ForegroundColor)
+            Write-Host $Message
+        }
+    }
+    Import-Module (Join-Path $repoRoot "build\scripts\ALAppBuild.psm1") -Force
+
+    $baseAppNames = @()
+    foreach ($groupName in @('Base', 'TestFramework', 'LocalBaseExtensions')) {
+        $apps = Get-ApplicationGroup -GroupName $groupName -CountryCode $CountryCode -SkipLanguagePacks
+        $baseAppNames += $apps | ForEach-Object { $_.ApplicationName }
+    }
+    $baseAppNames += 'DemoTool'
+    $baseAppNames = $baseAppNames | Sort-Object -Unique
+    Write-Host "Base apps for DemoTool: $($baseAppNames.Count) apps"
+
+    # Install only those apps (in dependency order)
+    $publishedApps = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
+    $appsToInstall = $publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled -and ($baseAppNames -contains $_.Name) }
+
+    Write-Host "Installing $($appsToInstall.Count) base apps"
+    foreach ($app in $appsToInstall) {
+        Write-Host "Installing $($app.Name) ($($app.Version))"
+        Install-BcContainerApp -containerName $ContainerName -appName $app.Name -appVersion $app.Version
+    }
+    Write-Host "Base apps installed"
+}
+
+<#
+.SYNOPSIS
+    Returns the test company name from AL-Go settings, defaulting to "CRONUS International Ltd.".
+#>
 function Get-TestCompanyName() {
     $companyName = Get-ALGoSetting -Key "companyName"
     if ([string]::IsNullOrEmpty($companyName)) {
@@ -228,6 +563,13 @@ function Get-TestCompanyName() {
     }
 }
 
+<#
+.SYNOPSIS
+    Orchestrates demo data generation based on the test type.
+.DESCRIPTION
+    For Legacy tests: installs base apps, creates test company, runs DemoTool, then installs remaining apps.
+    For other test types: installs all apps and runs Contoso demo data tool.
+#>
 function Invoke-DemoDataGeneration
 {
     param(
@@ -235,24 +577,31 @@ function Invoke-DemoDataGeneration
         [string]$ContainerName,
         [Parameter(Mandatory=$true)]
         [ValidateSet("UnitTest","IntegrationTest","Uncategorized","Legacy")]
-        [string]$TestType
+        [string]$TestType,
+        [PSCredential]$Credential,
+        [string]$Tenant = "default"
     )
     if ($TestType -eq "UnitTest") {
+        Install-AllApps -ContainerName $ContainerName
         New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
         Write-Host "UnitTest shouldn't have dependency on any Demo Data, skipping demo data generation"
         return
     } elseif( $TestType -eq "IntegrationTest" ) {
+        Install-AllApps -ContainerName $ContainerName
         New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
         Write-Host "Proceeding with demo data generation (SetupData) as test type is set to IntegrationTest"
         Invoke-ContosoDemoTool -ContainerName $ContainerName -SetupData
     } elseif( $TestType -eq "Uncategorized" ) {
+        Install-AllApps -ContainerName $ContainerName
         New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName) -EvaluationCompany
         Write-Host "Proceeding with full demo data generation as test type is set to Uncategorized"
         Invoke-ContosoDemoTool -ContainerName $ContainerName
     } elseif ( $TestType -eq "Legacy" ) {
+        Install-BaseAppsForDemoTool -ContainerName $ContainerName -CountryCode (Get-CountryCodeFromSettings)
         New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
         Write-Host "Proceeding with full demo data generation as test type is set to Legacy"
-        Invoke-LegacyDemoDataTool -ContainerName $ContainerName
+        Invoke-LegacyDemoDataTool -ContainerName $ContainerName -Credential $Credential -Tenant $Tenant
+        Install-AllApps -ContainerName $ContainerName
     }
     else {
         throw "Unknown test type $TestType."
@@ -260,6 +609,10 @@ function Invoke-DemoDataGeneration
 
 }
 
+<#
+.SYNOPSIS
+    Creates a new company in the container for testing.
+#>
 function New-TestCompany() {
     param(
         [Parameter(Mandatory=$true)]
@@ -289,11 +642,10 @@ foreach ($app in (Get-BcContainerAppInfo -containerName $ContainerName -tenantSp
 Wait-ForTenantReady -ContainerName $parameters.ContainerName
 
 try {
-    Invoke-DemoDataGeneration -ContainerName $parameters.ContainerName -TestType (Get-ALGoSetting -Key "testType")
+    Invoke-DemoDataGeneration -ContainerName $parameters.ContainerName -TestType (Get-ALGoSetting -Key "testType") -Credential $parameters.credential -Tenant $parameters.tenant
 } catch {
     Write-Host "An error occurred during demo data generation: $($_.Exception.Message)"
-    Write-Host "Trying again..."
-    Invoke-DemoDataGeneration -ContainerName $parameters.ContainerName -TestType (Get-ALGoSetting -Key "testType")
+    throw
 }
 
 # Create additional tenants by cloning the default tenant (which now has all apps + demo data)

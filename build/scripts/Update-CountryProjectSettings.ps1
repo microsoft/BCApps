@@ -64,7 +64,12 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
 $env:INETROOT = $RepoRoot
 Import-Module (Join-Path (Join-Path $RepoRoot "build") "scripts" | Join-Path -ChildPath "ALAppBuild.psm1") -Force
 
-$countryProjectsPath = Join-Path (Join-Path $RepoRoot "build") "projects"
+# Apps that should be included in all country projects but aren't tracked in groups.json.
+$AdditionalAppFolders = @(
+    "../../../src/Layers/W1/DemoTool"
+)
+
+$countryProjectsPath = Join-Path $RepoRoot "build\projects"
 
 function ConvertTo-SettingsRelativePath {
     <#
@@ -133,6 +138,9 @@ function Get-AppFoldersForCountry {
             $appFolders += $relativePath
         }
     }
+
+    # Merge in additional app folders not tracked in groups.json
+    $appFolders += $script:AdditionalAppFolders
 
     return @{
         AppFolders  = $appFolders | Sort-Object -Unique

@@ -13,6 +13,10 @@ if ("$env:GITHUB_RUN_ID" -eq "") {
 
 New-BcContainer @parameters
 
+Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "EnforceUserPathForAlFileOperations" -keyValue "false"
+Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "UsePermissionSetsFromExtensions" -keyValue "true"
+Restart-BcContainer -containerName $parameters.ContainerName
+
 $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
 
 # Clean the container for all apps. Apps will be installed by AL-Go
