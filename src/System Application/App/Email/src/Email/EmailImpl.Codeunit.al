@@ -748,7 +748,7 @@ codeunit 8900 "Email Impl"
         SourceRecordRef: RecordRef;
         Handled: Boolean;
     begin
-        OnBeforeFilterRemovedSourceRecords(EmailRelatedRecord,Handled);
+OnBeforeFilterRemovedSourceRecords(EmailRelatedRecord, Handled);
         if Handled then
             exit;
         repeat
