@@ -136,6 +136,7 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
+            ToolTip = 'Specifies the outstanding quantity on warehouse receipts for this transfer line.';
         }
         field(99001562; "Whse Outbnd. Otsdg. Qty"; Decimal)
         {
@@ -149,6 +150,7 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
+            ToolTip = 'Specifies the outstanding quantity on warehouse shipments for this transfer line.';
         }
         field(99001563; "Prev. Operation No."; Code[10])
         {

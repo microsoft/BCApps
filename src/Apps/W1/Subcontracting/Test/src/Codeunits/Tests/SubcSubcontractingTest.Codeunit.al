@@ -73,24 +73,24 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [GIVEN] Subcontracting setup with transfer components and an initial subcontracting order with transfer order already created
         Initialize();
-        UpdateManufacturingSetupWithSubcontractingLocation();
-        SetupInventorySetup();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
 
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
-        CreateAndRefreshProductionOrder(
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder1, "Production Order Status"::Released, ProductionOrder1."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         UpdateSubMgmtSetupWithReqWkshTemplate();
         SetAllProdOrderTransferComponentLocations(ProductionOrder1."No.", ProductionLocation.Code);
 
-        CreateTransferRoute(WorkCenter[2], ProductionOrder1);
+        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder1);
 
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder1."No.");
         ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
@@ -116,7 +116,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(PurchaseHeader1."No.", TransferHeader."Subcontr. Purch. Order No.", 'First transfer order must be linked to the first subcontracting purchase order.');
 
         // [GIVEN] A second released production order for the same subcontracting setup
-        CreateAndRefreshProductionOrder(
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder2, "Production Order Status"::Released, ProductionOrder2."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
         SetAllProdOrderTransferComponentLocations(ProductionOrder2."No.", ProductionLocation.Code);
 
@@ -2736,6 +2736,21 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateItem(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", RoutingNo, ProductionBOMNo);
     end;
 
+    local procedure SetAllProdOrderTransferComponentLocations(ProdOrderNo: Code[20]; LocationCode: Code[10])
+    var
+        ProdOrderComp: Record "Prod. Order Component";
+    begin
+        ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
+#pragma warning disable AA0210
+        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+#pragma warning restore AA0210
+        if ProdOrderComp.FindSet() then
+            repeat
+                ProdOrderComp.Validate("Location Code", LocationCode);
+                ProdOrderComp.Modify(true);
+            until ProdOrderComp.Next() = 0;
+    end;
+
     local procedure UpdateProdBomAndRoutingWithRoutingLink(Item: Record Item; WorkCenterNo: Code[20])
     var
         ProductionBOMHeader: Record "Production BOM Header";
@@ -2775,7 +2790,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProductionBOMHeader.Modify(true);
     end;
 
-local procedure UpdateProdOrderCompWithLocationAndBinCode(ProdOrderNo: Code[20]; var LocationCode: Code[10]; var BinCode: Code[20])
+    local procedure UpdateProdOrderCompWithLocationAndBinCode(ProdOrderNo: Code[20]; var LocationCode: Code[10]; var BinCode: Code[20])
     var
         Bin: Record Bin;
         Location: Record Location;
