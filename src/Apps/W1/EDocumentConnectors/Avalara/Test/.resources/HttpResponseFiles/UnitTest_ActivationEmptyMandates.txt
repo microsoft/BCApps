@@ -1,0 +1,28 @@
+{
+	"value": [
+		{
+			"id": "33333333-3333-3333-3333-333333333333",
+			"registrationType": "Full",
+			"registrationData": {
+				"jurisdiction": "FR",
+				"schemeId": "VAT",
+				"identifier": "FR123",
+				"fullAuthorityNetworkValue": "PEPPOL"
+			},
+			"status": {
+				"code": "Completed",
+				"message": "Done"
+			},
+			"company": {
+				"displayName": "FR Co",
+				"location": "FR",
+				"identifier": "empty-mand-comp"
+			},
+			"meta": {
+				"lastModified": "2024-08-16T12:00:00Z",
+				"location": "/act/3"
+			},
+			"mandates": []
+		}
+	]
+}

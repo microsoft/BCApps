@@ -20,12 +20,15 @@ codeunit 4310 "Agent Task Builder Impl."
         GlobalAgentUserSecurityId: Guid;
         GlobalTaskTitle: Text[150];
         GlobalExternalID: Text[2048];
+        GlobalModelId: Code[30];
+        GlobalBillingContext: Enum "Agent Task Billing Context";
 
     [Scope('OnPrem')]
     procedure Initialize(NewAgentUserSecurityId: Guid; NewTaskTitle: Text[150]): codeunit "Agent Task Builder Impl."
     begin
         GlobalAgentUserSecurityId := NewAgentUserSecurityId;
         GlobalTaskTitle := NewTaskTitle;
+        GlobalBillingContext := Enum::"Agent Task Billing Context"::Default;
         exit(this);
     end;
 
@@ -38,7 +41,7 @@ codeunit 4310 "Agent Task Builder Impl."
         VerifyMandatoryFieldsSet();
         VerifyTaskCanBeCreated(RequiresMessage);
 
-        AgentTaskImpl.CreateTask(GlobalAgentUserSecurityId, GlobalTaskTitle, GlobalExternalID, AgentTaskRecord);
+        AgentTaskImpl.CreateTask(GlobalAgentUserSecurityId, GlobalTaskTitle, GlobalExternalID, GlobalBillingContext, GlobalModelId, AgentTaskRecord);
         if MessageSet then begin
             GlobalAgentTaskMessageBuilder.SetAgentTask(AgentTaskRecord);
             GlobalAgentTaskMessageBuilder.Create(false);
@@ -60,6 +63,20 @@ codeunit 4310 "Agent Task Builder Impl."
     procedure SetExternalId(ExternalId: Text[2048]): codeunit "Agent Task Builder Impl."
     begin
         GlobalExternalID := ExternalId;
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure SetModelId(ModelId: Code[30]): codeunit "Agent Task Builder Impl."
+    begin
+        GlobalModelId := ModelId;
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure SetBillingContext(BillingContext: Enum "Agent Task Billing Context"): codeunit "Agent Task Builder Impl."
+    begin
+        GlobalBillingContext := BillingContext;
         exit(this);
     end;
 

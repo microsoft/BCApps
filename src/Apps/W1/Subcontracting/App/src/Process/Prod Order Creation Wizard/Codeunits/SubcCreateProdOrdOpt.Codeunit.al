@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -22,11 +22,13 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     TableNo = "Purchase Line";
 
     var
+        ManufacturingSetup: Record "Manufacturing Setup";
         SubcManagementSetup: Record "Subc. Management Setup";
         SubcTempDataInitializer: Codeunit "Subc. Temp Data Initializer";
         SubcVersionMgmt: Codeunit "Subc. Version Mgmt.";
         BOMCreated, BOMVersionCreated : Boolean;
         HasSubManagementSetup: Boolean;
+        HasManufacturingSetup: Boolean;
         ProdCompRoutingModified: Boolean;
         ProdOrderCompRoutingCreated: Boolean;
         RoutingCreated, RoutingVersionCreated : Boolean;
@@ -479,7 +481,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure FindRoutingLinesForProdOrderLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"): Boolean
     begin
-        ProdOrderRoutingLine.SetLoadFields("Work Center No.", "Operation No.", Description, "Routing No.", "Routing Reference No.");
+        ProdOrderRoutingLine.SetLoadFields("Work Center No.", "Operation No.", Description, "Description 2", "Routing No.", "Routing Reference No.");
         ProdOrderRoutingLine.SetRange(Status, ProdOrderLine.Status);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
         ProdOrderRoutingLine.SetRange("Routing No.", ProdOrderLine."Routing No.");
@@ -525,6 +527,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
         PurchaseLine.Description := ProdOrderRoutingLine.Description;
+        PurchaseLine."Description 2" := ProdOrderRoutingLine."Description 2";
         PurchaseLine."Routing No." := ProdOrderRoutingLine."Routing No.";
         PurchaseLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
         PurchaseLine."Operation No." := ProdOrderRoutingLine."Operation No.";
@@ -629,20 +632,19 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure ValidateMandatoryFields(PurchaseLine: Record "Purchase Line")
     var
-        ManufacturingSetup: Record "Manufacturing Setup";
         Vendor: Record Vendor;
     begin
-        GetSubManagementSetupCached();
-        SubcManagementSetup.TestField("Rtng. Link Code Purch. Prov.");
-        SubcManagementSetup.TestField("Component at Location");
-        SubcManagementSetup.TestField("Preset Component Item No.");
-        SubcManagementSetup.TestField("Common Work Center No.");
+        GetManufacturingSetupCached();
+        ManufacturingSetup.TestField("Rtng. Link Code Purch. Prov.");
+        ManufacturingSetup.TestField("Subc. Default Comp. Location");
 
-        ManufacturingSetup.Get();
         ManufacturingSetup.TestField("Released Order Nos.");
-        ManufacturingSetup.TestField("Planned Order Nos.");
         ManufacturingSetup.TestField("Production BOM Nos.");
         ManufacturingSetup.TestField("Routing Nos.");
+
+        GetSubManagementSetupCached();
+        SubcManagementSetup.TestField("Preset Component Item No.");
+        SubcManagementSetup.TestField("Common Work Center No.");
 
         Vendor.Get(PurchaseLine."Buy-from Vendor No.");
         Vendor.TestField("Subcontr. Location Code");
@@ -670,6 +672,17 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
             exit;
         if SubcManagementSetup.Get() then
             HasSubManagementSetup := true;
+    end;
+
+    /// <summary>
+    /// Gets Manufacturing Setup with caching
+    /// </summary>
+    local procedure GetManufacturingSetupCached()
+    begin
+        if HasManufacturingSetup then
+            exit;
+        if ManufacturingSetup.Get() then
+            HasManufacturingSetup := true;
     end;
 
     /// <summary>
@@ -803,7 +816,6 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure CreateBOMIfNotExists(var TempProductionBOMHeader: Record "Production BOM Header" temporary; var TempProductionBOMLine: Record "Production BOM Line" temporary; var BOMNo: Code[20])
     var
-        ManufacturingSetup: Record "Manufacturing Setup";
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionBOMLine: Record "Production BOM Line";
         NoSeries: Codeunit "No. Series";
@@ -811,12 +823,13 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         if SubcVersionMgmt.CheckBOMExists(BOMNo, '') then
             exit;
 
-        ManufacturingSetup.Get();
+        GetManufacturingSetupCached();
         BOMNo := NoSeries.GetNextNo(ManufacturingSetup."Production BOM Nos.");
 
         ProductionBOMHeader.Init();
         ProductionBOMHeader."No." := BOMNo;
         ProductionBOMHeader.Description := TempProductionBOMHeader.Description;
+        ProductionBOMHeader."Description 2" := TempProductionBOMHeader."Description 2";
         ProductionBOMHeader.Validate("Unit of Measure Code", TempProductionBOMHeader."Unit of Measure Code");
         ProductionBOMHeader.Insert(true);
         BOMCreated := true;
@@ -854,7 +867,6 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     /// </summary>
     local procedure CreateRoutingIfNotExists(var TempRoutingHeader: Record "Routing Header" temporary; var TempRoutingLine: Record "Routing Line" temporary; var RoutingNo: Code[20])
     var
-        ManufacturingSetup: Record "Manufacturing Setup";
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
         NoSeries: Codeunit "No. Series";
@@ -865,12 +877,13 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         if SubcVersionMgmt.CheckRoutingExists(RoutingNo, '') then
             exit;
 
-        ManufacturingSetup.Get();
+        GetManufacturingSetupCached();
         RoutingNo := NoSeries.GetNextNo(ManufacturingSetup."Routing Nos.");
 
         RoutingHeader.Init();
         RoutingHeader."No." := RoutingNo;
         RoutingHeader.Description := TempRoutingHeader.Description;
+        RoutingHeader."Description 2" := TempRoutingHeader."Description 2";
         RoutingHeader.Insert(true);
         RoutingCreated := true;
 
@@ -1154,6 +1167,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ProdOrderComponent.Validate("Item No.", TempProdOrderComponent."Item No.");
         ProdOrderComponent.Validate("Variant Code", TempProdOrderComponent."Variant Code");
         ProdOrderComponent.Description := TempProdOrderComponent.Description;
+        ProdOrderComponent."Description 2" := TempProdOrderComponent."Description 2";
         ProdOrderComponent.Validate("Quantity per", TempProdOrderComponent."Quantity per");
         ProdOrderComponent.Validate("Unit of Measure Code", TempProdOrderComponent."Unit of Measure Code");
         ProdOrderComponent.Validate("Location Code", TempProdOrderComponent."Location Code");
@@ -1185,6 +1199,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ProdOrderRoutingLine.Validate(Type, TempProdOrderRoutingLine.Type);
         ProdOrderRoutingLine.Validate("No.", TempProdOrderRoutingLine."No.");
         ProdOrderRoutingLine.Description := TempProdOrderRoutingLine.Description;
+        ProdOrderRoutingLine."Description 2" := TempProdOrderRoutingLine."Description 2";
         ProdOrderRoutingLine."Setup Time" := TempProdOrderRoutingLine."Setup Time";
         ProdOrderRoutingLine."Run Time" := TempProdOrderRoutingLine."Run Time";
         ProdOrderRoutingLine."Wait Time" := TempProdOrderRoutingLine."Wait Time";

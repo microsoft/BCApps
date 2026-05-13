@@ -52,6 +52,7 @@ report 99001501 "Subc. Create Transf. Order"
             trigger OnPreDataItem()
             begin
                 PurchOrderNo := CopyStr("Purchase Header".GetFilter("No."), 1, MaxStrLen(PurchOrderNo));
+                LastModifiedTransferOrderNo := '';
                 if PurchOrderNo = '' then
                     Error(WarningToSpecifyPurchOrderErr);
             end;
@@ -62,10 +63,10 @@ report 99001501 "Subc. Create Transf. Order"
     end;
 
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
+        LastModifiedTransferOrderNo: Code[20];
         PurchOrderNo: Code[20];
         LineNum: Integer;
         ComponentsDoesNotExistErr: Label 'Components to send to subcontractor do not exist.';
@@ -75,12 +76,9 @@ report 99001501 "Subc. Create Transf. Order"
 
     local procedure InsertTransferHeader(CompLineLocation: Code[10])
     var
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+        TransferRoute: Record "Transfer Route";
         TransferToLocationCode: Code[10];
     begin
-        if not SubcManagementSetup.Get() then
-            Clear(SubcManagementSetup);
-
         GetTransferToLocationCode(TransferToLocationCode);
 
         TransferHeader.Reset();
@@ -91,16 +89,15 @@ report 99001501 "Subc. Create Transf. Order"
         TransferHeader.SetRange("Transfer-from Code", CompLineLocation);
         TransferHeader.SetRange("Transfer-to Code", TransferToLocationCode);
         TransferHeader.SetRange("Return Order", false);
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", "Purchase Header"."No.");
         if not TransferHeader.FindFirst() then begin
             TransferHeader.Init();
             TransferHeader."No." := '';
             TransferHeader.Insert(true);
             TransferHeader.Validate("Transfer-from Code", CompLineLocation);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
-            if SubcManagementSetup."Direct Transfer" then begin
-                SubcontractingManagement.CheckDirectTransferIsAllowedForTransferHeader(TransferHeader);
+            if not TransferRoute.Get(CompLineLocation, TransferToLocationCode) or (TransferRoute."In-Transit Code" = '') then
                 TransferHeader.Validate("Direct Transfer", true);
-            end;
 
             TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;
             TransferHeader."Source Subtype" := TransferHeader."Source Subtype"::"2";
@@ -118,9 +115,11 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader."Trsf.-from Country/Region Code" := Vendor."Country/Region Code";
 
             TransferHeader.Modify();
+            LastModifiedTransferOrderNo := TransferHeader."No.";
 
             LineNum := 0;
         end else begin
+            LastModifiedTransferOrderNo := TransferHeader."No.";
             TransferLine.SetRange("Document No.", TransferHeader."No.");
             if TransferLine.FindLast() then
                 LineNum := TransferLine."Line No."
@@ -261,6 +260,13 @@ report 99001501 "Subc. Create Transf. Order"
         TransferHeader.Reset();
         TransferHeader.SetCurrentKey("Subcontr. Purch. Order No.");
         TransferHeader.SetRange("Subcontr. Purch. Order No.", "Purchase Line"."Document No.");
+
+        if TransferHeader.IsEmpty() and (LastModifiedTransferOrderNo <> '') then
+            if TransferHeader.Get(LastModifiedTransferOrderNo) then begin
+                Page.Run(Page::"Transfer Order", TransferHeader);
+                exit;
+            end;
+
         if TransferHeader.Count() > 1 then
             Page.Run(Page::"Transfer Orders", TransferHeader)
         else

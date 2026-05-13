@@ -63,7 +63,7 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
             PlanningRoutingLine.SetLoadFields("No.");
             if PlanningRoutingLine.FindFirst() then
                 if SubcontractingManagement.GetSubcontractor(PlanningRoutingLine."No.", Vendor) then
-                    SubcontractingManagement.ChangeLocation_OnPlanningComponent(PlanningComponent, Vendor."Subcontr. Location Code", PlanningComponent."Orig. Location Code", PlanningComponent."Orig. Bin Code");
+                    SubcontractingManagement.ChangeLocationOnPlanningComponent(PlanningComponent, Vendor."Subcontr. Location Code", PlanningComponent."Orig. Location Code", PlanningComponent."Orig. Bin Code");
         end else
             if xPlanningComponent."Routing Link Code" <> '' then
                 if PlanningComponent."Orig. Location Code" <> '' then begin

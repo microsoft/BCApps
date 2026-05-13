@@ -19,6 +19,28 @@ page 8354 "MCP Tools By API Group"
             group(Control1)
             {
                 ShowCaption = false;
+                field(APIGroup; APIGroup)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the API group. The publisher is auto-filled when only one publisher exposes the selected group; otherwise you are prompted to choose.';
+                    Caption = 'API Group';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    begin
+                        if TempMCPAPIPublisherGroup.IsEmpty() then
+                            MCPConfigImplementation.GetAPIPublishers(TempMCPAPIPublisherGroup);
+
+                        MCPConfigImplementation.LookupAPIPublisher(TempMCPAPIPublisherGroup, APIPublisher, APIGroup);
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        if TempMCPAPIPublisherGroup.IsEmpty() then
+                            MCPConfigImplementation.GetAPIPublishers(TempMCPAPIPublisherGroup);
+
+                        MCPConfigImplementation.ResolvePublisherForGroup(TempMCPAPIPublisherGroup, APIPublisher, APIGroup);
+                    end;
+                }
                 field(APIPublisher; APIPublisher)
                 {
                     ApplicationArea = All;
@@ -34,23 +56,6 @@ page 8354 "MCP Tools By API Group"
                         MCPConfigImplementation.LookupAPIPublisher(TempMCPAPIPublisherGroup, APIPublisher, APIGroup);
                     end;
                 }
-                field(APIGroup; APIGroup)
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the API group.';
-                    Caption = 'API Group';
-
-                    trigger OnLookup(var Text: Text): Boolean
-                    begin
-                        if APIPublisher = '' then
-                            Error(APIPublisherNotSelectedErr);
-
-                        if TempMCPAPIPublisherGroup.IsEmpty() then
-                            MCPConfigImplementation.GetAPIPublishers(TempMCPAPIPublisherGroup);
-
-                        MCPConfigImplementation.LookupAPIGroup(TempMCPAPIPublisherGroup, APIPublisher, APIGroup);
-                    end;
-                }
             }
         }
     }
@@ -60,7 +65,6 @@ page 8354 "MCP Tools By API Group"
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         APIPublisher: Text;
         APIGroup: Text;
-        APIPublisherNotSelectedErr: Label 'Select an API Publisher first.';
 
     internal procedure GetAPIGroup(): Text
     begin
