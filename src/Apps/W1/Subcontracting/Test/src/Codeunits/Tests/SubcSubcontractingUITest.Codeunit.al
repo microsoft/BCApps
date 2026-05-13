@@ -458,7 +458,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     [Test]
     procedure ComponentSupplyMethodCaptionsAreClear()
     var
-        ProductionBOMLine: Record "Production BOM Line";
+var
+    ProductionBOMLine: Record "Production BOM Line";
+    PlanningComponent: Record "Planning Component";
+    ProdOrderComponent: Record "Prod. Order Component";
+begin
         PlanningComponent: Record "Planning Component";
         ProdOrderComponent: Record "Prod. Order Component";
         ComponentSupplyMethod: Enum "Component Supply Method";
