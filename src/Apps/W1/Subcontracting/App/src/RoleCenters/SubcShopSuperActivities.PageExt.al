@@ -31,7 +31,7 @@ pageextension 99001545 "Subc. Shop Super. Activities" extends "Shop Supervisor A
             }
             cuegroup(SubcontractingActionsCuegroup)
             {
-                Caption = 'Subcontracting';
+                Caption = 'Subcontracting - Operations';
 
                 actions
                 {

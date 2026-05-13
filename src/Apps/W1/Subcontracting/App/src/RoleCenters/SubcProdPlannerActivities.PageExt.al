@@ -31,7 +31,7 @@ pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Plan
             }
             cuegroup(SubcontractingActionsCuegroup)
             {
-                Caption = 'Subcontracting';
+                Caption = 'Subcontracting - Operations';
 
                 actions
                 {

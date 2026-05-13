@@ -31,7 +31,7 @@ pageextension 99001546 "Subc. ShopSuperbasicActivity" extends "Shop Super. basic
             }
             cuegroup(SubcontractingActionsCuegroup)
             {
-                Caption = 'Subcontracting';
+                Caption = 'Subcontracting - Operations';
 
                 actions
                 {
