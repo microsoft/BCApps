@@ -12,7 +12,7 @@ pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
     {
         addafter("&Quality Measures")
         {
-            action("Subcontracting Prices")
+            action("Subc. Prices")
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Subcontracting Prices';
