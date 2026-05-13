@@ -2412,7 +2412,19 @@ Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to
         LibraryManufacturing.CreateProdOrderLine(ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", '', ProductionLocation[2].Code, LibraryRandom.RandInt(10) + 2);
         ProdOrderLineNo[2] := ProdOrderLine."Line No.";
         Assert.AreNotEqual(ProdOrderLineNo[1], ProdOrderLineNo[2], 'Expected two distinct production order lines');
+        // [WHEN] Creating a Subcontracting Purchase Order for each Prod. Order routing line
+        for I := 1 to 2 do begin
+            ProdOrderRoutingLine.Reset();
+            // ... routing line filters ...
+            ProdOrderRtng.OpenView();
+            ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+            ProdOrderRtng.CreateSubcontracting.Invoke();
+            ProdOrderRtng.Close();
 
+            // [THEN] A new Purchase Order is created (not the false 'already created' warning)
+            Assert.AreEqual('1 Purchase Order(s) created.\\Do you want to view them?', LibraryVariableStorage.DequeueText(), 'Expected "created" confirmation for each prod order line');
+            LibraryVariableStorage.AssertEmpty();
+        end;
         // [GIVEN] Refresh the production order to update the routing and component lines
         LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, true, true, false);
 
