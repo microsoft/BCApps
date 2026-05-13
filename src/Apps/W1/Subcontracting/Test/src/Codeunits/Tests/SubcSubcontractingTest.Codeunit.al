@@ -2616,7 +2616,7 @@ codeunit 139989 "Subc. Subcontracting Test"
             PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
             PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
             PurchaseLine.SetRange("Routing Reference No.", ProdOrderLineNo[I]);
-            Assert.IsFalse(PurchaseLine.IsEmpty(), StrSubstNo('Opened Purchase Order %1 should contain a line tied to Routing Reference No. %2', OpenedPurchaseOrderNo, ProdOrderLineNo[I]));
+            Assert.IsFalse(PurchaseLine.IsEmpty(), StrSubstNo(PurchOrderRoutingErr, OpenedPurchaseOrderNo, ProdOrderLineNo[I]));
             LibraryVariableStorage.AssertEmpty();
         end;
     end;
@@ -3407,5 +3407,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation: Option Time,Units;
         ConfirmDialogCalledCount: Integer;
         AlreadySpecifiedErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.', Comment = '|%1 = Transfer Order No.';
+        PurchOrderRoutingErr: Label 'Purchase Order %1 should contain a line tied to Routing Reference No. %2', Comment = '%1 = Purchase Order No., %2 = Routing Reference No.';
 
 }
