@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.RoleCenters;
+using Microsoft.Purchases.Document;
 
 pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Planner Activities"
 {
@@ -14,7 +15,20 @@ pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Plan
         {
             cuegroup(SubcontractingCuegroup)
             {
-                Caption = 'Subcontracting - Operations';
+                Caption = 'Subcontracting';
+                field("Subc. Purch. Lines Outstd."; Rec."Subc. Purch. Lines Outstd.")
+                {
+                    ApplicationArea = Manufacturing;
+                    DrillDownPageId = "Purchase Order List";
+                    ToolTip = 'Specifies the number of outstanding subcontracting purchase order lines that have not yet been fully received.';
+                }
+                field("Subc. Purch. Lines Total"; Rec."Subc. Purch. Lines Total")
+                {
+                    ApplicationArea = Manufacturing;
+                    DrillDownPageId = "Purchase Order List";
+                    ToolTip = 'Specifies the total number of subcontracting purchase order lines.';
+                }
+
                 actions
                 {
                     action("Subc. Edit Subcontracting Worksheet")
