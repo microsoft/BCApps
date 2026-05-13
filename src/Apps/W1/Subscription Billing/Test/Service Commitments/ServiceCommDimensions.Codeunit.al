@@ -913,6 +913,10 @@ codeunit 148160 "Service Comm. Dimensions"
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
         ServiceCommitment.FindFirst();
         VerifyDimensionSetValue(ServiceCommitment."Dimension Set ID", Dimension.Code, ItemDimensionValue.Code);
+
+        // [CLEANUP] Reset the Default Dimension Priorities we added so subsequent tests run with vanilla settings
+        ResetDefaultDimensionPriority(SourceCodeSetup.Sales, Database::Item);
+        ResetDefaultDimensionPriority(SourceCodeSetup.Sales, Database::Customer);
     end;
 
     #endregion Tests
@@ -1032,6 +1036,14 @@ codeunit 148160 "Service Comm. Dimensions"
             DefaultDimensionPriority.Validate(Priority, Priority);
             DefaultDimensionPriority.Insert(true);
         end;
+    end;
+
+    local procedure ResetDefaultDimensionPriority(SourceCode: Code[10]; TableID: Integer)
+    var
+        DefaultDimensionPriority: Record "Default Dimension Priority";
+    begin
+        if DefaultDimensionPriority.Get(SourceCode, TableID) then
+            DefaultDimensionPriority.Delete(true);
     end;
 
     local procedure VerifyDimensionSetValue(DimensionSetID: Integer; DimensionCode: Code[20]; ExpectedDimensionValueCode: Code[20])

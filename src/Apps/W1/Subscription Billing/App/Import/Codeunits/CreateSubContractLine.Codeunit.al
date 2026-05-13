@@ -1,5 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+
 codeunit 8007 "Create Sub. Contract Line"
 {
     TableNo = "Imported Subscription Line";
@@ -70,6 +74,7 @@ codeunit 8007 "Create Sub. Contract Line"
     local procedure CreateCustomerContractLine()
     var
         CustomerContractLine: Record "Cust. Sub. Contract Line";
+        SourceCodeSetup: Record "Source Code Setup";
         OldDimSetID: Integer;
     begin
         OnBeforeCreateCustomerContractLine(ServiceCommitment, ImportedServiceCommitment);
@@ -86,7 +91,8 @@ codeunit 8007 "Create Sub. Contract Line"
             OldDimSetID := ServiceCommitment."Dimension Set ID";
             ServiceCommitment."Subscription Contract No." := CustomerContractLine."Subscription Contract No.";
             ServiceCommitment."Subscription Contract Line No." := CustomerContractLine."Line No.";
-            ServiceCommitment.SetDefaultDimensions(true);
+            SourceCodeSetup.Get();
+            ServiceCommitment.ApplyContractDimensions(CustomerContract."Dimension Set ID", SourceCodeSetup.Sales, Database::Customer);
             ServiceCommitment.Modify(true);
             ServiceCommitment.UpdateRelatedVendorServiceCommDimensions(OldDimSetID, ServiceCommitment."Dimension Set ID");
         end;
@@ -117,6 +123,7 @@ codeunit 8007 "Create Sub. Contract Line"
     local procedure CreateVendorContractLine()
     var
         VendorContractLine: Record "Vend. Sub. Contract Line";
+        SourceCodeSetup: Record "Source Code Setup";
     begin
         OnBeforeCreateVendorContractLine(ServiceCommitment, ImportedServiceCommitment);
         if ImportedServiceCommitment.IsContractCommentLine() then
@@ -132,7 +139,8 @@ codeunit 8007 "Create Sub. Contract Line"
             ServiceCommitment."Subscription Contract No." := VendorContractLine."Subscription Contract No.";
             ServiceCommitment."Subscription Contract Line No." := VendorContractLine."Line No.";
 
-            ServiceCommitment.SetDefaultDimensions(true);
+            SourceCodeSetup.Get();
+            ServiceCommitment.ApplyContractDimensions(VendorContract."Dimension Set ID", SourceCodeSetup.Purchases, Database::Vendor);
             ServiceCommitment.Modify(false);
             VendorContractLine.UpdateServiceCommitmentDimensions();
         end;

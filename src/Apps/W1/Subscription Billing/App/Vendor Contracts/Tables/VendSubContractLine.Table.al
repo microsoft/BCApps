@@ -181,10 +181,10 @@ table 8065 "Vend. Sub. Contract Line"
         "Subscription Description" := ServiceObject.Description;
 
         ServiceCommitment.InitForServiceObject(ServiceObject, "Service Partner"::Vendor);
-        ServiceCommitment."Subscription Contract No." := Rec."Subscription Contract No.";
-        ServiceCommitment."Subscription Contract Line No." := Rec."Line No.";
         ServiceCommitment.UpdateFromVendorContract(VendorContract);
         ServiceCommitment."Created in Contract line" := true;
+        ServiceCommitment."Subscription Contract No." := Rec."Subscription Contract No.";
+        ServiceCommitment."Subscription Contract Line No." := Rec."Line No.";
         ServiceCommitment.Insert(false);
         "Subscription Line Entry No." := ServiceCommitment."Entry No.";
         "Subscription Line Description" := ServiceCommitment.Description;

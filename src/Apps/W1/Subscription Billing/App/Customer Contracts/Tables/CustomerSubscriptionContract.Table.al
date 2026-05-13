@@ -2090,6 +2090,7 @@ table 8052 "Customer Subscription Contract"
     var
         ServiceObject: Record "Subscription Header";
         CustomerContract: Record "Customer Subscription Contract";
+        SourceCodeSetup: Record "Source Code Setup";
         OldDimSetID: Integer;
         InitHarmonizedBillingFields: Boolean;
     begin
@@ -2109,7 +2110,8 @@ table 8052 "Customer Subscription Contract"
         ServiceCommitment."Subscription Contract No." := CustomerContractLine."Subscription Contract No.";
         ServiceCommitment."Subscription Contract Line No." := CustomerContractLine."Line No.";
 
-        ServiceCommitment.SetDefaultDimensions(true);
+        SourceCodeSetup.Get();
+        ServiceCommitment.ApplyContractDimensions(CustomerContract."Dimension Set ID", SourceCodeSetup.Sales, Database::Customer);
         if "Currency Code" <> ServiceCommitment."Currency Code" then begin
             CalculateCurrencyFactor(ServiceCommitment."Subscription Line Start Date", CustomerContract."Currency Code");
             ServiceCommitment.SetCurrencyData(CurrencyFactor, CurrencyFactorDate, CustomerContract."Currency Code");
