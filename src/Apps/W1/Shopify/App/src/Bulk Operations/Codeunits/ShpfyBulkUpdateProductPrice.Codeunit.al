@@ -21,7 +21,10 @@ codeunit 30281 "Shpfy Bulk UpdateProductPrice" implements "Shpfy IBulk Operation
 
     procedure GetInput(): Text
     begin
-        exit('{ "productId": "gid://shopify/Product/%1", "variants": [{ "id": "gid://shopify/ProductVariant/%2", "price": "%3", "compareAtPrice": "%4" }]}');
+        // %4 carries the entire optional ', "compareAtPrice": <value>' fragment (or empty
+        // string to omit the field, in which case Shopify preserves the existing value).
+        // It must include the leading comma and field name when present.
+        exit('{ "productId": "gid://shopify/Product/%1", "variants": [{ "id": "gid://shopify/ProductVariant/%2", "price": "%3"%4 }]}');
     end;
 
     procedure GetName(): Text[250]
