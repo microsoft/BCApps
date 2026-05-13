@@ -80,6 +80,8 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
+        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
+        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
         exit(ProdOrderRoutingLine.Count());
     end;
 
