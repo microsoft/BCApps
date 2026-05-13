@@ -103,8 +103,6 @@ page 99001505 "Subc. PurchProvisionWizard"
                             Editable = SaveBOMRouting;
                             ToolTip = 'Specifies where to apply the BOM and Routing changes.';
                             trigger OnValidate()
-                            var
-                                SaveBOMRtngSourceNotEmptyErr: Label 'Please select a valid source for saving BOM and Routing changes.';
                             begin
                                 if SaveBOMRouting and (SaveBomRtngToSource = SaveBomRtngToSource::Empty) then
                                     Error(SaveBOMRtngSourceNotEmptyErr);
@@ -394,6 +392,8 @@ page 99001505 "Subc. PurchProvisionWizard"
         BomRtngFromSource: Enum "Subc. RtngBOMSourceType";
         BomRtngFromSourceTxt: Text;
         NewVersionIntroductionLbl: Label 'To edit lines directly, activate "Create New Version". This generates a temporary version code (replaced by a number series upon saving). Without this, existing master data is used, and editing is not available for this step.';
+        SaveBOMRtngSourceNotEmptyErr: Label 'Please select a valid source for saving BOM and Routing changes.';
+        SetupSourceLbl: Label 'Subcontracting Management Setup';
 
     trigger OnInit()
     begin
@@ -690,8 +690,6 @@ page 99001505 "Subc. PurchProvisionWizard"
     end;
 
     local procedure InitBomRoutingSource()
-    var
-        SetupSourceLbl: Label 'Subcontracting Management Setup';
     begin
         BomRtngFromSource := SubcTempDataInitializer.GetRtngBOMSourceType();
         case BomRtngFromSource of

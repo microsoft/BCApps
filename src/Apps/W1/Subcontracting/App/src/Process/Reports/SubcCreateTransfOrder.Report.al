@@ -52,6 +52,7 @@ report 99001501 "Subc. Create Transf. Order"
             trigger OnPreDataItem()
             begin
                 PurchOrderNo := CopyStr("Purchase Header".GetFilter("No."), 1, MaxStrLen(PurchOrderNo));
+                LastModifiedTransferOrderNo := '';
                 if PurchOrderNo = '' then
                     Error(WarningToSpecifyPurchOrderErr);
             end;
@@ -65,6 +66,7 @@ report 99001501 "Subc. Create Transf. Order"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
+        LastModifiedTransferOrderNo: Code[20];
         PurchOrderNo: Code[20];
         LineNum: Integer;
         ComponentsDoesNotExistErr: Label 'Components to send to subcontractor do not exist.';
@@ -87,6 +89,7 @@ report 99001501 "Subc. Create Transf. Order"
         TransferHeader.SetRange("Transfer-from Code", CompLineLocation);
         TransferHeader.SetRange("Transfer-to Code", TransferToLocationCode);
         TransferHeader.SetRange("Subc. Return Order", false);
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", "Purchase Header"."No.");
         if not TransferHeader.FindFirst() then begin
             TransferHeader.Init();
             TransferHeader."No." := '';
@@ -112,9 +115,11 @@ report 99001501 "Subc. Create Transf. Order"
             TransferHeader."Trsf.-from Country/Region Code" := Vendor."Country/Region Code";
 
             TransferHeader.Modify();
+            LastModifiedTransferOrderNo := TransferHeader."No.";
 
             LineNum := 0;
         end else begin
+            LastModifiedTransferOrderNo := TransferHeader."No.";
             TransferLine.SetRange("Document No.", TransferHeader."No.");
             if TransferLine.FindLast() then
                 LineNum := TransferLine."Line No."
@@ -255,6 +260,13 @@ report 99001501 "Subc. Create Transf. Order"
         TransferHeader.Reset();
         TransferHeader.SetCurrentKey("Subcontr. Purch. Order No.");
         TransferHeader.SetRange("Subcontr. Purch. Order No.", "Purchase Line"."Document No.");
+
+        if TransferHeader.IsEmpty() and (LastModifiedTransferOrderNo <> '') then
+            if TransferHeader.Get(LastModifiedTransferOrderNo) then begin
+                Page.Run(Page::"Transfer Order", TransferHeader);
+                exit;
+            end;
+
         if TransferHeader.Count() > 1 then
             Page.Run(Page::"Transfer Orders", TransferHeader)
         else

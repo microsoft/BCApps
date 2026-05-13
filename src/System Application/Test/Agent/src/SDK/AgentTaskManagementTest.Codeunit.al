@@ -242,7 +242,7 @@ codeunit 133962 "Agent Task Management Test"
         AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
 
         // [GIVEN] The task is stopped
-        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTask.StopTask(AgentTaskRecord.Id, false);
         AgentTaskRecord.Get(AgentTaskRecord.Id);
         Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped initially');
         Assert.IsFalse(AgentTaskRecord.Archived, 'Task should not be archived initially');
@@ -280,7 +280,7 @@ codeunit 133962 "Agent Task Management Test"
         AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
 
         // [GIVEN] The task is already archived
-        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTask.StopTask(AgentTaskRecord.Id, false);
         AgentTask.ArchiveTask(AgentTaskRecord.Id, false);
         AgentTaskRecord.Get(AgentTaskRecord.Id);
         Assert.IsTrue(AgentTaskRecord.Archived, 'Task should be archived initially');

@@ -15,6 +15,12 @@ using System.Utilities;
 
 codeunit 99001524 "Subc. Prod. Order Comp. Ext."
 {
+    var
+        ExistingPostedTransferLineQst: Label 'The component has already been assigned to the posted subcontracting transfer order %1.\\Do you want to continue?', Comment = '%1=Transfer Order No';
+        ExistingPurchLineErr: Label 'You cannot change this field because the component is already assigned to subcontracting purchase order %1.\\Updating the quantity is only allowed through the purchase order.', Comment = '%1=Document No';
+        ExistingTransferLineQst: Label 'The component has already been assigned to the subcontracting transfer order %1.\\The quantity may only be updated via the purchase order and processing of the stock transfer.', Comment = '%1=Transfer Order No';
+        ExistingTransferLineErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.', Comment = '%1=Document No.';
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Comp.-Reserve", OnAfterInitFromProdOrderComp, '', false, false)]
     local procedure OnAfterInitFromProdOrderComp(ProdOrderComponent: Record "Prod. Order Component")
     begin
@@ -65,7 +71,6 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     var
         TransferShipmentLine: Record "Transfer Shipment Line";
         ConfirmManagement: Codeunit "Confirm Management";
-        ExistingTransferLineQst: Label 'The component has already been assigned to the posted subcontracting transfer order %1.\\Do you want to continue?', Comment = '%1=Transfer Order No';
     begin
         if ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer then
             exit;
@@ -77,7 +82,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         if not TransferShipmentLine.IsEmpty() then begin
             TransferShipmentLine.SetLoadFields(SystemId);
             TransferShipmentLine.FindFirst();
-            if not ConfirmManagement.GetResponse(StrSubstNo(ExistingTransferLineQst, TransferShipmentLine."Document No.")) then
+            if not ConfirmManagement.GetResponse(StrSubstNo(ExistingPostedTransferLineQst, TransferShipmentLine."Document No.")) then
                 Error('');
         end;
     end;
@@ -101,7 +106,6 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     var
         PurchaseLine: Record "Purchase Line";
         TempPurchaseLine: Record "Purchase Line" temporary;
-        ExistingPurchLineErr: Label 'You cannot change this field because the component is already assigned to subcontracting purchase order %1.\\Updating the quantity is only allowed through the purchase order.', Comment = '%1=Document No';
     begin
         if ProdOrderComponent."Subcontracting Type" <> ProdOrderComponent."Subcontracting Type"::Purchase then
             exit;
@@ -132,7 +136,6 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     local procedure CheckExistingSubcontractingTransferOrder(var ProdOrderComponent: Record "Prod. Order Component"; var xProdOrderComponent: Record "Prod. Order Component"; CurrFieldNo: Integer)
     var
         TransferLine: Record "Transfer Line";
-        ExistingTransferLineQst: Label 'The component has already been assigned to the subcontracting transfer order %1.\\The quantity may only be updated via the purchase order and processing of the stock transfer.', Comment = '%1=Transfer Order No';
     begin
         if CurrFieldNo = 0 then
             exit;
@@ -233,7 +236,6 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     local procedure ValidateSubcontractingReservationConstraints(var ProdOrderComponent: Record "Prod. Order Component")
     var
         TransferLine: Record "Transfer Line";
-        ExistingTransferLineErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.', Comment = '%1=Document No.';
     begin
         if not CheckIfProdOrderCompIsInSubcontractingOrder(ProdOrderComponent) then
             exit;
@@ -272,7 +274,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
                 ProdOrderComponent."Due Time" := ProdOrderRoutingLine."Starting Time";
                 if (ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center") then
                     if SubcontractingManagement.GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then
-                        SubcontractingManagement.ChangeLocation_OnProdOrderComponent(ProdOrderComponent, Vendor."Subc. Location Code", ProdOrderComponent."Subc. Original Location Code", ProdOrderComponent."Subc. Orig. Bin Code");
+                        SubcontractingManagement.ChangeLocationOnProdOrderComponent(ProdOrderComponent, Vendor."Subc. Location Code", ProdOrderComponent."Subc. Original Location Code", ProdOrderComponent."Subc. Orig. Bin Code");
             end;
         end else
             if xProdOrderComponent."Routing Link Code" <> '' then

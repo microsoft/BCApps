@@ -82,7 +82,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Purchase Line Location when Setup is Purchase
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Purchase
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Purchase
         UpdateSubManagementSetup("Components at Location"::Purchase);
 
         // [GIVEN] A Purchase Line with a Location
@@ -110,7 +110,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Company Location when Setup is Company
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Company
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Company
         UpdateSubManagementSetup("Components at Location"::Company);
 
         // [GIVEN] Company Information has a Location
@@ -135,7 +135,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Manufacturing Location when Setup is Manufacturing
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Manufacturing
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Manufacturing
         UpdateSubManagementSetup("Components at Location"::Manufacturing);
 
         // [GIVEN] Manufacturing Setup has a Location
@@ -295,7 +295,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [GIVEN] proper setup configuration with Manufacturing location
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Manufacturing
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Manufacturing
         UpdateSubManagementSetup("Components at Location"::Manufacturing);
 
         // [GIVEN] Manufacturing Setup with a specific Location Code
@@ -429,6 +429,52 @@ codeunit 139981 "Subc. Location Handler Test"
         Assert.RecordIsEmpty(PurchaseLine);
     end;
 
+    [Test]
+    procedure ValidateVendorSubcontrLocationCode_BinMandatoryLocation_RaisesError()
+    var
+        Location: Record Location;
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 633208] Setting Vendor."Subcontr. Location Code" to a Bin Mandatory location raises an error immediately
+        Initialize();
+
+        // [GIVEN] A location with Bin Mandatory enabled
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Bin Mandatory" := true;
+        Location.Modify(true);
+
+        // [GIVEN] A vendor
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] / [THEN] Validating "Subc. Location Code" to a Bin Mandatory location raises an error immediately
+        asserterror Vendor.Validate("Subc. Location Code", Location.Code);
+        Assert.ExpectedError('Bin Mandatory');
+    end;
+
+    [Test]
+    procedure ValidatePurchHeaderSubcLocationCode_BinMandatoryLocation_RaisesError()
+    var
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 633208] Setting PurchaseHeader."Subc. Location Code" to a Bin Mandatory location raises an error immediately
+        Initialize();
+
+        // [GIVEN] A location with Bin Mandatory enabled
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Bin Mandatory" := true;
+        Location.Modify(true);
+
+        // [GIVEN] A Purchase Header
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, "Purchase Document Type"::Order, Vendor."No.");
+
+        // [WHEN] / [THEN] Validating "Subc. Location Code" to a Bin Mandatory location raises an error immediately
+        asserterror PurchaseHeader.Validate("Subc. Location Code", Location.Code);
+        Assert.ExpectedError('Bin Mandatory');
+    end;
+
     local procedure UpdateSubManagementSetup(ComponentAtLocation: Enum "Components at Location")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -437,7 +483,7 @@ codeunit 139981 "Subc. Location Handler Test"
             ManufacturingSetup.Init();
             ManufacturingSetup.Insert();
         end;
-        ManufacturingSetup."Subc. Comp. at Location" := ComponentAtLocation;
+        ManufacturingSetup."Subc. Default Comp. Location" := ComponentAtLocation;
         ManufacturingSetup.Modify();
     end;
 
