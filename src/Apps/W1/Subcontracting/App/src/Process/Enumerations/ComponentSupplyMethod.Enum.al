@@ -27,4 +27,9 @@ enum 99001500 "Component Supply Method"
     {
         Caption = 'Transfer to Vendor';
     }
+    // Transfer to Vendor
+    value(3; TransferToVendor)
+    {
+        Caption = 'Transfer to Vendor';
+    }
 }
