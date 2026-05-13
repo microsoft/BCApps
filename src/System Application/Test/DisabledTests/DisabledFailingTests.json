@@ -34,17 +34,5 @@
         "codeunitId": 133961,
         "codeunitName": "Agent Test",
         "method": "SetModelIdToDefaultModel"
-    },
-    {
-        "bug": "634925",
-        "codeunitId": 133103,
-        "codeunitName": "Dataverse Table Builder Test",
-        "method": "TestGenerateTableExtension"
-    },
-    {
-        "bug": "634925",
-        "codeunitId": 133103,
-        "codeunitName": "Dataverse Table Builder Test",
-        "method": "TestCommitGenerationWithoutStarting"
     }
 ]
