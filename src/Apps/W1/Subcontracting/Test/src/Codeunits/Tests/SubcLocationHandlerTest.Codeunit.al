@@ -357,7 +357,7 @@ codeunit 139981 "Subc. Location Handler Test"
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
         SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
@@ -404,7 +404,7 @@ codeunit 139981 "Subc. Location Handler Test"
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
         SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         SubcWarehouseLibrary.CreateAndRefreshProductionOrder(

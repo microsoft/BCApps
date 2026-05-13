@@ -69,7 +69,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::VendorSupplied);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Vendor-Supplied");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 

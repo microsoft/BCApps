@@ -458,11 +458,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     [Test]
     procedure ComponentSupplyMethodCaptionsAreClear()
     var
-var
-    ProductionBOMLine: Record "Production BOM Line";
-    PlanningComponent: Record "Planning Component";
-    ProdOrderComponent: Record "Prod. Order Component";
-begin
+        ProductionBOMLine: Record "Production BOM Line";
         PlanningComponent: Record "Planning Component";
         ProdOrderComponent: Record "Prod. Order Component";
         ComponentSupplyMethod: Enum "Component Supply Method";
@@ -476,9 +472,9 @@ begin
         Assert.AreEqual('Component Supply Method', ProdOrderComponent.FieldCaption("Component Supply Method"), 'Prod. Order Component field caption must be updated.');
 
         // [THEN] Enum value captions use the new names from bug 633674.
-        Assert.AreEqual('Vendor-Supplied', Format(ComponentSupplyMethod::VendorSupplied), 'Purchase caption must be Vendor-Supplied.');
-        Assert.AreEqual('Consignment at Vendor', Format(ComponentSupplyMethod::ConsignmentAtVendor), 'InventoryByVendor caption must be Consignment at Vendor.');
-        Assert.AreEqual('Transfer to Vendor', Format(ComponentSupplyMethod::TransferToVendor), 'Transfer caption must be Transfer to Vendor.');
+        Assert.AreEqual('Vendor-Supplied', Format(ComponentSupplyMethod::"Vendor-Supplied"), 'Purchase caption must be Vendor-Supplied.');
+        Assert.AreEqual('Consignment at Vendor', Format(ComponentSupplyMethod::"Consignment at Vendor"), 'InventoryByVendor caption must be Consignment at Vendor.');
+        Assert.AreEqual('Transfer to Vendor', Format(ComponentSupplyMethod::"Transfer to Vendor"), 'Transfer caption must be Transfer to Vendor.');
     end;
 
     var

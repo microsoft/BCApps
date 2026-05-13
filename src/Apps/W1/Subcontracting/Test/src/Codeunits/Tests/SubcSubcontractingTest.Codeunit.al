@@ -82,7 +82,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
@@ -190,7 +190,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         // [GIVEN] A Released Production Order (not created from a Purchase Order)
@@ -388,7 +388,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::VendorSupplied);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Vendor-Supplied");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -496,7 +496,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::VendorSupplied);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Vendor-Supplied");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -544,7 +544,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -620,7 +620,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -637,7 +637,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", "Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", "Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
@@ -706,7 +706,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -724,7 +724,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Component Supply Method", "Component Supply Method"::TransferToVendor);
+        ProdOrderComp.SetRange("Component Supply Method", "Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         ProdOrderComp."Location Code" := Location.Code;
@@ -799,7 +799,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1247,7 +1247,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1323,7 +1323,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1408,7 +1408,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1496,7 +1496,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1588,7 +1588,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1779,7 +1779,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1847,7 +1847,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::VendorSupplied);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Vendor-Supplied");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -2051,7 +2051,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::VendorSupplied);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Vendor-Supplied");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         CreateAndRefreshProductionOrder(
@@ -2230,7 +2230,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         CreateAndRefreshProductionOrder(
@@ -2312,7 +2312,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -2412,7 +2412,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::TransferToVendor);
+        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
         CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
@@ -2775,7 +2775,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
-        ProdOrderComp.SetRange("Subcontracting Type", ProdOrderComp."Subcontracting Type"::Transfer);
+        ProdOrderComp.SetRange("Component Supply Method", ProdOrderComp."Component Supply Method"::"Transfer to Vendor");
 #pragma warning restore AA0210
         if ProdOrderComp.FindSet() then
             repeat
