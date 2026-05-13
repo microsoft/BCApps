@@ -1118,7 +1118,7 @@ OnBeforeFilterRemovedSourceRecords(EmailRelatedRecord, Handled);
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeFilterRemovedSourceRecords(var EmailRelatedRecord: Record "Email Related Record";var Handled:Boolean)
+    local procedure OnBeforeFilterRemovedSourceRecords(var EmailRelatedRecord: Record "Email Related Record"; var Handled: Boolean)
     begin
     end;
     #endregion
