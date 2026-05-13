@@ -28,6 +28,10 @@ pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Plan
                     DrillDownPageId = "Purchase Order List";
                     ToolTip = 'Specifies the total number of subcontracting purchase order lines.';
                 }
+            }
+            cuegroup(SubcontractingActionsCuegroup)
+            {
+                Caption = 'Subcontracting';
 
                 actions
                 {

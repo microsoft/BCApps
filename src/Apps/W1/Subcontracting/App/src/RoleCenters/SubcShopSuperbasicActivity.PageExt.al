@@ -28,6 +28,10 @@ pageextension 99001546 "Subc. ShopSuperbasicActivity" extends "Shop Super. basic
                     DrillDownPageId = "Purchase Order List";
                     ToolTip = 'Specifies the total number of subcontracting purchase order lines.';
                 }
+            }
+            cuegroup(SubcontractingActionsCuegroup)
+            {
+                Caption = 'Subcontracting';
 
                 actions
                 {
