@@ -159,6 +159,7 @@ codeunit 693 "Payment Practice Math"
 
                 Total += 1;
                 if not VendorGLNCache.Get(PaymentPracticeData."CV No.", HasGLN) then begin
+                    Vendor.SetLoadFields(GLN);
                     HasGLN := Vendor.Get(PaymentPracticeData."CV No.") and (Vendor.GLN <> '');
                     VendorGLNCache.Add(PaymentPracticeData."CV No.", HasGLN);
                 end;
@@ -182,11 +183,13 @@ codeunit 693 "Payment Practice Math"
         TotalAmountSmallBusinesses: Decimal;
         TotalAmountAllVendors: Decimal;
     begin
+        VendorLedgerEntry.SetLoadFields("Vendor No.", "Document Type", "Posting Date", Amount, "Remaining Amount");
         VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
         VendorLedgerEntry.SetRange("Posting Date", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
+        VendorLedgerEntry.SetAutoCalcFields(Amount, "Remaining Amount");
         if VendorLedgerEntry.FindSet() then
             repeat
-                VendorLedgerEntry.CalcFields(Amount, "Remaining Amount");
+                Vendor.SetLoadFields("Company Size Code");
                 Vendor.Get(VendorLedgerEntry."Vendor No.");
                 if CompanySize.Get(Vendor."Company Size Code") then
                     if CompanySize."Small Business" then
@@ -255,19 +258,14 @@ codeunit 693 "Payment Practice Math"
     var
         Value: Integer;
         MinValue: Integer;
-        IsFirst: Boolean;
     begin
         if List.Count() = 0 then
             exit(0);
 
-        IsFirst := true;
+        MinValue := List.Get(1);
         foreach Value in List do
-            if IsFirst then begin
+            if Value < MinValue then
                 MinValue := Value;
-                IsFirst := false;
-            end else
-                if Value < MinValue then
-                    MinValue := Value;
 
         exit(MinValue);
     end;

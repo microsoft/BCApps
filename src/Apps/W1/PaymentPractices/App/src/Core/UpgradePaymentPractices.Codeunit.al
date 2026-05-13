@@ -4,10 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+using System.Upgrade;
+
 codeunit 683 "Upgrade Payment Practices"
 {
     Access = Internal;
     Subtype = Upgrade;
+
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
 
     trigger OnUpgradePerCompany()
     begin
@@ -20,13 +25,25 @@ codeunit 683 "Upgrade Payment Practices"
         PaymentPeriodMgt: Codeunit "Payment Period Mgt.";
         ReportingScheme: Enum "Paym. Prac. Reporting Scheme";
     begin
+        if UpgradeTag.HasUpgradeTag(GetReportingSchemeUpgradeTag()) then
+            exit;
+
         ReportingScheme := PaymentPeriodMgt.DetectReportingScheme();
 
         PaymentPracticeHeader.SetRange("Reporting Scheme", 0);
-        if PaymentPracticeHeader.FindSet() then
-            repeat
-                PaymentPracticeHeader."Reporting Scheme" := ReportingScheme;
-                PaymentPracticeHeader.Modify();
-            until PaymentPracticeHeader.Next() = 0;
+        PaymentPracticeHeader.ModifyAll("Reporting Scheme", ReportingScheme);
+
+        UpgradeTag.SetUpgradeTag(GetReportingSchemeUpgradeTag());
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
+    local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    begin
+        PerCompanyUpgradeTags.Add(GetReportingSchemeUpgradeTag());
+    end;
+
+    procedure GetReportingSchemeUpgradeTag(): Code[250]
+    begin
+        exit('MS-597313-PaymPracReportingScheme-20260513');
     end;
 }

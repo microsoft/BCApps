@@ -107,6 +107,7 @@ table 687 "Payment Practice Header"
         }
         field(15; "Reporting Scheme"; Enum "Paym. Prac. Reporting Scheme")
         {
+            Editable = false;
             ToolTip = 'Specifies which reporting scheme is used, such as Standard, Dispute & Retention, or Small Business. Controls which fields and calculations apply.';
         }
         field(20; "Total Number of Payments"; Integer)

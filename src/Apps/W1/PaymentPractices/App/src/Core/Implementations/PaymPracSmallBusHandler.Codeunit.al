@@ -17,7 +17,7 @@ codeunit 682 "Paym. Prac. Small Bus. Handler" implements PaymentPracticeSchemeHa
 
     procedure ValidateHeader(var PaymentPracticeHeader: Record "Payment Practice Header")
     begin
-        if PaymentPracticeHeader."Header Type" in [PaymentPracticeHeader."Header Type"::Customer, PaymentPracticeHeader."Header Type"::"Vendor+Customer"] then
+        if PaymentPracticeHeader."Header Type" <> PaymentPracticeHeader."Header Type"::Vendor then
             Error(WrongHeaderTypeErr);
         if PaymentPracticeHeader."Aggregation Type" = PaymentPracticeHeader."Aggregation Type"::"Company Size" then
             Error(WrongHeaderAggErr);
@@ -47,11 +47,9 @@ codeunit 682 "Paym. Prac. Small Bus. Handler" implements PaymentPracticeSchemeHa
         TotalValue: Decimal;
     begin
         PaymentPracticeData.SetRange("Invoice Is Open", false);
-        if PaymentPracticeData.FindSet() then
-            repeat
-                TotalCount += 1;
-                TotalValue += PaymentPracticeData."Invoice Amount";
-            until PaymentPracticeData.Next() = 0;
+        TotalCount := PaymentPracticeData.Count();
+        PaymentPracticeData.CalcSums("Invoice Amount");
+        TotalValue := PaymentPracticeData."Invoice Amount";
         PaymentPracticeData.SetRange("Invoice Is Open");
 
         PaymentPracticeHeader."Total Number of Payments" := TotalCount;
@@ -72,11 +70,9 @@ codeunit 682 "Paym. Prac. Small Bus. Handler" implements PaymentPracticeSchemeHa
         InvoiceValue: Decimal;
     begin
         PaymentPracticeData.SetRange("Invoice Is Open", false);
-        if PaymentPracticeData.FindSet() then
-            repeat
-                InvoiceCount += 1;
-                InvoiceValue += PaymentPracticeData."Invoice Amount";
-            until PaymentPracticeData.Next() = 0;
+        InvoiceCount := PaymentPracticeData.Count();
+        PaymentPracticeData.CalcSums("Invoice Amount");
+        InvoiceValue := PaymentPracticeData."Invoice Amount";
         PaymentPracticeData.SetRange("Invoice Is Open");
 
         PaymentPracticeLine."Invoice Count" := InvoiceCount;

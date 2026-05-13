@@ -9,6 +9,8 @@ using System.Environment;
 codeunit 695 "Payment Period Mgt."
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     procedure DetectReportingScheme(): Enum "Paym. Prac. Reporting Scheme"
     var
@@ -23,6 +25,8 @@ codeunit 695 "Payment Period Mgt."
         case EnvironmentInformation.GetApplicationFamily() of
             'GB':
                 exit("Paym. Prac. Reporting Scheme"::"Dispute & Retention");
+            'AU', 'NZ':
+                exit("Paym. Prac. Reporting Scheme"::"Small Business");
             else
                 exit("Paym. Prac. Reporting Scheme"::Standard);
         end;

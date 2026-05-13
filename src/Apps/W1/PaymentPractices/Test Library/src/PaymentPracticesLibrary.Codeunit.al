@@ -13,8 +13,6 @@ using Microsoft.Sales.Receivables;
 
 codeunit 134196 "Payment Practices Library"
 {
-    Subtype = Test;
-
     var
         Assert: Codeunit Assert;
         LibraryUtility: Codeunit "Library - Utility";

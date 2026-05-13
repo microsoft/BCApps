@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Payables;
 using System.Telemetry;
 using System.Utilities;
@@ -28,6 +29,7 @@ page 687 "Payment Practice Card"
                 }
                 field("Reporting Scheme"; Rec."Reporting Scheme")
                 {
+                    Visible = false;
                 }
                 field("Aggregation Type"; Rec."Aggregation Type")
                 {
@@ -253,8 +255,14 @@ page 687 "Payment Practice Card"
         NoEntriesFoundMsg: Label 'The payment practice generator found no entries corresponding to the header type, starting and ending date.';
 
     local procedure PrepareLayout(PaymentPracticeLinesAggregator: Interface PaymentPracticeLinesAggregator; ReportingScheme: Enum "Paym. Prac. Reporting Scheme")
+    var
+        DesignTimeReportSelection: Codeunit "Design-time Report Selection";
     begin
-        PaymentPracticeLinesAggregator.PrepareLayout(ReportingScheme);
+        PaymentPracticeLinesAggregator.PrepareLayout();
+        if ReportingScheme = ReportingScheme::"Small Business" then begin
+            DesignTimeReportSelection.SetSelectedLayout('PaymentPractice_SmallBusinessLayout');
+            FeatureTelemetry.LogUsage('0000KSU', 'Payment Practices', 'Small Business layout used.');
+        end;
     end;
 
     local procedure ShowHeaderDataLines()

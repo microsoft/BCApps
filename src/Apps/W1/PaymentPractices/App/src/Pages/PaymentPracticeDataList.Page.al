@@ -57,14 +57,18 @@ page 686 "Payment Practice Data List"
                 {
                     ToolTip = 'Specifies the company size code of the vendor that is the source for this entry.';
                 }
-                field(SmallBusiness; IsSmallBusiness)
+                field("Small Business"; IsSmallBusiness)
                 {
                     Caption = 'Small Business';
+                    Visible = false;
+                    Editable = false;
                     ToolTip = 'Specifies whether the vendor is classified as a small business.';
                 }
-                field(PeppolEnabled; IsPeppolEnabled)
+                field("PEPPOL Enabled"; IsPeppolEnabled)
                 {
                     Caption = 'PEPPOL Enabled';
+                    Visible = false;
+                    Editable = false;
                     ToolTip = 'Specifies whether the vendor has a GLN and is PEPPOL enabled.';
                 }
                 field("Agreed Payment Days"; Rec."Agreed Payment Days")
@@ -103,6 +107,7 @@ page 686 "Payment Practice Data List"
             IsSmallBusiness := CompanySize."Small Business";
 
         IsPeppolEnabled := false;
+        Vendor.SetLoadFields(GLN);
         if Vendor.Get(Rec."CV No.") then
             IsPeppolEnabled := Vendor.GLN <> '';
     end;

@@ -883,14 +883,14 @@ codeunit 134197 "Payment Practices UT"
         VerifyAllLinesInvoiceCountAndValueZero(PaymentPracticeHeader."No.");
     end;
 
-   [Test]
+    [Test]
     procedure ModePaymentTimeCalculation()
     var
         PaymentPracticeHeader: Record "Payment Practice Header";
         VendorNo: Code[20];
         CompanySizeCode: Code[20];
     begin
-        // [SCENARIO] Check mode payment time calculation in header
+        // [SCENARIO 568642] Check mode payment time calculation in header
         Initialize();
 
         // [GIVEN] Create a vendor
@@ -926,7 +926,7 @@ codeunit 134197 "Payment Practices UT"
         VendorNo1: Code[20];
         VendorNo2: Code[20];
     begin
-        // [SCENARIO] Check mode payment time min is the minimum of per-vendor modes
+        // [SCENARIO 568642] Check mode payment time min is the minimum of per-vendor modes
         Initialize();
 
         // [GIVEN] Create two vendors with small business company size
@@ -965,7 +965,7 @@ codeunit 134197 "Payment Practices UT"
         VendorNo1: Code[20];
         VendorNo2: Code[20];
     begin
-        // [SCENARIO] Check mode payment time max is the maximum of per-vendor modes
+        // [SCENARIO 568642] Check mode payment time max is the maximum of per-vendor modes
         Initialize();
 
         // [GIVEN] Create two vendors with small business company size
@@ -1003,7 +1003,7 @@ codeunit 134197 "Payment Practices UT"
         CompanySizeCode: Code[20];
         VendorNo: Code[20];
     begin
-        // [SCENARIO] Check median payment time calculation with odd number of entries
+        // [SCENARIO 568642] Check median payment time calculation with odd number of entries
         Initialize();
 
         // [GIVEN] Create a vendor with small business company size
@@ -1037,7 +1037,7 @@ codeunit 134197 "Payment Practices UT"
         CompanySizeCode: Code[20];
         VendorNo: Code[20];
     begin
-        // [SCENARIO] Check median payment time calculation with even number of entries
+        // [SCENARIO 568642] Check median payment time calculation with even number of entries
         Initialize();
 
         // [GIVEN] Create a vendor with small business company size
@@ -1071,7 +1071,7 @@ codeunit 134197 "Payment Practices UT"
         VendorNo: Code[20];
         i: Integer;
     begin
-        // [SCENARIO] Check 80th percentile payment time calculation
+        // [SCENARIO 568642] Check 80th percentile payment time calculation
         Initialize();
 
         // [GIVEN] Create a vendor with small business company size
@@ -1103,7 +1103,7 @@ codeunit 134197 "Payment Practices UT"
         VendorNo: Code[20];
         i: Integer;
     begin
-        // [SCENARIO] Check 95th percentile payment time calculation
+        // [SCENARIO 568642] Check 95th percentile payment time calculation
         Initialize();
 
         // [GIVEN] Create a vendor with small business company size
@@ -1135,7 +1135,7 @@ codeunit 134197 "Payment Practices UT"
         VendorNo: Code[20];
         i: Integer;
     begin
-        // [SCENARIO] Check 80th percentile when index is not a whole number (7 * 80 / 100 = 5.6, truncated to 5)
+        // [SCENARIO 568642] Check 80th percentile when index is not a whole number (7 * 80 / 100 = 5.6, truncated to 5)
         Initialize();
 
         // [GIVEN] Create a vendor with small business company size
@@ -1167,7 +1167,7 @@ codeunit 134197 "Payment Practices UT"
         VendorNo: Code[20];
         i: Integer;
     begin
-        // [SCENARIO] Check 95th percentile when index is not a whole number (13 * 95 / 100 = 12.35, truncated to 12)
+        // [SCENARIO 568642] Check 95th percentile when index is not a whole number (13 * 95 / 100 = 12.35, truncated to 12)
         Initialize();
 
         // [GIVEN] Create a vendor with small business company size
@@ -1204,7 +1204,7 @@ codeunit 134197 "Payment Practices UT"
         ExpectedPctPeppol: Decimal;
         i: Integer;
     begin
-        // [SCENARIO] Check Pct Peppol Enabled calculation with one vendor that has GLN and one that does not.
+        // [SCENARIO 568642] Check Pct Peppol Enabled calculation with one vendor that has GLN and one that does not.
         Initialize();
 
         // [GIVEN] Create a company size marked as small business
@@ -1254,7 +1254,7 @@ codeunit 134197 "Payment Practices UT"
         NonSmallBizVendor1: Code[20];
         NonSmallBizVendor2: Code[20];
     begin
-        // [SCENARIO] Generate payment practices with "Only Small Businesses" enabled. Only small business vendors should be included in the statistics (median, mode, percentiles) .
+        // [SCENARIO 568642] Generate payment practices with "Only Small Businesses" enabled. Only small business vendors should be included in the statistics (median, mode, percentiles) .
         Initialize();
 
         // [GIVEN] Create a company size marked as "Small Business" and one that is not
