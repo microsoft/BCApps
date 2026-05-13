@@ -6,12 +6,6 @@
             "_LanguageSet.comment": "Find the details at https://dev.azure.com/ceapex/CEINTL/_git/SWSys-Build-XLoc?path=/src/OneBranchPackages/Localization.Languages/Localization.Languages.props",
             "LocItems": [
                 {
-                    "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Sustainability app\\SustainabilityApp.en-US.resx",
-                    "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Sustainability app\\SustainabilityApp.{Lang}.resx",
-                    "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
-                    "CopyOption": "UsePlaceholders"
-                },
-                                {
                     "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Sales app\\SalesApp.en-US.resx",
                     "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Sales app\\SalesApp.{Lang}.resx",
                     "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
