@@ -310,7 +310,9 @@ codeunit 693 "Payment Practice Math"
         for i := 2 to List.Count() do begin
             CurrentValue := List.Get(i);
             j := i - 1;
-            while (j >= 1) and (List.Get(j) > CurrentValue) do begin
+            while j >= 1 do begin
+                if List.Get(j) <= CurrentValue then
+                    break;
                 List.Set(j + 1, List.Get(j));
                 j -= 1;
             end;
