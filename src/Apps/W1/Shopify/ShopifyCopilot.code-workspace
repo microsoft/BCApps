@@ -1,0 +1,14 @@
+{
+    "folders": [
+        {
+            "path": "App"
+        },
+        {
+            "path": "CopilotTaxMatching/app"
+        },
+        {
+            "path": "CopilotTaxMatching/test"
+        }
+    ],
+    "settings": {}
+}

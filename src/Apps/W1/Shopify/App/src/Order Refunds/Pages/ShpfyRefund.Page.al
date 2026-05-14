@@ -89,6 +89,29 @@ page 30145 "Shpfy Refund"
                     field("Presentment Currency Code"; Rec."Presentment Currency Code") { }
                 }
             }
+            group(Tax)
+            {
+                Caption = 'Tax';
+
+                field("Tax Area Code"; Rec."Tax Area Code")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies the tax area code from the parent order.';
+                }
+                field("Tax Liable"; Rec."Tax Liable")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies whether the parent order is liable for sales tax.';
+                }
+                field("Tax Exempt"; Rec."Tax Exempt")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies whether the parent order is exempt from tax.';
+                }
+            }
             part(Lines; "Shpfy Refund Lines")
             {
                 ApplicationArea = All;
@@ -192,10 +215,34 @@ page 30145 "Shpfy Refund"
                 RunObject = Page "Shpfy Refund Shipping Lines";
                 RunPageLink = "Refund Id" = field("Refund Id");
             }
+            action(TaxLines)
+            {
+                ApplicationArea = All;
+                Caption = 'Tax Lines';
+                Image = TaxDetail;
+                ToolTip = 'View the tax lines from the parent order.';
+
+                trigger OnAction()
+                var
+                    OrderLine: Record "Shpfy Order Line";
+                    OrderTaxLine: Record "Shpfy Order Tax Line";
+                    FilterTxt: Text;
+                begin
+                    OrderLine.SetRange("Shopify Order Id", Rec."Order Id");
+                    if OrderLine.FindSet() then
+                        repeat
+                            FilterTxt += Format(OrderLine."Line Id") + '|';
+                        until OrderLine.Next() = 0;
+                    FilterTxt := FilterTxt.TrimEnd('|');
+                    OrderTaxLine.SetFilter("Parent Id", FilterTxt);
+                    Page.Run(Page::"Shpfy Order Tax Lines", OrderTaxLine);
+                end;
+            }
         }
         area(Promoted)
         {
             actionref(PromotedShippingLines; ShippingLines) { }
+            actionref(PromotedTaxLines; TaxLines) { }
             actionref(PromotedCreateCreditNoted; CreateCreditMemo) { }
             actionref(PromotedRetrievedShopifyData; RetrievedShopifyData) { }
         }

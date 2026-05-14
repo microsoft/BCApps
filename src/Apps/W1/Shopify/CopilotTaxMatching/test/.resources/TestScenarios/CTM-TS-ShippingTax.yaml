@@ -1,0 +1,218 @@
+test_setup: CTM-Setup.yaml
+
+tests:
+  - name: S1-ShippingDetailSeededForExistingJurisdiction
+    description: Item line matches existing jurisdiction; matcher seeds tax details for both the item tax group and the Shop's Shipping Charges Account tax group at the Shopify rate
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        shippingChargesAccount: GLA-SHIP
+      glAccounts:
+        - no: GLA-SHIP
+          taxGroupCode: SHIPGRP
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 4.0
+        - taxGroupCode: SHIPGRP
+          ratePct: 4.0
+      matchResult: true
+
+  - name: S2-ShippingDetailSeededForNewJurisdiction
+    description: Auto-create creates a new jurisdiction; matcher seeds details for both item and shipping tax groups under the new jurisdiction
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        shippingChargesAccount: GLA-SHIP
+      glAccounts:
+        - no: GLA-SHIP
+          taxGroupCode: SHIPGRP
+      taxJurisdictions: []
+      existingTaxDetails: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 4.0
+        - taxGroupCode: SHIPGRP
+          ratePct: 4.0
+      matchResult: true
+
+  - name: S3-NoShippingAccountConfigured
+    description: Shop has no Shipping Charges Account; item path runs normally, no shipping tax detail is seeded, no error
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 4.0
+      matchResult: true
+
+  - name: S4-ShippingAccountWithEmptyTaxGroup
+    description: Shipping Charges Account exists but its Tax Group Code is blank; item-group detail seeded plus an empty-group detail for the shipping account
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        shippingChargesAccount: GLA-SHIP
+      glAccounts:
+        - no: GLA-SHIP
+          taxGroupCode: ""
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 4.0
+        - taxGroupCode: ""
+          ratePct: 4.0
+      matchResult: true
+
+  - name: S5-ShippingGroupSameAsItemGroup
+    description: Item and shipping resolve to the same Tax Group Code; only one Tax Detail row for that group exists (second call short-circuits)
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        shippingChargesAccount: GLA-SHIP
+      glAccounts:
+        - no: GLA-SHIP
+          taxGroupCode: TAXABLE
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+      taxDetailCount:
+        jurisdictionCode: NYSTAX
+        taxGroupCode: TAXABLE
+        count: 1
+      matchResult: true
+
+  - name: S6-MultipleItemLinesSameJurisdiction
+    description: Three item lines in the same jurisdiction; idempotency keeps a single shipping-group Tax Detail row; no rate-mismatch warnings
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        shippingChargesAccount: GLA-SHIP
+      glAccounts:
+        - no: GLA-SHIP
+          taxGroupCode: SHIPGRP
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+        - lineId: 10002
+          itemNo: ITEM002
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+        - lineId: 10003
+          itemNo: ITEM003
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      taxDetailCount:
+        jurisdictionCode: NYSTAX
+        taxGroupCode: SHIPGRP
+        count: 1
+      matchResult: true

@@ -1,0 +1,95 @@
+test_setup: CTM-Setup.yaml
+
+tests:
+  - name: G1-CopilotDisabled
+    description: Shop has Copilot Tax Matching Enabled = false — no LLM call
+    setup:
+      shopSettings:
+        copilotTaxMatchingEnabled: false
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: false
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      orderUnchanged: true
+
+  - name: G4-TaxAreaAlreadySet
+    description: Tax Area Code already set by MapTaxArea — Copilot skipped
+    setup:
+      shopSettings:
+        copilotTaxMatchingEnabled: true
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      existingTaxAreaCode: EXISTING-AREA
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      existingTaxAreaKept: EXISTING-AREA
+
+  - name: G5-OrderTaxExempt
+    description: Order is Tax Exempt — Copilot skipped, order remains unchanged
+    setup:
+      shopSettings:
+        copilotTaxMatchingEnabled: true
+      taxExempt: true
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      orderUnchanged: true
+
+  - name: G6-NoOrderLines
+    description: Order has no order lines — matcher returns false, no changes
+    setup:
+      shopSettings:
+        copilotTaxMatchingEnabled: true
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+    expected:
+      orderUnchanged: true
+
+  - name: G7-ResultFalse
+    description: Order import Result = false — event subscriber exits immediately
+    setup:
+      shopSettings:
+        copilotTaxMatchingEnabled: true
+      resultFalse: true
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      orderUnchanged: true

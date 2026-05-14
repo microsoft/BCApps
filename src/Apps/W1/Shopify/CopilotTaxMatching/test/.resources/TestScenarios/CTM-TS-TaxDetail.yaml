@@ -1,0 +1,258 @@
+test_setup: CTM-Setup.yaml
+
+tests:
+  - name: TD1-NoExistingDetail
+    description: No existing Tax Detail — new one created after LLM match
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions: []
+      existingTaxDetails: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 4.0
+      matchResult: true
+
+  - name: TD2-ExactDetailExists
+    description: Same jurisdiction, tax group, and effective date already exists — no duplicate
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+      existingTaxDetails:
+        - Tax Jurisdiction Code: NYSTAX
+          Tax Group Code: TAXABLE
+          Tax Below Maximum: 4.0
+          Effective Date: "2026-01-15"
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+      taxDetailCount:
+        jurisdictionCode: NYSTAX
+        taxGroupCode: TAXABLE
+        count: 1
+      matchResult: true
+
+  - name: TD5-ItemNoTaxGroup
+    description: Item has blank Tax Group Code — Tax Detail created with blank
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM002
+          taxGroupCode: ""
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      taxDetailExists:
+        - taxGroupCode: ""
+          ratePct: 4.0
+      matchResult: true
+
+  - name: TD6-OrderLineNoItem
+    description: Order line has blank Item No. — Tax Detail created with blank Tax Group
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ""
+          taxGroupCode: ""
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      taxDetailExists:
+        - taxGroupCode: ""
+          ratePct: 4.0
+      matchResult: true
+
+  - name: TD3-RateMismatchExistingBracketWins
+    description: Valid Tax Detail at earlier date with different rate — Copilot does not override; existing rate is preserved (divergence logged in telemetry)
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+      existingTaxDetails:
+        - Tax Jurisdiction Code: NYSTAX
+          Tax Group Code: TAXABLE
+          Tax Below Maximum: 3.5
+          Effective Date: "2026-01-01"
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+      taxDetailCount:
+        jurisdictionCode: NYSTAX
+        taxGroupCode: TAXABLE
+        count: 1
+      matchResult: true
+
+  - name: TD4-SameJurisdictionDifferentTaxGroup
+    description: Existing detail with different Tax Group Code — second Tax Detail created
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions:
+        - Code: NYSTAX
+          Description: New York State Tax
+      existingTaxDetails:
+        - Tax Jurisdiction Code: NYSTAX
+          Tax Group Code: NONTAX
+          Tax Below Maximum: 4.0
+          Effective Date: "2026-01-01"
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: NYSTAX
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 4.0
+      matchResult: true
+
+  - name: TD7-MultipleLinesAcrossJurisdictions
+    description: Two tax lines on different jurisdictions — one Tax Detail per jurisdiction
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+            - lineNo: 2
+              title: NEW YORK CITY TAX
+              ratePct: 4.5
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 4.0
+        - taxGroupCode: TAXABLE
+          ratePct: 4.5
+      matchResult: true
+
+  - name: TD8-EffectiveDateFromDocumentDate
+    description: Tax Detail Effective Date should equal the order's Document Date
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+      taxJurisdictions: []
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      documentDate: "2026-01-15"
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: NEW YORK STATE TAX
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      allTaxLinesMatched: true
+      taxDetailExists:
+        - taxGroupCode: TAXABLE
+          ratePct: 4.0
+          effectiveDate: "2026-01-15"
+      matchResult: true

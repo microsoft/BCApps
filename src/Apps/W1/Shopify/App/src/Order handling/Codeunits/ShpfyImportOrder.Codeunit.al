@@ -539,6 +539,7 @@ codeunit 30161 "Shpfy Import Order"
         JsonHelper.GetValueIntoField(JOrder, 'totalWeight', OrderHeaderRecordRef, OrderHeader.FieldNo("Total Weight"));
         JsonHelper.GetValueIntoField(JOrder, 'refundable', OrderHeaderRecordRef, OrderHeader.FieldNo(Refundable));
         JsonHelper.GetValueIntoField(JOrder, 'taxesIncluded', OrderHeaderRecordRef, OrderHeader.FieldNo("VAT Included"));
+        JsonHelper.GetValueIntoField(JOrder, 'taxExempt', OrderHeaderRecordRef, OrderHeader.FieldNo("Tax Exempt"));
         JsonHelper.GetValueIntoField(JOrder, 'totalPriceSet.shopMoney.amount', OrderHeaderRecordRef, OrderHeader.FieldNo("Total Amount"));
         JsonHelper.GetValueIntoField(JOrder, 'totalPriceSet.presentmentMoney.amount', OrderHeaderRecordRef, OrderHeader.FieldNo("Presentment Total Amount"));
         JsonHelper.GetValueIntoField(JOrder, 'subtotalPriceSet.shopMoney.amount', OrderHeaderRecordRef, OrderHeader.FieldNo("Subtotal Amount"));

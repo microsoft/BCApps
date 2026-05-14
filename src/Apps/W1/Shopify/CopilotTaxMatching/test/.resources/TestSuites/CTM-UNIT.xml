@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Root>
+    <AITSuite Code="CTM-UNIT"
+              Description="Shopify Copilot Tax Matching - Tests"
+              Dataset="CTM-Setup.yaml"
+              Capability="Shpfy Tax Matching"
+              Frequency="Daily"
+              TestRunnerId="130451"
+              TestType="Copilot">
+        <Line CodeunitID="30494"
+              Description="Jurisdiction Matching (J1-J8, F1-F2)"
+              Dataset="CTM-TS-JurisdictionMatch.yaml" />
+        <Line CodeunitID="30494"
+              Description="Jurisdiction Creation (JC1-JC5)"
+              Dataset="CTM-TS-JurisdictionCreate.yaml" />
+        <Line CodeunitID="30494"
+              Description="Tax Detail (TD1-TD8)"
+              Dataset="CTM-TS-TaxDetail.yaml" />
+        <Line CodeunitID="30494"
+              Description="Shipping Tax (S1-S6)"
+              Dataset="CTM-TS-ShippingTax.yaml" />
+        <Line CodeunitID="30495"
+              Description="Tax Area (TA1-TA11)"
+              Dataset="CTM-TS-TaxArea.yaml" />
+        <Line CodeunitID="30497"
+              Description="Guards (G1, G4-G7)"
+              Dataset="CTM-TS-Guard.yaml" />
+    </AITSuite>
+</Root>
