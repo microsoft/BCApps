@@ -472,7 +472,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
             ProductionOrder."Source Type"::Item, FinishedItem."No.", Qty, HomeLocation.Code);
 
         // [GIVEN] Requisition worksheet template for subcontracting
-        LibraryMfgManagement.CreateLaborReqWkshTemplateAndNameAndUpdateSetup();
+        LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
 
         // [WHEN] Create subcontracting purchase order from Prod. Order Routing
         ProdOrderRtngLine.SetRange("Routing No.", RoutingHeader."No.");
