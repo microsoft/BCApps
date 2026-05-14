@@ -28,9 +28,11 @@ interface PaymentPracticeSchemeHandler
     procedure CalculateHeaderTotals(var PaymentPracticeHeader: Record "Payment Practice Header"; var PaymentPracticeData: Record "Payment Practice Data")
 
     /// <summary>
-    /// Calculates scheme-specific line totals for each generated line.
+    /// Calculates scheme-specific line totals for the currently visible slice of data.
+    /// The caller is responsible for applying any filters (period, company size, etc.) on
+    /// PaymentPracticeData before invoking this method, and for restoring them afterwards.
     /// </summary>
     /// <param name="PaymentPracticeLine">The line to update with totals.</param>
-    /// <param name="PaymentPracticeData">The data to aggregate from.</param>
+    /// <param name="PaymentPracticeData">The data to aggregate from. Filters set by the caller define the slice.</param>
     procedure CalculateLineTotals(var PaymentPracticeLine: Record "Payment Practice Line"; var PaymentPracticeData: Record "Payment Practice Data")
 }

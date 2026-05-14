@@ -28,7 +28,6 @@ permissionset 685 "Paym. Prac. Objects"
         codeunit "Paym. Prac. Standard Handler" = X,
         codeunit "Paym. Prac. Dispute Ret. Hdlr" = X,
         codeunit "Paym. Prac. Small Bus. Handler" = X,
-        codeunit "Upgrade Payment Practices" = X,
         codeunit "Install Payment Practices" = X,
         codeunit "Payment Practice Builders" = X,
         codeunit "Payment Practice Math" = X,

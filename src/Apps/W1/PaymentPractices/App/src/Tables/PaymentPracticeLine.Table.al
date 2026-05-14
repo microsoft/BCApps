@@ -95,9 +95,6 @@ table 688 "Payment Practice Line"
             AutoFormatExpression = '';
             ToolTip = 'Specifies the total value of invoices in this period.';
         }
-        field(20; "Payment Period Line No."; Integer)
-        {
-        }
     }
 
     keys

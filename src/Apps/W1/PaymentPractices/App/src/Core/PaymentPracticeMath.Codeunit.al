@@ -105,44 +105,22 @@ codeunit 693 "Payment Practice Math"
         exit(MaxOfList(ModesPerVendor));
     end;
 
-    procedure GetMedianPaymentTime(var PaymentPracticeData: Record "Payment Practice Data"): Decimal
+    procedure GetPaymentTimeStatistics(var PaymentPracticeData: Record "Payment Practice Data"; var MedianPaymentTime: Decimal; var P80PaymentTime: Integer; var P95PaymentTime: Integer)
     var
         ActualPaymentTimes: List of [Integer];
-        MiddleIndex: Integer;
     begin
-        PaymentPracticeData.SetRange("Invoice Is Open", false);
-        if PaymentPracticeData.FindSet() then
-            repeat
-                ActualPaymentTimes.Add(PaymentPracticeData."Actual Payment Days");
-            until PaymentPracticeData.Next() = 0;
-        PaymentPracticeData.SetRange("Invoice Is Open");
+        MedianPaymentTime := 0;
+        P80PaymentTime := 0;
+        P95PaymentTime := 0;
 
+        GetClosedInvoicePaymentTimes(PaymentPracticeData, ActualPaymentTimes);
         if ActualPaymentTimes.Count() = 0 then
-            exit(0);
+            exit;
 
         SortIntegerList(ActualPaymentTimes);
-
-        MiddleIndex := ActualPaymentTimes.Count() div 2;
-        if ActualPaymentTimes.Count() mod 2 = 0 then
-            exit((ActualPaymentTimes.Get(MiddleIndex) + ActualPaymentTimes.Get(MiddleIndex + 1)) / 2)
-        else
-            exit(ActualPaymentTimes.Get(MiddleIndex + 1));
-    end;
-
-    procedure Get80thPercentilePaymentTime(var PaymentPracticeData: Record "Payment Practice Data"): Integer
-    var
-        ActualPaymentTimes: List of [Integer];
-    begin
-        GetClosedInvoicePaymentTimes(PaymentPracticeData, ActualPaymentTimes);
-        exit(Percentile(ActualPaymentTimes, 80));
-    end;
-
-    procedure Get95thPercentilePaymentTime(var PaymentPracticeData: Record "Payment Practice Data"): Integer
-    var
-        ActualPaymentTimes: List of [Integer];
-    begin
-        GetClosedInvoicePaymentTimes(PaymentPracticeData, ActualPaymentTimes);
-        exit(Percentile(ActualPaymentTimes, 95));
+        MedianPaymentTime := MedianFromSorted(ActualPaymentTimes);
+        P80PaymentTime := PercentileFromSorted(ActualPaymentTimes, 80);
+        P95PaymentTime := PercentileFromSorted(ActualPaymentTimes, 95);
     end;
 
     procedure GetPctPeppolEnabled(var PaymentPracticeData: Record "Payment Practice Data"): Decimal
@@ -187,14 +165,14 @@ codeunit 693 "Payment Practice Math"
         VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
         VendorLedgerEntry.SetRange("Posting Date", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
         VendorLedgerEntry.SetAutoCalcFields(Amount, "Remaining Amount");
+        Vendor.SetLoadFields("Company Size Code");
         if VendorLedgerEntry.FindSet() then
             repeat
-                Vendor.SetLoadFields("Company Size Code");
-                Vendor.Get(VendorLedgerEntry."Vendor No.");
-                if CompanySize.Get(Vendor."Company Size Code") then
-                    if CompanySize."Small Business" then
-                        TotalAmountSmallBusinesses += VendorLedgerEntry."Remaining Amount" - VendorLedgerEntry.Amount;
-                TotalAmountAllVendors += VendorLedgerEntry."Remaining Amount" - VendorLedgerEntry.Amount;
+                if Vendor.Get(VendorLedgerEntry."Vendor No.") then
+                    if CompanySize.Get(Vendor."Company Size Code") then
+                        if CompanySize."Small Business" then
+                            TotalAmountSmallBusinesses += VendorLedgerEntry.Amount - VendorLedgerEntry."Remaining Amount";
+                TotalAmountAllVendors += VendorLedgerEntry.Amount - VendorLedgerEntry."Remaining Amount";
             until VendorLedgerEntry.Next() = 0;
 
         if TotalAmountAllVendors = 0 then
@@ -213,22 +191,27 @@ codeunit 693 "Payment Practice Math"
         PaymentPracticeData.SetRange("Invoice Is Open");
     end;
 
-    local procedure Percentile(var List: List of [Integer]; P: Integer): Integer
+    local procedure MedianFromSorted(var SortedList: List of [Integer]): Decimal
+    var
+        MiddleIndex: Integer;
+    begin
+        MiddleIndex := SortedList.Count() div 2;
+        if SortedList.Count() mod 2 = 0 then
+            exit((SortedList.Get(MiddleIndex) + SortedList.Get(MiddleIndex + 1)) / 2)
+        else
+            exit(SortedList.Get(MiddleIndex + 1));
+    end;
+
+    local procedure PercentileFromSorted(var SortedList: List of [Integer]; P: Integer): Integer
     var
         Index: Integer;
     begin
-        if List.Count() = 0 then
-            exit(0);
-
-        SortIntegerList(List);
-
-        Index := List.Count() * P div 100;
+        Index := SortedList.Count() * P div 100;
         if Index < 1 then
             Index := 1;
-        if Index > List.Count() then
-            Index := List.Count();
-
-        exit(List.Get(Index));
+        if Index > SortedList.Count() then
+            Index := SortedList.Count();
+        exit(SortedList.Get(Index));
     end;
 
     local procedure GetModesPerVendor(var PaymentPracticeData: Record "Payment Practice Data"; var ModesPerVendor: List of [Integer])
@@ -321,14 +304,17 @@ codeunit 693 "Payment Practice Math"
     var
         i: Integer;
         j: Integer;
-        Temp: Integer;
+        CurrentValue: Integer;
     begin
-        for i := 1 to List.Count() - 1 do
-            for j := 1 to List.Count() - i do
-                if List.Get(j) > List.Get(j + 1) then begin
-                    Temp := List.Get(j);
-                    List.Set(j, List.Get(j + 1));
-                    List.Set(j + 1, Temp);
-                end;
+        // Insertion sort, O(n^2) worst case
+        for i := 2 to List.Count() do begin
+            CurrentValue := List.Get(i);
+            j := i - 1;
+            while (j >= 1) and (List.Get(j) > CurrentValue) do begin
+                List.Set(j + 1, List.Get(j));
+                j -= 1;
+            end;
+            List.Set(j + 1, CurrentValue);
+        end;
     end;
 }

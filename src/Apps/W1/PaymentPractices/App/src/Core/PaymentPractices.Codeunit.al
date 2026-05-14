@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+using System.Environment;
+
 codeunit 689 "Payment Practices"
 {
     var
@@ -65,5 +67,30 @@ codeunit 689 "Payment Practices"
     local procedure GenerateLines(PaymentPracticeLinesAggregator: Interface PaymentPracticeLinesAggregator; var PaymentPracticeData: Record "Payment Practice Data"; PaymentPracticeHeader: Record "Payment Practice Header")
     begin
         PaymentPracticeLinesAggregator.GenerateLines(PaymentPracticeData, PaymentPracticeHeader);
+    end;
+
+    procedure DetectReportingScheme(): Enum "Paym. Prac. Reporting Scheme"
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        ReportingScheme: Enum "Paym. Prac. Reporting Scheme";
+        IsHandled: Boolean;
+    begin
+        OnBeforeDetectReportingScheme(ReportingScheme, IsHandled);
+        if IsHandled then
+            exit(ReportingScheme);
+
+        case EnvironmentInformation.GetApplicationFamily() of
+            'GB':
+                exit("Paym. Prac. Reporting Scheme"::"Dispute & Retention");
+            'AU', 'NZ':
+                exit("Paym. Prac. Reporting Scheme"::"Small Business");
+            else
+                exit("Paym. Prac. Reporting Scheme"::Standard);
+        end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeDetectReportingScheme(var ReportingScheme: Enum "Paym. Prac. Reporting Scheme"; var IsHandled: Boolean)
+    begin
     end;
 }

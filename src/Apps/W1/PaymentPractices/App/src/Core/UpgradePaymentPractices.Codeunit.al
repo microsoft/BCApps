@@ -10,6 +10,9 @@ codeunit 683 "Upgrade Payment Practices"
 {
     Access = Internal;
     Subtype = Upgrade;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata "Payment Practice Header" = RM;
 
     var
         UpgradeTag: Codeunit "Upgrade Tag";
@@ -22,13 +25,13 @@ codeunit 683 "Upgrade Payment Practices"
     local procedure BackfillReportingScheme()
     var
         PaymentPracticeHeader: Record "Payment Practice Header";
-        PaymentPeriodMgt: Codeunit "Payment Period Mgt.";
+        PaymentPractices: Codeunit "Payment Practices";
         ReportingScheme: Enum "Paym. Prac. Reporting Scheme";
     begin
         if UpgradeTag.HasUpgradeTag(GetReportingSchemeUpgradeTag()) then
             exit;
 
-        ReportingScheme := PaymentPeriodMgt.DetectReportingScheme();
+        ReportingScheme := PaymentPractices.DetectReportingScheme();
 
         PaymentPracticeHeader.SetRange("Reporting Scheme", 0);
         PaymentPracticeHeader.ModifyAll("Reporting Scheme", ReportingScheme);
@@ -42,7 +45,7 @@ codeunit 683 "Upgrade Payment Practices"
         PerCompanyUpgradeTags.Add(GetReportingSchemeUpgradeTag());
     end;
 
-    procedure GetReportingSchemeUpgradeTag(): Code[250]
+    local procedure GetReportingSchemeUpgradeTag(): Code[250]
     begin
         exit('MS-597313-PaymPracReportingScheme-20260513');
     end;

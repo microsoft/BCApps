@@ -280,9 +280,9 @@ table 687 "Payment Practice Header"
 
     local procedure DetectReportingScheme()
     var
-        PaymentPeriodMgt: Codeunit "Payment Period Mgt.";
+        PaymentPractices: Codeunit "Payment Practices";
     begin
-        "Reporting Scheme" := PaymentPeriodMgt.DetectReportingScheme();
+        "Reporting Scheme" := PaymentPractices.DetectReportingScheme();
     end;
 
 }

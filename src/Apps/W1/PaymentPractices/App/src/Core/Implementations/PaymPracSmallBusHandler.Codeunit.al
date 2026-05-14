@@ -45,6 +45,9 @@ codeunit 682 "Paym. Prac. Small Bus. Handler" implements PaymentPracticeSchemeHa
     var
         TotalCount: Integer;
         TotalValue: Decimal;
+        MedianPaymentTime: Decimal;
+        P80PaymentTime: Integer;
+        P95PaymentTime: Integer;
     begin
         PaymentPracticeData.SetRange("Invoice Is Open", false);
         TotalCount := PaymentPracticeData.Count();
@@ -57,9 +60,10 @@ codeunit 682 "Paym. Prac. Small Bus. Handler" implements PaymentPracticeSchemeHa
         PaymentPracticeHeader."Mode Payment Time" := PaymentPracticeMath.GetModePaymentTime(PaymentPracticeData);
         PaymentPracticeHeader."Mode Payment Time Min." := PaymentPracticeMath.GetModePaymentTimeMin(PaymentPracticeData);
         PaymentPracticeHeader."Mode Payment Time Max." := PaymentPracticeMath.GetModePaymentTimeMax(PaymentPracticeData);
-        PaymentPracticeHeader."Median Payment Time" := PaymentPracticeMath.GetMedianPaymentTime(PaymentPracticeData);
-        PaymentPracticeHeader."80th Percentile Payment Time" := PaymentPracticeMath.Get80thPercentilePaymentTime(PaymentPracticeData);
-        PaymentPracticeHeader."95th Percentile Payment Time" := PaymentPracticeMath.Get95thPercentilePaymentTime(PaymentPracticeData);
+        PaymentPracticeMath.GetPaymentTimeStatistics(PaymentPracticeData, MedianPaymentTime, P80PaymentTime, P95PaymentTime);
+        PaymentPracticeHeader."Median Payment Time" := MedianPaymentTime;
+        PaymentPracticeHeader."80th Percentile Payment Time" := P80PaymentTime;
+        PaymentPracticeHeader."95th Percentile Payment Time" := P95PaymentTime;
         PaymentPracticeHeader."Pct Peppol Enabled" := PaymentPracticeMath.GetPctPeppolEnabled(PaymentPracticeData);
         PaymentPracticeHeader."Pct Small Business Payments" := PaymentPracticeMath.GetPctSmallBusinessPayments(PaymentPracticeData, PaymentPracticeHeader);
     end;

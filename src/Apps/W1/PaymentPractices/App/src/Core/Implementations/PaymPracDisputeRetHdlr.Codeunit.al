@@ -42,7 +42,7 @@ codeunit 681 "Paym. Prac. Dispute Ret. Hdlr" implements PaymentPracticeSchemeHan
         OverdueCount: Integer;
         OverdueDueToDisputeCount: Integer;
     begin
-        if PaymentPracticeData.FindSet() then
+        if PaymentPracticeData.FindSet(true) then
             repeat
                 if not PaymentPracticeData."Invoice Is Open" then begin
                     TotalPayments += 1;

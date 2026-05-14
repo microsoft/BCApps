@@ -103,16 +103,24 @@ page 686 "Payment Practice Data List"
         Vendor: Record Vendor;
     begin
         IsSmallBusiness := false;
-        if CompanySize.Get(Rec."Company Size Code") then
-            IsSmallBusiness := CompanySize."Small Business";
+        if not CompanySizeCache.Get(Rec."Company Size Code", IsSmallBusiness) then begin
+            if CompanySize.Get(Rec."Company Size Code") then
+                IsSmallBusiness := CompanySize."Small Business";
+            CompanySizeCache.Add(Rec."Company Size Code", IsSmallBusiness);
+        end;
 
         IsPeppolEnabled := false;
-        Vendor.SetLoadFields(GLN);
-        if Vendor.Get(Rec."CV No.") then
-            IsPeppolEnabled := Vendor.GLN <> '';
+        if not VendorGLNCache.Get(Rec."CV No.", IsPeppolEnabled) then begin
+            Vendor.SetLoadFields(GLN);
+            if Vendor.Get(Rec."CV No.") then
+                IsPeppolEnabled := Vendor.GLN <> '';
+            VendorGLNCache.Add(Rec."CV No.", IsPeppolEnabled);
+        end;
     end;
 
     var
+        CompanySizeCache: Dictionary of [Code[20], Boolean];
+        VendorGLNCache: Dictionary of [Code[20], Boolean];
         IsSmallBusiness: Boolean;
         IsPeppolEnabled: Boolean;
 }

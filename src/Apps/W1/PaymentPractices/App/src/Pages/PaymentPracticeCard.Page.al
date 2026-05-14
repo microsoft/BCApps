@@ -100,17 +100,23 @@ page 687 "Payment Practice Card"
                         ShowHeaderDataLines();
                     end;
                 }
-                field("Total Number of Payments"; Rec."Total Number of Payments")
+                group("Dispute and Retention")
                 {
-                }
-                field("Total Amount of Payments"; Rec."Total Amount of Payments")
-                {
-                }
-                field("Total Amt. of Overdue Payments"; Rec."Total Amt. of Overdue Payments")
-                {
-                }
-                field("Pct Overdue Due to Dispute"; Rec."Pct Overdue Due to Dispute")
-                {
+                    Caption = 'Dispute and Retention';
+                    Visible = Rec."Reporting Scheme" = Rec."Reporting Scheme"::"Dispute & Retention";
+
+                    field("Total Number of Payments"; Rec."Total Number of Payments")
+                    {
+                    }
+                    field("Total Amount of Payments"; Rec."Total Amount of Payments")
+                    {
+                    }
+                    field("Total Amt. of Overdue Payments"; Rec."Total Amt. of Overdue Payments")
+                    {
+                    }
+                    field("Pct Overdue Due to Dispute"; Rec."Pct Overdue Due to Dispute")
+                    {
+                    }
                 }
                 group("Small Business Scheme")
                 {

@@ -40,7 +40,9 @@ codeunit 685 "Paym. Prac. Period Aggregator" implements PaymentPracticeLinesAggr
                 if PaymentPeriod.FindSet() then
                     repeat
                         InsertPeriodLine(PaymentPracticeLine, PaymentPracticeData, PaymentPeriod, PaymentPracticeHeader."No.", NextLineNo, SourceType);
+                        ApplyPeriodFilter(PaymentPracticeData, PaymentPeriod);
                         SchemeHandler.CalculateLineTotals(PaymentPracticeLine, PaymentPracticeData);
+                        ResetPeriodFilter(PaymentPracticeData);
                         if (PaymentPracticeLine."Invoice Count" <> 0) or (PaymentPracticeLine."Invoice Value" <> 0) then
                             PaymentPracticeLine.Modify();
                     until PaymentPeriod.Next() = 0;
@@ -64,6 +66,19 @@ codeunit 685 "Paym. Prac. Period Aggregator" implements PaymentPracticeLinesAggr
         SetPercentPaidInPeriod(PaymentPracticeData, PaymentPeriod."Days From", PaymentPeriod."Days To", PaymentPracticeLine."Pct Paid in Period", PaymentPracticeLine."Pct Paid in Period (Amount)");
         PaymentPracticeLine."Source Type" := "Paym. Prac. Header Type".FromInteger(SourceType);
         PaymentPracticeLine.Insert();
+    end;
+
+    local procedure ApplyPeriodFilter(var PaymentPracticeData: Record "Payment Practice Data"; PaymentPeriod: Record "Payment Period")
+    begin
+        if PaymentPeriod."Days To" = 0 then
+            PaymentPracticeData.SetFilter("Actual Payment Days", '>=%1', PaymentPeriod."Days From")
+        else
+            PaymentPracticeData.SetRange("Actual Payment Days", PaymentPeriod."Days From", PaymentPeriod."Days To");
+    end;
+
+    local procedure ResetPeriodFilter(var PaymentPracticeData: Record "Payment Practice Data")
+    begin
+        PaymentPracticeData.SetRange("Actual Payment Days");
     end;
 
     local procedure SetPercentPaidInPeriod(var PaymentPracticeData: Record "Payment Practice Data"; DaysFrom: Integer; DaysTo: Integer; var PercentPaidInPeriodByNumber: Decimal; var PercentPaidInPeriodByAmount: Decimal)
