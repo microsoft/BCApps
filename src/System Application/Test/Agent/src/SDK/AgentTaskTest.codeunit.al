@@ -500,6 +500,272 @@ codeunit 133960 "Agent Task Test"
         Assert.AreEqual(MessageText3, AgentMessage.GetText(AgentTaskMessage), 'Third message text should match');
     end;
 
+#if not CLEAN29
+    [Test]
+    procedure StopTaskDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-010', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] StopTask with var record should only modify Status and Needs Attention even when the caller's record has dirty field values
+
+        // [GIVEN] A test agent with a task set to ready
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'Stop Task Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create();
+
+        // Re-read the record to get the committed state
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+
+        // Modify a field on the local record variable without saving to DB
+        AgentTaskRecord.Title := 'Dirty Title';
+
+        // [WHEN] StopTask is called with the dirty record via the old var-record overload
+#pragma warning disable AL0432
+        AgentTask.StopTask(AgentTaskRecord, false);
+#pragma warning restore AL0432
+
+        // [THEN] Only Status and Needs Attention should be updated; the dirty Title should not be persisted
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by dirty record passed to StopTask');
+    end;
+
+    [Test]
+    procedure RestartTaskDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-011', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] RestartTask with var record should only modify Status and Needs Attention even when the caller's record has dirty field values
+
+        // [GIVEN] A test agent with a task that is paused (default after create without setting ready)
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'Restart Task Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false);
+
+        // Re-read the record to get the committed state
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+
+        // Modify a field on the local record variable without saving to DB
+        AgentTaskRecord.Title := 'Dirty Title';
+
+        // [WHEN] RestartTask is called with the dirty record via the old var-record overload
+#pragma warning disable AL0432
+        AgentTask.RestartTask(AgentTaskRecord, false);
+#pragma warning restore AL0432
+
+        // [THEN] Only Status and Needs Attention should be updated; the dirty Title should not be persisted
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentTaskRecord.Status::Ready, AgentTaskRecord.Status, 'Task should be set to Ready');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by dirty record passed to RestartTask');
+    end;
+
+    [Test]
+    procedure SetStatusToReadyDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-012', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] SetStatusToReady with var record should only modify Status even when the caller's record has dirty field values
+
+        // [GIVEN] A test agent with a task that is paused (default after create without setting ready)
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'SetStatusToReady Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false);
+
+        // Re-read the record to get the committed state
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+
+        // Modify a field on the local record variable without saving to DB
+        AgentTaskRecord.Title := 'Dirty Title';
+
+        // [WHEN] SetStatusToReady is called with the dirty record via the old var-record overload
+#pragma warning disable AL0432
+        AgentTask.SetStatusToReady(AgentTaskRecord);
+#pragma warning restore AL0432
+
+        // [THEN] Only Status should be updated; the dirty Title should not be persisted
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentTaskRecord.Status::Ready, AgentTaskRecord.Status, 'Task should be set to Ready');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by dirty record passed to SetStatusToReady');
+    end;
+#endif
+
+    [Test]
+    procedure StopTaskByPKDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-013', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] StopTask with PK parameter should only modify Status and Needs Attention without overwriting other fields
+
+        // [GIVEN] A test agent with a task set to ready
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'Stop Task PK Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create();
+
+        // [WHEN] StopTask is called via the PK-based overload
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
+
+        // [THEN] Only Status and Needs Attention should be updated; Title should remain unchanged
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by StopTask PK overload');
+    end;
+
+    [Test]
+    procedure RestartTaskByPKDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-014', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] RestartTask with PK parameter should only modify Status and Needs Attention without overwriting other fields
+
+        // [GIVEN] A test agent with a task that is paused
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'Restart Task PK Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false);
+
+        // [WHEN] RestartTask is called via the PK-based overload
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
+
+        // [THEN] Only Status and Needs Attention should be updated; Title should remain unchanged
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentTaskRecord.Status::Ready, AgentTaskRecord.Status, 'Task should be set to Ready');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by RestartTask PK overload');
+    end;
+
+    [Test]
+    procedure SetStatusToReadyByPKDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalTitle: Text[150];
+        ExternalIdTok: Label 'EXT-TASK-015', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] SetStatusToReady with PK parameter should only modify Status without overwriting other fields
+
+        // [GIVEN] A test agent with a task that is paused
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalTitle := 'SetStatusToReady PK Test';
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, OriginalTitle)
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false);
+
+        // [WHEN] SetStatusToReady is called via the PK-based overload
+        AgentTask.SetStatusToReady(AgentTaskRecord.ID);
+
+        // [THEN] Only Status should be updated; Title should remain unchanged
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentTaskRecord.Status::Ready, AgentTaskRecord.Status, 'Task should be set to Ready');
+        Assert.AreEqual(OriginalTitle, AgentTaskRecord.Title, 'Title should not be overwritten by SetStatusToReady PK overload');
+    end;
+
     local procedure UpdateAccessControlToSpecifiedCompany(UserSecurityId: Guid; NewCompanyName: Text[30])
     var
         AccessControl: Record "Access Control";
@@ -529,4 +795,273 @@ codeunit 133960 "Agent Task Test"
                 AccessControl.Insert();
             until TempAccessControl.Next() = 0;
     end;
+
+    #region Model ID Tests
+
+    [Test]
+    procedure CreateTaskWithModelIdAndVerify()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        TaskTitle: Text[150];
+        ModelId: Code[30];
+        RetrievedModelId: Code[30];
+        RetrievedModelName: Text[70];
+        ExternalIdTok: Label 'EXT-TASK-MODEL-001', Locked = true;
+    begin
+        // [SCENARIO] Creating a task with a model ID and verifying GetModelId and GetModelName return the expected values
+        Initialize();
+
+        // [GIVEN] A test agent
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        TaskTitle := CopyStr(Any.AlphanumericText(MaxStrLen(TaskTitle)), 1, MaxStrLen(TaskTitle));
+        ModelId := CopyStr(Any.AlphanumericText(MaxStrLen(ModelId)), 1, MaxStrLen(ModelId));
+
+        // [WHEN] A task is created with a model ID
+        AgentTaskBuilder
+            .Initialize(AgentUserId, TaskTitle)
+            .SetExternalId(ExternalIdTok)
+            .SetModelId(ModelId);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false);
+
+        // [THEN] GetModelId returns the model ID that was set
+        RetrievedModelId := AgentTask.GetModelId(AgentTaskRecord.ID);
+        Assert.AreEqual(ModelId, RetrievedModelId, 'Model ID should match the one set on the task');
+
+        // [THEN] GetModelName returns empty since the model ID does not exist in the Agent Model table
+        RetrievedModelName := AgentTask.GetModelName(AgentTaskRecord.ID);
+        Assert.AreEqual('', RetrievedModelName, 'Model name should be empty for a non-existent model');
+    end;
+
+    [Test]
+    procedure CreateTaskWithoutModelIdAndVerify()
+    var
+        AgentRecord: Record Agent;
+        AgentModel: Record "Agent Model";
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        TaskTitle: Text[150];
+        RetrievedModelId: Code[30];
+        RetrievedModelName: Text[70];
+        ExternalIdTok: Label 'EXT-TASK-MODEL-002', Locked = true;
+    begin
+        // [SCENARIO] Creating a task without setting a model ID and verifying GetModelId and GetModelName return empty values
+        Initialize();
+
+        // [GIVEN] A test agent
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        TaskTitle := CopyStr(Any.AlphanumericText(MaxStrLen(TaskTitle)), 1, MaxStrLen(TaskTitle));
+
+        // [WHEN] A task is created without setting a model ID
+        AgentTaskBuilder
+            .Initialize(AgentUserId, TaskTitle)
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false);
+
+        AgentModel.SetRange("Is Default", true);
+        Assert.IsTrue(AgentModel.FindFirst(), 'There should be a default model in the Agent Model table');
+
+        // [THEN] GetModelId returns the default model
+        RetrievedModelId := AgentTask.GetModelId(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentModel."Model ID", RetrievedModelId, 'Model ID should be empty when not set');
+
+        // [THEN] GetModelName returns the default model
+        RetrievedModelName := AgentTask.GetModelName(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentModel."Model Name", RetrievedModelName, 'Model name should be empty when model ID is not set');
+    end;
+
+    [Test]
+    procedure GetModelIdAndNameForNonExistentTaskFails()
+    var
+        NonExistentTaskId: BigInteger;
+    begin
+        // [SCENARIO] Calling GetModelId and GetModelName with a non-existent task ID should fail
+        Initialize();
+
+        // [GIVEN] A task ID that does not exist
+        NonExistentTaskId := 999999999;
+
+        // [WHEN] GetModelId is called with a non-existent task ID
+        // [THEN] An error is raised
+        asserterror AgentTask.GetModelId(NonExistentTaskId);
+
+        // [WHEN] GetModelName is called with a non-existent task ID
+        // [THEN] An error is raised
+        asserterror AgentTask.GetModelName(NonExistentTaskId);
+    end;
+
+    [Test]
+    procedure CreateTaskWithEmptyModelIdAndVerify()
+    var
+        AgentRecord: Record Agent;
+        AgentModel: Record "Agent Model";
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        TaskTitle: Text[150];
+        RetrievedModelId: Code[30];
+        RetrievedModelName: Text[70];
+        ExternalIdTok: Label 'EXT-TASK-MODEL-004', Locked = true;
+    begin
+        // [SCENARIO] Explicitly setting an empty model ID behaves the same as not setting one
+        Initialize();
+
+        // [GIVEN] A test agent
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        TaskTitle := CopyStr(Any.AlphanumericText(MaxStrLen(TaskTitle)), 1, MaxStrLen(TaskTitle));
+
+        AgentModel.SetRange("Is Default", true);
+        Assert.IsTrue(AgentModel.FindFirst(), 'There should be a default model in the Agent Model table');
+
+        // [WHEN] A task is created with an explicitly empty model ID
+        AgentTaskBuilder
+            .Initialize(AgentUserId, TaskTitle)
+            .SetExternalId(ExternalIdTok)
+            .SetModelId('');
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false);
+
+        // [THEN] GetModelId returns the default model
+        RetrievedModelId := AgentTask.GetModelId(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentModel."Model ID", RetrievedModelId, 'Model ID should be empty when not set');
+
+        // [THEN] GetModelName returns the default model
+        RetrievedModelName := AgentTask.GetModelName(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentModel."Model Name", RetrievedModelName, 'Model name should be empty when model ID is not set');
+    end;
+
+    [Test]
+    procedure CreateMultipleTasksWithDifferentModelIds()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord1: Record "Agent Task";
+        AgentTaskRecord2: Record "Agent Task";
+        AgentTaskRecord3: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        ModelId1: Code[30];
+        ModelId2: Code[30];
+        ModelId3: Code[30];
+        ExternalId1Tok: Label 'EXT-TASK-MODEL-005-A', Locked = true;
+        ExternalId2Tok: Label 'EXT-TASK-MODEL-005-B', Locked = true;
+        ExternalId3Tok: Label 'EXT-TASK-MODEL-005-C', Locked = true;
+    begin
+        // [SCENARIO] Multiple tasks with different model IDs retain their own model ID
+        Initialize();
+
+        // [GIVEN] A test agent
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        ModelId1 := CopyStr(Any.AlphanumericText(MaxStrLen(ModelId1)), 1, MaxStrLen(ModelId1));
+        ModelId2 := CopyStr(Any.AlphanumericText(MaxStrLen(ModelId2)), 1, MaxStrLen(ModelId2));
+        ModelId3 := CopyStr(Any.AlphanumericText(MaxStrLen(ModelId3)), 1, MaxStrLen(ModelId3));
+
+        // [WHEN] Multiple tasks are created with different model IDs
+        Clear(AgentTaskBuilder);
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Task Model 1')
+            .SetExternalId(ExternalId1Tok)
+            .SetModelId(ModelId1);
+        AgentTaskRecord1 := AgentTaskBuilder.Create(true, false);
+
+        Clear(AgentTaskBuilder);
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Task Model 2')
+            .SetExternalId(ExternalId2Tok)
+            .SetModelId(ModelId2);
+        AgentTaskRecord2 := AgentTaskBuilder.Create(true, false);
+
+        Clear(AgentTaskBuilder);
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Task Model 3')
+            .SetExternalId(ExternalId3Tok)
+            .SetModelId(ModelId3);
+        AgentTaskRecord3 := AgentTaskBuilder.Create(true, false);
+
+        // [THEN] Each task should have its own model ID
+        Assert.AreEqual(ModelId1, AgentTask.GetModelId(AgentTaskRecord1.ID), 'First task model ID should match');
+        Assert.AreEqual(ModelId2, AgentTask.GetModelId(AgentTaskRecord2.ID), 'Second task model ID should match');
+        Assert.AreEqual(ModelId3, AgentTask.GetModelId(AgentTaskRecord3.ID), 'Third task model ID should match');
+
+        // [THEN] All model IDs should be different from each other
+        Assert.AreNotEqual(ModelId1, ModelId2, 'Model IDs should be different');
+        Assert.AreNotEqual(ModelId1, ModelId3, 'Model IDs should be different');
+        Assert.AreNotEqual(ModelId2, ModelId3, 'Model IDs should be different');
+    end;
+
+    [Test]
+    procedure CreateTaskWithDefaultModelIdAndVerify()
+    var
+        AgentRecord: Record Agent;
+        AgentModel: Record "Agent Model";
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        TaskTitle: Text[150];
+        RetrievedModelId: Code[30];
+        RetrievedModelName: Text[70];
+        ExternalIdTok: Label 'EXT-TASK-MODEL-006', Locked = true;
+    begin
+        // [SCENARIO] Creating a task with the default Agent Model ID and verifying GetModelId and GetModelName return expected values
+        Initialize();
+
+        // [GIVEN] A test agent and the default agent model
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentModel.SetRange("Is Default", true);
+        Assert.IsTrue(AgentModel.FindFirst(), 'A default agent model should exist');
+
+        TaskTitle := CopyStr(Any.AlphanumericText(MaxStrLen(TaskTitle)), 1, MaxStrLen(TaskTitle));
+
+        // [WHEN] A task is created with the default model ID
+        AgentTaskBuilder
+            .Initialize(AgentUserId, TaskTitle)
+            .SetExternalId(ExternalIdTok)
+            .SetModelId(AgentModel."Model ID");
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false);
+
+        // [THEN] GetModelId returns the default model ID
+        RetrievedModelId := AgentTask.GetModelId(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentModel."Model ID", RetrievedModelId, 'Model ID should match the default model');
+
+        // [THEN] GetModelName returns the default model name
+        RetrievedModelName := AgentTask.GetModelName(AgentTaskRecord.ID);
+        Assert.AreEqual(AgentModel."Model Name", RetrievedModelName, 'Model name should match the default model name');
+    end;
+
+    #endregion
 }

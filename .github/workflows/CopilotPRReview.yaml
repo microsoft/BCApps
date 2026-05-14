@@ -1,0 +1,48 @@
+name: Copilot PR Review
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+concurrency:
+  group: copilot-pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+
+jobs:
+  intake:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Save PR metadata
+        run: |
+          $outputDir = Join-Path $env:GITHUB_WORKSPACE 'review-input'
+          New-Item -Path $outputDir -ItemType Directory -Force | Out-Null
+
+          @{
+            prNumber = "${{ github.event.pull_request.number }}"
+            headSha = "${{ github.event.pull_request.head.sha }}"
+            baseRef = "${{ github.event.pull_request.base.ref }}"
+            repository = "${{ github.repository }}"
+          } | ConvertTo-Json -Depth 5 | Set-Content -Path (Join-Path $outputDir 'pr-metadata.json') -Encoding UTF8
+
+      - name: Upload review input
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: copilot-pr-review-input-${{ github.event.pull_request.number }}
+          path: ${{ github.workspace }}/review-input
+          if-no-files-found: error

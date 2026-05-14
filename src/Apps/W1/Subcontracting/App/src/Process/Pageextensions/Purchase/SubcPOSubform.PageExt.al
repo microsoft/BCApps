@@ -11,6 +11,17 @@ using System.Utilities;
 
 pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
 {
+    layout
+    {
+        addlast(Control1)
+        {
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Manufacturing;
+                Visible = false;
+            }
+        }
+    }
     actions
     {
         addlast("F&unctions")
@@ -91,9 +102,11 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
             }
         }
     }
+
     var
         SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        OpenCreatedTransferOrderQst: Label 'The production order %1 was created from the current purchase order.\\Would you like to open the production order?', Comment = '%1=Production Order No.';
 
     local procedure CreateProductionOrder(CreatingCodeunitID: Integer; ShowCreatedDocument: Boolean)
     var
@@ -125,7 +138,6 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
         InstructionMgt: Codeunit "Instruction Mgt.";
         PageManagement: Codeunit "Page Management";
         SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
-        OpenCreatedTransferOrderQst: Label 'The production order %1 was created from the current purchase order.\\Would you like to open the production order?', Comment = '%1=Production Order No.';
     begin
         ProductionOrder.SetRange(Status, "Production Order Status"::Released);
         ProductionOrder.SetRange("No.", Rec."Prod. Order No.");

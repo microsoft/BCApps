@@ -633,6 +633,7 @@ codeunit 8060 "Create Billing Documents"
         PurchaseHeader."No." := '';
         PurchaseHeader.Insert(true);
         PurchaseHeader.SetHideValidationDialog(true);
+        PurchaseHeader."Recurring Billing" := true;
         PurchaseHeader.Validate("Pay-to Vendor No.", VendorContract."Pay-to Vendor No.");
         PurchaseHeader.Validate("Buy-from Vendor No.", VendorContract."Buy-from Vendor No.");
         if PurchaseHeader."Pay-to Vendor No." <> VendorContract."Pay-to Vendor No." then

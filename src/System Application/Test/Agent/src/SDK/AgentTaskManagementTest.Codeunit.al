@@ -95,7 +95,7 @@ codeunit 133962 "Agent Task Management Test"
         Assert.IsTrue(AgentTask.CanSetStatusToReady(AgentTaskRecord), 'Task should be able to be set to ready');
 
         // [WHEN] Setting the task status to ready
-        AgentTask.SetStatusToReady(AgentTaskRecord);
+        AgentTask.SetStatusToReady(AgentTaskRecord.ID);
 
         // [THEN] The task should be ready for processing
         AgentTaskRecord.Get(AgentTaskRecord.Id);
@@ -169,7 +169,7 @@ codeunit 133962 "Agent Task Management Test"
         AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
 
         // [WHEN] Stopping the task without user confirmation
-        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
 
         // [THEN] The task should be stopped
         AgentTaskRecord.Get(AgentTaskRecord.Id);
@@ -204,7 +204,7 @@ codeunit 133962 "Agent Task Management Test"
         AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
 
         // [WHEN] The task is stopped
-        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
 
         // [THEN] The task should be marked as stopped
         AgentTaskRecord.Get(AgentTaskRecord.Id);
@@ -242,7 +242,7 @@ codeunit 133962 "Agent Task Management Test"
         AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
 
         // [GIVEN] The task is stopped
-        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTask.StopTask(AgentTaskRecord.Id, false);
         AgentTaskRecord.Get(AgentTaskRecord.Id);
         Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped initially');
         Assert.IsFalse(AgentTaskRecord.Archived, 'Task should not be archived initially');
@@ -280,7 +280,7 @@ codeunit 133962 "Agent Task Management Test"
         AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
 
         // [GIVEN] The task is already archived
-        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTask.StopTask(AgentTaskRecord.Id, false);
         AgentTask.ArchiveTask(AgentTaskRecord.Id, false);
         AgentTaskRecord.Get(AgentTaskRecord.Id);
         Assert.IsTrue(AgentTaskRecord.Archived, 'Task should be archived initially');
@@ -325,12 +325,12 @@ codeunit 133962 "Agent Task Management Test"
         AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
 
         // [GIVEN] The task is stopped
-        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
         AgentTaskRecord.Get(AgentTaskRecord.Id);
         Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped initially');
 
         // [WHEN] Restarting the task without user confirmation
-        AgentTask.RestartTask(AgentTaskRecord, false);
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
 
         // [THEN] The task should no longer be stopped
         AgentTaskRecord.Get(AgentTaskRecord.Id);
@@ -363,10 +363,10 @@ codeunit 133962 "Agent Task Management Test"
             .SetExternalId(ExternalIdTok);
 
         AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
-        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
 
         // [WHEN] Restarting the task
-        AgentTask.RestartTask(AgentTaskRecord, false);
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
 
         // [THEN] The task should be ready to process
         AgentTaskRecord.Get(AgentTaskRecord.Id);
@@ -511,20 +511,20 @@ codeunit 133962 "Agent Task Management Test"
 
         // [WHEN] Stopping and restarting the task multiple times
         // First cycle
-        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
         AgentTaskRecord.Get(AgentTaskRecord.Id);
         Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped after first stop');
 
-        AgentTask.RestartTask(AgentTaskRecord, false);
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
         AgentTaskRecord.Get(AgentTaskRecord.Id);
         Assert.IsFalse(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should not be stopped after first restart');
 
         // Second cycle
-        AgentTask.StopTask(AgentTaskRecord, false);
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
         AgentTaskRecord.Get(AgentTaskRecord.Id);
         Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped after second stop');
 
-        AgentTask.RestartTask(AgentTaskRecord, false);
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
         AgentTaskRecord.Get(AgentTaskRecord.Id);
         Assert.IsFalse(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should not be stopped after second restart');
 
@@ -569,10 +569,10 @@ codeunit 133962 "Agent Task Management Test"
         AgentTaskRecord3 := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
 
         // [WHEN] Managing tasks with different operations
-        AgentTask.StopTask(AgentTaskRecord1, false);
+        AgentTask.StopTask(AgentTaskRecord1.ID, false);
 
-        AgentTask.StopTask(AgentTaskRecord2, false);
-        AgentTask.RestartTask(AgentTaskRecord2, false);
+        AgentTask.StopTask(AgentTaskRecord2.ID, false);
+        AgentTask.RestartTask(AgentTaskRecord2.ID, false);
 
         // [THEN] Each task should have the correct state
         AgentTaskRecord1.Get(AgentTaskRecord1.Id);
@@ -614,8 +614,8 @@ codeunit 133962 "Agent Task Management Test"
         AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
 
         // [GIVEN] The task is stopped and restarted
-        AgentTask.StopTask(AgentTaskRecord, false);
-        AgentTask.RestartTask(AgentTaskRecord, false);
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
 
         // [WHEN] Retrieving the task by external ID
         RetrievedTask := AgentTask.GetTaskByExternalId(AgentUserId, ExternalIdTok);

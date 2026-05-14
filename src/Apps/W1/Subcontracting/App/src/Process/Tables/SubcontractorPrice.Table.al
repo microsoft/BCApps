@@ -68,8 +68,6 @@ table 99001500 "Subcontractor Price"
         {
             Caption = 'Starting Date';
             trigger OnValidate()
-            var
-                InvalidStartingDateErr: Label '%1 cannot be after %2', Comment = '%1=Field Caption for starting date, %2=Field Caption for ending date';
             begin
                 if ("Starting Date" > "Ending Date") and ("Ending Date" <> 0D) then
                     Error(InvalidStartingDateErr, FieldCaption("Starting Date"), FieldCaption("Ending Date"));
@@ -154,6 +152,9 @@ table 99001500 "Subcontractor Price"
         TestField("Vendor No.");
         TestField("Item No.");
     end;
+
+    var
+        InvalidStartingDateErr: Label '%1 cannot be after %2', Comment = '%1=Field Caption for starting date, %2=Field Caption for ending date';
 
     procedure CopySubcontractorPriceToVendorsSubcontractorPrice(var SubcontractorPrice: Record "Subcontractor Price"; VendNo: Code[20]; WorkCenterNo: Code[20])
     var
