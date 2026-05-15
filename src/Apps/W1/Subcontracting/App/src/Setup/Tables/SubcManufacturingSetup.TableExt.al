@@ -87,4 +87,15 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
             DataClassification = CustomerContent;
         }
     }
+
+    internal procedure ItemChargeToRcptSubReferenceEnabled(): Boolean
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.SetLoadFields(RefItemChargeToRcptSubLines);
+        if not ManufacturingSetup.Get() then
+            exit(false);
+
+        exit(ManufacturingSetup.RefItemChargeToRcptSubLines);
+    end;
 }

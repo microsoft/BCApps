@@ -24,11 +24,9 @@ using System.Utilities;
 codeunit 99001557 "Subc. Purchase Order Creator"
 {
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
         ManufacturingSetup: Record "Manufacturing Setup";
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
-        HasSubManagementSetup: Boolean;
         HasManufacturingSetup: Boolean;
         OperationNo: Code[10];
         PurchOrderCreatedTxt: Label '%1 Purchase Order(s) created.\\Do you want to view them?', Comment = '%1 = No of Purchase Order(s) created.';
@@ -113,7 +111,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         SubContractorWorkCenterNo: Code[20];
         DimensionSetIDArr: array[10] of Integer;
     begin
-        GetSubmanagementSetup();
+        GetManufacturingSetup();
         ProdOrderRoutingLine.SetLoadFields("Work Center No.", Status, "Prod. Order No.", "Routing Link Code");
         if ProdOrderRoutingLine.Get("Production Order Status"::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.", RequisitionLine."Routing No.", RequisitionLine."Operation No.") then begin
             WorkCenter.SetLoadFields("Subcontractor No.");
@@ -357,14 +355,6 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         BaseQuantityToPurch := QtyAdjdForRoutingScrap - (OutputQtyBaseOnPurchOrder + ActOutputQtyBase);
 
         exit(BaseQuantityToPurch);
-    end;
-
-    local procedure GetSubmanagementSetup()
-    begin
-        if HasSubManagementSetup then
-            exit;
-        if SubcManagementSetup.Get() then
-            HasSubManagementSetup := true;
     end;
 
     local procedure GetManufacturingSetup()

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Manufacturing.Setup;
+
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 
@@ -33,7 +35,7 @@ pageextension 99001522 "Subc. ItemChargeAss.(Purch)" extends "Item Charge Assign
         }
     }
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         GetReceiptLinesSubcontractingVisible: Boolean;
 
     local procedure OpenPurchaseReceiptLinesSubcontracting()
@@ -64,6 +66,6 @@ pageextension 99001522 "Subc. ItemChargeAss.(Purch)" extends "Item Charge Assign
 
     trigger OnOpenPage()
     begin
-        GetReceiptLinesSubcontractingVisible := SubcManagementSetup.ItemChargeToRcptSubReferenceEnabled();
+        GetReceiptLinesSubcontractingVisible := ManufacturingSetup.ItemChargeToRcptSubReferenceEnabled();
     end;
 }
