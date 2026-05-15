@@ -19,13 +19,13 @@ pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Plan
                 field("Subc. Purch. Lines Outstd."; Rec."Subc. Purch. Lines Outstd.")
                 {
                     ApplicationArea = Manufacturing;
-                    DrillDownPageId = "Purchase Order List";
+                    DrillDownPageId = "Purchase Order List"; // TODO: Replace with a page filtered to subcontracting purchase lines
                     ToolTip = 'Specifies the number of outstanding subcontracting purchase order lines that have not yet been fully received.';
                 }
                 field("Subc. Purch. Lines Total"; Rec."Subc. Purch. Lines Total")
                 {
                     ApplicationArea = Manufacturing;
-                    DrillDownPageId = "Purchase Order List";
+                    DrillDownPageId = "Purchase Order List"; // TODO: Replace with a page filtered to subcontracting purchase lines
                     ToolTip = 'Specifies the total number of subcontracting purchase order lines.';
                 }
             }
