@@ -20,7 +20,9 @@ codeunit 20449 "Qlty. Disp. Move Whse.Reclass." implements "Qlty. Disposition"
         OpenSetupActionLbl: Label 'Open Quality Management Setup';
         DocumentTypeLbl: Label 'Warehouse Reclassification';
 
+#pragma warning disable AL0920
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+#pragma warning restore AL0920
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         WarehouseJournalLine: Record "Warehouse Journal Line";
