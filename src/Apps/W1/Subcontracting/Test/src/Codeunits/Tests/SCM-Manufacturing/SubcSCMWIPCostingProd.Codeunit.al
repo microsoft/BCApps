@@ -29,7 +29,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 
-codeunit 149914 "Subc SCM WIP Costing Prod."
+codeunit 149918 "Subc SCM WIP Costing Prod."
 {
     Subtype = Test;
     TestPermissions = Disabled;
