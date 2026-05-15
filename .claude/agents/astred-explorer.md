@@ -1,0 +1,1 @@
+C:/depot/BC-agentic-workspace/ai-instructions/user-private/ventselartur/claude/agents/astred-explorer.md

@@ -206,7 +206,7 @@ page 6181 "E-Document Purchase Draft"
                     ToolTip = 'Specifies the VAT amount difference that was automatically applied to reconcile the document total VAT with the computed line VAT amounts.';
                     Importance = Additional;
                     Editable = false;
-                    Visible = ShowApplieVATAmtDiff;
+                    Visible = EDocumentPurchaseHeader."Applied VAT Amount Diff." <> 0;
                 }
                 field("Amount Excl. VAT"; EDocumentPurchaseHeader."Sub Total")
                 {
@@ -518,7 +518,6 @@ page 6181 "E-Document Purchase Draft"
         MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
     begin
         if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
-        ShowApplieVATAmtDiff := EDocumentPurchaseHeader."Applied VAT Amount Diff." <> 0;
         if not EDocPOMatching.IsPOMatchConsistent(EDocumentPurchaseHeader) then begin
             EDocPOMatching.RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);
             Message(MatchesRemovedMsg);
@@ -791,5 +790,5 @@ page 6181 "E-Document Purchase Draft"
         FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.', Locked = true;
         ProcessingDocumentMsg: Label 'Processing document...';
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
-        PageEditable, HasPDFSource, IsCreditMemo, ShowApplieVATAmtDiff : Boolean;
+        PageEditable, HasPDFSource, IsCreditMemo : Boolean;
 }

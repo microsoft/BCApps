@@ -41,6 +41,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         IPurchaseOrderProvider: Interface IPurchaseOrderProvider;
         LineAmount: Decimal;
         LineVATAmount: Decimal;
+        TotalLineVATAmount: Decimal;
     begin
         IUnitOfMeasureProvider := EDocImportParameters."Processing Customizations";
         IPurchaseLineProvider := EDocImportParameters."Processing Customizations";
@@ -85,22 +86,16 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
 
         Clear(EDocumentPurchaseLine);
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-        EDocumentPurchaseHeader."Total Line Amount" := 0;
-        EDocumentPurchaseHeader."Total Line VAT Amount" := 0;
-        EDocumentPurchaseHeader."Total Line Amt. Incl. VAT" := 0;
+        TotalLineVATAmount := 0;
         if EDocumentPurchaseLine.FindSet() then
             repeat
-                // Update total line amounts on the header
                 LineAmount := Round(EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount");
                 LineVATAmount := Round(LineAmount * EDocumentPurchaseLine."VAT Rate" / 100);
-                EDocumentPurchaseHeader."Total Line Amount" += LineAmount;
-                EDocumentPurchaseHeader."Total Line VAT Amount" += LineVATAmount;
-                EDocumentPurchaseHeader."Total Line Amt. Incl. VAT" += LineAmount + LineVATAmount;
-                // Log telemetry and activity sessions
+                TotalLineVATAmount += LineVATAmount;
                 EDocImpSessionTelemetry.SetLine(EDocumentPurchaseLine.SystemId);
             until EDocumentPurchaseLine.Next() = 0;
 
-        ComputeAndApplyVATAmountDifference(EDocumentPurchaseHeader);
+        ComputeAndApplyVATAmountDifference(EDocumentPurchaseHeader, TotalLineVATAmount);
         EDocumentPurchaseHeader.Modify();
 
         LogAllActivitySessionChanges(EDocActivityLogSession);
@@ -250,7 +245,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         end;
     end;
 
-    local procedure ComputeAndApplyVATAmountDifference(var EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    local procedure ComputeAndApplyVATAmountDifference(var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; TotalLineVATAmount: Decimal)
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -264,10 +259,10 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
     begin
         EDocumentPurchaseHeader."Applied VAT Amount Diff." := 0;
 
-        if (EDocumentPurchaseHeader."Total VAT" = 0) or (EDocumentPurchaseHeader."Total Line VAT Amount" = EDocumentPurchaseHeader."Total VAT") then
+        if (EDocumentPurchaseHeader."Total VAT" = 0) or (TotalLineVATAmount = EDocumentPurchaseHeader."Total VAT") then
             exit;
 
-        VATAmountDiff := EDocumentPurchaseHeader."Total VAT" - EDocumentPurchaseHeader."Total Line VAT Amount";
+        VATAmountDiff := EDocumentPurchaseHeader."Total VAT" - TotalLineVATAmount;
 
         if not PurchasesPayablesSetup.Get() then
             exit;
@@ -306,7 +301,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
 
         EDocumentPurchaseHeader."Applied VAT Amount Diff." := VATAmountDiff;
 
-        Reasoning := CopyStr(StrSubstNo(VATDiffAppliedLbl, VATAmountDiff, EDocumentPurchaseHeader."Total VAT", EDocumentPurchaseHeader."Total Line VAT Amount"), 1, MaxStrLen(Reasoning));
+        Reasoning := CopyStr(StrSubstNo(VATDiffAppliedLbl, VATAmountDiff, EDocumentPurchaseHeader."Total VAT", TotalLineVATAmount), 1, MaxStrLen(Reasoning));
         ActivityLog
             .Init(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.FieldNo("Applied VAT Amount Diff."), EDocumentPurchaseHeader.SystemId)
             .SetExplanation(Reasoning)

@@ -234,30 +234,6 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Vendor Invoice No.';
             DataClassification = CustomerContent;
         }
-        field(41; "Total Line Amount"; Decimal)
-        {
-            Caption = 'Total Line Amount';
-            DataClassification = CustomerContent;
-            AutoFormatType = 1;
-            AutoFormatExpression = Rec."Currency Code";
-            Editable = false;
-        }
-        field(42; "Total Line VAT Amount"; Decimal)
-        {
-            Caption = 'Total Line VAT Amount';
-            DataClassification = CustomerContent;
-            AutoFormatType = 1;
-            AutoFormatExpression = Rec."Currency Code";
-            Editable = false;
-        }
-        field(43; "Total Line Amt. Incl. VAT"; Decimal)
-        {
-            Caption = 'Total Line Amt. Incl. VAT';
-            DataClassification = CustomerContent;
-            AutoFormatType = 1;
-            AutoFormatExpression = Rec."Currency Code";
-            Editable = false;
-        }
         field(44; "Applied VAT Amount Diff."; Decimal)
         {
             Caption = 'Applied VAT Amount Diff.';
