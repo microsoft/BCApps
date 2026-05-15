@@ -433,6 +433,8 @@ codeunit 6140 "E-Doc. Import"
                         if (not ItemFound) and EDocService."Lookup Account Mapping" then
                             ItemFound := EDocImportHelper.FindGLAccountForLine(EDocument, SourceDocumentLine);
 
+                        OnBeforeLogErrorIfItemNotFound(EDocument, SourceDocumentLine, EDocService, ItemFound);
+
                         if not ItemFound then
                             EDocImportHelper.LogErrorIfItemNotFound(EDocument, SourceDocumentLine);
                     end;
@@ -964,6 +966,11 @@ codeunit 6140 "E-Doc. Import"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateJournalLine(var EDocument: Record "E-Document"; var JnlLine: RecordRef)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeLogErrorIfItemNotFound(EDocument: Record "E-Document"; SourceDocumentLine: RecordRef; EDocService: Record "E-Document Service"; var ItemFound: Boolean)
     begin
     end;
 

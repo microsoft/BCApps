@@ -53,6 +53,8 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocReceiveFiles: Codeunit "E-Doc. Receive Files";
         Assert: Codeunit Assert;
         NullGuid: Guid;
+        OnBeforeLogErrorIfItemNotFoundCount: Integer;
+        LastItemFoundOnEntry: Boolean;
         GetBasicInfoErr: Label 'Test Get Basic Info From Received Document Error.', Locked = true;
         GetCompleteInfoErr: Label 'Test Get Complete Info From Received Document Error.', Locked = true;
         IncorrectValueErr: Label 'Incorrect number of E-Document returned.';
@@ -380,6 +382,113 @@ codeunit 139628 "E-Doc. Receive Test"
         DocumentAttachment.SetRange("No.", CreatedPurchaseHeader."No.");
         DocumentAttachment.SetRange("Table ID", Database::"Purchase Header");
         Assert.RecordCount(DocumentAttachment, 2);
+
+        EDocService."Document Format" := "E-Document Format"::Mock;
+        EDocService.Modify();
+    end;
+
+    [Test]
+    procedure ReceivePurchaseInvoice_OnBeforeLogErrorIfItemNotFoundFires_WhenLookupFails()
+    var
+        EDocService: Record "E-Document Service";
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+        VATPostingSetup: Record "VAT Posting Setup";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ItemReference: Record "Item Reference";
+        EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        EDocReceiveTest: Codeunit "E-Doc. Receive Test";
+        TempBlob: Codeunit "Temp Blob";
+        EDocServicePage: TestPage "E-Document Service";
+        Document: Text;
+        XMLInstream: InStream;
+    begin
+        // [FEATURE] [E-Document] [Receive]
+        // [SCENARIO] OnBeforeLogErrorIfItemNotFound fires with ItemFound = false when standard lookups cannot resolve the line to an item or G/L account
+        Initialize();
+        BindSubscription(EDocImplState);
+
+        // [GIVEN] e-Document service to receive a purchase invoice
+        LibraryEDoc.CreateTestReceiveServiceForEDoc(EDocService, Enum::"Service Integration"::"Mock");
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
+        Vendor.Get(LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        Item.Get(LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"));
+
+        Vendor."VAT Registration No." := 'GB123456789';
+        Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
+        Vendor."Country/Region Code" := CountryRegion.Code;
+        Vendor.Modify();
+
+        UnitOfMeasure.Code := 'PCS';
+        UnitOfMeasure.Description := 'Test';
+        UnitOfMeasure."International Standard Code" := 'PCS';
+        if not UnitOfMeasure.Insert() then
+            UnitOfMeasure.Get('PCS');
+
+        ItemUnitOfMeasure."Item No." := Item."No.";
+        ItemUnitOfMeasure.Code := UnitOfMeasure.Code;
+        ItemUnitOfMeasure."Qty. per Unit of Measure" := 1;
+        if ItemUnitOfMeasure.Insert() then;
+
+        // [GIVEN] No matching Item Reference exists for the incoming line
+        ItemReference.DeleteAll();
+
+        Item."Base Unit of Measure" := UnitOfMeasure.Code;
+        Item."Purch. Unit of Measure" := UnitOfMeasure.Code;
+        Item.Modify();
+
+        EDocService."Document Format" := "E-Document Format"::"Data Exchange";
+        EDocService."Lookup Account Mapping" := false;
+        EDocService."Lookup Item GTIN" := false;
+        EDocService."Lookup Item Reference" := true;
+        EDocService."Resolve Unit Of Measure" := false;
+        EDocService."Validate Line Discount" := false;
+        EDocService."Verify Totals" := false;
+        EDocService."Use Batch Processing" := false;
+        EDocService."Validate Receiving Company" := false;
+        EDocService.Modify();
+
+        EDocServiceDataExchDef."E-Document Format Code" := EDocService.Code;
+        EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Invoice";
+        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPPOLINVIMP';
+        EDocServiceDataExchDef.Insert();
+
+        TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
+        TempXMLBuffer.SetRange(Path, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
+#pragma warning restore AA0210
+        TempXMLBuffer.FindFirst();
+        TempXMLBuffer.Value := Vendor."VAT Registration No.";
+        TempXMLBuffer.Modify();
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.FindFirst();
+        TempXMLBuffer.Save(TempBlob);
+
+        TempBlob.CreateInStream(XMLInstream, TextEncoding::UTF8);
+        XMLInstream.Read(Document);
+
+        LibraryVariableStorage.Clear();
+        LibraryVariableStorage.Enqueue(Document);
+        LibraryVariableStorage.Enqueue(1);
+        EDocImplState.SetVariableStorage(LibraryVariableStorage);
+
+        // [GIVEN] Subscriber to OnBeforeLogErrorIfItemNotFound is bound
+        BindSubscription(EDocReceiveTest);
+
+        // [WHEN] Running Receive (Item Reference lookup will fail)
+        EDocServicePage.OpenView();
+        EDocServicePage.Filter.SetFilter(Code, EDocService.Code);
+        EDocServicePage.Receive.Invoke();
+
+        UnbindSubscription(EDocReceiveTest);
+
+        // [THEN] OnBeforeLogErrorIfItemNotFound fired and saw ItemFound = false on entry
+        Assert.IsTrue(EDocReceiveTest.GetOnBeforeLogErrorIfItemNotFoundCount() > 0, 'OnBeforeLogErrorIfItemNotFound should fire when standard item lookups cannot resolve the line.');
+        Assert.IsFalse(EDocReceiveTest.GetLastItemFoundOnEntry(), 'ItemFound should be false on entry to OnBeforeLogErrorIfItemNotFound when no standard lookup matched.');
 
         EDocService."Document Format" := "E-Document Format"::Mock;
         EDocService.Modify();
@@ -1586,6 +1695,23 @@ codeunit 139628 "E-Doc. Receive Test"
     local procedure OnBeforeProcessHeaderFieldsAssignment(var DocumentHeader: RecordRef; var PurchaseField: Record Field);
     begin
         PurchaseField.SetRange("No.", 10705);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", 'OnBeforeLogErrorIfItemNotFound', '', false, false)]
+    local procedure CaptureOnBeforeLogErrorIfItemNotFound(EDocument: Record "E-Document"; SourceDocumentLine: RecordRef; EDocService: Record "E-Document Service"; var ItemFound: Boolean)
+    begin
+        OnBeforeLogErrorIfItemNotFoundCount += 1;
+        LastItemFoundOnEntry := ItemFound;
+    end;
+
+    procedure GetOnBeforeLogErrorIfItemNotFoundCount(): Integer
+    begin
+        exit(OnBeforeLogErrorIfItemNotFoundCount);
+    end;
+
+    procedure GetLastItemFoundOnEntry(): Boolean
+    begin
+        exit(LastItemFoundOnEntry);
     end;
 
     local procedure CreateEDocServiceToReceivePurchaseOrder(var EDocService: Record "E-Document Service")
