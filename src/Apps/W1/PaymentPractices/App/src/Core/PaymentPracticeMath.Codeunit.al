@@ -183,29 +183,63 @@ codeunit 693 "Payment Practice Math"
     /// <summary>
     /// Calculates the percentage of total vendor invoice value (within the header period) that is paid to small-business vendors.
     /// </summary>
-    /// <param name="PaymentPracticeData">The payment practice data context (currently unused for filtering but retained for signature consistency).</param>
     /// <param name="PaymentPracticeHeader">The payment practice header providing the reporting period (Starting/Ending Date).</param>
     /// <returns>The percentage (0-100) of paid invoice value attributable to vendors flagged as Small Business, or 0 when no invoice value exists.</returns>
-    procedure GetPctSmallBusinessPayments(var PaymentPracticeData: Record "Payment Practice Data"; PaymentPracticeHeader: Record "Payment Practice Header"): Decimal
+    procedure GetPctSmallBusinessPayments(PaymentPracticeHeader: Record "Payment Practice Header"): Decimal
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
+        VendorLedgerEntryForSum: Record "Vendor Ledger Entry";
         CompanySize: Record "Company Size";
         Vendor: Record Vendor;
+        VendorCompanySizeCache: Dictionary of [Code[20], Code[10]];
+        VendorExcludedCache: Dictionary of [Code[20], Boolean];
+        SmallBusinessCache: Dictionary of [Code[10], Boolean];
+        CompanySizeCode: Code[10];
+        PaidAmount: Decimal;
         TotalAmountSmallBusinesses: Decimal;
         TotalAmountAllVendors: Decimal;
     begin
-        VendorLedgerEntry.SetLoadFields("Vendor No.", "Document Type", "Posting Date", Amount, "Remaining Amount");
+        // Walk the filtered Vendor Ledger Entries grouped by vendor. For each distinct vendor we
+        // (a) look up "Company Size Code" / "Exclude from Pmt. Practices" once (cached in a Dictionary), and
+        // (b) aggregate Amount / "Remaining Amount" with a single CalcSums call, instead of
+        //     forcing the FlowFields to evaluate on every row via SetAutoCalcFields.
+        VendorLedgerEntry.SetCurrentKey("Vendor No.", "Posting Date");
+        VendorLedgerEntry.SetLoadFields("Vendor No.");
         VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
         VendorLedgerEntry.SetRange("Posting Date", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
-        VendorLedgerEntry.SetAutoCalcFields(Amount, "Remaining Amount");
-        Vendor.SetLoadFields("Company Size Code");
         if VendorLedgerEntry.FindSet() then
             repeat
-                if Vendor.Get(VendorLedgerEntry."Vendor No.") then
-                    if CompanySize.Get(Vendor."Company Size Code") then
-                        if CompanySize."Small Business" then
-                            TotalAmountSmallBusinesses += VendorLedgerEntry.Amount - VendorLedgerEntry."Remaining Amount";
-                TotalAmountAllVendors += VendorLedgerEntry.Amount - VendorLedgerEntry."Remaining Amount";
+                if not VendorCompanySizeCache.ContainsKey(VendorLedgerEntry."Vendor No.") then begin
+                    Vendor.SetLoadFields("Company Size Code", "Exclude from Pmt. Practices");
+                    if Vendor.Get(VendorLedgerEntry."Vendor No.") then begin
+                        CompanySizeCode := Vendor."Company Size Code";
+                        VendorExcludedCache.Add(VendorLedgerEntry."Vendor No.", Vendor."Exclude from Pmt. Practices");
+                    end else begin
+                        CompanySizeCode := '';
+                        VendorExcludedCache.Add(VendorLedgerEntry."Vendor No.", false);
+                    end;
+                    VendorCompanySizeCache.Add(VendorLedgerEntry."Vendor No.", CompanySizeCode);
+
+                    if not SmallBusinessCache.ContainsKey(CompanySizeCode) then
+                        SmallBusinessCache.Add(CompanySizeCode, (CompanySizeCode <> '') and CompanySize.Get(CompanySizeCode) and CompanySize."Small Business");
+
+                    if not VendorExcludedCache.Get(VendorLedgerEntry."Vendor No.") then begin
+                        VendorLedgerEntryForSum.SetCurrentKey("Vendor No.", "Posting Date");
+                        VendorLedgerEntryForSum.SetRange("Vendor No.", VendorLedgerEntry."Vendor No.");
+                        VendorLedgerEntryForSum.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
+                        VendorLedgerEntryForSum.SetRange("Posting Date", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
+                        VendorLedgerEntryForSum.SetAutoCalcFields(Amount, "Remaining Amount");
+                        PaidAmount := 0;
+                        if VendorLedgerEntryForSum.FindSet() then
+                            repeat
+                                PaidAmount += VendorLedgerEntryForSum.Amount - VendorLedgerEntryForSum."Remaining Amount";
+                            until VendorLedgerEntryForSum.Next() = 0;
+
+                        if SmallBusinessCache.Get(CompanySizeCode) then
+                            TotalAmountSmallBusinesses += PaidAmount;
+                        TotalAmountAllVendors += PaidAmount;
+                    end;
+                end;
             until VendorLedgerEntry.Next() = 0;
 
         if TotalAmountAllVendors = 0 then
@@ -273,25 +307,26 @@ codeunit 693 "Payment Practice Math"
     /// <param name="ModesPerVendor">Output list that will receive one mode value per vendor that has at least one closed invoice.</param>
     local procedure GetModesPerVendor(var PaymentPracticeData: Record "Payment Practice Data"; var ModesPerVendor: List of [Integer])
     var
+        LocalPaymentPracticeData: Record "Payment Practice Data";
         ActualPaymentTimes: List of [Integer];
         CurrentVendor: Code[20];
     begin
-        PaymentPracticeData.SetRange("Invoice Is Open", false);
-        PaymentPracticeData.SetCurrentKey("CV No.");
-        if PaymentPracticeData.FindSet() then begin
-            CurrentVendor := PaymentPracticeData."CV No.";
+        // Use a separate record variable so we don't mutate the caller's filters or current key.
+        LocalPaymentPracticeData.CopyFilters(PaymentPracticeData);
+        LocalPaymentPracticeData.SetRange("Invoice Is Open", false);
+        LocalPaymentPracticeData.SetCurrentKey("CV No.");
+        if LocalPaymentPracticeData.FindSet() then begin
+            CurrentVendor := LocalPaymentPracticeData."CV No.";
             repeat
-                if PaymentPracticeData."CV No." <> CurrentVendor then begin
+                if LocalPaymentPracticeData."CV No." <> CurrentVendor then begin
                     ModesPerVendor.Add(MostFrequentValue(ActualPaymentTimes));
                     Clear(ActualPaymentTimes);
-                    CurrentVendor := PaymentPracticeData."CV No.";
+                    CurrentVendor := LocalPaymentPracticeData."CV No.";
                 end;
-                ActualPaymentTimes.Add(PaymentPracticeData."Actual Payment Days");
-            until PaymentPracticeData.Next() = 0;
+                ActualPaymentTimes.Add(LocalPaymentPracticeData."Actual Payment Days");
+            until LocalPaymentPracticeData.Next() = 0;
             ModesPerVendor.Add(MostFrequentValue(ActualPaymentTimes));
         end;
-        PaymentPracticeData.SetRange("Invoice Is Open");
-        PaymentPracticeData.SetCurrentKey("Header No.", "Invoice Entry No.", "Source Type");
     end;
 
     /// <summary>
@@ -374,7 +409,7 @@ codeunit 693 "Payment Practice Math"
     end;
 
     /// <summary>
-    /// Sorts the supplied integer list in ascending order in place using a simple bubble sort.
+    /// Sorts the supplied integer list in ascending order in place using a simple insertion sort.
     /// </summary>
     /// <param name="List">The list of integers to sort. Modified in place.</param>
     local procedure SortIntegerList(var List: List of [Integer])

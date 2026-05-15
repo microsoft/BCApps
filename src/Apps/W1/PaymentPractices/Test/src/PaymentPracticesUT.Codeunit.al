@@ -649,6 +649,8 @@ codeunit 134197 "Payment Practices UT"
         case EnvironmentInformation.GetApplicationFamily() of
             'GB':
                 ExpectedScheme := "Paym. Prac. Reporting Scheme"::"Dispute & Retention";
+            'AU', 'NZ':
+                ExpectedScheme := "Paym. Prac. Reporting Scheme"::"Small Business";
             else
                 ExpectedScheme := "Paym. Prac. Reporting Scheme"::Standard;
         end;
