@@ -31,7 +31,7 @@ codeunit 99001517 "Subc. Calc. Prod. Order Ext."
     begin
         ProdOrderComponent."Orig. Location Code" := ProdOrderComponent."Location Code";
         ProdOrderComponent."Orig. Bin Code" := ProdOrderComponent."Bin Code";
-        ProdOrderComponent."Subcontracting Type" := ProductionBOMLine."Subcontracting Type";
+        ProdOrderComponent."Component Supply Method" := ProductionBOMLine."Component Supply Method";
 
         OnAfterTransferSubcontractingFieldsBOMComponent(ProductionBOMLine, ProdOrderComponent);
     end;

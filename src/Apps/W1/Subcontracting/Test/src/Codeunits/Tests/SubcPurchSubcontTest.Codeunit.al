@@ -454,7 +454,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryManufacturing.CreateProductionBOMLine(
             ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ComponentItem."No.", 1);
         ProductionBOMLine.Validate("Routing Link Code", RoutingLink.Code);
-        ProductionBOMLine.Validate("Subcontracting Type", "Subcontracting Type"::Purchase);
+        ProductionBOMLine.Validate("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
         ProductionBOMLine.Modify(true);
         ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
         ProductionBOMHeader.Modify(true);

@@ -72,7 +72,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         TransferShipmentLine: Record "Transfer Shipment Line";
         ConfirmManagement: Codeunit "Confirm Management";
     begin
-        if ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer then
+        if ProdOrderComponent."Component Supply Method" <> "Component Supply Method"::"Transfer to Vendor" then
             exit;
 
         TransferShipmentLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
@@ -107,7 +107,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         PurchaseLine: Record "Purchase Line";
         TempPurchaseLine: Record "Purchase Line" temporary;
     begin
-        if ProdOrderComponent."Subcontracting Type" <> ProdOrderComponent."Subcontracting Type"::Purchase then
+        if ProdOrderComponent."Component Supply Method" <> ProdOrderComponent."Component Supply Method"::"Vendor-Supplied" then
             exit;
 
         PurchaseLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
@@ -143,7 +143,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         if ProdOrderComponent."Location Code" = xProdOrderComponent."Location Code" then
             exit;
 
-        if ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer then
+        if ProdOrderComponent."Component Supply Method" <> "Component Supply Method"::"Transfer to Vendor" then
             exit;
 
         TransferLine.SetCurrentKey("Prod. Order No.", "Routing No.", "Routing Reference No.", "Operation No.", "Subcontr. Purch. Order No.");
@@ -258,7 +258,7 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
         SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
-        if ProdOrderComponent."Subcontracting Type" = ProdOrderComponent."Subcontracting Type"::Transfer then
+        if ProdOrderComponent."Component Supply Method" = ProdOrderComponent."Component Supply Method"::"Transfer to Vendor" then
             exit;
 
         ProdOrderLine.SetLoadFields("Routing No.", "Routing Reference No.", "Item No.", "Variant Code", "Location Code");

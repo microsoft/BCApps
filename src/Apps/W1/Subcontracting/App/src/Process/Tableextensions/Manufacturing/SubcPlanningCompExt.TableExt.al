@@ -13,16 +13,16 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001524; "Subcontracting Type"; Enum "Subcontracting Type")
+        field(99001524; "Component Supply Method"; Enum "Component Supply Method")
         {
-            Caption = 'Subcontracting Type';
+            Caption = 'Component Supply Method';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Planning Component.';
+            ToolTip = 'Specifies how components are supplied to the subcontractor for the planning component. Vendor-supplied - components are provided by the subcontractor. Consignment at Vendor - components are owned by your company but stored at the subcontractor location. Transfer to Vendor - components are sent to the subcontractor through a transfer order.';
             trigger OnValidate()
             var
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
-                SubcontractingManagement.UpdateSubcontractingTypeForPlanningComponent(Rec);
+                SubcontractingManagement.UpdateComponentSupplyMethodForPlanningComponent(Rec);
             end;
         }
         field(99001525; "Orig. Location Code"; Code[10])

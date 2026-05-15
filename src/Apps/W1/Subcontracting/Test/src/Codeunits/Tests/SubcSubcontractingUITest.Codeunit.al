@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
@@ -255,7 +256,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    procedure CheckCustCtrl_PageProductionBOMLinesSubcontractingType()
+    procedure CheckCustCtrl_PageProductionBOMLinesComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         ProdBOMLine: Record "Production BOM Line";
@@ -270,15 +271,15 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Production BOM Line");
         PageControl.SetRange(PageNo, Page::"Production BOM Lines");
-        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
-    procedure CheckCustCtrl_PageProductionBOMVersionLinesSubcontractingType()
+    procedure CheckCustCtrl_PageProductionBOMVersionLinesComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         ProdBOMLine: Record "Production BOM Line";
@@ -293,14 +294,14 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Production BOM Line");
         PageControl.SetRange(PageNo, Page::"Production BOM Version Lines");
-        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, ProdBOMLine.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, ProdBOMLine.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
-    procedure CheckCustCtrl_PagePlanningComponentSubcontractingType()
+    procedure CheckCustCtrl_PagePlanningComponentComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         PlanComp: Record "Planning Component";
@@ -315,11 +316,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [WHEN] Find Control on Page
         PageControl.SetRange(TableNo, Database::"Planning Component");
         PageControl.SetRange(PageNo, Page::"Planning Components");
-        PageControl.SetRange(FieldNo, PlanComp.FieldNo("Subcontracting Type"));
+        PageControl.SetRange(FieldNo, PlanComp.FieldNo("Component Supply Method"));
         ControlExist := not PageControl.IsEmpty();
 
         // [THEN]
-        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PlanComp.FieldCaption("Subcontracting Type")));
+        Assert.AreEqual(true, ControlExist, StrSubstNo(ControlNotExistMsg, PlanComp.FieldCaption("Component Supply Method")));
     end;
 
     [Test]
@@ -452,6 +453,28 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [THEN] Subcontractor Prices action is enabled
         Assert.IsTrue(WorkCenterList."Subcontractor Prices".Enabled(), SubcontractingActionsNotEnabledErr);
         WorkCenterList.Close();
+    end;
+
+    [Test]
+    procedure ComponentSupplyMethodCaptionsAreClear()
+    var
+        ProductionBOMLine: Record "Production BOM Line";
+        PlanningComponent: Record "Planning Component";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ComponentSupplyMethod: Enum "Component Supply Method";
+    begin
+        // [SCENARIO 633674] Subcontracting Type captions are renamed to Component Supply Method terminology.
+        Initialize();
+
+        // [THEN] Field captions clearly describe the component supply behavior.
+        Assert.AreEqual('Component Supply Method', ProductionBOMLine.FieldCaption("Component Supply Method"), 'Production BOM Line field caption must be updated.');
+        Assert.AreEqual('Component Supply Method', PlanningComponent.FieldCaption("Component Supply Method"), 'Planning Component field caption must be updated.');
+        Assert.AreEqual('Component Supply Method', ProdOrderComponent.FieldCaption("Component Supply Method"), 'Prod. Order Component field caption must be updated.');
+
+        // [THEN] Enum value captions use the new names from bug 633674.
+        Assert.AreEqual('Vendor-Supplied', Format(ComponentSupplyMethod::"Vendor-Supplied"), 'Purchase caption must be Vendor-Supplied.');
+        Assert.AreEqual('Consignment at Vendor', Format(ComponentSupplyMethod::"Consignment at Vendor"), 'InventoryByVendor caption must be Consignment at Vendor.');
+        Assert.AreEqual('Transfer to Vendor', Format(ComponentSupplyMethod::"Transfer to Vendor"), 'Transfer caption must be Transfer to Vendor.');
     end;
 
     var

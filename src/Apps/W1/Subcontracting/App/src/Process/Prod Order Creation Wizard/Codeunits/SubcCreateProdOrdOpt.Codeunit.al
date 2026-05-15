@@ -1175,10 +1175,10 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
             ProdOrderComponent.Validate("Bin Code", TempProdOrderComponent."Bin Code");
         ProdOrderComponent."Routing Link Code" := TempProdOrderComponent."Routing Link Code";
         ProdOrderComponent."Flushing Method" := TempProdOrderComponent."Flushing Method";
-        ProdOrderComponent."Subcontracting Type" := TempProdOrderComponent."Subcontracting Type";
+        ProdOrderComponent."Component Supply Method" := TempProdOrderComponent."Component Supply Method";
         ProdOrderComponent."Orig. Location Code" := TempProdOrderComponent."Orig. Location Code";
         ProdOrderComponent."Orig. Bin Code" := TempProdOrderComponent."Orig. Bin Code";
-        ProdOrderComponent."Subcontracting Type" := TempProdOrderComponent."Subcontracting Type";
+        ProdOrderComponent."Component Supply Method" := TempProdOrderComponent."Component Supply Method";
         ProdOrderComponent.Modify(true);
     end;
 

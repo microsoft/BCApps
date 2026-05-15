@@ -11,11 +11,11 @@ tableextension 99001531 "Subc. Prod BOM Line Ext." extends "Production BOM Line"
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001522; "Subcontracting Type"; Enum "Subcontracting Type")
+        field(99001522; "Component Supply Method"; Enum "Component Supply Method")
         {
-            Caption = 'Subcontracting Type';
+            Caption = 'Component Supply Method';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production BOM Line.';
+            ToolTip = 'Specifies how components are supplied to the subcontractor for the production BOM line.';
         }
     }
 }

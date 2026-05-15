@@ -167,7 +167,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         TempGlobalProductionBOMLine.Validate("No.", SubcManagementSetup."Preset Component Item No.");
         TempGlobalProductionBOMLine."Quantity per" := 1;
         TempGlobalProductionBOMLine."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
-        TempGlobalProductionBOMLine."Subcontracting Type" := "Subcontracting Type"::InventoryByVendor;
+        TempGlobalProductionBOMLine."Component Supply Method" := "Component Supply Method"::"Consignment at Vendor";
         TempGlobalProductionBOMLine.Insert();
     end;
 
@@ -324,7 +324,7 @@ codeunit 99001552 "Subc. Temp Data Initializer"
                         TempGlobalProdOrderComponent.Validate("Unit of Measure Code", ProductionBOMLine."Unit of Measure Code");
                     TempGlobalProdOrderComponent.Validate("Routing Link Code", ProductionBOMLine."Routing Link Code");
 
-                    TempGlobalProdOrderComponent."Subcontracting Type" := ProductionBOMLine."Subcontracting Type";
+                    TempGlobalProdOrderComponent."Component Supply Method" := ProductionBOMLine."Component Supply Method";
                     PresetComponentLocationCode();
 
                     if not SubcVersionMgmt.CheckBOMExists(ProductionBOMLine."Production BOM No.", '') then
@@ -568,14 +568,14 @@ codeunit 99001552 "Subc. Temp Data Initializer"
         ComponentsLocationCode := SubcontractingManagement.GetComponentsLocationCode(TempGlobalPurchaseLine);
 
         if TempGlobalProdOrderComponent."Routing Link Code" = ManufacturingSetup."Rtng. Link Code Purch. Prov." then
-            case TempGlobalProdOrderComponent."Subcontracting Type" of
-                "Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase:
+            case TempGlobalProdOrderComponent."Component Supply Method" of
+                "Component Supply Method"::"Consignment at Vendor", "Component Supply Method"::"Vendor-Supplied":
                     begin
                         GetVendor();
                         TempGlobalProdOrderComponent.Validate("Location Code", TempGlobalVendor."Subcontr. Location Code");
                         TempGlobalProdOrderComponent."Orig. Location Code" := ComponentsLocationCode;
                     end;
-                "Subcontracting Type"::Transfer:
+                "Component Supply Method"::"Transfer to Vendor":
                     TempGlobalProdOrderComponent.Validate("Location Code", ComponentsLocationCode);
             end;
 

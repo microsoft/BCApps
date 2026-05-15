@@ -16,16 +16,16 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001522; "Subcontracting Type"; Enum "Subcontracting Type")
+        field(99001522; "Component Supply Method"; Enum "Component Supply Method")
         {
-            Caption = 'Subcontracting Type';
+            Caption = 'Component Supply Method';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production Order Component.';
+            ToolTip = 'Specifies how components are supplied to the subcontractor for the production order component.';
             trigger OnValidate()
             var
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
-                SubcontractingManagement.UpdateSubcontractingTypeForProdOrderComponent(Rec);
+                SubcontractingManagement.UpdateComponentSupplyMethodForProdOrderComponent(Rec);
             end;
         }
         field(99001523; "Orig. Location Code"; Code[10])

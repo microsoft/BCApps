@@ -82,16 +82,16 @@ page 99001506 "Subc. Temp BOM Lines"
                 {
                     ToolTip = 'Specifies the routing link code.';
                 }
-                field("Subcontracting Type"; Rec."Subcontracting Type")
+                field("Component Supply Method"; Rec."Component Supply Method")
                 {
-                    ToolTip = 'Specifies the Type of Subcontracting that is assigned to the Production BOM Line.';
+                    ToolTip = 'Specifies how components are supplied to the subcontractor for the production BOM line.';
                     ApplicationArea = Manufacturing;
                     trigger OnValidate()
                     begin
-                        if Rec."Subcontracting Type" = Rec."Subcontracting Type"::Purchase then
-                            Rec.FieldError("Subcontracting Type");
+                        if Rec."Component Supply Method" = Rec."Component Supply Method"::"Vendor-Supplied" then
+                            Rec.FieldError("Component Supply Method");
 
-                        if (Rec."Routing Link Code" = '') and (Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Empty) then begin
+                        if (Rec."Routing Link Code" = '') and (Rec."Component Supply Method" <> Rec."Component Supply Method"::Empty) then begin
                             GetManufacturingSetup();
                             Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
                         end;
@@ -110,7 +110,7 @@ page 99001506 "Subc. Temp BOM Lines"
         Rec."Production BOM No." := xRec."Production BOM No.";
         Rec."Version Code" := xRec."Version Code";
         Rec."Routing Link Code" := xRec."Routing Link Code";
-        Rec."Subcontracting Type" := xRec."Subcontracting Type";
+        Rec."Component Supply Method" := xRec."Component Supply Method";
         GetManufacturingSetup();
         Rec."Routing Link Code" := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
     end;
