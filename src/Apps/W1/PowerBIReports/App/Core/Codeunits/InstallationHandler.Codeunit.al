@@ -5,8 +5,7 @@
 namespace Microsoft.PowerBIReports;
 
 using Microsoft.Foundation.Company;
-using System.DataAdministration;
-using System.Environment.Configuration;
+using System.Integration.PowerBI;
 
 codeunit 36950 "Installation Handler"
 {
@@ -27,38 +26,27 @@ codeunit 36950 "Installation Handler"
         Initialization.SetupDefaultsForPowerBIReportsIfNotInitialized();
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", 'OnClearCompanyConfig', '', false, false)]
-    local procedure OnClearCompanyConfig(CompanyName: Text)
-    begin
-        ClearCompanySpecificSetup(CompanyName);
-    end;
-
-    [EventSubscriber(ObjectType::Report, Report::"Copy Company", 'OnAfterCreatedNewCompanyByCopyCompany', '', false, false)]
-    local procedure OnAfterCreatedNewCompanyByCopyCompany(NewCompanyName: Text[30])
-    begin
-        ClearCompanySpecificSetup(NewCompanyName);
-    end;
-
-    local procedure ClearCompanySpecificSetup(CompanyName: Text)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"PBI Deployment Events", 'OnAfterDeleteAllDeploymentRecords', '', false, false)]
+    local procedure OnAfterDeleteAllDeploymentRecords(InCompany: Text[30])
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
+        ReportSetup: Interface "PBI Report Setup";
+        RecRef: RecordRef;
+        EmptyGuid: Guid;
+        Ordinal: Integer;
     begin
-        if CompanyName <> '' then
-            PowerBIReportsSetup.ChangeCompany(CompanyName);
-        if PowerBIReportsSetup.FindFirst() then begin
-            Clear(PowerBIReportsSetup."Finance Report Id");
-            Clear(PowerBIReportsSetup."Finance Report Name");
-            Clear(PowerBIReportsSetup."Sales Report Id");
-            Clear(PowerBIReportsSetup."Sales Report Name");
-            Clear(PowerBIReportsSetup."Purchases Report Id");
-            Clear(PowerBIReportsSetup."Purchases Report Name");
-            Clear(PowerBIReportsSetup."Inventory Report Id");
-            Clear(PowerBIReportsSetup."Inventory Report Name");
-            Clear(PowerBIReportsSetup."Projects Report Id");
-            Clear(PowerBIReportsSetup."Projects Report Name");
-            Clear(PowerBIReportsSetup."Manufacturing Report Id");
-            Clear(PowerBIReportsSetup."Manufacturing Report Name");
-            PowerBIReportsSetup.Modify();
+        if InCompany = '' then
+            exit;
+        if not PowerBIReportsSetup.ChangeCompany(InCompany) then
+            exit;
+        if not PowerBIReportsSetup.FindFirst() then
+            exit;
+        RecRef.GetTable(PowerBIReportsSetup);
+        foreach Ordinal in Enum::"PBI Report Setup".Ordinals() do begin
+            ReportSetup := Enum::"PBI Report Setup".FromInteger(Ordinal);
+            RecRef.Field(ReportSetup.GetSetupReportIdFieldNo()).Value := EmptyGuid;
+            RecRef.Field(ReportSetup.GetSetupReportNameFieldNo()).Value := '';
         end;
+        RecRef.Modify();
     end;
 }
