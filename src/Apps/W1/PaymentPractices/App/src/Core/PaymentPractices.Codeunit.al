@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
+using System.Environment;
+
 codeunit 689 "Payment Practices"
 {
     var
@@ -12,9 +14,14 @@ codeunit 689 "Payment Practices"
     procedure Generate(var PaymentPracticeHeader: Record "Payment Practice Header") DataIsNotEmpty: Boolean
     var
         PaymentPracticeData: Record "Payment Practice Data";
+        SchemeHandler: Interface PaymentPracticeSchemeHandler;
     begin
         PaymentPracticeHeader.TestField("Starting Date");
         PaymentPracticeHeader.TestField("Ending Date");
+
+        SchemeHandler := PaymentPracticeHeader."Reporting Scheme";
+        SchemeHandler.ValidateHeader(PaymentPracticeHeader);
+
         PaymentPracticeData.Reset();
         PaymentPracticeData.SetRange("Header No.", PaymentPracticeHeader."No.");
         PaymentPracticeData.DeleteAll();
@@ -29,10 +36,27 @@ codeunit 689 "Payment Practices"
     end;
 
     local procedure GenerateTotals(var PaymentPracticeData: Record "Payment Practice Data"; var PaymentPracticeHeader: Record "Payment Practice Header")
+    var
+        SchemeHandler: Interface PaymentPracticeSchemeHandler;
     begin
         PaymentPracticeHeader."Average Actual Payment Period" := PaymentPracticeMath.GetAverageActualPaymentTime(PaymentPracticeData);
         PaymentPracticeHeader."Average Agreed Payment Period" := PaymentPracticeMath.GetAverageAgreedPaymentTime(PaymentPracticeData);
         PaymentPracticeHeader."Pct Paid on Time" := PaymentPracticeMath.GetPercentOfOnTimePayments(PaymentPracticeData);
+
+        // Reset fields before calculating scheme-specific totals
+        PaymentPracticeHeader."Mode Payment Time" := 0;
+        PaymentPracticeHeader."Mode Payment Time Min." := 0;
+        PaymentPracticeHeader."Mode Payment Time Max." := 0;
+        PaymentPracticeHeader."Median Payment Time" := 0;
+        PaymentPracticeHeader."80th Percentile Payment Time" := 0;
+        PaymentPracticeHeader."95th Percentile Payment Time" := 0;
+        PaymentPracticeHeader."Pct Peppol Enabled" := 0;
+        PaymentPracticeHeader."Pct Small Business Payments" := 0;
+
+        PaymentPracticeData.Reset();
+        PaymentPracticeData.SetRange("Header No.", PaymentPracticeHeader."No.");
+        SchemeHandler := PaymentPracticeHeader."Reporting Scheme";
+        SchemeHandler.CalculateHeaderTotals(PaymentPracticeHeader, PaymentPracticeData);
     end;
 
     local procedure GenerateData(var PaymentPracticeData: Record "Payment Practice Data"; PaymentPracticeHeader: Record "Payment Practice Header"; PaymentPracticeDataGenerator: Interface PaymentPracticeDataGenerator)
@@ -43,5 +67,30 @@ codeunit 689 "Payment Practices"
     local procedure GenerateLines(PaymentPracticeLinesAggregator: Interface PaymentPracticeLinesAggregator; var PaymentPracticeData: Record "Payment Practice Data"; PaymentPracticeHeader: Record "Payment Practice Header")
     begin
         PaymentPracticeLinesAggregator.GenerateLines(PaymentPracticeData, PaymentPracticeHeader);
+    end;
+
+    procedure DetectReportingScheme(): Enum "Paym. Prac. Reporting Scheme"
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        ReportingScheme: Enum "Paym. Prac. Reporting Scheme";
+        IsHandled: Boolean;
+    begin
+        OnBeforeDetectReportingScheme(ReportingScheme, IsHandled);
+        if IsHandled then
+            exit(ReportingScheme);
+
+        case EnvironmentInformation.GetApplicationFamily() of
+            'GB':
+                exit("Paym. Prac. Reporting Scheme"::"Dispute & Retention");
+            'AU', 'NZ':
+                exit("Paym. Prac. Reporting Scheme"::"Small Business");
+            else
+                exit("Paym. Prac. Reporting Scheme"::Standard);
+        end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeDetectReportingScheme(var ReportingScheme: Enum "Paym. Prac. Reporting Scheme"; var IsHandled: Boolean)
+    begin
     end;
 }
