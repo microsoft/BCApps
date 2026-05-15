@@ -23,7 +23,9 @@ codeunit 688 "Payment Practice Builders"
         SchemeHandler := PaymentPracticeHeader."Reporting Scheme";
         LastVendNo := '';
         Vendor.SetLoadFields("No.", "Exclude from Pmt. Practices", "Company Size Code");
-        VendorLedgerEntry.SetLoadFields("Entry No.", "Vendor No.", "External Document No.", "Document No.", "Posting Date", "Invoice Received Date", "Document Date", "Due Date", Open, "Closed at Date", "Closed by Entry No.", "SCF Payment Date");
+        VendorLedgerEntry.SetLoadFields(
+            "Entry No.", "Vendor No.", "External Document No.", "Document No.", "Posting Date", "Invoice Received Date", "Document Date",
+            "Due Date", Open, "Closed at Date", "Closed by Entry No.", "SCF Payment Date", "Dispute Status");
         VendorLedgerEntry.SetCurrentKey("Vendor No.");
         VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
         VendorLedgerEntry.SetRange("Posting Date", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
@@ -59,7 +61,9 @@ codeunit 688 "Payment Practice Builders"
         SchemeHandler := PaymentPracticeHeader."Reporting Scheme";
         LastCustNo := '';
         Customer.SetLoadFields("No.", "Exclude from Pmt. Practices");
-        CustLedgerEntry.SetLoadFields("Entry No.", "Customer No.", "External Document No.", "Document No.", "Posting Date", "Document Date", "Due Date", Open, "Closed at Date", "Closed by Entry No.");
+        CustLedgerEntry.SetLoadFields(
+            "Entry No.", "Customer No.", "External Document No.", "Document No.", "Posting Date", "Document Date",
+            "Due Date", Open, "Closed at Date", "Closed by Entry No.", "Dispute Status");
         CustLedgerEntry.SetCurrentKey("Customer No.");
         CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
         CustLedgerEntry.SetRange("Posting Date", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");

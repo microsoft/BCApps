@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
-using Microsoft.Purchases.Payables;
-
 codeunit 681 "Paym. Prac. Dispute Ret. Hdlr" implements PaymentPracticeSchemeHandler
 {
     Access = Internal;
@@ -16,20 +14,18 @@ codeunit 681 "Paym. Prac. Dispute Ret. Hdlr" implements PaymentPracticeSchemeHan
     end;
 
     procedure UpdatePaymentPracData(var PaymentPracticeData: Record "Payment Practice Data"): Boolean
-    var
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
     begin
-        if PaymentPracticeData."Source Type" <> PaymentPracticeData."Source Type"::Vendor then
-            exit(true);
-
-        VendorLedgerEntry.SetLoadFields("SCF Payment Date", "Dispute Status");
-        if VendorLedgerEntry.Get(PaymentPracticeData."Invoice Entry No.") then begin
-            PaymentPracticeData."SCF Payment Date" := VendorLedgerEntry."SCF Payment Date";
-            PaymentPracticeData."Dispute Status" := VendorLedgerEntry."Dispute Status";
-
-            if PaymentPracticeData."SCF Payment Date" <> 0D then
+        if PaymentPracticeData."Source Type" = PaymentPracticeData."Source Type"::Vendor then
+            if PaymentPracticeData."SCF Payment Date" <> 0D then begin
                 PaymentPracticeData."Actual Payment Days" := PaymentPracticeData."SCF Payment Date" - PaymentPracticeData."Invoice Received Date";
-        end;
+                if PaymentPracticeData."Actual Payment Days" < 0 then
+                    PaymentPracticeData."Actual Payment Days" := 0;
+            end;
+
+        if (not PaymentPracticeData."Invoice Is Open") and
+           (PaymentPracticeData."Actual Payment Days" > PaymentPracticeData."Agreed Payment Days")
+        then
+            PaymentPracticeData."Overdue Due to Dispute" := PaymentPracticeData."Dispute Status" <> '';
 
         exit(true);
     end;
@@ -42,7 +38,7 @@ codeunit 681 "Paym. Prac. Dispute Ret. Hdlr" implements PaymentPracticeSchemeHan
         OverdueCount: Integer;
         OverdueDueToDisputeCount: Integer;
     begin
-        if PaymentPracticeData.FindSet(true) then
+        if PaymentPracticeData.FindSet() then
             repeat
                 if not PaymentPracticeData."Invoice Is Open" then begin
                     TotalPayments += 1;
@@ -50,9 +46,7 @@ codeunit 681 "Paym. Prac. Dispute Ret. Hdlr" implements PaymentPracticeSchemeHan
                     if PaymentPracticeData."Actual Payment Days" > PaymentPracticeData."Agreed Payment Days" then begin
                         OverdueCount += 1;
                         TotalOverdueAmount += PaymentPracticeData."Invoice Amount";
-                        PaymentPracticeData."Overdue Due to Dispute" := PaymentPracticeData."Dispute Status" <> '';
-                        PaymentPracticeData.Modify();
-                        if PaymentPracticeData."Dispute Status" <> '' then
+                        if PaymentPracticeData."Overdue Due to Dispute" then
                             OverdueDueToDisputeCount += 1;
                     end;
                 end;

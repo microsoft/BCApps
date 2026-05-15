@@ -1366,6 +1366,8 @@ codeunit 134197 "Payment Practices UT"
         PaymentPracticeData."Invoice Amount" := InvoiceAmount;
         if IsDisputed then
             PaymentPracticeData."Dispute Status" := 'DISPUTED';
+        if (not IsOpen) and (ActualPaymentDays > AgreedPaymentDays) then
+                PaymentPracticeData."Overdue Due to Dispute" := IsDisputed;
         PaymentPracticeData.Insert();
     end;
 
