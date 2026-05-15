@@ -3681,6 +3681,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesHeader.Validate("Your Reference",
           LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("Your Reference"), DATABASE::"Sales Header"));
         SalesHeader.Validate("Shipment Date", LibraryRandom.RandDate(10));
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.CopySellToAddressToShipToAddress();
         SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(
@@ -3703,6 +3704,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
           LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("Your Reference"), DATABASE::"Sales Header"));
         SalesHeader.Validate("Shipment Date", LibraryRandom.RandDate(10));
         SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.CopySellToAddressToShipToAddress();
         SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(
@@ -3730,6 +3732,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CreateItemWithPrice(Item, LibraryRandom.RandIntInRange(1000, 2000));
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
         SalesHeader.Validate("Prices Including VAT", PricesInclVAT);
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.Modify(true);
 
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
