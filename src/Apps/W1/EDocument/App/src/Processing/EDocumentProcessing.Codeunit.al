@@ -240,6 +240,8 @@ codeunit 6108 "E-Document Processing"
     end;
 
     procedure GetLines(EDocument: Record "E-Document"; var SourceDocumentLines: RecordRef)
+    var
+        PurchaseLine: Record "Purchase Line";
     begin
         case EDocument."Document Type" of
             EDocument."Document Type"::"Sales Invoice":
@@ -271,6 +273,12 @@ codeunit 6108 "E-Document Processing"
                 begin
                     SourceDocumentLines.Open(Database::"Purch. Cr. Memo Line");
                     SourceDocumentLines.Field(3).SetRange(EDocument."Document No.");
+                end;
+            EDocument."Document Type"::"Purchase Order":
+                begin
+                    SourceDocumentLines.Open(Database::"Purchase Line");
+                    SourceDocumentLines.Field(PurchaseLine.FieldNo("Document Type")).SetRange("Purchase Document Type"::Order);
+                    SourceDocumentLines.Field(PurchaseLine.FieldNo("Document No.")).SetRange(EDocument."Document No.");
                 end;
             EDocument."Document Type"::"Issued Finance Charge Memo":
                 begin

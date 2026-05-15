@@ -7,6 +7,7 @@ namespace Microsoft.Peppol;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Service.History;
@@ -199,6 +200,39 @@ codeunit 37218 "PEPPOL30 Common"
     end;
 
     /// <summary>
+    /// Calculates and retrieves VAT totals for a purchase order.
+    /// </summary>
+    /// <param name="PurchaseHeaderRecRef">The RecordRef for the purchase order header.</param>
+    /// <param name="PurchaseLineRecRef">The RecordRef for the purchase order lines.</param>
+    /// <param name="TempVATAmtLine">Temporary VAT amount line record to store calculated totals.</param>
+    /// <param name="TempVATProductPostingGroup">Temporary VAT product posting group record.</param>
+    /// <param name="PEPPOLPurchaseFormat">The PEPPOL 3.0 purchase format to use for tax info provider.</param>
+    procedure GetTotals(var PurchaseHeaderRecRef: RecordRef; var PurchaseLineRecRef: RecordRef; var TempVATAmtLine: Record "VAT Amount Line" temporary; var TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase Format")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PEPPOLPurchaseTaxInfoProvider: Interface "PEPPOL Purchase Tax Info Provider";
+    begin
+        PEPPOLPurchaseTaxInfoProvider := PEPPOLPurchaseFormat;
+        case PurchaseHeaderRecRef.Number() of
+            Database::"Purchase Header":
+                begin
+                    PurchaseHeaderRecRef.SetTable(PurchaseHeader);
+                    PurchaseLineRecRef.SetTable(PurchaseLine);
+                    PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+                    PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+                    if PurchaseLine.FindSet() then
+                        repeat
+                            PEPPOLPurchaseTaxInfoProvider.GetTaxTotals(PurchaseLine, TempVATAmtLine);
+                            PEPPOLPurchaseTaxInfoProvider.GetTaxCategories(PurchaseLine, TempVATProductPostingGroup);
+                        until PurchaseLine.Next() = 0;
+                end;
+            else
+                Error(UnsupportedDocumentErr);
+        end;
+    end;
+
+    /// <summary>
     /// Sets document attachment filters based on the posted document header.
     /// </summary>
     /// <param name="PostedDocHeaderRecRef">The RecordRef for the posted document header.</param>
@@ -316,6 +350,36 @@ codeunit 37218 "PEPPOL30 Common"
     end;
 
     /// <summary>
+    /// Gets the invoice rounding line from purchase order lines using a RecordRef header.
+    /// </summary>
+    /// <param name="PurchaseHeaderRecRef">The RecordRef for the purchase order header.</param>
+    /// <param name="TempPurchaseLineRounding">Temporary purchase line record for storing the rounding line.</param>
+    /// <param name="PEPPOLPurchaseFormat">The PEPPOL 3.0 purchase format to use for monetary info provider.</param>
+    procedure GetInvoiceRoundingLine(PurchaseHeaderRecRef: RecordRef; var TempPurchaseLineRounding: Record "Purchase Line" temporary; PEPPOLPurchaseFormat: Enum "PEPPOL 3.0 Purchase Format")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PEPPOLPurchaseMonetaryInfoProvider: Interface "PEPPOL Purchase Monetary Info Provider";
+    begin
+        PEPPOLPurchaseMonetaryInfoProvider := PEPPOLPurchaseFormat;
+        case PurchaseHeaderRecRef.Number() of
+            Database::"Purchase Header":
+                begin
+                    PurchaseHeaderRecRef.SetTable(PurchaseHeader);
+                    PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+                    PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+                    PurchaseLine.SetFilter(Type, '<>%1', PurchaseLine.Type::" ");
+                    if PurchaseLine.FindSet() then
+                        repeat
+                            PEPPOLPurchaseMonetaryInfoProvider.GetInvoiceRoundingLine(TempPurchaseLineRounding, PurchaseLine);
+                        until PurchaseLine.Next() = 0;
+                end;
+            else
+                Error(UnsupportedDocumentErr);
+        end;
+    end;
+
+    /// <summary>
     /// Sets filters on posted document lines, excluding the rounding line if present.
     /// </summary>
     /// <param name="PostedDocHeaderRecRef">The RecordRef for the posted document header.</param>
@@ -369,6 +433,34 @@ codeunit 37218 "PEPPOL30 Common"
                     if TempSalesLineRounding."Line No." <> 0 then
                         ServiceCrMemoLine.SetFilter("Line No.", '<>%1', TempSalesLineRounding."Line No.");
                     PostedDocLineRecRef.GetTable(ServiceCrMemoLine);
+                end;
+            else
+                Error(UnsupportedDocumentErr);
+        end;
+    end;
+
+    /// <summary>
+    /// Sets filters on purchase order lines using RecordRefs, excluding the rounding line if present.
+    /// </summary>
+    /// <param name="PurchaseHeaderRecRef">The RecordRef for the purchase order header.</param>
+    /// <param name="PurchaseLineRecRef">The RecordRef for the purchase order lines to set filters on.</param>
+    /// <param name="TempPurchaseLineRounding">Temporary purchase line record containing the rounding line to exclude.</param>
+    procedure SetFilters(var PurchaseHeaderRecRef: RecordRef; var PurchaseLineRecRef: RecordRef; TempPurchaseLineRounding: Record "Purchase Line" temporary)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseHeaderRecRef.SetRecFilter();
+        case PurchaseHeaderRecRef.Number() of
+            Database::"Purchase Header":
+                begin
+                    PurchaseHeaderRecRef.SetTable(PurchaseHeader);
+                    PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+                    PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+                    PurchaseLine.SetFilter(Type, '<>%1', PurchaseLine.Type::" ");
+                    if TempPurchaseLineRounding."Line No." <> 0 then
+                        PurchaseLine.SetFilter("Line No.", '<>%1', TempPurchaseLineRounding."Line No.");
+                    PurchaseLineRecRef.GetTable(PurchaseLine);
                 end;
             else
                 Error(UnsupportedDocumentErr);

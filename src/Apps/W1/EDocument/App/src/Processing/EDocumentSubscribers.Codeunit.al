@@ -193,6 +193,26 @@ codeunit 6103 "E-Document Subscribers"
     begin
         EDocumentProcessing.RunEDocumentCheck(ServiceHeader, EDocumentProcessingPhase::Release);
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnAfterReleasePurchaseDoc', '', false, false)]
+    local procedure OnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean; SkipWhseRequestOperations: Boolean)
+    var
+        EDocumentHelper: Codeunit "E-Document Helper";
+        DocumentSendingProfile: Record "Document Sending Profile";
+        SourceDocumentHeader: RecordRef;
+    begin
+        if PreviewMode then
+            exit;
+
+        if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
+            exit;
+
+        SourceDocumentHeader.GetTable(PurchaseHeader);
+        if not EDocumentHelper.IsElectronicDocument(SourceDocumentHeader, DocumentSendingProfile) then
+            exit;
+
+        CreateEDocumentFromUnpostedPostedDocument(SourceDocumentHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Purchase Order");
+    end;
     #endregion Release events
 
     #region Posting check events
@@ -661,6 +681,11 @@ codeunit 6103 "E-Document Subscribers"
             exit;
 
         EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType);
+    end;
+
+    local procedure CreateEDocumentFromUnpostedPostedDocument(SourceDocumentHeader: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type")
+    begin
+        CreateEDocumentFromPostedDocument(SourceDocumentHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Purchase Order");
     end;
 
     local procedure PointEDocumentToPostedDocument(OpenRecord: Variant; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")

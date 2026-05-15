@@ -6,6 +6,7 @@ namespace Microsoft.Peppol;
 
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Purchases.Document;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -19,6 +20,14 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
                                             , "PEPPOL Party Info Provider"
                                             , "PEPPOL Payment Info Provider"
                                             , "PEPPOL Tax Info Provider"
+                                            , "PEPPOL Purchase Attachment Provider"
+                                            , "PEPPOL Purchase Delivery Info Provider"
+                                            , "PEPPOL Purchase Document Info Provider"
+                                            , "PEPPOL Purchase Line Info Provider"
+                                            , "PEPPOL Purchase Monetary Info Provider"
+                                            , "PEPPOL Purchase Party Info Provider"
+                                            , "PEPPOL Purchase Payment Info Provider"
+                                            , "PEPPOL Purchase Tax Info Provider"
 {
 
     InherentEntitlements = X;
@@ -62,6 +71,23 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     procedure GetGeneralInfoBIS(SalesHeader: Record "Sales Header"; var ID: Text; var IssueDate: Text; var InvoiceTypeCode: Text; var Note: Text; var TaxPointDate: Text; var DocumentCurrencyCode: Text; var AccountingCost: Text)
     begin
         PEPPOLManagementImpl.GetGeneralInfoBIS(SalesHeader, ID, IssueDate, InvoiceTypeCode, Note, TaxPointDate, DocumentCurrencyCode, AccountingCost);
+    end;
+
+    /// <summary>
+    /// Gets general invoice information for BIS format from the purchase header.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record containing the document information.</param>
+    /// <param name="ID">Returns the document ID.</param>
+    /// <param name="SalesOrderID">Returns the sales order ID reference.</param>
+    /// <param name="IssueDate">Returns the issue date.</param>
+    /// <param name="OrderTypeCode">Returns the order type code.</param>
+    /// <param name="Note">Returns any additional notes.</param>
+    /// <param name="DocumentCurrencyCode">Returns the document currency code.</param>
+    /// <param name="AccountingCost">Returns the accounting cost reference.</param>
+    /// <param name="CustomerReference">Returns the customer reference.</param>
+    procedure GetGeneralInfoBIS(PurchaseHeader: Record "Purchase Header"; var ID: Text; var SalesOrderID: Text; var IssueDate: Text; var OrderTypeCode: Text; var Note: Text; var DocumentCurrencyCode: Text; var AccountingCost: Text; var CustomerReference: Text)
+    begin
+        PEPPOLManagementImpl.GetGeneralInfoBIS(PurchaseHeader, ID, SalesOrderID, IssueDate, OrderTypeCode, Note, DocumentCurrencyCode, AccountingCost, CustomerReference);
     end;
 
     /// <summary>
@@ -166,6 +192,21 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Generates a PDF attachment as an additional document reference from the purchase header.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record.</param>
+    /// <param name="AdditionalDocumentReferenceID">Returns the additional document reference ID.</param>
+    /// <param name="AdditionalDocRefDocumentType">Returns the additional document reference document type.</param>
+    /// <param name="URI">Returns the document URI.</param>
+    /// <param name="Filename">Returns the PDF filename.</param>
+    /// <param name="MimeCode">Returns the PDF MIME code.</param>
+    /// <param name="EmbeddedDocumentBinaryObject">Returns the embedded PDF binary object.</param>
+    procedure GeneratePDFAttachmentAsAdditionalDocRef(PurchaseHeader: Record "Purchase Header"; var AdditionalDocumentReferenceID: Text; var AdditionalDocRefDocumentType: Text; var URI: Text; var Filename: Text; var MimeCode: Text; var EmbeddedDocumentBinaryObject: Text)
+    begin
+        PEPPOLManagementImpl.GeneratePDFAttachmentAsAdditionalDocRef(PurchaseHeader, AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, Filename, MimeCode, EmbeddedDocumentBinaryObject);
+    end;
+
+    /// <summary>
     /// Gets accounting supplier party information including endpoint ID, scheme ID, and supplier name.
     /// </summary>
     /// <param name="SupplierEndpointID">Returns the supplier endpoint ID.</param>
@@ -188,6 +229,18 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets seller supplier party information for BIS format from the purchase header.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record containing the supplier information.</param>
+    /// <param name="SellerSupplierPartyEndpointId">Returns the seller supplier party endpoint ID.</param>
+    /// <param name="SellerSupplierPartySchemeID">Returns the seller supplier party scheme ID.</param>
+    /// <param name="SellerSupplierPartySupplierName">Returns the seller supplier party name.</param>
+    procedure GetSellerSupplierPartyInfoBIS(PurchaseHeader: Record "Purchase Header"; var SellerSupplierPartyEndpointId: Text; var SellerSupplierPartySchemeID: Text; var SellerSupplierPartySupplierName: Text)
+    begin
+        PEPPOLManagementImpl.GetSellerSupplierPartyInfoBIS(PurchaseHeader, SellerSupplierPartyEndpointId, SellerSupplierPartySchemeID, SellerSupplierPartySupplierName);
+    end;
+
+    /// <summary>
     /// Gets the supplier party postal address information from the sales header.
     /// </summary>
     /// <param name="SalesHeader">The sales header record containing the supplier address information.</param>
@@ -201,6 +254,22 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     procedure GetAccountingSupplierPartyPostalAddr(SalesHeader: Record "Sales Header"; var StreetName: Text; var SupplierAdditionalStreetName: Text; var CityName: Text; var PostalZone: Text; var CountrySubentity: Text; var IdentificationCode: Text; var ListID: Text)
     begin
         PEPPOLManagementImpl.GetAccountingSupplierPartyPostalAddr(SalesHeader, StreetName, SupplierAdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
+    end;
+
+    /// <summary>
+    /// Gets the seller supplier party postal address from the purchase header.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record containing the supplier address information.</param>
+    /// <param name="SellerSupplierStreetName">Returns the seller supplier street name.</param>
+    /// <param name="SellerSupplierAdditionalStreetName">Returns the seller supplier additional street name.</param>
+    /// <param name="SellerSupplierPartyCityName">Returns the seller supplier party city name.</param>
+    /// <param name="SellerSupplierPartyPostalZone">Returns the seller supplier party postal zone.</param>
+    /// <param name="SellerSupplierPartyCountrySubentity">Returns the seller supplier party country subentity.</param>
+    /// <param name="SellerSupplierPartyIdentificationCode">Returns the seller supplier party country identification code.</param>
+    /// <param name="ListID">Returns the country list ID.</param>
+    procedure GetSellerSupplierPartyPostalAddr(PurchaseHeader: Record "Purchase Header"; var SellerSupplierStreetName: Text; var SellerSupplierAdditionalStreetName: Text; var SellerSupplierPartyCityName: Text; var SellerSupplierPartyPostalZone: Text; var SellerSupplierPartyCountrySubentity: Text; var SellerSupplierPartyIdentificationCode: Text; var ListID: Text)
+    begin
+        PEPPOLManagementImpl.GetSellerSupplierPartyPostalAddr(PurchaseHeader, SellerSupplierStreetName, SellerSupplierAdditionalStreetName, SellerSupplierPartyCityName, SellerSupplierPartyPostalZone, SellerSupplierPartyCountrySubentity, SellerSupplierPartyIdentificationCode, ListID);
     end;
 
     /// <summary>
@@ -269,6 +338,19 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets the seller supplier party contact information from the purchase header.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record containing the supplier contact information.</param>
+    /// <param name="ContactName">Returns the contact name.</param>
+    /// <param name="ContactPhone">Returns the contact phone number.</param>
+    /// <param name="ContactTelefax">Returns the contact telefax number.</param>
+    /// <param name="ContactEmail">Returns the contact email address.</param>
+    procedure GetSellerSupplierPartyContact(PurchaseHeader: Record "Purchase Header"; var ContactName: Text; var ContactPhone: Text; var ContactTelefax: Text; var ContactEmail: Text)
+    begin
+        PEPPOLManagementImpl.GetSellerSupplierPartyContact(PurchaseHeader, ContactName, ContactPhone, ContactTelefax, ContactEmail);
+    end;
+
+    /// <summary>
     /// Gets the supplier party identification ID from the sales header.
     /// </summary>
     /// <param name="SalesHeader">The sales header record containing the party identification.</param>
@@ -320,6 +402,22 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     procedure GetAccountingCustomerPartyPostalAddr(SalesHeader: Record "Sales Header"; var CustomerStreetName: Text; var CustomerAdditionalStreetName: Text; var CustomerCityName: Text; var CustomerPostalZone: Text; var CustomerCountrySubentity: Text; var CustomerIdentificationCode: Text; var CustomerListID: Text)
     begin
         PEPPOLManagementImpl.GetAccountingCustomerPartyPostalAddr(SalesHeader, CustomerStreetName, CustomerAdditionalStreetName, CustomerCityName, CustomerPostalZone, CustomerCountrySubentity, CustomerIdentificationCode, CustomerListID);
+    end;
+
+    /// <summary>
+    /// Gets the buyer customer party postal address from the purchase header.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record containing the customer address information.</param>
+    /// <param name="StreetName">Returns the customer street name.</param>
+    /// <param name="BuyerCustomerAdditionalStreetName">Returns the customer additional street name.</param>
+    /// <param name="CityName">Returns the customer city name.</param>
+    /// <param name="PostalZone">Returns the customer postal zone/zip code.</param>
+    /// <param name="CountrySubentity">Returns the customer country subentity (state/province).</param>
+    /// <param name="IdentificationCode">Returns the customer country identification code.</param>
+    /// <param name="ListID">Returns the country list ID.</param>
+    procedure GetBuyerCustomerPartyPostalAddr(PurchaseHeader: Record "Purchase Header"; var StreetName: Text; var BuyerCustomerAdditionalStreetName: Text; var CityName: Text; var PostalZone: Text; var CountrySubentity: Text; var IdentificationCode: Text; var ListID: Text)
+    begin
+        PEPPOLManagementImpl.GetBuyerCustomerPartyPostalAddr(PurchaseHeader, StreetName, BuyerCustomerAdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
     end;
 
     /// <summary>
@@ -398,6 +496,18 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets the buyer customer party contact information from the purchase header.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record containing the customer contact information.</param>
+    /// <param name="BuyerCustomerPartyContactName">Returns the buyer customer party contact name.</param>
+    /// <param name="BuyerCustomerPartyContactPhone">Returns the buyer customer party contact phone number.</param>
+    /// <param name="BuyerCustomerPartyContactEmail">Returns the buyer customer party contact email address.</param>
+    procedure GetBuyerCustomerPartyContact(PurchaseHeader: Record "Purchase Header"; var BuyerCustomerPartyContactName: Text; var BuyerCustomerPartyContactPhone: Text; var BuyerCustomerPartyContactEmail: Text)
+    begin
+        PEPPOLManagementImpl.GetBuyerCustomerPartyContact(PurchaseHeader, BuyerCustomerPartyContactName, BuyerCustomerPartyContactPhone, BuyerCustomerPartyContactEmail);
+    end;
+
+    /// <summary>
     /// Gets payee party information including party ID, scheme ID, name, and legal entity details.
     /// </summary>
     /// <param name="PayeePartyID">Returns the payee party ID.</param>
@@ -472,6 +582,22 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets the delivery address from the purchase header.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record containing the delivery address information.</param>
+    /// <param name="StreetName">Returns the delivery street name.</param>
+    /// <param name="AdditionalStreetName">Returns the delivery additional street name.</param>
+    /// <param name="CityName">Returns the delivery city name.</param>
+    /// <param name="PostalZone">Returns the delivery postal zone/zip code.</param>
+    /// <param name="CountrySubentity">Returns the delivery country subentity (state/province).</param>
+    /// <param name="IdentificationCode">Returns the delivery country identification code.</param>
+    /// <param name="ListID">Returns the delivery country list ID.</param>
+    procedure GetDeliveryAddress(PurchaseHeader: Record "Purchase Header"; var StreetName: Text; var AdditionalStreetName: Text; var CityName: Text; var PostalZone: Text; var CountrySubentity: Text; var IdentificationCode: Text; var ListID: Text)
+    begin
+        PEPPOLManagementImpl.GetDeliveryAddress(PurchaseHeader, StreetName, AdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode, ListID);
+    end;
+
+    /// <summary>
     /// Gets payment means information from the sales header including payment code, due date, and account details.
     /// </summary>
     /// <param name="SalesHeader">The sales header record containing the payment information.</param>
@@ -535,6 +661,16 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     procedure GetPaymentTermsInfo(SalesHeader: Record "Sales Header"; var PaymentTermsNote: Text)
     begin
         PEPPOLManagementImpl.GetPaymentTermsInfo(SalesHeader, PaymentTermsNote);
+    end;
+
+    /// <summary>
+    /// Gets payment terms information from the purchase header.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record containing the payment terms.</param>
+    /// <param name="PaymentTermsNote">Returns the payment terms note.</param>
+    procedure GetPaymentTermsInfo(PurchaseHeader: Record "Purchase Header"; var PaymentTermsNote: Text)
+    begin
+        PEPPOLManagementImpl.GetPaymentTermsInfo(PurchaseHeader, PaymentTermsNote);
     end;
 
     /// <summary>
@@ -665,6 +801,33 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets comprehensive legal monetary information from the purchase header including line extension amounts, tax amounts, allowances, charges, and payable amounts.
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record containing monetary information.</param>
+    /// <param name="TempPurchaseLine">The temporary purchase line record containing line details.</param>
+    /// <param name="VATAmtLine">The VAT amount line record containing tax totals.</param>
+    /// <param name="LineExtensionAmount">Returns the total line extension amount.</param>
+    /// <param name="LegalMonetaryTotalCurrencyID">Returns the legal monetary total currency ID.</param>
+    /// <param name="TaxExclusiveAmount">Returns the tax exclusive amount.</param>
+    /// <param name="TaxExclusiveAmountCurrencyID">Returns the tax exclusive amount currency ID.</param>
+    /// <param name="TaxInclusiveAmount">Returns the tax inclusive amount.</param>
+    /// <param name="TaxInclusiveAmountCurrencyID">Returns the tax inclusive amount currency ID.</param>
+    /// <param name="AllowanceTotalAmount">Returns the total allowance amount.</param>
+    /// <param name="AllowanceTotalAmountCurrencyID">Returns the allowance total amount currency ID.</param>
+    /// <param name="ChargeTotalAmount">Returns the total charge amount.</param>
+    /// <param name="ChargeTotalAmountCurrencyID">Returns the charge total amount currency ID.</param>
+    /// <param name="PrepaidAmount">Returns the prepaid amount.</param>
+    /// <param name="PrepaidCurrencyID">Returns the prepaid currency ID.</param>
+    /// <param name="PayableRoundingAmount">Returns the payable rounding amount.</param>
+    /// <param name="PayableRndingAmountCurrencyID">Returns the payable rounding amount currency ID.</param>
+    /// <param name="PayableAmount">Returns the final payable amount.</param>
+    /// <param name="PayableAmountCurrencyID">Returns the payable amount currency ID.</param>
+    procedure GetLegalMonetaryInfo(PurchaseHeader: Record "Purchase Header"; var TempPurchaseLine: Record "Purchase Line" temporary; var VATAmtLine: Record "VAT Amount Line"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text; var PrepaidAmount: Text; var PrepaidCurrencyID: Text; var PayableRoundingAmount: Text; var PayableRndingAmountCurrencyID: Text; var PayableAmount: Text; var PayableAmountCurrencyID: Text)
+    begin
+        PEPPOLManagementImpl.GetLegalMonetaryInfo(PurchaseHeader, TempPurchaseLine, VATAmtLine, LineExtensionAmount, LegalMonetaryTotalCurrencyID, TaxExclusiveAmount, TaxExclusiveAmountCurrencyID, TaxInclusiveAmount, TaxInclusiveAmountCurrencyID, AllowanceTotalAmount, AllowanceTotalAmountCurrencyID, ChargeTotalAmount, ChargeTotalAmountCurrencyID, PrepaidAmount, PrepaidCurrencyID, PayableRoundingAmount, PayableRndingAmountCurrencyID, PayableAmount, PayableAmountCurrencyID);
+    end;
+
+    /// <summary>
     /// Gets legal monetary document amounts including line extension, tax amounts, allowances, and charges.
     /// </summary>
     /// <param name="SalesHeader">The sales header record containing document monetary information.</param>
@@ -701,6 +864,22 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets general line information from the purchase line including invoice line ID, note, quantity, extension amount, and accounting cost.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line record containing line information.</param>
+    /// <param name="PurchaseHeader">The purchase header record.</param>
+    /// <param name="InvoiceLineID">Returns the invoice line ID.</param>
+    /// <param name="InvoiceLineNote">Returns the invoice line note.</param>
+    /// <param name="InvoicedQuantity">Returns the invoiced quantity.</param>
+    /// <param name="InvoiceLineExtensionAmount">Returns the invoice line extension amount.</param>
+    /// <param name="LineExtensionAmountCurrencyID">Returns the line extension amount currency ID.</param>
+    /// <param name="InvoiceLineAccountingCost">Returns the invoice line accounting cost.</param>
+    procedure GetLineGeneralInfo(PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; var InvoiceLineID: Text; var InvoiceLineNote: Text; var InvoicedQuantity: Text; var InvoiceLineExtensionAmount: Text; var LineExtensionAmountCurrencyID: Text; var InvoiceLineAccountingCost: Text)
+    begin
+        PEPPOLManagementImpl.GetLineGeneralInfo(PurchaseLine, PurchaseHeader, InvoiceLineID, InvoiceLineNote, InvoicedQuantity, InvoiceLineExtensionAmount, LineExtensionAmountCurrencyID, InvoiceLineAccountingCost);
+    end;
+
+    /// <summary>
     /// Gets unit code information for the sales line including unit code and list ID.
     /// </summary>
     /// <param name="SalesLine">The sales line record containing unit information.</param>
@@ -709,6 +888,17 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     procedure GetLineUnitCodeInfo(SalesLine: Record "Sales Line"; var unitCode: Text; var unitCodeListID: Text)
     begin
         PEPPOLManagementImpl.GetLineUnitCodeInfo(SalesLine, unitCode, unitCodeListID);
+    end;
+
+    /// <summary>
+    /// Gets unit code information for the purchase line including unit code and list ID.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line record containing unit information.</param>
+    /// <param name="unitCode">Returns the unit code (e.g., piece, kg, etc.).</param>
+    /// <param name="unitCodeListID">Returns the unit code list ID.</param>
+    procedure GetLineUnitCodeInfo(PurchaseLine: Record "Purchase Line"; var unitCode: Text; var unitCodeListID: Text)
+    begin
+        PEPPOLManagementImpl.GetLineUnitCodeInfo(PurchaseLine, unitCode, unitCodeListID);
     end;
 
     /// <summary>
@@ -800,6 +990,22 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets item information for the purchase line including description, name, item identification codes, and origin country.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line record containing item information.</param>
+    /// <param name="Description">Returns the item description.</param>
+    /// <param name="Name">Returns the item name.</param>
+    /// <param name="SellersItemIdentificationID">Returns the seller's item identification ID.</param>
+    /// <param name="StandardItemIdentificationID">Returns the standard item identification ID (e.g., GTIN).</param>
+    /// <param name="StdItemIdIDSchemeID">Returns the standard item ID scheme ID.</param>
+    /// <param name="OriginCountryIdCode">Returns the origin country ID code.</param>
+    /// <param name="OriginCountryIdCodeListID">Returns the origin country ID code list ID.</param>
+    procedure GetLineItemInfo(PurchaseLine: Record "Purchase Line"; var Description: Text; var Name: Text; var SellersItemIdentificationID: Text; var StandardItemIdentificationID: Text; var StdItemIdIDSchemeID: Text; var OriginCountryIdCode: Text; var OriginCountryIdCodeListID: Text)
+    begin
+        PEPPOLManagementImpl.GetLineItemInfo(PurchaseLine, Description, Name, SellersItemIdentificationID, StandardItemIdentificationID, StdItemIdIDSchemeID, OriginCountryIdCode, OriginCountryIdCodeListID);
+    end;
+
+    /// <summary>
     /// Gets commodity classification information for the line item.
     /// </summary>
     /// <param name="CommodityCode">Returns the commodity code.</param>
@@ -822,6 +1028,19 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     procedure GetLineItemClassifiedTaxCategory(SalesLine: Record "Sales Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
     begin
         PEPPOLManagementImpl.GetLineItemClassifiedTaxCategory(SalesLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
+    end;
+
+    /// <summary>
+    /// Gets classified tax category information for the purchase line item.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line record containing tax category information.</param>
+    /// <param name="ClassifiedTaxCategoryID">Returns the classified tax category ID.</param>
+    /// <param name="ItemSchemeID">Returns the item scheme ID.</param>
+    /// <param name="InvoiceLineTaxPercent">Returns the invoice line tax percentage.</param>
+    /// <param name="ClassifiedTaxCategorySchemeID">Returns the classified tax category scheme ID.</param>
+    procedure GetLineItemClassifiedTaxCategory(PurchaseLine: Record "Purchase Line"; var ClassifiedTaxCategoryID: Text; var ItemSchemeID: Text; var InvoiceLineTaxPercent: Text; var ClassifiedTaxCategorySchemeID: Text)
+    begin
+        PEPPOLManagementImpl.GetLineItemClassifiedTaxCategory(PurchaseLine, ClassifiedTaxCategoryID, ItemSchemeID, InvoiceLineTaxPercent, ClassifiedTaxCategorySchemeID);
     end;
 
     /// <summary>
@@ -863,6 +1082,20 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets price information for the purchase line including price amount, base quantity, and unit code.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line record containing price information.</param>
+    /// <param name="PurchaseHeader">The purchase header record.</param>
+    /// <param name="InvoiceLinePriceAmount">Returns the invoice line price amount.</param>
+    /// <param name="InvLinePriceAmountCurrencyID">Returns the invoice line price amount currency ID.</param>
+    /// <param name="BaseQuantity">Returns the base quantity for price calculation.</param>
+    /// <param name="UnitCode">Returns the unit code for the base quantity.</param>
+    procedure GetLinePriceInfo(PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; var InvoiceLinePriceAmount: Text; var InvLinePriceAmountCurrencyID: Text; var BaseQuantity: Text; var UnitCode: Text)
+    begin
+        PEPPOLManagementImpl.GetLinePriceInfo(PurchaseLine, PurchaseHeader, InvoiceLinePriceAmount, InvLinePriceAmountCurrencyID, BaseQuantity, UnitCode);
+    end;
+
+    /// <summary>
     /// Gets price allowance or charge information for the invoice line.
     /// </summary>
     /// <param name="PriceChargeIndicator">Returns the price charge indicator.</param>
@@ -895,6 +1128,15 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     begin
         PEPPOLManagementImpl.GetTaxTotals(SalesLine, VATAmtLine);
     end;
+    /// <summary>
+    /// Gets totals and calculates VAT amount lines from the purchase line information.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line record to calculate totals from.</param>
+    /// <param name="VATAmtLine">Returns the calculated VAT amount line totals.</param>
+    procedure GetTaxTotals(PurchaseLine: Record "Purchase Line"; var VATAmtLine: Record "VAT Amount Line")
+    begin
+        PEPPOLManagementImpl.GetTaxTotals(PurchaseLine, VATAmtLine);
+    end;
 
     /// <summary>
     /// Gets tax categories from the sales line and populates VAT product posting group category information.
@@ -907,6 +1149,16 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets tax categories from the purchase line and populates VAT product posting group category information.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line record containing tax category information.</param>
+    /// <param name="VATProductPostingGroupCategory">Returns the VAT product posting group category information.</param>
+    procedure GetTaxCategories(PurchaseLine: Record "Purchase Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
+    begin
+        PEPPOLManagementImpl.GetTaxCategories(PurchaseLine, VATProductPostingGroupCategory);
+    end;
+
+    /// <summary>
     /// Gets the invoice rounding line from sales line data.
     /// </summary>
     /// <param name="TempSalesLine">Returns the temporary sales line containing rounding information.</param>
@@ -916,6 +1168,15 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
         PEPPOLManagementImpl.GetInvoiceRoundingLine(TempSalesLine, SalesLine);
     end;
 
+    /// <summary>
+    /// Gets the invoice rounding line from purchase line data.
+    /// </summary>
+    /// <param name="TempPurchaseLine">Returns the temporary purchase line containing rounding information.</param>
+    /// <param name="PurchaseLine">The source purchase line record.</param>
+    procedure GetInvoiceRoundingLine(var TempPurchaseLine: Record "Purchase Line" temporary; PurchaseLine: Record "Purchase Line")
+    begin
+        PEPPOLManagementImpl.GetInvoiceRoundingLine(TempPurchaseLine, PurchaseLine);
+    end;
     /// <summary>
     /// Gets the tax exemption reason text based on VAT product posting group category and tax category ID.
     /// </summary>
@@ -1076,4 +1337,5 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     begin
         PEPPOLManagementImpl.GetAllowanceChargeInfoPaymentDiscount(VATAmtLine, SalesHeader, ChargeIndicator, AllowanceChargeReasonCode, AllowanceChargeListID, AllowanceChargeReason, Amount, AllowanceChargeCurrencyID, TaxCategoryID, TaxCategorySchemeID, Percent, AllowanceChargeTaxSchemeID);
     end;
+
 }
