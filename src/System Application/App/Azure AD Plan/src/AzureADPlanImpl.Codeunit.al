@@ -667,7 +667,7 @@ codeunit 9018 "Azure AD Plan Impl."
     begin
         case true of
             AzureADGraphUser.IsUserDelegatedAdmin():
-                PlanId := PlanIds.GetDelegatedAdminPlanId();
+                PlanId := PlanIds.GetGlobalAdminPlanId();
             AzureADGraphUser.IsUserDelegatedHelpdesk():
                 PlanId := PlanIds.GetHelpDeskPlanId();
             else begin
@@ -805,7 +805,7 @@ codeunit 9018 "Azure AD Plan Impl."
     begin
         exit(
             IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId(), SecurityID)
-            or IsPlanAssignedToUser(PlanIds.GetDelegatedAdminPlanId(), SecurityID)
+            or IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId(), SecurityID)
             or IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId(), SecurityID));
     end;
 

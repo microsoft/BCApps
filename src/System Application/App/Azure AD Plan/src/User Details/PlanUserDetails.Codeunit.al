@@ -29,10 +29,10 @@ codeunit 776 "Plan User Details"
             end;
 
         UserDetails."User Plans" := CopyStr(UserPlansTextBuilder.ToText().TrimEnd(' ; '), 1, MaxStrLen(UserDetails."User Plans"));
-        UserDetails."Is Delegated" := AzureADPlan.IsPlanAssignedToUser(PlanIds.GetDelegatedAdminPlanId(), UserSecId) or
+        UserDetails."Is Delegated" := AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId(), UserSecId) or
                                       AzureADPlan.IsPlanAssignedToUser(PlanIds.GetHelpDeskPlanId(), UserSecId) or
                                       AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPartnerPlanId(), UserSecId) or
-                                      AzureADPlan.IsPlanAssignedToUser(PlanIds.GetDelegatedBCAdminPlanId(), UserSecId);
+                                      AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365BCAdminPlanId(), UserSecId);
 
         UserDetails."Has M365 Plan" := AzureADPlan.IsPlanAssignedToUser(PlanIds.GetMicrosoft365PlanId(), UserSecId);
 
