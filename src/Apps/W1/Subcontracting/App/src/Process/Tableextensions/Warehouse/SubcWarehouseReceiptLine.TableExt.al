@@ -17,5 +17,12 @@ tableextension 99001525 "Subc. Warehouse Receipt Line" extends "Warehouse Receip
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(99001560; "Transfer WIP Item"; Boolean)
+        {
+            Caption = 'Transfer WIP Item';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies whether this transfer receipt line represents a WIP item transfer.';
+        }
     }
 }

@@ -12,6 +12,7 @@ page 99001502 "Subc. Routing Info Factbox"
     Caption = 'Subcontracting Routing Details';
     Editable = false;
     PageType = CardPart;
+    RefreshOnActivate = true;
     SourceTable = "Prod. Order Routing Line";
     layout
     {
@@ -59,7 +60,7 @@ page 99001502 "Subc. Routing Info Factbox"
                     ShowPurchaseInvoices();
                 end;
             }
-            field(ShowNoOfTransferOrdersFromProdOrderComp; SubcRoutingFactboxMgmt.GetNoOfTransferLinesFromRouting(Rec))
+            field(ShowNoOfTransferOrdersFromProdOrderComp; SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, false))
             {
                 AutoFormatType = 0;
                 Caption = 'Transfer Order Lines';
@@ -70,7 +71,7 @@ page 99001502 "Subc. Routing Info Factbox"
                     SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
                 end;
             }
-            field(ShowNoOfReturnTransferOrdersFromProdOrderComp; SubcRoutingFactboxMgmt.GetNoOfReturnTransferLinesFromRouting(Rec))
+            field(ShowNoOfReturnTransferOrdersFromProdOrderComp; SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, true))
             {
                 AutoFormatType = 0;
                 Caption = 'Return Transfer Order Lines';
@@ -91,6 +92,12 @@ page 99001502 "Subc. Routing Info Factbox"
                 begin
                     ShowProdOrderComponents();
                 end;
+            }
+            field("WIP Qty. (Base) at Subc."; Rec."WIP Qty. (Base) at Subc.")
+            {
+            }
+            field("WIP Qty. (Base) in Transit"; Rec."WIP Qty. (Base) in Transit")
+            {
             }
         }
     }

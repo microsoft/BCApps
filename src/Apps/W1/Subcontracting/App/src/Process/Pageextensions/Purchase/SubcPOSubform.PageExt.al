@@ -11,6 +11,17 @@ using System.Utilities;
 
 pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
 {
+    layout
+    {
+        addlast(Control1)
+        {
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Manufacturing;
+                Visible = false;
+            }
+        }
+    }
     actions
     {
         addlast("F&unctions")

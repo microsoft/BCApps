@@ -220,27 +220,33 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
     /// <param name="RecRelatedVariant">A record variant of a Prod. Order Component, Purchase Line, or Prod. Order Routing Line.</param>
     /// <param name="LookUpPage">When true, opens the transfer order page; when false, only populates the temp table.</param>
     /// <param name="IsReturn">When true, filters to return transfer orders; when false, filters to outbound transfer orders.</param>
-    procedure ShowTransferOrdersAndReturnOrder(RecRelatedVariant: Variant; LookUpPage: Boolean; IsReturn: Boolean)
+    /// <returns>The number of transfer lines linked to the given record.</returns>
+    procedure ShowTransferOrdersAndReturnOrder(RecRelatedVariant: Variant; LookUpPage: Boolean; IsReturn: Boolean): Decimal
     var
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
         PurchaseLine: Record "Purchase Line";
-        TempTransferHeader: Record "Transfer Header" temporary;
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         DataTypeManagement: Codeunit "Data Type Management";
+        PageManagement: Codeunit "Page Management";
         RecRef: RecordRef;
+        NoOfTransferHeaders: Integer;
     begin
         if not RecRelatedVariant.IsRecord() then
             exit;
 
         DataTypeManagement.GetRecordRef(RecRelatedVariant, RecRef);
+        ProductionOrder.SetLoadFields("No.", "Source Type");
 
         case RecRef.Number() of
             Database::"Prod. Order Component":
                 begin
                     RecRef.SetTable(ProdOrderComponent);
+                    if not ProductionOrder.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.") then
+                        exit;
                     if not ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.") then
                         exit;
 
@@ -249,54 +255,62 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
             Database::"Purchase Line":
                 begin
                     RecRef.SetTable(PurchaseLine);
-                    GetProdOrderRtngLineFromPurchaseLine(ProdOrderRoutingLine, PurchaseLine);
-                    if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
+                    if not ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then
                         exit;
+                    GetProdOrderRtngLineFromPurchaseLine(ProdOrderRoutingLine, PurchaseLine);
+                    if ProductionOrder."Source Type" <> "Prod. Order Source Type"::Family then
+                        if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
+                            exit;
                 end;
             Database::"Prod. Order Routing Line":
                 begin
                     RecRef.SetTable(ProdOrderRoutingLine);
-                    if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.") then
+                    if not ProductionOrder.Get(ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.") then
                         exit;
+                    if ProductionOrder."Source Type" <> "Prod. Order Source Type"::Family then
+                        if not ProdOrderLine.Get(ProdOrderRoutingLine.Status, ProdOrderRoutingLine."Prod. Order No.", ProdOrderRoutingLine."Routing Reference No.") then
+                            exit;
                 end;
             else
                 exit;
         end;
 
         TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
-        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        TransferLine.SetRange("Subc. Prod. Order Line No.", ProdOrderLine."Line No.");
-        if IsReturn then begin
-            TransferLine.SetRange("Subc. Routing Reference No.", 0);
-            TransferLine.SetRange("Subc. Routing No.", '');
-            TransferLine.SetRange("Subc. Operation No.", '');
-        end else begin
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        if ProductionOrder."Source Type" <> "Prod. Order Source Type"::Family then begin
+            TransferLine.SetRange("Subc. Prod. Order Line No.", ProdOrderLine."Line No.");
             TransferLine.SetRange("Subc. Routing Reference No.", ProdOrderLine."Routing Reference No.");
-            TransferLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-            TransferLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        end else begin
+            TransferLine.SetRange("Subc. Prod. Order Line No.");
+            TransferLine.SetRange("Subc. Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         end;
+        TransferLine.SetRange("Subc. Return Order", IsReturn);
+        TransferLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        TransferLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        if not LookUpPage then
+            exit(TransferLine.Count());
 
         if not TransferLine.IsEmpty() then
-            if TransferLine.FindSet() then begin
-                if not TempTransferHeader.IsEmpty() then
-                    TempTransferHeader.DeleteAll();
+            if TransferLine.FindSet() then
                 repeat
-                    if TransferHeader.Get(TransferLine."Document No.") then begin
-                        TempTransferHeader.Init();
-                        TempTransferHeader.TransferFields(TransferHeader);
-                        if TempTransferHeader.Insert() then;
-                    end;
+                    if TransferHeader.Get(TransferLine."Document No.") then
+                        TransferHeader.Mark(true);
                 until TransferLine.Next() = 0;
-            end;
+        TransferHeader.MarkedOnly(true);
 
-        if LookUpPage then
-            if TempTransferHeader.Count() > 1 then
-                Page.Run(Page::"Transfer Orders", TempTransferHeader)
-            else
-                if TempTransferHeader.FindSet() then
-                    Page.Run(Page::"Transfer Order", TempTransferHeader)
-                else
+        if LookUpPage then begin
+            NoOfTransferHeaders := TransferHeader.Count();
+            case true of
+                NoOfTransferHeaders = 0:
                     Message(NoTransferExistsMsg);
+                NoOfTransferHeaders = 1:
+                    if TransferHeader.FindFirst() then
+                        PageManagement.PageRun(TransferHeader);
+                NoOfTransferHeaders > 1:
+                    PageManagement.PageRunList(TransferHeader);
+            end;
+        end;
     end;
 
     /// <summary>
