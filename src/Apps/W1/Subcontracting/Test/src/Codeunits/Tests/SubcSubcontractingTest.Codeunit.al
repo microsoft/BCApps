@@ -2548,7 +2548,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [GIVEN] Subcontracting setup with direct transfer (no in-transit route)
         Initialize();
-        UpdateManufacturingSetupWithSubcontractingLocation();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
@@ -2620,7 +2620,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [GIVEN] Subcontracting setup with two prod order lines sharing routing/operation but different Routing Reference No.
         Initialize();
-        UpdateManufacturingSetupWithSubcontractingLocation();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
         CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
