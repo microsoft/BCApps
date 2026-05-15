@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,11 +6,15 @@
 
 namespace System.SFTPClient;
 
+#pragma warning disable AL0432, AS0105
 codeunit 9762 "SFTP Client"
 {
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'The SFTP module has been removed because platform hardening prevents support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     /// <summary>
     /// Adds a SHA256 fingerprint to the list of accepted host key fingerprints.
@@ -203,3 +208,5 @@ codeunit 9762 "SFTP Client"
     var
         SFTPClientImplementation: Codeunit "SFTP Client Implementation";
 }
+#pragma warning restore AL0432, AS0105
+#endif

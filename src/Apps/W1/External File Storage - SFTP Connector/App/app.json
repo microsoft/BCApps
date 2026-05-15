@@ -12,13 +12,6 @@
   "logo": "ExtensionLogo.png",
   "application": "29.0.0.0",
   "platform": "29.0.0.0",
-  "internalsVisibleTo": [
-    {
-      "id": "87c3fa98-904d-452d-95fe-5de2c7f0b624",
-      "name": "External File Storage - SFTP Connector Tests",
-      "publisher": "Microsoft"
-    }
-  ],
   "dependencies": [],
   "screenshots": [],
   "idRanges": [

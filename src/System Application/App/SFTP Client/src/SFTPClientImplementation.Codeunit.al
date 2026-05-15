@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,11 +9,15 @@ namespace System.SFTPClient;
 using System;
 using System.Utilities;
 
+#pragma warning disable AL0432, AS0105
 codeunit 9763 "SFTP Client Implementation"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'The SFTP module has been removed because platform hardening prevents support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     procedure Initialize(Host: Text; Port: Integer; UserName: Text; Password: SecretText): Codeunit "SFTP Operation Response"
     begin
@@ -210,3 +215,5 @@ codeunit 9763 "SFTP Client Implementation"
         HostkeyFingerprintsMD5: List of [Text];
         ISFTPClientSet: Boolean;
 }
+#pragma warning restore AL0432, AS0105
+#endif

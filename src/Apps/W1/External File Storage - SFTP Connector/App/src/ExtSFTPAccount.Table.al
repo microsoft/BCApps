@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,10 +12,19 @@ using System.Utilities;
 /// <summary>
 /// Holds the information for all file accounts that are registered via the SFTP connector
 /// </summary>
+#pragma warning disable AL0432, AS0105
 table 4621 "Ext. SFTP Account"
 {
     Caption = 'SFTP Account';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'The SFTP connector has been removed because platform hardening prevents support for SFTP connections.';
+#if not CLEAN29
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '29.0';
+#endif
 
     fields
     {
@@ -237,3 +247,5 @@ table 4621 "Ext. SFTP Account"
         exit(CertificateBase64);
     end;
 }
+#pragma warning restore AL0432, AS0105
+#endif

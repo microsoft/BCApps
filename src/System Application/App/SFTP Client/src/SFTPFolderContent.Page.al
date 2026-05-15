@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,6 +6,7 @@
 
 namespace System.SFTPClient;
 
+#pragma warning disable AL0432, AS0105
 page 9761 "SFTP Folder Content"
 {
     Caption = 'SFTP Folder Content';
@@ -16,6 +18,9 @@ page 9761 "SFTP Folder Content"
     DeleteAllowed = false;
     Editable = false;
     Extensible = false;
+    ObsoleteReason = 'The SFTP module has been removed because platform hardening prevents support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     layout
     {
@@ -53,3 +58,5 @@ page 9761 "SFTP Folder Content"
         }
     }
 }
+#pragma warning restore AL0432, AS0105
+#endif
