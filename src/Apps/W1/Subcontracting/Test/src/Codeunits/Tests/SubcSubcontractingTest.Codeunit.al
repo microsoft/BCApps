@@ -2572,6 +2572,188 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.IsFalse(PurchaseOrderPageOpened, 'Purchase Order card should not open when purchase orders already exist.');
     end;
 
+    [Test]
+    procedure StandardTaskCodePropagatedAndDrivesSubcPriceLookup()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionLineWithStdTask: Record "Requisition Line";
+        RequisitionLineNoStdTask: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        StandardTask: Record "Standard Task";
+        SubcontractorPrice: Record "Subcontractor Price";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        LibraryUtility: Codeunit "Library - Utility";
+        PriceWithoutStdTask: Decimal;
+        PriceWithStdTask: Decimal;
+        SecondOperationNo: Code[10];
+    begin
+        // [SCENARIO 633226] Standard Task Code propagates from Routing → Prod. Order Routing → Subcontracting Worksheet,
+        // is editable on the worksheet, and drives Subcontractor Price lookup. Editing or clearing it on a worksheet
+        // line re-applies the matching subcontractor price; carrying out creates Purchase Lines with the correct unit costs.
+
+        Initialize();
+
+        // [GIVEN] Subcontracting setup with a worksheet template
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Work centers and a manufacturing item with routing and BOM
+        //         (helper creates one subcontracting routing line on WorkCenter[2] without a Standard Task)
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] A standard task code
+        LibraryManufacturing.CreateStandardTask(StandardTask);
+
+        // [GIVEN] A second subcontracting routing line on the same work center, with the standard task assigned
+        SecondOperationNo := AddSubcRoutingLineWithStandardTask(Item."Routing No.", WorkCenter[2]."No.", StandardTask.Code);
+
+        // [GIVEN] Two subcontractor prices for the item / work center / vendor:
+        //         - PriceWithoutStdTask, with no Standard Task Code
+        //         - PriceWithStdTask = 2 * PriceWithoutStdTask, tied to StandardTask.Code
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        PriceWithoutStdTask := LibraryRandom.RandIntInRange(50, 200);
+        PriceWithStdTask := PriceWithoutStdTask * 2;
+
+        SubcontractorPrice.Reset();
+        SubcontractorPrice.SetRange("Vendor No.", Vendor."No.");
+        SubcontractorPrice.SetRange("Item No.", Item."No.");
+        SubcontractorPrice.DeleteAll();
+
+        Clear(SubcontractorPrice);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", '', '',
+            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
+        SubcontractorPrice."Direct Unit Cost" := PriceWithoutStdTask;
+        SubcontractorPrice.Modify();
+
+        Clear(SubcontractorPrice);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter[2]."No.", Vendor."No.", Item."No.", StandardTask.Code, '',
+            WorkDate(), Item."Base Unit of Measure", 0, Vendor."Currency Code");
+        SubcontractorPrice."Direct Unit Cost" := PriceWithStdTask;
+        SubcontractorPrice.Modify();
+
+        // [GIVEN] A released production order
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [THEN] Standard Task Code is propagated from Routing Line to Prod. Order Routing Line on the second operation
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Operation No.", SecondOperationNo);
+        ProdOrderRoutingLine.FindFirst();
+        Assert.AreEqual(
+            StandardTask.Code, ProdOrderRoutingLine."Standard Task Code",
+            'Standard Task Code must be propagated from Routing Line to Prod. Order Routing Line.');
+
+        // [GIVEN] An empty subcontracting worksheet
+        ReqWkshTemplate.DeleteAll(true);
+        ReqWkshTemplate.Name := SelectRequisitionTemplateName();
+        RequisitionWkshName.Init();
+        RequisitionWkshName.Validate("Worksheet Template Name", ReqWkshTemplate.Name);
+        RequisitionWkshName.Validate(
+            Name,
+            CopyStr(
+                LibraryUtility.GenerateRandomCode(RequisitionWkshName.FieldNo(Name), Database::"Requisition Wksh. Name"),
+                1, LibraryUtility.GetFieldLength(Database::"Requisition Wksh. Name", RequisitionWkshName.FieldNo(Name))));
+        RequisitionWkshName.Insert(true);
+
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+
+        // [WHEN] Calculate Subcontracts is run on the worksheet
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+
+        // [THEN] On the worksheet line for the operation with a standard task, Standard Task Code is populated
+        //        and the standard-task-bound price is applied
+        RequisitionLineWithStdTask.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLineWithStdTask.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+#pragma warning disable AA0210
+        RequisitionLineWithStdTask.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RequisitionLineWithStdTask.SetRange("Operation No.", SecondOperationNo);
+#pragma warning restore AA0210
+        RequisitionLineWithStdTask.FindFirst();
+        Assert.AreEqual(
+            StandardTask.Code, RequisitionLineWithStdTask."Standard Task Code",
+            'Standard Task Code must be propagated from Prod. Order Routing Line to the Subcontracting Worksheet line.');
+        Assert.AreEqual(
+            PriceWithStdTask, RequisitionLineWithStdTask."Direct Unit Cost",
+            'Subcontractor Price tied to the Standard Task Code must be applied to the worksheet line.');
+
+        // [THEN] On the worksheet line for the operation without a standard task, the un-tagged subcontractor price is applied
+        RequisitionLineNoStdTask.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLineNoStdTask.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+#pragma warning disable AA0210
+        RequisitionLineNoStdTask.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RequisitionLineNoStdTask.SetFilter("Operation No.", '<>%1', SecondOperationNo);
+#pragma warning restore AA0210
+        RequisitionLineNoStdTask.FindFirst();
+        Assert.AreEqual(
+            '', RequisitionLineNoStdTask."Standard Task Code",
+            'Standard Task Code must be empty on the worksheet line that has no standard task on the routing.');
+        Assert.AreEqual(
+            PriceWithoutStdTask, RequisitionLineNoStdTask."Direct Unit Cost",
+            'Subcontractor Price for the un-tagged combination must be applied to the worksheet line.');
+
+        // [WHEN] User clears Standard Task Code on the worksheet line
+        RequisitionLineWithStdTask.Validate("Standard Task Code", '');
+        RequisitionLineWithStdTask.Modify(true);
+
+        // [THEN] Direct Unit Cost falls back to the un-tagged subcontractor price
+        Assert.AreEqual(
+            PriceWithoutStdTask, RequisitionLineWithStdTask."Direct Unit Cost",
+            'Clearing Standard Task Code on the worksheet line must re-apply the un-tagged subcontractor price.');
+
+        // [WHEN] User re-sets Standard Task Code on the worksheet line
+        RequisitionLineWithStdTask.Validate("Standard Task Code", StandardTask.Code);
+        RequisitionLineWithStdTask.Modify(true);
+
+        // [THEN] Direct Unit Cost is restored to the standard-task-bound subcontractor price
+        Assert.AreEqual(
+            PriceWithStdTask, RequisitionLineWithStdTask."Direct Unit Cost",
+            'Re-setting Standard Task Code on the worksheet line must re-apply the standard-task-bound subcontractor price.');
+
+        // [WHEN] Carry Out Action Message creates the Subcontracting Purchase Order from the worksheet
+        Clear(RequisitionLine);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        CarryOutActionMsgReq.SetReqWkshLine(RequisitionLine);
+        CarryOutActionMsgReq.UseRequestPage(false);
+        CarryOutActionMsgReq.RunModal();
+
+        // [THEN] The purchase line for the operation with a standard task has Direct Unit Cost = PriceWithStdTask
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", Item."No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
+        PurchaseLine.SetRange("Operation No.", SecondOperationNo);
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(
+            PriceWithStdTask, PurchaseLine."Direct Unit Cost",
+            'Subcontracting Purchase Line for the operation with a standard task must use the standard-task-bound subcontractor price.');
+
+        // [THEN] The purchase line for the operation without a standard task has Direct Unit Cost = PriceWithoutStdTask
+        PurchaseLine.SetFilter("Operation No.", '<>%1', SecondOperationNo);
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(
+            PriceWithoutStdTask, PurchaseLine."Direct Unit Cost",
+            'Subcontracting Purchase Line for the operation without a standard task must use the un-tagged subcontractor price.');
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
@@ -2900,6 +3082,45 @@ codeunit 139989 "Subc. Subcontracting Test"
         end;
         WorkCenter.Modify(true);
         WorkCenterNo := WorkCenter."No.";
+    end;
+
+    local procedure AddSubcRoutingLineWithStandardTask(RoutingNo: Code[20]; WorkCenterNo: Code[20]; StandardTaskCode: Code[10]) NewOperationNo: Code[10]
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+    begin
+#pragma warning disable AA0210
+        CapacityUnitOfMeasure.SetRange(Type, CapacityUnitOfMeasure.Type::Minutes);
+#pragma warning restore AA0210
+        CapacityUnitOfMeasure.FindFirst();
+
+        RoutingHeader.Get(RoutingNo);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+
+        // Use a number larger than any existing operation so the certification-time ordering check is satisfied.
+        NewOperationNo := CopyStr(IncStr(FindLastRoutingOperationNo(RoutingNo)), 1, MaxStrLen(NewOperationNo));
+
+        LibraryManufacturing.CreateRoutingLineSetup(
+            RoutingLine, RoutingHeader, WorkCenterNo, NewOperationNo,
+            LibraryRandom.RandInt(5), LibraryRandom.RandInt(5));
+        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Validate("Standard Task Code", StandardTaskCode);
+        RoutingLine.Modify(true);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+    end;
+
+    local procedure FindLastRoutingOperationNo(RoutingNo: Code[20]): Code[10]
+    var
+        RoutingLine: Record "Routing Line";
+    begin
+        RoutingLine.SetRange("Routing No.", RoutingNo);
+        if RoutingLine.FindLast() then
+            exit(RoutingLine."Operation No.");
     end;
 
     local procedure CreateSubcontractingPurchOrderPostAndGetPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line")
