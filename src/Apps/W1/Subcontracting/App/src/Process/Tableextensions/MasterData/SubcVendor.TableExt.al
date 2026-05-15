@@ -13,7 +13,7 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001515; "Subcontr. Location Code"; Code[10])
+        field(99001515; "Subc. Location Code"; Code[10])
         {
             Caption = 'Subcontracting Location Code';
             DataClassification = CustomerContent;
@@ -23,12 +23,12 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
                 Location: Record Location;
                 ErrorInfo: ErrorInfo;
             begin
-                if "Subcontr. Location Code" = '' then
+                if "Subc. Location Code" = '' then
                     exit;
-                Location.Get("Subcontr. Location Code");
+                Location.Get("Subc. Location Code");
                 if Location."Bin Mandatory" or Location."Require Pick" or Location."Require Put-away" or Location."Require Receive" or Location."Require Shipment" then begin
                     ErrorInfo.Title := CannotUseLocationLbl;
-                    ErrorInfo.Message := StrSubstNo(BinWarehouseEnabledOnLocationErr, "Subcontr. Location Code");
+                    ErrorInfo.Message := StrSubstNo(BinWarehouseEnabledOnLocationErr, "Subc. Location Code");
                     ErrorInfo.Verbosity := ErrorInfo.Verbosity::Error;
                     ErrorInfo.PageNo := Page::"Location Card";
                     ErrorInfo.RecordId := Location.RecordId;
@@ -37,26 +37,26 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
                 end;
             end;
         }
-        field(99001516; "Linked to Work Center"; Boolean)
+        field(99001516; "Subc. Linked to Work Center"; Boolean)
         {
             CalcFormula = exist("Work Center" where("Subcontractor No." = field("No.")));
             Caption = 'Linked to Work Center';
             Editable = false;
             FieldClass = FlowField;
         }
-        field(99001517; "Work Center No."; Code[20])
+        field(99001517; "Subc. Work Center No."; Code[20])
         {
             Caption = 'Work Center No.';
             DataClassification = CustomerContent;
             TableRelation = "Work Center" where("Subcontractor No." = field("No."));
         }
     }
-    
+
     keys
     {
-        key(SubcLocationCode; "Subcontr. Location Code") { }
+        key(SubcLocationCode; "Subc. Location Code") { }
     }
-    
+
     var
         CannotUseLocationLbl: Label 'Cannot user the location for subcontracting';
         ShowLocationCardLbl: Label 'Show Location Card';

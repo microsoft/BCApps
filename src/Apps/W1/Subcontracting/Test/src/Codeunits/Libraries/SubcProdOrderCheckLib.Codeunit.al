@@ -77,7 +77,7 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
         Vendor: Record Vendor;
     begin
         if Vendor.Get(VendorNo) then
-            exit(Vendor."Subcontr. Location Code");
+            exit(Vendor."Subc. Location Code");
         exit('');
     end;
 

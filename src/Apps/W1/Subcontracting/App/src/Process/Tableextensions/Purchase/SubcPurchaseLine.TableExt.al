@@ -82,7 +82,7 @@ tableextension 99001512 "Subc. Purchase Line" extends "Purchase Line"
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(99001550; "Whse. Outstanding Quantity"; Decimal)
+        field(99001550; "Subc.Whse.Outstanding Quantity"; Decimal)
         {
             AccessByPermission = TableData Location = R;
             AutoFormatType = 0;

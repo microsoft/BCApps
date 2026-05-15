@@ -159,7 +159,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         TransferLine.Reset();
         TransferLine.SetRange("Document No.", SecondTransferOrderNo);
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder2."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder2."No.");
         Assert.RecordIsNotEmpty(TransferLine);
     end;
 
@@ -577,7 +577,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
 
         Assert.RecordIsNotEmpty(TransferLine);
@@ -655,9 +655,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
-        TransferLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
+        TransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComp."Line No.");
         TransferLine.FindFirst();
 
         TransferHeader.Get(TransferLine."Document No.");
@@ -744,9 +744,9 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
-        TransferLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
+        TransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComp."Line No.");
         TransferLine.FindFirst();
 
         TransferHeader.Get(TransferLine."Document No.");
@@ -834,9 +834,9 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
-        TransferLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
+        TransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComp."Line No.");
         TransferLine.FindFirst();
 
         TransferHeader.SetRange("No.", TransferLine."Document No.");
@@ -870,9 +870,9 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
-        TransferLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
+        TransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComp."Line No.");
         TransferLine.FindFirst();
 
         TransferHeader.SetRange("No.", TransferLine."Document No.");
@@ -978,7 +978,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
         WorkCenter2 := WorkCenter[2];
         WorkCenter2."Subcontractor No." := Vendor."No.";
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
@@ -1111,7 +1111,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
         WorkCenter2 := WorkCenter[2];
         WorkCenter2."Subcontractor No." := Vendor."No.";
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
@@ -1347,7 +1347,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
 
         Assert.RecordIsNotEmpty(TransferLine);
@@ -1434,7 +1434,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
         TransferLine.FindFirst();
 
@@ -1520,7 +1520,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
 
         TransferLine.FindFirst();
@@ -1611,7 +1611,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
 
         Assert.RecordIsNotEmpty(TransferLine);
@@ -1853,7 +1853,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [THEN]
         Assert.Equal(ProductionBOMLine."Subcontracting Type", PlanningComponent."Subcontracting Type");
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Assert.Equal(Vendor."Subcontr. Location Code", PlanningComponent."Location Code");
+        Assert.Equal(Vendor."Subc. Location Code", PlanningComponent."Location Code");
     end;
 
     [Test]
@@ -1951,13 +1951,13 @@ codeunit 139989 "Subc. Subcontracting Test"
         ItemLedgerEntry.FindFirst();
 
         Assert.AreEqual(
-          PurchaseHeader."No.", ItemLedgerEntry."Subcontr. Purch. Order No.",
+          PurchaseHeader."No.", ItemLedgerEntry."Subc. Purch. Order No.",
           'Item Ledger Entry "Subcontr. Purch. Order No." should equal the originating subcontracting purchase order.');
         Assert.AreEqual(
-          PurchaseLine."Line No.", ItemLedgerEntry."Subcontr. PO Line No.",
+          PurchaseLine."Line No.", ItemLedgerEntry."Subc. Purch. Order Line No.",
           'Item Ledger Entry "Subcontr. PO Line No." should equal the originating subcontracting purchase line.');
         Assert.AreEqual(
-          PurchaseLine."Operation No.", ItemLedgerEntry."Operation No.",
+          PurchaseLine."Operation No.", ItemLedgerEntry."Subc. Operation No.",
           'Item Ledger Entry "Operation No." (Subc) should equal the originating purchase line operation.');
     end;
 
@@ -2302,7 +2302,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
         TransferLine.FindFirst();
         TransferHeader.Get(TransferLine."Document No.");
@@ -2384,9 +2384,9 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
-        TransferLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
+        TransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComp."Line No.");
         TransferLine.FindFirst();
 
         TransferHeader.Get(TransferLine."Document No.");
@@ -2409,7 +2409,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [THEN] A Return Transfer Order is created with reversed Transfer-from / Transfer-to and quantity capped by the partially-shipped qty
         ReturnTransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
-        ReturnTransferHeader.SetRange("Return Order", true);
+        ReturnTransferHeader.SetRange("Subc. Return Order", true);
         Assert.IsTrue(ReturnTransferHeader.FindFirst(), 'Return Transfer Order should be created after partial ship of outbound');
         Assert.AreEqual(OutboundToCode, ReturnTransferHeader."Transfer-from Code", 'Return Transfer-from must be the subcontractor location');
         Assert.AreEqual(OutboundFromCode, ReturnTransferHeader."Transfer-to Code", 'Return Transfer-to must be the original component location');
@@ -2483,9 +2483,9 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
 
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Item No.", ProdOrderComp."Item No.");
-        TransferLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
+        TransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComp."Line No.");
         TransferLine.FindFirst();
 
         TransferHeader.Get(TransferLine."Document No.");
@@ -2508,7 +2508,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [THEN] A Return Transfer Order is created with reversed Transfer-from / Transfer-to and quantity capped by the qty that actually arrived at the subcontractor
         ReturnTransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
-        ReturnTransferHeader.SetRange("Return Order", true);
+        ReturnTransferHeader.SetRange("Subc. Return Order", true);
         Assert.IsTrue(ReturnTransferHeader.FindFirst(), 'Return Transfer Order should be created after partial direct transfer');
         Assert.AreEqual(OutboundToCode, ReturnTransferHeader."Transfer-from Code", 'Return Transfer-from must be the subcontractor location');
         Assert.AreEqual(OutboundFromCode, ReturnTransferHeader."Transfer-to Code", 'Return Transfer-to must be the original component location');
@@ -2868,7 +2868,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Get(WorkCenter."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
@@ -2921,7 +2921,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
         WorkCenter2 := WorkCenter[2];
         WorkCenter2."Subcontractor No." := Vendor."No.";
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();

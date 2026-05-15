@@ -11,14 +11,14 @@ codeunit 99001537 "Subc. Transfer Shpt Line Ext."
     [EventSubscriber(ObjectType::Table, Database::"Transfer Shipment Line", OnAfterCopyFromTransferLine, '', false, false)]
     local procedure OnAfterCopyFromTransferLine_T5745(var TransferShipmentLine: Record "Transfer Shipment Line"; TransferLine: Record "Transfer Line")
     begin
-        TransferShipmentLine."Subcontr. Purch. Order No." := TransferLine."Subcontr. Purch. Order No.";
-        TransferShipmentLine."Subcontr. PO Line No." := TransferLine."Subcontr. PO Line No.";
-        TransferShipmentLine."Prod. Order No." := TransferLine."Prod. Order No.";
-        TransferShipmentLine."Prod. Order Line No." := TransferLine."Prod. Order Line No.";
-        TransferShipmentLine."Prod. Order Comp. Line No." := TransferLine."Prod. Order Comp. Line No.";
-        TransferShipmentLine."Routing No." := TransferLine."Routing No.";
-        TransferShipmentLine."Routing Reference No." := TransferLine."Routing Reference No.";
-        TransferShipmentLine."Work Center No." := TransferLine."Work Center No.";
-        TransferShipmentLine."Operation No." := TransferLine."Operation No.";
+        TransferShipmentLine."Subc. Purch. Order No." := TransferLine."Subc. Purch. Order No.";
+        TransferShipmentLine."Subc. Purch. Order Line No." := TransferLine."Subc. Purch. Order Line No.";
+        TransferShipmentLine."Subc. Prod. Order No." := TransferLine."Subc. Prod. Order No.";
+        TransferShipmentLine."Subc. Prod. Order Line No." := TransferLine."Subc. Prod. Order Line No.";
+        TransferShipmentLine."Subc. Prod. Ord. Comp Line No." := TransferLine."Subc. Prod. Ord. Comp Line No.";
+        TransferShipmentLine."Subc. Routing No." := TransferLine."Subc. Routing No.";
+        TransferShipmentLine."Subc. Routing Reference No." := TransferLine."Subc. Routing Reference No.";
+        TransferShipmentLine."Subc. Work Center No." := TransferLine."Subc. Work Center No.";
+        TransferShipmentLine."Subc. Operation No." := TransferLine."Subc. Operation No.";
     end;
 }

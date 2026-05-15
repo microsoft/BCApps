@@ -114,7 +114,7 @@ codeunit 149900 "Subc. Whse Receipt Last Op."
 
         // [GIVEN] Update Vendor with Subcontracting Location Code
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -219,7 +219,7 @@ codeunit 149900 "Subc. Whse Receipt Last Op."
 
         // [GIVEN] Configure Vendor with Subcontracting Location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := LibraryWarehouse.CreateLocationWithInventoryPostingSetup(VendorLocation);
         Vendor.Modify();
 
@@ -338,7 +338,7 @@ codeunit 149900 "Subc. Whse Receipt Last Op."
 
         // [GIVEN] Configure Vendor with Subcontracting Location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := LibraryWarehouse.CreateLocationWithInventoryPostingSetup(VendorLocation);
         Vendor.Modify();
 
@@ -505,7 +505,7 @@ codeunit 149900 "Subc. Whse Receipt Last Op."
 
         // [GIVEN] Configure Vendor with Subcontracting Location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := LibraryWarehouse.CreateLocationWithInventoryPostingSetup(VendorLocation);
         Vendor.Modify();
 
@@ -616,7 +616,7 @@ codeunit 149900 "Subc. Whse Receipt Last Op."
 
         // [GIVEN] Configure Vendor with Subcontracting Location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := LibraryWarehouse.CreateLocationWithInventoryPostingSetup(VendorLocation);
         Vendor.Modify();
 

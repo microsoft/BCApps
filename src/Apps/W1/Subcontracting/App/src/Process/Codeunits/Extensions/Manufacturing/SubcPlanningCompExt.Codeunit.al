@@ -24,8 +24,8 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
     local procedure OnAfterTransferFromComponent(var PlanningComponent: Record "Planning Component"; var ProdOrderComp: Record "Prod. Order Component")
     begin
         PlanningComponent."Subcontracting Type" := ProdOrderComp."Subcontracting Type";
-        PlanningComponent."Orig. Location Code" := ProdOrderComp."Orig. Location Code";
-        PlanningComponent."Orig. Bin Code" := ProdOrderComp."Orig. Bin Code";
+        PlanningComponent."Orig. Location Code" := ProdOrderComp."Subc. Original Location Code";
+        PlanningComponent."Orig. Bin Code" := ProdOrderComp."Subc. Orig. Bin Code";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterValidateEvent, "Location Code", false, false)]
@@ -62,7 +62,7 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
             PlanningRoutingLine.SetRange(Type, PlanningRoutingLine.Type::"Work Center");
             if PlanningRoutingLine.FindFirst() then
                 if SubcontractingManagement.GetSubcontractor(PlanningRoutingLine."No.", Vendor) then
-                    SubcontractingManagement.ChangeLocationOnPlanningComponent(PlanningComponent, Vendor."Subcontr. Location Code", PlanningComponent."Orig. Location Code", PlanningComponent."Orig. Bin Code");
+                    SubcontractingManagement.ChangeLocationOnPlanningComponent(PlanningComponent, Vendor."Subc. Location Code", PlanningComponent."Orig. Location Code", PlanningComponent."Orig. Bin Code");
         end else
             if xPlanningComponent."Routing Link Code" <> '' then
                 if PlanningComponent."Orig. Location Code" <> '' then begin

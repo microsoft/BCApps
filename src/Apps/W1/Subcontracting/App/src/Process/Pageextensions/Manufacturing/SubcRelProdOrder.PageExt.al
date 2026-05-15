@@ -25,14 +25,14 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
         }
         addafter("Item Ledger E&ntries")
         {
-            action("Subcontracting Transfer Entries")
+            action("Subc. Transfer Entries")
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Subcontracting Transfer Entries';
                 Image = ItemLedger;
                 RunObject = page "Item Ledger Entries";
                 RunPageLink = "Entry Type" = const(Transfer),
-                                      "Prod. Order No." = field("No.");
+                                      "Subc. Prod. Order No." = field("No.");
                 RunPageView = sorting("Order Type", "Order No.");
                 ToolTip = 'View the list of subcontracting transfers.';
             }

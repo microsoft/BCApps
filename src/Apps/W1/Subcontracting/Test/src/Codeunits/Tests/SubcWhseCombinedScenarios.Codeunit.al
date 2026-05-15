@@ -129,7 +129,7 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
 
         // [GIVEN] Configure Vendor with Subcontracting Location
         Vendor.Get(WorkCenter[1]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 
@@ -282,12 +282,12 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
 
         // [GIVEN] Configure Vendors with Subcontracting Location
         Vendor1.Get(WorkCenter[1]."Subcontractor No.");
-        Vendor1."Subcontr. Location Code" := Location.Code;
+        Vendor1."Subc. Location Code" := Location.Code;
         Vendor1."Location Code" := Location.Code;
         Vendor1.Modify();
 
         Vendor2.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor2."Subcontr. Location Code" := Location.Code;
+        Vendor2."Subc. Location Code" := Location.Code;
         Vendor2."Location Code" := Location.Code;
         Vendor2.Modify();
 
@@ -427,7 +427,7 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
 
         // [GIVEN] Configure Vendor with Subcontracting Location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 

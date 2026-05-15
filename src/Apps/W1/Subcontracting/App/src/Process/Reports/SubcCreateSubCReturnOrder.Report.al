@@ -37,8 +37,8 @@ report 99001502 "Subc. Create SubCReturnOrder"
             }
             trigger OnAfterGetRecord()
             begin
-                "Purchase Header".CalcFields("Subcontracting Order");
-                if not "Subcontracting Order" then
+                "Purchase Header".CalcFields("Subc. Order");
+                if not "Subc. Order" then
                     Error(OrderNoIsNotSubcontractorErr, PurchOrderNo);
 
                 if not CheckTransferToCreate() then
@@ -85,7 +85,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         TransferHeader.SetRange("Completely Shipped", false);
         TransferHeader.SetRange("Transfer-from Code", TransferFromLocationCode);
         TransferHeader.SetRange("Transfer-to Code", TransferToLocationCode);
-        TransferHeader.SetRange("Return Order", true);
+        TransferHeader.SetRange("Subc. Return Order", true);
         if not TransferHeader.FindFirst() then begin
             TransferHeader.Init();
             TransferHeader."No." := '';
@@ -99,12 +99,12 @@ report 99001502 "Subc. Create SubCReturnOrder"
                 TransferHeader.Validate("Direct Transfer", true);
             end;
 
-            TransferHeader."Source Type" := TransferHeader."Source Type"::Subcontracting;
+            TransferHeader."Subc. Source Type" := TransferHeader."Subc. Source Type"::Subcontracting;
             TransferHeader."Source Subtype" := TransferHeader."Source Subtype"::"2";
             TransferHeader."Source ID" := "Purchase Header"."Buy-from Vendor No.";
             TransferHeader."Subcontr. Purch. Order No." := "Purchase Header"."No.";
             TransferHeader."Subcontr. PO Line No." := "Purchase Line"."Line No.";
-            TransferHeader."Return Order" := true;
+            TransferHeader."Subc. Return Order" := true;
             TransferHeader."Transfer-from Name" := Vendor.Name;
             TransferHeader."Transfer-from Name 2" := Vendor."Name 2";
             TransferHeader."Transfer-from Address" := Vendor.Address;
@@ -179,7 +179,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         ProdOrderComponent.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
         ProdOrderComponent.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
-        ProdOrderComponent.SetRange("Purchase Order Filter", PurchaseLine."Document No.");
+        ProdOrderComponent.SetRange("Subc. Purchase Order Filter", PurchaseLine."Document No.");
         ProdOrderComponent.SetRange("Subcontracting Type", ProdOrderComponent."Subcontracting Type"::Transfer);
         if ProdOrderComponent.FindSet() then begin
             GetTransferFromLocationCode(SubcFromLocationCode);
@@ -188,17 +188,17 @@ report 99001502 "Subc. Create SubCReturnOrder"
                 QtyToPost := MfgCostCalculationMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComponent,
                     Round(PurchaseLine."Outstanding Quantity" * QtyPerUom, UnitofMeasureManagement.QtyRndPrecision()));
                 ProdOrderComponent.CalcFields(
-                    "Qty. in Transit (Base)", "Qty. transf. to Subcontr",
+                    "Subc. Qty. in Transit (Base)", "Subc. Qty. transf. to Subcontr",
                     "RetQtyOnTransOrder (Base)", "RetQtyInTransit (Base)");
                 AvailableToReturn :=
-                    Abs(ProdOrderComponent."Qty. in Transit (Base)") + Abs(ProdOrderComponent."Qty. transf. to Subcontr")
+                    Abs(ProdOrderComponent."Subc. Qty. in Transit (Base)") + Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr")
                     - Abs(ProdOrderComponent."RetQtyOnTransOrder (Base)") - Abs(ProdOrderComponent."RetQtyInTransit (Base)");
                 if QtyToPost > AvailableToReturn then
                     QtyToPost := AvailableToReturn;
                 if QtyToPost > 0 then
                     if InsertLine then begin
 
-                        InsertTransferHeader(SubcFromLocationCode, ProdOrderComponent."Orig. Location Code");
+                        InsertTransferHeader(SubcFromLocationCode, ProdOrderComponent."Subc. Original Location Code");
 
                         LineNo := LineNo + 10000;
 
@@ -210,28 +210,28 @@ report 99001502 "Subc. Create SubCReturnOrder"
                         TransferLine."Unit of Measure Code" := ProdOrderComponent."Unit of Measure Code";
                         TransferLine."Qty. per Unit of Measure" := ProdOrderComponent."Qty. per Unit of Measure";
                         TransferLine.Validate(Quantity, Round(QtyToPost / ProdOrderComponent."Qty. per Unit of Measure", Item."Rounding Precision", '>'));
-                        TransferLine."Subcontr. Purch. Order No." := PurchaseLine."Document No.";
-                        TransferLine."Subcontr. PO Line No." := PurchaseLine."Line No.";
-                        TransferLine."Prod. Order No." := PurchaseLine."Prod. Order No.";
-                        TransferLine."Prod. Order Line No." := PurchaseLine."Prod. Order Line No.";
-                        TransferLine."Prod. Order Comp. Line No." := ProdOrderComponent."Line No.";
-                        TransferLine."Return Order" := true;
+                        TransferLine."Subc. Purch. Order No." := PurchaseLine."Document No.";
+                        TransferLine."Subc. Purch. Order Line No." := PurchaseLine."Line No.";
+                        TransferLine."Subc. Prod. Order No." := PurchaseLine."Prod. Order No.";
+                        TransferLine."Subc. Prod. Order Line No." := PurchaseLine."Prod. Order Line No.";
+                        TransferLine."Subc. Prod. Ord. Comp Line No." := ProdOrderComponent."Line No.";
+                        TransferLine."Subc. Return Order" := true;
 
-                        TransferLine."Routing No." := ProdOrderRoutingLine."Routing No.";
-                        TransferLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
-                        TransferLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
-                        TransferLine."Operation No." := ProdOrderRoutingLine."Operation No.";
+                        TransferLine."Subc. Routing No." := ProdOrderRoutingLine."Routing No.";
+                        TransferLine."Subc. Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
+                        TransferLine."Subc. Work Center No." := ProdOrderRoutingLine."Work Center No.";
+                        TransferLine."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
 
-                        TransferLine."Return Order" := true;
+                        TransferLine."Subc. Return Order" := true;
 
                         TransferLine.Insert();
 
                         SubcontractingManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
 
-                        if ProdOrderComponent."Orig. Location Code" = '' then
-                            ProdOrderComponent."Orig. Location Code" := ProdOrderComponent."Location Code";
-                        if ProdOrderComponent."Orig. Bin Code" = '' then
-                            ProdOrderComponent."Orig. Bin Code" := ProdOrderComponent."Bin Code";
+                        if ProdOrderComponent."Subc. Original Location Code" = '' then
+                            ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
+                        if ProdOrderComponent."Subc. Orig. Bin Code" = '' then
+                            ProdOrderComponent."Subc. Orig. Bin Code" := ProdOrderComponent."Bin Code";
                         if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
                             ProdOrderComponent.Validate("Location Code", TransferHeader."Transfer-to Code");
                             ProdOrderComponent.GetDefaultBin();
@@ -261,11 +261,11 @@ report 99001502 "Subc. Create SubCReturnOrder"
     begin
         if PurchaseLine."Document No." = '' then
             exit;
-        TransferLine2.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
-        TransferLine2.SetRange("Subcontr. PO Line No.", PurchaseLine."Line No.");
-        TransferLine2.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
-        TransferLine2.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
-        TransferLine2.SetRange("Return Order", true);
+        TransferLine2.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
+        TransferLine2.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
+        TransferLine2.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
+        TransferLine2.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        TransferLine2.SetRange("Subc. Return Order", true);
         if not TransferLine2.IsEmpty() then
             exit(false);
     end;
@@ -274,9 +274,9 @@ report 99001502 "Subc. Create SubCReturnOrder"
     begin
         TransferToLocationCode := "Purchase Header"."Subc. Location Code";
         if TransferToLocationCode = '' then begin
-            TransferToLocationCode := Vendor."Subcontr. Location Code";
+            TransferToLocationCode := Vendor."Subc. Location Code";
             if TransferToLocationCode = '' then
-                Vendor.TestField("Subcontr. Location Code");
+                Vendor.TestField("Subc. Location Code");
         end;
     end;
 
@@ -378,15 +378,15 @@ report 99001502 "Subc. Create SubCReturnOrder"
         if ProdOrderRoutingLine."Transfer Description 2" <> '' then
             TransferLine."Description 2" := ProdOrderRoutingLine."Transfer Description 2";
 
-        TransferLine."Subcontr. Purch. Order No." := PurchaseLine."Document No.";
-        TransferLine."Subcontr. PO Line No." := PurchaseLine."Line No.";
-        TransferLine."Prod. Order No." := ProdOrderLine."Prod. Order No.";
-        TransferLine."Prod. Order Line No." := ProdOrderLine."Line No.";
-        TransferLine."Routing No." := ProdOrderRoutingLine."Routing No.";
-        TransferLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
-        TransferLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
-        TransferLine."Operation No." := ProdOrderRoutingLine."Operation No.";
-        TransferLine."Return Order" := true;
+        TransferLine."Subc. Purch. Order No." := PurchaseLine."Document No.";
+        TransferLine."Subc. Purch. Order Line No." := PurchaseLine."Line No.";
+        TransferLine."Subc. Prod. Order No." := ProdOrderLine."Prod. Order No.";
+        TransferLine."Subc. Prod. Order Line No." := ProdOrderLine."Line No.";
+        TransferLine."Subc. Routing No." := ProdOrderRoutingLine."Routing No.";
+        TransferLine."Subc. Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
+        TransferLine."Subc. Work Center No." := ProdOrderRoutingLine."Work Center No.";
+        TransferLine."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
+        TransferLine."Subc. Return Order" := true;
 
         TransferLine.Insert();
     end;
@@ -395,12 +395,12 @@ report 99001502 "Subc. Create SubCReturnOrder"
     var
         TransferLineToCheck: Record "Transfer Line";
     begin
-        TransferLineToCheck.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
-        TransferLineToCheck.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
-        TransferLineToCheck.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
-        TransferLineToCheck.SetRange("Operation No.", PurchaseLine."Operation No.");
+        TransferLineToCheck.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
+        TransferLineToCheck.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
+        TransferLineToCheck.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        TransferLineToCheck.SetRange("Subc. Operation No.", PurchaseLine."Operation No.");
         TransferLineToCheck.SetRange("Transfer WIP Item", true);
-        TransferLineToCheck.SetRange("Return Order", true);
+        TransferLineToCheck.SetRange("Subc. Return Order", true);
         exit(not TransferLineToCheck.IsEmpty());
     end;
 }

@@ -12,16 +12,16 @@ pageextension 99001512 "Subc. Prod Order Comp" extends "Prod. Order Components"
     {
         addafter("Remaining Quantity")
         {
-            field("Qty. on Transfer Order (Base)"; Rec."Qty. on Trans Order (Base)")
+            field("Subc. Qty.on TransOrder (Base)"; Rec."Subc. Qty.on TransOrder (Base)")
             {
                 ApplicationArea = Location;
             }
-            field("Qty. in Transit (Base)"; Rec."Qty. in Transit (Base)")
+            field("Subc. Qty. in Transit (Base)"; Rec."Subc. Qty. in Transit (Base)")
             {
                 ApplicationArea = Location;
                 Visible = false;
             }
-            field("Qty. transf. to Subcontractor"; Rec."Qty. transf. to Subcontr")
+            field("Subc. Qty. transf. to Subcontractor"; Rec."Subc. Qty. transf. to Subcontr")
             {
                 ApplicationArea = Manufacturing;
             }

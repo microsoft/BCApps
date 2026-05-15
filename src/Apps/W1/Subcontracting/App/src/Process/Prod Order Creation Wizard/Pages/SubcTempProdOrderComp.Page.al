@@ -93,7 +93,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
                         if Rec."Subcontracting Type" <> Rec."Subcontracting Type"::Transfer then
                             Rec.Validate("Location Code", CopyStr(SubcSessionState.GetCode('SetSubcontractingLocationCodeFromVendor'), 1, MaxStrLen(Rec."Location Code")))
                         else
-                            Rec.Validate("Location Code", Rec."Orig. Location Code");
+                            Rec.Validate("Location Code", Rec."Subc. Original Location Code");
                     end;
                 }
                 field("Due Date"; Rec."Due Date")
@@ -112,7 +112,7 @@ page 99001508 "Subc. Temp Prod Order Comp"
         Rec."Routing Link Code" := xRec."Routing Link Code";
         Rec."Subcontracting Type" := xRec."Subcontracting Type";
         Rec."Location Code" := xRec."Location Code";
-        Rec."Orig. Location Code" := xRec."Orig. Location Code";
+        Rec."Subc. Original Location Code" := xRec."Subc. Original Location Code";
 
         if PresetSubValues then begin
             GetSubManagementSetup();

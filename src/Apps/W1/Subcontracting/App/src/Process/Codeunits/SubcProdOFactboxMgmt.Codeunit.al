@@ -186,33 +186,33 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
             Database::"Transfer Line":
                 begin
                     ResultRecordRef.SetTable(TransferLine);
-                    ProdOrderNo := TransferLine."Prod. Order No.";
-                    ProdOrderLineNo := TransferLine."Prod. Order Line No.";
-                    RoutingNo := TransferLine."Routing No.";
-                    OperationNo := TransferLine."Operation No.";
+                    ProdOrderNo := TransferLine."Subc. Prod. Order No.";
+                    ProdOrderLineNo := TransferLine."Subc. Prod. Order Line No.";
+                    RoutingNo := TransferLine."Subc. Routing No.";
+                    OperationNo := TransferLine."Subc. Operation No.";
                 end;
             Database::"Transfer Shipment Line":
                 begin
                     ResultRecordRef.SetTable(TransferShipmentLine);
-                    ProdOrderNo := TransferShipmentLine."Prod. Order No.";
-                    ProdOrderLineNo := TransferShipmentLine."Prod. Order Line No.";
-                    RoutingNo := TransferShipmentLine."Routing No.";
-                    OperationNo := TransferShipmentLine."Operation No.";
+                    ProdOrderNo := TransferShipmentLine."Subc. Prod. Order No.";
+                    ProdOrderLineNo := TransferShipmentLine."Subc. Prod. Order Line No.";
+                    RoutingNo := TransferShipmentLine."Subc. Routing No.";
+                    OperationNo := TransferShipmentLine."Subc. Operation No.";
                 end;
             Database::"Transfer Receipt Line":
                 begin
                     ResultRecordRef.SetTable(TransferReceiptLine);
-                    ProdOrderNo := TransferReceiptLine."Prod. Order No.";
-                    ProdOrderLineNo := TransferReceiptLine."Prod. Order Line No.";
-                    RoutingNo := TransferReceiptLine."Routing No.";
-                    OperationNo := TransferReceiptLine."Operation No.";
+                    ProdOrderNo := TransferReceiptLine."Subc. Prod. Order No.";
+                    ProdOrderLineNo := TransferReceiptLine."Subc. Prod. Order Line No.";
+                    RoutingNo := TransferReceiptLine."Subc. Routing No.";
+                    OperationNo := TransferReceiptLine."Subc. Operation No.";
                 end;
             Database::"Item Ledger Entry":
                 begin
                     ResultRecordRef.SetTable(ItemLedgerEntry);
                     ProdOrderNo := ItemLedgerEntry."Order No.";
                     ProdOrderLineNo := ItemLedgerEntry."Order Line No.";
-                    OperationNo := ItemLedgerEntry."Operation No.";
+                    OperationNo := ItemLedgerEntry."Subc. Operation No.";
                     RoutingNo := GetRoutingNoFromProdOrderRoutingLine(ProdOrderNo, ProdOrderLineNo, OperationNo);
                 end;
         end;

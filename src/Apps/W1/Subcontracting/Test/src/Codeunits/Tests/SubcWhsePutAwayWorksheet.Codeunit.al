@@ -125,7 +125,7 @@ codeunit 149904 "Subc. Whse Put-Away Worksheet"
 
         // [GIVEN] Configure Vendor with Subcontracting Location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
 

@@ -18,7 +18,7 @@ page 99001501 "Subc. Transfer Line Factbox"
     {
         area(Content)
         {
-            field(ShowPurchOrder; Rec."Subcontr. Purch. Order No.")
+            field(ShowPurchOrder; Rec."Subc. Purch. Order No.")
             {
                 Caption = 'Purchase Order';
                 ToolTip = 'Specifies the dependent Purchase Order of this Subcontracting Transfer Order.';
@@ -27,7 +27,7 @@ page 99001501 "Subc. Transfer Line Factbox"
                     ShowPurchaseOrder(Rec);
                 end;
             }
-            field(ShowProdOrder; Rec."Prod. Order No.")
+            field(ShowProdOrder; Rec."Subc. Prod. Order No.")
             {
                 Caption = 'Production Order';
                 ToolTip = 'Specifies the dependent Production Order of this Subcontracting Transfer Order.';

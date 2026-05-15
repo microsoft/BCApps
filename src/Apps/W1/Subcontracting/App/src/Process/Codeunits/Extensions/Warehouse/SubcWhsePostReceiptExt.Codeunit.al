@@ -83,9 +83,9 @@ codeunit 99001551 "Subc. WhsePostReceipt Ext"
             "Subc. Purchase Line Type"::LastOperation,
             "Subc. Purchase Line Type"::NotLastOperation:
                 begin
-                    PurchaseLine.CalcFields("Whse. Outstanding Quantity");
+                    PurchaseLine.CalcFields("Subc.Whse.Outstanding Quantity");
                     OutstandingQtyBase := PurchaseLine.CalcBaseQtyFromQuantity(PurchaseLine."Outstanding Quantity", PurchaseLine.FieldCaption("Qty. Rounding Precision"), PurchaseLine.FieldCaption("Outstanding Quantity"), PurchaseLine.FieldCaption("Outstanding Qty. (Base)"));
-                    WhseOutstandingQtyBase := PurchaseLine.CalcBaseQtyFromQuantity(PurchaseLine."Whse. Outstanding Quantity", PurchaseLine.FieldCaption("Qty. Rounding Precision"), PurchaseLine.FieldCaption("Whse. Outstanding Quantity"), PurchaseLine.FieldCaption("Whse. Outstanding Qty. (Base)"));
+                    WhseOutstandingQtyBase := PurchaseLine.CalcBaseQtyFromQuantity(PurchaseLine."Subc.Whse.Outstanding Quantity", PurchaseLine.FieldCaption("Qty. Rounding Precision"), PurchaseLine.FieldCaption("Subc.Whse.Outstanding Quantity"), PurchaseLine.FieldCaption("Whse. Outstanding Qty. (Base)"));
                     ReturnValue := (Abs(OutstandingQtyBase) > Abs(WhseOutstandingQtyBase));
                     IsHandled := true;
                 end;

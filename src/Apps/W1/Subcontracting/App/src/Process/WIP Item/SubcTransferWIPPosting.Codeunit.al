@@ -371,15 +371,15 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
         SubcontractorWIPLedgerEntry."Unit of Measure Code" := TransferLine."Unit of Measure Code";
         SubcontractorWIPLedgerEntry."Prod. Order Status" := "Production Order Status"::Released;
         SubcontractorWIPLedgerEntry."Variant Code" := TransferLine."Variant Code";
-        SubcontractorWIPLedgerEntry."Prod. Order No." := TransferLine."Prod. Order No.";
-        SubcontractorWIPLedgerEntry."Prod. Order Line No." := TransferLine."Prod. Order Line No.";
-        SubcontractorWIPLedgerEntry."Routing No." := TransferLine."Routing No.";
-        SubcontractorWIPLedgerEntry."Routing Reference No." := TransferLine."Routing Reference No.";
-        SubcontractorWIPLedgerEntry."Operation No." := TransferLine."Operation No.";
+        SubcontractorWIPLedgerEntry."Prod. Order No." := TransferLine."Subc. Prod. Order No.";
+        SubcontractorWIPLedgerEntry."Prod. Order Line No." := TransferLine."Subc. Prod. Order Line No.";
+        SubcontractorWIPLedgerEntry."Routing No." := TransferLine."Subc. Routing No.";
+        SubcontractorWIPLedgerEntry."Routing Reference No." := TransferLine."Subc. Routing Reference No.";
+        SubcontractorWIPLedgerEntry."Operation No." := TransferLine."Subc. Operation No.";
         if IsShipment and not (SubcontractorWIPLedgerEntry."In Transit") then
             if TransferLine."Prev. Operation No." <> '' then
                 SubcontractorWIPLedgerEntry."Operation No." := TransferLine."Prev. Operation No.";
-        SubcontractorWIPLedgerEntry."Work Center No." := TransferLine."Work Center No.";
+        SubcontractorWIPLedgerEntry."Work Center No." := TransferLine."Subc. Work Center No.";
         SubcontractorWIPLedgerEntry.Description := TransferLine.Description;
         SubcontractorWIPLedgerEntry."Description 2" := TransferLine."Description 2";
     end;
@@ -407,8 +407,8 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
     var
         Vendor: Record Vendor;
     begin
-        Vendor.SetCurrentKey("Subcontr. Location Code");
-        Vendor.SetRange("Subcontr. Location Code", LocationCode);
+        Vendor.SetCurrentKey("Subc. Location Code");
+        Vendor.SetRange("Subc. Location Code", LocationCode);
         exit(not Vendor.IsEmpty());
     end;
 

@@ -16,7 +16,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001516; "Standard Task Code"; Code[10])
+        field(99001516; "Subc. Standard Task Code"; Code[10])
         {
             Caption = 'Standard Task Code';
             DataClassification = CustomerContent;
@@ -27,7 +27,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                 if (Type = Type::Item) and
                    ("No." <> '') and
                    ("Prod. Order No." <> '') and
-                   (xRec."Standard Task Code" <> "Standard Task Code")
+                   (xRec."Subc. Standard Task Code" <> "Subc. Standard Task Code")
                 then
                     UpdateSubcontractorPrice();
             end;
@@ -57,11 +57,11 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                    ("PL UM Qty/Base UM Qty" <> xRec."PL UM Qty/Base UM Qty")
                 then begin
                     "Base UM Qty/PL UM Qty" := GetQuantityBase() / "PL UM Qty/Base UM Qty";
-                    Validate("Pricelist Cost");
+                    Validate("Subc. Pricelist Cost");
                 end;
             end;
         }
-        field(99001519; "UoM for Pricelist"; Code[10])
+        field(99001519; "Subc. UoM for Pricelist"; Code[10])
         {
             Caption = 'UoM for Price list';
             DataClassification = CustomerContent;
@@ -69,14 +69,14 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
             ToolTip = 'Specifies the unit of measure for the price list that is on the subcontracting worksheet.';
             trigger OnValidate()
             begin
-                if (CurrFieldNo = FieldNo("UoM for Pricelist")) and
+                if (CurrFieldNo = FieldNo("Subc. UoM for Pricelist")) and
                    ("Prod. Order No." <> '') and
                    (Type = Type::Item)
                 then
                     UpdateSubcontractorPriceUOM();
             end;
         }
-        field(99001520; "Pricelist Cost"; Decimal)
+        field(99001520; "Subc. Pricelist Cost"; Decimal)
         {
             AutoFormatExpression = "Currency Code";
             AutoFormatType = 2;
@@ -91,7 +91,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                 if ("Prod. Order No." <> '') and
                    (Type = Type::Item)
                 then begin
-                    "Direct Unit Cost" := "Pricelist Cost" / "Base UM Qty/PL UM Qty" * GetQuantityForUOM();
+                    "Direct Unit Cost" := "Subc. Pricelist Cost" / "Base UM Qty/PL UM Qty" * GetQuantityForUOM();
                     if ("Currency Code" <> '') and ("Direct Unit Cost" <> 0) then begin
                         Currency.Initialize("Currency Code");
                         Currency.TestField("Unit-Amount Rounding Precision");
@@ -133,6 +133,6 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
         if (Type = Type::Item) and ("No." <> '') and ("Prod. Order No." <> '') then
-            SubcPriceManagement.GetSubcPriceForReqLine(Rec, "UoM for Pricelist");
+            SubcPriceManagement.GetSubcPriceForReqLine(Rec, "Subc. UoM for Pricelist");
     end;
 }

@@ -12,7 +12,7 @@ pageextension 99001528 "Subc. Pstd. Transfer Rcpt" extends "Posted Transfer Rece
     {
         addlast(General)
         {
-            field(SourceType; Rec."Source Type")
+            field("Subc. Source Type"; Rec."Subc. Source Type")
             {
                 ApplicationArea = Location;
                 Editable = false;
@@ -40,7 +40,7 @@ pageextension 99001528 "Subc. Pstd. Transfer Rcpt" extends "Posted Transfer Rece
                 ToolTip = 'Specifies a reference number for the line, which the transfer order is related to.';
                 Visible = false;
             }
-            field("Return Order"; Rec."Return Order")
+            field("Subc. Return Order"; Rec."Subc. Return Order")
             {
                 ApplicationArea = Manufacturing;
                 Editable = false;

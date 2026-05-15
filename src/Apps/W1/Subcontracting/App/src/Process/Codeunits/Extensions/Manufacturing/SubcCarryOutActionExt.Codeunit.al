@@ -20,7 +20,7 @@ codeunit 99001523 "Subc. Carry Out Action Ext."
     local procedure OnAfterTransferPlanningComp(var PlanningComponent: Record "Planning Component"; var ProdOrderComponent: Record "Prod. Order Component")
     begin
         ProdOrderComponent."Subcontracting Type" := PlanningComponent."Subcontracting Type";
-        ProdOrderComponent."Orig. Location Code" := PlanningComponent."Orig. Location Code";
-        ProdOrderComponent."Orig. Bin Code" := PlanningComponent."Orig. Bin Code";
+        ProdOrderComponent."Subc. Original Location Code" := PlanningComponent."Orig. Location Code";
+        ProdOrderComponent."Subc. Orig. Bin Code" := PlanningComponent."Orig. Bin Code";
     end;
 }

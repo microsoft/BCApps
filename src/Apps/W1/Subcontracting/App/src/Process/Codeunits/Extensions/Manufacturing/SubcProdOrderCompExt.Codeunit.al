@@ -75,9 +75,9 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         if ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer then
             exit;
 
-        TransferShipmentLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
-        TransferShipmentLine.SetRange("Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
-        TransferShipmentLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
+        TransferShipmentLine.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        TransferShipmentLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        TransferShipmentLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
         TransferShipmentLine.SetRange("Item No.", ProdOrderComponent."Item No.");
         if not TransferShipmentLine.IsEmpty() then begin
             TransferShipmentLine.SetLoadFields(SystemId);
@@ -146,10 +146,10 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
         if ProdOrderComponent."Subcontracting Type" <> "Subcontracting Type"::Transfer then
             exit;
 
-        TransferLine.SetCurrentKey("Prod. Order No.", "Routing No.", "Routing Reference No.", "Operation No.", "Subcontr. Purch. Order No.");
-        TransferLine.SetRange("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
-        TransferLine.SetRange("Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
-        TransferLine.SetRange("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Routing No.", "Subc. Routing Reference No.", "Subc. Operation No.", "Subc. Purch. Order No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        TransferLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        TransferLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
         TransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
         TransferLine.SetLoadFields(SystemId);
         if TransferLine.FindFirst() then
@@ -178,12 +178,12 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
-        TransferLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.");
-        TransferLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        TransferLine.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
-        TransferLine.SetRange("Routing Reference No.", ProdOrderLine."Routing Reference No.");
-        TransferLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
-        TransferLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderLine."Prod. Order No.");
+        TransferLine.SetRange("Subc. Prod. Order Line No.", ProdOrderLine."Line No.");
+        TransferLine.SetRange("Subc. Routing Reference No.", ProdOrderLine."Routing Reference No.");
+        TransferLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        TransferLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
         TransferLine.SetRange("Item No.", ProdOrderComponent."Item No.");
         TransferLine.SetRange("Variant Code", ProdOrderComponent."Variant Code");
         if TransferLine.IsEmpty() then
@@ -274,16 +274,16 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
                 ProdOrderComponent."Due Time" := ProdOrderRoutingLine."Starting Time";
                 if (ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center") then
                     if SubcontractingManagement.GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then
-                        SubcontractingManagement.ChangeLocationOnProdOrderComponent(ProdOrderComponent, Vendor."Subcontr. Location Code", ProdOrderComponent."Orig. Location Code", ProdOrderComponent."Orig. Bin Code");
+                        SubcontractingManagement.ChangeLocationOnProdOrderComponent(ProdOrderComponent, Vendor."Subc. Location Code", ProdOrderComponent."Subc. Original Location Code", ProdOrderComponent."Subc. Orig. Bin Code");
             end;
         end else
             if xProdOrderComponent."Routing Link Code" <> '' then
-                if ProdOrderComponent."Orig. Location Code" <> '' then begin
-                    ProdOrderComponent.Validate("Location Code", ProdOrderComponent."Orig. Location Code");
-                    ProdOrderComponent."Orig. Location Code" := '';
-                    if ProdOrderComponent."Orig. Bin Code" <> '' then begin
-                        ProdOrderComponent.Validate("Bin Code", ProdOrderComponent."Orig. Bin Code");
-                        ProdOrderComponent."Orig. Bin Code" := '';
+                if ProdOrderComponent."Subc. Original Location Code" <> '' then begin
+                    ProdOrderComponent.Validate("Location Code", ProdOrderComponent."Subc. Original Location Code");
+                    ProdOrderComponent."Subc. Original Location Code" := '';
+                    if ProdOrderComponent."Subc. Orig. Bin Code" <> '' then begin
+                        ProdOrderComponent.Validate("Bin Code", ProdOrderComponent."Subc. Orig. Bin Code");
+                        ProdOrderComponent."Subc. Orig. Bin Code" := '';
                     end;
                 end else begin
                     PlanningGetParameters.AtSKU(
@@ -298,13 +298,13 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     local procedure SetOriginalBinCode(var ProdOrderComponent: Record "Prod. Order Component"; var xProdOrderComponent: Record "Prod. Order Component")
     begin
         if ProdOrderComponent."Bin Code" <> xProdOrderComponent."Bin Code" then
-            ProdOrderComponent."Orig. Bin Code" := xProdOrderComponent."Bin Code";
+            ProdOrderComponent."Subc. Orig. Bin Code" := xProdOrderComponent."Bin Code";
     end;
 
     local procedure SetOriginalLocationCode(var ProdOrderComponent: Record "Prod. Order Component"; var xProdOrderComponent: Record "Prod. Order Component")
     begin
         if (ProdOrderComponent."Location Code" <> xProdOrderComponent."Location Code") then
-            ProdOrderComponent."Orig. Location Code" := xProdOrderComponent."Location Code";
+            ProdOrderComponent."Subc. Original Location Code" := xProdOrderComponent."Location Code";
     end;
 
     local procedure CheckExistingDocumentsForSubcontracting(var ProdOrderComponent: Record "Prod. Order Component"; var xProdOrderComponent: Record "Prod. Order Component"; CurrFieldNo: Integer)

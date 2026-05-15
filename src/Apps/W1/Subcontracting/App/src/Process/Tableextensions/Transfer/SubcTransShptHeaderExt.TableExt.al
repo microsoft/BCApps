@@ -45,13 +45,13 @@ tableextension 99001522 "Subc. Trans Shpt Header Ext." extends "Transfer Shipmen
             DataClassification = CustomerContent;
             ToolTip = 'Specifies a reference number for the line, which the transfer order is related to.';
         }
-        field(99001540; "Source Type"; Enum "Transfer Source Type")
+        field(99001540; "Subc. Source Type"; Enum "Transfer Source Type")
         {
             Caption = 'Source Type';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies for which source type the transfer order is related to.';
         }
-        field(99001541; "Return Order"; Boolean)
+        field(99001541; "Subc. Return Order"; Boolean)
         {
             Caption = 'Return Order';
             DataClassification = CustomerContent;
@@ -61,6 +61,6 @@ tableextension 99001522 "Subc. Trans Shpt Header Ext." extends "Transfer Shipmen
     keys
     {
         key(Key99001500; "Subcontr. Purch. Order No.") { }
-        key(Key99001501; "Source ID", "Source Type", "Source Subtype") { }
+        key(Key99001501; "Source ID", "Subc. Source Type", "Source Subtype") { }
     }
 }

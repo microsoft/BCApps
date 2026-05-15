@@ -238,8 +238,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] A WIP Transfer Line exists with correct properties
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-        TransferLine.SetRange("Return Order", false);
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Return Order", false);
         Assert.RecordCount(TransferLine, 2);
 
         //Only One transfer header should have been created for both the component and WIP transfer lines
@@ -263,7 +263,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         // [THEN] Transfer header has correct from/to locations
         TransferHeader.Get(TransferLine."Document No.");
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Assert.AreEqual(Vendor."Subcontr. Location Code", TransferHeader."Transfer-to Code",
+        Assert.AreEqual(Vendor."Subc. Location Code", TransferHeader."Transfer-to Code",
             'WIP Transfer must go TO the subcontractor location.');
 
         // [TEARDOWN]
@@ -328,8 +328,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] Transfer Lines exists with correct properties
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-        TransferLine.SetRange("Return Order", false);
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Return Order", false);
         Assert.RecordCount(TransferLine, 2);
 
         //two transfer headers should have been created for both the component and WIP transfer lines
@@ -353,7 +353,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         // [THEN] Transfer header has correct from/to locations
         TransferHeader.Get(TransferLine."Document No.");
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Assert.AreEqual(Vendor."Subcontr. Location Code", TransferHeader."Transfer-to Code",
+        Assert.AreEqual(Vendor."Subc. Location Code", TransferHeader."Transfer-to Code",
             'WIP Transfer must go TO the subcontractor location.');
     end;
 
@@ -408,7 +408,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] No WIP Transfer Line exists
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
         TransferLine.SetRange("Transfer WIP Item", true);
         Assert.RecordIsEmpty(TransferLine);
     end;
@@ -475,18 +475,18 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
         // [GIVEN] Verify first WIP Transfer Line was created
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", true);
 #pragma warning restore AA0210
-        TransferLine.SetRange("Return Order", false);
+        TransferLine.SetRange("Subc. Return Order", false);
         Assert.RecordCount(TransferLine, 1);
         TransferLine.FindFirst();
 
         // [GIVEN] Simulate posting the transfer by creating WIP Ledger Entry with quantity equal to expected quantity
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
         SubcontractingMgmtLibrary.CreateWIPLedgerEntry(
-            WIPLedgerEntry, Item."No.", Vendor."Subcontr. Location Code",
+            WIPLedgerEntry, Item."No.", Vendor."Subc. Location Code",
             ProductionOrder, ProdOrderLine, ProdOrderRoutingLine,
             WorkCenter[2]."No.", ProductionOrder.Quantity, false);
 
@@ -554,7 +554,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
 
         // [GIVEN] Get the WIP Transfer Line and locate the subcontractor location
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        SubcLocationCode := Vendor."Subcontr. Location Code";
+        SubcLocationCode := Vendor."Subc. Location Code";
 
         ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
@@ -579,11 +579,11 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
 
         // [THEN] A WIP Return Transfer Line exists
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", true);
 #pragma warning restore AA0210
-        TransferLine.SetRange("Return Order", true);
+        TransferLine.SetRange("Subc. Return Order", true);
         Assert.RecordIsNotEmpty(TransferLine);
 
         TransferLine.FindFirst();
@@ -657,8 +657,8 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         // [GIVEN] Read subcontractor location codes after all vendor updates
         Vendor1.Get(WorkCenter[1]."Subcontractor No.");
         Vendor2.Get(WorkCenter[2]."Subcontractor No.");
-        Subc1LocationCode := Vendor1."Subcontr. Location Code";
-        Subc2LocationCode := Vendor2."Subcontr. Location Code";
+        Subc1LocationCode := Vendor1."Subc. Location Code";
+        Subc2LocationCode := Vendor2."Subc. Location Code";
 
         // [GIVEN] Locate the Prod. Order line and the routing line for Subcontractor 1 (previous op)
         ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
@@ -696,11 +696,11 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] A WIP Transfer Line exists for the production order
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", true);
 #pragma warning restore AA0210
-        TransferLine.SetRange("Return Order", false);
+        TransferLine.SetRange("Subc. Return Order", false);
         Assert.RecordCount(TransferLine, 1);
 
         TransferLine.FindFirst();
@@ -757,9 +757,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
 
         // [GIVEN] Get subcontractor location codes from work centers
         Vendor.Get(WorkCenter[1]."Subcontractor No.");
-        Loc30Code := Vendor."Subcontr. Location Code";
+        Loc30Code := Vendor."Subc. Location Code";
         Vendor.Get(WorkCenter[2]."Subcontractor No.");
-        Loc40Code := Vendor."Subcontr. Location Code";
+        Loc40Code := Vendor."Subc. Location Code";
 
         // [GIVEN] Create released production order
         LibraryManufacturing.CreateProductionOrder(
@@ -795,11 +795,11 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] Exactly two WIP Transfer Lines exist (one per parallel predecessor path)
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", true);
 #pragma warning restore AA0210
-        TransferLine.SetRange("Return Order", false);
+        TransferLine.SetRange("Subc. Return Order", false);
         Assert.RecordCount(TransferLine, 2);
 
         // [THEN] The two WIP Transfer Lines belong to two different Transfer Headers
@@ -815,7 +815,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
 #pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", true);
 #pragma warning restore AA0210
-        TransferLine.SetRange("Return Order", false);
+        TransferLine.SetRange("Subc. Return Order", false);
         TransferLine.FindSet();
         repeat
             Assert.AreEqual(Item."No.", TransferLine."Item No.",
@@ -906,7 +906,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
 
         // [GIVEN] Create a transfer route from the prod order line location to the subcontractor location
-        CreateAndUpdateTransferRoute(GetManufacturingSetupCompLocation(), Vendor."Subcontr. Location Code");
+        CreateAndUpdateTransferRoute(GetManufacturingSetupCompLocation(), Vendor."Subc. Location Code");
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
 
         // [WHEN] Calculate Subcontracts: produces one requisition line per prod order routing line (= 2)
@@ -949,11 +949,11 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
         // [THEN] Exactly 2 WIP Transfer Lines exist – one per family item / prod order line
-        TransferLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", true);
 #pragma warning restore AA0210
-        TransferLine.SetRange("Return Order", false);
+        TransferLine.SetRange("Subc. Return Order", false);
         Assert.RecordCount(TransferLine, 2);
 
         // [THEN] Each WIP Transfer Line references one of the two family items

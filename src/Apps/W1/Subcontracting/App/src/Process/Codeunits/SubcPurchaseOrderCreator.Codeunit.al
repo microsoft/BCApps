@@ -278,7 +278,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         WorkCenter.SetLoadFields("Subcontractor No.");
         WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
 
-        Vendor.SetLoadFields("Subcontr. Location Code");
+        Vendor.SetLoadFields("Subc. Location Code");
         if not Vendor.Get(WorkCenter."Subcontractor No.") then
             exit(true);
 
@@ -292,10 +292,10 @@ codeunit 99001557 "Subc. Purchase Order Creator"
             if not ConfirmManagement.GetResponseOrDefault(BlankLocationConfirmQst, true) then
                 exit(false);
 
-        if Vendor."Subcontr. Location Code" <> '' then begin
-            ProdOrderComponent.SetRange("Location Code", Vendor."Subcontr. Location Code");
+        if Vendor."Subc. Location Code" <> '' then begin
+            ProdOrderComponent.SetRange("Location Code", Vendor."Subc. Location Code");
             if not ProdOrderComponent.IsEmpty() then
-                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(SameAsSubcLocConfirmQst, Vendor."Subcontr. Location Code", Vendor."No."), true) then
+                if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(SameAsSubcLocConfirmQst, Vendor."Subc. Location Code", Vendor."No."), true) then
                     exit(false);
         end;
 
