@@ -37,7 +37,7 @@ $duplicateApplicationIds = @(
 
 # Exception - Out of range test object IDs
 $outOfRangeTestObjects = @(
-    13918,13922, # E-Document for Germany Tests
+    13918,13922,13923, # E-Document for Germany Tests
     10505, # Intrastat GB Tests
     18649, # Fixed Asset Depreciation Tests
     18078,18427,18428,18429,18460,18488, # GST Base Tests
@@ -65,8 +65,8 @@ $outOfRangeTestObjects = @(
 # Test that object IDs don't clash and test objects are in valid range (W1 only)
 Test-ObjectIDsAreValid -SourceCodePaths $w1OnlyPaths -AllowedDuplicateObjects $AllowedDuplicateObjects
 
-# Test that all test object IDs are within the valid range (all apps - country test objects excepted) - Disabled until out-of-range objects from NAV sync are resolved (AB#635732)
-# Test-ObjectIDsAreValid -SourceCodePaths $allPaths  -AllowedOutOfRangeTestObjects $outOfRangeTestObjects -SkipDuplicateCheck
+# Test that all test object IDs are within the valid range (all apps - country test objects excepted)
+Test-ObjectIDsAreValid -SourceCodePaths $allPaths  -AllowedOutOfRangeTestObjects $outOfRangeTestObjects -SkipDuplicateCheck
 
 # Test that all application IDs are unique (all paths)
 Test-ApplicationIds -SourceCodePaths $allPaths -Exceptions $duplicateApplicationIds
