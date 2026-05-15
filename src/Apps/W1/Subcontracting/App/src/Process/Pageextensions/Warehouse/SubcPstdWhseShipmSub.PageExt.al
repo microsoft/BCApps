@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Warehouse.History;
 
-pageextension 99001546 "Subc. Pstd. Whse Shipm Sub" extends "Posted Whse. Shipment Subform"
+pageextension 99001550 "Subc. Pstd. Whse Shipm Sub" extends "Posted Whse. Shipment Subform"
 {
     layout
     {

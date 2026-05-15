@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.RoleCenters;
 using Microsoft.Purchases.Document;
 
-tableextension 99001527 "Subc. Manufacturing Cue" extends "Manufacturing Cue"
+tableextension 99001529 "Subc. Manufacturing Cue" extends "Manufacturing Cue"
 {
     fields
     {
@@ -22,20 +22,10 @@ tableextension 99001527 "Subc. Manufacturing Cue" extends "Manufacturing Cue"
             FieldClass = FlowField;
             ToolTip = 'Specifies the number of outstanding subcontracting purchase order lines that have not yet been fully received.';
         }
-        {
-// In a Purchase Line table extension, add:
-key(SubcPurchLineKey; "Document Type", "Subc. Purchase Line Type", "Outstanding Quantity") { }
-                                                       "Subc. Purchase Line Type" = filter(<> None),
-                                                       "Outstanding Quantity" = filter(<> 0)));
-            Caption = 'Outstanding Subc. Purch. Lines';
-            Editable = false;
-            FieldClass = FlowField;
-            ToolTip = 'Specifies the number of outstanding subcontracting purchase order lines that have not yet been fully received.';
-        }
         field(99001561; "Subc. Purch. Lines Total"; Integer)
         {
-// In a Purchase Line table extension, add:
-key(SubcPurchLineTypeKey; "Document Type", "Subc. Purchase Line Type") { }
+            AccessByPermission = tabledata "Purchase Line" = R;
+            CalcFormula = count("Purchase Line" where("Document Type" = const(Order),
                                                        "Subc. Purchase Line Type" = filter(<> None)));
             Caption = 'Total Subc. Purchase Lines';
             Editable = false;
