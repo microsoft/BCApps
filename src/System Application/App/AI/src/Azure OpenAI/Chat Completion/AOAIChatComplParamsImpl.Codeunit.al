@@ -12,6 +12,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
 
     var
         AOAIPolicyParams: Codeunit "AOAI Policy Params";
+        ReasoningEffort: Enum "AOAI Reasoning Effort";
         Initialized: Boolean;
         Temperature: Decimal;
         MaxTokens: Integer;
@@ -70,6 +71,14 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
             InitializeDefaults();
 
         exit(FrequencyPenalty);
+    end;
+
+    procedure GetReasoningEffort(): Enum "AOAI Reasoning Effort"
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        exit(ReasoningEffort);
     end;
 
     procedure GetAOAIPolicyParams(): Codeunit "AOAI Policy Params"
@@ -146,18 +155,38 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         FrequencyPenalty := NewFrequencyPenalty;
     end;
 
+    procedure SetReasoningEffort(NewReasoningEffort: Enum "AOAI Reasoning Effort")
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        ReasoningEffort := NewReasoningEffort;
+    end;
+
     [NonDebuggable]
     procedure AddChatCompletionsParametersToPayload(var Payload: JsonObject)
     begin
         if GetMaxTokens() > 0 then
-            Payload.Add('max_tokens', GetMaxTokens());
+            if HasReasoningEffort() then
+                Payload.Add('max_completion_tokens', GetMaxTokens())
+            else
+                Payload.Add('max_tokens', GetMaxTokens());
 
-        Payload.Add('temperature', GetTemperature());
-        Payload.Add('presence_penalty', GetPresencePenalty());
-        Payload.Add('frequency_penalty', GetFrequencyPenalty());
+        if HasReasoningEffort() then
+            Payload.Add('reasoning_effort', Format(GetReasoningEffort()))
+        else begin
+            Payload.Add('temperature', GetTemperature());
+            Payload.Add('presence_penalty', GetPresencePenalty());
+            Payload.Add('frequency_penalty', GetFrequencyPenalty());
+        end;
 
         if IsJsonMode() then
             Payload.Add('response_format', GetJsonResponseFormat());
+    end;
+
+    local procedure HasReasoningEffort(): Boolean
+    begin
+        exit(GetReasoningEffort().AsInteger() > 0);
     end;
 
     local procedure GetJsonResponseFormat() ResponseFormat: JsonObject

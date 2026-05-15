@@ -146,6 +146,26 @@ codeunit 7761 "AOAI Chat Completion Params"
     end;
 
     /// <summary>
+    /// Gets the reasoning effort setting for reasoning models.
+    /// </summary>
+    /// <returns>The reasoning effort setting. Returns the default enum value (ordinal 0) if not configured.</returns>
+    procedure GetReasoningEffort(): Enum "AOAI Reasoning Effort"
+    begin
+        exit(AOAIChatComplParamsImpl.GetReasoningEffort());
+    end;
+
+    /// <summary>
+    /// Sets the reasoning effort for Azure OpenAI reasoning models (e.g. o1, o3, o4-mini).
+    /// When set, reasoning model semantics apply: max_completion_tokens replaces max_tokens in the request,
+    /// and temperature, presence_penalty, and frequency_penalty are omitted.
+    /// </summary>
+    /// <param name="NewReasoningEffort">The reasoning effort level to use: Low, Medium, or High.</param>
+    procedure SetReasoningEffort(NewReasoningEffort: Enum "AOAI Reasoning Effort")
+    begin
+        AOAIChatComplParamsImpl.SetReasoningEffort(NewReasoningEffort);
+    end;
+
+    /// <summary>
     /// Adds the Chat Completion parameters to the payload.
     /// </summary>
     /// <param name="Payload">JsonObject to add parameters to.</param>
