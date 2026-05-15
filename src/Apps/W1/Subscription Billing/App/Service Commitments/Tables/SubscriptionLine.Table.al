@@ -3,8 +3,11 @@ namespace Microsoft.SubscriptionBilling;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
 using System.Utilities;
@@ -1099,24 +1102,51 @@ table 8059 "Subscription Line"
 
     internal procedure SetDefaultDimensions(UseSource: Boolean)
     var
-        ServiceObject: Record "Subscription Header";
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
+    begin
+        AddDefaultDimensionSources(DefaultDimSource, UseSource);
+        "Dimension Set ID" := DimMgt.GetDefaultDimID(DefaultDimSource, '', "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code", 0, 0);
+        DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+    end;
+
+    internal procedure ApplyContractDimensions(ContractDimSetID: Integer; SourceCode: Code[10]; ContractPartnerTableID: Integer)
+    var
+        DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
+        HighPriorityDimSource: List of [Dictionary of [Integer, Code[20]]];
+        DimSetIDArr: array[10] of Integer;
+        TempDimValue1: Code[20];
+        TempDimValue2: Code[20];
+    begin
+        DimSetIDArr[1] := "Dimension Set ID";
+        DimSetIDArr[2] := ContractDimSetID;
+
+        AddDefaultDimensionSources(DefaultDimSource, true);
+
+        if DimMgt.GetTableIDsForHigherPriorities(DefaultDimSource, HighPriorityDimSource, SourceCode, ContractPartnerTableID) then
+            DimSetIDArr[3] :=
+                DimMgt.GetRecDefaultDimID(
+                    Rec, CurrFieldNo, HighPriorityDimSource, SourceCode,
+                    TempDimValue1, TempDimValue2, 0, 0);
+
+        "Dimension Set ID" :=
+            DimMgt.GetCombinedDimensionSetID(DimSetIDArr, "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+    end;
+
+    local procedure AddDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; UseSource: Boolean)
+    var
+        ServiceObject: Record "Subscription Header";
     begin
         if Rec."Invoicing Item No." <> '' then
             DimMgt.AddDimSource(DefaultDimSource, Database::Item, Rec."Invoicing Item No.");
 
-        if UseSource then begin
-            ServiceObject.Get("Subscription Header No.");
-            case ServiceObject.Type of
-                ServiceObject.Type::Item:
-                    DimMgt.AddDimSource(DefaultDimSource, Database::Item, ServiceObject."Source No.");
-                ServiceObject.Type::"G/L Account":
-                    DimMgt.AddDimSource(DefaultDimSource, Database::"G/L Account", ServiceObject."Source No.");
-            end;
-        end;
-
-        "Dimension Set ID" := DimMgt.GetDefaultDimID(DefaultDimSource, '', "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code", 0, 0);
-        DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+        if UseSource then
+            if ServiceObject.Get("Subscription Header No.") then
+                case ServiceObject.Type of
+                    ServiceObject.Type::Item:
+                        DimMgt.AddDimSource(DefaultDimSource, Database::Item, ServiceObject."Source No.");
+                    ServiceObject.Type::"G/L Account":
+                        DimMgt.AddDimSource(DefaultDimSource, Database::"G/L Account", ServiceObject."Source No.");
+                end;
     end;
 
     internal procedure GetCombinedDimensionSetID(DimSetID1: Integer; DimSetID2: Integer)
@@ -1230,18 +1260,24 @@ table 8059 "Subscription Line"
     end;
 
     internal procedure UpdateFromCustomerContract(CustomerContract: Record "Customer Subscription Contract")
+    var
+        SourceCodeSetup: Record "Source Code Setup";
     begin
         "Currency Code" := CustomerContract."Currency Code";
         InitCurrencyData();
-        GetCombinedDimensionSetID("Dimension Set ID", CustomerContract."Dimension Set ID");
+        SourceCodeSetup.Get();
+        ApplyContractDimensions(CustomerContract."Dimension Set ID", SourceCodeSetup.Sales, Database::Customer);
         "Exclude from Price Update" := CustomerContract.DefaultExcludeFromPriceUpdate;
     end;
 
     internal procedure UpdateFromVendorContract(VendorContract: Record "Vendor Subscription Contract")
+    var
+        SourceCodeSetup: Record "Source Code Setup";
     begin
         "Currency Code" := VendorContract."Currency Code";
         InitCurrencyData();
-        GetCombinedDimensionSetID("Dimension Set ID", VendorContract."Dimension Set ID");
+        SourceCodeSetup.Get();
+        ApplyContractDimensions(VendorContract."Dimension Set ID", SourceCodeSetup.Purchases, Database::Vendor);
         "Exclude from Price Update" := VendorContract.DefaultExcludeFromPriceUpdate;
     end;
 
