@@ -15,7 +15,18 @@ using Microsoft.Sales.Customer;
 using System.Reflection;
 
 /// <summary>
-/// Methods to assist with traversing records, connecting one record to another.
+/// Provides navigation and traversal services for the Quality Management source configuration graph.
+/// This codeunit is a shared infrastructure component used across Quality Management to navigate
+/// configured table relationships without applying business rule logic.
+/// Responsibilities include:
+/// - Traversing source configuration relationships to discover all reachable inspection targets
+/// - Navigating record hierarchies by following configured table field mappings in both directions
+/// - Applying source field values from originating documents to Quality Inspection Header records
+/// - Resolving dynamic control captions and visibility for the Inspection Header page
+/// - Locating related entities (Item, Vendor, Customer, Routing, BOM) from any source record variant
+/// This codeunit is intentionally separate from generation rule evaluation, which is handled in
+/// "Qlty. Inspec. Gen. Rule Mgmt." and other callers that consume this codeunit as a navigation service.
+/// If traversal is needed from a new context, add a call to this codeunit rather than duplicating logic.
 /// </summary>
 codeunit 20408 "Qlty. Traversal"
 {
