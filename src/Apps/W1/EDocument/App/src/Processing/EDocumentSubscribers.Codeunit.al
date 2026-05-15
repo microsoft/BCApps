@@ -533,14 +533,22 @@ codeunit 6103 "E-Document Subscribers"
     local procedure OnAfterSendEDocument(ReportUsage: Integer; RecordVariant: Variant; DocNo: Code[20]; ToCust: Code[20]; DocName: Text[150]; CustomerFieldNo: Integer; DocumentNoFieldNo: Integer; DocumentSendingProfile: Record "Document Sending Profile")
     var
         EDocument: Record "E-Document";
+        TypeHelper: Codeunit "Type Helper";
+        RecordRef: RecordRef;
     begin
         if DocumentSendingProfile."Electronic Document" <> Enum::"Doc. Sending Profile Elec.Doc."::"Extended E-Document Service Flow" then
             exit;
         if DocumentSendingProfile."Electronic Service Flow" = '' then
             exit;
 
-        if not EDocument.IsEDocumentCreatedForRecord(RecordVariant) then
-            CreateEDocumentFromPostedDocument(RecordVariant, DocumentSendingProfile);
+        if not (RecordVariant.IsRecord() or RecordVariant.IsRecordRef()) then
+            exit;
+        TypeHelper.CopyRecVariantToRecRef(RecordVariant, RecordRef);
+        if RecordRef.FindSet() then
+            repeat
+                if not EDocument.IsEDocumentCreatedForRecord(RecordRef) then
+                    CreateEDocumentFromPostedDocument(RecordRef, DocumentSendingProfile);
+            until RecordRef.Next() = 0;
     end;
 
     /// <summary>
@@ -551,6 +559,8 @@ codeunit 6103 "E-Document Subscribers"
     local procedure OnAfterSendToEMailEDocument(var DocumentSendingProfile: Record "Document Sending Profile"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant; DocNo: Code[20]; DocName: Text[150]; ToCust: Code[20]; DocNoFieldNo: Integer; ShowDialog: Boolean)
     var
         EDocument: Record "E-Document";
+        TypeHelper: Codeunit "Type Helper";
+        RecordRef: RecordRef;
     begin
         if DocumentSendingProfile."E-Mail" = DocumentSendingProfile."E-Mail"::"No" then
             exit;
@@ -559,8 +569,14 @@ codeunit 6103 "E-Document Subscribers"
                                                                 Enum::"Document Sending Profile Attachment Type"::"PDF & E-Document"]) then
             exit;
 
-        if not EDocument.IsEDocumentCreatedForRecord(RecordVariant) then
-            CreateEDocumentFromPostedDocument(RecordVariant, DocumentSendingProfile);
+        if not (RecordVariant.IsRecord() or RecordVariant.IsRecordRef()) then
+            exit;
+        TypeHelper.CopyRecVariantToRecRef(RecordVariant, RecordRef);
+        if RecordRef.FindSet() then
+            repeat
+                if not EDocument.IsEDocumentCreatedForRecord(RecordRef) then
+                    CreateEDocumentFromPostedDocument(RecordRef, DocumentSendingProfile);
+            until RecordRef.Next() = 0;
 
         EDocumentProcessing.ProcessEDocumentAsEmail(DocumentSendingProfile, ReportUsage, RecordVariant, DocNo, DocName, ToCust, ShowDialog);
     end;
