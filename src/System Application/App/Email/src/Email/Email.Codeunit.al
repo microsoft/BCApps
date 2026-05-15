@@ -629,6 +629,29 @@ codeunit 8901 Email
     end;
 
     /// <summary>
+    /// Finds all source entities related to an email message and returns them as a dictionary of table IDs to pipe-separated system IDs.
+    /// </summary>
+    /// <param name="EmailMessage">The email message for which to find source entities.</param>
+    /// <param name="Dict">A dictionary mapping each table ID to a pipe-separated list of system IDs of the related records.</param>
+    /// <returns>True if at least one source entity was found, otherwise false.</returns>
+    procedure FindEmailSourceEntities(EmailMessage: Codeunit "Email Message"; var Dict: Dictionary of [Integer, Text]): Boolean
+    begin
+        exit(EmailImpl.FindEmailSourceEntities(EmailMessage.GetId(), Dict));
+    end;
+
+    /// <summary>
+    /// Gets the primary source entity among the related entities of an email message.
+    /// </summary>
+    /// <param name="PrimarySource">Out parameter that receives the table ID of the primary source entity.</param>
+    /// <param name="EmailMessage">The email message for which to find the primary source entity.</param>
+    /// <param name="RelatedIds">The list of table IDs of the candidate related entities.</param>
+    /// <returns>True if a primary source entity was found, otherwise false.</returns>
+    procedure GetPrimarySourceEntity(var PrimarySource: Integer; EmailMessage: Codeunit "Email Message"; RelatedIds: List of [Integer]): Boolean
+    begin
+        exit(EmailImpl.GetPrimarySourceEntity(PrimarySource, EmailMessage.GetId(), RelatedIds));
+    end;
+
+    /// <summary>
     /// Adds the default attachments of a scenario to the email message.
     /// </summary>
     /// <param name="EmailMessage">The email message for which to add the attachments.</param>

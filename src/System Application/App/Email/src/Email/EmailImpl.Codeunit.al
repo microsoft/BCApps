@@ -742,6 +742,52 @@ codeunit 8900 "Email Impl"
         exit(not EmailRelatedRecord.IsEmpty());
     end;
 
+    procedure FindEmailSourceEntities(EmailMessageId: Guid; var Dict: Dictionary of [Integer, Text]): Boolean
+    var
+        EmailRelatedRecord: Record "Email Related Record";
+        SystemIdFilter: Text;
+        Found: Boolean;
+    begin
+        EmailRelatedRecord.SetRange("Email Message Id", EmailMessageId);
+        Found := EmailRelatedRecord.FindSet();
+        if Found then
+            repeat
+                if Dict.Get(EmailRelatedRecord."Table Id", SystemIdFilter) then
+                    Dict.Set(EmailRelatedRecord."Table Id", SystemIdFilter + '|' + Format(EmailRelatedRecord."System Id"))
+                else
+                    Dict.Add(EmailRelatedRecord."Table Id", Format(EmailRelatedRecord."System Id"));
+            until EmailRelatedRecord.Next() <= 0;
+
+        exit(Found);
+    end;
+
+    procedure GetPrimarySourceEntity(var PrimarySource: Integer; EmailMessageId: Guid; RelatedIds: List of [Integer]): Boolean
+    var
+        EmailRelatedRecord: Record "Email Related Record";
+        RelatedId: Integer;
+    begin
+        // If there is only one key in the dict, then there is no need to use DB resources.
+        if RelatedIds.Count = 1 then begin
+            PrimarySource := RelatedIds.Get(1);
+            exit(true);
+        end;
+
+        EmailRelatedRecord.SetRange("Email Message Id", EmailMessageId);
+        foreach RelatedId in RelatedIds do begin
+            EmailRelatedRecord.SetRange("Table Id", RelatedId);
+
+            if EmailRelatedRecord.FindSet() then
+                repeat
+                    if EmailRelatedRecord."Relation Type" = EmailRelatedRecord."Relation Type"::"Primary Source" then begin
+                        PrimarySource := RelatedId;
+                        exit(true);
+                    end;
+                until EmailRelatedRecord.Next() = 0;
+        end;
+
+        exit(false);
+    end;
+
     procedure FilterRemovedSourceRecords(var EmailRelatedRecord: Record "Email Related Record")
     var
         AllObj: Record AllObj;

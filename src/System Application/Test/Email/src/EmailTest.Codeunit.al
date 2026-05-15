@@ -1344,6 +1344,122 @@ codeunit 134685 "Email Test"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure FindEmailSourceEntitiesWithRelatedRecord()
+    var
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        Any: Codeunit Any;
+        Dict: Dictionary of [Integer, Text];
+        TableId: Integer;
+        SystemId: Guid;
+    begin
+        // [Scenario] FindEmailSourceEntities returns the related source entities for an email.
+        PermissionsMock.Set('Email Edit');
+
+        // [Given] An email created with a primary source relation
+        TableId := Any.IntegerInRange(1, 10000);
+        SystemId := Any.GuidValue();
+        CreateEmailWithSource(EmailMessage, TableId, SystemId);
+        Email.SaveAsDraft(EmailMessage, EmailOutbox);
+
+        // [When] FindEmailSourceEntities is called
+        // [Then] The dict is populated with the table ID and system ID of the source
+        Assert.IsTrue(Email.FindEmailSourceEntities(EmailMessage, Dict), 'FindEmailSourceEntities should return true when source entities exist');
+        Assert.IsTrue(Dict.ContainsKey(TableId), 'The dict should contain the source table ID');
+        Assert.IsTrue(Dict.Get(TableId).Contains(Format(SystemId)), 'The dict should contain the system ID of the source');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure FindEmailSourceEntitiesWithNoRelatedRecord()
+    var
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        Dict: Dictionary of [Integer, Text];
+    begin
+        // [Scenario] FindEmailSourceEntities returns false when the email has no source entities.
+        PermissionsMock.Set('Email Edit');
+
+        // [Given] An email with no relations
+        CreateEmail(EmailMessage);
+        Email.SaveAsDraft(EmailMessage, EmailOutbox);
+
+        // [When] FindEmailSourceEntities is called
+        // [Then] The function returns false and the dict remains empty
+        Assert.IsFalse(Email.FindEmailSourceEntities(EmailMessage, Dict), 'FindEmailSourceEntities should return false when no source entities exist');
+        Assert.AreEqual(0, Dict.Count(), 'The dict should be empty when there are no source entities');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure GetPrimarySourceEntityWithSingleSource()
+    var
+        EmailOutbox: Record "Email Outbox";
+        EmailMessage: Codeunit "Email Message";
+        Any: Codeunit Any;
+        Dict: Dictionary of [Integer, Text];
+        PrimarySource: Integer;
+        TableId: Integer;
+        SystemId: Guid;
+    begin
+        // [Scenario] GetPrimarySourceEntity returns the single source when there is exactly one.
+        PermissionsMock.Set('Email Edit');
+
+        // [Given] An email with a single primary source relation
+        TableId := Any.IntegerInRange(1, 10000);
+        SystemId := Any.GuidValue();
+        CreateEmailWithSource(EmailMessage, TableId, SystemId);
+        Email.SaveAsDraft(EmailMessage, EmailOutbox);
+
+        // [When] FindEmailSourceEntities and GetPrimarySourceEntity are called
+        Assert.IsTrue(Email.FindEmailSourceEntities(EmailMessage, Dict), 'FindEmailSourceEntities should return true');
+        Assert.IsTrue(Email.GetPrimarySourceEntity(PrimarySource, EmailMessage, Dict.Keys), 'GetPrimarySourceEntity should return true for a single source');
+
+        // [Then] The primary source is the table ID of the only relation
+        Assert.AreEqual(TableId, PrimarySource, 'GetPrimarySourceEntity should return the table ID of the single source');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure GetPrimarySourceEntityWithMultipleSources()
+    var
+        EmailOutbox: Record "Email Outbox";
+        EmailMessageRecord: Record "Email Message";
+        EmailMessage: Codeunit "Email Message";
+        Any: Codeunit Any;
+        Dict: Dictionary of [Integer, Text];
+        PrimarySource: Integer;
+        PrimaryTableId: Integer;
+        RelatedTableId: Integer;
+    begin
+        // [Scenario] GetPrimarySourceEntity returns the record marked as primary source when there are multiple sources.
+        PermissionsMock.Set('Email Edit');
+
+        // [Given] An email with two related records, one marked as primary source and one as related entity
+        PrimaryTableId := Database::"Email Outbox";
+        CreateEmail(EmailMessage);
+        Email.SaveAsDraft(EmailMessage, EmailOutbox);
+
+        EmailMessageRecord.Get(EmailMessage.GetId());
+        RelatedTableId := Database::"Email Message";
+
+        Email.AddRelation(EmailMessage, PrimaryTableId, EmailOutbox.SystemId, Enum::"Email Relation Type"::"Primary Source", Enum::"Email Relation Origin"::"Compose Context");
+        Email.AddRelation(EmailMessage, RelatedTableId, EmailMessageRecord.SystemId, Enum::"Email Relation Type"::"Related Entity", Enum::"Email Relation Origin"::"Compose Context");
+
+        // [When] FindEmailSourceEntities and GetPrimarySourceEntity are called
+        Assert.IsTrue(Email.FindEmailSourceEntities(EmailMessage, Dict), 'FindEmailSourceEntities should return true');
+        Assert.IsTrue(Email.GetPrimarySourceEntity(PrimarySource, EmailMessage, Dict.Keys), 'GetPrimarySourceEntity should return true when a primary source exists');
+
+        // [Then] The primary source is the table marked as primary source, not the related entity
+        Assert.AreEqual(PrimaryTableId, PrimarySource, 'GetPrimarySourceEntity should return the table ID of the primary source record');
+    end;
+
+    [Test]
     procedure GetSentEmailsForRecordByVariant()
     var
         SentEmail: Record "Sent Email";
