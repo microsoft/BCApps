@@ -18,6 +18,8 @@ codeunit 2500 "Extension Installation Impl"
     SingleInstance = false;
 
     var
+        DotNetALNavAppOperationInvoker: DotNet ALNavAppOperationInvoker;
+        OperationInvokerHasBeenCreated: Boolean;
         DotNetNavAppALInstaller: DotNet NavAppALInstaller;
         InstallerHasBeenCreated: Boolean;
         InstalledTxt: Label 'Installed';
@@ -173,6 +175,15 @@ codeunit 2500 "Extension Installation Impl"
             DotNetNavAppALInstaller := DotNetNavAppALInstaller.NavAppALInstaller();
             InstallerHasBeenCreated := true;
         end;
+    end;
+
+    procedure CreatePreDeployedTargetReference(AppId: Guid; Lcid: Integer)
+    begin
+        if not OperationInvokerHasBeenCreated then begin
+            DotNetALNavAppOperationInvoker := DotNetALNavAppOperationInvoker.ALNavAppOperationInvoker();
+            OperationInvokerHasBeenCreated := true;
+        end;
+        DotNetALNavAppOperationInvoker.CreatePreDeployedTargetReference(AppId, Format(Lcid));
     end;
 
     procedure CheckPermissions()
