@@ -35,11 +35,9 @@ page 1565 "Privacy Notices"
 
                     trigger OnDrillDown()
                     var
-                        PrivacyNotice: Page "Privacy Notice";
+                        PrivacyNoticeImpl: Codeunit "Privacy Notice Impl.";
                     begin
-                        PrivacyNotice.HideAgreeDisagreeActions();
-                        PrivacyNotice.SetRecord(Rec);
-                        PrivacyNotice.Run();
+                        PrivacyNoticeImpl.ShowPrivacyNotice(Rec);
                     end;
                 }
                 field(Accepted; Accepted)

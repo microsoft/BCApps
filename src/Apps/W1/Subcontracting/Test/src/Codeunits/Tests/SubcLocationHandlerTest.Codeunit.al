@@ -35,14 +35,14 @@ codeunit 139981 "Subc. Location Handler Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
-        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
@@ -82,7 +82,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Purchase Line Location when Setup is Purchase
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Purchase
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Purchase
         UpdateSubManagementSetup("Components at Location"::Purchase);
 
         // [GIVEN] A Purchase Line with a Location
@@ -110,7 +110,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Company Location when Setup is Company
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Company
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Company
         UpdateSubManagementSetup("Components at Location"::Company);
 
         // [GIVEN] Company Information has a Location
@@ -135,7 +135,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [SCENARIO] GetComponentsLocationCode returns Manufacturing Location when Setup is Manufacturing
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Manufacturing
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Manufacturing
         UpdateSubManagementSetup("Components at Location"::Manufacturing);
 
         // [GIVEN] Manufacturing Setup has a Location
@@ -159,13 +159,15 @@ codeunit 139981 "Subc. Location Handler Test"
         Item: Record Item;
         LocationOrig: Record Location;
         LocationSub: Record Location;
+        ProdOrder: Record "Production Order";
         ProdOrderComp: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        ProdOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
+        TransferRoute: Record "Transfer Route";
+        TransitLocation: Record Location;
         Vendor: Record Vendor;
         CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
     begin
@@ -175,6 +177,8 @@ codeunit 139981 "Subc. Location Handler Test"
         // [GIVEN] Locations: Subcontractor and Original
         LibraryWarehouse.CreateLocation(LocationSub);
         LibraryWarehouse.CreateLocation(LocationOrig);
+        LibraryWarehouse.CreateInTransitLocation(TransitLocation);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationOrig.Code, LocationSub.Code, TransitLocation.Code, '', '');
 
         // [GIVEN] Subcontracting Scenario Setup
         CreateSubcontractingSetup(
@@ -203,13 +207,15 @@ codeunit 139981 "Subc. Location Handler Test"
         ItemJournalLine: Record "Item Journal Line";
         LocationOrig: Record Location;
         LocationSub: Record Location;
+        ProdOrder: Record "Production Order";
         ProdOrderComp: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRtngLine: Record "Prod. Order Routing Line";
-        ProdOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
+        TransferRoute: Record "Transfer Route";
+        TransitLocation: Record Location;
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
         CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
@@ -227,6 +233,9 @@ codeunit 139981 "Subc. Location Handler Test"
         // [GIVEN] Locations
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationSub);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationOrig);
+        LibraryWarehouse.CreateInTransitLocation(TransitLocation);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationOrig.Code, LocationSub.Code, TransitLocation.Code, '', '');
+
 
         // [GIVEN] Subcontracting Scenario Setup
         CreateSubcontractingSetup(
@@ -284,8 +293,8 @@ codeunit 139981 "Subc. Location Handler Test"
     var
         LocationMfg: Record Location;
         ManufacturingSetup: Record "Manufacturing Setup";
-        ProdOrderLine: Record "Prod. Order Line";
         ProdOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
         PurchLine: Record "Purchase Line";
         CreateProdOrdOpt: Codeunit "Subc. Create Prod. Ord. Opt.";
         ItemNo: Code[20];
@@ -295,7 +304,7 @@ codeunit 139981 "Subc. Location Handler Test"
         // [GIVEN] proper setup configuration with Manufacturing location
         Initialize();
 
-        // [GIVEN] Sub Management Setup "Subc. Comp. at Location" is Manufacturing
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Manufacturing
         UpdateSubManagementSetup("Components at Location"::Manufacturing);
 
         // [GIVEN] Manufacturing Setup with a specific Location Code
@@ -483,7 +492,7 @@ codeunit 139981 "Subc. Location Handler Test"
             ManufacturingSetup.Init();
             ManufacturingSetup.Insert();
         end;
-        ManufacturingSetup."Subc. Comp. at Location" := ComponentAtLocation;
+        ManufacturingSetup."Subc. Default Comp. Location" := ComponentAtLocation;
         ManufacturingSetup.Modify();
     end;
 

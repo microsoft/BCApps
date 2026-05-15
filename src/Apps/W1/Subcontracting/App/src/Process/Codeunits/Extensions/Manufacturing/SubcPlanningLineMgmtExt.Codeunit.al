@@ -5,9 +5,9 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Item;
-
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
@@ -36,8 +36,14 @@ codeunit 99001518 "Subc. Planning Line Mgmt Ext."
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterFilterLinesWithItemToPlan, '', false, false)]
-    local procedure "Prod. Order Component_OnAfterFilterLinesWithItemToPlan"(var ProdOrderComponent: Record "Prod. Order Component"; var Item: Record Item; IncludeFirmPlanned: Boolean)
+    local procedure ProdOrderComponent_OnAfterFilterLinesWithItemToPlan(var ProdOrderComponent: Record "Prod. Order Component"; var Item: Record Item; IncludeFirmPlanned: Boolean)
     begin
         ProdOrderComponent.SetFilter("Subcontracting Type", '<>%1', "Subcontracting Type"::Purchase);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterFilterLinesWithItemToPlan, '', false, false)]
+    local procedure TransferLine_OnAfterFilterLinesWithItemToPlan(var Sender: Record "Transfer Line"; var Item: Record Item; IsReceipt: Boolean; IsSupplyForPlanning: Boolean; var TransferLine: Record "Transfer Line")
+    begin
+        TransferLine.SetRange("Transfer WIP Item", false);
     end;
 }
