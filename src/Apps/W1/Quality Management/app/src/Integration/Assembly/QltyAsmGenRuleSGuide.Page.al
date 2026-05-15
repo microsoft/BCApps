@@ -496,6 +496,7 @@ page 20464 "Qlty. Asm. Gen. Rule S. Guide"
             QltyInspectionGenRule.Init();
             QltyInspectionGenRule.SetEntryNo();
             QltyInspectionGenRule.UpdateSortOrder();
+            QltyInspectionGenRule."Source Table No." := Database::"Posted Assembly Header";
             QltyInspectionGenRule.Insert();
         end;
         QltyInspectionGenRule.Validate("Template Code", TemplateCode);

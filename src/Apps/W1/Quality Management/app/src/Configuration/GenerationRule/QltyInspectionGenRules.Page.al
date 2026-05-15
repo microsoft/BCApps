@@ -52,11 +52,13 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 }
                 field("Source Table No."; Rec."Source Table No.")
                 {
-                    Visible = false;
+                    Visible = true;
+                    ShowMandatory = true;
 
                     trigger OnAssistEdit()
                     begin
                         Rec.HandleOnAssistEditSourceTable();
+                        CurrPage.SaveRecord();
                         CurrPage.Update();
                     end;
                 }
@@ -69,11 +71,8 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
                     trigger OnAssistEdit()
                     begin
-                        if IsNullGuid(Rec.SystemId) then begin
-                            if Rec.Insert(true) then;
-                            Commit();
-                        end;
                         Rec.HandleOnAssistEditSourceTable();
+                        CurrPage.SaveRecord();
                         if xRec."Entry No." = Rec."Entry No." then
                             CurrPage.Update(true);
                     end;

@@ -93,6 +93,8 @@ table 20404 "Qlty. Inspection Gen. Rule"
         field(12; "Source Table No."; Integer)
         {
             Caption = 'Table No.';
+            NotBlank = true;
+            BlankZero = true;
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table),
                                                                 "Object ID" = field("Table ID Filter"));
             ToolTip = 'Specifies the table for this rule. For example for receiving to a purchase line, you would use table 39. For production typically 5409 for Production Order Routing Lines.';
@@ -278,6 +280,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
 
     trigger OnInsert()
     begin
+        Rec.TestField("Source Table No.");
         UpdateSortOrder();
         SetEntryNo();
         SetIntentAndDefaultTriggerValuesFromSetup();
@@ -285,6 +288,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
 
     trigger OnModify()
     begin
+        Rec.TestField("Source Table No.");
         UpdateSortOrder();
         if (xRec."Source Table No." <> Rec."Source Table No.") or (Rec.Intent = Rec.Intent::Unknown) or not GuiAllowed() then
             SetIntentAndDefaultTriggerValuesFromSetup();
@@ -319,15 +323,17 @@ table 20404 "Qlty. Inspection Gen. Rule"
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
         QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
         Filter: Text;
+        NewSourceTableNo: Integer;
     begin
         if Rec."Template Code" = '' then
             Error(ChooseTemplateFirstErr);
-        if IsNullGuid(Rec.SystemId) and not Rec.IsTemporary() then
-            Rec.Insert();
         Filter := QltyInspecGenRuleMgmt.GetFilterForAvailableConfigurations();
-        QltyFilterHelpers.RunModalLookupTable(Rec."Source Table No.", Filter);
+        NewSourceTableNo := Rec."Source Table No.";
+        QltyFilterHelpers.RunModalLookupTable(NewSourceTableNo, Filter);
+        if NewSourceTableNo = Rec."Source Table No." then
+            exit;
+        Rec.Validate("Source Table No.", NewSourceTableNo);
         Rec.CalcFields("Table Caption");
-        Rec.Validate("Source Table No.");
     end;
 
     /// <summary>
