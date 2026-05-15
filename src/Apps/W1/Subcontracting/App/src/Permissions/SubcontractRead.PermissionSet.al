@@ -14,5 +14,6 @@ permissionset 99001502 "Subcontract. - Read"
 
     Permissions =
         tabledata "Subc. Management Setup" = R,
-        tabledata "Subcontractor Price" = R;
+        tabledata "Subcontractor Price" = R,
+        tabledata "Subcontractor WIP Ledger Entry" = R;
 }

@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
 codeunit 99001516 "Subc. Req. Wksh. Make Ord."
@@ -30,8 +31,22 @@ codeunit 99001516 "Subc. Req. Wksh. Make Ord."
 
     local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchaseLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line")
     var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
         SubcPurchaseOrderCreator.InsertProdDescriptionOnAfterInsertPurchOrderLine(PurchaseLine, RequisitionLine);
+        if (RequisitionLine."Prod. Order No." <> '') and (RequisitionLine."Operation No." <> '') then begin
+            ProdOrderRoutingLine.SetLoadFields("Transfer WIP Item");
+            if ProdOrderRoutingLine.Get(
+                "Production Order Status"::Released,
+                RequisitionLine."Prod. Order No.",
+                RequisitionLine."Routing Reference No.",
+                RequisitionLine."Routing No.",
+                RequisitionLine."Operation No.")
+            then begin
+                PurchaseLine."Transfer WIP Item" := ProdOrderRoutingLine."Transfer WIP Item";
+                PurchaseLine.Modify();
+            end;
+        end;
     end;
 }

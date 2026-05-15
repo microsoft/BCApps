@@ -76,5 +76,12 @@ tableextension 99001518 "Subc. Transfer Rcpt. Line Ext" extends "Transfer Receip
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(99001560; "Transfer WIP Item"; Boolean)
+        {
+            Caption = 'Transfer WIP Item';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies whether this transfer receipt line represents a WIP item transfer.';
+        }
     }
 }
