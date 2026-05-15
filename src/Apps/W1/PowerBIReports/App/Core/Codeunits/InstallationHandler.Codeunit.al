@@ -33,22 +33,19 @@ codeunit 36950 "Installation Handler"
         ReportSetup: Interface "PBI Report Setup";
         RecRef: RecordRef;
         EmptyGuid: Guid;
-        EmptyText: Text;
         Ordinal: Integer;
     begin
-        // BaseApp wipes the Power BI deployment rows for a company on environment copy and
-        // Copy Company. Mirror that here: clear every setup Report Id / Name pair so the new
-        // company re-deploys cleanly. Iterates the "PBI Report Setup" enum so third-party
-        // extensions registering new app types are handled without changes here.
-        if InCompany <> '' then
-            PowerBIReportsSetup.ChangeCompany(InCompany);
+        if InCompany = '' then
+            exit;
+        if not PowerBIReportsSetup.ChangeCompany(InCompany) then
+            exit;
         if not PowerBIReportsSetup.FindFirst() then
             exit;
         RecRef.GetTable(PowerBIReportsSetup);
         foreach Ordinal in Enum::"PBI Report Setup".Ordinals() do begin
             ReportSetup := Enum::"PBI Report Setup".FromInteger(Ordinal);
             RecRef.Field(ReportSetup.GetSetupReportIdFieldNo()).Value := EmptyGuid;
-            RecRef.Field(ReportSetup.GetSetupReportNameFieldNo()).Value := EmptyText;
+            RecRef.Field(ReportSetup.GetSetupReportNameFieldNo()).Value := '';
         end;
         RecRef.Modify();
     end;
