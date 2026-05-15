@@ -141,6 +141,22 @@ codeunit 135136 "Record Selection Test"
         Assert.AreEqual(ExpectedTextTok, RecordSelection.ToText(Database::"Record Selection Test Table", SystemId), 'ToText did not return the expected text.');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure RecordSelectionMediaFieldsNotIncludedTest()
+    var
+        RecordSelection: Codeunit "Record Selection";
+    begin
+        // [SCENARIO] Media fields in the page summary are excluded from the record selection display.
+        // [GIVEN] Data in the test table which has a Media field in the Brick fieldgroup
+        Initialize();
+        PermissionsMock.Set('Rec. Selection Read');
+
+        // [WHEN] ToText is called for a record in the table
+        // [THEN] The media field is not included in the text output
+        Assert.AreEqual(ExpectedTextTok, RecordSelection.ToText(Database::"Record Selection Test Table", SystemId), 'Media fields should not be included in the record selection display.');
+    end;
+
     local procedure Initialize()
     begin
         InitializeRecordSelectionTestTable(1, 'A', 'The first', 'Other text');

@@ -27,6 +27,10 @@ table 135536 "Record Selection Test Table"
         field(4; SomeOtherText; Text[250])
         {
         }
+
+        field(5; SomeMedia; Media)
+        {
+        }
     }
 
     keys
@@ -39,7 +43,7 @@ table 135536 "Record Selection Test Table"
 
     fieldgroups
     {
-        fieldgroup(Brick; SomeInteger, SomeCode, SomeText)
+        fieldgroup(Brick; SomeInteger, SomeCode, SomeText, SomeMedia)
         {
         }
     }

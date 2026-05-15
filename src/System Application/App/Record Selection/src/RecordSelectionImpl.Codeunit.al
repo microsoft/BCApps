@@ -57,7 +57,7 @@ codeunit 9556 "Record Selection Impl."
             exit('');
 
         PageId := GetRelatedPageId(TableId);
-        RelatedPageExist := GetPageSummaryFields(PageId, FieldCount, PageSummaryFieldList);
+        RelatedPageExist := GetPageSummaryFields(TableId, PageId, FieldCount, PageSummaryFieldList);
 
         if not RelatedPageExist then
             GetPrimaryKeyFields(FromRecordRef, FromKeyRef, FieldCount);
@@ -148,7 +148,7 @@ codeunit 9556 "Record Selection Impl."
         FromRecordRef: RecordRef;
         PageSummaryFieldList: List of [Integer];
     begin
-        if not GetPageSummaryFields(PageId, FieldCount, PageSummaryFieldList) then
+        if not GetPageSummaryFields(TableId, PageId, FieldCount, PageSummaryFieldList) then
             exit(false);
 
         FromRecordRef.Open(TableId);
@@ -162,7 +162,7 @@ codeunit 9556 "Record Selection Impl."
         exit(true);
     end;
 
-    local procedure GetPageSummaryFields(PageId: Integer; var FieldCount: Integer; var PageSummaryFieldList: List of [Integer]): Boolean
+    local procedure GetPageSummaryFields(TableId: Integer; PageId: Integer; var FieldCount: Integer; var PageSummaryFieldList: List of [Integer]): Boolean
     var
         GenericList: DotNet GenericList1;
         NavPageSummaryALFunctions: DotNet NavPageSummaryALFunctions;
@@ -172,12 +172,38 @@ codeunit 9556 "Record Selection Impl."
             exit(false);
 
         GenericList := NavPageSummaryALFunctions.GetSummaryFields(PageId);
+        if IsNull(GenericList) then
+            exit(false);
 
         foreach PageSummaryField in GenericList do
             PageSummaryFieldList.Add(PageSummaryField);
 
+        RemoveMediaFields(TableId, PageSummaryFieldList);
+
         FieldCount := PageSummaryFieldList.Count();
         exit(FieldCount <> 0);
+    end;
+
+    local procedure RemoveMediaFields(TableId: Integer; var PageSummaryFieldList: List of [Integer])
+    var
+        RecordField: Record Field;
+        PageSummaryField: Integer;
+        Index: Integer;
+    begin
+        if PageSummaryFieldList.Count() = 0 then
+            exit;
+
+        Index := 1;
+
+        repeat
+            PageSummaryField := PageSummaryFieldList.Get(Index);
+            RecordField.Get(TableId, PageSummaryField);
+
+            if RecordField.Type in [RecordField.Type::Media, RecordField.Type::MediaSet] then
+                PageSummaryFieldList.RemoveAt(Index)
+            else
+                Index += 1;
+        until Index > PageSummaryFieldList.Count();
     end;
 
     local procedure SetRecordRefFieldsFromPageSummaryFields(var PageSummaryFieldList: List of [Integer]; var FromRecordRef: RecordRef; var RecordSelectionBuffer: Record "Record Selection Buffer")
