@@ -191,10 +191,10 @@ codeunit 693 "Payment Practice Math"
         VendorLedgerEntryForSum: Record "Vendor Ledger Entry";
         CompanySize: Record "Company Size";
         Vendor: Record Vendor;
-        VendorCompanySizeCache: Dictionary of [Code[20], Code[10]];
+        VendorCompanySizeCache: Dictionary of [Code[20], Code[20]];
         VendorExcludedCache: Dictionary of [Code[20], Boolean];
-        SmallBusinessCache: Dictionary of [Code[10], Boolean];
-        CompanySizeCode: Code[10];
+        SmallBusinessCache: Dictionary of [Code[20], Boolean];
+        CompanySizeCode: Code[20];
         PaidAmount: Decimal;
         TotalAmountSmallBusinesses: Decimal;
         TotalAmountAllVendors: Decimal;
