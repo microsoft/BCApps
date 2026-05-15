@@ -2268,7 +2268,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
 
         // [GIVEN] A Released Production Order whose routing has more than one operation
-        CreateAndRefreshProductionOrder(
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
           ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
@@ -2278,7 +2278,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         UpdateSubMgmtSetupWithReqWkshTemplate();
 
         // [GIVEN] A Subcontracting Purchase Order created from the routing line of the subcontracting work center
-        CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
 #pragma warning disable AA0210
