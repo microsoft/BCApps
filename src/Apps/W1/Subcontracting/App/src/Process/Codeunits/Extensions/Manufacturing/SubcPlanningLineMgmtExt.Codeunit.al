@@ -4,8 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Inventory.Item;
+
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Routing;
 
 codeunit 99001518 "Subc. Planning Line Mgmt Ext."
@@ -22,5 +25,11 @@ codeunit 99001518 "Subc. Planning Line Mgmt Ext."
         SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
         SubcPriceManagement.ApplySubcontractorPricingToPlanningRouting(ReqLine, RoutingLine, PlanningRoutingLine);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterFilterLinesWithItemToPlan, '', false, false)]
+    local procedure "Transfer Line_OnAfterFilterLinesWithItemToPlan"(var Sender: Record "Transfer Line"; var Item: Record Item; IsReceipt: Boolean; IsSupplyForPlanning: Boolean; var TransferLine: Record "Transfer Line")
+    begin
+        TransferLine.SetRange("Transfer WIP Item", false);
     end;
 }
