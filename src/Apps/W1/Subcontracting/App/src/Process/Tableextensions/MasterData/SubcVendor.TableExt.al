@@ -51,10 +51,14 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
             TableRelation = "Work Center" where("Subcontractor No." = field("No."));
         }
     }
-
+    
+    keys
+    {
+        key(SubcLocationCode; "Subcontr. Location Code") { }
+    }
+    
     var
         CannotUseLocationLbl: Label 'Cannot user the location for subcontracting';
         ShowLocationCardLbl: Label 'Show Location Card';
         BinWarehouseEnabledOnLocationErr: Label 'Location %1 cannot be used as a subcontracting location because Bin Mandatory or warehouse handling is enabled on the location.', Comment = '%1 = Location Code';
-
 }
