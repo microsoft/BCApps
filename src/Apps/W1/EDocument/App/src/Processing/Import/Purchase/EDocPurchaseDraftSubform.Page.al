@@ -435,7 +435,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 EDocumentPurchaseHeader."Total Line VAT Amount" += LineVATAmount;
                 EDocumentPurchaseHeader."Total Line Amt. Incl. VAT" += LineAmount + LineVATAmount;
             until TotalEDocPurchaseLine.Next() = 0;
-        EDocumentPurchaseHeader.LogHeaderLinesMismatch();
         EDocumentPurchaseHeader.Modify();
         CurrPage.Update();
     end;

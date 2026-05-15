@@ -208,18 +208,6 @@ page 6181 "E-Document Purchase Draft"
                     Editable = false;
                     Visible = ShowApplieVATAmtDiff;
                 }
-                field("Total Line Amount"; EDocumentPurchaseHeader."Total Line Amount")
-                {
-                    ToolTip = 'Specifies the total of the lines amount values from all lines of the draft.';
-                    Importance = Promoted;
-                    StyleExpr = LineAmountMismatchStyle;
-                    Editable = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        Message('TBD');
-                    end;
-                }
                 field("Amount Excl. VAT"; EDocumentPurchaseHeader."Sub Total")
                 {
                     Caption = 'Amount Excl. VAT';
@@ -246,18 +234,6 @@ page 6181 "E-Document Purchase Draft"
                         CurrPage.Update();
                     end;
                 }
-                field("Total Line VAT Amount"; EDocumentPurchaseHeader."Total Line VAT Amount")
-                {
-                    ToolTip = 'Specifies the total VAT amount computed from all lines of the draft.';
-                    Importance = Promoted;
-                    StyleExpr = VATAmountMismatchStyle;
-                    Editable = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        Message('TBD');
-                    end;
-                }
                 field("Total VAT"; EDocumentPurchaseHeader."Total VAT")
                 {
                     Caption = 'Total VAT';
@@ -269,18 +245,6 @@ page 6181 "E-Document Purchase Draft"
                         UpdateTotal();
                         EDocumentPurchaseHeader.Modify();
                         CurrPage.Update();
-                    end;
-                }
-                field("Total Line Amt. Incl. VAT"; EDocumentPurchaseHeader."Total Line Amt. Incl. VAT")
-                {
-                    ToolTip = 'Specifies the total amount including VAT computed from all lines of the draft.';
-                    Importance = Promoted;
-                    StyleExpr = TotalMismatchStyle;
-                    Editable = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        Message('TBD');
                     end;
                 }
                 field("Amount Incl. VAT"; EDocumentPurchaseHeader.Total)
@@ -591,7 +555,6 @@ page 6181 "E-Document Purchase Draft"
             ClearErrorsAndWarnings();
 
         SetStyle();
-        UpdateMismatchStyles();
         SetPageCaption();
 
         Rec.CalcFields("Import Processing Status");
@@ -633,20 +596,6 @@ page 6181 "E-Document Purchase Draft"
             else
                 StyleStatusTxt := 'None';
         end;
-    end;
-
-    local procedure UpdateMismatchStyles()
-    begin
-        LineAmountMismatchStyle := GetMismatchStyle(EDocumentPurchaseHeader."Line Amount Mismatch");
-        VATAmountMismatchStyle := GetMismatchStyle(EDocumentPurchaseHeader."VAT Amount Mismatch");
-        TotalMismatchStyle := GetMismatchStyle(EDocumentPurchaseHeader."Total Mismatch");
-    end;
-
-    local procedure GetMismatchStyle(IsMismatch: Boolean): Text
-    begin
-        if IsMismatch then
-            exit('Unfavorable');
-        exit('');
     end;
 
     local procedure UpdateTotal()
@@ -843,5 +792,4 @@ page 6181 "E-Document Purchase Draft"
         ProcessingDocumentMsg: Label 'Processing document...';
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
         PageEditable, HasPDFSource, IsCreditMemo, ShowApplieVATAmtDiff : Boolean;
-        LineAmountMismatchStyle, VATAmountMismatchStyle, TotalMismatchStyle : Text;
 }

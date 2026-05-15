@@ -101,7 +101,6 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
             until EDocumentPurchaseLine.Next() = 0;
 
         ComputeAndApplyVATAmountDifference(EDocumentPurchaseHeader);
-        EDocumentPurchaseHeader.LogHeaderLinesMismatch();
         EDocumentPurchaseHeader.Modify();
 
         LogAllActivitySessionChanges(EDocActivityLogSession);

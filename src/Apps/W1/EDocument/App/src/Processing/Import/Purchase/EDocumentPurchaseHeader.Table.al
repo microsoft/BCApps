@@ -266,24 +266,6 @@ table 6100 "E-Document Purchase Header"
             AutoFormatExpression = Rec."Currency Code";
             Editable = false;
         }
-        field(45; "Line Amount Mismatch"; Boolean)
-        {
-            Caption = 'Line Amount Mismatch';
-            DataClassification = SystemMetadata;
-            Editable = false;
-        }
-        field(46; "VAT Amount Mismatch"; Boolean)
-        {
-            Caption = 'VAT Amount Mismatch';
-            DataClassification = SystemMetadata;
-            Editable = false;
-        }
-        field(47; "Total Mismatch"; Boolean)
-        {
-            Caption = 'Total Mismatch';
-            DataClassification = SystemMetadata;
-            Editable = false;
-        }
         #endregion Purchase fields
 
         #region Business Central Data - Validated fields [101-200]
@@ -338,13 +320,6 @@ table 6100 "E-Document Purchase Header"
     procedure GetBCVendor() Vendor: Record Vendor
     begin
         if Vendor.Get(Rec."[BC] Vendor No.") then;
-    end;
-
-    internal procedure LogHeaderLinesMismatch()
-    begin
-        Rec."Line Amount Mismatch" := (Rec."Sub Total" <> 0) and (Rec."Sub Total" <> Rec."Total Line Amount");
-        Rec."VAT Amount Mismatch" := (Rec."Total VAT" <> 0) and (Rec."Total VAT" <> Rec."Total Line VAT Amount");
-        Rec."Total Mismatch" := (Rec.Total <> 0) and (Rec.Total <> Rec."Total Line Amt. Incl. VAT");
     end;
 
     internal procedure FeatureName(): Text
