@@ -29,7 +29,7 @@ codeunit 688 "Payment Practice Builders"
                     Vendor.Get(VendorLedgerEntry."Vendor No.");
                     LastVendNo := Vendor."No.";
                 end;
-                if Vendor."Exclude from Pmt. Practices" then begin
+                if SkipVendor(Vendor, PaymentPracticeHeader."Only Small Businesses") then begin
                     // Skip all entries associated with this Vendor
                     VendorLedgerEntry.SetRange("Vendor No.", Vendor."No.");
                     VendorLedgerEntry.FindLast();
@@ -42,6 +42,22 @@ codeunit 688 "Payment Practice Builders"
                     PaymentPracticeData.Insert();
                 end;
             until VendorLedgerEntry.Next() = 0;
+    end;
+
+    procedure SkipVendor(Vendor: Record Vendor; OnlySmallBusinesses: Boolean): Boolean
+    var
+        CompanySize: Record "Company Size";
+    begin
+        if Vendor."Exclude from Pmt. Practices" then
+            exit(true);
+
+        if not OnlySmallBusinesses then
+            exit(false);
+
+        if CompanySize.Get(Vendor."Company Size Code") then
+            exit(not CompanySize."Small Business")
+        else
+            exit(true)
     end;
 
     procedure BuildPaymentPracticeDataForCustomer(var PaymentPracticeData: Record "Payment Practice Data"; PaymentPracticeHeader: Record "Payment Practice Header")

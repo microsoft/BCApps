@@ -9,7 +9,8 @@ interface PaymentPracticeLinesAggregator
     /// <summary>
     /// Prepare the layout to be used for Payment Practice report that is suitable for the aggregation type of the header/lines.
     /// </summary>
-    procedure PrepareLayout()
+    /// <param name="ReportingScheme">Indicates which reporting scheme should be used for the layout.</param>
+    procedure PrepareLayout(ReportingScheme: Enum "Paym. Prac. Reporting Scheme");
 
     /// <summary>
     /// Generate the lines for the Payment Practice report based on the Payment Practice Data raw data and Payment Practice Header fields.
