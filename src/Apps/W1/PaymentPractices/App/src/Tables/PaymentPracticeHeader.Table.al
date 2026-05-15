@@ -137,7 +137,7 @@ table 687 "Payment Practice Header"
         }
         field(24; "Mode Payment Time"; Integer)
         {
-            ToolTip = 'Specifies the mode payment time.';
+            ToolTip = 'Specifies the most frequently occurring number of days taken to pay invoices during the reporting period.';
 
             trigger OnValidate()
             begin
@@ -146,7 +146,7 @@ table 687 "Payment Practice Header"
         }
         field(25; "Mode Payment Time Min."; Integer)
         {
-            ToolTip = 'Specifies the minimum per vendor mode payment time.';
+            ToolTip = 'Specifies the lowest mode payment time, in days, found across all vendors in the reporting period. The value is calculated by determining the mode payment time for each vendor, which is the most frequently occurring number of days taken to pay invoices for that vendor during the reporting period, and then finding the lowest value among those.';
 
             trigger OnValidate()
             begin
@@ -155,7 +155,7 @@ table 687 "Payment Practice Header"
         }
         field(26; "Mode Payment Time Max."; Integer)
         {
-            ToolTip = 'Specifies the maximum per vendor mode payment time.';
+            ToolTip = 'Specifies the highest mode payment time, in days, found across all vendors in the reporting period. The value is calculated by determining the mode payment time for each vendor, which is the most frequently occurring number of days taken to pay invoices for that vendor during the reporting period, and then finding the highest value among those.';
 
             trigger OnValidate()
             begin
@@ -166,7 +166,7 @@ table 687 "Payment Practice Header"
         {
             AutoFormatType = 0;
             DecimalPlaces = 2;
-            ToolTip = 'Specifies the median payment time.';
+            ToolTip = 'Specifies the median number of days taken to pay invoices during the reporting period.';
 
             trigger OnValidate()
             begin
@@ -175,7 +175,7 @@ table 687 "Payment Practice Header"
         }
         field(28; "80th Percentile Payment Time"; Integer)
         {
-            ToolTip = 'Specifies the 80th percentile payment time.';
+            ToolTip = 'Specifies the number of days within which 80 percent of invoices were paid during the reporting period.';
 
             trigger OnValidate()
             begin
@@ -184,7 +184,7 @@ table 687 "Payment Practice Header"
         }
         field(29; "95th Percentile Payment Time"; Integer)
         {
-            ToolTip = 'Specifies the 95th percentile payment time.';
+            ToolTip = 'Specifies the number of days within which 95 percent of invoices were paid during the reporting period.';
 
             trigger OnValidate()
             begin
@@ -195,7 +195,7 @@ table 687 "Payment Practice Header"
         {
             AutoFormatType = 0;
             DecimalPlaces = 2;
-            ToolTip = 'Specifies the percentage of invoices that are PEPPOL enabled.';
+            ToolTip = 'Specifies the percentage of invoices that were PEPPOL enabled. An invoice is considered PEPPOL enabled if the vendor has a GLN.';
 
             trigger OnValidate()
             begin
@@ -206,7 +206,7 @@ table 687 "Payment Practice Header"
         {
             AutoFormatType = 0;
             DecimalPlaces = 2;
-            ToolTip = 'Specifies small business payments as a percentage of total payments. This includes the value of partial payments.';
+            ToolTip = 'Specifies the value of payments made to small business vendors as a percentage of total payments in the reporting period, including partial payments. A vendor is classified as a small business based on the company size code on the vendor record.';
 
             trigger OnValidate()
             begin

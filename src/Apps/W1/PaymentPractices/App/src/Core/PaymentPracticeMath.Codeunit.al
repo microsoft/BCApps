@@ -76,6 +76,11 @@ codeunit 693 "Payment Practice Math"
             Total += Number;
     end;
 
+    /// <summary>
+    /// Calculates the mode (most frequent value) of the actual payment times across all closed invoices in the provided dataset.
+    /// </summary>
+    /// <param name="PaymentPracticeData">The payment practice data to evaluate. Filters are temporarily adjusted but restored before returning.</param>
+    /// <returns>The most frequently occurring number of actual payment days, or 0 if no closed invoices exist.</returns>
     procedure GetModePaymentTime(var PaymentPracticeData: Record "Payment Practice Data"): Integer
     var
         ActualPaymentTimes: List of [Integer];
@@ -86,9 +91,14 @@ codeunit 693 "Payment Practice Math"
                 ActualPaymentTimes.Add(PaymentPracticeData."Actual Payment Days");
             until PaymentPracticeData.Next() = 0;
         PaymentPracticeData.SetRange("Invoice Is Open");
-        exit(Mode(ActualPaymentTimes));
+        exit(MostFrequentValue(ActualPaymentTimes));
     end;
 
+    /// <summary>
+    /// Calculates the smallest per-vendor mode of actual payment times across all vendors in the provided dataset.
+    /// </summary>
+    /// <param name="PaymentPracticeData">The payment practice data to evaluate, grouped by vendor.</param>
+    /// <returns>The minimum of all per-vendor modes, or 0 if no closed invoices exist.</returns>
     procedure GetModePaymentTimeMin(var PaymentPracticeData: Record "Payment Practice Data"): Integer
     var
         ModesPerVendor: List of [Integer];
@@ -97,6 +107,11 @@ codeunit 693 "Payment Practice Math"
         exit(MinOfList(ModesPerVendor));
     end;
 
+    /// <summary>
+    /// Calculates the largest per-vendor mode of actual payment times across all vendors in the provided dataset.
+    /// </summary>
+    /// <param name="PaymentPracticeData">The payment practice data to evaluate, grouped by vendor.</param>
+    /// <returns>The maximum of all per-vendor modes, or 0 if no closed invoices exist.</returns>
     procedure GetModePaymentTimeMax(var PaymentPracticeData: Record "Payment Practice Data"): Integer
     var
         ModesPerVendor: List of [Integer];
@@ -105,6 +120,13 @@ codeunit 693 "Payment Practice Math"
         exit(MaxOfList(ModesPerVendor));
     end;
 
+    /// <summary>
+    /// Calculates the median, 80th percentile, and 95th percentile of actual payment times across all closed invoices in the provided dataset.
+    /// </summary>
+    /// <param name="PaymentPracticeData">The payment practice data to evaluate. Filters are temporarily adjusted but restored before returning.</param>
+    /// <param name="MedianPaymentTime">Output parameter that receives the median number of actual payment days, or 0 if no closed invoices exist.</param>
+    /// <param name="P80PaymentTime">Output parameter that receives the 80th percentile of actual payment days, or 0 if no closed invoices exist.</param>
+    /// <param name="P95PaymentTime">Output parameter that receives the 95th percentile of actual payment days, or 0 if no closed invoices exist.</param>
     procedure GetPaymentTimeStatistics(var PaymentPracticeData: Record "Payment Practice Data"; var MedianPaymentTime: Decimal; var P80PaymentTime: Integer; var P95PaymentTime: Integer)
     var
         ActualPaymentTimes: List of [Integer];
@@ -123,6 +145,11 @@ codeunit 693 "Payment Practice Math"
         P95PaymentTime := PercentileFromSorted(ActualPaymentTimes, 95);
     end;
 
+    /// <summary>
+    /// Calculates the percentage of closed-invoice transactions whose vendor is Peppol enabled (i.e. has a non-empty GLN).
+    /// </summary>
+    /// <param name="PaymentPracticeData">The payment practice data to evaluate. A per-vendor GLN cache is used to avoid repeated lookups.</param>
+    /// <returns>The percentage (0-100) of closed-invoice rows from Peppol-enabled vendors, or 0 when there are no closed invoices.</returns>
     procedure GetPctPeppolEnabled(var PaymentPracticeData: Record "Payment Practice Data"): Decimal
     var
         Vendor: Record Vendor;
@@ -153,6 +180,12 @@ codeunit 693 "Payment Practice Math"
         exit(PeppolCount / Total * 100);
     end;
 
+    /// <summary>
+    /// Calculates the percentage of total vendor invoice value (within the header period) that is paid to small-business vendors.
+    /// </summary>
+    /// <param name="PaymentPracticeData">The payment practice data context (currently unused for filtering but retained for signature consistency).</param>
+    /// <param name="PaymentPracticeHeader">The payment practice header providing the reporting period (Starting/Ending Date).</param>
+    /// <returns>The percentage (0-100) of paid invoice value attributable to vendors flagged as Small Business, or 0 when no invoice value exists.</returns>
     procedure GetPctSmallBusinessPayments(var PaymentPracticeData: Record "Payment Practice Data"; PaymentPracticeHeader: Record "Payment Practice Header"): Decimal
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -181,6 +214,11 @@ codeunit 693 "Payment Practice Math"
         exit(TotalAmountSmallBusinesses / TotalAmountAllVendors * 100);
     end;
 
+    /// <summary>
+    /// Collects the actual payment days for all closed invoices in the dataset into a list. Filters are temporarily adjusted but restored before returning.
+    /// </summary>
+    /// <param name="PaymentPracticeData">The payment practice data to scan.</param>
+    /// <param name="ActualPaymentTimes">Output list that will receive one integer per closed invoice.</param>
     local procedure GetClosedInvoicePaymentTimes(var PaymentPracticeData: Record "Payment Practice Data"; var ActualPaymentTimes: List of [Integer])
     begin
         PaymentPracticeData.SetRange("Invoice Is Open", false);
@@ -191,6 +229,12 @@ codeunit 693 "Payment Practice Math"
         PaymentPracticeData.SetRange("Invoice Is Open");
     end;
 
+    /// <summary>
+    /// Calculates the median value from a list of integers that has already been sorted in ascending order.
+    /// For lists with an even number of elements, returns the average of the two middle values.
+    /// </summary>
+    /// <param name="SortedList">The sorted list of integers to evaluate. Must be sorted in ascending order and contain at least one element.</param>
+    /// <returns>The median value as a decimal.</returns>
     local procedure MedianFromSorted(var SortedList: List of [Integer]): Decimal
     var
         MiddleIndex: Integer;
@@ -202,6 +246,13 @@ codeunit 693 "Payment Practice Math"
             exit(SortedList.Get(MiddleIndex + 1));
     end;
 
+    /// <summary>
+    /// Returns the value at the specified percentile from a list of integers that has already been sorted in ascending order.
+    /// The index is clamped to the valid range [1, Count].
+    /// </summary>
+    /// <param name="SortedList">The sorted list of integers to evaluate. Must be sorted in ascending order and contain at least one element.</param>
+    /// <param name="P">The percentile to compute (e.g. 80 for the 80th percentile).</param>
+    /// <returns>The integer value at the specified percentile.</returns>
     local procedure PercentileFromSorted(var SortedList: List of [Integer]; P: Integer): Integer
     var
         Index: Integer;
@@ -214,6 +265,12 @@ codeunit 693 "Payment Practice Math"
         exit(SortedList.Get(Index));
     end;
 
+    /// <summary>
+    /// Computes the mode of actual payment times for each vendor in the dataset and returns one mode value per vendor.
+    /// Relies on the data being sorted by "CV No." which is set as the current key inside the procedure and restored before returning.
+    /// </summary>
+    /// <param name="PaymentPracticeData">The payment practice data to scan.</param>
+    /// <param name="ModesPerVendor">Output list that will receive one mode value per vendor that has at least one closed invoice.</param>
     local procedure GetModesPerVendor(var PaymentPracticeData: Record "Payment Practice Data"; var ModesPerVendor: List of [Integer])
     var
         ActualPaymentTimes: List of [Integer];
@@ -225,18 +282,23 @@ codeunit 693 "Payment Practice Math"
             CurrentVendor := PaymentPracticeData."CV No.";
             repeat
                 if PaymentPracticeData."CV No." <> CurrentVendor then begin
-                    ModesPerVendor.Add(Mode(ActualPaymentTimes));
+                    ModesPerVendor.Add(MostFrequentValue(ActualPaymentTimes));
                     Clear(ActualPaymentTimes);
                     CurrentVendor := PaymentPracticeData."CV No.";
                 end;
                 ActualPaymentTimes.Add(PaymentPracticeData."Actual Payment Days");
             until PaymentPracticeData.Next() = 0;
-            ModesPerVendor.Add(Mode(ActualPaymentTimes));
+            ModesPerVendor.Add(MostFrequentValue(ActualPaymentTimes));
         end;
         PaymentPracticeData.SetRange("Invoice Is Open");
         PaymentPracticeData.SetCurrentKey("Header No.", "Invoice Entry No.", "Source Type");
     end;
 
+    /// <summary>
+    /// Returns the smallest value in the supplied integer list.
+    /// </summary>
+    /// <param name="List">The list of integers to evaluate.</param>
+    /// <returns>The minimum value in the list, or 0 if the list is empty.</returns>
     local procedure MinOfList(var List: List of [Integer]): Integer
     var
         Value: Integer;
@@ -253,6 +315,11 @@ codeunit 693 "Payment Practice Math"
         exit(MinValue);
     end;
 
+    /// <summary>
+    /// Returns the largest value in the supplied integer list.
+    /// </summary>
+    /// <param name="List">The list of integers to evaluate.</param>
+    /// <returns>The maximum value in the list, or 0 if the list is empty.</returns>
     local procedure MaxOfList(var List: List of [Integer]): Integer
     var
         Value: Integer;
@@ -270,36 +337,46 @@ codeunit 693 "Payment Practice Math"
         exit(MaxValue);
     end;
 
-    local procedure Mode(var List: List of [Integer]): Integer
+    /// <summary>
+    /// Returns the most frequently occurring value (statistical mode) in the supplied integer list.
+    /// When several values share the highest frequency, the smallest of those values is returned for deterministic behavior.
+    /// </summary>
+    /// <param name="List">The list of integers to evaluate.</param>
+    /// <returns>The most frequent value, or 0 if the list is empty.</returns>
+    local procedure MostFrequentValue(var List: List of [Integer]): Integer
     var
-        Frequencies: Dictionary of [Integer, Integer];
-        Value: Integer;
-        Frequency: Integer;
-        MaxFrequency: Integer;
-        ModeValue: Integer;
+        ValueFrequencies: Dictionary of [Integer, Integer];
+        CurrentValue: Integer;
+        CurrentFrequency: Integer;
+        HighestFrequency: Integer;
+        MostFrequent: Integer;
     begin
         if List.Count() = 0 then
             exit(0);
 
-        foreach Value in List do
-            if Frequencies.ContainsKey(Value) then
-                Frequencies.Set(Value, Frequencies.Get(Value) + 1)
+        foreach CurrentValue in List do
+            if ValueFrequencies.ContainsKey(CurrentValue) then
+                ValueFrequencies.Set(CurrentValue, ValueFrequencies.Get(CurrentValue) + 1)
             else
-                Frequencies.Add(Value, 1);
+                ValueFrequencies.Add(CurrentValue, 1);
 
-        MaxFrequency := 0;
-        ModeValue := 0;
-        foreach Value in Frequencies.Keys() do begin
-            Frequency := Frequencies.Get(Value);
-            if (Frequency > MaxFrequency) or ((Frequency = MaxFrequency) and (Value < ModeValue)) then begin
-                MaxFrequency := Frequency;
-                ModeValue := Value;
+        HighestFrequency := 0;
+        MostFrequent := 0;
+        foreach CurrentValue in ValueFrequencies.Keys() do begin
+            CurrentFrequency := ValueFrequencies.Get(CurrentValue);
+            if (CurrentFrequency > HighestFrequency) or ((CurrentFrequency = HighestFrequency) and (CurrentValue < MostFrequent)) then begin
+                HighestFrequency := CurrentFrequency;
+                MostFrequent := CurrentValue;
             end;
         end;
 
-        exit(ModeValue);
+        exit(MostFrequent);
     end;
 
+    /// <summary>
+    /// Sorts the supplied integer list in ascending order in place using a simple bubble sort.
+    /// </summary>
+    /// <param name="List">The list of integers to sort. Modified in place.</param>
     local procedure SortIntegerList(var List: List of [Integer])
     var
         i: Integer;

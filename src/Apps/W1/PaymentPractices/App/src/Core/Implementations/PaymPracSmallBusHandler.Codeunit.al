@@ -19,7 +19,7 @@ codeunit 682 "Paym. Prac. Small Bus. Handler" implements PaymentPracticeSchemeHa
     begin
         if PaymentPracticeHeader."Header Type" <> PaymentPracticeHeader."Header Type"::Vendor then
             Error(WrongHeaderTypeErr);
-        if PaymentPracticeHeader."Aggregation Type" = PaymentPracticeHeader."Aggregation Type"::"Company Size" then
+        if PaymentPracticeHeader."Aggregation Type" <> PaymentPracticeHeader."Aggregation Type"::Period then
             Error(WrongHeaderAggErr);
     end;
 

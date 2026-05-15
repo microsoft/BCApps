@@ -177,7 +177,7 @@ page 687 "Payment Practice Card"
                     {
                         trigger OnDrillDown()
                         begin
-                            ShowSmallBusinessVendorLedgerEntries();
+                            ShowVendorInvoicesInReportPeriod();
                         end;
                     }
                 }
@@ -279,7 +279,7 @@ page 687 "Payment Practice Card"
         Page.RunModal(Page::"Payment Practice Data List", PaymentPracticeData);
     end;
 
-    local procedure ShowSmallBusinessVendorLedgerEntries()
+    local procedure ShowVendorInvoicesInReportPeriod()
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
     begin
