@@ -84,6 +84,7 @@ codeunit 1482 "Edit in Excel Impl."
         PageControlField.SetRange(PageNo, PageNo);
         PageControlField.SetCurrentKey(Sequence);
         PageControlField.SetAscending(Sequence, true);
+        EditinExcel.OnPageControlFieldFilterBeforeFindSetInSetupFieldColumnBindings(PageControlField, PageNo);
         if PageControlField.FindSet() then
             repeat
                 if FieldsTable.Get(PageControlField.TableNo, PageControlField.FieldNo) then
