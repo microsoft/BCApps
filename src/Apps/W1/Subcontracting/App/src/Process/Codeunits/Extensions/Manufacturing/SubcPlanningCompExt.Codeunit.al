@@ -60,6 +60,7 @@ codeunit 99001522 "Subc. Planning Comp. Ext."
             PlanningRoutingLine.SetRange("Worksheet Line No.", PlanningComponent."Worksheet Line No.");
             PlanningRoutingLine.SetRange("Routing Link Code", PlanningComponent."Routing Link Code");
             PlanningRoutingLine.SetRange(Type, PlanningRoutingLine.Type::"Work Center");
+            PlanningRoutingLine.SetLoadFields("No.");
             if PlanningRoutingLine.FindFirst() then
                 if SubcontractingManagement.GetSubcontractor(PlanningRoutingLine."No.", Vendor) then
                     SubcontractingManagement.ChangeLocationOnPlanningComponent(PlanningComponent, Vendor."Subcontr. Location Code", PlanningComponent."Orig. Location Code", PlanningComponent."Orig. Bin Code");
