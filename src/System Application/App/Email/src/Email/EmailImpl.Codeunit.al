@@ -750,6 +750,10 @@ codeunit 8900 "Email Impl"
         repeat
             if AllObj.Get(AllObj."Object Type"::Table, EmailRelatedRecord."Table Id") then begin
                 SourceRecordRef.Open(EmailRelatedRecord."Table Id");
+                // If at least one security filter is applied to the “Purchase Header” table, 
+                // the user will have a problem when push ‘Add file from source document’ action on the “Email Attachments” 
+                // subpage. Message: "Did not find any attachments related to this email"
+                SourceRecordRef.SecurityFiltering(SecurityFilter::Ignored);
                 if SourceRecordRef.ReadPermission() then
                     if SourceRecordRef.GetBySystemId(EmailRelatedRecord."System Id") then
                         EmailRelatedRecord.Mark(true);
