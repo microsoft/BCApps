@@ -1834,7 +1834,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Purchase);
+        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::InventoryByVendor);
 
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -1857,7 +1857,81 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    procedure TestPostItemChargeAssignedToSubcontractingLingValueEntryWithCapacityRelation()
+    procedure PurchaseSubcTypeProdOrderCompExcludedFromPlanning()
+    var
+        ComponentItem: Record Item;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionOrder: Record "Production Order";
+        RequisitionLine: Record "Requisition Line";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 630597] Prod. Order Components with Subcontracting Type "Purchase" should be
+        // excluded from planning engines because they will be purchased later via the subcontracting
+        // purchase order.
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
+        Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+
+        // [GIVEN] Some Parameters for Creation
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Create subcontracting Work/Machine Centers
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM (2 component items)
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] Assign Routing Link Code between subcontracting routing line and last BOM line
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        // [GIVEN] Set Subcontracting Type = Purchase on the linked BOM line
+        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Purchase);
+
+        // [GIVEN] Set up vendor with subcontracting location
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] Set component item reordering policy to Lot-for-Lot (already done during creation)
+        // [GIVEN] Create inventory for the component item so planning considers it
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+        ProductionBOMLine.FindLast();
+        ComponentItem.Get(ProductionBOMLine."No.");
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Create and refresh Released Production Order
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] Verify prod. order component with Purchase subcontracting type exists
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComp.SetRange("Item No.", ComponentItem."No.");
+        ProdOrderComp.SetRange("Subcontracting Type", "Subcontracting Type"::Purchase);
+        Assert.RecordIsNotEmpty(ProdOrderComp);
+
+        // [WHEN] Run Regenerative Plan for the component item
+        ComponentItem.SetRecFilter();
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
+
+        // [THEN] No requisition line is suggested for the component with Purchase subcontracting type
+        RequisitionLine.SetRange("No.", ComponentItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // [WHEN] Changing the Subcontracting Type to None and run planning again
+        UpdateProdOrderComponentWithSubcontractingType(ProductionOrder, "Subcontracting Type"::Empty);
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
+
+        // [THEN] Requisition line is suggested for the component with None subcontracting type
+        RequisitionLine.SetRange("No.", ComponentItem."No.");
+        Assert.RecordIsNotEmpty(RequisitionLine);
+    end;
+
+    [Test]
+    procedure TestPostItemChargeAssignedToSubcontractingLing_ValueEntryWithCapacityRelation()
     var
         ItemCharge: Record "Item Charge";
         ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
@@ -3166,6 +3240,14 @@ codeunit 139989 "Subc. Subcontracting Test"
             ReqWkshTemplate.Modify(true);
         end;
         exit(ReqWkshTemplate.Name);
+    end;
+
+    procedure UpdateProdOrderComponentWithSubcontractingType(ProductionOrder: Record "Production Order"; SubcontractingType: Enum "Subcontracting Type")
+    var
+        ProdOrderComp: Record "Prod. Order Component";
+    begin
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComp.ModifyAll("Subcontracting Type", SubcontractingType);
     end;
 
     var
