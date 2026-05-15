@@ -22,7 +22,7 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
             var
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
-                SubcontractingManagement.UpdateSubcontractingTypeForPlanningComponent(Rec);
+                SubcontractingManagement.UpdateComponentSupplyMethodForPlanningComponent(Rec);
             end;
         }
         field(99001525; "Orig. Location Code"; Code[10])

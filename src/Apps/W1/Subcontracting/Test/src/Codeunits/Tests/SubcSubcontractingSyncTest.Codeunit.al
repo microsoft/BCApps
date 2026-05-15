@@ -69,7 +69,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
 
         UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
 
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Vendor-Supplied");
+        UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
 
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
@@ -334,7 +334,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         ProductionBOMHeader.Modify(true);
     end;
 
-    local procedure UpdateProdBomWithSubcontractingType(Item: Record Item; SubcontractingType: Enum "Component Supply Method")
+    local procedure UpdateProdBomWithComponentSupplyMethod(Item: Record Item; ComponentSupplyMethod: Enum "Component Supply Method")
     var
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionBOMLine: Record "Production BOM Line";
@@ -345,7 +345,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
 
         ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMHeader."No.");
         ProductionBOMLine.FindLast();
-        ProductionBOMLine."Component Supply Method" := SubcontractingType;
+        ProductionBOMLine."Component Supply Method" := ComponentSupplyMethod;
         ProductionBOMLine.Modify(true);
 
         ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);

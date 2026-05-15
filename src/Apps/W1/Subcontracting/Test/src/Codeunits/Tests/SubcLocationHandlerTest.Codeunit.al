@@ -366,7 +366,7 @@ codeunit 139981 "Subc. Location Handler Test"
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
         SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
@@ -413,7 +413,7 @@ codeunit 139981 "Subc. Location Handler Test"
         SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
         SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
         SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
-        UpdateProdBomWithSubcontractingType(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
         UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
         SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
@@ -581,7 +581,7 @@ codeunit 139981 "Subc. Location Handler Test"
         ProdOrderRtngLine.Insert();
     end;
 
-    local procedure UpdateProdBomWithSubcontractingType(Item: Record Item; SubcontractingType: Enum "Component Supply Method")
+    local procedure UpdateProdBomWithComponentSupplyMethod(Item: Record Item; ComponentSupplyMethod: Enum "Component Supply Method")
     var
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionBOMLine: Record "Production BOM Line";
@@ -592,7 +592,7 @@ codeunit 139981 "Subc. Location Handler Test"
 
         ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMHeader."No.");
         ProductionBOMLine.FindLast();
-        ProductionBOMLine."Component Supply Method" := SubcontractingType;
+        ProductionBOMLine."Component Supply Method" := ComponentSupplyMethod;
         ProductionBOMLine.Modify(true);
 
         ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);

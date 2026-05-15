@@ -388,7 +388,7 @@ codeunit 99001505 "Subcontracting Management"
             end;
     end;
 
-    procedure UpdateSubcontractingTypeForPlanningComponent(var PlanningComponent: Record "Planning Component")
+    procedure UpdateComponentSupplyMethodForPlanningComponent(var PlanningComponent: Record "Planning Component")
     var
         PlanningRoutingLine: Record "Planning Routing Line";
         Vendor: Record Vendor;
@@ -420,7 +420,7 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
-    procedure UpdateSubcontractingTypeForProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component")
+    procedure UpdateComponentSupplyMethodForProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component")
     var
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";

@@ -25,7 +25,7 @@ tableextension 99001502 "Subc. Prod Order Comp Ext." extends "Prod. Order Compon
             var
                 SubcontractingManagement: Codeunit "Subcontracting Management";
             begin
-                SubcontractingManagement.UpdateSubcontractingTypeForProdOrderComponent(Rec);
+                SubcontractingManagement.UpdateComponentSupplyMethodForProdOrderComponent(Rec);
             end;
         }
         field(99001523; "Orig. Location Code"; Code[10])

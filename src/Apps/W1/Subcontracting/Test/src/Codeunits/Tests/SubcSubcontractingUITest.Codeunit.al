@@ -256,7 +256,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    procedure CheckCustCtrl_PageProductionBOMLinesSubcontractingType()
+    procedure CheckCustCtrl_PageProductionBOMLinesComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         ProdBOMLine: Record "Production BOM Line";
@@ -279,7 +279,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    procedure CheckCustCtrl_PageProductionBOMVersionLinesSubcontractingType()
+    procedure CheckCustCtrl_PageProductionBOMVersionLinesComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         ProdBOMLine: Record "Production BOM Line";
@@ -301,7 +301,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    procedure CheckCustCtrl_PagePlanningComponentSubcontractingType()
+    procedure CheckCustCtrl_PagePlanningComponentComponentSupplyMethod()
     var
         PageControl: Record "Page Control Field";
         PlanComp: Record "Planning Component";
