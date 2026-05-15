@@ -57,6 +57,7 @@ page 8351 "MCP Config Card"
                             else
                                 if Rec.Default then
                                     Error(DesignatedDefaultCannotBeDeactivatedErr);
+                            RefreshSubPages();
                         end;
                     }
                     field(Default; Rec.Default)
@@ -74,8 +75,8 @@ page 8351 "MCP Config Card"
                         begin
                             if not Rec.EnableDynamicToolMode then
                                 Rec.DiscoverReadOnlyObjects := false;
-
                             GetToolModeDescription();
+                            RefreshSubPages();
                             CurrPage.Update();
                         end;
                     }
@@ -83,6 +84,12 @@ page 8351 "MCP Config Card"
                     {
                         ToolTip = 'Specifies whether to allow discovery of read-only objects not defined in the configuration. Only supported with dynamic tool mode.';
                         Editable = not IsDefault and Rec.EnableDynamicToolMode and not Rec.Active;
+
+                        trigger OnValidate()
+                        begin
+                            RefreshSubPages();
+                            CurrPage.Update();
+                        end;
                     }
                     field(AllowProdChanges; Rec.AllowProdChanges)
                     {
@@ -112,10 +119,18 @@ page 8351 "MCP Config Card"
                     }
                 }
             }
+            part(ServerFeatureList; "MCP Server Feature List")
+            {
+                ApplicationArea = All;
+                UpdatePropagation = Both;
+                Visible = not IsDefault;
+                Editable = false;
+            }
             part(SystemToolList; "MCP System Tool List")
             {
                 ApplicationArea = All;
-                Visible = not IsDefault and Rec.EnableDynamicToolMode;
+                UpdatePropagation = Both;
+                Visible = not IsDefault;
                 Editable = false;
             }
             part(ToolList; "MCP Config Tool List")
@@ -228,6 +243,11 @@ page 8351 "MCP Config Card"
         GetToolModeDescription();
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        RefreshSubPages();
+    end;
+
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
         ToolModeLbl := StaticToolModeLbl;
@@ -259,5 +279,14 @@ page 8351 "MCP Config Card"
     local procedure GetToolModeDescription(): Text
     begin
         ToolModeLbl := Rec.EnableDynamicToolMode ? DynamicToolModeLbl : StaticToolModeLbl;
+    end;
+
+    local procedure RefreshSubPages()
+    begin
+        CurrPage.ServerFeatureList.Page.Reload(Rec.SystemId, not IsDefault and not Rec.Active);
+        // MOCK: IsALQueryActive() returns a page-local stand-in for the platform-side "AL Query enabled"
+        // field that doesn't exist yet on MCP Configuration. Replace with Rec.<NewALQueryField> when
+        // the platform adds it.
+        CurrPage.SystemToolList.Page.Reload(Rec.EnableDynamicToolMode, CurrPage.ServerFeatureList.Page.IsALQueryActive());
     end;
 }
