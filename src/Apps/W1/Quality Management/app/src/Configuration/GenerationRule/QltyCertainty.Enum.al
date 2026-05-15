@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Configuration.GenerationRule;
 
+/// <summary>
+/// Indicates the certainty level for a quality inspection generation rule.
+/// </summary>
 enum 20461 "Qlty. Certainty"
 {
     Caption = 'Quality Certainty';

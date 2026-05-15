@@ -1,7 +1,7 @@
 ---
 name: al-docs-audit
 description: Read-only gap analysis of AL codebase documentation - reports coverage, missing files, and scoring without writing anything
-allowed-tools: Read, Glob, Grep, Bash(*)
+allowed-tools: Read, Glob, Grep
 argument-hint: "path to AL app or folder (defaults to current directory)"
 ---
 
@@ -28,17 +28,19 @@ Launch these **three subagents simultaneously** using the Agent tool:
 
 #### Subagent A: App structure and AL object inventory
 
-Use Glob and Grep to map the codebase:
+Use **only Glob, Grep, and Read** to map the codebase. Do NOT use Bash or shell commands — this must work in CI environments with restricted permissions.
 
-1. **Check for `app.json`** -- if present, extract app name, dependencies, runtime version
-2. **Count AL objects by type** -- grep first lines of all `.al` files for object type keywords
-3. **Group objects by subfolder** -- count objects per directory at all depths to identify functional areas
+1. **Check for `app.json`** -- Read it to extract app name, dependencies, runtime version
+2. **Count AL objects by type** -- use Grep with pattern `^(table|tableextension|codeunit|page|pageextension|enum|enumextension|interface|permissionset|permissionsetextension|report|reportextension|xmlport|query|profile|controladdin|dotnet|entitlement) ` on `**/*.al` files, using `output_mode: "count"` to get counts per type
+3. **Group objects by subfolder** -- use Glob `**/*.al` and count files per directory from the paths returned
 4. **Identify all subfolders recursively at any depth** with 3+ AL objects as candidates for documentation
-5. **Count total source files** per subfolder at all depths
+5. **Count total source files** per subfolder at all depths using Glob results
 
 Return: app metadata, object counts by type, object counts by subfolder.
 
 #### Subagent B: Documentation inventory
+
+Use **only Glob and Read**. Do NOT use Bash or shell commands.
 
 Search for all existing documentation files:
 
@@ -53,14 +55,16 @@ Glob patterns to search:
 For each doc file found, record:
 
 - Path
-- Size (line count)
+- Size (use Read to count lines, or estimate from Glob metadata)
 - Whether it follows the expected pattern (CLAUDE.md not README.md, flat files in docs/)
 
-Also check for a `.docs-updated` marker file.
+Also check for a `.docs-updated` marker file using Glob.
 
 Return: complete list of all documentation files with metadata.
 
 #### Subagent C: Module scoring and gap detection
+
+Use **only Glob, Grep, and Read**. Do NOT use Bash or shell commands.
 
 Score all subfolders recursively at any depth (directories containing `.al` files) using the scoring criteria in `skills/al-docs/references/al-scoring.md`. Read that file for the full scoring table with detection methods. A subfolder can have nested subfolders that each need independent scoring and documentation.
 
