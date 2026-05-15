@@ -34,7 +34,7 @@ table 4580 "Ext. SharePoint Account"
         field(5; "Base Relative Folder Path"; Text[2048])
         {
             Caption = 'Base Relative Folder Path';
-            ToolTip = 'Specifies the folder path relative to the site collection. Start with the document library or folder name (e.g., Shared Documents/Reports). This path can be copied from the URL of the folder in SharePoint after the site collection (e.g., /Shared Documents/Reports from https://mysharepoint.sharepoint.com/sites/ProjectX/Shared%20Documents/Reports).';
+            ToolTip = 'Specifies the base folder path. For SharePoint REST API: Use the full server-relative path including the site (e.g., /sites/ProjectX/Shared Documents/Reports). For Microsoft Graph API: Use only the path relative to the document library (e.g., Reports). When using Graph API, the path should not include the site or document library root, only the folders within the library.';
         }
         field(6; "Tenant Id"; Guid)
         {
@@ -50,6 +50,7 @@ table 4580 "Ext. SharePoint Account"
         }
         field(8; "Client Secret Key"; Guid)
         {
+            Caption = 'Client Secret Key';
             Access = Internal;
             DataClassification = SystemMetadata;
         }
@@ -61,18 +62,28 @@ table 4580 "Ext. SharePoint Account"
         field(10; "Authentication Type"; Enum "Ext. SharePoint Auth Type")
         {
             Caption = 'Authentication Type';
-            ToolTip = 'Specifies the authentication flow used for this SharePoint account. Client Secret uses User grant flow, which means that the user must sign in when using this account. Certificate uses Client credentials flow, which means that the user does not need to sign in when using this account.';
+            ToolTip = 'Specifies the authentication method used for this SharePoint account. When using the legacy REST API, Client Secret uses the Authorization Code (user grant) flow, which requires an interactive sign-in, while Certificate uses the Client Credentials (app-only) flow, which does not require a user sign-in. When using Microsoft Graph API, both Client Secret and Certificate always use the Client Credentials (app-only) flow, so no interactive sign-in is required regardless of the selected type.';
             InitValue = "Client Secret";
         }
         field(11; "Certificate Key"; Guid)
         {
+            Caption = 'Certificate Key';
             Access = Internal;
+            AllowInCustomizations = Never;
             DataClassification = SystemMetadata;
         }
         field(12; "Certificate Password Key"; Guid)
         {
+            Caption = 'Certificate Password Key';
             Access = Internal;
+            AllowInCustomizations = Never;
             DataClassification = SystemMetadata;
+        }
+        field(13; "Use legacy REST API"; Boolean)
+        {
+            Caption = 'Use legacy REST API';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether to use Microsoft Graph API or SharePoint REST API. Microsoft Graph API supports downloading files larger than 150 MB through chunked transfers. Note: Requires Microsoft Graph permissions (Sites.ReadWrite.All) configured in your app registration instead of SharePoint permissions.';
         }
     }
 
