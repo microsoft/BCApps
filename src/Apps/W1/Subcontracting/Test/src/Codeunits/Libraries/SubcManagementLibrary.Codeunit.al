@@ -23,6 +23,11 @@ codeunit 139983 "Subc. Management Library"
         CreateSubcontractingManagementSetup();
     end;
 
+    var
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        BatchNameLbl: Label 'DEFAULT', Comment = 'Default Batch';
+
     procedure CreateSubcontractingManagementSetup()
     var
         SubcontractingManagementSetup: Record "Subc. Management Setup";
@@ -32,6 +37,27 @@ codeunit 139983 "Subc. Management Library"
             SubcontractingManagementSetup.Init();
             SubcontractingManagementSetup.Insert(true);
         end;
+    end;
+
+    procedure CreateSubcontractorWithCurrency(CurrencyCode: Code[10]): Code[20]
+    var
+        Vendor: Record Vendor;
+    begin
+        // Create a Subcontractor Vendor.
+        CreateSubcontractor(Vendor);
+        Vendor.Validate("Currency Code", CurrencyCode);
+        Vendor.Modify(true);
+        exit(Vendor."No.");
+    end;
+
+    procedure CreateSubcontractor(var Vendor: Record Vendor)
+    var
+        Location: Record Location;
+    begin
+        LibraryPurchase.CreateSubcontractor(Vendor);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor.Modify();
     end;
 
     procedure CreateSubContractingPrice(var SubcontractorPrices: Record "Subcontractor Price"; WorkCenterNo: Code[20]; VendorNo: Code[20]; ItemNo: Code[20]; StandardTaskCode: Code[10]; VariantCode: Code[10]; StartDate: Date; UnitOfMeasureCode: Code[10]; MinimumQuantity: Decimal; CurrencyCode: Code[10])
@@ -97,7 +123,6 @@ codeunit 139983 "Subc. Management Library"
     var
         Location: Record Location;
         ProdOrderComp: Record "Prod. Order Component";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderNo);
 #pragma warning disable AA0210
@@ -113,7 +138,6 @@ codeunit 139983 "Subc. Management Library"
     var
         Location: Record Location;
         Vendor: Record Vendor;
-        LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Get(WorkCenter."Subcontractor No.");
@@ -176,7 +200,6 @@ codeunit 139983 "Subc. Management Library"
         ProdOrderComp: Record "Prod. Order Component";
         TransferRoute: Record "Transfer Route";
         Vendor: Record Vendor;
-        LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         Vendor.Get(WorkCenter."Subcontractor No.");
         ProdOrderComp.SetRange(Status, ProductionOrder.Status);
@@ -193,7 +216,6 @@ codeunit 139983 "Subc. Management Library"
     var
         Location: Record Location;
         ManufacturingSetup: Record "Manufacturing Setup";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         ManufacturingSetup.Get();
@@ -245,5 +267,59 @@ codeunit 139983 "Subc. Management Library"
         WIPLedgerEntry."In Transit" := InTransit;
         WIPLedgerEntry."Unit of Measure Code" := ProdOrderLine."Unit of Measure Code";
         WIPLedgerEntry.Insert();
+    end;
+
+    procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
+    var
+        RequisitionLine: Record "Requisition Line";
+        SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
+    begin
+        RequisitionLineForSubcontractOrder(RequisitionLine);
+        SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubcontracts.SetTableView(WorkCenter);
+        SubcCalculateSubcontracts.UseRequestPage(false);
+        SubcCalculateSubcontracts.RunModal();
+    end;
+
+    procedure CalculateSubcontractOrderWithProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    var
+        RequisitionLine: Record "Requisition Line";
+        TmpProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
+    begin
+        if ProdOrderRoutingLine.HasFilter then
+            TmpProdOrderRoutingLine.CopyFilters(ProdOrderRoutingLine)
+        else begin
+            ProdOrderRoutingLine.Get(ProdOrderRoutingLine."No.");
+            TmpProdOrderRoutingLine.SetRange("No.", ProdOrderRoutingLine."No.");
+        end;
+
+        RequisitionLineForSubcontractOrder(RequisitionLine);
+        SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubcontracts.SetTableView(TmpProdOrderRoutingLine);
+        SubcCalculateSubcontracts.UseRequestPage(false);
+        SubcCalculateSubcontracts.RunModal();
+    end;
+
+    local procedure RequisitionLineForSubcontractOrder(var RequisitionLine: Record "Requisition Line")
+    var
+        ReqJnlManagement: Codeunit ReqJnlManagement;
+        JnlSelected: Boolean;
+        Handled: Boolean;
+    begin
+        ReqJnlManagement.WkshTemplateSelection(Page::"Subc. Subcontracting Worksheet", false, "Req. Worksheet Template Type"::Subcontracting, RequisitionLine, JnlSelected);
+        if not JnlSelected then
+            Error('');
+        RequisitionLine."Worksheet Template Name" := CopyStr(Format("Req. Worksheet Template Type"::Subcontracting), 1, MaxStrLen(RequisitionLine."Worksheet Template Name"));
+        RequisitionLine."Journal Batch Name" := BatchNameLbl;
+        OnBeforeOpenJournal(RequisitionLine, Handled);
+        if Handled then
+            exit;
+        ReqJnlManagement.OpenJnl(RequisitionLine."Journal Batch Name", RequisitionLine);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOpenJournal(var RequisitionLine: Record "Requisition Line"; var Handled: Boolean)
+    begin
     end;
 }

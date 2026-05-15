@@ -13,7 +13,6 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
-using Microsoft.Manufacturing.Planning;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
@@ -385,7 +384,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
             GenProductPostingGroup.FindFirst();
             GenProductPostingGroup.Validate("Def. VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
             GenProductPostingGroup.Modify(true);
-            WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(CurrencyCode));
+            WorkCenter.Validate("Subcontractor No.", SubcManagementLibrary.CreateSubcontractorWithCurrency(CurrencyCode));
         end;
         WorkCenter.Modify(true);
         WorkCenterNo := WorkCenter."No.";
@@ -406,7 +405,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting Sync Test");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
+        SubcManagementLibrary.Initialize();
         UpdateSubMgmtSetupComponentAtLocation("Components at Location"::Purchase);
         LibraryMfgManagement.Initialize();
 
@@ -482,7 +481,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
-        SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubcManagementLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
         Subcontracting: Boolean;

@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Planning;
 using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 99001529 "Subc. Calc Subcontracts Ext."

@@ -45,7 +45,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
-        SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubcManagementLibrary: Codeunit "Subc. Management Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
@@ -86,14 +86,14 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryPurchase.CreateVendor(Vendor);
         WorkCenter."Subcontractor No." := Vendor."No.";
         WorkCenter.Modify();
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
+        SubcManagementLibrary.CreateSubContractingPrice(SubcontractorPrices, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
         SubcontractorPrices."Direct Unit Cost" := 99;
         SubcontractorPrices.Modify();
         Vendor."Subcontr. Location Code" := Location2.Code;
         Vendor.Modify();
 
         LibraryPurchase.CreateVendor(Vendor);
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
+        SubcManagementLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
         SubcontractorPrices2."Direct Unit Cost" := 11;
         SubcontractorPrices2.Modify();
         Vendor."Subcontr. Location Code" := Location2.Code;
@@ -169,13 +169,13 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryPurchase.CreateVendor(Vendor);
         WorkCenter."Subcontractor No." := Vendor."No.";
         WorkCenter.Modify();
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', ItemVariant.Code, WorkDate(), '', 0, Vendor."Currency Code");
+        SubcManagementLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', ItemVariant.Code, WorkDate(), '', 0, Vendor."Currency Code");
         SubcontractorPrices2."Direct Unit Cost" := 11;
         SubcontractorPrices2.Modify();
         Vendor."Subcontr. Location Code" := Location2.Code;
         Vendor.Modify();
 
-        SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
+        SubcManagementLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
         SubcontractorPrices2."Direct Unit Cost" := 8;
         SubcontractorPrices2.Modify();
 
@@ -597,7 +597,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
             GenProductPostingGroup.FindFirst();
             GenProductPostingGroup.Validate("Def. VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
             GenProductPostingGroup.Modify(true);
-            WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(CurrencyCode));
+            WorkCenter.Validate("Subcontractor No.", SubcManagementLibrary.CreateSubcontractorWithCurrency(CurrencyCode));
         end;
         WorkCenter.Modify(true);
         WorkCenterNo := WorkCenter."No.";
@@ -612,7 +612,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Purch. Subcont. Test");
 
-        SubcontractingMgmtLibrary.Initialize();
+        SubcManagementLibrary.Initialize();
         LibraryMfgManagement.Initialize();
         SubSetupLibrary.InitSetupFields();
         SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Subc. Show/Edit Type"::Hide, "Subc. Show/Edit Type"::Hide);
