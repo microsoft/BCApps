@@ -20,7 +20,7 @@ pageextension 99001537 "Subc. Prod. Planner Activities" extends "Production Plan
                 field("Subcontracting Purchase Orders"; Rec."Subcontracting Purchase Orders")
                 {
                     ApplicationArea = Manufacturing;
-                    DrillDownPageId = "Purchase Order List"; // TODO: Replace with a page filtered to subcontracting purchase orders
+                    DrillDownPageId = "Purchase Order List";
                     ToolTip = 'Specifies the number of open purchase orders that are subcontracting orders.';
                 }
                 field("Subc. Purch. Lines Outstd."; Rec."Subc. Purch. Lines Outstd.")
