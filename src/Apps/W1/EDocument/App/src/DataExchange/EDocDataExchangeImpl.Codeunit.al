@@ -29,7 +29,12 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         PEPPOLValidation: Codeunit "PEPPOL Validation";
         PEPPOLServiceValidation: Codeunit "PEPPOL Service Validation";
+        IsHandled: Boolean;
     begin
+        OnBeforeCheck(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase, IsHandled);
+        if IsHandled then
+            exit;
+
         case SourceDocumentHeader.Number of
             Database::"Sales Header":
                 begin
@@ -550,6 +555,11 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDataExchangeExport(var DataExch: Record "Data Exch."; EDocumentFormat: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheck(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase"; var IsHandled: Boolean);
     begin
     end;
 

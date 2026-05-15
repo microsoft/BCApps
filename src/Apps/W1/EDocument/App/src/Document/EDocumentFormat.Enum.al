@@ -11,7 +11,7 @@ enum 6101 "E-Document Format" implements "E-Document"
     Extensible = true;
     value(0; "Data Exchange")
     {
-        Caption = 'Data Exchange';
+        Caption = 'PEPPOL Data Exchange';
         Implementation = "E-Document" = "E-Doc. Data Exchange Impl.";
     }
     value(1; "PEPPOL BIS 3.0")
