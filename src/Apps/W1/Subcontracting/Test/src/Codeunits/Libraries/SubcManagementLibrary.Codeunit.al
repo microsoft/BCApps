@@ -25,12 +25,11 @@ codeunit 139983 "Subc. Management Library"
 
     procedure CreateSubcontractingManagementSetup()
     var
-        SubcontractingManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
-        SubcontractingManagementSetup.Reset();
-        if not SubcontractingManagementSetup.Get() then begin
-            SubcontractingManagementSetup.Init();
-            SubcontractingManagementSetup.Insert(true);
+        if not ManufacturingSetup.Get() then begin
+            ManufacturingSetup.Init();
+            ManufacturingSetup.Insert(true);
         end;
     end;
 

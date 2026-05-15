@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
@@ -25,10 +24,8 @@ using System.Utilities;
 codeunit 99001505 "Subcontracting Management"
 {
     var
-        SubcManagementSetup: Record "Subc. Management Setup";
         ManufacturingSetup: Record "Manufacturing Setup";
         TempGlobalReservationEntry: Record "Reservation Entry" temporary;
-        HasSubManagementSetup: Boolean;
         RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
         SuccessfullyUpdatedMsg: Label 'Successfully updated.';
         UpdateIsCancelledErr: Label 'Update cancelled.';
@@ -99,40 +96,6 @@ codeunit 99001505 "Subcontracting Management"
         TransferHeader.CheckDirectTransferPosting();
     end;
 
-    procedure CreatePurchProvisionRoutingLine(RoutingHeader: Record "Routing Header")
-    var
-        RoutingLine: Record "Routing Line";
-        Vendor: Record Vendor;
-        SubcSessionState: Codeunit "Subc. Session State";
-        RoutingLinkCode: Code[10];
-        WorkCenterNo: Code[20];
-    begin
-        GetManufacturingSetup();
-        if HasManufacturingSetup then
-            RoutingLinkCode := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
-
-        Vendor.SetLoadFields("Work Center No.");
-        if Vendor.Get(SubcSessionState.GetCode(GetKeyCreateProdOrderProcess())) then
-            WorkCenterNo := Vendor."Work Center No.";
-
-        GetSubmanagementSetup();
-        if WorkCenterNo = '' then
-            WorkCenterNo := SubcManagementSetup."Common Work Center No.";
-
-        if WorkCenterNo = '' then
-            exit;
-
-        RoutingLine.Init();
-        RoutingLine."Routing No." := RoutingHeader."No.";
-        RoutingLine."Operation No." := '01';
-        RoutingLine.Type := "Capacity Type Routing"::"Work Center";
-        RoutingLine.Validate("No.", WorkCenterNo);
-        if RoutingLinkCode <> '' then
-            RoutingLine."Routing Link Code" := RoutingLinkCode;
-
-        RoutingLine.Insert();
-    end;
-
     procedure DelLocationLinkedComponents(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ShowMsg: Boolean)
     var
         ProdOrderComponent: Record "Prod. Order Component";
@@ -192,17 +155,6 @@ codeunit 99001505 "Subcontracting Management"
             Vendor.TestField("Subcontr. Location Code");
             exit(true);
         end;
-        exit(false);
-    end;
-
-    procedure HandleCommonWorkCenter(ItemJournalLine: Record "Item Journal Line"): Boolean
-    begin
-        if ItemJournalLine."Work Center No." = '' then
-            exit(false);
-        GetSubmanagementSetup();
-        if SubcManagementSetup."Common Work Center No." = ItemJournalLine."Work Center No." then
-            exit(true);
-
         exit(false);
     end;
 
@@ -554,14 +506,6 @@ codeunit 99001505 "Subcontracting Management"
         end;
 
         exit(ComponentsLocationCode);
-    end;
-
-    local procedure GetSubmanagementSetup()
-    begin
-        if HasSubManagementSetup then
-            exit;
-        if SubcManagementSetup.Get() then
-            HasSubManagementSetup := true;
     end;
 
     local procedure GetManufacturingSetup()

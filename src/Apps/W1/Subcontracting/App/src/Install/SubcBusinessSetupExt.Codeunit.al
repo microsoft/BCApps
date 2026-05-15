@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Company;
+using Microsoft.Manufacturing.Setup;
 using System.Environment.Configuration;
 
 codeunit 99001502 "Subc. Business Setup Ext."
@@ -19,7 +20,7 @@ codeunit 99001502 "Subc. Business Setup Ext."
     var
         ManualSetupCategory: Enum "Manual Setup Category";
     begin
-        sender.InsertManualSetup(SubcontractingLbl, SubcontractingLbl, SubcontractingDescriptionLbl, 0, ObjectType::Page, Page::"Subc. Management Setup", ManualSetupCategory::Uncategorized, SubcontractingKeyWordsLbl);
+        sender.InsertManualSetup(SubcontractingLbl, SubcontractingLbl, SubcontractingDescriptionLbl, 0, ObjectType::Page, Page::"Manufacturing Setup", ManualSetupCategory::Uncategorized, SubcontractingKeyWordsLbl);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", OnCompanyInitialize, '', false, false)]

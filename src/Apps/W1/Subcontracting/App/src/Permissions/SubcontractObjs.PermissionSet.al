@@ -11,7 +11,6 @@ permissionset 99001501 "Subcontract. - Objs"
     Access = Internal;
     Permissions =
         // Tables
-        table "Subc. Management Setup" = X,
         table "Subcontractor Price" = X,
         table "Subcontractor WIP Ledger Entry" = X,
 
@@ -23,9 +22,6 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Calc BOM Tree Ext." = X,
         codeunit "Subc. Calc Subcontracts Ext." = X,
         codeunit "Subc. Carry Out Action Ext." = X,
-        codeunit "Subc. Create Prod. Ord. Opt." = X,
-        codeunit "Subc. Create Prod. Rtng. Ext." = X,
-        codeunit "Subc. CrPurchSubcon(Yes/No)" = X,
         codeunit "Subc. DirectTransferLine Ext." = X,
         codeunit "Subc. Comp. Factbox Mgmt." = X,
         codeunit "Subc. ProdO. Factbox Mgmt." = X,
@@ -33,7 +29,6 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Routing Factbox Mgmt." = X,
         codeunit "Subc. ItemChargeAssPurchExt" = X,
         codeunit "Subc. Item Extension" = X,
-        codeunit "Subc. ItemJnlCheckExt" = X,
         codeunit "Subc. ItemJnlPostLine Ext" = X,
         codeunit "Subc. Notification Mgmt." = X,
         codeunit "Subc. Planning Comp. Ext." = X,
@@ -42,7 +37,6 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Prod. Order Comp. Ext." = X,
         codeunit "Subc. Prod. Order Rtng. Ext." = X,
         codeunit "Subc. Prod. Ord. Comp. Res." = X,
-        codeunit "Subc. ProdOrderCreateBind" = X,
         codeunit "Subc. Purch. Post Ext" = X,
         codeunit "Subc. Purchase Header Ext" = X,
         codeunit "Subc. Purchase Line Ext" = X,
@@ -53,8 +47,6 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subcontracting Management" = X,
         codeunit "Subcontracting Management Ext." = X,
         codeunit "Subc. Synchronize Management" = X,
-        codeunit "Subc. Temp Data Initializer" = X,
-        codeunit "Subc. TempProdOrdBind" = X,
         codeunit "Subc. Transfer Line Ext." = X,
         codeunit "Subc. Transfer Rcpt Line Ext." = X,
         codeunit "Subc. Transfer Shpt Line Ext." = X,
@@ -64,7 +56,6 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Trans Rcpt Header Ext" = X,
         codeunit "Subc. Trans Shpt Header Ext" = X,
         codeunit "Subc. Vendor Extension" = X,
-        codeunit "Subc. Version Mgmt." = X,
         codeunit "Subc. WhsePostReceipt Ext" = X,
         codeunit "Subc. WhsePurchRelease Ext" = X,
         codeunit "Subc. Work Center Extension" = X,
@@ -79,15 +70,9 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. WIP Item Ledg Find Entry" = X,
 
         // Pages
-        page "Subc. Management Setup" = X,
         page "Subc. Prod. Order Components" = X,
         page "Subc. Purchase Line Factbox" = X,
-        page "Subc. PurchProvisionWizard" = X,
         page "Subc. Routing Info Factbox" = X,
-        page "Subc. Temp BOM Lines" = X,
-        page "Subc. Temp Prod Order Comp" = X,
-        page "Subc. TempProdOrdRtngLines" = X,
-        page "Subc. Temp Routing Lines" = X,
         page "Subc. Transfer Line Factbox" = X,
         page "Subcontractor Prices" = X,
         page "Subc. WIP Adjustment" = X,
