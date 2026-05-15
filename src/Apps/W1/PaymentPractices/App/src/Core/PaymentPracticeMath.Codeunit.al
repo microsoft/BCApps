@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Analysis;
 
-using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 
 codeunit 693 "Payment Practice Math"
@@ -77,190 +76,109 @@ codeunit 693 "Payment Practice Math"
     end;
 
     /// <summary>
-    /// Calculates the mode (most frequent value) of the actual payment times across all closed invoices in the provided dataset.
+    /// Aggregates all closed-invoice statistics required for a Small Business reporting-scheme header in a single
+    /// pass over the filtered <see cref="Payment Practice Data"/> set. This consolidates what previously required
+    /// 5+ independent full-table scans (mode, per-vendor mode min/max, median/P80/P95, % Peppol enabled, % small
+    /// business payments) into one iteration plus one small in-memory post-processing step.
     /// </summary>
     /// <param name="PaymentPracticeData">The payment practice data to evaluate. Filters are temporarily adjusted but restored before returning.</param>
-    /// <returns>The most frequently occurring number of actual payment days, or 0 if no closed invoices exist.</returns>
-    procedure GetModePaymentTime(var PaymentPracticeData: Record "Payment Practice Data"): Integer
+    /// <param name="TotalCount">Output: number of closed invoice rows.</param>
+    /// <param name="TotalValue">Output: sum of "Invoice Amount" across closed invoices.</param>
+    /// <param name="ModePaymentTime">Output: most frequent "Actual Payment Days" across all closed invoices.</param>
+    /// <param name="ModePaymentTimeMin">Output: smallest per-vendor mode of "Actual Payment Days".</param>
+    /// <param name="ModePaymentTimeMax">Output: largest per-vendor mode of "Actual Payment Days".</param>
+    /// <param name="MedianPaymentTime">Output: median of "Actual Payment Days" across closed invoices.</param>
+    /// <param name="P80PaymentTime">Output: 80th percentile of "Actual Payment Days".</param>
+    /// <param name="P95PaymentTime">Output: 95th percentile of "Actual Payment Days".</param>
+    /// <param name="PctPeppolEnabled">Output: percentage of closed-invoice rows whose vendor has a GLN.</param>
+    /// <param name="PctSmallBusinessPayments">Output: percentage of closed-invoice value attributable to small-business vendors.</param>
+    procedure CalculateHeaderStatistics(var PaymentPracticeData: Record "Payment Practice Data"; var TotalCount: Integer; var TotalValue: Decimal; var ModePaymentTime: Integer; var ModePaymentTimeMin: Integer; var ModePaymentTimeMax: Integer; var MedianPaymentTime: Decimal; var P80PaymentTime: Integer; var P95PaymentTime: Integer; var PctPeppolEnabled: Decimal; var PctSmallBusinessPayments: Decimal)
     var
-        ActualPaymentTimes: List of [Integer];
-    begin
-        PaymentPracticeData.SetRange("Invoice Is Open", false);
-        if PaymentPracticeData.FindSet() then
-            repeat
-                ActualPaymentTimes.Add(PaymentPracticeData."Actual Payment Days");
-            until PaymentPracticeData.Next() = 0;
-        PaymentPracticeData.SetRange("Invoice Is Open");
-        exit(MostFrequentValue(ActualPaymentTimes));
-    end;
-
-    /// <summary>
-    /// Calculates the smallest per-vendor mode of actual payment times across all vendors in the provided dataset.
-    /// </summary>
-    /// <param name="PaymentPracticeData">The payment practice data to evaluate, grouped by vendor.</param>
-    /// <returns>The minimum of all per-vendor modes, or 0 if no closed invoices exist.</returns>
-    procedure GetModePaymentTimeMin(var PaymentPracticeData: Record "Payment Practice Data"): Integer
-    var
+        Vendor: Record Vendor;
+        CompanySize: Record "Company Size";
+        AllPaymentTimes: List of [Integer];
+        PerVendorTimes: Dictionary of [Code[20], List of [Integer]];
+        VendorTimes: List of [Integer];
         ModesPerVendor: List of [Integer];
+        VendorGLNCache: Dictionary of [Code[20], Boolean];
+        SmallBusinessCache: Dictionary of [Code[20], Boolean];
+        HasGLN: Boolean;
+        IsSmallBusiness: Boolean;
+        PeppolCount: Integer;
+        SmallBusinessValue: Decimal;
+        PaymentTime: Integer;
+        CVNo: Code[20];
+        CompanySizeCode: Code[20];
     begin
-        GetModesPerVendor(PaymentPracticeData, ModesPerVendor);
-        exit(MinOfList(ModesPerVendor));
-    end;
-
-    /// <summary>
-    /// Calculates the largest per-vendor mode of actual payment times across all vendors in the provided dataset.
-    /// </summary>
-    /// <param name="PaymentPracticeData">The payment practice data to evaluate, grouped by vendor.</param>
-    /// <returns>The maximum of all per-vendor modes, or 0 if no closed invoices exist.</returns>
-    procedure GetModePaymentTimeMax(var PaymentPracticeData: Record "Payment Practice Data"): Integer
-    var
-        ModesPerVendor: List of [Integer];
-    begin
-        GetModesPerVendor(PaymentPracticeData, ModesPerVendor);
-        exit(MaxOfList(ModesPerVendor));
-    end;
-
-    /// <summary>
-    /// Calculates the median, 80th percentile, and 95th percentile of actual payment times across all closed invoices in the provided dataset.
-    /// </summary>
-    /// <param name="PaymentPracticeData">The payment practice data to evaluate. Filters are temporarily adjusted but restored before returning.</param>
-    /// <param name="MedianPaymentTime">Output parameter that receives the median number of actual payment days, or 0 if no closed invoices exist.</param>
-    /// <param name="P80PaymentTime">Output parameter that receives the 80th percentile of actual payment days, or 0 if no closed invoices exist.</param>
-    /// <param name="P95PaymentTime">Output parameter that receives the 95th percentile of actual payment days, or 0 if no closed invoices exist.</param>
-    procedure GetPaymentTimeStatistics(var PaymentPracticeData: Record "Payment Practice Data"; var MedianPaymentTime: Decimal; var P80PaymentTime: Integer; var P95PaymentTime: Integer)
-    var
-        ActualPaymentTimes: List of [Integer];
-    begin
+        TotalCount := 0;
+        TotalValue := 0;
+        ModePaymentTime := 0;
+        ModePaymentTimeMin := 0;
+        ModePaymentTimeMax := 0;
         MedianPaymentTime := 0;
         P80PaymentTime := 0;
         P95PaymentTime := 0;
+        PctPeppolEnabled := 0;
+        PctSmallBusinessPayments := 0;
 
-        GetClosedInvoicePaymentTimes(PaymentPracticeData, ActualPaymentTimes);
-        if ActualPaymentTimes.Count() = 0 then
-            exit;
-
-        SortIntegerList(ActualPaymentTimes);
-        MedianPaymentTime := MedianFromSorted(ActualPaymentTimes);
-        P80PaymentTime := PercentileFromSorted(ActualPaymentTimes, 80);
-        P95PaymentTime := PercentileFromSorted(ActualPaymentTimes, 95);
-    end;
-
-    /// <summary>
-    /// Calculates the percentage of closed-invoice transactions whose vendor is Peppol enabled (i.e. has a non-empty GLN).
-    /// </summary>
-    /// <param name="PaymentPracticeData">The payment practice data to evaluate. A per-vendor GLN cache is used to avoid repeated lookups.</param>
-    /// <returns>The percentage (0-100) of closed-invoice rows from Peppol-enabled vendors, or 0 when there are no closed invoices.</returns>
-    procedure GetPctPeppolEnabled(var PaymentPracticeData: Record "Payment Practice Data"): Decimal
-    var
-        Vendor: Record Vendor;
-        VendorGLNCache: Dictionary of [Code[20], Boolean];
-        HasGLN: Boolean;
-        Total: Integer;
-        PeppolCount: Integer;
-    begin
         PaymentPracticeData.SetRange("Invoice Is Open", false);
         if PaymentPracticeData.FindSet() then
             repeat
+                TotalCount += 1;
+                TotalValue += PaymentPracticeData."Invoice Amount";
 
-                Total += 1;
-                if not VendorGLNCache.Get(PaymentPracticeData."CV No.", HasGLN) then begin
-                    Vendor.SetLoadFields(GLN);
-                    HasGLN := Vendor.Get(PaymentPracticeData."CV No.") and (Vendor.GLN <> '');
-                    VendorGLNCache.Add(PaymentPracticeData."CV No.", HasGLN);
+                PaymentTime := PaymentPracticeData."Actual Payment Days";
+                AllPaymentTimes.Add(PaymentTime);
+
+                CVNo := PaymentPracticeData."CV No.";
+                if PerVendorTimes.Get(CVNo, VendorTimes) then begin
+                    VendorTimes.Add(PaymentTime);
+                    PerVendorTimes.Set(CVNo, VendorTimes);
+                end else begin
+                    Clear(VendorTimes);
+                    VendorTimes.Add(PaymentTime);
+                    PerVendorTimes.Add(CVNo, VendorTimes);
                 end;
 
+                // Peppol enabled (vendor GLN), cached per vendor
+                if not VendorGLNCache.Get(CVNo, HasGLN) then begin
+                    Vendor.SetLoadFields(GLN);
+                    HasGLN := Vendor.Get(CVNo) and (Vendor.GLN <> '');
+                    VendorGLNCache.Add(CVNo, HasGLN);
+                end;
                 if HasGLN then
                     PeppolCount += 1;
-            until PaymentPracticeData.Next() = 0;
 
-        PaymentPracticeData.SetRange("Invoice Is Open");
-        if Total = 0 then
-            exit(0);
-
-        exit(PeppolCount / Total * 100);
-    end;
-
-    /// <summary>
-    /// Calculates the percentage of total vendor invoice value (within the header period) that is paid to small-business vendors.
-    /// </summary>
-    /// <param name="PaymentPracticeHeader">The payment practice header providing the reporting period (Starting/Ending Date).</param>
-    /// <returns>The percentage (0-100) of paid invoice value attributable to vendors flagged as Small Business, or 0 when no invoice value exists.</returns>
-    procedure GetPctSmallBusinessPayments(PaymentPracticeHeader: Record "Payment Practice Header"): Decimal
-    var
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        VendorLedgerEntryForSum: Record "Vendor Ledger Entry";
-        CompanySize: Record "Company Size";
-        Vendor: Record Vendor;
-        VendorCompanySizeCache: Dictionary of [Code[20], Code[20]];
-        VendorExcludedCache: Dictionary of [Code[20], Boolean];
-        SmallBusinessCache: Dictionary of [Code[20], Boolean];
-        CompanySizeCode: Code[20];
-        PaidAmount: Decimal;
-        TotalAmountSmallBusinesses: Decimal;
-        TotalAmountAllVendors: Decimal;
-    begin
-        // Walk the filtered Vendor Ledger Entries grouped by vendor. For each distinct vendor we
-        // (a) look up "Company Size Code" / "Exclude from Pmt. Practices" once (cached in a Dictionary), and
-        // (b) aggregate Amount / "Remaining Amount" with a single CalcSums call, instead of
-        //     forcing the FlowFields to evaluate on every row via SetAutoCalcFields.
-        VendorLedgerEntry.SetCurrentKey("Vendor No.", "Posting Date");
-        VendorLedgerEntry.SetLoadFields("Vendor No.");
-        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
-        VendorLedgerEntry.SetRange("Posting Date", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
-        if VendorLedgerEntry.FindSet() then
-            repeat
-                if not VendorCompanySizeCache.ContainsKey(VendorLedgerEntry."Vendor No.") then begin
-                    Vendor.SetLoadFields("Company Size Code", "Exclude from Pmt. Practices");
-                    if Vendor.Get(VendorLedgerEntry."Vendor No.") then begin
-                        CompanySizeCode := Vendor."Company Size Code";
-                        VendorExcludedCache.Add(VendorLedgerEntry."Vendor No.", Vendor."Exclude from Pmt. Practices");
-                    end else begin
-                        CompanySizeCode := '';
-                        VendorExcludedCache.Add(VendorLedgerEntry."Vendor No.", false);
-                    end;
-                    VendorCompanySizeCache.Add(VendorLedgerEntry."Vendor No.", CompanySizeCode);
-
-                    if not SmallBusinessCache.ContainsKey(CompanySizeCode) then
-                        SmallBusinessCache.Add(CompanySizeCode, (CompanySizeCode <> '') and CompanySize.Get(CompanySizeCode) and CompanySize."Small Business");
-
-                    if not VendorExcludedCache.Get(VendorLedgerEntry."Vendor No.") then begin
-                        VendorLedgerEntryForSum.SetCurrentKey("Vendor No.", "Posting Date");
-                        VendorLedgerEntryForSum.SetRange("Vendor No.", VendorLedgerEntry."Vendor No.");
-                        VendorLedgerEntryForSum.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
-                        VendorLedgerEntryForSum.SetRange("Posting Date", PaymentPracticeHeader."Starting Date", PaymentPracticeHeader."Ending Date");
-                        VendorLedgerEntryForSum.SetAutoCalcFields(Amount, "Remaining Amount");
-                        PaidAmount := 0;
-                        if VendorLedgerEntryForSum.FindSet() then
-                            repeat
-                                PaidAmount += VendorLedgerEntryForSum.Amount - VendorLedgerEntryForSum."Remaining Amount";
-                            until VendorLedgerEntryForSum.Next() = 0;
-
-                        if SmallBusinessCache.Get(CompanySizeCode) then
-                            TotalAmountSmallBusinesses += PaidAmount;
-                        TotalAmountAllVendors += PaidAmount;
-                    end;
+                // Small business value, using "Company Size Code" already stored on the data row (cached per code)
+                CompanySizeCode := PaymentPracticeData."Company Size Code";
+                if not SmallBusinessCache.Get(CompanySizeCode, IsSmallBusiness) then begin
+                    IsSmallBusiness := (CompanySizeCode <> '') and CompanySize.Get(CompanySizeCode) and CompanySize."Small Business";
+                    SmallBusinessCache.Add(CompanySizeCode, IsSmallBusiness);
                 end;
-            until VendorLedgerEntry.Next() = 0;
-
-        if TotalAmountAllVendors = 0 then
-            exit(0);
-
-        exit(TotalAmountSmallBusinesses / TotalAmountAllVendors * 100);
-    end;
-
-    /// <summary>
-    /// Collects the actual payment days for all closed invoices in the dataset into a list. Filters are temporarily adjusted but restored before returning.
-    /// </summary>
-    /// <param name="PaymentPracticeData">The payment practice data to scan.</param>
-    /// <param name="ActualPaymentTimes">Output list that will receive one integer per closed invoice.</param>
-    local procedure GetClosedInvoicePaymentTimes(var PaymentPracticeData: Record "Payment Practice Data"; var ActualPaymentTimes: List of [Integer])
-    begin
-        PaymentPracticeData.SetRange("Invoice Is Open", false);
-        if PaymentPracticeData.FindSet() then
-            repeat
-                ActualPaymentTimes.Add(PaymentPracticeData."Actual Payment Days");
+                if IsSmallBusiness then
+                    SmallBusinessValue += PaymentPracticeData."Invoice Amount";
             until PaymentPracticeData.Next() = 0;
         PaymentPracticeData.SetRange("Invoice Is Open");
+
+        if AllPaymentTimes.Count() > 0 then begin
+            ModePaymentTime := MostFrequentValue(AllPaymentTimes);
+            SortIntegerList(AllPaymentTimes);
+            MedianPaymentTime := MedianFromSorted(AllPaymentTimes);
+            P80PaymentTime := PercentileFromSorted(AllPaymentTimes, 80);
+            P95PaymentTime := PercentileFromSorted(AllPaymentTimes, 95);
+        end;
+
+        foreach CVNo in PerVendorTimes.Keys() do begin
+            VendorTimes := PerVendorTimes.Get(CVNo);
+            ModesPerVendor.Add(MostFrequentValue(VendorTimes));
+        end;
+        ModePaymentTimeMin := MinOfList(ModesPerVendor);
+        ModePaymentTimeMax := MaxOfList(ModesPerVendor);
+
+        if TotalCount > 0 then
+            PctPeppolEnabled := PeppolCount / TotalCount * 100;
+        if TotalValue <> 0 then
+            PctSmallBusinessPayments := SmallBusinessValue / TotalValue * 100;
     end;
 
     /// <summary>
@@ -297,36 +215,6 @@ codeunit 693 "Payment Practice Math"
         if Index > SortedList.Count() then
             Index := SortedList.Count();
         exit(SortedList.Get(Index));
-    end;
-
-    /// <summary>
-    /// Computes the mode of actual payment times for each vendor in the dataset and returns one mode value per vendor.
-    /// Relies on the data being sorted by "CV No." which is set as the current key inside the procedure and restored before returning.
-    /// </summary>
-    /// <param name="PaymentPracticeData">The payment practice data to scan.</param>
-    /// <param name="ModesPerVendor">Output list that will receive one mode value per vendor that has at least one closed invoice.</param>
-    local procedure GetModesPerVendor(var PaymentPracticeData: Record "Payment Practice Data"; var ModesPerVendor: List of [Integer])
-    var
-        LocalPaymentPracticeData: Record "Payment Practice Data";
-        ActualPaymentTimes: List of [Integer];
-        CurrentVendor: Code[20];
-    begin
-        // Use a separate record variable so we don't mutate the caller's filters or current key.
-        LocalPaymentPracticeData.CopyFilters(PaymentPracticeData);
-        LocalPaymentPracticeData.SetRange("Invoice Is Open", false);
-        LocalPaymentPracticeData.SetCurrentKey("CV No.");
-        if LocalPaymentPracticeData.FindSet() then begin
-            CurrentVendor := LocalPaymentPracticeData."CV No.";
-            repeat
-                if LocalPaymentPracticeData."CV No." <> CurrentVendor then begin
-                    ModesPerVendor.Add(MostFrequentValue(ActualPaymentTimes));
-                    Clear(ActualPaymentTimes);
-                    CurrentVendor := LocalPaymentPracticeData."CV No.";
-                end;
-                ActualPaymentTimes.Add(LocalPaymentPracticeData."Actual Payment Days");
-            until LocalPaymentPracticeData.Next() = 0;
-            ModesPerVendor.Add(MostFrequentValue(ActualPaymentTimes));
-        end;
     end;
 
     /// <summary>
