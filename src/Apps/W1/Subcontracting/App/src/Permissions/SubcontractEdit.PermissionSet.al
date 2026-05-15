@@ -14,5 +14,6 @@ permissionset 99001503 "Subcontract. - Edit"
 
     Permissions =
         tabledata "Subc. Management Setup" = IMD,
-        tabledata "Subcontractor Price" = IMD;
+        tabledata "Subcontractor Price" = IMD,
+        tabledata "Subcontractor WIP Ledger Entry" = IMD;
 }
