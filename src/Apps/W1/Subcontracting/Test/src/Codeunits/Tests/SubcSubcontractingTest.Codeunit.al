@@ -2074,6 +2074,81 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrderReopen')]
+    procedure FactboxDrilldownTransferOrderReopenPersists()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        WorkCenter: array[2] of Record "Work Center";
+        ProductionLocation: Record Location;
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        ReleaseTransferDocument: Codeunit "Release Transfer Document";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        ReleasedProdOrderRtng: TestPage "Prod. Order Routing";
+    begin
+        // [SCENARIO] Bug 634267 - Reopen Transfer Order does not persist when opened from Subcontracting Details Factbox.
+        // ShowTransferOrdersAndReturnOrder must open the page on a real database record, so actions like
+        // Reopen that modify Rec directly persist after the page closes.
+
+        // [GIVEN] Subcontracting setup with transfer components and a released transfer order
+        Initialize();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SetAllProdOrderTransferComponentLocations(ProductionOrder."No.", ProductionLocation.Code);
+        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ReleasedProdOrderRtng.OpenView();
+        ReleasedProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+        ReleasedProdOrderRtng.CreateSubcontracting.Invoke();
+        ReleasedProdOrderRtng.Close();
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+        PurchaseHeaderPage.Close();
+
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        TransferHeader.FindFirst();
+        ReleaseTransferDocument.Release(TransferHeader);
+        Assert.AreEqual(TransferHeader.Status::Released, TransferHeader.Status, 'Transfer order should be Released before the test.');
+
+        // [WHEN] Opening the transfer order from the factbox drill-down and performing Reopen
+        // The page handler HandleTransferOrderReopen will reopen the transfer order
+        PurchaseLine.FindFirst();
+        SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(PurchaseLine, true, false);
+
+        // [THEN] The transfer order status must be Open after closing the page
+        TransferHeader.Get(TransferHeader."No.");
+        Assert.AreEqual(TransferHeader.Status::Open, TransferHeader.Status,
+            'Transfer order status should be Open after Reopen from factbox drill-down. Before the fix, the Reopen modified a marked record and the change was lost.');
+    end;
+
+    [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting')]
     procedure Description2CopiedFromProdOrderComponentToPurchaseLine()
     var
@@ -2576,6 +2651,13 @@ codeunit 139989 "Subc. Subcontracting Test"
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
         OpenedTransferOrderNo := CopyStr(TransfOrderPage."No.".Value(), 1, MaxStrLen(OpenedTransferOrderNo));
+        TransfOrderPage.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure HandleTransferOrderReopen(var TransfOrderPage: TestPage "Transfer Order")
+    begin
+        TransfOrderPage."Reo&pen".Invoke();
         TransfOrderPage.OK().Invoke();
     end;
 
