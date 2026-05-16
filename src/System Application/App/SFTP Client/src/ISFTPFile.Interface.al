@@ -8,6 +8,10 @@ namespace System.SFTPClient;
 interface "ISFTP File"
 {
     Access = Public;
+    ObsoleteReason = 'The SFTP module is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+
     procedure MoveTo(Destination: Text): Boolean
     procedure Name(): Text
     procedure FullName(): Text

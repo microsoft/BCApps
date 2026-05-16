@@ -5,6 +5,7 @@
 
 namespace System.SFTPClient;
 
+#pragma warning disable AL0432, AS0105
 page 9761 "SFTP Folder Content"
 {
     Caption = 'SFTP Folder Content';
@@ -16,6 +17,9 @@ page 9761 "SFTP Folder Content"
     DeleteAllowed = false;
     Editable = false;
     Extensible = false;
+    ObsoleteReason = 'The SFTP module is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     layout
     {
@@ -53,3 +57,4 @@ page 9761 "SFTP Folder Content"
         }
     }
 }
+#pragma warning restore AL0432, AS0105
