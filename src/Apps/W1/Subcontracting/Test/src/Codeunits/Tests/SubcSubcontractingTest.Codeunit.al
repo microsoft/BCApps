@@ -2098,7 +2098,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         // [GIVEN] Subcontracting setup with transfer components and a released transfer order
         Initialize();
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
-        SubcontractingMgmtLibrary.SetupInventorySetup();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 

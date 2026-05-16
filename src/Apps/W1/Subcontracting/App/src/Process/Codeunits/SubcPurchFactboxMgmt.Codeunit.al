@@ -314,6 +314,8 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
                     end;
                 NoOfTransferHeaders > 1:
                     begin
+                        // As we do not expect more than a handful tranfer orders linked to the purchase order, there is no need to 
+                        // add extra processing if the number of records linked are more than allowed.
                         TransferHeaderToOpen.SetFilter("No.", SelectionFilterMgt.GetSelectionFilterForTransferHeader(TransferHeader));
                         PageManagement.PageRunList(TransferHeaderToOpen);
                     end;
