@@ -62,9 +62,7 @@ page 99001502 "Subc. Routing Info Factbox"
             }
             field(ShowNoOfTransferOrdersFromProdOrderComp; SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, false))
             {
-                AutoFormatType = 0;
                 Caption = 'Transfer Order Lines';
-                DecimalPlaces = 0 : 0;
                 ToolTip = 'Specifies the number of transfer order lines assigned to this routing line.';
                 trigger OnDrillDown()
                 begin
@@ -73,9 +71,7 @@ page 99001502 "Subc. Routing Info Factbox"
             }
             field(ShowNoOfReturnTransferOrdersFromProdOrderComp; SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, true))
             {
-                AutoFormatType = 0;
                 Caption = 'Return Transfer Order Lines';
-                DecimalPlaces = 0 : 0;
                 ToolTip = 'Specifies the number of Return transfer order lines assigned to this routing line.';
                 trigger OnDrillDown()
                 begin
@@ -84,9 +80,7 @@ page 99001502 "Subc. Routing Info Factbox"
             }
             field(ShowNoOfLinkedComp; SubcRoutingFactboxMgmt.GetNoOfLinkedComponentsFromRouting(Rec))
             {
-                AutoFormatType = 0;
                 Caption = 'Components';
-                DecimalPlaces = 0 : 0;
                 ToolTip = 'Specifies the number of components linked to this routing line.';
                 trigger OnDrillDown()
                 begin
