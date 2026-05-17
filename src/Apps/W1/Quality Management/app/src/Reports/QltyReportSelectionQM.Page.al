@@ -12,8 +12,8 @@ page 20442 "Qlty. Report Selection - QM"
 {
     Caption = 'Report Selection - Quality Management';
     AdditionalSearchTerms = 'Quality Management Report Selections';
-    AboutTitle = 'About report selection for Quality Management';
-    AboutText = 'On this page, you set up the default reports that are used when printing Quality Management documents such as Certificate of Analysis, Non-Conformance Reports and General Purpose Inspections. Use the Usage field to select the type of document, then specify which reports to use in the list below.';
+    AboutTitle = 'About report selection for quality management';
+    AboutText = 'On this page, you set up the default reports that are used when printing quality management documents such as Certificate of Analysis, Non-Conformance and General Purpose inspection documents. Use the Usage field to select the type of document, then specify which reports to use in the list below.';
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Report Selections";
@@ -98,8 +98,8 @@ page 20442 "Qlty. Report Selection - QM"
                 Rec.Insert()
             else
                 Rec.Modify();
-        Rec.FilterGroup(2);
 
+        Rec.FilterGroup(2);
         case QltyReportSelectionUsage of
             QltyReportSelectionUsage::"Certificate of Analysis":
                 Rec.SetRange(Usage, Rec."Usage"::"Quality Management - Certificate of Analysis");
@@ -108,8 +108,8 @@ page 20442 "Qlty. Report Selection - QM"
             QltyReportSelectionUsage::"General Purpose Inspection":
                 Rec.SetRange(Usage, Rec."Usage"::"Quality Management - General Purpose Inspection");
         end;
-
         Rec.FilterGroup(0);
+
         CurrPage.Update();
     end;
 }
