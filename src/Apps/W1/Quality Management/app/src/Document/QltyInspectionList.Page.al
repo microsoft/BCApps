@@ -528,7 +528,7 @@ page 20408 "Qlty. Inspection List"
             }
             action(OpenSourceDocument)
             {
-                Caption = 'Show Source Document';
+                Caption = 'Show source document';
                 Enabled = RowActionsAreEnabled;
                 Image = ViewSourceDocumentLine;
                 ToolTip = 'Open the related source document.';

@@ -712,7 +712,7 @@ page 20406 "Qlty. Inspection"
             }
             action(OpenSourceDocument)
             {
-                Caption = 'Show Source Document';
+                Caption = 'Show source document';
                 Image = ViewSourceDocumentLine;
                 ToolTip = 'Open the related source document.';
 
