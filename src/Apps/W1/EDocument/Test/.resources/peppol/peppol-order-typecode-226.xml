@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- PEPPOL BIS Ordering 3.0 — Unsupported OrderTypeCode=226.
+<!-- PEPPOL BIS Ordering 3.0 — OrderTypeCode=226.
      The ReadIntoDraft stage stores the code in staging without error.
-     EDocCreateSalesOrder.GetSalesDocumentType throws UnsupportedOrderTypeCodeErr at FinishDraft. -->
+     FinishDraft always produces a Sales Order regardless of OrderTypeCode (226 is no exception). -->
 <Order xmlns="urn:oasis:names:specification:ubl:schema:xsd:Order-2"
     xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
     xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
