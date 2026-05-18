@@ -137,5 +137,7 @@ codeunit 6427 "E-Doc. Sales Doc. Helper"
         SalesLine.SetRange("Document No.", DocumentNo);
         if SalesLine.FindLast() then
             exit(SalesLine."Line No.");
+
+        exit(0);
     end;
 }
