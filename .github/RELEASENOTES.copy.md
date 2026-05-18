@@ -2,6 +2,23 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### Conditional settings now support workflow trigger events
+
+`ConditionalSettings` now supports a `triggers` condition, allowing you to apply settings based on `GITHUB_EVENT_NAME` values such as `push`, `pull_request`, `schedule`, and `workflow_dispatch`.
+
+Example:
+
+```json
+"ConditionalSettings": [
+  {
+    "triggers": ["schedule", "workflow_dispatch"],
+    "settings": {
+      "additionalCountries": ["de", "us"]
+    }
+  }
+]
+```
+
 ### Optimized dependency artifact downloads for multi-project repositories
 
 The `DownloadProjectDependencies` action now downloads only artifacts from dependency projects instead of all workflow artifacts. For repositories with many AL-Go projects, this reduces build runner bandwidth and speeds up the dependency download step.
@@ -12,6 +29,7 @@ The `DownloadProjectDependencies` action now downloads only artifacts from depen
 - Issue 2204 - Workspace compilation ignores vsixFile setting
 - Issue 2211 - Cannot create a release if a project contains only test apps
 - Issue 2214 - Workspace compilation not working with external dependencies
+- Issue 2235 - Workspace compilation: only the first `customCodeCops` entry resolved when multiple relative paths were configured. Relative `customCodeCops` paths are now resolved against the project folder before being passed to the compiler.
 
 ## v9.0
 
