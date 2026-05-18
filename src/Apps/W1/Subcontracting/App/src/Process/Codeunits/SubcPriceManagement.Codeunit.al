@@ -121,9 +121,6 @@ codeunit 99001508 "Subc. Price Management"
         UnitCost: Decimal;
         UnitCostCalculationType: Enum "Unit Cost Calculation Type";
     begin
-        if not ManufacturingSetup.Get() then
-            exit;
-
         if RoutingLine.Type <> "Capacity Type Routing"::"Work Center" then
             exit;
 

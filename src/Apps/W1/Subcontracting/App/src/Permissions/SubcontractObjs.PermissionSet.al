@@ -45,7 +45,6 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Req. Wksh. Make Ord." = X,
         codeunit "Subcontracting Comp. Init." = X,
         codeunit "Subcontracting Management" = X,
-        codeunit "Subcontracting Management Ext." = X,
         codeunit "Subc. Synchronize Management" = X,
         codeunit "Subc. Transfer Line Ext." = X,
         codeunit "Subc. Transfer Rcpt Line Ext." = X,
@@ -79,7 +78,6 @@ permissionset 99001501 "Subcontract. - Objs"
         page "Subc. WIP Ledger Entries" = X,
 
         // Reports
-        report "Subc. Create Prod. Routing" = X,
         report "Subc. Create Transf. Order" = X,
         report "Subc. Create SubCReturnOrder" = X,
         report "Subc. Detailed Calculation" = X,

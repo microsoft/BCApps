@@ -132,11 +132,6 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
-    procedure GetKeyCreateProdOrderProcess(): Text
-    begin
-        exit('Sub_CreateProdOrderProcess');
-    end;
-
     procedure GetSubcontractor(WorkCenterNo: Code[20]; var Vendor: Record Vendor): Boolean
     var
         WorkCenter: Record "Work Center";

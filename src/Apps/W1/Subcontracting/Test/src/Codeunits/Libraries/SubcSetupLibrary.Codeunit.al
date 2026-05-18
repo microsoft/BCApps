@@ -5,7 +5,6 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Item;
-using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 
@@ -13,27 +12,16 @@ codeunit 139988 "Subc. Setup Library"
 {
     var
         LibraryInventory: Codeunit "Library - Inventory";
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
 
     procedure InitSetupFields()
     var
         Item: Record Item;
-        RoutingLink: Record "Routing Link";
-        ManufacturingSetup2: Record "Manufacturing Setup";
         ManufacturingSetup: Record "Manufacturing Setup";
         WorkCenter: Record "Work Center";
     begin
         // Create Work Center for subcontracting
         SubCreateProdOrdWizLibrary.CreateAndCalculateNeededWorkCenter(WorkCenter, true);
-
-        // Create routing link for purchase provisioning
-        LibraryManufacturing.CreateRoutingLink(RoutingLink);
-
-        if not ManufacturingSetup2.Get() then begin
-            ManufacturingSetup2.Init();
-            ManufacturingSetup2.Insert();
-        end;
 
         LibraryInventory.CreateItem(Item);
 
@@ -43,7 +31,6 @@ codeunit 139988 "Subc. Setup Library"
             ManufacturingSetup.Insert();
         end;
 
-        ManufacturingSetup."Rtng. Link Code Purch. Prov." := RoutingLink."Code";
         ManufacturingSetup."Subc. Default Comp. Location" := ManufacturingSetup."Subc. Default Comp. Location"::Purchase;
         ManufacturingSetup.Modify();
     end;
