@@ -8,6 +8,12 @@ using System.Environment.Configuration;
 
 codeunit 99001506 "Subc. Notification Mgmt."
 {
+    var
+        ProdOrdNotificationDescriptionTxt: Label 'Show a notification if Production Orders were created for Subcontracting.';
+        ProdOrdNotificationNameLbl: Label 'Show Created Production Orders';
+        SubcOrdNotificationDescriptionTxt: Label 'Show a notification if Subcontracting Orders were created for Subcontracting.';
+        SubcOrdNotificationNameLbl: Label 'Show Created Subcontracting Orders';
+
     procedure ShowCreatedProductionOrderConfirmationMessageCode(): Code[50]
     begin
         exit(UpperCase(GetShowCreatedProductionOrderCode()));
@@ -38,19 +44,15 @@ codeunit 99001506 "Subc. Notification Mgmt."
     local procedure RegisterSubcontrProductionOrderCreatedNotification()
     var
         MyNotifications: Record "My Notifications";
-        MyNotificationsDescriptionTxt: Label 'Show a notification if Production Orders were created for Subcontracting.';
-        MyNotificationsNameLbl: Label 'Show Created Production Orders';
     begin
-        MyNotifications.InsertDefault(GetGuidProductionOrderCreatedNotification(), MyNotificationsNameLbl, MyNotificationsDescriptionTxt, true);
+        MyNotifications.InsertDefault(GetGuidProductionOrderCreatedNotification(), ProdOrdNotificationNameLbl, ProdOrdNotificationDescriptionTxt, true);
     end;
 
     local procedure RegisterSubcontrPurchOrderCreatedNotification()
     var
         MyNotifications: Record "My Notifications";
-        MyNotificationsDescriptionTxt: Label 'Show a notification if Subcontracting Orders were created for Subcontracting.';
-        MyNotificationsNameLbl: Label 'Show Created Subcontracting Orders';
     begin
-        MyNotifications.InsertDefault(GetGuidSubcontractingPOCreatedNotification(), MyNotificationsNameLbl, MyNotificationsDescriptionTxt, true);
+        MyNotifications.InsertDefault(GetGuidSubcontractingPOCreatedNotification(), SubcOrdNotificationNameLbl, SubcOrdNotificationDescriptionTxt, true);
     end;
 
     procedure DisableNotification(var NotificationVar: Notification)

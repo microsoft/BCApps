@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -26,21 +26,29 @@ codeunit 99001505 "Subcontracting Management"
 {
     var
         SubcManagementSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
         TempGlobalReservationEntry: Record "Reservation Entry" temporary;
         HasSubManagementSetup: Boolean;
+        RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
+        SuccessfullyUpdatedMsg: Label 'Successfully updated.';
+        UpdateIsCancelledErr: Label 'Update cancelled.';
+        UpdateIsCanceledErr: Label 'The update is canceled.';
+        WorkCenterVendorDoesntExistErr: Label 'Subcontractor %1 on Work Center %2 does not exist.', Comment = 'Parameter %1 - subcontractor/vendor number, %2 - work center number.';
+        PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
+        HasManufacturingSetup: Boolean;
 
     procedure CalcReceiptDateFromProdCompDueDateWithInbWhseHandlingTime(ProdOrderComponent: Record "Prod. Order Component") ReceiptDate: Date
     begin
-        GetSubmanagementSetup();
-        if not HasSubManagementSetup or (Format(SubcManagementSetup."Subc. Inb. Whse. Handling Time") = '') then
+        GetManufacturingSetup();
+        if not HasManufacturingSetup or (Format(ManufacturingSetup."Subc. Inb. Whse. Handling Time") = '') then
             exit(ProdOrderComponent."Due Date");
 
-        ReceiptDate := CalcDate('-' + Format(SubcManagementSetup."Subc. Inb. Whse. Handling Time"), ProdOrderComponent."Due Date");
+        ReceiptDate := CalcDate('-' + Format(ManufacturingSetup."Subc. Inb. Whse. Handling Time"), ProdOrderComponent."Due Date");
 
         exit(ReceiptDate);
     end;
 
-    procedure ChangeLocation_OnProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
+    procedure ChangeLocationOnProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
         case ProdOrderComponent."Subcontracting Type" of
             "Subcontracting Type"::InventoryByVendor,
@@ -63,7 +71,7 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
-    procedure ChangeLocation_OnPlanningComponent(var PlanningComponent: Record "Planning Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
+    procedure ChangeLocationOnPlanningComponent(var PlanningComponent: Record "Planning Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
         case PlanningComponent."Subcontracting Type" of
             "Subcontracting Type"::InventoryByVendor,
@@ -99,14 +107,15 @@ codeunit 99001505 "Subcontracting Management"
         RoutingLinkCode: Code[10];
         WorkCenterNo: Code[20];
     begin
-        GetSubmanagementSetup();
-        if HasSubManagementSetup then
-            RoutingLinkCode := SubcManagementSetup."Rtng. Link Code Purch. Prov.";
+        GetManufacturingSetup();
+        if HasManufacturingSetup then
+            RoutingLinkCode := ManufacturingSetup."Rtng. Link Code Purch. Prov.";
 
         Vendor.SetLoadFields("Work Center No.");
         if Vendor.Get(SubcSessionState.GetCode(GetKeyCreateProdOrderProcess())) then
             WorkCenterNo := Vendor."Work Center No.";
 
+        GetSubmanagementSetup();
         if WorkCenterNo = '' then
             WorkCenterNo := SubcManagementSetup."Common Work Center No.";
 
@@ -131,9 +140,6 @@ codeunit 99001505 "Subcontracting Management"
         StockkeepingUnit: Record "Stockkeeping Unit";
         ConfirmManagement: Codeunit "Confirm Management";
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
-        RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
-        SuccessfullyUpdatedMsg: Label 'Successfully updated.';
-        UpdateIsCancelledErr: Label 'Update cancelled.';
     begin
 
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
@@ -172,8 +178,6 @@ codeunit 99001505 "Subcontracting Management"
     var
         WorkCenter: Record "Work Center";
         HasSubcontractor, IsHandled : Boolean;
-        WorkCenterVendorDoesntExistErr: Label 'Subcontractor %1 on Work Center %2 does not exist.',
-            Comment = 'Parameter %1 - subcontractor/vendor number, %2 - work center number.';
     begin
         OnBeforeGetSubcontractor(WorkCenterNo, Vendor, HasSubcontractor, IsHandled);//DO NOT DELETE
         if IsHandled then
@@ -376,7 +380,7 @@ codeunit 99001505 "Subcontracting Management"
     begin
         if ProdOrderComponent.Get("Production Order Status"::Released, TransferLine."Prod. Order No.", TransferLine."Prod. Order Line No.", TransferLine."Prod. Order Comp. Line No.") then
             if ProdOrderComponent."Orig. Location Code" <> '' then begin
-                ChangeLocation_OnProdOrderComponent(ProdOrderComponent, '', ProdOrderComponent."Orig. Location Code", ProdOrderComponent."Orig. Bin Code");
+                ChangeLocationOnProdOrderComponent(ProdOrderComponent, '', ProdOrderComponent."Orig. Location Code", ProdOrderComponent."Orig. Bin Code");
                 ProdOrderComponent."Orig. Location Code" := '';
                 ProdOrderComponent."Orig. Bin Code" := '';
 
@@ -410,7 +414,7 @@ codeunit 99001505 "Subcontracting Management"
             OrigLocationCode := PlanningComponent."Orig. Location Code";
             OrigBinCode := PlanningComponent."Orig. Bin Code";
 
-            ChangeLocation_OnPlanningComponent(PlanningComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
+            ChangeLocationOnPlanningComponent(PlanningComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
 
             PlanningComponent.Modify();
         end;
@@ -427,7 +431,6 @@ codeunit 99001505 "Subcontracting Management"
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
         PurchOrderNo: Code[20];
-        PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
     begin
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
@@ -469,7 +472,7 @@ codeunit 99001505 "Subcontracting Management"
                 OrigLocationCode := ProdOrderComponent."Orig. Location Code";
                 OrigBinCode := ProdOrderComponent."Orig. Bin Code";
 
-                ChangeLocation_OnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
+                ChangeLocationOnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
 
                 ProdOrderComponent.Modify();
             end;
@@ -484,9 +487,6 @@ codeunit 99001505 "Subcontracting Management"
         Subcontracting: Boolean;
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
-        RoutingLinkUpdConfQst: Label 'If you change the Work Center, you will also change the default location for components with Routing Link Code=%1.\Do you want to continue anyway?', Comment = '%1=Routing Link Code';
-        SuccessfullyUpdatedMsg: Label 'Successfully updated.';
-        UpdateIsCancelledErr: Label 'The update is canceled.';
     begin
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
@@ -500,14 +500,14 @@ codeunit 99001505 "Subcontracting Management"
                 VendorSubcontractingLocationCode := Vendor."Subcontr. Location Code";
                 if ShowMsg then
                     if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(RoutingLinkUpdConfQst, ProdOrderRoutingLine."Routing Link Code"), true) then
-                        Error(UpdateIsCancelledErr);
+                        Error(UpdateIsCanceledErr);
                 repeat
                     if not (ProdOrderComponent."Subcontracting Type" in ["Subcontracting Type"::InventoryByVendor, "Subcontracting Type"::Purchase]) then
                         Clear(VendorSubcontractingLocationCode);
                     OrigLocationCode := ProdOrderComponent."Orig. Location Code";
                     OrigBinCode := ProdOrderComponent."Orig. Bin Code";
 
-                    ChangeLocation_OnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
+                    ChangeLocationOnProdOrderComponent(ProdOrderComponent, VendorSubcontractingLocationCode, OrigLocationCode, OrigBinCode);
 
                     ProdOrderComponent.Modify();
                 until ProdOrderComponent.Next() = 0;
@@ -519,20 +519,19 @@ codeunit 99001505 "Subcontracting Management"
     end;
 
     /// <summary>
-    /// Gets the transfer-from location code based on the setup field "Component at Location".
+    /// Gets the location code for production order components based on the setup field "Subc. Default Comp. Location".
     /// The location code is retrieved from the purchase line, company information, or manufacturing setup.
     /// </summary>
-    /// <returns>The transfer-from location code.</returns>
+    /// <returns>The components location code.</returns>
     procedure GetComponentsLocationCode(PurchaseLine: Record "Purchase Line"): Code[10]
     var
         CompanyInformation: Record "Company Information";
-        ManufacturingSetup: Record "Manufacturing Setup";
         ComponentsLocationCode: Code[10];
     begin
-        GetSubmanagementSetup();
-        SubcManagementSetup.TestField("Component at Location");
+        GetManufacturingSetup();
+        ManufacturingSetup.TestField("Subc. Default Comp. Location");
 
-        case SubcManagementSetup."Component at Location" of
+        case ManufacturingSetup."Subc. Default Comp. Location" of
             "Components at Location"::Purchase:
                 begin
                     PurchaseLine.TestField("Location Code");
@@ -563,6 +562,13 @@ codeunit 99001505 "Subcontracting Management"
             exit;
         if SubcManagementSetup.Get() then
             HasSubManagementSetup := true;
+    end;
+
+    local procedure GetManufacturingSetup()
+    begin
+        if HasManufacturingSetup then
+            exit;
+        HasManufacturingSetup := ManufacturingSetup.Get();
     end;
 
     local procedure IsSubcontracting(WorkCenterNo: Code[20]): Boolean

@@ -18,6 +18,11 @@ pageextension 99001530 "Subc. Transfer Lines" extends "Transfer Lines"
                 Editable = false;
                 Visible = false;
             }
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Manufacturing;
+                Editable = false;
+            }
         }
     }
 }
