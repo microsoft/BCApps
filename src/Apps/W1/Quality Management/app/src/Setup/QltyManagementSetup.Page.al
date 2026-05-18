@@ -39,7 +39,6 @@ page 20400 "Qlty. Management Setup"
                     field("Quality Inspection Nos."; Rec."Quality Inspection Nos.")
                     {
                         ApplicationArea = All;
-                        ShowCaption = true;
                     }
                 }
                 group(Inspections)
@@ -49,7 +48,6 @@ page 20400 "Qlty. Management Setup"
                     field("Inspection Creation Option"; Rec."Inspection Creation Option")
                     {
                         ApplicationArea = All;
-                        ShowCaption = true;
                         AboutTitle = 'Inspection creation option';
                         AboutText = 'Control if new quality inspections should be created when similar inspections already exist.';
 
@@ -57,7 +55,6 @@ page 20400 "Qlty. Management Setup"
                     field("Inspection Search Criteria"; Rec."Inspection Search Criteria")
                     {
                         ApplicationArea = All;
-                        ShowCaption = true;
                     }
                 }
                 group(Miscellaneous)
@@ -72,13 +69,11 @@ page 20400 "Qlty. Management Setup"
                     {
                         Importance = Additional;
                         ApplicationArea = All;
-                        ShowCaption = true;
                     }
                     field("Additional Picture Handling"; Rec."Additional Picture Handling")
                     {
                         ApplicationArea = All;
                         Caption = 'Additional Picture Handling';
-                        ShowCaption = true;
                     }
                 }
             }
@@ -124,25 +119,20 @@ page 20400 "Qlty. Management Setup"
                     {
                         Caption = 'Production Order Trigger';
                         ApplicationArea = Manufacturing;
-                        ShowCaption = true;
                     }
                     field("Prod. trigger output condition"; Rec."Prod. trigger output condition")
                     {
                         Caption = 'Prod. trigger output condition';
                         ApplicationArea = Manufacturing;
-                        ShowCaption = true;
                     }
                     field("Assembly Trigger"; Rec."Assembly Trigger")
                     {
                         Caption = 'Assembly Trigger';
                         ApplicationArea = Assembly;
-                        ShowCaption = true;
                     }
                     field("Production Update Control"; Rec."Production Update Control")
                     {
                         ApplicationArea = Manufacturing;
-                        ShowCaption = true;
-                        Caption = 'Control Source';
                         Importance = Additional;
                         Visible = false;
                     }
@@ -157,7 +147,6 @@ page 20400 "Qlty. Management Setup"
                     {
                         Caption = 'Warehouse Movement Trigger';
                         ApplicationArea = All;
-                        ShowCaption = true;
                     }
                 }
             }
@@ -211,7 +200,6 @@ page 20400 "Qlty. Management Setup"
                 field("Inspection Selection Criteria"; Rec."Inspection Selection Criteria")
                 {
                     ApplicationArea = All;
-                    ShowCaption = true;
                     AboutTitle = 'Inspections for document-specific blocking';
                     AboutText = 'Define how to select the quality inspections the system uses to decide whether a document transaction should be blocked for a lot or serial number.';
                 }
