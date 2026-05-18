@@ -51,11 +51,7 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
     begin
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
-        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
-        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
-        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
+        SetFilterProductionOrderRouting(ProdOrderRoutingLine, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
         ProdOrderRoutingLine.FindFirst();
         ProdOrderRouting.SetTableView(ProdOrderRoutingLine);
         ProdOrderRouting.Editable := false;
@@ -77,12 +73,17 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
     begin
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
+        SetFilterProductionOrderRouting(ProdOrderRoutingLine, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
+        exit(ProdOrderRoutingLine.Count());
+    end;
+
+    local procedure SetFilterProductionOrderRouting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ProdOrderNo: Code[20]; ProdOrderLineNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10]): Boolean
+    begin
         ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
         ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
         ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
-        exit(ProdOrderRoutingLine.Count());
     end;
 
     /// <summary>
@@ -92,7 +93,6 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
     procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     var
         ProdOrderComponent: Record "Prod. Order Component";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PageManagement: Codeunit "Page Management";
         OperationNo: Code[10];
         ProdOrderNo: Code[20];
@@ -101,17 +101,7 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
     begin
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit;
-        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
-        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
-        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
-        if ProdOrderRoutingLine.FindFirst() then
-            ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
-
-        ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
-        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderNo);
-        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLineNo);
+        SetFilterProductionOrderComponents(ProdOrderComponent, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
         PageManagement.PageRun(ProdOrderComponent);
     end;
 
@@ -131,10 +121,25 @@ codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
         if not SetProdOrderInformationByVariant(RecRelatedVariant, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo) then
             exit(0);
 
+        SetFilterProductionOrderComponents(ProdOrderComponent, ProdOrderNo, ProdOrderLineNo, RoutingNo, OperationNo);
+        exit(ProdOrderComponent.Count());
+    end;
+
+    local procedure SetFilterProductionOrderComponents(var ProdOrderComponent: Record "Prod. Order Component"; ProdOrderNo: Code[20]; ProdOrderLineNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10])
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
+        ProdOrderRoutingLine.SetRange("Routing No.", RoutingNo);
+        ProdOrderRoutingLine.SetRange("Operation No.", OperationNo);
+        if ProdOrderRoutingLine.FindFirst() then
+            ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+
         ProdOrderComponent.SetRange(Status, ProdOrderComponent.Status::Released);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderLineNo);
-        exit(ProdOrderComponent.Count());
     end;
 
     local procedure SetProdOrderInformationByVariant(RecRelatedVariant: Variant; var ProdOrderNo: Code[20]; var ProdOrderLineNo: Integer; var RoutingNo: Code[20]; var OperationNo: Code[10]): Boolean
