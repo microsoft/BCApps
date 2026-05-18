@@ -16,6 +16,8 @@ codeunit 7783 "AOAI User Message"
 
     var
         AOAIUserMessageImpl: Codeunit "AOAI User Message Impl";
+        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
+        NotMicrosoftPublisherErr: Label 'This functionality is only available to Microsoft published apps.';
 
     /// <summary>
     /// Adds a text content part to the user message.
@@ -25,7 +27,12 @@ codeunit 7783 "AOAI User Message"
 #pragma warning disable AS0022
     procedure AddTextPart(TextContent: Text)
 #pragma warning restore AS0022
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        if not CopilotCapabilityImpl.IsPublisherMicrosoft(CallerModuleInfo) then
+            Error(NotMicrosoftPublisherErr);
         AOAIUserMessageImpl.AddTextPart(TextContent);
     end;
 
@@ -37,7 +44,12 @@ codeunit 7783 "AOAI User Message"
 #pragma warning disable AS0022
     procedure AddFilePart(FileData: Text)
 #pragma warning restore AS0022
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        if not CopilotCapabilityImpl.IsPublisherMicrosoft(CallerModuleInfo) then
+            Error(NotMicrosoftPublisherErr);
         AOAIUserMessageImpl.AddFilePart(FileData);
     end;
 
