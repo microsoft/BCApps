@@ -150,6 +150,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseHeader.Insert(true);
 
         PurchaseHeader."Invoice Received Date" := PurchaseHeader."Document Date";
+        EDocPurchaseDocumentHelper.ApplyDefaultPostingDateFromSetup(PurchaseHeader, EDocumentPurchaseHeader);
         PurchaseHeader.Modify();
 
         // Validate of currency has to happen after insert.
