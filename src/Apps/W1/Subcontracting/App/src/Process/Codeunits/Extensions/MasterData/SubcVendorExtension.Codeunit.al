@@ -19,9 +19,6 @@ codeunit 99001531 "Subc. Vendor Extension"
         if not RunTrigger then
             exit;
 
-        SubcontractorPrice.SetCurrentKey("Vendor No.");
-        SubcontractorPrice.SetRange("Vendor No.", Rec."No.");
-        if not SubcontractorPrice.IsEmpty() then
-            SubcontractorPrice.DeleteAll(true);
+        SubcontractorPrice.DeletePricesForVendor(Rec."No.");
     end;
 }

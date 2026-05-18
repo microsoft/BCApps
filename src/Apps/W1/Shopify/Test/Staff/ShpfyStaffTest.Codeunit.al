@@ -30,7 +30,7 @@ codeunit 139551 "Shpfy Staff Test"
     end;
 
     [Test]
-    procedure TestStaffMembersActionVisibleOnlyForB2BStore()
+    procedure TestStaffMembersActionVisibleOnlyForSupportedPlans()
     var
         LibraryAssert: Codeunit "Library Assert";
         ShpfyShopCard: TestPage "Shpfy Shop Card";
@@ -38,24 +38,24 @@ codeunit 139551 "Shpfy Staff Test"
         // [Given] Shop exists
         Initialize();
 
-        // [When] Set store as not B2B and check action is not visible
-        Shop."B2B Enabled" := false;
+        // [When] Set store as not having staff members enabled and check action is not visible
+        Shop."Advanced Shopify Plan" := false;
         Shop.Modify(false);
         ShpfyShopCard.OpenView();
         ShpfyShopCard.GoToRecord(Shop);
 
         // [Then] The action should not be visible
-        LibraryAssert.IsFalse(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should not be visible for non-B2B store');
+        LibraryAssert.IsFalse(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should not be visible for unsupported plan');
         ShpfyShopCard.Close();
 
-        // [When] Set store as B2B and check action is visible
-        Shop."B2B Enabled" := true;
+        // [When] Set store as having staff members enabled and check action is visible
+        Shop."Advanced Shopify Plan" := true;
         Shop.Modify(false);
         ShpfyShopCard.OpenView();
         ShpfyShopCard.GoToRecord(Shop);
 
         // [Then] The action should be visible
-        LibraryAssert.IsTrue(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should be visible for B2B store');
+        LibraryAssert.IsTrue(ShpfyShopCard.StaffMembers.Visible(), 'Staff Members action should be visible for supported plan');
         ShpfyShopCard.Close();
     end;
 
@@ -247,7 +247,7 @@ codeunit 139551 "Shpfy Staff Test"
 
         // Creating Shopify Shop
         Shop := InitializeTest.CreateShop();
-        Shop."B2B Enabled" := true;
+        Shop."Advanced Shopify Plan" := true;
         Shop.Modify();
 
         //Register Shopify Access Token

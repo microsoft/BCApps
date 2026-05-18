@@ -755,6 +755,54 @@ codeunit 148154 "Vendor Contracts Test"
         VendorContract.TestField("Contract Type", ContractType.Code);
     end;
 
+    [Test]
+    procedure PayToAddressIsUpdatedWhenBuyFromAddressIsChanged()
+    begin
+        // [SCENARIO] Pay-To address fields are in sync with Buy-From address fields when Pay-to Vendor No. equals Buy-from Vendor No.
+        Initialize();
+
+        // [GIVEN] A vendor contract where buy-from and pay-to addresses are equal
+        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
+        VendorContract.DontNotifyCurrentUserAgain(VendorContract.GetModifyVendorAddressNotificationId());
+        VendorContract.DontNotifyCurrentUserAgain(VendorContract.GetModifyPayToVendorAddressNotificationId());
+
+        AssertThat.IsTrue(VendorContract.BuyFromAddressEqualsPayToAddress(), 'Setup: Buy-from and Pay-to address should be equal before the test.');
+
+        // [WHEN] Changing the buy-from address fields on the contract
+        VendorContract.Validate("Buy-from Address", CopyStr(LibraryRandom.RandText(MaxStrLen(VendorContract."Buy-from Address")), 1, MaxStrLen(VendorContract."Buy-from Address")));
+        VendorContract.Validate("Buy-from Address 2", CopyStr(LibraryRandom.RandText(MaxStrLen(VendorContract."Buy-from Address 2")), 1, MaxStrLen(VendorContract."Buy-from Address 2")));
+        VendorContract.Modify(true);
+
+        // [THEN] Pay-To address fields are updated to match Buy-From address fields
+        AssertThat.IsTrue(VendorContract.BuyFromAddressEqualsPayToAddress(), 'Pay-to address fields should be in sync with Buy-from address fields.');
+    end;
+
+    [Test]
+    procedure PayToAddressIsNotUpdatedWhenPayToVendorIsDifferent()
+    begin
+        // [SCENARIO] Pay-To address fields are NOT updated when Pay-to Vendor differs from Buy-from Vendor
+        Initialize();
+
+        // [GIVEN] A vendor contract with a different pay-to vendor
+        ContractTestLibrary.CreateVendor(Vendor);
+        ContractTestLibrary.CreateVendorInLCY(Vendor2);
+        ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
+        VendorContract.DontNotifyCurrentUserAgain(VendorContract.GetModifyVendorAddressNotificationId());
+        VendorContract.DontNotifyCurrentUserAgain(VendorContract.GetModifyPayToVendorAddressNotificationId());
+
+        VendorContract.SetHideValidationDialog(true);
+        VendorContract.Validate("Pay-to Vendor No.", Vendor2."No.");
+        VendorContract.Modify(true);
+
+        // [WHEN] Changing the buy-from address on the contract
+        VendorContract.Validate("Buy-from Address", CopyStr(LibraryRandom.RandText(MaxStrLen(VendorContract."Buy-from Address")), 1, MaxStrLen(VendorContract."Buy-from Address")));
+        VendorContract.Modify(true);
+
+        // [THEN] Pay-To address is NOT updated (it retains the alternate pay-to vendor address)
+        AssertThat.AreNotEqual(VendorContract."Buy-from Address", VendorContract."Pay-to Address", 'Pay-to Address should not be changed when Pay-to Vendor differs from Buy-from Vendor.');
+    end;
+
     #endregion Tests
 
     #region Procedures

@@ -12,6 +12,7 @@ query 36956 "G/L Entries - Closing"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to closing G/L entries with income or balance sheet classification. This API has been replaced by G/L Entries Balance Sheet and Income Statement queries.';
     Caption = 'Power BI Closing G/L Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

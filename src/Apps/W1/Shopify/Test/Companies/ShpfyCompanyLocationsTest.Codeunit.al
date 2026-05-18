@@ -169,8 +169,6 @@ codeunit 139539 "Shpfy Company Locations Test"
         Commit();
 
         Shop := InitializeTest.CreateShop();
-        Shop."B2B Enabled" := true;
-        Shop.Modify();
 
         CompanyLocation := CompanyInitialize.CreateShopifyCompanyLocation();
         ShopifyCompany.GetBySystemId(CompanyLocation."Company SystemId");

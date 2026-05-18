@@ -18,7 +18,9 @@ ShpfyCompanyLocationsTest tests creating company locations from customers, inclu
 
 ## Things to know
 
-- The B2B tests require `Shop."B2B Enabled" := true` -- several tests set this explicitly on the shop record.
+- B2B features are now unconditionally available on all Shopify plans. The old `Shop."B2B Enabled" := true` assignments have been removed from `ShpfyCompanyExportTest`, `ShpfyCompanyImportTest`, and `ShpfyCompanyLocationsTest`. Tests no longer need to set any plan-gating flag for B2B functionality.
+
+*Updated: 2026-04-08 -- B2B Enabled removed from company tests; B2B features now unconditional*
 - ShpfyCompanyInitialize.ModifyFields uses RecordRef/FieldRef reflection to generically modify all text fields, so tests can detect whether update queries include changed fields without manually setting each one.
 - ShpfyTaxIdMappingTest uses manual event subscriber binding (BindSubscription) on `OnBeforeValidateVATRegistrationNo` to bypass localization-specific VAT validation that would otherwise reject test data.
 - Company mapping tests exercise two distinct code paths: FindMapping (inbound -- does this Shopify company match a BC customer?) and DoMapping (outbound -- which customer should this company sync to?).

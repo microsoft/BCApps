@@ -14,6 +14,7 @@ query 36987 "Prod. Order Capacity Needs"
     Access = Internal;
     Caption = 'Power BI Production Order Capacity Need';
     QueryType = API;
+    AboutText = 'Provides access to production order capacity requirements including allocated and needed time by work center, operation, and date. Enables Power BI reports to analyze capacity load, identify bottlenecks, and support production scheduling optimization.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

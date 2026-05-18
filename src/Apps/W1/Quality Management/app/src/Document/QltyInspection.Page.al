@@ -228,7 +228,8 @@ page 20406 "Qlty. Inspection"
             }
             group(ControlInfo)
             {
-                Caption = 'Control Information';
+                Caption = 'Source Reference';
+
                 field("Source Table No."; Rec."Source Table No.")
                 {
                     Editable = false;
@@ -478,9 +479,15 @@ page 20406 "Qlty. Inspection"
                 ToolTip = 'Create a new re-inspection based on this inspection. If the inspection is still open, it will be finished first. Finishing may be blocked if the current result does not allow it.';
 
                 trigger OnAction()
+                var
+                    ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection();
+                    Rec.CreateReinspection(ReinspectionQltyInspectionHeader);
                     CurrPage.Update(false);
+                    if not IsNullGuid(ReinspectionQltyInspectionHeader.SystemId) then begin
+                        Commit();
+                        Page.Run(Page::"Qlty. Inspection", ReinspectionQltyInspectionHeader);
+                    end;
                 end;
             }
             action(ChangeStatusFinish)
@@ -705,9 +712,9 @@ page 20406 "Qlty. Inspection"
             }
             action(OpenSourceDocument)
             {
-                Caption = 'Open Source Document';
+                Caption = 'Show source document';
                 Image = ViewSourceDocumentLine;
-                ToolTip = 'Opens the related source document.';
+                ToolTip = 'Open the related source document.';
 
                 trigger OnAction()
                 var
@@ -731,8 +738,6 @@ page 20406 "Qlty. Inspection"
                     QltyDocumentNavigation.NavigateToFindEntries(Rec);
                 end;
             }
-#pragma warning disable AS0031
-#pragma warning disable AS0032
             group(ItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
@@ -818,8 +823,6 @@ page 20406 "Qlty. Inspection"
                     Rec.RunModalRelatedTransfers();
                 end;
             }
-#pragma warning restore AS0032
-#pragma warning restore AS0031
         }
     }
 
@@ -863,7 +866,7 @@ page 20406 "Qlty. Inspection"
         IsOpen := Rec.Status = Rec.Status::Open;
         StatusStyleExpr := Rec.GetStatusStyleExpression();
 
-        CanReopen := not Rec.HasMoreRecentReinspection();
+        CanReopen := (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
         CanFinish := Rec.Status <> Rec.Status::Finished;
         if IsOpen then
             if QltyPermissionMgmt.CanChangeItemTracking() then begin

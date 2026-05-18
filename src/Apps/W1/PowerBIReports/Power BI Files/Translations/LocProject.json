@@ -17,9 +17,9 @@
                     "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
                     "CopyOption": "UsePlaceholders"
                 },
-                                                {
-                    "SourceFile": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Subscription Billing app\\SubscriptionBillingApp.en-US.resx",
-                    "OutputPath": "src\\Apps\\W1\\PowerBIReports\\Power BI Files\\Translations\\Subscription Billing app\\SubscriptionBillingApp.{Lang}.resx",
+                {
+                    "SourceFile": "src\\Apps\\W1\\Subscription Billing\\Power BI Files\\Translations\\SubscriptionBillingApp.en-US.resx",
+                    "OutputPath": "src\\Apps\\W1\\Subscription Billing\\Power BI Files\\Translations\\SubscriptionBillingApp.{Lang}.resx",
                     "Languages": "cs-CZ;da-DK;de-AT;de-CH;de-DE;en-AU;en-CA;en-GB;en-NZ;es-ES;es-MX;fi-FI;fr-BE;fr-CA;fr-CH;fr-FR;is-IS;it-CH;it-IT;nb-NO;nl-BE;nl-NL;sv-SE",
                     "CopyOption": "UsePlaceholders"
                 },

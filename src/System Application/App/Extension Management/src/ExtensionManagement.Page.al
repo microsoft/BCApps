@@ -32,7 +32,8 @@ page 2500 "Extension Management"
                             "Tenant Visible" = const(true));
     UsageCategory = Administration;
     ContextSensitiveHelpPage = 'ui-extensions';
-    Permissions = tabledata "Published Application" = r;
+    Permissions = tabledata "Published Application" = r,
+                  tabledata "Extension Database Snapshot" = r;
 
     layout
     {
@@ -381,6 +382,27 @@ page 2500 "Extension Management"
         ActionsEnabled := false;
 
         HelpActionVisible := false;
+        ShowUninstalledExtensionsNotification();
+    end;
+
+    local procedure ShowUninstalledExtensionsNotification()
+    var
+        ExtensionDatabaseSnapshot: Record "Extension Database Snapshot";
+        OrphanedDataNotification: Notification;
+    begin
+        OrphanedDataNotification.Id := OrphanedDataNotificationIdTok;
+        OrphanedDataNotification.Scope := NotificationScope::LocalScope;
+
+        OrphanedDataNotification.Recall();
+
+        ExtensionDatabaseSnapshot.SetFilter(Status, '<>%1', ExtensionDatabaseSnapshot.Status::Installed);
+        ExtensionDatabaseSnapshot.SetFilter("Is Reviewed", '%1', false);
+        if not ExtensionDatabaseSnapshot.IsEmpty() then begin
+            OrphanedDataNotification.Message(UninstalledExtensionsMsg);
+            OrphanedDataNotification.AddAction(ShowOrphanedDataLbl, Codeunit::"Extension Operation Impl", 'HandleOrphanedDataNotification');
+            OrphanedDataNotification.AddAction(MarkAllAsReviewedLbl, Codeunit::"Extension Operation Impl", 'MarkOrphanedDataAsReviewed');
+            OrphanedDataNotification.Send();
+        end;
     end;
 
     var
@@ -403,6 +425,10 @@ page 2500 "Extension Management"
         InfoStyle: Boolean;
         HelpActionVisible: Boolean;
         IsSourceSpecificationAvailable: Boolean;
+        UninstalledExtensionsMsg: Label 'There''s orphaned data from uninstalled extensions. Use the Delete Orphaned Extension Data page to review it.';
+        ShowOrphanedDataLbl: Label 'Show Data';
+        MarkAllAsReviewedLbl: Label 'Mark All as Reviewed';
+        OrphanedDataNotificationIdTok: Label 'b1c5a678-2e3f-4d91-a6b0-9f8e7d6c5b4a', Locked = true;
 
     protected procedure IsSaasEnvironment(): boolean
     begin

@@ -848,6 +848,20 @@ page 30113 "Shpfy Order"
                     end;
                 }
             }
+            action(ProvideFeedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feedback';
+                ToolTip = 'Provide feedback on Shopify Connector.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    ShopMgt: Codeunit "Shpfy Shop Mgt.";
+                begin
+                    ShopMgt.RequestFeedback();
+                end;
+            }
         }
         area(navigation)
         {
@@ -1108,7 +1122,6 @@ page 30113 "Shpfy Order"
         OrderCancelFailedErr: Label 'Specifies the order could not be cancelled. You can see the error message from Shopify Log Entries.';
         LogEntriesLbl: Label 'Log Entries';
         WorkDescription: Text;
-        TotalAmount, SubtotalAmount : Decimal;
         PresentmentVisible: Boolean;
 
     trigger OnAfterGetRecord()

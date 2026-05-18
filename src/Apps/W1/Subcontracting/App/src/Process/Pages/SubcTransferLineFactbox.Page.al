@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -21,9 +21,8 @@ page 99001501 "Subc. Transfer Line Factbox"
             field(ShowPurchOrder; Rec."Subcontr. Purch. Order No.")
             {
                 Caption = 'Purchase Order';
-                ToolTip = 'Specifies the depended Purchase Order of this Subcontracting Transfer Order.';
+                ToolTip = 'Specifies the dependent Purchase Order of this Subcontracting Transfer Order.';
                 trigger OnDrillDown()
-                var
                 begin
                     ShowPurchaseOrder(Rec);
                 end;
@@ -31,9 +30,8 @@ page 99001501 "Subc. Transfer Line Factbox"
             field(ShowProdOrder; Rec."Prod. Order No.")
             {
                 Caption = 'Production Order';
-                ToolTip = 'Specifies the depended Production Order of this Subcontracting Transfer Order.';
+                ToolTip = 'Specifies the dependent Production Order of this Subcontracting Transfer Order.';
                 trigger OnDrillDown()
-                var
                 begin
                     ShowProductionOrder(Rec);
                 end;
@@ -41,9 +39,8 @@ page 99001501 "Subc. Transfer Line Factbox"
             field(ShowProdOrderRouting; GetNoOfProductionOrderRoutings(Rec))
             {
                 Caption = 'Production Routing';
-                ToolTip = 'Specifies the depended Production Routing of this Subcontracting Transfer Order.';
+                ToolTip = 'Specifies the dependent Production Routing of this Subcontracting Transfer Order.';
                 trigger OnDrillDown()
-                var
                 begin
                     ShowProductionOrderRouting(Rec);
                 end;
@@ -51,10 +48,9 @@ page 99001501 "Subc. Transfer Line Factbox"
             field(ShowProdOrderComponents; GetNoOfProductionComponents(Rec))
             {
                 Caption = 'Production Component';
-                ToolTip = 'Specifies the depended Production Components of this Subcontracting Transfer Order.';
+                ToolTip = 'Specifies the dependent Production Components of this Subcontracting Transfer Order.';
 
                 trigger OnDrillDown()
-                var
                 begin
                     ShowProductionOrderComponents(Rec);
                 end;
@@ -62,35 +58,36 @@ page 99001501 "Subc. Transfer Line Factbox"
         }
     }
     var
-        SubcFactboxMgmt: Codeunit "Subc. Factbox Mgmt.";
+        SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
 
     local procedure GetNoOfProductionComponents(RecRelatedVariant: Variant): Integer
     begin
-        exit(SubcFactboxMgmt.CalcNoOfProductionOrderComponents(RecRelatedVariant))
+        exit(SubcProdOrderFactboxMgmt.CalcNoOfProductionOrderComponents(RecRelatedVariant))
     end;
 
     local procedure GetNoOfProductionOrderRoutings(RecRelatedVariant: Variant): Integer
     begin
-        exit(SubcFactboxMgmt.CalcNoOfProductionOrderRoutings(RecRelatedVariant))
+        exit(SubcProdOrderFactboxMgmt.CalcNoOfProductionOrderRoutings(RecRelatedVariant))
     end;
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
     end;
 
     local procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
+        SubcProdOrderFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
     end;
 
     local procedure ShowPurchaseOrder(RecRelatedVariant: Variant)
     begin
-        SubcFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
+        SubcPurchFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
     end;
 }

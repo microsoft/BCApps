@@ -111,9 +111,9 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseHeader."Pay-to Vendor No." := EDocumentPurchaseHeader."[BC] Vendor No.";
         PurchaseHeader."Posting Description" := EDocumentPurchaseHeader."Posting Description";
         if EDocumentPurchaseHeader."Document Date" <> 0D then
-            PurchaseHeader.Validate("Document Date", EDocumentPurchaseHeader."Document Date");
+            EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Document Date"), EDocumentPurchaseHeader."Document Date");
         if EDocumentPurchaseHeader."Due Date" <> 0D then
-            PurchaseHeader.Validate("Due Date", EDocumentPurchaseHeader."Due Date");
+            EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Due Date"), EDocumentPurchaseHeader."Due Date");
 
         VendorInvoiceNo := CopyStr(EDocumentPurchaseHeader."Sales Invoice No.", 1, MaxStrLen(PurchaseHeader."Vendor Invoice No."));
         VendorLedgerEntry.SetLoadFields("Entry No.");
@@ -124,18 +124,19 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
             Error(InvoiceAlreadyExistsErr, VendorInvoiceNo, EDocumentPurchaseHeader."[BC] Vendor No.");
         end;
 
-        PurchaseHeader.Validate("Vendor Invoice No.", VendorInvoiceNo);
+        EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Vendor Invoice No."), VendorInvoiceNo);
         if EDocumentPurchaseHeader."Purchase Order No." <> '' then
             PurchaseHeader."Vendor Order No." := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseHeader."Vendor Order No."));
         PurchaseHeader.Insert(true);
 
+        EDocPurchaseDocumentHelper.ApplyDefaultPostingDateFromSetup(PurchaseHeader, EDocumentPurchaseHeader);
         PurchaseHeader."Invoice Received Date" := PurchaseHeader."Document Date";
         PurchaseHeader.Modify();
 
         // Validate of currency has to happen after insert.
         GLSetup.GetRecordOnce();
         if EDocumentPurchaseHeader."Currency Code" <> GLSetup.GetCurrencyCode('') then begin
-            PurchaseHeader.Validate("Currency Code", EDocumentPurchaseHeader."Currency Code");
+            EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Currency Code"), EDocumentPurchaseHeader."Currency Code");
             PurchaseHeader.Modify();
         end;
         EDocRecordLink.InsertEDocumentHeaderLink(EDocumentPurchaseHeader, PurchaseHeader);

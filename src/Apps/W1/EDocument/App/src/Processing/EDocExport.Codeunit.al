@@ -183,6 +183,7 @@ codeunit 6102 "E-Doc. Export"
         else
             EDocumentProcessing.ModifyServiceStatus(EDocument, EDocumentService, EDocServiceStatus);
         EDocumentProcessing.ModifyEDocumentStatus(EDocument);
+        OnExportEDocumentAfterCreateEDocument(EDocumentService, EDocument, SourceDocumentHeaderMapped, SourceDocumentLineMapped, TempBlob, Success);
     end;
 
     internal procedure ExportEDocumentBatch(var EDocuments: Record "E-Document"; var EDocService: Record "E-Document Service"; var TempEDocMappingLogs: Record "E-Doc. Mapping Log" temporary; var TempBlob: Codeunit "Temp Blob"; var EDocumentsErrorCount: Dictionary of [Integer, Integer])
@@ -528,6 +529,11 @@ codeunit 6102 "E-Doc. Export"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateEDocument(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnExportEDocumentAfterCreateEDocument(EDocumentService: Record "E-Document Service"; EDocument: Record "E-Document"; SourceDocumentHeaderMapped: RecordRef; SourceDocumentLineMapped: RecordRef; var TempBlob: Codeunit "Temp Blob"; Success: Boolean)
     begin
     end;
 }

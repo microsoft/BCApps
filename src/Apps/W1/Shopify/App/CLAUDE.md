@@ -9,7 +9,11 @@ The Shopify Connector bridges Shopify e-commerce with Business Central ERP, bi-d
 
 ## How it works
 
-The Shop table (`ShpfyShop.Table.al`, ID 30102) is the god object. Nearly every configuration setting lives there: sync directions for items/customers/companies, mapping strategies, customer/item template codes, G/L account mappings for shipping/tips/gift cards/refunds, B2B flags, currency handling, webhook settings, and fulfillment service configuration. A single BC company can connect to multiple Shopify shops (each with its own Shop Code), and each shop gets its own set of configuration.
+The Shop table (`ShpfyShop.Table.al`, ID 30102) is the god object. Nearly every configuration setting lives there: sync directions for items/customers/companies, mapping strategies, customer/item template codes, G/L account mappings for shipping/tips/gift cards/refunds, plan-based feature flags, currency handling, webhook settings, and fulfillment service configuration. A single BC company can connect to multiple Shopify shops (each with its own Shop Code), and each shop gets its own set of configuration.
+
+The `"Advanced Shopify Plan"` boolean field (207) on the Shop table gates features that require Plus, Plus Trial, Development, or Advanced plans. `GetShopSettings()` reads the Shopify plan and sets this flag automatically. B2B features (companies, catalogs, company sync) are now unconditionally available on all Shopify plans -- the old `"B2B Enabled"` field (117) has been obsoleted (CLEAN29/CLEANSCHEMA32 guards).
+
+*Updated: 2026-04-08 -- B2B Enabled obsoleted, Advanced Shopify Plan added*
 
 All Shopify API communication goes through GraphQL. The `ShpfyCommunicationMgt.Codeunit.al` is the single entry point for API calls. It constructs URLs using a versioned API path (currently `2026-01`), handles authentication, rate limiting, and retry logic. GraphQL queries are stored as `.graphql` resource files under `.resources/graphql/{Area}/`, loaded at runtime via `NavApp.GetResourceAsText()`. The `ShpfyGraphQLType` enum maps each query to its resource file using `{Area}_{QueryName}` naming, and the dispatcher loads the corresponding file instead of calling interface methods. The `ShpfyGraphQLRateLimit` codeunit (singleton) tracks Shopify's cost-based throttle -- it reads `restoreRate` and `currentlyAvailable` from responses and sleeps before issuing requests that would exceed the budget.
 
@@ -56,7 +60,7 @@ Records link to BC entities via SystemId (GUID), not Code/No. For example, `Shpf
 
 ## Things to know
 
-- The Shop table is the god object -- nearly every configuration setting lives there, with over 100 fields controlling sync directions, mapping strategies, account mappings, B2B flags, webhook config, and more.
+- The Shop table is the god object -- nearly every configuration setting lives there, with over 100 fields controlling sync directions, mapping strategies, account mappings, plan-based feature flags, webhook config, and more. The `"Advanced Shopify Plan"` field gates features requiring Plus/Advanced plans (currently staff members). B2B features are now unconditionally available on all plans.
 - All API calls go through GraphQL, never REST. Queries are `.graphql` resource files in `.resources/graphql/{Area}/`, loaded via `NavApp.GetResourceAsText()` and dispatched through the `ShpfyGraphQLType` enum.
 - Products use hash-based change detection (`"Image Hash"`, `"Tags Hash"`, `"Description Html Hash"`) via a custom hash algorithm to skip unnecessary API calls when nothing has changed.
 - Records link to BC entities via SystemId (GUID), not Code/No. -- FlowFields like `"Item No."` display the human-readable values via CalcFormula lookup. Renumbering BC items does not break Shopify links.

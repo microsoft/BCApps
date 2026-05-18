@@ -11,6 +11,7 @@ using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
+using System.Environment;
 using System.Telemetry;
 
 page 20400 "Qlty. Management Setup"
@@ -38,7 +39,6 @@ page 20400 "Qlty. Management Setup"
                     field("Quality Inspection Nos."; Rec."Quality Inspection Nos.")
                     {
                         ApplicationArea = All;
-                        ShowCaption = true;
                     }
                 }
                 group(Inspections)
@@ -48,7 +48,6 @@ page 20400 "Qlty. Management Setup"
                     field("Inspection Creation Option"; Rec."Inspection Creation Option")
                     {
                         ApplicationArea = All;
-                        ShowCaption = true;
                         AboutTitle = 'Inspection creation option';
                         AboutText = 'Control if new quality inspections should be created when similar inspections already exist.';
 
@@ -56,7 +55,6 @@ page 20400 "Qlty. Management Setup"
                     field("Inspection Search Criteria"; Rec."Inspection Search Criteria")
                     {
                         ApplicationArea = All;
-                        ShowCaption = true;
                     }
                 }
                 group(Miscellaneous)
@@ -71,13 +69,11 @@ page 20400 "Qlty. Management Setup"
                     {
                         Importance = Additional;
                         ApplicationArea = All;
-                        ShowCaption = true;
                     }
                     field("Additional Picture Handling"; Rec."Additional Picture Handling")
                     {
                         ApplicationArea = All;
                         Caption = 'Additional Picture Handling';
-                        ShowCaption = true;
                     }
                 }
             }
@@ -123,25 +119,20 @@ page 20400 "Qlty. Management Setup"
                     {
                         Caption = 'Production Order Trigger';
                         ApplicationArea = Manufacturing;
-                        ShowCaption = true;
                     }
                     field("Prod. trigger output condition"; Rec."Prod. trigger output condition")
                     {
                         Caption = 'Prod. trigger output condition';
                         ApplicationArea = Manufacturing;
-                        ShowCaption = true;
                     }
                     field("Assembly Trigger"; Rec."Assembly Trigger")
                     {
                         Caption = 'Assembly Trigger';
                         ApplicationArea = Assembly;
-                        ShowCaption = true;
                     }
                     field("Production Update Control"; Rec."Production Update Control")
                     {
                         ApplicationArea = Manufacturing;
-                        ShowCaption = true;
-                        Caption = 'Control Source';
                         Importance = Additional;
                         Visible = false;
                     }
@@ -156,7 +147,6 @@ page 20400 "Qlty. Management Setup"
                     {
                         Caption = 'Warehouse Movement Trigger';
                         ApplicationArea = All;
-                        ShowCaption = true;
                     }
                 }
             }
@@ -210,7 +200,6 @@ page 20400 "Qlty. Management Setup"
                 field("Inspection Selection Criteria"; Rec."Inspection Selection Criteria")
                 {
                     ApplicationArea = All;
-                    ShowCaption = true;
                     AboutTitle = 'Inspections for document-specific blocking';
                     AboutText = 'Define how to select the quality inspections the system uses to decide whether a document transaction should be blocked for a lot or serial number.';
                 }
@@ -273,15 +262,38 @@ page 20400 "Qlty. Management Setup"
                 }
             }
         }
+        area(Processing)
+        {
+            action(InstallDemoData)
+            {
+                ApplicationArea = QualityManagement;
+                Caption = 'Install Demo Data';
+                ToolTip = 'Install the Quality Management Contoso Coffee Demo Dataset app to explore Quality Management with sample data.';
+                Image = Database;
+                Visible = IsSaaS;
+
+                trigger OnAction()
+                var
+                    QltyDemoDataMgmt: Codeunit "Qlty. Demo Data Mgmt.";
+                begin
+                    QltyDemoDataMgmt.InstallOrOpenDemoData();
+                end;
+            }
+        }
     }
 
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         QualityManagementTok: Label 'Quality Management', Locked = true;
+        IsSaaS: Boolean;
 
     trigger OnOpenPage()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
+        IsSaaS := EnvironmentInformation.IsSaaS();
+
         FeatureTelemetry.LogUptake('0000QID', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
         if not Rec.Get() then begin
             QltyAutoConfigure.EnsureBasicSetupExists(false);

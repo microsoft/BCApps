@@ -11,13 +11,15 @@ This app is the test suite for the Shopify Connector. It verifies the connector'
 
 The central piece of infrastructure is `ShpfyInitializeTest` (codeunit 139561). It creates a fully configured Shpfy Shop record with randomized codes -- posting groups, VAT setup, customer and item templates, GL accounts, number series, and a dummy customer and item. The shop is cached in a temporary record so subsequent calls in the same session return the same shop instead of creating duplicates. Every domain-specific test codeunit calls `Initialize()` which runs this codeunit exactly once via the `isInitialized` boolean flag pattern.
 
-HTTP mocking uses two complementary mechanisms. The newer approach is `[HttpClientHandler]` -- test codeunits declare a handler procedure that intercepts outbound HTTP requests at the platform level. The handler inspects the request URL (via `InitializeTest.VerifyRequestUrl`), decides what mock response to return, and writes it into `TestHttpResponseMessage`. Mock response payloads come from two sources: JSON built programmatically in helper codeunits (like `ShpfyOrderHandlingHelper.CreateShopifyOrderAsJson`) or loaded from `.resources/` files via `NavApp.GetResource()`. The `.resources/` folder mirrors the test folder structure (e.g., `.resources/Bulk Operations/`, `.resources/Products/`). For testing interface contracts, the app uses enum extensions -- `ShpfyStockCalculationExt` adds a "Return Const" value that maps to `ShpfyConstToReturn`, a trivial implementation that returns a configurable decimal. Similarly, `ShpfyBulkOperationType` is extended with `AddProduct` backed by `ShpfyMockBulkProductCreate`.
+HTTP mocking uses `[HttpClientHandler]` exclusively -- test codeunits declare a handler procedure that intercepts outbound HTTP requests at the platform level. The handler inspects the request URL (via `InitializeTest.VerifyRequestUrl`), decides what mock response to return, and writes it into `TestHttpResponseMessage`. Mock response payloads come from two sources: JSON built programmatically in helper codeunits (like `ShpfyOrderHandlingHelper.CreateShopifyOrderAsJson`) or loaded from `.resources/` files via `NavApp.GetResource()`. The `.resources/` folder mirrors the test folder structure (e.g., `.resources/Bulk Operations/`, `.resources/Products/`). The earlier `IsTestInProgress` pattern for mocking has been fully replaced by `[HttpClientHandler]` (PR #7204); the only remaining `IsTestInProgress` usage is in the webhooks test, where it serves a different purpose (suppressing task scheduling). For testing interface contracts, the app uses enum extensions -- `ShpfyStockCalculationExt` adds a "Return Const" value that maps to `ShpfyConstToReturn`, a trivial implementation that returns a configurable decimal. Similarly, `ShpfyBulkOperationType` is extended with `AddProduct` backed by `ShpfyMockBulkProductCreate`.
+
+*Updated: 2026-04-08 -- IsTestInProgress mocking fully replaced by HttpClientHandler (PR #7204)*
 
 The app does not test the Shopify admin UI, webhooks delivery, or actual GraphQL network round-trips. It tests the AL-side logic: data transformation, record creation, field mapping, GraphQL query generation, retry/idempotency handling, and error flows. The boundary is always at the HTTP layer.
 
 ## Structure
 
-- **Base/** -- Shop initialization (`ShpfyInitializeTest`), core smoke tests (`ShpfyTestShopify`), filter management tests, checklist and connector guide tests
+- **Base/** -- Shop initialization (`ShpfyInitializeTest`), core smoke tests (`ShpfyTestShopify` -- currently commented out), filter management tests, checklist and connector guide tests
 - **Products/** -- Largest area (14 files). Item creation, product mapping, price calculation, variant handling, collections, sales channels, image sync. Has its own init codeunit `ShpfyProductInitTest`. See [Products/docs/CLAUDE.md](Products/docs/CLAUDE.md)
 - **Companies/** -- B2B company sync: import, export, mapping, locations, tax ID. Init in `ShpfyCompanyInitialize`. See [Companies/docs/CLAUDE.md](Companies/docs/CLAUDE.md)
 - **Customers/** -- Customer mapping, export, API query generation, name resolution. Init in `ShpfyCustomerInitTest`
@@ -51,6 +53,10 @@ The app does not test the Shopify admin UI, webhooks delivery, or actual GraphQL
 - Disabled tests are tracked in `DisabledTests/*.json` files with the structure `{ bug, codeunitId, CodeunitName, Method }`. The test runner reads these to skip known-failing methods. Currently 3 methods are disabled across 2 files, all linked to bug 621557 (price calculation).
 
 - The `.resources/` folder is declared in `app.json` under `resourceFolders` and accessed via `NavApp.GetResource()`. If you add a new mock response file, it must go under `.resources/` to be included in the compiled app.
+
+- B2B features (companies, catalogs) are now unconditionally available on all Shopify plans -- the old `"B2B Enabled"` field has been obsoleted. Tests no longer set `Shop."B2B Enabled" := true`. Staff member visibility testing now uses `Shop."Advanced Shopify Plan"` to gate the Staff Members action on the Shop Card page.
+
+*Updated: 2026-04-08 -- B2B Enabled removed from tests; staff tests use Advanced Shopify Plan*
 
 - `ShpfyOrderHandlingHelper` is the most complex helper -- it builds complete order JSON structures including nested customer, address, tax, line item, and B2B company data. It also creates real BC records (items, shop locations, Shopify products/variants) as side effects of building the JSON.
 

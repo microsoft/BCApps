@@ -314,7 +314,7 @@ codeunit 30161 "Shpfy Import Order"
         JResponse: JsonToken;
     begin
         Parameters.Add('OrderId', Format(OrderId));
-        if Shop."B2B Enabled" then
+        if Shop."Advanced Shopify Plan" then
             Parameters.Add('StaffMember', 'staffMember { id }')
         else
             Parameters.Add('StaffMember', '');
@@ -388,7 +388,7 @@ codeunit 30161 "Shpfy Import Order"
         JsonHelper.GetValueIntoField(JOrder, 'presentmentCurrencyCode', OrderHeaderRecordRef, OrderHeader.FieldNo("Presentment Currency Code"));
         JsonHelper.GetValueIntoField(JOrder, 'test', OrderHeaderRecordRef, OrderHeader.FieldNo(Test));
         JsonHelper.GetValueIntoField(JOrder, 'edited', OrderHeaderRecordRef, OrderHeader.FieldNo(Edited));
-        if Shop."B2B Enabled" then begin
+        if Shop."Advanced Shopify Plan" then begin
             StaffMemberId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JOrder, 'staffMember.id'));
             SetSalespersonOnOrderHeader(OrderHeader."Shop Code", StaffMemberId, OrderHeaderRecordRef);
         end;
@@ -636,11 +636,13 @@ codeunit 30161 "Shpfy Import Order"
     var
         JOrderLine: JsonToken;
     begin
-        foreach JOrderLine in JOrderLines do
+        foreach JOrderLine in JOrderLines do begin
+            TempOrderLine.Init();
             if SetOrderLineValuesFromJson(JOrderLine, OrderId, TempOrderLine) then begin
                 TempOrderLine.Insert();
                 DataCaptureDict.Add(TempOrderLine."Line Id", JOrderLine);
             end;
+        end;
     end;
 
     internal procedure TranslateCurrencyCode(ShopifyCurrencyCode: Text): Code[10]

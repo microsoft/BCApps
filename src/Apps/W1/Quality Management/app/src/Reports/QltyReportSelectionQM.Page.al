@@ -11,11 +11,14 @@ using System.Reflection;
 page 20442 "Qlty. Report Selection - QM"
 {
     Caption = 'Report Selection - Quality Management';
+    AdditionalSearchTerms = 'Quality Management Report Selections';
+    AboutTitle = 'About report selection for Quality Management';
+    AboutText = 'On this page, you set up the default reports that are used when printing Quality Management documents such as Certificate of Analysis, Non-Conformance Reports and General Purpose Inspections. Use the Usage field to select the type of document, then specify which reports to use in the list below.';
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Report Selections";
     AccessByPermission = tabledata "Qlty. Management Setup" = R;
-    UsageCategory = Tasks;
+    UsageCategory = Administration;
     ApplicationArea = QualityManagement;
 
     layout

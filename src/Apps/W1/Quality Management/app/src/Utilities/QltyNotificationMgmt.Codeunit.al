@@ -69,6 +69,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
         OpenTheInspectionPageLbl: Label 'Open the inspection';
         AssignToYourselfNotificationTxt: Label 'Assign Quality Inspection to yourself';
         AssignToYourselfNotificationDescriptionTxt: Label 'Show a notification to provide the opportunity to assign the Quality Inspection to yourself.';
+        DontShowAgainLbl: Label 'Don''t show again';
+        HandleDontShowInspectionCreatedTok: Label 'HandleDontShowInspectionCreated', Locked = true;
         InspectionCreatedNotificationTxt: Label 'Quality Inspection created';
         InspectionCreatedNotificationDescriptionTxt: Label 'Show a notification that a Quality Inspection has been created.';
 
@@ -101,6 +103,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
 
         Message := StrSubstNo(InspectionCreatedMsg, QltyInspectionHeader.GetFriendlyIdentifier());
         NotificationOptions.Add(OpenTheInspectionPageLbl, HandleOpenDocumentTok);
+        NotificationOptions.Add(DontShowAgainLbl, HandleDontShowInspectionCreatedTok);
         NotificationInspectionCreated.SetData(NotificationDataRelatedRecordIdTok, Format(QltyInspectionHeader.RecordId));
         CreateActionNotification(NotificationInspectionCreated, Message, NotificationOptions);
     end;
@@ -125,6 +128,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
 
         Message := StrSubstNo(MultipleInspectionsCreatedMsg, QltyInspectionHeader.Count());
         NotificationOptions.Add(ViewTheInspectionsPageLbl, HandleOpenMultipleInspectionsTok);
+        NotificationOptions.Add(DontShowAgainLbl, HandleDontShowInspectionCreatedTok);
         NotificationTestCreated.SetData(MultipleInspectionsNotificationDataFilterTok, QltyInspectionHeader.GetView());
         CreateActionNotification(NotificationTestCreated, Message, NotificationOptions);
     end;
@@ -139,6 +143,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
         MyNotifications: Record "My Notifications";
         CountNotification: Notification;
         Message: Text;
+        NotificationOptions: Dictionary of [Text, Text];
     begin
         if not GuiAllowed() then
             exit;
@@ -148,9 +153,8 @@ codeunit 20437 "Qlty. Notification Mgmt."
             exit;
 
         Message := StrSubstNo(MultipleInspectionsCreatedMsg, InspectionCount);
-        CountNotification.Message := Message;
-        CountNotification.Scope := NotificationScope::LocalScope;
-        CountNotification.Send();
+        NotificationOptions.Add(DontShowAgainLbl, HandleDontShowInspectionCreatedTok);
+        CreateActionNotification(CountNotification, Message, NotificationOptions);
     end;
 
     /// <summary>
@@ -687,6 +691,19 @@ codeunit 20437 "Qlty. Notification Mgmt."
         MyNotifications: Record "My Notifications";
     begin
         MyNotifications.InsertDefault(GetInspectionCreatedNotificationId(), InspectionCreatedNotificationTxt, InspectionCreatedNotificationDescriptionTxt, true);
+    end;
+
+    /// <summary>
+    /// Disables the "Inspection Created" notification for the current user.
+    /// Procedure name must match HandleDontShowInspectionCreatedTok.
+    /// </summary>
+    /// <param name="DontShowNotification">The notification that triggered the action.</param>
+    internal procedure HandleDontShowInspectionCreated(DontShowNotification: Notification)
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        InitializeInspectionCreatedNotification();
+        MyNotifications.Disable(GetInspectionCreatedNotificationId());
     end;
 
     # region Event Subscribers
