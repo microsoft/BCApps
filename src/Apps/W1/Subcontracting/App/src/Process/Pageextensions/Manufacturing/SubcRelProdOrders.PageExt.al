@@ -22,5 +22,17 @@ pageextension 99001505 "Subc. Rel. Prod. Orders" extends "Released Production Or
                 ToolTip = 'Show purchase order lines for subcontracting.';
             }
         }
+        addafter("Item Ledger E&ntries")
+        {
+            action("WIP Ledger Entries")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'WIP Ledger Entries';
+                Image = LedgerEntries;
+                RunObject = page "Subc. WIP Ledger Entries";
+                RunPageLink = "Prod. Order Status" = field(Status), "Prod. Order No." = field("No.");
+                ToolTip = 'View the Subcontractor WIP Ledger Entries for this production order.';
+            }
+        }
     }
 }

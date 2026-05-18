@@ -1823,6 +1823,9 @@ report 99001504 "Subc. Dispatching List"
         VendorIDCaptionLbl: Label 'Vendor ID';
         VendorInvoiceNoLbl: Label 'Vendor Invoice No.';
         VendorOrderNoLbl: Label 'Vendor Order No.';
+        LineDiscountPctPlaceholderLbl: Label '%1%', Locked = true;
+        InvDiscAmtCapLbl: Label 'Invoice Discount Amount %1', Comment = '%1=Currency Code';
+        TotalTxt: Label 'Net Amount %1', Comment = '%1=Currency Code';
         CustomGiroLbl, CustomGiroTxt, LegalOfficeLbl, LegalOfficeTxt : Text;
         FormattedDirectUnitCost: Text;
         FormattedLineAmount: Text;
@@ -1915,9 +1918,6 @@ report 99001504 "Subc. Dispatching List"
     end;
 
     local procedure BlankZero(PurchaseLine: Record "Purchase Line")
-    var
-        LineDiscountPctPlaceholderLbl: Label '%1%',
-            Locked = true;
     begin
         if PurchaseLine."Line Discount %" = 0 then
             LineDiscountPctText := ''
@@ -1970,7 +1970,6 @@ report 99001504 "Subc. Dispatching List"
     local procedure SetInvDisAmountLbl(CurrencyCode: Code[10]; var SubInvDiscAmtCaptionLbl: Text[50])
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-        InvDiscAmtCapLbl: Label 'Invoice Discount Amount %1', Comment = '%1=Currency Code';
     begin
         if CurrencyCode = '' then begin
             GeneralLedgerSetup.Get();
@@ -1983,7 +1982,6 @@ report 99001504 "Subc. Dispatching List"
     local procedure SetTotalLabels(CurrencyCode: Code[10]; var TotalAsText: Text[50])
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-        TotalTxt: Label 'Net Amount %1', Comment = '%1=Currency Code';
     begin
         if CurrencyCode = '' then begin
             GeneralLedgerSetup.Get();
