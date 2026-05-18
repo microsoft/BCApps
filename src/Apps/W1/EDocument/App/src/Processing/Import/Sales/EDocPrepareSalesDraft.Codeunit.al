@@ -15,7 +15,7 @@ using Microsoft.Sales.Customer;
 /// Shared logic for preparing sales order drafts. Resolves customer and sales lines
 /// from staging data populated by the PEPPOL handler.
 /// </summary>
-codeunit 6199 "EDoc Prepare Sales Draft"
+codeunit 6428 "EDoc Prepare Sales Draft"
 {
     Access = Internal;
 
