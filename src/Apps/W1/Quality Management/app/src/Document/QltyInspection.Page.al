@@ -228,7 +228,8 @@ page 20406 "Qlty. Inspection"
             }
             group(ControlInfo)
             {
-                Caption = 'Control Information';
+                Caption = 'Source Reference';
+
                 field("Source Table No."; Rec."Source Table No.")
                 {
                     Editable = false;
@@ -711,9 +712,9 @@ page 20406 "Qlty. Inspection"
             }
             action(OpenSourceDocument)
             {
-                Caption = 'Open Source Document';
+                Caption = 'Show source document';
                 Image = ViewSourceDocumentLine;
-                ToolTip = 'Opens the related source document.';
+                ToolTip = 'Open the related source document.';
 
                 trigger OnAction()
                 var
