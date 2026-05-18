@@ -35,6 +35,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Structure;
+using System.TestLibraries.Utilities;
 
 codeunit 139989 "Subc. Subcontracting Test"
 {
@@ -2074,6 +2075,81 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrderReopen')]
+    procedure FactboxDrilldownTransferOrderReopenPersists()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        WorkCenter: array[2] of Record "Work Center";
+        ProductionLocation: Record Location;
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        ReleaseTransferDocument: Codeunit "Release Transfer Document";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        ReleasedProdOrderRtng: TestPage "Prod. Order Routing";
+    begin
+        // [SCENARIO] Bug 634267 - Reopen Transfer Order does not persist when opened from Subcontracting Details Factbox.
+        // ShowTransferOrdersAndReturnOrder must open the page on a real database record, so actions like
+        // Reopen that modify Rec directly persist after the page closes.
+
+        // [GIVEN] Subcontracting setup with transfer components and a released transfer order
+        Initialize();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithSubcontractingType(Item, "Subcontracting Type"::Transfer);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SetAllProdOrderTransferComponentLocations(ProductionOrder."No.", ProductionLocation.Code);
+        SubcontractingMgmtLibrary.CreateTransferRoute(WorkCenter[2], ProductionOrder);
+
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ReleasedProdOrderRtng.OpenView();
+        ReleasedProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+        ReleasedProdOrderRtng.CreateSubcontracting.Invoke();
+        ReleasedProdOrderRtng.Close();
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+        PurchaseHeaderPage.Close();
+
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        TransferHeader.FindFirst();
+        ReleaseTransferDocument.Release(TransferHeader);
+        Assert.AreEqual(TransferHeader.Status::Released, TransferHeader.Status, 'Transfer order should be Released before the test.');
+
+        // [WHEN] Opening the transfer order from the factbox drill-down and performing Reopen
+        // The page handler HandleTransferOrderReopen will reopen the transfer order
+        PurchaseLine.FindFirst();
+        SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(PurchaseLine, true, false);
+
+        // [THEN] The transfer order status must be Open after closing the page
+        TransferHeader.Get(TransferHeader."No.");
+        Assert.AreEqual(TransferHeader.Status::Open, TransferHeader.Status,
+            'Transfer order status should be Open after Reopen from factbox drill-down. Before the fix, the Reopen modified a marked record and the change was lost.');
+    end;
+
+    [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting')]
     procedure Description2CopiedFromProdOrderComponentToPurchaseLine()
     var
@@ -2243,6 +2319,54 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(
             1, ConfirmDialogCalledCount,
             'Routing Link Code duplicate confirmation must be shown exactly once, not twice');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting')]
+    procedure CalcNoOfProductionOrderRoutingsReturnsOneForSubcontractingPurchaseLine()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        SubcProdOFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
+    begin
+        // [SCENARIO 634720] CalcNoOfProductionOrderRoutings must filter by Routing No. and Operation No. so the factbox count matches the drill-down (which is always a single routing line for a subcontracting purchase line).
+
+        // [GIVEN] Manufacturing setup with a routing of multiple operations where only the second work center is subcontracting
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] A Released Production Order whose routing has more than one operation
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+          ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.IsTrue(ProdOrderRoutingLine.Count() > 1, 'Test precondition: routing must have more than one operation to detect the bug.');
+
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] A Subcontracting Purchase Order created from the routing line of the subcontracting work center
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+#pragma warning restore AA0210
+        PurchaseLine.FindFirst();
+
+        // [WHEN] CalcNoOfProductionOrderRoutings is called with the purchase line
+        // [THEN] It returns 1, matching the single routing line shown by the drill-down (not the total operations of the prod order line)
+        Assert.AreEqual(
+          1, SubcProdOFactboxMgmt.CalcNoOfProductionOrderRoutings(PurchaseLine),
+          'CalcNoOfProductionOrderRoutings must equal the number of routing lines opened by the drill-down (exactly one for a subcontracting purchase line).');
     end;
 
     [Test]
@@ -2527,6 +2651,145 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting')]
+    procedure CreateSubcontractingPOForEachProdOrderLineWhenLinesShareRoutingAndOperation()
+    var
+        Item: Record Item;
+        ProductionLocation: array[2] of Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+        ProdOrderRtng: TestPage "Prod. Order Routing";
+        I: Integer;
+        ProdOrderLineNo: array[2] of Integer;
+    begin
+        // [SCENARIO 634238] When a Released Production Order has multiple Prod. Order lines sharing the same
+        // Routing/Operation, creating a Subcontracting Order for the second line must not raise the false
+        // "Purchase order(s) have already been created" warning, and must create/show its own Purchase Order.
+
+        // [GIVEN] Subcontracting setup with direct transfer (no in-transit route)
+        Initialize();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        // [GIVEN] One released production order created directly from item
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 0);
+
+        // [GIVEN] No production order lines exist yet for this order
+        ProdOrderLine.SetRange(Status, ProdOrderLine.Status::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.AreEqual(0, ProdOrderLine.Count(), 'Expected no production order lines to exist before manually creating them');
+
+        // [GIVEN] Two production order lines on the same production order, on different locations
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation[1]);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation[2]);
+        LibraryManufacturing.CreateProdOrderLine(ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", '', ProductionLocation[1].Code, LibraryRandom.RandInt(10) + 2);
+        ProdOrderLineNo[1] := ProdOrderLine."Line No.";
+        LibraryManufacturing.CreateProdOrderLine(ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", '', ProductionLocation[2].Code, LibraryRandom.RandInt(10) + 2);
+        ProdOrderLineNo[2] := ProdOrderLine."Line No.";
+        Assert.AreNotEqual(ProdOrderLineNo[1], ProdOrderLineNo[2], 'Expected two distinct production order lines');
+
+        // [GIVEN] Refresh the production order to update the routing and component lines
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, true, true, false);
+
+        // [GIVEN] The two production-order lines have transfer components on different locations
+        for I := 1 to 2 do begin
+            ProdOrderRoutingLine.Reset();
+            ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo[I]);
+            ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+            Assert.RecordCount(ProdOrderRoutingLine, 1);
+
+            ProdOrderRoutingLine.FindFirst();
+
+            ProdOrderRtng.OpenView();
+            ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+            ProdOrderRtng.CreateSubcontracting.Invoke();
+            ProdOrderRtng.Close();
+
+            Assert.AreEqual('1 Purchase Order(s) created.\\Do you want to view them?', LibraryVariableStorage.DequeueText(), 'Expected "created" confirmation for each prod order line, not the false "already created" warning');
+            LibraryVariableStorage.AssertEmpty();
+        end;
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,CapturePurchaseOrderPageNo')]
+    procedure CreateSubcontractingPONavigatesToOwnPOWhenLinesShareRoutingAndOperation()
+    var
+        Item: Record Item;
+        ProductionLocation: array[2] of Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        ProdOrderRtng: TestPage "Prod. Order Routing";
+        I: Integer;
+        ProdOrderLineNo: array[2] of Integer;
+        OpenedPurchaseOrderNo: Code[20];
+    begin
+        // [SCENARIO 634238] When a Released Production Order has multiple Prod. Order lines sharing routing/operation,
+        // confirming "view them" on the just-created Subcontracting Order must open the PO tied to the invoked
+        // routing line, not the unrelated PO of a sibling line.
+
+        // [GIVEN] Subcontracting setup with two prod order lines sharing routing/operation but different Routing Reference No.
+        Initialize();
+        SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 0);
+
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation[1]);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProductionLocation[2]);
+        LibraryManufacturing.CreateProdOrderLine(ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", '', ProductionLocation[1].Code, LibraryRandom.RandInt(10) + 2);
+        ProdOrderLineNo[1] := ProdOrderLine."Line No.";
+        LibraryManufacturing.CreateProdOrderLine(ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", '', ProductionLocation[2].Code, LibraryRandom.RandInt(10) + 2);
+        ProdOrderLineNo[2] := ProdOrderLine."Line No.";
+
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, true, true, false);
+
+        // [WHEN] Creating a Subcontracting Order from each routing line and confirming "view them"
+        for I := 1 to 2 do begin
+            ProdOrderRoutingLine.Reset();
+            ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo[I]);
+            ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+            ProdOrderRoutingLine.FindFirst();
+
+            ProdOrderRtng.OpenView();
+            ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+            ProdOrderRtng.CreateSubcontracting.Invoke();
+            ProdOrderRtng.Close();
+
+            // [THEN] The page handler opens the Purchase Order whose line carries this routing line's Routing Reference No.
+            OpenedPurchaseOrderNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(OpenedPurchaseOrderNo));
+            PurchaseLine.Reset();
+            PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+            PurchaseLine.SetRange("Document No.", OpenedPurchaseOrderNo);
+            PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+            PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            PurchaseLine.SetRange("Routing Reference No.", ProdOrderLineNo[I]);
+            Assert.IsFalse(PurchaseLine.IsEmpty(), StrSubstNo(PurchOrderRoutingErr, OpenedPurchaseOrderNo, ProdOrderLineNo[I]));
+            LibraryVariableStorage.AssertEmpty();
+        end;
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,HandlePurchaseOrderPage,HandlePurchaseLinesPage')]
     procedure ShowExistingPurchOrdersOpensListWhenAlreadyCreated()
     var
@@ -2579,6 +2842,13 @@ codeunit 139989 "Subc. Subcontracting Test"
         TransfOrderPage.OK().Invoke();
     end;
 
+    [PageHandler]
+    procedure HandleTransferOrderReopen(var TransfOrderPage: TestPage "Transfer Order")
+    begin
+        TransfOrderPage."Reo&pen".Invoke();
+        TransfOrderPage.OK().Invoke();
+    end;
+
     [ConfirmHandler]
     procedure ConfirmYesShowSubcontractingPurchOrders(Question: Text[1024]; var Reply: Boolean)
     begin
@@ -2589,6 +2859,13 @@ codeunit 139989 "Subc. Subcontracting Test"
     procedure HandlePurchaseOrderPage(var PurchaseOrderPage: TestPage "Purchase Order")
     begin
         PurchaseOrderPageOpened := true;
+        PurchaseOrderPage.Close();
+    end;
+
+    [PageHandler]
+    procedure CapturePurchaseOrderPageNo(var PurchaseOrderPage: TestPage "Purchase Order")
+    begin
+        LibraryVariableStorage.Enqueue(PurchaseOrderPage."No.".Value);
         PurchaseOrderPage.Close();
     end;
 
@@ -2623,6 +2900,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     [ConfirmHandler]
     procedure DoNotConfirmShowCreatedPurchOrderForSubcontracting(Question: Text[1024]; var Reply: Boolean)
     begin
+        LibraryVariableStorage.Enqueue(Question);
         Reply := false;
     end;
 
@@ -3056,6 +3334,9 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         SubcontractingMgmtLibrary.Initialize();
         SubcontractingMgmtLibrary.UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Purchase);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        LibraryVariableStorage.Clear();
+
         LibraryMfgManagement.Initialize();
 
         if IsInitialized then
@@ -3184,6 +3465,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
         Subcontracting: Boolean;
@@ -3193,5 +3475,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         UnitCostCalculation: Option Time,Units;
         ConfirmDialogCalledCount: Integer;
         AlreadySpecifiedErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.', Comment = '|%1 = Transfer Order No.';
+        PurchOrderRoutingErr: Label 'Purchase Order %1 should contain a line tied to Routing Reference No. %2', Comment = '%1 = Purchase Order No., %2 = Routing Reference No.';
 
 }
