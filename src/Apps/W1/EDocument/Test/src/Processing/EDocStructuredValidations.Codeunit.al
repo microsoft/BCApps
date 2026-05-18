@@ -588,13 +588,13 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual(25, EDocSalesLine."VAT Rate", 'Line 2 VAT Rate does not match.');
     end;
 
-    internal procedure AssertPEPPOLSalesOrderTypecode226Extracted(EDocumentEntryNo: Integer)
+    internal procedure AssertPEPPOLSalesOrderTypecode221Extracted(EDocumentEntryNo: Integer)
     var
         EDocSalesHeader: Record "E-Document Sales Header";
     begin
         EDocSalesHeader.Get(EDocumentEntryNo);
         Assert.AreEqual('ORD-1003', EDocSalesHeader."Buyer Order No.", 'Buyer Order No. does not match fixture.');
-        Assert.AreEqual('226', EDocSalesHeader."Order Type Code", 'Order Type Code ''226'' should be staged without error.');
+        Assert.AreEqual('221', EDocSalesHeader."Order Type Code", 'Order Type Code ''221'' should be staged without error.');
     end;
 
     internal procedure AssertPEPPOLSalesOrderNoMonetaryTotalExtracted(EDocumentEntryNo: Integer)

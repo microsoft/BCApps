@@ -1283,7 +1283,7 @@ codeunit 139883 "E-Doc Process Test"
 
         // [GIVEN] The XML is parsed into staging records (ReadIntoDraft sets OrderTypeCode = '221' from the XML)
         TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
-        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-typecode-226.xml', TempEDocImportParameters);
+        LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-order-typecode-221.xml', TempEDocImportParameters);
         EDocument.Get(EDocument."Entry No");
 
         // [GIVEN] BC-resolved fields are set (customer + item), simulating what PrepareDraft would do

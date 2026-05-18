@@ -326,13 +326,13 @@ codeunit 139891 "E-Document Structured Tests"
     var
         EDocument: Record "E-Document";
     begin
-        // [SCENARIO] OrderTypeCode=226 is staged without error at ReadIntoDraft.
+        // [SCENARIO] OrderTypeCode=221 (Blanket Order) is staged without error at ReadIntoDraft.
         // FinishDraft creates a Sales Order regardless of OrderTypeCode.
         Initialize(Enum::"Service Integration"::"Mock");
         SetupPEPPOLEDocumentService();
-        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-order-typecode-226.xml');
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-order-typecode-221.xml');
         if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
-            StructuredValidations.AssertPEPPOLSalesOrderTypecode226Extracted(EDocument."Entry No")
+            StructuredValidations.AssertPEPPOLSalesOrderTypecode221Extracted(EDocument."Entry No")
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
     end;

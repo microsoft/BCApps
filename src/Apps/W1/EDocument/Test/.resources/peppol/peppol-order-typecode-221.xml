@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- PEPPOL BIS Ordering 3.0 — OrderTypeCode=226.
+<!-- PEPPOL BIS Ordering 3.0 — OrderTypeCode=221 (Blanket Order).
      The ReadIntoDraft stage stores the code in staging without error.
-     FinishDraft always produces a Sales Order regardless of OrderTypeCode (226 is no exception). -->
+     FinishDraft always produces a Sales Order regardless of OrderTypeCode (221 is no exception). -->
 <Order xmlns="urn:oasis:names:specification:ubl:schema:xsd:Order-2"
     xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
     xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
@@ -9,7 +9,7 @@
     <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:ordering:01:1.0</cbc:ProfileID>
     <cbc:ID>ORD-1003</cbc:ID>
     <cbc:IssueDate>2026-01-15</cbc:IssueDate>
-    <cbc:OrderTypeCode>226</cbc:OrderTypeCode>
+    <cbc:OrderTypeCode>221</cbc:OrderTypeCode>
     <cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
     <cac:BuyerCustomerParty>
         <cac:Party>
