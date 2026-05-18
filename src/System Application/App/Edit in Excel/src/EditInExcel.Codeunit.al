@@ -123,12 +123,12 @@ codeunit 1481 "Edit in Excel"
     end;
 
     /// <summary>
-    /// This event is raised inside SetupFieldColumnBindings before iterating the Page Control Field record set, after the procedure has applied the PageNo filter and Sequence sort order. Subscribers can add further filters or change the sort order to control which page fields are exported to Excel (for example, to honor user personalization).
+    /// This event is raised before iterating the Page Control Field record set used to build the Edit in Excel workbook column bindings. Subscribers can add further filters or change the sort order to control which page fields are exported to Excel (for example, to honor user personalization).
     /// </summary>
-    /// <param name="PageControlField">The Page Control Field record, already filtered by PageNo and sorted by Sequence. Subscribers may add further filters.</param>
+    /// <param name="PageControlField">The Page Control Field record with relevant filters and sorting already applied. Subscribers can add further filters.</param>
     /// <param name="PageId">The ID of the page being exported.</param>
     [IntegrationEvent(false, false)]
-    internal procedure OnPageControlFieldFilterBeforeFindSetInSetupFieldColumnBindings(var PageControlField: Record "Page Control Field"; PageId: Integer)
+    internal procedure OnBeforePageControlFieldFindSet(var PageControlField: Record "Page Control Field"; PageId: Integer)
     begin
     end;
 }

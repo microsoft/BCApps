@@ -23,8 +23,8 @@ codeunit 132525 "Edit in Excel Test"
         EditInExcel: Codeunit "Edit in Excel";
         IsInitialized: Boolean;
         EventServiceName: Text[240];
-        EventPageControlFieldFilterPageId: Integer;
-        EventPageControlFieldFilterFired: Boolean;
+        EventBeforePageControlFieldFindSetPageId: Integer;
+        EventBeforePageControlFieldFindSetFireCount: Integer;
 
     [Test]
     procedure TestEditInExcelCreatesWebService()
@@ -406,70 +406,75 @@ codeunit 132525 "Edit in Excel Test"
 
     [Test]
     procedure TestExternalizeODataObjectNamePublicWrapper()
-    var
-        EditinExcelTestLibrary: Codeunit "Edit in Excel Test Library";
-        Input: Text;
-        PublicResult: Text;
-        ImplResult: Text;
     begin
-        // [SCENARIO] The public ExternalizeODataObjectName procedure on codeunit "Edit in Excel" exposes the same conversion as the internal implementation, so other apps can match Edit in Excel OData externalized names without duplicating the conversion logic.
+        // [SCENARIO] The public ExternalizeODataObjectName procedure on codeunit "Edit in Excel" produces the OData externalized name that the Edit in Excel runtime applies to field and service names, so other apps can derive the same external names without duplicating the conversion logic.
         Init();
 
-        // [GIVEN] A name that triggers OData escaping (digit prefix, en dash, space)
-        Input := '3 lager – reklassfication field';
+        // [GIVEN] A clean ASCII name
+        // [THEN] The wrapper passes it through unchanged
+        LibraryAssert.AreEqual('CustomerNumber', EditInExcel.ExternalizeODataObjectName('CustomerNumber'), 'A clean ASCII name should pass through unchanged');
 
-        // [WHEN] The public wrapper and the internal implementation are called with the same input
-        PublicResult := EditInExcel.ExternalizeODataObjectName(Input);
-        ImplResult := EditinExcelTestLibrary.ExternalizeODataObjectName(Input);
+        // [GIVEN] An ASCII name with a single space
+        // [THEN] The wrapper converts the space to an underscore
+        LibraryAssert.AreEqual('Posting_Date', EditInExcel.ExternalizeODataObjectName('Posting Date'), 'A single space should convert to an underscore');
 
-        // [THEN] Both produce the same OData externalized name
-        LibraryAssert.AreEqual(ImplResult, PublicResult, 'Public ExternalizeODataObjectName wrapper should return the same value as the internal implementation');
+        // [GIVEN] A name made of Arabic BMP characters
+        // [THEN] The wrapper passes the Arabic characters through unchanged (they do not match any of the conversion rules)
+        LibraryAssert.AreEqual('مرحبا', EditInExcel.ExternalizeODataObjectName('مرحبا'), 'Arabic BMP characters should pass through unchanged');
+
+        // [GIVEN] A name made of Japanese hiragana BMP characters
+        // [THEN] The wrapper passes the Japanese characters through unchanged
+        LibraryAssert.AreEqual('こんにちは', EditInExcel.ExternalizeODataObjectName('こんにちは'), 'Japanese hiragana BMP characters should pass through unchanged');
+
+        // [GIVEN] A name with an accented Latin character
+        // [THEN] The wrapper passes the accented character through unchanged
+        LibraryAssert.AreEqual('café', EditInExcel.ExternalizeODataObjectName('café'), 'Accented Latin BMP characters should pass through unchanged');
     end;
 
     [Test]
-    procedure TestOnPageControlFieldFilterBeforeFindSetEventFires()
+    procedure TestOnBeforePageControlFieldFindSetEventFires()
     var
         TenantWebService: Record "Tenant Web Service";
         EditinExcelFilters: Codeunit "Edit in Excel Filters";
         EditInExcelList: Page "Edit in Excel List";
     begin
-        // [SCENARIO] When EditPageInExcel runs, the new OnPageControlFieldFilterBeforeFindSetInSetupFieldColumnBindings event is raised with the page ID being exported, so subscribers can apply additional filters to the Page Control Field record.
+        // [SCENARIO] When EditPageInExcel runs, the new OnBeforePageControlFieldFindSet event is raised once with the page ID being exported, so subscribers can apply additional filters to the Page Control Field record.
         Init();
 
         // [GIVEN] No tenant web service for the page and no captured event state
         TenantWebService.SetRange("Object Type", TenantWebService."Object Type"::Page);
         TenantWebService.SetRange("Object ID", Page::"Edit in Excel List");
         TenantWebService.DeleteAll();
-        EditInExcelTest.ResetCapturedPageControlFieldFilter();
+        EditInExcelTest.ResetCapturedBeforePageControlFieldFindSet();
 
-        // [WHEN] EditPageInExcel runs the export flow that calls SetupFieldColumnBindings
+        // [WHEN] EditPageInExcel runs the export flow that iterates the Page Control Field record set
         EditInExcel.EditPageInExcel(CopyStr(EditInExcelList.Caption, 1, 240), Page::"Edit in Excel List", EditinExcelFilters);
 
-        // [THEN] The subscriber was invoked with the page that is being exported
-        LibraryAssert.IsTrue(EditInExcelTest.GetCapturedPageControlFieldFilterFired(), 'OnPageControlFieldFilterBeforeFindSetInSetupFieldColumnBindings event should have fired');
-        LibraryAssert.AreEqual(Page::"Edit in Excel List", EditInExcelTest.GetCapturedPageControlFieldFilterPageId(), 'OnPageControlFieldFilterBeforeFindSetInSetupFieldColumnBindings event should pass the exported page ID');
+        // [THEN] The subscriber was invoked exactly once with the page that is being exported
+        LibraryAssert.AreEqual(1, EditInExcelTest.GetCapturedBeforePageControlFieldFindSetFireCount(), 'OnBeforePageControlFieldFindSet event should fire exactly once per EditPageInExcel call');
+        LibraryAssert.AreEqual(Page::"Edit in Excel List", EditInExcelTest.GetCapturedBeforePageControlFieldFindSetPageId(), 'OnBeforePageControlFieldFindSet event should pass the exported page ID');
     end;
 
-    procedure GetCapturedPageControlFieldFilterFired(): Boolean
+    procedure GetCapturedBeforePageControlFieldFindSetFireCount(): Integer
     begin
-        exit(EventPageControlFieldFilterFired);
+        exit(EventBeforePageControlFieldFindSetFireCount);
     end;
 
-    procedure GetCapturedPageControlFieldFilterPageId(): Integer
+    procedure GetCapturedBeforePageControlFieldFindSetPageId(): Integer
     begin
-        exit(EventPageControlFieldFilterPageId);
+        exit(EventBeforePageControlFieldFindSetPageId);
     end;
 
-    procedure ResetCapturedPageControlFieldFilter()
+    procedure ResetCapturedBeforePageControlFieldFindSet()
     begin
-        EventPageControlFieldFilterPageId := 0;
-        EventPageControlFieldFilterFired := false;
+        EventBeforePageControlFieldFindSetPageId := 0;
+        EventBeforePageControlFieldFindSetFireCount := 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Edit in Excel", 'OnPageControlFieldFilterBeforeFindSetInSetupFieldColumnBindings', '', false, false)]
-    local procedure CapturePageControlFieldFilterBeforeFindSet(var PageControlField: Record "Page Control Field"; PageId: Integer)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Edit in Excel", 'OnBeforePageControlFieldFindSet', '', false, false)]
+    local procedure CaptureBeforePageControlFieldFindSet(var PageControlField: Record "Page Control Field"; PageId: Integer)
     begin
-        EventPageControlFieldFilterPageId := PageId;
-        EventPageControlFieldFilterFired := true;
+        EventBeforePageControlFieldFindSetPageId := PageId;
+        EventBeforePageControlFieldFindSetFireCount += 1;
     end;
 }
