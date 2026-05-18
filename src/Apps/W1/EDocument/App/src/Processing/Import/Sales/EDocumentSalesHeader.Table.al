@@ -215,11 +215,6 @@ table 6153 "E-Document Sales Header"
         if Customer.Get(Rec."[BC] Customer No.") then;
     end;
 
-    procedure IsBlanketOrder(): Boolean
-    begin
-        exit(Rec."Order Type Code" = BlanketOrderTypeCodeTok);
-    end;
-
     internal procedure FeatureName(): Text
     begin
         exit('E-Document Sales Order Import');
@@ -227,5 +222,4 @@ table 6153 "E-Document Sales Header"
 
     var
         DeleteDraftPerformedTxt: Label 'User deleted the draft.', Locked = true;
-        BlanketOrderTypeCodeTok: Label '221', Locked = true;
 }
