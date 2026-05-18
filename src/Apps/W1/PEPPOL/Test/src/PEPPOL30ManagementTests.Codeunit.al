@@ -3545,6 +3545,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         if DocumentType = SalesHeader."Document Type"::"Credit Memo" then
             SalesHeader.Validate("Shipment Date", WorkDate());
 
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.CopySellToAddressToShipToAddress();
         SalesHeader.Modify(true);
     end;
@@ -3788,6 +3789,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         AddCustPEPPOLIdentifier(Customer."No.");
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
+        ServiceHeader.Validate("E-Mail", 'sellto@example.com');
         ServiceHeader.SetShipToAddress(ServiceHeader.Name, '', ServiceHeader.Address, ServiceHeader."Address 2",
         ServiceHeader.City, ServiceHeader."Post Code", ServiceHeader.County, ServiceHeader."Country/Region Code");
         ServiceHeader.Modify(true);
