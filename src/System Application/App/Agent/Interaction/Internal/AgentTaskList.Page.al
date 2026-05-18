@@ -168,7 +168,7 @@ page 4300 "Agent Task List"
                 var
                     AgentTaskImpl: Codeunit "Agent Task Impl.";
                 begin
-                    AgentTaskImpl.StopTask(Rec, Rec."Status"::"Stopped by User", true);
+                    AgentTaskImpl.StopTask(Rec.ID, Rec."Status"::"Stopped by User", true);
                     CurrPage.Update(false);
                 end;
             }

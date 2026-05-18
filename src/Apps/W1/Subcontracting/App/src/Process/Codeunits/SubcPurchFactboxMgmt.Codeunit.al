@@ -15,6 +15,10 @@ using System.Reflection;
 
 codeunit 99001560 "Subc. Purch. Factbox Mgmt."
 {
+    var
+        MultipleLbl: Label 'Multiple', MaxLength = 20;
+        NoTransferExistsMsg: Label 'No transfer order exists for this purchase order.';
+
     /// <summary>
     /// Opens the Purchase Order page for the subcontracting purchase order linked to the given variant record.
     /// </summary>
@@ -65,7 +69,6 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         PurchOrderNo: Code[20];
         NoOfTransferOrders: Integer;
         PurchOrderLineNo: Integer;
-        MultipleLbl: Label 'Multiple', MaxLength = 20;
     begin
         if not GetPurchaseOrderNoByVariant(RecRelatedVariant, PurchOrderNo, PurchOrderLineNo) then
             exit('');
@@ -228,7 +231,6 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         TransferLine: Record "Transfer Line";
         DataTypeManagement: Codeunit "Data Type Management";
         RecRef: RecordRef;
-        NoTransferExistsMsg: Label 'No transfer order exists for this purchase order.';
     begin
         if not RecRelatedVariant.IsRecord() then
             exit;

@@ -50,6 +50,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ErrorMessageDescriptionList: List of [Text];
         ItemTrackingWasOpened: Boolean;
         UnitCostCalculation: Option Time,Units;
+        NotSupportedErr: Label 'Drop Shipment must be equal to', Locked = true;
 
     [Test]
     [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess')]
@@ -225,7 +226,6 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         RoutingLink: Record "Routing Link";
         Vendor: Record Vendor;
         WorkCenter: Record "Work Center";
-        NotSupportedErr: Label 'Drop Shipment must be equal to', Locked = true;
         PurchOrder: TestPage "Purchase Order";
     begin
         // [SCENARIO] Create Production Order from Purchase Order from scratch
@@ -261,6 +261,82 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         // [TEARDOWN]
         UpdateSubMgmtCommonWorkCenter('');
         UpdateSubMgmtRoutingLink('');
+    end;
+
+    [Test]
+    procedure VendorLocationWithBinMandatoryThrowsError()
+    var
+        Location: Record Location;
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO] Setting a vendor's subcontracting location to a location with "Bin Mandatory" enabled should throw an error with ErrorInfo
+
+        Initialize();
+
+        // [GIVEN] A location with Bin Mandatory enabled
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Bin Mandatory" := true;
+        Location.Modify();
+
+        // [GIVEN] A vendor
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] Try to set the vendor's Subcontr. Location Code to the location with Bin Mandatory
+        // [THEN] An error is thrown with ErrorInfo
+        asserterror Vendor.Validate("Subcontr. Location Code", Location.Code);
+        Assert.ExpectedError('Location ' + Location.Code + ' cannot be used as a subcontracting location because Bin Mandatory or warehouse handling is enabled on the location.');
+    end;
+
+    [Test]
+    procedure VendorLocationWithRequirePickThrowsError()
+    var
+        Location: Record Location;
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO] Setting a vendor's subcontracting location to a location with "Require Pick" enabled should throw an error
+
+        Initialize();
+
+        // [GIVEN] A location with Require Pick enabled
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Require Pick" := true;
+        Location.Modify();
+
+        // [GIVEN] A vendor
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] Try to set the vendor's Subcontr. Location Code to the location with Require Pick
+        // [THEN] An error is thrown
+        asserterror Vendor.Validate("Subcontr. Location Code", Location.Code);
+        Assert.ExpectedError('Location ' + Location.Code + ' cannot be used as a subcontracting location because Bin Mandatory or warehouse handling is enabled on the location.');
+    end;
+
+    [Test]
+    procedure VendorLocationWithoutWarehouseHandlingSucceeds()
+    var
+        Location: Record Location;
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO] Setting a vendor's subcontracting location to a valid location should succeed
+
+        Initialize();
+
+        // [GIVEN] A location without warehouse handling
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Bin Mandatory" := false;
+        Location."Require Pick" := false;
+        Location."Require Put-away" := false;
+        Location."Require Receive" := false;
+        Location."Require Shipment" := false;
+        Location.Modify();
+
+        // [GIVEN] A vendor
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] Set the vendor's Subcontr. Location Code to the valid location
+        // [THEN] The validation succeeds and the field is updated
+        Vendor.Validate("Subcontr. Location Code", Location.Code);
+        Assert.AreEqual(Location.Code, Vendor."Subcontr. Location Code", 'Subcontr. Location Code should be set to the valid location');
     end;
 
     [Test]
@@ -388,13 +464,12 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Purch. Subcont. Test");
         LibrarySetupStorage.Restore();
 
-        SubcontractingMgmtLibrary.Initialize();
-        LibraryMfgManagement.Initialize();
-
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Purch. Subcont. Test");
 
+        SubcontractingMgmtLibrary.Initialize();
+        LibraryMfgManagement.Initialize();
         SubSetupLibrary.InitSetupFields();
         SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Subc. Show/Edit Type"::Hide, "Subc. Show/Edit Type"::Hide);
         LibraryERMCountryData.CreateVATData();
@@ -408,19 +483,19 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
     local procedure UpdateSubMgmtCommonWorkCenter(WorkCenterNo: Code[20])
     var
-        EsMgmtSetup: Record "Subc. Management Setup";
+        SubManagementSetup: Record "Subc. Management Setup";
     begin
-        EsMgmtSetup.Get();
-        EsMgmtSetup."Common Work Center No." := WorkCenterNo;
-        EsMgmtSetup.Modify();
+        SubManagementSetup.Get();
+        SubManagementSetup."Common Work Center No." := WorkCenterNo;
+        SubManagementSetup.Modify();
     end;
 
     local procedure UpdateSubMgmtRoutingLink(RtngLink: Code[10])
     var
-        EsMgmtSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
-        EsMgmtSetup.Get();
-        EsMgmtSetup."Rtng. Link Code Purch. Prov." := RtngLink;
-        EsMgmtSetup.Modify();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Rtng. Link Code Purch. Prov." := RtngLink;
+        ManufacturingSetup.Modify();
     end;
 }

@@ -9,6 +9,7 @@ using Microsoft.Finance.Dimension;
 query 37016 "Dynamic Dimensions - PBI API"
 {
     QueryType = API;
+    AboutText = 'Provides access to dimension set entries with dynamically resolved dimension codes, values, and names. Enables Power BI reports to retrieve flexible dimensional structures for custom analytics, supporting organizations with varying dimension configurations beyond the standard eight shortcut dimensions.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/730da166f092a5b269c127281fa69774a9cdb163/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/59f772f3fb277cd5041c07311ceb5eb0297fdf1d/Actions/.Modules/settings.schema.json",
   "projectName": "System Application Tests",
   "testFolders": [
     "../../../src/System Application/Test",
