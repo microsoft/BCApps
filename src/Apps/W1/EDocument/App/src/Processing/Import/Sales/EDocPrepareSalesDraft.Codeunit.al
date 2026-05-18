@@ -41,7 +41,8 @@ codeunit 6199 "EDoc Prepare Sales Draft"
         EDocumentSalesHeader.TestField("E-Document Entry No.");
         if EDocumentSalesHeader."[BC] Customer No." = '' then begin
             Customer := GetCustomer(EDocument, EDocImportParameters."Processing Customizations");
-            EDocumentSalesHeader."[BC] Customer No." := Customer."No.";
+            if Customer."No." <> '' then
+                EDocumentSalesHeader."[BC] Customer No." := Customer."No.";
         end;
         EDocumentSalesHeader.Modify();
 

@@ -11,7 +11,7 @@
     <cbc:IssueDate>2026-01-15</cbc:IssueDate>
     <cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
     <cbc:CustomerReference>REF-001</cbc:CustomerReference>
-    <cbc:Note>Standard purchase order</cbc:Note>
+    <cbc:Note>Standard sales order</cbc:Note>
     <cbc:SalesOrderID>SEL-2001</cbc:SalesOrderID>
     <cac:BuyerCustomerParty>
         <cac:Party>

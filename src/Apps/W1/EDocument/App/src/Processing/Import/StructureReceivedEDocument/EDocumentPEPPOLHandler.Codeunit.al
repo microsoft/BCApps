@@ -38,6 +38,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         PeppolXML: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
         RootElement: XmlElement;
+        XmlNode: XmlNode;
         OrderNamespaceLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:Order-2', Locked = true;
     begin
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
@@ -76,7 +77,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
                     PopulateSalesOrderHeader(PeppolXML, XmlNamespaces, EDocSalesHeader);
                     InsertSalesOrderLines(EDocSalesHeader."E-Document Entry No.", PeppolXML, XmlNamespaces);
                     InsertSalesAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocSalesHeader."E-Document Entry No.");
-                    if EDocSalesHeader."Sub Total" = 0 then
+                    if not PeppolXML.SelectSingleNode('/order:Order/cac:AnticipatedMonetaryTotal', XmlNamespaces, XmlNode) then
                         ComputeSalesTotalsFromLines(EDocSalesHeader);
                     InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/order:Order');
                     EDocSalesHeader.Modify();

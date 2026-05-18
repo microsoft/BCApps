@@ -540,7 +540,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual(DMY2Date(15, 2, 2026), EDocSalesHeader."Requested Delivery Date", 'Requested Delivery Date does not match fixture.');
         Assert.AreEqual('XYZ', EDocSalesHeader."Currency Code", 'Currency Code does not match fixture.');
         Assert.AreEqual('REF-001', EDocSalesHeader."Customer Reference", 'Customer Reference does not match fixture.');
-        Assert.AreEqual('Standard purchase order', EDocSalesHeader.Note, 'Note does not match fixture.');
+        Assert.AreEqual('Standard sales order', EDocSalesHeader.Note, 'Note does not match fixture.');
         Assert.AreEqual('Buyer Corp AS', EDocSalesHeader."Buyer Company Name", 'Buyer Company Name does not match fixture.');
         Assert.AreEqual('1234567890128', EDocSalesHeader."Buyer GLN", 'Buyer GLN does not match (schemeID=0088).');
         Assert.AreEqual('SE1234567890', EDocSalesHeader."Buyer VAT Id", 'Buyer VAT Id does not match fixture.');
