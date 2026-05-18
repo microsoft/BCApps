@@ -111,6 +111,9 @@ codeunit 132525 "Edit in Excel Test"
         ForwardSlashesFieldName: Text;
         ManyForwardSlashesFieldName: Text;
         ForwardSlashesEmDashesAndUnderscoresFieldName: Text;
+        ArabicFieldName: Text;
+        JapaneseFieldName: Text;
+        AccentedLatinFieldName: Text;
     begin
         Init();
         FieldNameStartingWDigit := EditinExcelTestLibrary.ExternalizeODataObjectName('3field');
@@ -142,6 +145,11 @@ codeunit 132525 "Edit in Excel Test"
         // when converting from a special symbol to underscore(unless that special character is translated to a byte value).
         ForwardSlashesEmDashesAndUnderscoresFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('lager/_/-reklassfication field');
 
+        // Arabic, Japanese, and accented Latin BMP characters do not match any of the conversion rules so they pass through unchanged.
+        ArabicFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('مرحبا');
+        JapaneseFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('こんにちは');
+        AccentedLatinFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('café');
+
         LibraryAssert.AreEqual('field', RegularFieldName, 'Conversion alters name that does not begin with a string');
         LibraryAssert.AreEqual('_x0033_field', FieldNameStartingWDigit, 'Did not convert the name with number correctly');
         LibraryAssert.AreEqual('new_vendor_x0027_s_name', ApostropheFieldName, 'Did not convert the name with an apostrophe correctly');
@@ -153,6 +161,9 @@ codeunit 132525 "Edit in Excel Test"
         LibraryAssert.AreEqual('lager_reklassfication_field', ForwardSlashesFieldName, 'Did not convert the name with 2 forward slashes correctly');
         LibraryAssert.AreEqual('lager_reklassfication_field', ManyForwardSlashesFieldName, 'Did not convert the name with many forward slashes correctly');
         LibraryAssert.AreEqual('lager__reklassfication_field', ForwardSlashesEmDashesAndUnderscoresFieldName, 'Did not convert the name with forward slashes, em dash and underscores correctly');
+        LibraryAssert.AreEqual('مرحبا', ArabicFieldName, 'Arabic BMP characters should pass through unchanged');
+        LibraryAssert.AreEqual('こんにちは', JapaneseFieldName, 'Japanese hiragana BMP characters should pass through unchanged');
+        LibraryAssert.AreEqual('café', AccentedLatinFieldName, 'Accented Latin BMP characters should pass through unchanged');
     end;
 
     [Test]
@@ -406,29 +417,26 @@ codeunit 132525 "Edit in Excel Test"
 
     [Test]
     procedure TestExternalizeODataObjectNamePublicWrapper()
+    var
+        EditinExcelTestLibrary: Codeunit "Edit in Excel Test Library";
     begin
-        // [SCENARIO] The public ExternalizeODataObjectName procedure on codeunit "Edit in Excel" produces the OData externalized name that the Edit in Excel runtime applies to field and service names, so other apps can derive the same external names without duplicating the conversion logic.
+        // [SCENARIO] The public ExternalizeODataObjectName procedure on codeunit "Edit in Excel" delegates to the same internal implementation that the Edit in Excel test library wraps. This test guards against refactor drift between the two wrappers, so that if either of them is ever changed (extra parameter, fast-path optimization, pre-processing step, inlined copy of the impl), the divergence shows up here.
         Init();
 
-        // [GIVEN] A clean ASCII name
-        // [THEN] The wrapper passes it through unchanged
-        LibraryAssert.AreEqual('CustomerNumber', EditInExcel.ExternalizeODataObjectName('CustomerNumber'), 'A clean ASCII name should pass through unchanged');
+        // [THEN] The public wrapper and the test library wrapper agree on a clean ASCII name
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('CustomerNumber'), EditInExcel.ExternalizeODataObjectName('CustomerNumber'), 'Public wrapper should match the test library wrapper for a clean ASCII name');
 
-        // [GIVEN] An ASCII name with a single space
-        // [THEN] The wrapper converts the space to an underscore
-        LibraryAssert.AreEqual('Posting_Date', EditInExcel.ExternalizeODataObjectName('Posting Date'), 'A single space should convert to an underscore');
+        // [THEN] They agree on an ASCII name with a single space
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('Posting Date'), EditInExcel.ExternalizeODataObjectName('Posting Date'), 'Public wrapper should match the test library wrapper for an ASCII name with a space');
 
-        // [GIVEN] A name made of Arabic BMP characters
-        // [THEN] The wrapper passes the Arabic characters through unchanged (they do not match any of the conversion rules)
-        LibraryAssert.AreEqual('مرحبا', EditInExcel.ExternalizeODataObjectName('مرحبا'), 'Arabic BMP characters should pass through unchanged');
+        // [THEN] They agree on Arabic BMP characters
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('مرحبا'), EditInExcel.ExternalizeODataObjectName('مرحبا'), 'Public wrapper should match the test library wrapper for Arabic BMP characters');
 
-        // [GIVEN] A name made of Japanese hiragana BMP characters
-        // [THEN] The wrapper passes the Japanese characters through unchanged
-        LibraryAssert.AreEqual('こんにちは', EditInExcel.ExternalizeODataObjectName('こんにちは'), 'Japanese hiragana BMP characters should pass through unchanged');
+        // [THEN] They agree on Japanese hiragana BMP characters
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('こんにちは'), EditInExcel.ExternalizeODataObjectName('こんにちは'), 'Public wrapper should match the test library wrapper for Japanese hiragana BMP characters');
 
-        // [GIVEN] A name with an accented Latin character
-        // [THEN] The wrapper passes the accented character through unchanged
-        LibraryAssert.AreEqual('café', EditInExcel.ExternalizeODataObjectName('café'), 'Accented Latin BMP characters should pass through unchanged');
+        // [THEN] They agree on accented Latin BMP characters
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('café'), EditInExcel.ExternalizeODataObjectName('café'), 'Public wrapper should match the test library wrapper for accented Latin BMP characters');
     end;
 
     [Test]
