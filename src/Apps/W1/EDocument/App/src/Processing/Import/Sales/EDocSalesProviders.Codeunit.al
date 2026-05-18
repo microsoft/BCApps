@@ -22,7 +22,7 @@ codeunit 6409 "E-Doc. Sales Providers" implements ICustomerProvider, ISalesLineP
         ItemRefBySellerIdReasonMsg: Label 'Item was matched by seller item no. %1.', Comment = '%1 - Seller Item Id';
         ItemRefByGtinReasonMsg: Label 'Item was matched by GTIN %1.', Comment = '%1 - GTIN';
         ItemRefByStdIdReasonMsg: Label 'Item was matched by standard item id (bar code) %1.', Comment = '%1 - Standard Item Id';
-        ItemRefByBuyerIdReasonMsg: Label 'Item reference was found for customer %1.', Comment = '%1 - Customer No.';
+        ItemRefByBuyerIdReasonMsg: Label 'Item was matched by buyer item reference for customer %1.', Comment = '%1 - Customer No.';
         ItemRefSourceMsg: Label 'Item Reference %1', Comment = '%1 - Item Reference No.';
         ItemSourceMsg: Label 'Item %1', Comment = '%1 - Item No.';
 
