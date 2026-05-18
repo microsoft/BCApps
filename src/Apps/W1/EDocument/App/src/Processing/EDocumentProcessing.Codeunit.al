@@ -411,7 +411,7 @@ codeunit 6108 "E-Document Processing"
     /// <summary>
     /// Returns the number of existing E-Documents linked to specified document.
     /// </summary>
-    procedure GetEDocumentCountForDocument(var SourceDocument: RecordRef): Integer
+    local procedure GetEDocumentCountForDocument(var SourceDocument: RecordRef): Integer
     var
         EDocument: Record "E-Document";
     begin
