@@ -21,6 +21,7 @@ codeunit 7783 "AOAI User Message"
     /// Adds a text content part to the user message.
     /// </summary>
     /// <param name="TextContent">The text content to add.</param>
+    [Scope('OnPrem')]
     procedure AddTextPart(TextContent: Text)
     begin
         AOAIUserMessageImpl.AddTextPart(TextContent);
@@ -30,6 +31,7 @@ codeunit 7783 "AOAI User Message"
     /// Adds a file content part to the user message.
     /// </summary>
     /// <param name="FileData">The file data to add (e.g. base64-encoded content).</param>
+    [Scope('OnPrem')]
     procedure AddFilePart(FileData: Text)
     begin
         AOAIUserMessageImpl.AddFilePart(FileData);
