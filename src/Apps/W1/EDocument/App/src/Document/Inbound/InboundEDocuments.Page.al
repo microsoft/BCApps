@@ -426,13 +426,19 @@ page 6105 "Inbound E-Documents"
                     Clear(EDocumentSalesHeader);
                     SenderNameTxt := '';
                 end;
-            else
+            Rec."Document Type"::"Purchase Invoice",
+            Rec."Document Type"::"Purchase Credit Memo":
                 if EDocumentPurchaseHeader.Get(Rec."Entry No") then
                     SenderNameTxt := EDocumentPurchaseHeader."Vendor Company Name"
                 else begin
                     Clear(EDocumentPurchaseHeader);
                     SenderNameTxt := '';
                 end;
+            else begin
+                Clear(EDocumentSalesHeader);
+                Clear(EDocumentPurchaseHeader);
+                SenderNameTxt := '';
+            end;
         end;
         RecordLinkTxt := EDocumentProcessing.GetRecordLinkText(Rec);
         PopulateDocumentNameTxt();
