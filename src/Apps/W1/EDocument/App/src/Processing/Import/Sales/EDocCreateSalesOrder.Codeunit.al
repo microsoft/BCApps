@@ -22,7 +22,6 @@ codeunit 6405 "E-Doc. Create Sales Order" implements IEDocumentFinishDraft, IEDo
         Telemetry: Codeunit Telemetry;
         DraftLineDoesNotContainTypeAndNumberErr: Label 'One of the draft lines do not contain the type and number. Please, specify these fields manually.';
         DuplicateSalesOrderErr: Label 'A sales order with external document number %1 already exists for customer %2.', Comment = '%1 = External Document No., %2 = Customer No.';
-        UnsupportedOrderTypeCodeErr: Label 'Order type code ''%1'' is not supported. Supported codes are: blank or 105 (standard order) and 221 (blanket order).', Comment = '%1 = OrderTypeCode value from the inbound PEPPOL document';
 
     /// <summary>
     /// Creates a BC sales document from the e-document draft by delegating to the customizations interface.
@@ -72,7 +71,7 @@ codeunit 6405 "E-Doc. Create Sales Order" implements IEDocumentFinishDraft, IEDo
 
         CheckForDuplicateSalesOrder(EDocSalesHeader);
 
-        SalesHeader."Document Type" := GetSalesDocumentType(EDocSalesHeader."Order Type Code");
+        SalesHeader."Document Type" := "Sales Document Type"::Order;
         SalesHeader.Validate("Sell-to Customer No.", EDocSalesHeader."[BC] Customer No.");
         SalesHeader."External Document No." := CopyStr(EDocSalesHeader."Buyer Order No.", 1, MaxStrLen(SalesHeader."External Document No."));
         if EDocSalesHeader."Document Date" <> 0D then
@@ -113,20 +112,8 @@ codeunit 6405 "E-Doc. Create Sales Order" implements IEDocumentFinishDraft, IEDo
         SalesHeader.SetRange("External Document No.", EDocSalesHeader."Buyer Order No.");
         SalesHeader.SetFilter("Document Type", '%1|%2', "Sales Document Type"::Order, "Sales Document Type"::"Blanket Order");
         if not SalesHeader.IsEmpty() then begin
-            Telemetry.LogMessage('', DuplicateSalesOrderErr, Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
+            Telemetry.LogMessage('', StrSubstNo(DuplicateSalesOrderErr, EDocSalesHeader."Buyer Order No.", EDocSalesHeader."[BC] Customer No."), Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
             Error(DuplicateSalesOrderErr, EDocSalesHeader."Buyer Order No.", EDocSalesHeader."[BC] Customer No.");
-        end;
-    end;
-
-    local procedure GetSalesDocumentType(OrderTypeCode: Text[10]): Enum "Sales Document Type"
-    begin
-        case OrderTypeCode of
-            '', '220':
-                exit("Sales Document Type"::Order);
-            '221':
-                exit("Sales Document Type"::"Blanket Order");
-            else
-                Error(UnsupportedOrderTypeCodeErr, OrderTypeCode);
         end;
     end;
 }

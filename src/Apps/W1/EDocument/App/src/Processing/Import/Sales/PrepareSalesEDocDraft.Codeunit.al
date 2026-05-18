@@ -22,7 +22,7 @@ codeunit 6408 "Prepare Sales E-Doc. Draft" implements IProcessStructuredData
     /// </summary>
     /// <param name="EDocument">The E-Document record being processed.</param>
     /// <param name="EDocImportParameters">Import parameters that carry processing customizations.</param>
-    /// <returns>Always "Sales Order".</returns>
+    /// <returns>"Sales Order" always, regardless of the OrderTypeCode in the staging data.</returns>
     procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"): Enum "E-Document Type"
     begin
         PrepareDraftHelper.PrepareDraft(EDocument, EDocImportParameters);

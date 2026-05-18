@@ -277,7 +277,6 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
         if EDocSalesLine.FindSet() then
             repeat
                 Header."Sub Total" += EDocSalesLine."Line Extension Amount";
-                Header."Total Discount" += EDocSalesLine."Line Discount Amount";
             until EDocSalesLine.Next() = 0;
         Header.Total := Header."Sub Total" + Header."Total VAT";
     end;

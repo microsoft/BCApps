@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PEPPOL BIS Ordering 3.0 — Standard order, no OrderTypeCode, two product lines.
+     Buyer GLN 1234567890128 (schemeID=0088) matches Customer.GLN set in LibraryEDocument.SetupStandardSalesScenario.
+     Currency XYZ, document date 2026-01-15, requested delivery 2026-02-15. -->
+<Order xmlns="urn:oasis:names:specification:ubl:schema:xsd:Order-2"
+    xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+    xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+    <cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order:3</cbc:CustomizationID>
+    <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:ordering:01:1.0</cbc:ProfileID>
+    <cbc:ID>ORD-1001</cbc:ID>
+    <cbc:IssueDate>2026-01-15</cbc:IssueDate>
+    <cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
+    <cbc:CustomerReference>REF-001</cbc:CustomerReference>
+    <cbc:Note>Standard purchase order</cbc:Note>
+    <cbc:SalesOrderID>SEL-2001</cbc:SalesOrderID>
+    <cac:BuyerCustomerParty>
+        <cac:Party>
+            <cbc:EndpointID schemeID="0088">1234567890128</cbc:EndpointID>
+            <cac:PartyName>
+                <cbc:Name>Buyer Corp AS</cbc:Name>
+            </cac:PartyName>
+            <cac:PostalAddress>
+                <cbc:StreetName>Buyer Street 1</cbc:StreetName>
+                <cbc:CityName>Stockholm</cbc:CityName>
+                <cbc:PostalZone>11122</cbc:PostalZone>
+                <cac:Country>
+                    <cbc:IdentificationCode>SE</cbc:IdentificationCode>
+                </cac:Country>
+            </cac:PostalAddress>
+            <cac:PartyTaxScheme>
+                <cbc:CompanyID>SE1234567890</cbc:CompanyID>
+                <cac:TaxScheme>
+                    <cbc:ID>VAT</cbc:ID>
+                </cac:TaxScheme>
+            </cac:PartyTaxScheme>
+            <cac:PartyLegalEntity>
+                <cbc:CompanyID>5561234567</cbc:CompanyID>
+            </cac:PartyLegalEntity>
+            <cac:Contact>
+                <cbc:Name>John Buyer</cbc:Name>
+            </cac:Contact>
+        </cac:Party>
+    </cac:BuyerCustomerParty>
+    <cac:SellerSupplierParty>
+        <cac:Party>
+            <cbc:EndpointID schemeID="0088">9876543210987</cbc:EndpointID>
+            <cac:PartyName>
+                <cbc:Name>Seller Ltd.</cbc:Name>
+            </cac:PartyName>
+            <cac:PostalAddress>
+                <cbc:StreetName>Seller Road 5</cbc:StreetName>
+                <cbc:CityName>London</cbc:CityName>
+                <cbc:PostalZone>EC1 1AA</cbc:PostalZone>
+                <cac:Country>
+                    <cbc:IdentificationCode>GB</cbc:IdentificationCode>
+                </cac:Country>
+            </cac:PostalAddress>
+            <cac:PartyTaxScheme>
+                <cbc:CompanyID>GB9876543210</cbc:CompanyID>
+                <cac:TaxScheme>
+                    <cbc:ID>VAT</cbc:ID>
+                </cac:TaxScheme>
+            </cac:PartyTaxScheme>
+            <cac:Contact>
+                <cbc:Name>Jane Seller</cbc:Name>
+            </cac:Contact>
+        </cac:Party>
+    </cac:SellerSupplierParty>
+    <cac:Delivery>
+        <cac:RequestedDeliveryPeriod>
+            <cbc:StartDate>2026-02-15</cbc:StartDate>
+        </cac:RequestedDeliveryPeriod>
+    </cac:Delivery>
+    <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="XYZ">500.00</cbc:TaxAmount>
+    </cac:TaxTotal>
+    <cac:AnticipatedMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="XYZ">2000.00</cbc:LineExtensionAmount>
+        <cbc:AllowanceTotalAmount currencyID="XYZ">0.00</cbc:AllowanceTotalAmount>
+        <cbc:PayableAmount currencyID="XYZ">2500.00</cbc:PayableAmount>
+    </cac:AnticipatedMonetaryTotal>
+    <cac:OrderLine>
+        <cac:LineItem>
+            <cbc:ID>1</cbc:ID>
+            <cbc:Quantity unitCode="EA">5</cbc:Quantity>
+            <cbc:LineExtensionAmount currencyID="XYZ">1000.00</cbc:LineExtensionAmount>
+            <cac:Delivery>
+                <cac:RequestedDeliveryPeriod>
+                    <cbc:StartDate>2026-02-20</cbc:StartDate>
+                </cac:RequestedDeliveryPeriod>
+            </cac:Delivery>
+            <cac:Price>
+                <cbc:PriceAmount currencyID="XYZ">200.00</cbc:PriceAmount>
+            </cac:Price>
+            <cac:Item>
+                <cbc:Name>Widget A</cbc:Name>
+                <cac:SellersItemIdentification>
+                    <cbc:ID>WIDGET-A</cbc:ID>
+                </cac:SellersItemIdentification>
+                <cac:BuyersItemIdentification>
+                    <cbc:ID>B-WIDGET-1</cbc:ID>
+                </cac:BuyersItemIdentification>
+                <cac:StandardItemIdentification>
+                    <cbc:ID>1234567890128</cbc:ID>
+                </cac:StandardItemIdentification>
+                <cac:ClassifiedTaxCategory>
+                    <cbc:ID>S</cbc:ID>
+                    <cbc:Percent>25</cbc:Percent>
+                    <cac:TaxScheme>
+                        <cbc:ID>VAT</cbc:ID>
+                    </cac:TaxScheme>
+                </cac:ClassifiedTaxCategory>
+            </cac:Item>
+        </cac:LineItem>
+    </cac:OrderLine>
+    <cac:OrderLine>
+        <cac:LineItem>
+            <cbc:ID>2</cbc:ID>
+            <cbc:Quantity unitCode="KGM">10</cbc:Quantity>
+            <cbc:LineExtensionAmount currencyID="XYZ">1000.00</cbc:LineExtensionAmount>
+            <cac:Price>
+                <cbc:PriceAmount currencyID="XYZ">100.00</cbc:PriceAmount>
+            </cac:Price>
+            <cac:Item>
+                <cbc:Name>Widget B</cbc:Name>
+                <cac:SellersItemIdentification>
+                    <cbc:ID>WIDGET-B</cbc:ID>
+                </cac:SellersItemIdentification>
+                <cac:ClassifiedTaxCategory>
+                    <cbc:ID>S</cbc:ID>
+                    <cbc:Percent>25</cbc:Percent>
+                    <cac:TaxScheme>
+                        <cbc:ID>VAT</cbc:ID>
+                    </cac:TaxScheme>
+                </cac:ClassifiedTaxCategory>
+            </cac:Item>
+        </cac:LineItem>
+    </cac:OrderLine>
+</Order>

@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Import.Sales;
 using Microsoft.Finance.GeneralLedger.Setup;
 
 codeunit 139894 "EDoc Structured Validations"
@@ -154,6 +155,7 @@ codeunit 139894 "EDoc Structured Validations"
         Assert.AreEqual(5000, EDocumentPurchaseLine."Unit Price", 'The unit price in the purchase line does not allign with the mock data.');
 
     end;
+
     internal procedure AssertFullPEPPOLCreditNoteExtracted(EDocumentEntryNo: Integer)
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
@@ -521,6 +523,167 @@ codeunit 139894 "EDoc Structured Validations"
         // GLN comes from AccountingSupplierParty endpoint
         Assert.AreEqual('1234567890128', EDocumentPurchaseHeader."Vendor GLN", 'Vendor GLN should still come from AccountingSupplierParty endpoint.');
         Assert.AreEqual(250, EDocumentPurchaseHeader.Total, 'The total does not match.');
+    end;
+    #endregion
+
+    #region PEPPOL Sales Order
+    internal procedure AssertPEPPOLSalesOrderExtracted(EDocumentEntryNo: Integer)
+    var
+        EDocSalesHeader: Record "E-Document Sales Header";
+        EDocSalesLine: Record "E-Document Sales Line";
+    begin
+        EDocSalesHeader.Get(EDocumentEntryNo);
+        Assert.AreEqual('ORD-1001', EDocSalesHeader."Buyer Order No.", 'Buyer Order No. does not match fixture.');
+        Assert.AreEqual('SEL-2001', EDocSalesHeader."Seller Sales Order No.", 'Seller Sales Order No. does not match fixture.');
+        Assert.AreEqual('', EDocSalesHeader."Order Type Code", 'Order Type Code should be blank when not present in the XML.');
+        Assert.AreEqual(DMY2Date(15, 1, 2026), EDocSalesHeader."Document Date", 'Document Date does not match fixture.');
+        Assert.AreEqual(DMY2Date(15, 2, 2026), EDocSalesHeader."Requested Delivery Date", 'Requested Delivery Date does not match fixture.');
+        Assert.AreEqual('XYZ', EDocSalesHeader."Currency Code", 'Currency Code does not match fixture.');
+        Assert.AreEqual('REF-001', EDocSalesHeader."Customer Reference", 'Customer Reference does not match fixture.');
+        Assert.AreEqual('Standard purchase order', EDocSalesHeader.Note, 'Note does not match fixture.');
+        Assert.AreEqual('Buyer Corp AS', EDocSalesHeader."Buyer Company Name", 'Buyer Company Name does not match fixture.');
+        Assert.AreEqual('1234567890128', EDocSalesHeader."Buyer GLN", 'Buyer GLN does not match (schemeID=0088).');
+        Assert.AreEqual('SE1234567890', EDocSalesHeader."Buyer VAT Id", 'Buyer VAT Id does not match fixture.');
+        Assert.AreEqual('5561234567', EDocSalesHeader."Buyer Company Id", 'Buyer Company Id does not match fixture.');
+        Assert.AreEqual('Buyer Street 1', EDocSalesHeader."Buyer Address", 'Buyer Address does not match fixture.');
+        Assert.AreEqual('John Buyer', EDocSalesHeader."Buyer Address Recipient", 'Buyer Address Recipient (contact name) does not match fixture.');
+        Assert.AreEqual('Seller Ltd.', EDocSalesHeader."Seller Company Name", 'Seller Company Name does not match fixture.');
+        Assert.AreEqual('9876543210987', EDocSalesHeader."Seller GLN", 'Seller GLN does not match (schemeID=0088).');
+        Assert.AreEqual('GB9876543210', EDocSalesHeader."Seller VAT Id", 'Seller VAT Id does not match fixture.');
+        Assert.AreEqual('Seller Road 5', EDocSalesHeader."Seller Address", 'Seller Address does not match fixture.');
+        Assert.AreEqual(2000, EDocSalesHeader."Sub Total", 'Sub Total (LineExtensionAmount) does not match fixture.');
+        Assert.AreEqual(0, EDocSalesHeader."Total Discount", 'Total Discount (AllowanceTotalAmount) does not match fixture.');
+        Assert.AreEqual(500, EDocSalesHeader."Total VAT", 'Total VAT does not match fixture.');
+        Assert.AreEqual(2500, EDocSalesHeader.Total, 'Total (PayableAmount) does not match fixture.');
+
+        EDocSalesLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        Assert.AreEqual(2, EDocSalesLine.Count(), 'Expected 2 order lines.');
+
+        EDocSalesLine.FindSet();
+        // Line 1: 5 x 200 = 1000 XYZ, VAT 25%, ClassifiedTaxCategory
+        Assert.AreEqual('1', EDocSalesLine."External Line Id", 'Line 1 External Line Id does not match.');
+        Assert.AreEqual(5, EDocSalesLine.Quantity, 'Line 1 Quantity does not match.');
+        Assert.AreEqual('EA', EDocSalesLine."Unit of Measure", 'Line 1 Unit of Measure does not match.');
+        Assert.AreEqual(1000, EDocSalesLine."Line Extension Amount", 'Line 1 Line Extension Amount does not match.');
+        Assert.AreEqual(200, EDocSalesLine."Unit Price", 'Line 1 Unit Price does not match.');
+        Assert.AreEqual('Widget A', EDocSalesLine.Description, 'Line 1 Description does not match.');
+        Assert.AreEqual('WIDGET-A', EDocSalesLine."Seller Item Id", 'Line 1 Seller Item Id does not match.');
+        Assert.AreEqual('B-WIDGET-1', EDocSalesLine."Buyer Item Id", 'Line 1 Buyer Item Id does not match.');
+        Assert.AreEqual('1234567890128', EDocSalesLine."Standard Item Id", 'Line 1 Standard Item Id does not match.');
+        Assert.AreEqual(25, EDocSalesLine."VAT Rate", 'Line 1 VAT Rate does not match (ClassifiedTaxCategory path).');
+        Assert.AreEqual('XYZ', EDocSalesLine."Currency Code", 'Line 1 Currency Code does not match.');
+        Assert.AreEqual(DMY2Date(20, 2, 2026), EDocSalesLine."Requested Delivery Date", 'Line 1 Requested Delivery Date does not match.');
+
+        EDocSalesLine.Next();
+        // Line 2: 10 x 100 = 1000 XYZ, VAT 25%, no BuyersItemIdentification / StandardItemIdentification
+        Assert.AreEqual('2', EDocSalesLine."External Line Id", 'Line 2 External Line Id does not match.');
+        Assert.AreEqual(10, EDocSalesLine.Quantity, 'Line 2 Quantity does not match.');
+        Assert.AreEqual('KGM', EDocSalesLine."Unit of Measure", 'Line 2 Unit of Measure does not match.');
+        Assert.AreEqual(1000, EDocSalesLine."Line Extension Amount", 'Line 2 Line Extension Amount does not match.');
+        Assert.AreEqual(100, EDocSalesLine."Unit Price", 'Line 2 Unit Price does not match.');
+        Assert.AreEqual('Widget B', EDocSalesLine.Description, 'Line 2 Description does not match.');
+        Assert.AreEqual('WIDGET-B', EDocSalesLine."Seller Item Id", 'Line 2 Seller Item Id does not match.');
+        Assert.AreEqual('', EDocSalesLine."Buyer Item Id", 'Line 2 Buyer Item Id should be blank.');
+        Assert.AreEqual('', EDocSalesLine."Standard Item Id", 'Line 2 Standard Item Id should be blank.');
+        Assert.AreEqual(25, EDocSalesLine."VAT Rate", 'Line 2 VAT Rate does not match.');
+    end;
+
+    internal procedure AssertPEPPOLSalesOrderTypecode226Extracted(EDocumentEntryNo: Integer)
+    var
+        EDocSalesHeader: Record "E-Document Sales Header";
+    begin
+        EDocSalesHeader.Get(EDocumentEntryNo);
+        Assert.AreEqual('ORD-1003', EDocSalesHeader."Buyer Order No.", 'Buyer Order No. does not match fixture.');
+        Assert.AreEqual('226', EDocSalesHeader."Order Type Code", 'Order Type Code ''226'' should be staged without error.');
+    end;
+
+    internal procedure AssertPEPPOLSalesOrderNoMonetaryTotalExtracted(EDocumentEntryNo: Integer)
+    var
+        EDocSalesHeader: Record "E-Document Sales Header";
+    begin
+        EDocSalesHeader.Get(EDocumentEntryNo);
+        Assert.AreEqual('ORD-1004', EDocSalesHeader."Buyer Order No.", 'Buyer Order No. does not match fixture.');
+        // SubTotal and Total derived from line sums because AnticipatedMonetaryTotal is absent
+        Assert.AreEqual(2000, EDocSalesHeader."Sub Total", 'Sub Total should be computed from line sums when AnticipatedMonetaryTotal is absent.');
+        Assert.AreEqual(0, EDocSalesHeader."Total Discount", 'Total Discount should be 0 when no line discounts exist.');
+        Assert.AreEqual(500, EDocSalesHeader."Total VAT", 'Total VAT should be read from TaxTotal.');
+        Assert.AreEqual(2500, EDocSalesHeader.Total, 'Total should be Sub Total + Total VAT when derived from lines.');
+    end;
+
+    internal procedure AssertPEPPOLSalesOrderOriginatorPartyExtracted(EDocumentEntryNo: Integer)
+    var
+        EDocSalesHeader: Record "E-Document Sales Header";
+    begin
+        EDocSalesHeader.Get(EDocumentEntryNo);
+        Assert.AreEqual('ORD-1005', EDocSalesHeader."Buyer Order No.", 'Buyer Order No. does not match fixture.');
+        Assert.AreEqual('Originator Department GmbH', EDocSalesHeader."Originator Company Name", 'Originator Company Name does not match fixture.');
+    end;
+
+    internal procedure AssertPEPPOLSalesOrderLineTaxTotalExtracted(EDocumentEntryNo: Integer)
+    var
+        EDocSalesLine: Record "E-Document Sales Line";
+    begin
+        EDocSalesLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        Assert.AreEqual(2, EDocSalesLine.Count(), 'Expected 2 order lines.');
+
+        EDocSalesLine.FindSet();
+        // Line 1: VAT from TaxTotal fallback path (no ClassifiedTaxCategory) = 15%
+        Assert.AreEqual(15, EDocSalesLine."VAT Rate", 'Line 1 VAT Rate should come from TaxTotal fallback path (15%).');
+        EDocSalesLine.Next();
+        // Line 2: VAT from TaxTotal fallback path = 10%
+        Assert.AreEqual(10, EDocSalesLine."VAT Rate", 'Line 2 VAT Rate should come from TaxTotal fallback path (10%).');
+    end;
+
+    internal procedure AssertPEPPOLSalesOrderMultipleDeliveryExtracted(EDocumentEntryNo: Integer)
+    var
+        EDocSalesHeader: Record "E-Document Sales Header";
+    begin
+        EDocSalesHeader.Get(EDocumentEntryNo);
+        Assert.AreEqual('ORD-1007', EDocSalesHeader."Buyer Order No.", 'Buyer Order No. does not match fixture.');
+        Assert.AreEqual(DMY2Date(10, 2, 2026), EDocSalesHeader."Requested Delivery Date", 'Requested Delivery Date should be from the FIRST Delivery block only.');
+    end;
+
+    internal procedure AssertPEPPOLSalesOrderWithChargeExtracted(EDocumentEntryNo: Integer)
+    var
+        EDocSalesLine: Record "E-Document Sales Line";
+    begin
+        EDocSalesLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        // 1 order line + 1 charge line; the allowance (ChargeIndicator=false) must NOT create a line
+        Assert.AreEqual(2, EDocSalesLine.Count(), 'Expected 1 order line + 1 charge line (allowance must NOT create a line).');
+
+        EDocSalesLine.FindSet();
+        // Order line 1: Widget
+        Assert.AreEqual('Widget', EDocSalesLine.Description, 'Order line description does not match fixture.');
+        Assert.AreEqual(1000, EDocSalesLine."Line Extension Amount", 'Order line Line Extension Amount does not match fixture.');
+
+        EDocSalesLine.Next();
+        // Charge line: Freight charge, 150 XYZ, VAT 25%
+        Assert.AreEqual('Freight charge', EDocSalesLine.Description, 'Charge line description does not match fixture.');
+        Assert.AreEqual(150, EDocSalesLine."Unit Price", 'Charge line Unit Price does not match fixture.');
+        Assert.AreEqual(150, EDocSalesLine."Line Extension Amount", 'Charge line Line Extension Amount does not match fixture.');
+        Assert.AreEqual(25, EDocSalesLine."VAT Rate", 'Charge line VAT Rate does not match fixture.');
+        Assert.AreEqual('XYZ', EDocSalesLine."Currency Code", 'Charge line Currency Code does not match fixture.');
+        Assert.AreEqual(1, EDocSalesLine.Quantity, 'Charge line Quantity should be 1.');
+    end;
+
+    internal procedure AssertPEPPOLSalesOrderDescriptionFallbackExtracted(EDocumentEntryNo: Integer)
+    var
+        EDocSalesLine: Record "E-Document Sales Line";
+    begin
+        EDocSalesLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        Assert.AreEqual(3, EDocSalesLine.Count(), 'Expected 3 order lines.');
+
+        EDocSalesLine.FindSet();
+        // Line 1: Name only — should use Name
+        Assert.AreEqual('Widget Alpha', EDocSalesLine.Description, 'Line 1: Name should be used as description.');
+
+        EDocSalesLine.Next();
+        // Line 2: cbc:Description only, no cbc:Name — should fall back to Description
+        Assert.AreEqual('Detailed description of Widget Beta', EDocSalesLine.Description, 'Line 2: cbc:Description should be used as fallback when Name is absent.');
+
+        EDocSalesLine.Next();
+        // Line 3: both Name and Description — Name takes priority
+        Assert.AreEqual('Widget Gamma', EDocSalesLine.Description, 'Line 3: Name should take priority over Description when both are present.');
     end;
     #endregion
 

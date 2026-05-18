@@ -99,7 +99,7 @@ codeunit 6427 "E-Doc. Sales Doc. Helper"
         DocumentAttachmentMgt.CopyAttachments(EDocument, SalesHeader);
         DocumentAttachmentMgt.DeleteAttachedDocuments(EDocument);
 
-        EDocImpSessionTelemetry.SetBool('Totals Validation', TryValidateSalesDocumentTotals(SalesHeader));
+        EDocImpSessionTelemetry.SetBool('Document Created', TryCheckSalesDocumentExists(SalesHeader));
     end;
 
     /// <summary>
@@ -122,7 +122,7 @@ codeunit 6427 "E-Doc. Sales Doc. Helper"
     end;
 
     [TryFunction]
-    procedure TryValidateSalesDocumentTotals(SalesHeader: Record "Sales Header")
+    procedure TryCheckSalesDocumentExists(SalesHeader: Record "Sales Header")
     begin
         SalesHeader.TestField("No.");
     end;
