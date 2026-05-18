@@ -110,7 +110,7 @@ codeunit 6405 "E-Doc. Create Sales Order" implements IEDocumentFinishDraft, IEDo
             exit;
         SalesHeader.SetRange("Sell-to Customer No.", EDocSalesHeader."[BC] Customer No.");
         SalesHeader.SetRange("External Document No.", EDocSalesHeader."Buyer Order No.");
-        SalesHeader.SetFilter("Document Type", '%1|%2', "Sales Document Type"::Order, "Sales Document Type"::"Blanket Order");
+        SalesHeader.SetRange("Document Type", "Sales Document Type"::Order);
         if not SalesHeader.IsEmpty() then begin
             Telemetry.LogMessage('', StrSubstNo(DuplicateSalesOrderErr, EDocSalesHeader."Buyer Order No.", EDocSalesHeader."[BC] Customer No."), Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
             Error(DuplicateSalesOrderErr, EDocSalesHeader."Buyer Order No.", EDocSalesHeader."[BC] Customer No.");

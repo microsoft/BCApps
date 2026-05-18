@@ -69,9 +69,10 @@ codeunit 6409 "E-Doc. Sales Providers" implements ICustomerProvider, ISalesLineP
             ServiceParticipant.SetRange(Service, EDocument.GetEDocumentService().Code);
             if not ServiceParticipant.FindFirst() then begin
                 ServiceParticipant.SetRange(Service);
-                if ServiceParticipant.FindFirst() then;
+                if not ServiceParticipant.FindFirst() then
+                    Clear(ServiceParticipant);
             end;
-            if Customer.Get(ServiceParticipant.Participant) then
+            if (ServiceParticipant.Participant <> '') and Customer.Get(ServiceParticipant.Participant) then
                 exit;
         end;
 
@@ -82,9 +83,10 @@ codeunit 6409 "E-Doc. Sales Providers" implements ICustomerProvider, ISalesLineP
             ServiceParticipant.SetRange(Service, EDocument.GetEDocumentService().Code);
             if not ServiceParticipant.FindFirst() then begin
                 ServiceParticipant.SetRange(Service);
-                if ServiceParticipant.FindFirst() then;
+                if not ServiceParticipant.FindFirst() then
+                    Clear(ServiceParticipant);
             end;
-            if Customer.Get(ServiceParticipant.Participant) then
+            if (ServiceParticipant.Participant <> '') and Customer.Get(ServiceParticipant.Participant) then
                 exit;
         end;
 
