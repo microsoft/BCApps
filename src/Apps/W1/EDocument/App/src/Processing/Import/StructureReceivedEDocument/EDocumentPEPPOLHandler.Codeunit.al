@@ -32,13 +32,10 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
 
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
-        EDocSalesHeader: Record "E-Document Sales Header";
         DocStream: InStream;
         PeppolXML: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
         RootElement: XmlElement;
-        XmlNode: XmlNode;
         OrderNamespaceLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:Order-2', Locked = true;
     begin
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
@@ -48,54 +45,60 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
 
         PeppolXML.GetRoot(RootElement);
 
-        case UpperCase(RootElement.LocalName()) of
-            'INVOICE', 'CREDITNOTE':
-                EDocumentPurchaseHeader.InsertForEDocument(EDocument);
-            'ORDER':
-                EDocSalesHeader.InsertForEDocument(EDocument);
-        end;
-
-        case UpperCase(RootElement.LocalName()) of
-            'INVOICE':
-                begin
-                    PopulateInvoiceHeader(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader);
-                    InsertPurchaseLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/inv:Invoice/cac:InvoiceLine', 'cac:InvoiceLine', 'cbc:InvoicedQuantity');
-                    InsertAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/inv:Invoice');
-                    InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/inv:Invoice');
-                    EDocumentPurchaseHeader.Modify();
-                end;
-            'CREDITNOTE':
-                begin
-                    PopulateCreditMemoHeader(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader);
-                    InsertPurchaseLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/cre:CreditNote/cac:CreditNoteLine', 'cac:CreditNoteLine', 'cbc:CreditedQuantity');
-                    InsertAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/cre:CreditNote');
-                    InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/cre:CreditNote');
-                    EDocumentPurchaseHeader.Modify();
-                end;
-            'ORDER':
-                begin
-                    PopulateSalesOrderHeader(PeppolXML, XmlNamespaces, EDocSalesHeader);
-                    InsertSalesOrderLines(EDocSalesHeader."E-Document Entry No.", PeppolXML, XmlNamespaces);
-                    InsertSalesAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocSalesHeader."E-Document Entry No.");
-                    if not PeppolXML.SelectSingleNode('/order:Order/cac:AnticipatedMonetaryTotal', XmlNamespaces, XmlNode) then
-                        ComputeSalesTotalsFromLines(EDocSalesHeader);
-                    InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/order:Order');
-                    EDocSalesHeader.Modify();
-                end;
-        end;
-
         EDocument.Direction := EDocument.Direction::Incoming;
 
         case UpperCase(RootElement.LocalName()) of
             'INVOICE':
-                exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
+                exit(ProcessInvoice(EDocument, PeppolXML, XmlNamespaces));
             'CREDITNOTE':
-                exit(Enum::"E-Doc. Process Draft"::"Purchase Credit Memo");
+                exit(ProcessCreditNote(EDocument, PeppolXML, XmlNamespaces));
             'ORDER':
-                exit(Enum::"E-Doc. Process Draft"::"Sales Order");
+                exit(ProcessOrder(EDocument, PeppolXML, XmlNamespaces));
             else
                 Error(UnsupportedRootElementErr, RootElement.LocalName());
         end;
+    end;
+
+    local procedure ProcessInvoice(EDocument: Record "E-Document"; PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager): Enum "E-Doc. Process Draft"
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
+        PopulateInvoiceHeader(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader);
+        InsertPurchaseLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/inv:Invoice/cac:InvoiceLine', 'cac:InvoiceLine', 'cbc:InvoicedQuantity');
+        InsertAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/inv:Invoice');
+        InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/inv:Invoice');
+        EDocumentPurchaseHeader.Modify();
+        exit(Enum::"E-Doc. Process Draft"::"Purchase Invoice");
+    end;
+
+    local procedure ProcessCreditNote(EDocument: Record "E-Document"; PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager): Enum "E-Doc. Process Draft"
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
+        PopulateCreditMemoHeader(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader);
+        InsertPurchaseLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/cre:CreditNote/cac:CreditNoteLine', 'cac:CreditNoteLine', 'cbc:CreditedQuantity');
+        InsertAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", '/cre:CreditNote');
+        InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/cre:CreditNote');
+        EDocumentPurchaseHeader.Modify();
+        exit(Enum::"E-Doc. Process Draft"::"Purchase Credit Memo");
+    end;
+
+    local procedure ProcessOrder(EDocument: Record "E-Document"; PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager): Enum "E-Doc. Process Draft"
+    var
+        EDocSalesHeader: Record "E-Document Sales Header";
+        XmlNode: XmlNode;
+    begin
+        EDocSalesHeader.InsertForEDocument(EDocument);
+        PopulateSalesOrderHeader(PeppolXML, XmlNamespaces, EDocSalesHeader);
+        InsertSalesOrderLines(EDocSalesHeader."E-Document Entry No.", PeppolXML, XmlNamespaces);
+        InsertSalesAllowanceChargeLines(PeppolXML, XmlNamespaces, EDocSalesHeader."E-Document Entry No.");
+        if not PeppolXML.SelectSingleNode('/order:Order/cac:AnticipatedMonetaryTotal', XmlNamespaces, XmlNode) then
+            ComputeSalesTotalsFromLines(EDocSalesHeader);
+        InsertDocumentAttachments(EDocument, PeppolXML, XmlNamespaces, '/order:Order');
+        EDocSalesHeader.Modify();
+        exit(Enum::"E-Doc. Process Draft"::"Sales Order");
     end;
 
     #region Header Orchestration
@@ -356,6 +359,9 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader
                         PeppolUtility.SetNumberValueInField(AllowanceXML, XmlNamespaces, 'cac:AllowanceCharge/cbc:Amount', AllowanceAmount);
                         Line."Line Discount Amount" += AllowanceAmount;
                     end;
+                    // Line-level charges (ChargeIndicator = TRUE) are intentionally not captured here.
+                    // Document-level charges are promoted to separate staging lines via InsertSalesAllowanceChargeLines.
+                    // PEPPOL line-level surcharges are out of scope for this implementation.
             end;
 
         if PeppolUtility.TryGetStringValue(LineItemXML, XmlNamespaces, 'cac:LineItem/cbc:LineExtensionAmount/@currencyID', Value) then
