@@ -42,13 +42,13 @@ codeunit 20400 "Qlty. Manual Setup"
         QualityInspectionTemplatesDescriptionTxt: Label 'Set up templates you can group and reuse quality tests so you can apply consistent inspection standards across items, processes, or scenarios. From the list you can create a new template card to understand its structure and purpose.';
         QualityInspectionTemplatesKeywordsTxt: Label 'Quality Inspection, Templates, Procedures';
 
-        ReportSelectionQualityManagementTitleTxt: Label 'Set up report selections for quality management';
+        ReportSelectionQualityManagementTitleTxt: Label 'Set up report selections for Quality Management';
         ReportSelectionQualityManagementShortTitleTxt: Label 'Report selections';
         ReportSelectionQualityManagementDescriptionTxt: Label 'Set up report selections to define which reports are used when printing quality management documents.';
         ReportSelectionQualityManagementKeywordsTxt: Label 'Report Selection Quality Management, Reports';
 
-        QualityManagementSetupTitleTxt: Label 'Set up quality management';
-        QualityManagementSetupShortTitleTxt: Label 'Quality management setup';
+        QualityManagementSetupTitleTxt: Label 'Set up Quality Management';
+        QualityManagementSetupShortTitleTxt: Label 'Quality Management setup';
         QualityManagementSetupDescriptionTxt: Label 'Set up how and when inspections are created. Manage when to show inspections, set up test generation rules, such as for production scenarios or inventory and warehouse inspections.';
         QualityManagementSetupKeywordsTxt: Label 'Quality Management Setup';
 
