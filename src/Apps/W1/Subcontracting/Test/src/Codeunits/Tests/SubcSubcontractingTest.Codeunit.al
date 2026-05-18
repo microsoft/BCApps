@@ -2645,7 +2645,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcontractorPrice.Modify();
 
         // [GIVEN] A released production order
-        CreateAndRefreshProductionOrder(
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
 
         // [THEN] Standard Task Code is propagated from Routing Line to Prod. Order Routing Line on the second operation
@@ -2657,7 +2657,6 @@ codeunit 139989 "Subc. Subcontracting Test"
             'Standard Task Code must be propagated from Routing Line to Prod. Order Routing Line.');
 
         // [GIVEN] An empty subcontracting worksheet
-        ReqWkshTemplate.DeleteAll(true);
         ReqWkshTemplate.Name := SelectRequisitionTemplateName();
         RequisitionWkshName.Init();
         RequisitionWkshName.Validate("Worksheet Template Name", ReqWkshTemplate.Name);
@@ -3119,8 +3118,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         RoutingLine: Record "Routing Line";
     begin
         RoutingLine.SetRange("Routing No.", RoutingNo);
-        if RoutingLine.FindLast() then
-            exit(RoutingLine."Operation No.");
+        RoutingLine.FindLast();
+        exit(RoutingLine."Operation No.");
     end;
 
     local procedure CreateSubcontractingPurchOrderPostAndGetPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line")
