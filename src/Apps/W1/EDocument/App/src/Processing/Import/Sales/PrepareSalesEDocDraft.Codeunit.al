@@ -61,6 +61,8 @@ codeunit 6408 "Prepare Sales E-Doc. Draft" implements IProcessStructuredData
     /// <returns>An empty Vendor record.</returns>
     procedure GetVendor(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations") Vendor: Record Vendor
     begin
+        Clear(Vendor);
+        exit(Vendor);
     end;
 
     /// <summary>
