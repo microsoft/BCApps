@@ -139,12 +139,20 @@ codeunit 6108 "E-Document Processing"
             EDocExport.CheckEDocument(SourceDocumentHeader, EDocumentProcPhase);
     end;
 
+    /// <summary>
+    /// Creates a new E-Document for specified posted document if possible.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise throws an error or returns false.
+    /// </returns>
     procedure CreateEDocumentFromPostedDocumentPage(PostedRecord: Variant; DocumentType: Enum "E-Document Type"): Boolean
     var
         DocumentSendingProfile: Record "Document Sending Profile";
         EDocumentHelper: Codeunit "E-Document Helper";
         EDocumentSubscribers: Codeunit "E-Document Subscribers";
         RecordRef: RecordRef;
+        NoOfExistingEDocuments: Integer;
         ElectronicDocumentErr: Label 'Document sending profile %1 is not setup to send electronic documents.', Comment = '%1 - Document Sending Profile Code';
     begin
         if not PostedRecord.IsRecord() then
@@ -155,8 +163,10 @@ codeunit 6108 "E-Document Processing"
             Error(ElectronicDocumentErr, DocumentSendingProfile.Code);
 
         RunEDocumentCheck(PostedRecord, Enum::"E-Document Processing Phase"::Post);
+
+        NoOfExistingEDocuments := this.GetEDocumentCountForDocument(RecordRef);
         EDocumentSubscribers.CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType);
-        exit(true);
+        exit(this.GetEDocumentCountForDocument(RecordRef) > NoOfExistingEDocuments);
     end;
 
     procedure ProcessEDocumentAsEmail(DocumentSendingProfile: Record "Document Sending Profile"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant;
@@ -395,6 +405,17 @@ codeunit 6108 "E-Document Processing"
         EDocument.SetRange(Status, Status);
         EDocument.SetRange(Direction, Direction);
 
+        exit(EDocument.Count());
+    end;
+
+    /// <summary>
+    /// Returns the number of existing E-Documents linked to specified document.
+    /// </summary>
+    procedure GetEDocumentCountForDocument(var SourceDocument: RecordRef): Integer
+    var
+        EDocument: Record "E-Document";
+    begin
+        EDocument.SetRange("Document Record ID", SourceDocument.RecordId());
         exit(EDocument.Count());
     end;
 
