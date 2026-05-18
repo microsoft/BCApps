@@ -12,6 +12,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Utilities;
 using System.Reflection;
+using System.Text;
 
 codeunit 99001560 "Subc. Purch. Factbox Mgmt."
 {
@@ -229,9 +230,11 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         ProductionOrder: Record "Production Order";
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
+        TransferHeaderToOpen: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         DataTypeManagement: Codeunit "Data Type Management";
         PageManagement: Codeunit "Page Management";
+        SelectionFilterMgt: Codeunit SelectionFilterManagement;
         RecRef: RecordRef;
         NoOfTransferHeaders: Integer;
     begin
@@ -305,10 +308,17 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
                 NoOfTransferHeaders = 0:
                     Message(NoTransferExistsMsg);
                 NoOfTransferHeaders = 1:
-                    if TransferHeader.FindFirst() then
-                        PageManagement.PageRun(TransferHeader);
+                    if TransferHeader.FindFirst() then begin
+                        TransferHeaderToOpen.Get(TransferHeader."No.");
+                        PageManagement.PageRun(TransferHeaderToOpen);
+                    end;
                 NoOfTransferHeaders > 1:
-                    PageManagement.PageRunList(TransferHeader);
+                    begin
+                        // As we do not expect more than a handful tranfer orders linked to the purchase order, there is no need to 
+                        // add extra processing if the number of records linked are more than allowed.
+                        TransferHeaderToOpen.SetFilter("No.", SelectionFilterMgt.GetSelectionFilterForTransferHeader(TransferHeader));
+                        PageManagement.PageRunList(TransferHeaderToOpen);
+                    end;
             end;
         end;
     end;
