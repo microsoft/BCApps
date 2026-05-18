@@ -437,6 +437,9 @@ codeunit 132525 "Edit in Excel Test"
 
         // [THEN] They agree on accented Latin BMP characters
         LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('café'), EditInExcel.ExternalizeODataObjectName('café'), 'Public wrapper should match the test library wrapper for accented Latin BMP characters');
+
+        // [THEN] They agree on a name that exercises the digit prefix, en-dash, and space rules together
+        LibraryAssert.AreEqual(EditinExcelTestLibrary.ExternalizeODataObjectName('3 lager – reklassfication field'), EditInExcel.ExternalizeODataObjectName('3 lager – reklassfication field'), 'Public wrapper should match the test library wrapper for a name with digit prefix, en-dash, and spaces');
     end;
 
     [Test]
