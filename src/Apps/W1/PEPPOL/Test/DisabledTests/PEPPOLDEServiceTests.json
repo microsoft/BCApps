@@ -1,42 +1,42 @@
 [
     {
-        "bug": "Service-document PEPPOL exports fail under the DE PEPPOL localization because PEPPOL30 DE Service Validation transfers Service Invoice/Cr.Memo Header to a Sales Header by matching field numbers, which doesn't copy the Service Header E-Mail to Sales Header Sell-to E-Mail. Needs to be fixed on the DE side.",
+        "bug": "635880",
         "codeunitId": 139235,
         "codeunitName": "PEPPOL30 Management Tests",
         "method": "PEPPOL_XMLExport_DeliveryInfo_ServiceInvoice"
     },
     {
-        "bug": "Service-document PEPPOL exports fail under the DE PEPPOL localization because PEPPOL30 DE Service Validation transfers Service Invoice/Cr.Memo Header to a Sales Header by matching field numbers, which doesn't copy the Service Header E-Mail to Sales Header Sell-to E-Mail. Needs to be fixed on the DE side.",
+        "bug": "635880",
         "codeunitId": 139235,
         "codeunitName": "PEPPOL30 Management Tests",
         "method": "PEPPOL_XMLExport_DeliveryInfo_ServiceCrMemo"
     },
     {
-        "bug": "Service-document PEPPOL exports fail under the DE PEPPOL localization because PEPPOL30 DE Service Validation transfers Service Invoice/Cr.Memo Header to a Sales Header by matching field numbers, which doesn't copy the Service Header E-Mail to Sales Header Sell-to E-Mail. Needs to be fixed on the DE side.",
+        "bug": "635880",
         "codeunitId": 139236,
         "codeunitName": "PEPPOL BIS BillingTests",
         "method": "ExportXml_PEPPOL_BIS3_ServiceInvoice"
     },
     {
-        "bug": "Service-document PEPPOL exports fail under the DE PEPPOL localization because PEPPOL30 DE Service Validation transfers Service Invoice/Cr.Memo Header to a Sales Header by matching field numbers, which doesn't copy the Service Header E-Mail to Sales Header Sell-to E-Mail. Needs to be fixed on the DE side.",
+        "bug": "635880",
         "codeunitId": 139236,
         "codeunitName": "PEPPOL BIS BillingTests",
         "method": "ExportXml_PEPPOL_BIS3_ServiceCrMemo"
     },
     {
-        "bug": "Service-document PEPPOL exports fail under the DE PEPPOL localization because PEPPOL30 DE Service Validation transfers Service Invoice/Cr.Memo Header to a Sales Header by matching field numbers, which doesn't copy the Service Header E-Mail to Sales Header Sell-to E-Mail. Needs to be fixed on the DE side.",
+        "bug": "635880",
         "codeunitId": 139236,
         "codeunitName": "PEPPOL BIS BillingTests",
         "method": "ExportXml_PEPPOL_BIS3_ServiceInvoiceFCY"
     },
     {
-        "bug": "Service-document PEPPOL exports fail under the DE PEPPOL localization because PEPPOL30 DE Service Validation transfers Service Invoice/Cr.Memo Header to a Sales Header by matching field numbers, which doesn't copy the Service Header E-Mail to Sales Header Sell-to E-Mail. Needs to be fixed on the DE side.",
+        "bug": "635880",
         "codeunitId": 139236,
         "codeunitName": "PEPPOL BIS BillingTests",
         "method": "ExportXml_PEPPOL_BIS3_ServiceCrMemoFCY"
     },
     {
-        "bug": "Service-document PEPPOL exports fail under the DE PEPPOL localization because PEPPOL30 DE Service Validation transfers Service Invoice/Cr.Memo Header to a Sales Header by matching field numbers, which doesn't copy the Service Header E-Mail to Sales Header Sell-to E-Mail. Needs to be fixed on the DE side.",
+        "bug": "635880",
         "codeunitId": 139236,
         "codeunitName": "PEPPOL BIS BillingTests",
         "method": "ExportXml_ServiceInvoiceLCY_InvRounding_Positive"
