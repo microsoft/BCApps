@@ -4,7 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Foundation.Navigate;
 using Microsoft.Manufacturing.Capacity;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 
 pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
 {
@@ -40,24 +43,45 @@ pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
             {
                 Caption = 'Production';
 
-                action("Purchase Order")
+                action(ShowDocument)
                 {
                     ApplicationArea = Manufacturing;
-                    Caption = 'Subcontracting Purchase Order';
-                    Image = Order;
-                    ToolTip = 'View the related subcontracting purchase order.';
+                    Caption = 'Show Document';
+                    Image = Document;
+                    ToolTip = 'View the document related to this capacity ledger entry. Shows the posted purchase receipt or invoice if available, otherwise shows the purchase order.';
                     trigger OnAction()
                     begin
-                        ShowPurchaseOrder(Rec);
+                        ShowRelatedDocument(Rec);
                     end;
                 }
             }
         }
     }
-    local procedure ShowPurchaseOrder(RecRelatedVariant: Variant)
+    local procedure ShowRelatedDocument(CapacityLedgerEntry: Record "Capacity Ledger Entry")
     var
-        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchaseHeader: Record "Purchase Header";
+        PageManagement: Codeunit "Page Management";
     begin
-        SubcPurchFactboxMgmt.ShowPurchaseOrder(RecRelatedVariant);
+        if CapacityLedgerEntry."Document No." <> '' then begin
+            PurchRcptHeader.SetRange("No.", CapacityLedgerEntry."Document No.");
+            if PurchRcptHeader.FindFirst() then begin
+                PageManagement.PageRun(PurchRcptHeader);
+                exit;
+            end;
+            PurchInvHeader.SetRange("No.", CapacityLedgerEntry."Document No.");
+            if PurchInvHeader.FindFirst() then begin
+                PageManagement.PageRun(PurchInvHeader);
+                exit;
+            end;
+        end;
+
+        if CapacityLedgerEntry."Subc. Purch. Order No." <> '' then begin
+            PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+            PurchaseHeader.SetRange("No.", CapacityLedgerEntry."Subc. Purch. Order No.");
+            if PurchaseHeader.FindFirst() then
+                PageManagement.PageRun(PurchaseHeader);
+        end;
     end;
 }
