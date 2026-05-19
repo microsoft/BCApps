@@ -1862,7 +1862,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     var
         ComponentItem: Record Item;
         Item: Record Item;
-        Location: Record Location;
         MachineCenter: array[2] of Record "Machine Center";
         ProdOrderComp: Record "Prod. Order Component";
         ProductionBOMLine: Record "Production BOM Line";
@@ -1902,7 +1901,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
         ProductionBOMLine.FindLast();
         ComponentItem.Get(ProductionBOMLine."No.");
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
 
         // [GIVEN] Create and refresh Released Production Order
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
@@ -3523,7 +3521,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         exit(ReqWkshTemplate.Name);
     end;
 
-    procedure UpdateProdOrderComponentWithSubcontractingType(ProductionOrder: Record "Production Order"; SubcontractingType: Enum "Subcontracting Type")
+    local procedure UpdateProdOrderComponentWithSubcontractingType(ProductionOrder: Record "Production Order"; SubcontractingType: Enum "Subcontracting Type")
     var
         ProdOrderComp: Record "Prod. Order Component";
     begin
