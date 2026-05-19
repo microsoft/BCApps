@@ -6,10 +6,12 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using System.Reflection;
 
@@ -452,6 +454,143 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [THEN] Subcontractor Prices action is enabled
         Assert.IsTrue(WorkCenterList."Subcontractor Prices".Enabled(), SubcontractingActionsNotEnabledErr);
         WorkCenterList.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandlePostedPurchaseReceiptPage')]
+    procedure CapLedgerEntriesShowDocumentOpensPostedReceipt()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        CapacityLedgerEntries: TestPage "Capacity Ledger Entries";
+    begin
+        // [SCENARIO 620656] Show Document action opens Posted Purchase Receipt when Document No. matches a receipt
+        Initialize();
+
+        // [GIVEN] A Posted Purchase Receipt
+        PurchRcptHeader.Init();
+        PurchRcptHeader."No." := 'TEST-RCPT-001';
+        if not PurchRcptHeader.Insert() then
+            PurchRcptHeader.Modify();
+
+        // [GIVEN] A Capacity Ledger Entry with Document No. pointing to the receipt
+        CapacityLedgerEntry.Init();
+        CapacityLedgerEntry."Entry No." := GetNextCapLedgerEntryNo();
+        CapacityLedgerEntry."Document No." := PurchRcptHeader."No.";
+        CapacityLedgerEntry.Insert();
+
+        // [WHEN] The Show Document action is invoked
+        CapacityLedgerEntries.OpenView();
+        CapacityLedgerEntries.GoToRecord(CapacityLedgerEntry);
+        CapacityLedgerEntries.ShowDocument.Invoke();
+
+        // [THEN] The Posted Purchase Receipt page is opened (verified by PageHandler)
+        CapacityLedgerEntries.Close();
+
+        // Cleanup
+        CapacityLedgerEntry.Delete();
+        PurchRcptHeader.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandlePostedPurchaseInvoicePage')]
+    procedure CapLedgerEntriesShowDocumentOpensPostedInvoice()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        CapacityLedgerEntries: TestPage "Capacity Ledger Entries";
+    begin
+        // [SCENARIO 620656] Show Document action opens Posted Purchase Invoice when Document No. matches an invoice
+        Initialize();
+
+        // [GIVEN] A Posted Purchase Invoice (no matching receipt)
+        PurchInvHeader.Init();
+        PurchInvHeader."No." := 'TEST-INV-001';
+        if not PurchInvHeader.Insert() then
+            PurchInvHeader.Modify();
+
+        // [GIVEN] A Capacity Ledger Entry with Document No. pointing to the invoice
+        CapacityLedgerEntry.Init();
+        CapacityLedgerEntry."Entry No." := GetNextCapLedgerEntryNo();
+        CapacityLedgerEntry."Document No." := PurchInvHeader."No.";
+        CapacityLedgerEntry.Insert();
+
+        // [WHEN] The Show Document action is invoked
+        CapacityLedgerEntries.OpenView();
+        CapacityLedgerEntries.GoToRecord(CapacityLedgerEntry);
+        CapacityLedgerEntries.ShowDocument.Invoke();
+
+        // [THEN] The Posted Purchase Invoice page is opened (verified by PageHandler)
+        CapacityLedgerEntries.Close();
+
+        // Cleanup
+        CapacityLedgerEntry.Delete();
+        PurchInvHeader.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandlePurchaseOrderPage')]
+    procedure CapLedgerEntriesShowDocumentOpensPurchaseOrder()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        PurchaseHeader: Record "Purchase Header";
+        CapacityLedgerEntries: TestPage "Capacity Ledger Entries";
+    begin
+        // [SCENARIO 620656] Show Document action opens Purchase Order when no posted document exists
+        Initialize();
+
+        // [GIVEN] A Purchase Order
+        PurchaseHeader.Init();
+        PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Order;
+        PurchaseHeader."No." := 'TEST-PO-001';
+        if not PurchaseHeader.Insert() then
+            PurchaseHeader.Modify();
+
+        // [GIVEN] A Capacity Ledger Entry with Subc. Purch. Order No. but no matching posted document
+        CapacityLedgerEntry.Init();
+        CapacityLedgerEntry."Entry No." := GetNextCapLedgerEntryNo();
+        CapacityLedgerEntry."Document No." := '';
+        CapacityLedgerEntry."Subc. Purch. Order No." := PurchaseHeader."No.";
+        CapacityLedgerEntry.Insert();
+
+        // [WHEN] The Show Document action is invoked
+        CapacityLedgerEntries.OpenView();
+        CapacityLedgerEntries.GoToRecord(CapacityLedgerEntry);
+        CapacityLedgerEntries.ShowDocument.Invoke();
+
+        // [THEN] The Purchase Order page is opened (verified by PageHandler)
+        CapacityLedgerEntries.Close();
+
+        // Cleanup
+        CapacityLedgerEntry.Delete();
+        PurchaseHeader.Delete();
+    end;
+
+    local procedure GetNextCapLedgerEntryNo(): Integer
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+    begin
+        if CapacityLedgerEntry.FindLast() then
+            exit(CapacityLedgerEntry."Entry No." + 1);
+        exit(1);
+    end;
+
+    [PageHandler]
+    procedure HandlePostedPurchaseReceiptPage(var PostedPurchaseReceipt: TestPage "Posted Purchase Receipt")
+    begin
+        PostedPurchaseReceipt.Close();
+    end;
+
+    [PageHandler]
+    procedure HandlePostedPurchaseInvoicePage(var PostedPurchaseInvoice: TestPage "Posted Purchase Invoice")
+    begin
+        PostedPurchaseInvoice.Close();
+    end;
+
+    [PageHandler]
+    procedure HandlePurchaseOrderPage(var PurchaseOrder: TestPage "Purchase Order")
+    begin
+        PurchaseOrder.Close();
     end;
 
     var
