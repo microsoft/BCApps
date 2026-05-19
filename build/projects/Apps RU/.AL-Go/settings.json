@@ -208,6 +208,5 @@
     "../../../src/Tools/Performance Toolkit/Test"
   ],
   "doNotRunTests": true,
-  "useCompilerFolder": true,
   "doNotPublishApps": true
 }
