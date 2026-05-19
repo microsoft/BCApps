@@ -162,6 +162,14 @@ page 20426 "Qlty. Manager Role Center"
                     Image = Setup;
                     RunPageMode = Edit;
                 }
+                action(Processing_ReportSelection)
+                {
+                    Caption = 'Report Selections';
+                    Tooltip = 'Configure the report selections for Quality Management.';
+                    RunObject = Page "Qlty. Report Selection - QM";
+                    Image = SelectReport;
+                    RunPageMode = Edit;
+                }
             }
             action(Processing_Navigate)
             {
