@@ -20,6 +20,9 @@ codeunit 4333 "Agent Consumption Overview"
     var
         AgentUtilities: Codeunit "Agent Utilities";
     begin
+        if TaskId = 0 then
+            exit(0);
+
         exit(AgentUtilities.GetConsumedCopilotCredits(TaskId));
     end;
 

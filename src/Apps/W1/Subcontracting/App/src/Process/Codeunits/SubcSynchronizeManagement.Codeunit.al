@@ -15,6 +15,12 @@ using Microsoft.Purchases.Document;
 
 codeunit 99001511 "Subc. Synchronize Management"
 {
+    var
+        CannotDeleteSubcOrderTitleLbl: Label 'Transfer Order Exists';
+        CannotDeleteSubcOrderWithTransferOrderErr: Label 'You cannot delete Subcontracting Order %1 because Transfer Order %2 is associated with it. Delete or receive the Transfer Order first.', Comment = '%1=Subcontracting Order No., %2=Transfer Order No.';
+        CannotDeleteSubcOrderWithTransferOrdersErr: Label 'You cannot delete Subcontracting Order %1 because Transfer Orders are associated with it. Delete or receive all Transfer Orders first.', Comment = '%1=Subcontracting Order No.';
+        OpenTransferOrderLbl: Label 'Open Transfer Order';
+
     procedure SynchronizeExpectedReceiptDate(var PurchaseLine: Record "Purchase Line"; xRecPurchaseLine: Record "Purchase Line")
     var
         ProductionOrder: Record "Production Order";
@@ -161,13 +167,32 @@ codeunit 99001511 "Subc. Synchronize Management"
         end;
     end;
 
+    procedure CheckTransferOrderExistsForPurchaseHeader(var PurchaseHeader: Record "Purchase Header")
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferOrderErrorInfo: ErrorInfo;
+    begin
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        if TransferHeader.IsEmpty() then
+            exit;
+
+        TransferOrderErrorInfo.Title := CannotDeleteSubcOrderTitleLbl;
+        TransferOrderErrorInfo.RecordId := PurchaseHeader.RecordId;
+        if TransferHeader.Count() = 1 then begin
+            TransferHeader.FindFirst();
+            TransferOrderErrorInfo.Message := StrSubstNo(CannotDeleteSubcOrderWithTransferOrderErr, PurchaseHeader."No.", TransferHeader."No.");
+        end else
+            TransferOrderErrorInfo.Message := StrSubstNo(CannotDeleteSubcOrderWithTransferOrdersErr, PurchaseHeader."No.");
+        TransferOrderErrorInfo.AddAction(OpenTransferOrderLbl, Codeunit::"Subc. Purchase Header Ext", 'ShowTransferOrdersForPurchHeader');
+        Error(TransferOrderErrorInfo);
+    end;
+
     procedure DeleteEnhancedDocumentsByDeletePurchLine(var PurchaseLine: Record "Purchase Line")
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
-        ItemLedgerEntry, ItemLedgerEntry2 : Record "Item Ledger Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
         ProductionOrder: Record "Production Order";
         PurchaseLine2: Record "Purchase Line";
-        TransferHeader: Record "Transfer Header";
     begin
         if not IsSubcontractingLine(PurchaseLine) then
             exit;
@@ -176,35 +201,22 @@ codeunit 99001511 "Subc. Synchronize Management"
             exit;
 
         if ProductionOrder.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.") then begin
-            if not ProductionOrder."Created from Purch. Order" then
-                exit;
             ItemLedgerEntry.SetRange("Order Type", "Inventory Order Type"::Production);
             ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
             if ItemLedgerEntry.IsEmpty() then begin
                 CapacityLedgerEntry.SetRange("Order Type", "Inventory Order Type"::Production);
                 CapacityLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
-                if CapacityLedgerEntry.IsEmpty() then begin
-                    ProductionOrder.DeleteProdOrderRelations();
+                if CapacityLedgerEntry.IsEmpty() then
+                    if ProductionOrder."Created from Purch. Order" then begin
+                        ProductionOrder.DeleteProdOrderRelations();
 
-                    // Delete Subcontracting dependent Purchase Lines
-                    PurchaseLine2.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
-                    if PurchaseLine2.FindSet() then
-                        PurchaseLine2.DeleteAll(true);
+                        // Delete Subcontracting dependent Purchase Lines
+                        PurchaseLine2.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+                        if PurchaseLine2.FindSet() then
+                            PurchaseLine2.DeleteAll(true);
 
-                    TransferHeader.SetCurrentKey("Source ID", "Source Type", "Source Subtype");
-                    TransferHeader.SetRange("Source ID", PurchaseLine."Buy-from Vendor No.");
-                    TransferHeader.SetRange("Source Type", "Transfer Source Type"::Subcontracting);
-                    TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
-                    TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
-                    if not TransferHeader.IsEmpty() then begin
-                        TransferHeader.FindFirst();
-                        ItemLedgerEntry2.SetRange("Order Type", "Inventory Order Type"::Production);
-                        ItemLedgerEntry2.SetRange("Order No.", ProductionOrder."No.");
-                        if ItemLedgerEntry.IsEmpty() then
-                            TransferHeader.Delete(true);
+                        ProductionOrder.Delete();
                     end;
-                    ProductionOrder.Delete();
-                end
             end;
         end;
     end;

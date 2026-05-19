@@ -39,11 +39,6 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
 #pragma warning restore AL0432
 #pragma warning restore AL0520
         }
-        field(99001503; "Direct Transfer"; Boolean)
-        {
-            Caption = 'Direct Transfer for Subcontracting';
-            DataClassification = CustomerContent;
-        }
         field(99001504; "Component Direct Unit Cost"; Option)
         {
             Caption = 'Component Direct Unit Cost';
@@ -62,9 +57,9 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
             DataClassification = CustomerContent;
             TableRelation = "Routing Link";
         }
-        field(99001509; "Subc. Comp. at Location"; Enum "Components at Location")
+        field(99001509; "Subc. Default Comp. Location"; Enum "Components at Location")
         {
-            Caption = 'Component at Location';
+            Caption = 'Default Component Location Source';
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -72,13 +67,13 @@ tableextension 99001501 "Subc. Manufacturing Setup" extends "Manufacturing Setup
                 CompanyInformation: Record "Company Information";
                 ManufacturingSetup: Record "Manufacturing Setup";
             begin
-                case "Subc. Comp. at Location" of
-                    "Subc. Comp. at Location"::Company:
+                case "Subc. Default Comp. Location" of
+                    "Subc. Default Comp. Location"::Company:
                         begin
                             CompanyInformation.Get();
                             CompanyInformation.TestField("Location Code");
                         end;
-                    "Subc. Comp. at Location"::Manufacturing:
+                    "Subc. Default Comp. Location"::Manufacturing:
                         begin
                             ManufacturingSetup.Get();
                             ManufacturingSetup.TestField("Components at Location");
