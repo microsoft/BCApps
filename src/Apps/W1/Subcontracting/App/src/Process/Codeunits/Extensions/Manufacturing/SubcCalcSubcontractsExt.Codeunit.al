@@ -21,5 +21,7 @@ codeunit 99001529 "Subc. Calc Subcontracts Ext."
             if WorkCenter.Get(ProdOrderRoutingLine."Work Center No.") then
                 RequisitionLine."Description 2" := WorkCenter."Name 2";
         end;
+
+        RequisitionLine.Validate("Standard Task Code", ProdOrderRoutingLine."Standard Task Code");
     end;
 }
