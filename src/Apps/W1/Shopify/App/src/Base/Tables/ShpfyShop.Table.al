@@ -951,10 +951,8 @@ table 30102 "Shpfy Shop"
 
             trigger OnValidate()
             begin
-                if (not Rec."Advanced Shopify Plan") and Rec."Auto Create Catalog" then begin
+                if (not Rec."Advanced Shopify Plan") and Rec."Auto Create Catalog" then
                     Rec.Validate("Auto Create Catalog", false);
-                    Message(AutoCreateCatalogDisabledMsg);
-                end;
             end;
         }
         field(208; "Find Mapping by Barcode"; Boolean)
@@ -996,7 +994,6 @@ table 30102 "Shpfy Shop"
         CurrencyExchangeRateNotDefinedErr: Label 'The specified currency must have exchange rates configured. If your online shop uses the same currency as Business Central then leave the field empty.';
         AutoCreateErrorMsg: Label 'You cannot turn "%1" off if "%2" is set to the value of "%3".', Comment = '%1 = Field Caption of "Auto Create Orders", %2 = Field Caption of "Return and Refund Process", %3 = Field Value of "Return and Refund Process"';
         AutoCreateCatalogPlanErr: Label '%1 can only be enabled for Shopify Plus, Plus Trial, Development, or Advanced plans.', Comment = '%1 = Field Caption of "Auto Create Catalog"';
-        AutoCreateCatalogDisabledMsg: Label 'Auto Create Catalog has been disabled because the Shopify plan no longer supports B2B catalog creation.';
         ExpirationNotificationTxt: Label 'Shopify API version 30 days before expiry notification sent.', Locked = true;
         BlockedNotificationTxt: Label 'Shopify API version expired notification sent.', Locked = true;
         CategoryTok: Label 'Shopify Integration', Locked = true;
