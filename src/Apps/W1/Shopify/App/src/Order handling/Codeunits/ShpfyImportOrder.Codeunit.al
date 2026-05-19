@@ -35,9 +35,14 @@ codeunit 30161 "Shpfy Import Order"
 
     internal procedure ReimportExistingOrderConfirmIfConflicting(OrderHeader: Record "Shpfy Order Header")
     var
+        ShopToRefresh: Record "Shpfy Shop";
         OrderMapping: Codeunit "Shpfy Order Mapping";
     begin
         OrderHeader.Get(OrderHeader."Shopify Order Id");
+        if ShopToRefresh.Get(OrderHeader."Shop Code") then begin
+            ShopToRefresh.GetShopSettings();
+            ShopToRefresh.Modify();
+        end;
         ImportOrderAndCreateOrUpdate(OrderHeader."Shop Code", OrderHeader."Shopify Order Id");
         OrderHeader.Get(OrderHeader."Shopify Order Id");
         if OrderMapping.DoMapping(OrderHeader) then;
