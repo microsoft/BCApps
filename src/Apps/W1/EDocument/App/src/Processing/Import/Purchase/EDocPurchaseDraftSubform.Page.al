@@ -75,20 +75,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     ApplicationArea = All;
                     Lookup = true;
                 }
-                field(VATWarning; VATWarningCaption)
-                {
-                    ApplicationArea = All;
-                    Caption = 'VAT warnings';
-                    Editable = false;
-                    Visible = Rec."[BC] VAT Rate Mismatch";
-                    StyleExpr = VATWarningStyleExpr;
-                    ToolTip = 'Specifies whether the VAT Product Posting Group could not be resolved from the extracted VAT rate.';
-
-                    trigger OnDrillDown()
-                    begin
-                        ShowVATWarningDetails();
-                    end;
-                }
                 field("Item Reference No."; Rec."[BC] Item Reference No.")
                 {
                     ApplicationArea = All;
@@ -597,15 +583,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
             VATWarningCaption := '';
             VATWarningStyleExpr := 'None';
         end;
-    end;
-
-    local procedure ShowVATWarningDetails()
-    var
-        VATWarningDetailLbl: Label 'VAT rate %1% was extracted from the invoice but could not be matched to a single VAT Posting Setup for the vendor. Please select the correct VAT Product Posting Group manually.', Comment = '%1 = VAT rate percentage';
-    begin
-        if not Rec."[BC] VAT Rate Mismatch" then
-            exit;
-        Message(VATWarningDetailLbl, Rec."VAT Rate");
     end;
 
 }
