@@ -3545,6 +3545,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         if DocumentType = SalesHeader."Document Type"::"Credit Memo" then
             SalesHeader.Validate("Shipment Date", WorkDate());
 
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.CopySellToAddressToShipToAddress();
         SalesHeader.Modify(true);
     end;
