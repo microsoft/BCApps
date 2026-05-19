@@ -31,6 +31,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryEDoc: Codeunit "Library - E-Document";
         EDocImplState: Codeunit "E-Doc. Impl. State";
+        StructuredValidations: Codeunit "EDoc Structured Validations";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         IsInitialized: Boolean;
         EDocumentStatusNotUpdatedErr: Label 'The status of the EDocument was not updated to the expected status after the step was executed.';
@@ -96,7 +97,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
         if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
             // [THEN] Lines are created with correct field mappings
             EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-            Assert.AreEqual(2, EDocumentPurchaseLine.Count(), 'Expected 2 lines from the invoice XML.');
+            Assert.AreEqual(3, EDocumentPurchaseLine.Count(), 'Expected 2 invoice lines + 1 charge line from the invoice XML.');
 
             EDocumentPurchaseLine.FindSet();
             repeat
@@ -114,6 +115,12 @@ codeunit 139897 "E-Doc Data Exch Tests"
                             Assert.AreEqual(-3, EDocumentPurchaseLine.Quantity, 'Second line Quantity should be -3.');
                             Assert.AreEqual(500, EDocumentPurchaseLine."Unit Price", 'Second line Unit Price should be 500.');
                             Assert.IsTrue(EDocumentPurchaseLine."Line No." > 0, 'Second line should have a sequential line number.');
+                        end;
+                    3:
+                        begin
+                            Assert.AreEqual(1, EDocumentPurchaseLine.Quantity, 'Charge line Quantity should be 1.');
+                            Assert.AreEqual(25, EDocumentPurchaseLine."Unit Price", 'Charge line Unit Price should be 25.');
+                            Assert.AreEqual('Insurance', EDocumentPurchaseLine.Description, 'Charge line Description should be Insurance.');
                         end;
                 end;
             until EDocumentPurchaseLine.Next() = 0;
@@ -242,6 +249,168 @@ codeunit 139897 "E-Doc Data Exch Tests"
             // [THEN] Currency Code is blank because document currency matches LCY
             EDocumentPurchaseHeader.Get(EDocument."Entry No");
             Assert.AreEqual('', EDocumentPurchaseHeader."Currency Code", 'Currency Code should be blank when document currency matches LCY.');
+        end
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure DataExchInvoice_FullDocument()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] Data Exchange v2 handler produces the same staging output as the PEPPOL handler for a full invoice
+        Initialize();
+        SetupDataExchangeService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-0.xml');
+
+        // [WHEN] Processing the e-document to Read into Draft
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            // [THEN] Staging tables match the PEPPOL handler output
+            StructuredValidations.AssertFullPEPPOLDocumentExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure DataExchInvoice_ReturnsInvoiceDraftType()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] After parsing an Invoice, the Process Draft Impl. is set to "Purchase Invoice"
+        Initialize();
+        SetupDataExchangeService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-0.xml');
+
+        // [WHEN] Processing the e-document to Read into Draft
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            // [THEN] The process draft is set to Purchase Invoice
+            EDocument.Get(EDocument."Entry No");
+            Assert.AreEqual(
+                Enum::"E-Doc. Process Draft"::"Purchase Invoice",
+                EDocument."Process Draft Impl.",
+                'The process draft implementation should be set to Purchase Invoice for invoices.');
+        end
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure DataExchCreditNote_FullDocument()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] Data Exchange v2 handler produces the same staging output as the PEPPOL handler for a credit note
+        Initialize();
+        SetupDataExchangeService();
+        SetupCreditMemoDataExchDef();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-creditnote-0.xml');
+
+        // [WHEN] Processing the e-document to Read into Draft
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            // [THEN] Staging tables match the PEPPOL handler output
+            StructuredValidations.AssertFullPEPPOLCreditNoteExtracted(EDocument."Entry No");
+            EDocument.Get(EDocument."Entry No");
+            Assert.AreEqual(
+                Enum::"E-Doc. Process Draft"::"Purchase Credit Memo",
+                EDocument."Process Draft Impl.",
+                'The process draft implementation should be set to Purchase Credit Memo for credit notes.');
+        end
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure DataExchInvoice_BaseExample()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] Basic PEPPOL invoice with 2 lines and a document-level charge is parsed correctly via Data Exchange
+        Initialize();
+        SetupDataExchangeService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-basic.xml');
+
+        // [WHEN] Processing the e-document to Read into Draft
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertPEPPOLBaseExampleExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure DataExchInvoice_VatCategoryS()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] Invoice with multiple VAT rates and StandardItemIdentification priority via Data Exchange
+        Initialize();
+        SetupDataExchangeService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-vat-category-s.xml');
+
+        // [WHEN] Processing the e-document to Read into Draft
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertPEPPOLVatCategorySExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure DataExchInvoice_VatCategoryZ()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] Invoice with zero-rated VAT (category Z), no DueDate, GBP currency via Data Exchange
+        Initialize();
+        SetupDataExchangeService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-vat-category-z.xml');
+
+        // [WHEN] Processing the e-document to Read into Draft
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            StructuredValidations.AssertPEPPOLVatCategoryZExtracted(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure DataExchInvoice_EmbeddedAttachments()
+    var
+        EDocument: Record "E-Document";
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] Embedded base64 attachments are extracted via Data Exchange
+        Initialize();
+        SetupDataExchangeService();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-invoice-attachment.xml');
+
+        // [WHEN] Processing the e-document to Read into Draft
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            StructuredValidations.AssertPEPPOLAttachmentHeaderExtracted(EDocument."Entry No");
+            DocumentAttachment.SetRange("E-Document Entry No.", EDocument."Entry No");
+            Assert.AreEqual(2, DocumentAttachment.Count(), 'Expected 2 embedded attachments (PDF + PNG). External URI and bare references should be skipped.');
+        end
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure DataExchCreditNote_CorrectionNoDueDate()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] CreditNote without PaymentMeans/PaymentDueDate results in blank Due Date via Data Exchange
+        Initialize();
+        SetupDataExchangeService();
+        SetupCreditMemoDataExchDef();
+        CreateInboundEDocumentFromXML(EDocument, 'peppol/peppol-creditnote-no-duedate.xml');
+
+        // [WHEN] Processing the e-document to Read into Draft
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            StructuredValidations.AssertPEPPOLCreditNoteCorrectionExtracted(EDocument."Entry No");
+            EDocument.Get(EDocument."Entry No");
+            Assert.AreEqual(
+                Enum::"E-Doc. Process Draft"::"Purchase Credit Memo",
+                EDocument."Process Draft Impl.",
+                'The process draft implementation should be set to Purchase Credit Memo for credit notes.');
         end
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
