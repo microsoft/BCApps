@@ -1604,9 +1604,9 @@ codeunit 139608 "Shpfy Orders API Test"
         // [THEN] The Advanced Shopify Plan flag is refreshed on the persisted Shop record
         Shop.Get(Shop.Code);
         LibraryAssert.IsFalse(Shop."Advanced Shopify Plan", 'Bulk sync report should refresh Advanced Shopify Plan flag before importing orders.');
-        LibraryAssert.IsTrue(PlanRefreshCallCount >= 1, 'Bulk sync report should issue a plan-refresh query.');
+        LibraryAssert.AreEqual(1, PlanRefreshCallCount, 'Bulk sync report should issue exactly one plan-refresh query.');
     end;
-LibraryAssert.AreEqual(1, PlanRefreshCallCount, 'Bulk sync report should issue exactly one plan-refresh query.');
+
     local procedure CreateTaxArea(var TaxArea: Record "Tax Area"; var ShopifyTaxArea: Record "Shpfy Tax Area"; ShopParam: Record "Shpfy Shop")
     var
         ShopifyCustomerTemplate: Record "Shpfy Customer Template";
