@@ -38,10 +38,6 @@ table 99001501 "Subc. Management Setup"
                                                                 "Worksheet Template Name" = field("Subcontracting Template Name"));
 #pragma warning restore AL0432                                                                
         }
-        field(60; "Direct Transfer"; Boolean)
-        {
-            Caption = 'Direct Transfer for Subcontracting';
-        }
         field(70; "Component Direct Unit Cost"; Option)
         {
             Caption = 'Component Direct Unit Cost';

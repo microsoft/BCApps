@@ -279,4 +279,59 @@ codeunit 139986 "Subc. CreateProdOrdWizLibrary"
         RoutingVersion.Validate(Status, RoutingVersion.Status::Certified);
         RoutingVersion.Modify(true);
     end;
+
+    procedure CreateBOMWithDescription2(var BOMLineDescription2: Text[50]): Code[20]
+    var
+        ComponentItem: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+    begin
+        // Create a BOM with a single line that has Description 2 set
+        LibraryInventory.CreateItem(ComponentItem);
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, ComponentItem."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(
+            ProductionBOMHeader, ProductionBOMLine, '', ProductionBOMLine.Type::Item, ComponentItem."No.", 1);
+        BOMLineDescription2 := CopyStr(LibraryRandom.RandText(MaxStrLen(ProductionBOMLine."Description 2")), 1, MaxStrLen(ProductionBOMLine."Description 2"));
+        ProductionBOMLine."Description 2" := BOMLineDescription2;
+        ProductionBOMLine.Modify();
+        ProductionBOMHeader.Validate("Version Nos.", LibraryERM.CreateNoSeriesCode());
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+        exit(ProductionBOMHeader."No.");
+    end;
+
+    procedure CreateRoutingWithSubcWorkCenterAndDescription2(var SubcWorkCenterNo: Code[20]; var RoutingLineDescription2: Text[50]): Code[20]
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        WorkCenter1: Record "Work Center";
+        WorkCenter2: Record "Work Center";
+    begin
+        // Create a routing with two lines; the second work center is subcontracting and has Description 2 set
+        CreateAndCalculateNeededWorkCenter(WorkCenter1, false);
+        CreateAndCalculateNeededWorkCenter(WorkCenter2, true);
+        SubcWorkCenterNo := WorkCenter2."No.";
+
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter1."No.");
+        RoutingLine.Validate("Setup Time", 10);
+        RoutingLine.Validate("Run Time", 5);
+        RoutingLine.Modify(true);
+
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Work Center", WorkCenter2."No.");
+        RoutingLine.Validate("Setup Time", 15);
+        RoutingLine.Validate("Run Time", 8);
+        RoutingLineDescription2 := CopyStr(LibraryRandom.RandText(MaxStrLen(RoutingLine."Description 2")), 1, MaxStrLen(RoutingLine."Description 2"));
+        RoutingLine."Description 2" := RoutingLineDescription2;
+        RoutingLine.Modify(true);
+
+        RoutingHeader.Validate("Version Nos.", LibraryERM.CreateNoSeriesCode());
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        exit(RoutingHeader."No.");
+    end;
 }

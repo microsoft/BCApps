@@ -39,6 +39,12 @@ page 99001507 "Subc. Temp Routing Lines"
                 {
                     ToolTip = 'Specifies a description of the operation.';
                 }
+                field("Description 2"; Rec."Description 2")
+                {
+                    ApplicationArea = Manufacturing;
+                    ToolTip = 'Specifies additional description of the operation.';
+                    Visible = false;
+                }
                 field("Setup Time"; Rec."Setup Time")
                 {
                     AutoFormatType = 0;

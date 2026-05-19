@@ -231,6 +231,72 @@ codeunit 139993 "Subc. Wiz. General Test"
         ProdOrderCheckLib.VerifyProdOrderRoutingLinesMatchTempRecords(ProdOrder, TempProdOrderRoutingLine);
     end;
 
+    [Test]
+    [HandlerFunctions('HandlePurchProvisionWizard')]
+    procedure TestWizardPreservesDescription2ThroughBOMAndRoutingLines()
+    var
+        ProdOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchLine: Record "Purchase Line";
+        CreateProdOrdOpt: Codeunit "Subc. Create Prod. Ord. Opt.";
+        BOMNo: Code[20];
+        ItemNo: Code[20];
+        RoutingNo: Code[20];
+        SubcWorkCenterNo: Code[20];
+        BOMLineDescription2: Text[50];
+        RoutingLineDescription2: Text[50];
+    begin
+        // [SCENARIO] Description 2 from BOM line and Routing line is preserved end-to-end through
+        // the Production Order Creation Wizard to Prod. Order Components and Routing Lines
+        // [FEATURE] Bug 620556 - Subcontracting Description 2 alignment
+
+        // [GIVEN] Proper setup configuration
+        Initialize();
+
+        // [GIVEN] A BOM with a line that has Description 2 set
+        BOMNo := SubCreateProdOrdWizLibrary.CreateBOMWithDescription2(BOMLineDescription2);
+
+        // [GIVEN] A Routing with a subcontracting work center line that has Description 2 set
+        RoutingNo := SubCreateProdOrdWizLibrary.CreateRoutingWithSubcWorkCenterAndDescription2(SubcWorkCenterNo, RoutingLineDescription2);
+
+        // [GIVEN] An item with the BOM and Routing above
+        ItemNo := SubCreateProdOrdWizLibrary.CreateItemWithBOMAndRouting(BOMNo, RoutingNo);
+
+        // [GIVEN] A purchase line with a subcontracting vendor
+        SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
+
+        // [WHEN] Run the Production Order Creation Wizard
+        WizardFinishedSuccessfully := false;
+        Commit();
+        CreateProdOrdOpt.Run(PurchLine);
+
+        // [THEN] Wizard completed successfully
+        Assert.IsTrue(WizardFinishedSuccessfully, 'Wizard should have finished successfully');
+
+        // [THEN] Production Order was created
+        PurchLine.Get(PurchLine."Document Type", PurchLine."Document No.", PurchLine."Line No.");
+        Assert.AreNotEqual('', PurchLine."Prod. Order No.", 'Production Order No. should be set on Purchase Line');
+        ProdOrder.Get("Production Order Status"::Released, PurchLine."Prod. Order No.");
+
+        // [THEN] Description 2 from the BOM line is preserved on the Prod. Order Component
+        ProdOrderComponent.SetRange(Status, ProdOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
+        Assert.IsTrue(ProdOrderComponent.FindFirst(), 'Prod. Order Component must exist');
+        Assert.AreEqual(
+            BOMLineDescription2, ProdOrderComponent."Description 2",
+            'Description 2 from the Production BOM Line must be preserved on the Prod. Order Component');
+
+        // [THEN] Description 2 from the Routing line is preserved on the Prod. Order Routing Line
+        ProdOrderRoutingLine.SetRange(Status, ProdOrder.Status);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", SubcWorkCenterNo);
+        Assert.IsTrue(ProdOrderRoutingLine.FindFirst(), 'Prod. Order Routing Line must exist for subcontracting work center');
+        Assert.AreEqual(
+            RoutingLineDescription2, ProdOrderRoutingLine."Description 2",
+            'Description 2 from the Routing Line must be preserved on the Prod. Order Routing Line');
+    end;
+
     [ModalPageHandler]
     procedure HandlePurchProvisionWizard(var PurchProvisionWizard: TestPage "Subc. PurchProvisionWizard")
     begin

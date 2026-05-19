@@ -10,6 +10,8 @@ codeunit 99001532 "Subc. Item Extension"
 {
     [EventSubscriber(ObjectType::Table, Database::Item, OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteItem(var Rec: Record Item; RunTrigger: Boolean)
+    var
+        SubcontractorPrice: Record "Subcontractor Price";
     begin
         if Rec.IsTemporary() then
             exit;
@@ -17,16 +19,6 @@ codeunit 99001532 "Subc. Item Extension"
         if not RunTrigger then
             exit;
 
-        DeleteRelatedSubcontractorPrices(Rec);
-    end;
-
-    local procedure DeleteRelatedSubcontractorPrices(var Item: Record Item)
-    var
-        SubcontractorPrice: Record "Subcontractor Price";
-    begin
-        SubcontractorPrice.SetCurrentKey("Item No.");
-        SubcontractorPrice.SetRange("Item No.", Item."No.");
-        if not SubcontractorPrice.IsEmpty() then
-            SubcontractorPrice.DeleteAll(true);
+        SubcontractorPrice.DeletePricesForItem(Rec."No.");
     end;
 }

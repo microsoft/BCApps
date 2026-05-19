@@ -57,12 +57,6 @@ tableextension 99001520 "Subc. Transfer Header" extends "Transfer Header"
             Caption = 'Return Order';
             DataClassification = CustomerContent;
         }
-        field(99001554; "Do Not Validate"; Boolean)
-        {
-            Caption = 'Do not validate';
-            DataClassification = SystemMetadata;
-            Editable = false;
-        }
     }
     keys
     {

@@ -6,9 +6,7 @@ namespace Microsoft.QualityManagement.Permissions;
 
 using System.Security.AccessControl;
 
-#pragma warning disable AS0090
 permissionsetextension 20403 "D365 READ - QltyMgmt" extends "D365 READ"
 {
     IncludedPermissionSets = "QltyMgmt - Read";
 }
-#pragma warning restore AS0090

@@ -20,6 +20,7 @@ codeunit 6128 "E-Document No Integration" implements IDocumentSender, IDocumentR
 {
 
 #if not CLEAN26
+#pragma warning disable AL0432 // TODO(#632280) - new compiler validation needs to be relaxed
     procedure Send(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; var IsAsync: Boolean; var HttpRequest: HttpRequestMessage; var http: HttpResponseMessage)
     begin
         IsAsync := false;
@@ -55,6 +56,7 @@ codeunit 6128 "E-Document No Integration" implements IDocumentSender, IDocumentR
         SetupPage := 0;
         SetupTable := 0;
     end;
+#pragma warning restore AL0432 // TODO(#632280) - new compiler validation needs to be relaxed
 #endif
 
     #region IDocumentSender

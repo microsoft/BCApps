@@ -95,7 +95,7 @@ report 99001505 "Subc. Calculate Subcontracts"
         if ReqLine.FindLast() then
             ReqLine.Init();
 
-        Window.Open(Text000 + Text001);
+        Window.Open(ProcessingWorkCentersLbl + ProcessingOrdersLbl);
     end;
 
     var
@@ -116,12 +116,8 @@ report 99001505 "Subc. Calculate Subcontracts"
         QtyToPurch: Decimal;
         GLSetupRead: Boolean;
 
-#pragma warning disable AA0074
-#pragma warning disable AA0470
-        Text000: Label 'Processing Work Centers   #1##########\';
-        Text001: Label 'Processing Orders         #2########## ';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
+        ProcessingWorkCentersLbl: Label 'Processing Work Centers   #1##########\', Comment = '#1 = current work center number being processed';
+        ProcessingOrdersLbl: Label 'Processing Orders         #2########## ', Comment = '#2 = current order number being processed';
         ProductionBlockedOutputItemQst: Label 'Item %1 is blocked for production output and cannot be calculated. Do you want to continue?', Comment = '%1 Item No.';
         ProductionBlockedOutputItemVariantQst: Label 'Variant %1 for item %2 is blocked for production output and cannot be calculated. Do you want to continue?', Comment = '%1 - Item Variant Code, %2 - Item No.';
 

@@ -15,7 +15,7 @@ permissionset 99001501 "Subcontract. - Objs"
         table "Subcontractor Price" = X,
 
         // Codeunits
-        codeunit "Single Instance Dictionary" = X,
+        codeunit "Subc. Session State" = X,
         codeunit "Subc. Business Setup Ext." = X,
         codeunit "Subc. Calc. Prod. Order Ext." = X,
         codeunit "Subc. Calc.StandardCost Ext." = X,
@@ -26,7 +26,10 @@ permissionset 99001501 "Subcontract. - Objs"
         codeunit "Subc. Create Prod. Rtng. Ext." = X,
         codeunit "Subc. CrPurchSubcon(Yes/No)" = X,
         codeunit "Subc. DirectTransferLine Ext." = X,
-        codeunit "Subc. Factbox Mgmt." = X,
+        codeunit "Subc. Comp. Factbox Mgmt." = X,
+        codeunit "Subc. ProdO. Factbox Mgmt." = X,
+        codeunit "Subc. Purch. Factbox Mgmt." = X,
+        codeunit "Subc. Routing Factbox Mgmt." = X,
         codeunit "Subc. ItemChargeAssPurchExt" = X,
         codeunit "Subc. Item Extension" = X,
         codeunit "Subc. ItemJnlCheckExt" = X,

@@ -8,13 +8,6 @@ using Microsoft.Manufacturing.Routing;
 
 pageextension 99001508 "Subc. Routing Lines" extends "Routing Lines"
 {
-    layout
-    {
-        modify("Routing Link Code")
-        {
-            Visible = true;
-        }
-    }
     actions
     {
         addafter("&Quality Measures")

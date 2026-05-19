@@ -223,13 +223,13 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 var
-                    CreatedReinspectionHeader: Record "Qlty. Inspection Header";
+                    ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection(CreatedReinspectionHeader);
+                    Rec.CreateReinspection(ReinspectionQltyInspectionHeader);
                     CurrPage.Update(false);
-                    if not IsNullGuid(CreatedReinspectionHeader.SystemId) then begin
+                    if not IsNullGuid(ReinspectionQltyInspectionHeader.SystemId) then begin
                         Commit();
-                        Page.Run(Page::"Qlty. Inspection", CreatedReinspectionHeader);
+                        Page.Run(Page::"Qlty. Inspection", ReinspectionQltyInspectionHeader);
                     end;
                 end;
             }
@@ -556,8 +556,6 @@ page 20408 "Qlty. Inspection List"
                     QltyDocumentNavigation.NavigateToFindEntries(Rec);
                 end;
             }
-#pragma warning disable AS0031
-#pragma warning disable AS0032
             group(ItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
@@ -638,8 +636,6 @@ page 20408 "Qlty. Inspection List"
                     ToolTip = 'View the quantities of the item in each bin where it exists. You can see all the important parameters relating to bin content, and you can modify certain bin content parameters in this window.';
                 }
             }
-#pragma warning restore AS0032
-#pragma warning restore AS0031
         }
     }
 

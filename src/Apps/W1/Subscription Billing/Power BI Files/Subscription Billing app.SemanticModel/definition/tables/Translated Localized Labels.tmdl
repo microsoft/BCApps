@@ -1,0 +1,1728 @@
+table 'Translated Localized Labels'
+	isHidden
+	lineageTag: d6492e17-230d-4138-9ab1-16fbcbfeff61
+
+	measure 'CONNECT YOUR DATA Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "CONECTAR LOS DATOS",
+			   "de-DE", "MIT EIGENEN DATEN VERBINDEN",
+			   "fr-FR", "CONNECTER VOS DONNÉES",
+			   "cs-CZ", "PŘIPOJENÍ DAT",
+			   "da-DK", "FORBIND DINE DATA",
+			   "de-AT", "MIT EIGENEN DATEN VERBINDEN",
+			   "de-CH", "MIT EIGENEN DATEN VERBINDEN",
+			   "en-AU", "CONNECT YOUR DATA",
+			   "en-CA", "CONNECT YOUR DATA",
+			   "en-GB", "CONNECT YOUR DATA",
+			   "en-NZ", "CONNECT YOUR DATA",
+			   "es-MX", "CONECTAR LOS DATOS",
+			   "fi-FI", "YHDISTÄ TIETOSI",
+			   "fr-BE", "CONNECTER VOS DONNÉES",
+			   "fr-CA", "CONNECTER VOS DONNÉES",
+			   "fr-CH", "CONNECTER VOS DONNÉES",
+			   "is-IS", "TENGIÐ GÖGN",
+			   "it-CH", "CONNETTI I DATI",
+			   "it-IT", "CONNETTI I DATI",
+			   "nb-NO", "KOBLE TIL DATAENE",
+			   "nl-BE", "UW GEGEVENS VERBINDEN",
+			   "nl-NL", "UW GEGEVENS VERBINDEN",
+			   "ru-RU", "CONNECT YOUR DATA",
+			   "sv-SE", "ANSLUT DINA DATA",
+			   "CONNECT YOUR DATA"
+			)
+		isHidden
+		lineageTag: 8a7130b6-de36-4288-952c-0eba32209a73
+
+	measure '1. Download the Finance Connector for Power BI Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "1. Descargar Finance Connector for Power BI",
+			   "de-DE", "1. Finance Connector for Power BI herunterladen",
+			   "fr-FR", "1. Téléchargez Finance Connector for Power BI",
+			   "cs-CZ", "1. Stažení řešení Finance Connector for Power BI",
+			   "da-DK", "1. Download Finance Connector for Power BI",
+			   "de-AT", "1. Finance Connector for Power BI herunterladen",
+			   "de-CH", "1. Finance Connector for Power BI herunterladen",
+			   "en-AU", "1. Download the Finance Connector for Power BI",
+			   "en-CA", "1. Download the Finance Connector for Power BI",
+			   "en-GB", "1. Download the Finance Connector for Power BI",
+			   "en-NZ", "1. Download the Finance Connector for Power BI",
+			   "es-MX", "1. Descargar Finance Connector for Power BI",
+			   "fi-FI", "1. Lataa Finance Connector for Power BI",
+			   "fr-BE", "1. Téléchargez Finance Connector for Power BI",
+			   "fr-CA", "1. Téléchargez Finance Connector for Power BI",
+			   "fr-CH", "1. Téléchargez Finance Connector for Power BI",
+			   "is-IS", "1. Sækja Finance Connector for Power BI",
+			   "it-CH", "1. Scaricare Finance Connector for Power BI",
+			   "it-IT", "1. Scaricare Finance Connector for Power BI",
+			   "nb-NO", "1. Last ned Finance Connector for Power BI",
+			   "nl-BE", "1. De Finance Connector for Power BI downloaden",
+			   "nl-NL", "1. De Finance Connector for Power BI downloaden",
+			   "ru-RU", "1. Download the Finance Connector for Power BI",
+			   "sv-SE", "1. Ladda ned Finance Connector for Power BI",
+			   "1. Download the Finance Connector for Power BI"
+			)
+		isHidden
+		lineageTag: 9772b5df-04d4-4bd3-838a-40687eb3b9ef
+
+	measure '2. Configure Dynamics 365 Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "2. Configurar Dynamics 365 Business Central",
+			   "de-DE", "2. Dynamics 365 Business Central konfigurieren",
+			   "fr-FR", "2. Configurez Dynamics 365 Business Central",
+			   "cs-CZ", "2. Konfigurace Dynamics 365 Business Central",
+			   "da-DK", "2. Konfigurer Dynamics 365 Business Central",
+			   "de-AT", "2. Dynamics 365 Business Central konfigurieren",
+			   "de-CH", "2. Dynamics 365 Business Central konfigurieren",
+			   "en-AU", "2. Configure Dynamics 365 Business Central",
+			   "en-CA", "2. Configure Dynamics 365 Business Central",
+			   "en-GB", "2. Configure Dynamics 365 Business Central",
+			   "en-NZ", "2. Configure Dynamics 365 Business Central",
+			   "es-MX", "2. Configurar Dynamics 365 Business Central",
+			   "fi-FI", "2. Määritä Dynamics 365 Business Central",
+			   "fr-BE", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CA", "2. Configurez Dynamics 365 Business Central",
+			   "fr-CH", "2. Configurez Dynamics 365 Business Central",
+			   "is-IS", "2. Grunnstillið Dynamics 365 Business Central",
+			   "it-CH", "2. Configurare Dynamics 365 Business Central",
+			   "it-IT", "2. Configurare Dynamics 365 Business Central",
+			   "nb-NO", "2. Konfigurer Dynamics 365 Business Central",
+			   "nl-BE", "2. Dynamics 365 Business Central configureren",
+			   "nl-NL", "2. Dynamics 365 Business Central configureren",
+			   "ru-RU", "2. Configure Dynamics 365 Business Central",
+			   "sv-SE", "2. Konfigurera Dynamics 365 Business Central",
+			   "2. Configure Dynamics 365 Business Central"
+			)
+		isHidden
+		lineageTag: 505d182c-06ee-48c5-94ae-69d2ac2a76e2
+
+	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "de-DE", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "fr-FR", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "cs-CZ", "POUŽÍVÁNÍ, ÚPRAVA A TVORBA VLASTNÍCH SESTAV",
+			   "da-DK", "BRUG, REDIGER OG OPRET DINE EGNE RAPPORTER",
+			   "de-AT", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "de-CH", "EIGENE BERICHTE VERWENDEN, BEARBEITEN UND ERSTELLEN",
+			   "en-AU", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-CA", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-GB", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "en-NZ", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "es-MX", "USAR, EDITAR Y CREAR SUS PROPIOS INFORMES",
+			   "fi-FI", "KÄYTÄ, MUOKKAA JA LUO OMIA RAPORTTEJA",
+			   "fr-BE", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "fr-CA", "Utilisez, modifiez et créez vos propres rapports",
+			   "fr-CH", "UTILISER, MODIFIER ET CRÉER VOS PROPRES ÉTATS",
+			   "is-IS", "NOTIÐ, BREYTIÐ OG BÚIÐ TIL EIGIN SKÝRSLUR",
+			   "it-CH", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "it-IT", "USA, MODIFICA E CREA I TUOI REPORT",
+			   "nb-NO", "BRUK, REDIGER OG BYGG DINE EGNE RAPPORTER",
+			   "nl-BE", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "nl-NL", "UW EIGEN RAPPORTEN GEBRUIKEN, BEWERKEN EN MAKEN",
+			   "ru-RU", "USE, EDIT AND BUILD YOUR OWN REPORTS",
+			   "sv-SE", "ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER",
+			   "USE, EDIT AND BUILD YOUR OWN REPORTS"
+			)
+		isHidden
+		lineageTag: bfe44083-3059-4e9b-9446-5afe0d3b2008
+
+	measure 'Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Finanzas incluye una variedad de informes prediseñados para ayudarlo a ver sus datos de inmediato. Puede editar estos informes o crear el suyo propio desde cero.",
+			   "de-DE", "Finanzen enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können. Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "fr-FR", "Finance inclut une variété d’états prédéfinis pour vous aider à voir vos données immédiatement. Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "cs-CZ", "Finance obsahují řadu předpřipravených sestav, které vám pomohou okamžitě zobrazit vaše data. Tyto sestavy můžete upravovat nebo si vytvořit vlastní sestavu od základu.",
+			   "da-DK", "Finans indeholder en række færdigbyggede rapporter, der hjælper dig med at få vist dine data med det samme. Du kan redigere disse rapporter eller oprette din egen rapport fra bunden.",
+			   "de-AT", "Finanzen enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können. Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "de-CH", "Finanzen enthält eine Vielzahl vordefinierter Berichte, mit denen Sie Ihre Daten unmittelbar ansehen können. Sie können diese Berichte bearbeiten oder Ihren eigenen Bericht von Grund auf neu erstellen.",
+			   "en-AU", "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.",
+			   "en-CA", "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.",
+			   "en-GB", "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.",
+			   "en-NZ", "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.",
+			   "es-MX", "Finanzas incluye una variedad de informes prediseñados para ayudarlo a ver sus datos de inmediato. Puede editar estos informes o crear el suyo propio desde cero.",
+			   "fi-FI", "Taloushallinto sisältää erilaisia esimääritettyjä raportteja, joiden avulla voit tarkastella tietoja välittömästi. Voit muokata näitä raportteja tai luoda oman raportin alusta alkaen.",
+			   "fr-BE", "Finance inclut une variété d’états prédéfinis pour vous aider à voir vos données immédiatement. Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "fr-CA", "La fonction Finance comprend divers rapports prédéfinis qui vous permettent de visualiser immédiatement vos données. Vous pouvez modifier ces rapports ou créer vos propres rapports à partir de zéro.",
+			   "fr-CH", "Finance inclut une variété d’états prédéfinis pour vous aider à voir vos données immédiatement. Vous pouvez modifier ces états ou créer votre propre état à partir de zéro.",
+			   "is-IS", "Fjármál bjóða upp á innbyggðar skýrslur til að skoða gögn samstundis. Hægt er að breyta skýrslunum eða búa til eigin skýrslur frá grunni.",
+			   "it-CH", "I dati finanziari includono una serie di report predefiniti che consentono di visualizzare immediatamente i dati. È possibile modificare questi report o creare il proprio report da zero.",
+			   "it-IT", "I dati finanziari includono una serie di report predefiniti che consentono di visualizzare immediatamente i dati. È possibile modificare questi report o creare il proprio report da zero.",
+			   "nb-NO", "Finans inneholder en rekke forhåndsbygde rapporter som hjelper deg med å se dataene umiddelbart. Du kan redigere disse rapportene eller lage din egen rapport fra bunnen av.",
+			   "nl-BE", "Financiën omvatten een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken. U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.",
+			   "nl-NL", "Financiën omvatten een verscheidenheid aan vooraf gemaakte rapporten om u te helpen uw gegevens direct te bekijken. U kunt deze rapporten bewerken of uw eigen rapport helemaal opnieuw maken.",
+			   "ru-RU", "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.",
+			   "sv-SE", "Ekonomi omfattar en mängd olika färdiga rapporter som gör det enkelt att se data direkt. Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.",
+			   "Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch."
+			)
+		isHidden
+		lineageTag: ceeaec60-9424-4b93-ac1a-d5c59468fc3b
+
+	measure 'HELP AND SUPPORT Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "AYUDA Y SOPORTE",
+			   "de-DE", "HILFE UND SUPPORT",
+			   "fr-FR", "AIDE ET SUPPORT",
+			   "cs-CZ", "POMOC A PODPORA",
+			   "da-DK", "HJÆLP OG SUPPORT",
+			   "de-AT", "HILFE UND SUPPORT",
+			   "de-CH", "HILFE UND SUPPORT",
+			   "en-AU", "HELP AND SUPPORT",
+			   "en-CA", "HELP AND SUPPORT",
+			   "en-GB", "HELP AND SUPPORT",
+			   "en-NZ", "HELP AND SUPPORT",
+			   "es-MX", "AYUDA Y SOPORTE",
+			   "fi-FI", "OHJE JA TUKI",
+			   "fr-BE", "AIDE ET SUPPORT",
+			   "fr-CA", "AIDE ET SUPPORT",
+			   "fr-CH", "AIDE ET SUPPORT",
+			   "is-IS", "HJÁLP OG STUÐNINGUR",
+			   "it-CH", "GUIDA E SUPPORTO",
+			   "it-IT", "GUIDA E SUPPORTO",
+			   "nb-NO", "HJELP OG KUNDESTØTTE",
+			   "nl-BE", "HELP EN ONDERSTEUNING",
+			   "nl-NL", "HELP EN ONDERSTEUNING",
+			   "ru-RU", "HELP AND SUPPORT",
+			   "sv-SE", "HJÄLP OCH SUPPORT",
+			   "HELP AND SUPPORT"
+			)
+		isHidden
+		lineageTag: 1a06eb7f-6bcd-45ee-846f-bbd42b32124d
+
+	measure 'For help and support with your new report please visit the Analytics overview documentation. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "de-DE", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "fr-FR", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "cs-CZ", "Nápovědu a podporu k nové sestavě naleznete v dokumentaci k přehledu Analytics.",
+			   "da-DK", "Du kan få hjælp og support til din nye rapport i dokumentationen til analyseoversigten.",
+			   "de-AT", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "de-CH", "Hilfe und Unterstützung für Ihren neuen Bericht finden Sie in der Dokumentation Analysen – Übersicht.",
+			   "en-AU", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-CA", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-GB", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "en-NZ", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "es-MX", "Para obtener ayuda y soporte técnico con su nuevo informe, visite la documentación de información general de Analytics.",
+			   "fi-FI", "Lisätietoja ja tukea uudelle raportillesi löydät analytiikan yleiskatsauksen dokumentaatiosta.",
+			   "fr-BE", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "fr-CA", "Pour obtenir de l’aide et de l’assistance concernant votre nouveau rapport, veuillez consulter la documentation relative à la présentation générale des analyses.",
+			   "fr-CH", "Pour obtenir de l’aide et de l’assistance concernant votre nouvel état, consultez la documentation de vue d’ensemble de l’analyse.",
+			   "is-IS", "Lesið fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð við nýju skýrsluna.",
+			   "it-CH", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "it-IT", "Per assistenza e supporto per il nuovo report, vedere la documentazione generale di analisi.",
+			   "nb-NO", "Hvis du vil ha hjelp og støtte med den nye rapporten, kan du gå til dokumentasjonen for analyseoversikten.",
+			   "nl-BE", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "nl-NL", "Ga voor hulp en ondersteuning met uw nieuwe rapport naar de Analytics-overzichtsdocumentatie.",
+			   "ru-RU", "For help and support with your new report please visit the Analytics overview documentation.",
+			   "sv-SE", "Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.",
+			   "For help and support with your new report please visit the Analytics overview documentation."
+			)
+		isHidden
+		lineageTag: aa852ca7-c9f6-4dda-b81f-bad8e2eb7ed2
+
+	measure 'for Business Central Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "para Business Central",
+			   "de-DE", "für Business Central",
+			   "fr-FR", "pour Business Central",
+			   "cs-CZ", "pro Business Central",
+			   "da-DK", "til Business Central",
+			   "de-AT", "für Business Central",
+			   "de-CH", "für Business Central",
+			   "en-AU", "for Business Central",
+			   "en-CA", "for Business Central",
+			   "en-GB", "for Business Central",
+			   "en-NZ", "for Business Central",
+			   "es-MX", "para Business Central",
+			   "fi-FI", "Business Centralille",
+			   "fr-BE", "pour Business Central",
+			   "fr-CA", "pour Business Central",
+			   "fr-CH", "pour Business Central",
+			   "is-IS", "fyrir Business Central",
+			   "it-CH", "per Business Central",
+			   "it-IT", "per Business Central",
+			   "nb-NO", "for Business Central",
+			   "nl-BE", "voor Business Central",
+			   "nl-NL", "voor Business Central",
+			   "ru-RU", "for Business Central",
+			   "sv-SE", "för Business Central",
+			   "for Business Central"
+			)
+		isHidden
+		lineageTag: 22f69113-2403-4419-b18c-47638af906f6
+
+	measure 'Last Refreshed Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Última actualización",
+			   "de-DE", "Zuletzt aktualisiert",
+			   "fr-FR", "Dernière actualisation",
+			   "cs-CZ", "Naposledy aktualizováno",
+			   "da-DK", "Sidst opdateret",
+			   "de-AT", "Zuletzt aktualisiert",
+			   "de-CH", "Zuletzt aktualisiert",
+			   "en-AU", "Last Refreshed",
+			   "en-CA", "Last Refreshed",
+			   "en-GB", "Last Refreshed",
+			   "en-NZ", "Last Refreshed",
+			   "es-MX", "Última actualización",
+			   "fi-FI", "Päivitetty viimeksi",
+			   "fr-BE", "Dernière actualisation",
+			   "fr-CA", "Dernière actualisation",
+			   "fr-CH", "Dernière actualisation",
+			   "is-IS", "Síðast uppfært",
+			   "it-CH", "Ultimo aggiornamento",
+			   "it-IT", "Ultimo aggiornamento",
+			   "nb-NO", "Sist oppdatert",
+			   "nl-BE", "Laatst vernieuwd",
+			   "nl-NL", "Laatst vernieuwd",
+			   "ru-RU", "Last Refreshed",
+			   "sv-SE", "Uppdaterades senast",
+			   "Last Refreshed"
+			)
+		isHidden
+		lineageTag: c2f4d7e8-3ab0-4c92-99b7-8b6909b877f6
+
+	measure 'Company Name Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Nombre empresa",
+			   "de-DE", "Mandantenname",
+			   "fr-FR", "Nom de la société",
+			   "cs-CZ", "Název společnosti",
+			   "da-DK", "Virksomhedsnavn",
+			   "de-AT", "Mandantenname",
+			   "de-CH", "Mandantenname",
+			   "en-AU", "Company Name",
+			   "en-CA", "Company Name",
+			   "en-GB", "Company Name",
+			   "en-NZ", "Company Name",
+			   "es-MX", "Nombre empresa",
+			   "fi-FI", "Yrityksen nimi",
+			   "fr-BE", "Nom de la société",
+			   "fr-CA", "Nom de la compagnie",
+			   "fr-CH", "Nom de la société",
+			   "is-IS", "Heiti fyrirtækis",
+			   "it-CH", "Nome società",
+			   "it-IT", "Nome società",
+			   "nb-NO", "Selskapsnavn",
+			   "nl-BE", "Bedrijfsnaam",
+			   "nl-NL", "Bedrijfsnaam",
+			   "ru-RU", "Company Name",
+			   "sv-SE", "Företagsnamn",
+			   "Company Name"
+			)
+		isHidden
+		lineageTag: 5bb86a40-da74-45a7-a578-96b3e6fd8f51
+
+	measure 'Analysis Entries as of Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Movimientos de análisis a partir de",
+			   "de-DE", "Analyseposten zum",
+			   "fr-FR", "Écritures analyse au",
+			   "cs-CZ", "Položky analýzy ke dni",
+			   "da-DK", "Analyseposter fra og med",
+			   "de-AT", "Analyseposten zum",
+			   "de-CH", "Analyseposten zum",
+			   "en-AU", "Analysis Entries as of",
+			   "en-CA", "Analysis Entries as of",
+			   "en-GB", "Analysis Entries as of",
+			   "en-NZ", "Analysis Entries as of",
+			   "es-MX", "Movimientos de análisis a partir de",
+			   "fi-FI", "Analyysitapahtumat alkaen",
+			   "fr-BE", "Écritures analyse au",
+			   "fr-CA", "Écritures analyse au",
+			   "fr-CH", "Écritures analyse au",
+			   "is-IS", "Greiningarfærslur frá og með",
+			   "it-CH", "Movimenti analisi a partire da",
+			   "it-IT", "Movimenti analisi a partire da",
+			   "nb-NO", "Analyseposter per",
+			   "nl-BE", "Analyseposten vanaf",
+			   "nl-NL", "Analyseposten vanaf",
+			   "ru-RU", "Analysis Entries as of",
+			   "sv-SE", "Analysera transaktioner per",
+			   "Analysis Entries as of"
+			)
+		isHidden
+		lineageTag: db46ff2d-9067-48a8-950c-944de7f0a5eb
+
+	measure 'Billing Forecast by Billing Period, Customer and Contract No. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Previsión de facturación por periodo de facturación, cliente y n.º contrato",
+			   "de-DE", "Abrechnungsplanung nach Abrechnungsperiode, Debitor und Vertragsnr.",
+			   "fr-FR", "Prévision de facturation par période de facturation, client et n° contrat",
+			   "cs-CZ", "Prognóza fakturace podle fakturačního období, zákazníka a č. smlouvy",
+			   "da-DK", "Faktureringsprognose efter faktureringsperiode, debitor og kontraktnr.",
+			   "de-AT", "Abrechnungsplanung nach Abrechnungsperiode, Debitor und Vertragsnr.",
+			   "de-CH", "Abrechnungsplanung nach Abrechnungsperiode, Debitor und Vertragsnr.",
+			   "en-AU", "Billing Forecast by Billing Period, Customer and Contract No.",
+			   "en-CA", "Billing Forecast by Billing Period, Customer and Contract No.",
+			   "en-GB", "Billing Forecast by Billing Period, Customer and Contract No.",
+			   "en-NZ", "Billing Forecast by Billing Period, Customer and Contract No.",
+			   "es-MX", "Previsión de facturación por periodo de facturación, cliente y n.º contrato",
+			   "fi-FI", "Laskutusennuste laskutuskauden, asiakkaan ja sopimuksen numeron mukaan",
+			   "fr-BE", "Prévision de facturation par période de facturation, client et n° contrat",
+			   "fr-CA", "Prévision de facturation par période de facturation, client et n° contrat",
+			   "fr-CH", "Prévision de facturation par période de facturation, client et n° contrat",
+			   "is-IS", "Reikningsspá eftir reikningstímabili, viðskiptavini og samningsnúmeri.",
+			   "it-CH", "Previsione di fatturazione per periodo di fatturazione, cliente e nr. contratto",
+			   "it-IT", "Previsione di fatturazione per periodo di fatturazione, cliente e nr. contratto",
+			   "nb-NO", "Faktureringsprognose etter faktureringsperiode, kunde- og kontraktnr.",
+			   "nl-BE", "Factureringsprognose per factureringsperiode, klant en contractnr.",
+			   "nl-NL", "Factureringsprognose per factureringsperiode, klant en contractnr.",
+			   "ru-RU", "Billing Forecast by Billing Period, Customer and Contract No.",
+			   "sv-SE", "Faktureringsprognos per faktureringsperiod, kund och kontraktsnr",
+			   "Billing Forecast by Billing Period, Customer and Contract No."
+			)
+		isHidden
+		lineageTag: eacca12c-73a5-41d8-ac27-1f3474816b6b
+
+	measure 'Billing Forecast by Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Previsión de facturación por mes y año naturales",
+			   "de-DE", "Abrechnungsplanung nach Kalenderjahr und Monat",
+			   "fr-FR", "Prévision de facturation par année civile et par mois",
+			   "cs-CZ", "Prognóza fakturace podle kalendářního roku a měsíce",
+			   "da-DK", "Faktureringsprognose efter kalenderår og måned",
+			   "de-AT", "Abrechnungsplanung nach Kalenderjahr und Monat",
+			   "de-CH", "Abrechnungsplanung nach Kalenderjahr und Monat",
+			   "en-AU", "Billing Forecast by Calendar Year and Month",
+			   "en-CA", "Billing Forecast by Calendar Year and Month",
+			   "en-GB", "Billing Forecast by Calendar Year and Month",
+			   "en-NZ", "Billing Forecast by Calendar Year and Month",
+			   "es-MX", "Previsión de facturación por mes y año naturales",
+			   "fi-FI", "Laskutusennuste kalenterivuosittain ja -kuukausittain",
+			   "fr-BE", "Prévision de facturation par année civile et par mois",
+			   "fr-CA", "Prévision de facturation par année civile et par mois",
+			   "fr-CH", "Prévision de facturation par année civile et par mois",
+			   "is-IS", "Reikningsspá eftir almanaksári og -mánuði",
+			   "it-CH", "Previsione fatturazione per anno e mese di calendario",
+			   "it-IT", "Previsione fatturazione per anno e mese di calendario",
+			   "nb-NO", "Faktureringsprognose etter kalenderår og måned",
+			   "nl-BE", "Factureringsprognose per kalenderjaar en -maand",
+			   "nl-NL", "Factureringsprognose per kalenderjaar en -maand",
+			   "ru-RU", "Billing Forecast by Calendar Year and Month",
+			   "sv-SE", "Faktureringsprognos per kalenderår och månad",
+			   "Billing Forecast by Calendar Year and Month"
+			)
+		isHidden
+		lineageTag: 8926a0f2-b801-4546-9dbd-74b5c2cef0fc
+
+	measure 'Billing Schedule Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Programación de facturación",
+			   "de-DE", "Abrechnungszeitplan",
+			   "fr-FR", "Échéancier de facturation",
+			   "cs-CZ", "Plán fakturace",
+			   "da-DK", "Faktureringsskema",
+			   "de-AT", "Abrechnungszeitplan",
+			   "de-CH", "Abrechnungszeitplan",
+			   "en-AU", "Billing Schedule",
+			   "en-CA", "Billing Schedule",
+			   "en-GB", "Billing Schedule",
+			   "en-NZ", "Billing Schedule",
+			   "es-MX", "Programación de facturación",
+			   "fi-FI", "Laskutusaikataulu",
+			   "fr-BE", "Échéancier de facturation",
+			   "fr-CA", "Calendrier de facturation",
+			   "fr-CH", "Échéancier de facturation",
+			   "is-IS", "Greiðsluáætlun",
+			   "it-CH", "Programmazione fatturazione",
+			   "it-IT", "Programmazione fatturazione",
+			   "nb-NO", "Faktureringsplan",
+			   "nl-BE", "Factureringsplanning",
+			   "nl-NL", "Factureringsplanning",
+			   "ru-RU", "Billing Schedule",
+			   "sv-SE", "Faktureringsschema",
+			   "Billing Schedule"
+			)
+		isHidden
+		lineageTag: 865a4b2c-b572-4eb4-a885-1d3e9051b912
+
+	measure 'Change of Mon. Recurring Revenue by Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Cambio de ingresos periódicos mensuales por mes y año",
+			   "de-DE", "Änderung dermon. wiederkehrenden Umsätze nach Jahr und Monat",
+			   "fr-FR", "Modification revenu récurrent mensuel par année et par mois",
+			   "cs-CZ", "Změna měsíčního periodického výnosu podle roku a měsíce",
+			   "da-DK", "Ændring af månedlig tilbagevendende omsætning efter kalenderår og måned",
+			   "de-AT", "Änderung dermon. wiederkehrenden Umsätze nach Jahr und Monat",
+			   "de-CH", "Änderung dermon. wiederkehrenden Umsätze nach Jahr und Monat",
+			   "en-AU", "Change of Mon. Recurring Revenue by Year and Month",
+			   "en-CA", "Change of Mon. Recurring Revenue by Year and Month",
+			   "en-GB", "Change of Mon. Recurring Revenue by Year and Month",
+			   "en-NZ", "Change of Mon. Recurring Revenue by Year and Month",
+			   "es-MX", "Cambio de ingresos periódicos mensuales por mes y año",
+			   "fi-FI", "Kk:ttain toistuvan tuoton muutos vuosittain ja kuukausittain",
+			   "fr-BE", "Modification revenu récurrent mensuel par année et par mois",
+			   "fr-CA", "Modification revenu récurrent mensuel par année et par mois",
+			   "fr-CH", "Modification revenu récurrent mensuel par année et par mois",
+			   "is-IS", "Breyting á mán. endurteknum tekjum eftir ári og mánuði",
+			   "it-CH", "Modifica dei ricavi periodici mensili per anno e mese",
+			   "it-IT", "Modifica dei ricavi periodici mensili per anno e mese",
+			   "nb-NO", "Endring i månedlig gjentakende inntekt etter år og måned",
+			   "nl-BE", "Wijziging van maand. periodieke opbrengst per jaar en maand",
+			   "nl-NL", "Wijziging van maand. periodieke opbrengst per jaar en maand",
+			   "ru-RU", "Change of Mon. Recurring Revenue by Year and Month",
+			   "sv-SE", "Ändring av månatliga återkommande intäkter per år och månad",
+			   "Change of Mon. Recurring Revenue by Year and Month"
+			)
+		isHidden
+		lineageTag: aef7110a-9887-4880-bbc5-eac2cdbafeaa
+
+	measure 'Current Date Range: Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Intervalo de fechas actual:",
+			   "de-DE", "Aktueller Datumsbereich:",
+			   "fr-FR", "Plage de dates actuelle :",
+			   "cs-CZ", "Aktuální rozsah dat:",
+			   "da-DK", "Aktuelt datointerval:",
+			   "de-AT", "Aktueller Datumsbereich:",
+			   "de-CH", "Aktueller Datumsbereich:",
+			   "en-AU", "Current Date Range:",
+			   "en-CA", "Current Date Range:",
+			   "en-GB", "Current Date Range:",
+			   "en-NZ", "Current Date Range:",
+			   "es-MX", "Intervalo de fechas actual:",
+			   "fi-FI", "Nykyinen päivämääräalue:",
+			   "fr-BE", "Plage de dates actuelle :",
+			   "fr-CA", "Plage de dates actuelle :",
+			   "fr-CH", "Plage de dates actuelle :",
+			   "is-IS", "Núverandi dagsetningabil:",
+			   "it-CH", "Intervallo di date corrente:",
+			   "it-IT", "Intervallo di date corrente:",
+			   "nb-NO", "Nåværende datoområde:",
+			   "nl-BE", "Huidig datumbereik:",
+			   "nl-NL", "Huidig datumbereik:",
+			   "ru-RU", "Current Date Range:",
+			   "sv-SE", "Aktuellt datumintervall:",
+			   "Current Date Range:"
+			)
+		isHidden
+		lineageTag: accb641e-9b2e-4e22-ac79-43979ef7a88e
+
+	measure 'Customer Contract Deferrals Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Fraccionamientos de contratos de clientes",
+			   "de-DE", "Abgrenzungen von Debitorenverträgen",
+			   "fr-FR", "Reports contrat client",
+			   "cs-CZ", "Časová rozlišení zákaznické smlouvy",
+			   "da-DK", "Periodiseringer af debitorkontrakt",
+			   "de-AT", "Abgrenzungen von Debitorenverträgen",
+			   "de-CH", "Abgrenzungen von Debitorenverträgen",
+			   "en-AU", "Customer Contract Deferrals",
+			   "en-CA", "Customer Contract Deferrals",
+			   "en-GB", "Customer Contract Deferrals",
+			   "en-NZ", "Customer Contract Deferrals",
+			   "es-MX", "Fraccionamientos de contratos de clientes",
+			   "fi-FI", "Asiakassopimuksen siirrot",
+			   "fr-BE", "Reports contrat client",
+			   "fr-CA", "Reports contrat client",
+			   "fr-CH", "Reports contrat client",
+			   "is-IS", "Samningsfrestanir viðskiptavinar",
+			   "it-CH", "Differimenti contratto del cliente",
+			   "it-IT", "Differimenti contratto del cliente",
+			   "nb-NO", "Kundekontraktperiodiseringer",
+			   "nl-BE", "Uitstel van klantcontracten",
+			   "nl-NL", "Uitstel van klantcontracten",
+			   "ru-RU", "Customer Contract Deferrals",
+			   "sv-SE", "Periodiseringar av kundkontrakt",
+			   "Customer Contract Deferrals"
+			)
+		isHidden
+		lineageTag: 7d2fa010-f223-40d7-be7b-6fd98ec89ff2
+
+	measure 'Customer Contract Lines Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Líneas de contrato de cliente",
+			   "de-DE", "Debitorenvertragszeilen",
+			   "fr-FR", "Lignes contrat client",
+			   "cs-CZ", "Řádky zákaznické smlouvy",
+			   "da-DK", "Debitorkontraktlinjer",
+			   "de-AT", "Debitorenvertragszeilen",
+			   "de-CH", "Debitorenvertragszeilen",
+			   "en-AU", "Customer Contract Lines",
+			   "en-CA", "Customer Contract Lines",
+			   "en-GB", "Customer Contract Lines",
+			   "en-NZ", "Customer Contract Lines",
+			   "es-MX", "Líneas de contrato de cliente",
+			   "fi-FI", "Asiakassopimusrivit",
+			   "fr-BE", "Lignes contrat client",
+			   "fr-CA", "Lignes contrat client",
+			   "fr-CH", "Lignes contrat client",
+			   "is-IS", "Samningslínur viðskiptavinar",
+			   "it-CH", "Righe contratto del cliente",
+			   "it-IT", "Righe contratto del cliente",
+			   "nb-NO", "Kundekontraktlinjer",
+			   "nl-BE", "Klantcontractregels",
+			   "nl-NL", "Klantcontractregels",
+			   "ru-RU", "Customer Contract Lines",
+			   "sv-SE", "Kundkontraktsrader",
+			   "Customer Contract Lines"
+			)
+		isHidden
+		lineageTag: 3fe6d9b4-da2c-4f13-9fbc-173a3c9d08e0
+
+	measure 'Customer Deferrals (Caption) Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Fraccionamientos de clientes",
+			   "de-DE", "Debitorenabgrenzungen",
+			   "fr-FR", "Reports client",
+			   "cs-CZ", "Časová rozlišení zákazníka",
+			   "da-DK", "Debitorperiodiseringer",
+			   "de-AT", "Debitorenabgrenzungen",
+			   "de-CH", "Debitorenabgrenzungen",
+			   "en-AU", "Customer Deferrals",
+			   "en-CA", "Customer Deferrals",
+			   "en-GB", "Customer Deferrals",
+			   "en-NZ", "Customer Deferrals",
+			   "es-MX", "Fraccionamientos de clientes",
+			   "fi-FI", "Asiakassiirrot",
+			   "fr-BE", "Reports client",
+			   "fr-CA", "Reports client",
+			   "fr-CH", "Reports client",
+			   "is-IS", "Frestanir viðskiptamanns",
+			   "it-CH", "Differimenti cliente",
+			   "it-IT", "Differimenti cliente",
+			   "nb-NO", "Kundeperiodiseringer",
+			   "nl-BE", "Klantuitstel",
+			   "nl-NL", "Klantuitstel",
+			   "ru-RU", "Customer Deferrals",
+			   "sv-SE", "Kundperiodiseringar",
+			   "Customer Deferrals"
+			)
+		isHidden
+		lineageTag: 8c05fa4e-a749-4fbc-93a1-527472053349
+
+	measure 'Mon. Recurring Revenue Analysis Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis de ingresos periódicos mensuales",
+			   "de-DE", "Mon. wiederkehrende Umsatzanalyse",
+			   "fr-FR", "Analyse du revenu récurrent mensuel",
+			   "cs-CZ", "Analýza měsíčních periodických výnosů",
+			   "da-DK", "Månedlig tilbagevendende indtægtsanalyse",
+			   "de-AT", "Mon. wiederkehrende Umsatzanalyse",
+			   "de-CH", "Mon. wiederkehrende Umsatzanalyse",
+			   "en-AU", "Mon. Recurring Revenue Analysis",
+			   "en-CA", "Mon. Recurring Revenue Analysis",
+			   "en-GB", "Mon. Recurring Revenue Analysis",
+			   "en-NZ", "Mon. Recurring Revenue Analysis",
+			   "es-MX", "Análisis de ingresos periódicos mensuales",
+			   "fi-FI", "Kk:ttain toistuvan tuoton analyysi",
+			   "fr-BE", "Analyse du revenu récurrent mensuel",
+			   "fr-CA", "Analyse du revenu récurrent mensuel",
+			   "fr-CH", "Analyse du revenu récurrent mensuel",
+			   "is-IS", "Mán. endurtekin tekjugreining",
+			   "it-CH", "Analisi ricavi periodici mensili",
+			   "it-IT", "Analisi ricavi periodici mensili",
+			   "nb-NO", "Månedlig gjentakende inntektsanalyse",
+			   "nl-BE", "Maand. periodieke analyse van opbrengst",
+			   "nl-NL", "Maand. periodieke analyse van opbrengst",
+			   "ru-RU", "Mon. Recurring Revenue Analysis",
+			   "sv-SE", "Analys av månatliga återkommande intäkter",
+			   "Mon. Recurring Revenue Analysis"
+			)
+		isHidden
+		lineageTag: cd6ddd4f-6d85-40e1-8914-6bf7d30edade
+
+	measure 'Mon. Recurring Revenue and Mon. Recurring Revenue PY by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos periódicos mensuales e ingresos periódicos mensuales AA por mes natural",
+			   "de-DE", "Mon. wiederkehrende Umsätze und monatlich wiederkehrende Umsätze VJ nach Kalendermonat",
+			   "fr-FR", "Revenu récurrent mensuel et revenu récurrent mensuel AP par mois civil",
+			   "cs-CZ", "Měsíční periodické výnosy a měsíční periodické výnosy PR podle kalendářního měsíce",
+			   "da-DK", "Månedlige tilbagevendende indtægter og månedlige tilbagevendende indtægter FÅ efter kalendermåned",
+			   "de-AT", "Mon. wiederkehrende Umsätze und monatlich wiederkehrende Umsätze VJ nach Kalendermonat",
+			   "de-CH", "Mon. wiederkehrende Umsätze und monatlich wiederkehrende Umsätze VJ nach Kalendermonat",
+			   "en-AU", "Mon. Recurring Revenue and Mon. Recurring Revenue PY by Calendar Month",
+			   "en-CA", "Mon. Recurring Revenue and Mon. Recurring Revenue PY by Calendar Month",
+			   "en-GB", "Mon. Recurring Revenue and Mon. Recurring Revenue PY by Calendar Month",
+			   "en-NZ", "Mon. Recurring Revenue and Mon. Recurring Revenue PY by Calendar Month",
+			   "es-MX", "Ingresos periódicos mensuales e ingresos periódicos mensuales AA por mes natural",
+			   "fi-FI", "Kk:ttain toistuva tuotto ja Kk:ttain toistuva tuotto EDV kalenterikuukausittain",
+			   "fr-BE", "Revenu récurrent mensuel et revenu récurrent mensuel AP par mois civil",
+			   "fr-CA", "Revenu récurrent mensuel et revenu récurrent mensuel AP par mois civil",
+			   "fr-CH", "Revenu récurrent mensuel et revenu récurrent mensuel AP par mois civil",
+			   "is-IS", "Mán. endurteknar tekjur og mán. endurteknar tekjur fyrra árs eftir almanaksmánuði",
+			   "it-CH", "Ricavi periodici mensili e ricavi periodici mensili PY per mese di calendario",
+			   "it-IT", "Ricavi periodici mensili e ricavi periodici mensili PY per mese di calendario",
+			   "nb-NO", "Månedlig gjentakende inntekt og månedlig gjentakende inntekt PÅ etter kalendermåned",
+			   "nl-BE", "Maand. periodieke opbrengst en maand. periodieke opbrengst VJ per kalendermaand",
+			   "nl-NL", "Maand. periodieke opbrengst en maand. periodieke opbrengst VJ per kalendermaand",
+			   "ru-RU", "Mon. Recurring Revenue and Mon. Recurring Revenue PY by Calendar Month",
+			   "sv-SE", "Månatliga återkommande intäkter och månatliga återkommande intäkter FÅ per kalendermånad",
+			   "Mon. Recurring Revenue and Mon. Recurring Revenue PY by Calendar Month"
+			)
+		isHidden
+		lineageTag: b5089048-3bc4-4df8-995e-8a8463f0660d
+
+	measure 'Mon. Recurring Revenue and Year-Over-Year Growth by Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos periódicos mensuales y crecimiento interanual por mes y año naturales",
+			   "de-DE", "Mon. wiederkehrende Umsätze und Wachstum gegenüber dem Vorjahr nach Kalenderjahr und Monat",
+			   "fr-FR", "Revenu récurrent mensuel et croissance d’une année à l’autre par année civile et par mois",
+			   "cs-CZ", "Měsíční periodické výnosy a meziroční růst podle kalendářního roku a měsíce",
+			   "da-DK", "Månedlig tilbagevendende omsætning og vækst fra år til år efter kalenderår og måned",
+			   "de-AT", "Mon. wiederkehrende Umsätze und Wachstum gegenüber dem Vorjahr nach Kalenderjahr und Monat",
+			   "de-CH", "Mon. wiederkehrende Umsätze und Wachstum gegenüber dem Vorjahr nach Kalenderjahr und Monat",
+			   "en-AU", "Mon. Recurring Revenue and Year-Over-Year Growth by Calendar Year and Month",
+			   "en-CA", "Mon. Recurring Revenue and Year-Over-Year Growth by Calendar Year and Month",
+			   "en-GB", "Mon. Recurring Revenue and Year-Over-Year Growth by Calendar Year and Month",
+			   "en-NZ", "Mon. Recurring Revenue and Year-Over-Year Growth by Calendar Year and Month",
+			   "es-MX", "Ingresos periódicos mensuales y crecimiento interanual por mes y año naturales",
+			   "fi-FI", "Kk:ttain toistuva tuotto ja vuosittainen kasvu kalenterivuosittain ja -kuukausittain",
+			   "fr-BE", "Revenu récurrent mensuel et croissance d’une année à l’autre par année civile et par mois",
+			   "fr-CA", "Revenu récurrent mensuel et croissance d’une année à l’autre par année civile et par mois",
+			   "fr-CH", "Revenu récurrent mensuel et croissance d’une année à l’autre par année civile et par mois",
+			   "is-IS", "Mán. endurteknar tekjur og vöxtur milli ára eftir almanaksári og -mánuði",
+			   "it-CH", "Ricavi periodici mensili e crescita anno su anno per anno e mese di calendario",
+			   "it-IT", "Ricavi periodici mensili e crescita anno su anno per anno e mese di calendario",
+			   "nb-NO", "Månedlig gjentakende inntekst og vekst år for år etter kalenderår og måned",
+			   "nl-BE", "Maand. periodieke opbrengst en jaar-tot-jaar groei per kalenderjaar en -maand",
+			   "nl-NL", "Maand. periodieke opbrengst en jaar-tot-jaar groei per kalenderjaar en -maand",
+			   "ru-RU", "Mon. Recurring Revenue and Year-Over-Year Growth by Calendar Year and Month",
+			   "sv-SE", "Månatliga återkommande intäkter och tillväxt år för år per kalenderår och månad",
+			   "Mon. Recurring Revenue and Year-Over-Year Growth by Calendar Year and Month"
+			)
+		isHidden
+		lineageTag: b521b0eb-ead5-4caa-91ef-874354968829
+
+	measure 'Mon. Recurring Revenue by Customer Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos periódicos mensuales por cliente",
+			   "de-DE", "Mon. wiederkehrende Umsätze nach Debitor",
+			   "fr-FR", "Revenu récurrent mensuel par client",
+			   "cs-CZ", "Měsíční periodické výnosy podle zákazníka",
+			   "da-DK", "Månedlig tilbagevendende indtægt efter debitor",
+			   "de-AT", "Mon. wiederkehrende Umsätze nach Debitor",
+			   "de-CH", "Mon. wiederkehrende Umsätze nach Debitor",
+			   "en-AU", "Mon. Recurring Revenue by Customer",
+			   "en-CA", "Mon. Recurring Revenue by Customer",
+			   "en-GB", "Mon. Recurring Revenue by Customer",
+			   "en-NZ", "Mon. Recurring Revenue by Customer",
+			   "es-MX", "Ingresos periódicos mensuales por cliente",
+			   "fi-FI", "Kk:ttain toistuva tuotto asiakkaittain",
+			   "fr-BE", "Revenu récurrent mensuel par client",
+			   "fr-CA", "Revenu récurrent mensuel par client",
+			   "fr-CH", "Revenu récurrent mensuel par client",
+			   "is-IS", "Mán. endurteknar tekjur eftir viðskiptavini",
+			   "it-CH", "Ricavi periodici mensili per cliente",
+			   "it-IT", "Ricavi periodici mensili per cliente",
+			   "nb-NO", "Månedlig gjentakende inntekt etter kunde",
+			   "nl-BE", "Maand. periodieke opbrengst per klant",
+			   "nl-NL", "Maand. periodieke opbrengst per klant",
+			   "ru-RU", "Mon. Recurring Revenue by Customer",
+			   "sv-SE", "Månatliga återkommande intäkter per kund",
+			   "Mon. Recurring Revenue by Customer"
+			)
+		isHidden
+		lineageTag: c8865130-8a17-4abf-9171-091295bfad05
+
+	measure 'Mon. Recurring Revenue by Salesperson Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos periódicos mensuales por vendedor",
+			   "de-DE", "Mon. wiederkehrende Umsätze nach Verkäufer",
+			   "fr-FR", "Revenu récurrent mensuel par vendeur",
+			   "cs-CZ", "Měsíční periodické výnosy podle prodejce",
+			   "da-DK", "Månedlig tilbagevendende indtægt efter sælger",
+			   "de-AT", "Mon. wiederkehrende Umsätze nach Verkäufer",
+			   "de-CH", "Mon. wiederkehrende Umsätze nach Verkäufer",
+			   "en-AU", "Mon. Recurring Revenue by Salesperson",
+			   "en-CA", "Mon. Recurring Revenue by Salesperson",
+			   "en-GB", "Mon. Recurring Revenue by Salesperson",
+			   "en-NZ", "Mon. Recurring Revenue by Salesperson",
+			   "es-MX", "Ingresos periódicos mensuales por vendedor",
+			   "fi-FI", "Kk:ttain toistuva tuotto myyjittäin",
+			   "fr-BE", "Revenu récurrent mensuel par vendeur",
+			   "fr-CA", "Mois Revenus récurrents par représentant",
+			   "fr-CH", "Revenu récurrent mensuel par vendeur",
+			   "is-IS", "Mán. endurteknar tekjur eftir sölumanni",
+			   "it-CH", "Ricavi periodici mensili per venditore",
+			   "it-IT", "Ricavi periodici mensili per venditore",
+			   "nb-NO", "Månedlig gjentakende inntekt etter selger",
+			   "nl-BE", "Maand. periodieke opbrengst per verkoper",
+			   "nl-NL", "Maand. periodieke opbrengst per verkoper",
+			   "ru-RU", "Mon. Recurring Revenue by Salesperson",
+			   "sv-SE", "Månatliga återkommande intäkter per säljare",
+			   "Mon. Recurring Revenue by Salesperson"
+			)
+		isHidden
+		lineageTag: 3c59b695-be46-4a97-8d41-d3647e24acbc
+
+	measure 'Mon. Recurring Revenue by Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos periódicos mensuales por mes y año naturales",
+			   "de-DE", "Mon. wiederkehrende Umsätze nach Kalenderjahr und Monat",
+			   "fr-FR", "Revenu récurrent mensuel par année civile et par mois",
+			   "cs-CZ", "Měsíční periodické výnosy podle kalendářního roku a měsíce",
+			   "da-DK", "Månedlig tilbagevendende omsætning efter kalenderår og måned",
+			   "de-AT", "Mon. wiederkehrende Umsätze nach Kalenderjahr und Monat",
+			   "de-CH", "Mon. wiederkehrende Umsätze nach Kalenderjahr und Monat",
+			   "en-AU", "Mon. Recurring Revenue by Calendar Year and Month",
+			   "en-CA", "Mon. Recurring Revenue by Calendar Year and Month",
+			   "en-GB", "Mon. Recurring Revenue by Calendar Year and Month",
+			   "en-NZ", "Mon. Recurring Revenue by Calendar Year and Month",
+			   "es-MX", "Ingresos periódicos mensuales por mes y año naturales",
+			   "fi-FI", "Kk:ttain toistuva tuotto kalenterivuosittain ja -kuukausittain",
+			   "fr-BE", "Revenu récurrent mensuel par année civile et par mois",
+			   "fr-CA", "Revenu récurrent mensuel par année civile et par mois",
+			   "fr-CH", "Revenu récurrent mensuel par année civile et par mois",
+			   "is-IS", "Mán. endurteknar tekjur eftir almanaksári og -mánuði",
+			   "it-CH", "Ricavi periodici mensili per anno e mese di calendario",
+			   "it-IT", "Ricavi periodici mensili per anno e mese di calendario",
+			   "nb-NO", "Månedlig gjentakende inntekt etter kalenderår og måned",
+			   "nl-BE", "Maand. periodieke opbrengst per kalenderjaar en -maand",
+			   "nl-NL", "Maand. periodieke opbrengst per kalenderjaar en -maand",
+			   "ru-RU", "Mon. Recurring Revenue by Calendar Year and Month",
+			   "sv-SE", "Månatliga återkommande intäkter per kalenderår och månad",
+			   "Mon. Recurring Revenue by Calendar Year and Month"
+			)
+		isHidden
+		lineageTag: 0db46e3c-e9cd-4517-ac0a-5b629bce27be
+
+	measure 'Mon. Recurring Revenue by Item Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos periódicos mensuales por producto",
+			   "de-DE", "Mon. wiederkehrende Umsätze nach Artikel",
+			   "fr-FR", "Revenu récurrent mensuel par article",
+			   "cs-CZ", "Měsíční periodické výnosy podle zboží",
+			   "da-DK", "Månedlig tilbagevendende indtægt efter vare",
+			   "de-AT", "Mon. wiederkehrende Umsätze nach Artikel",
+			   "de-CH", "Mon. wiederkehrende Umsätze nach Artikel",
+			   "en-AU", "Mon. Recurring Revenue by Item",
+			   "en-CA", "Mon. Recurring Revenue by Item",
+			   "en-GB", "Mon. Recurring Revenue by Item",
+			   "en-NZ", "Mon. Recurring Revenue by Item",
+			   "es-MX", "Ingresos periódicos mensuales por producto",
+			   "fi-FI", "Kk:ttain toistuva tuotto nimikkeittäin",
+			   "fr-BE", "Revenu récurrent mensuel par article",
+			   "fr-CA", "Revenu récurrent mensuel par article",
+			   "fr-CH", "Revenu récurrent mensuel par article",
+			   "is-IS", "Mán. endurteknar tekjur eftir vöru",
+			   "it-CH", "Ricavi periodici mensili per articolo",
+			   "it-IT", "Ricavi periodici mensili per articolo",
+			   "nb-NO", "Månedlig gjentakende inntekt etter vare",
+			   "nl-BE", "Maand. periodieke opbrengst per artikel",
+			   "nl-NL", "Maand. periodieke opbrengst per artikel",
+			   "ru-RU", "Mon. Recurring Revenue by Item",
+			   "sv-SE", "Månatliga återkommande intäkter per artikel",
+			   "Mon. Recurring Revenue by Item"
+			)
+		isHidden
+		lineageTag: 540a95c3-6fa9-4b87-a612-02747d2152a1
+
+	measure 'Mon. Recurring Revenue by Item Category Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos periódicos mensuales por categoría de producto",
+			   "de-DE", "Mon. wiederkehrende Umsätze nach Kategorie",
+			   "fr-FR", "Catégorie revenu récurrent mensuel par article",
+			   "cs-CZ", "Měsíční periodické výnosy podle kategorie zboží",
+			   "da-DK", "Månedlig tilbagevendende indtægt efter kategori",
+			   "de-AT", "Mon. wiederkehrende Umsätze nach Kategorie",
+			   "de-CH", "Mon. wiederkehrende Umsätze nach Kategorie",
+			   "en-AU", "Mon. Recurring Revenue by Item Category",
+			   "en-CA", "Mon. Recurring Revenue by Item Category",
+			   "en-GB", "Mon. Recurring Revenue by Item Category",
+			   "en-NZ", "Mon. Recurring Revenue by Item Category",
+			   "es-MX", "Ingresos periódicos mensuales por categoría de producto",
+			   "fi-FI", "Kk:ttain toistuva tuotto nimikeluokittain",
+			   "fr-BE", "Catégorie revenu récurrent mensuel par article",
+			   "fr-CA", "Catégorie revenu récurrent mensuel par article",
+			   "fr-CH", "Catégorie revenu récurrent mensuel par article",
+			   "is-IS", "Mán. endurteknar tekjur eftir vöruflokkum",
+			   "it-CH", "Ricavi periodici mensili per categoria articolo",
+			   "it-IT", "Ricavi periodici mensili per categoria articolo",
+			   "nb-NO", "Månedlig gjentakende inntekt etter varekategori",
+			   "nl-BE", "Maand. periodieke opbrengst per artikelcategorie",
+			   "nl-NL", "Maand. periodieke opbrengst per artikelcategorie",
+			   "ru-RU", "Mon. Recurring Revenue by Item Category",
+			   "sv-SE", "Månatliga återkommande intäkter per artikelkategori",
+			   "Mon. Recurring Revenue by Item Category"
+			)
+		isHidden
+		lineageTag: 4be283ab-e6ca-4aca-a4e9-73564b30b4c8
+
+	measure 'Mon. Recurring Revenue Churn and Downgrade by Customer Contract Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Abandono y rebaja de ingresos periódicos mensuales por contrato de cliente",
+			   "de-DE", "Mon. wiederkehrende Umsatzabwanderung und Downgrade nach Debitorenvertrag",
+			   "fr-FR", "Attrition et rétrogradation revenu récurrent mensuel par contrat client",
+			   "cs-CZ", "Odchod zákazníků a downgrade měsíčních periodických výnosů podle zákaznické smlouvy",
+			   "da-DK", "Månedlig tilbagevendende indtægtsafgang og nedgradering efter debitorkontrakt",
+			   "de-AT", "Mon. wiederkehrende Umsatzabwanderung und Downgrade nach Debitorenvertrag",
+			   "de-CH", "Mon. wiederkehrende Umsatzabwanderung und Downgrade nach Debitorenvertrag",
+			   "en-AU", "Mon. Recurring Revenue Churn and Downgrade by Customer Contract",
+			   "en-CA", "Mon. Recurring Revenue Churn and Downgrade by Customer Contract",
+			   "en-GB", "Mon. Recurring Revenue Churn and Downgrade by Customer Contract",
+			   "en-NZ", "Mon. Recurring Revenue Churn and Downgrade by Customer Contract",
+			   "es-MX", "Abandono y rebaja de ingresos periódicos mensuales por contrato de cliente",
+			   "fi-FI", "Kk:ttain toistuvan tuoton Vaihtuvuus ja Palautus asiakassopimuksittain",
+			   "fr-BE", "Attrition et rétrogradation revenu récurrent mensuel par contrat client",
+			   "fr-CA", "Attrition et rétrogradation revenu récurrent mensuel par contrat client",
+			   "fr-CH", "Attrition et rétrogradation revenu récurrent mensuel par contrat client",
+			   "is-IS", "Mán uppsögn endurtekinna tekna og niðurfærsla eftir samningi við viðskiptavin",
+			   "it-CH", "Abbandono e downgrade ricavi periodici mensili per contratto cliente",
+			   "it-IT", "Abbandono e downgrade ricavi periodici mensili per contratto cliente",
+			   "nb-NO", "Månedlig gjentakende inntektsfrafall og -nedgradering etter kundekontrakt",
+			   "nl-BE", "Maand. periodiek opbrengstverloop en downgrade per klantcontract",
+			   "nl-NL", "Maand. periodiek opbrengstverloop en downgrade per klantcontract",
+			   "ru-RU", "Mon. Recurring Revenue Churn and Downgrade by Customer Contract",
+			   "sv-SE", "Månatliga återkommande intäktsbortfall och nedgradering per kundkontrakt",
+			   "Mon. Recurring Revenue Churn and Downgrade by Customer Contract"
+			)
+		isHidden
+		lineageTag: e16beb8b-7b17-4a61-b51a-5425cb5608f4
+
+	measure 'Mon. Recurring Revenue New and Upgrade by Customer Contract Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos periódicos mensuales nuevos y actualizados por contrato de cliente",
+			   "de-DE", "Mon. wiederkehrende Neuumsätze und Upgrade nach Debitorenvertrag",
+			   "fr-FR", "Revenu récurrent mensuel nouveau et mis à niveau par contrat client",
+			   "cs-CZ", "Noví zákazníci a upgrade měsíčních periodických výnosů podle zákaznické smlouvy",
+			   "da-DK", "Månedlig tilbagevendende indtægter Nye og opgradering efter debitorkontrakt",
+			   "de-AT", "Mon. wiederkehrende Neuumsätze und Upgrade nach Debitorenvertrag",
+			   "de-CH", "Mon. wiederkehrende Neuumsätze und Upgrade nach Debitorenvertrag",
+			   "en-AU", "Mon. Recurring Revenue New and Upgrade by Customer Contract",
+			   "en-CA", "Mon. Recurring Revenue New and Upgrade by Customer Contract",
+			   "en-GB", "Mon. Recurring Revenue New and Upgrade by Customer Contract",
+			   "en-NZ", "Mon. Recurring Revenue New and Upgrade by Customer Contract",
+			   "es-MX", "Ingresos periódicos mensuales nuevos y actualizados por contrato de cliente",
+			   "fi-FI", "Kk:ttain toistuvan tuoton Uusi ja Päivitä asiakassopimuksittain",
+			   "fr-BE", "Revenu récurrent mensuel nouveau et mis à niveau par contrat client",
+			   "fr-CA", "Revenu récurrent mensuel nouveau et mis à niveau par contrat client",
+			   "fr-CH", "Revenu récurrent mensuel nouveau et mis à niveau par contrat client",
+			   "is-IS", "Mán. Endurteknar tekjur nýjar og uppfærðar eftir samningi við viðskiptavin",
+			   "it-CH", "Novità e aggiornamento ricavi periodici mensili per contratto cliente",
+			   "it-IT", "Novità e aggiornamento ricavi periodici mensili per contratto cliente",
+			   "nb-NO", "Månedlig gjentakende inntekt ny og oppgradering etter kundekontrakt",
+			   "nl-BE", "Maand. periodieke opbrengst nieuw en upgrade per klantcontract",
+			   "nl-NL", "Maand. periodieke opbrengst nieuw en upgrade per klantcontract",
+			   "ru-RU", "Mon. Recurring Revenue New and Upgrade by Customer Contract",
+			   "sv-SE", "Månatliga återkommande intäkter, nya och nedgradering per kundkontrakt",
+			   "Mon. Recurring Revenue New and Upgrade by Customer Contract"
+			)
+		isHidden
+		lineageTag: e88cd996-24ac-4a3f-a46b-c5efd3be4a74
+
+	measure 'Monthly Sales and Cost Forecast by Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Previsión mensual de ingresos y costes por mes y año natural",
+			   "de-DE", "Monatliche Umsatz- und Kostenplanung nach Kalenderjahr und Monat",
+			   "fr-FR", "Revenus mensuels et coûts prévus par année civile et par mois",
+			   "cs-CZ", "Měsíční prognóza výnosů a nákladů podle kalendářního roku a měsíce",
+			   "da-DK", "Månedlig omsætning og omkostningsprognose efter kalenderår og måned",
+			   "de-AT", "Monatliche Umsatz- und Kostenplanung nach Kalenderjahr und Monat",
+			   "de-CH", "Monatliche Umsatz- und Kostenplanung nach Kalenderjahr und Monat",
+			   "en-AU", "Monthly Revenue and Cost Forecast by Calendar Year and Month",
+			   "en-CA", "Monthly Revenue and Cost Forecast by Calendar Year and Month",
+			   "en-GB", "Monthly Revenue and Cost Forecast by Calendar Year and Month",
+			   "en-NZ", "Monthly Revenue and Cost Forecast by Calendar Year and Month",
+			   "es-MX", "Previsión mensual de ingresos y costos por mes y año natural",
+			   "fi-FI", "Kuukausittainen tuotto- ja kustannusennuste kalenterivuovuosittain ja -kuukausittain",
+			   "fr-BE", "Revenus mensuels et coûts prévus par année civile et par mois",
+			   "fr-CA", "Revenus mensuels et coûts prévus par année civile et par mois",
+			   "fr-CH", "Revenus mensuels et coûts prévus par année civile et par mois",
+			   "is-IS", "Mánaðarleg tekju- og kostnaðarspá eftir almanaksári og -mánuði",
+			   "it-CH", "Previsioni mensili di ricavi e costi per anno e mese di calendario",
+			   "it-IT", "Previsioni mensili di ricavi e costi per anno e mese di calendario",
+			   "nb-NO", "Månedlig inntekts- og kostnadsprognose etter kalenderår og måned",
+			   "nl-BE", "Maandelijkse opbrengst- en kostenprognose per kalenderjaar en -maand",
+			   "nl-NL", "Maandelijkse opbrengst- en kostenprognose per kalenderjaar en -maand",
+			   "ru-RU", "Monthly Revenue and Cost Forecast by Calendar Year and Month",
+			   "sv-SE", "Månatlig intäkts- och kostnadsprognos per kalenderår och månad",
+			   "Monthly Revenue and Cost Forecast by Calendar Year and Month"
+			)
+		isHidden
+		lineageTag: 0b194870-8f76-4761-bfeb-363bde6a6ea3
+
+	measure 'Monthly Sales and Cost Forecast by Salesperson, Customer and Contract No. Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Previsión mensual de ingresos y costes por vendedor, cliente y n.º contrato",
+			   "de-DE", "Monatliche Umsatz- und Kostenplanung nach Verkäufer, Debitor und Vertragsnr.",
+			   "fr-FR", "Revenus mensuels et coûts prévus par vendeur, client et n° contrat",
+			   "cs-CZ", "Prognóza měsíčních výnosů a nákladů podle prodejce, zákazníka a č. smlouvy",
+			   "da-DK", "Månedlig omsætning og omkostningsprognose efter sælger, debitor og kontraktnr.",
+			   "de-AT", "Monatliche Umsatz- und Kostenplanung nach Verkäufer, Debitor und Vertragsnr.",
+			   "de-CH", "Monatliche Umsatz- und Kostenplanung nach Verkäufer, Debitor und Vertragsnr.",
+			   "en-AU", "Monthly Revenue and Cost Forecast by Salesperson, Customer and Contract No.",
+			   "en-CA", "Monthly Revenue and Cost Forecast by Salesperson, Customer and Contract No.",
+			   "en-GB", "Monthly Revenue and Cost Forecast by Salesperson, Customer and Contract No.",
+			   "en-NZ", "Monthly Revenue and Cost Forecast by Salesperson, Customer and Contract No.",
+			   "es-MX", "Previsión mensual de ingresos y costos por vendedor, cliente y n.º contrato",
+			   "fi-FI", "Kuukausittainen tuotto- ja kustannusennuste myyjän, asiakkaan ja sopimuksen numeron mukaan",
+			   "fr-BE", "Revenus mensuels et coûts prévus par vendeur, client et n° contrat",
+			   "fr-CA", "Prévisions mensuelles de revenus et de coûts par représentant, client et numéro de contrat",
+			   "fr-CH", "Revenus mensuels et coûts prévus par vendeur, client et n° contrat",
+			   "is-IS", "Mánaðarleg tekju- og kostnaðarspá sölumanns, viðskiptavinar og samnings nr.",
+			   "it-CH", "Previsione mensile dei ricavi e dei costi per venditore, cliente e nr. contratto",
+			   "it-IT", "Previsione mensile dei ricavi e dei costi per venditore, cliente e nr. contratto",
+			   "nb-NO", "Månedlig inntekts- og kostnadsprognose etter selger, kunde- og kontraktnr.",
+			   "nl-BE", "Maandelijkse opbrengst en kostenprognose per verkoper, klant en contractnr.",
+			   "nl-NL", "Maandelijkse opbrengst en kostenprognose per verkoper, klant en contractnr.",
+			   "ru-RU", "Monthly Revenue and Cost Forecast by Salesperson, Customer and Contract No.",
+			   "sv-SE", "Månatliga intäkter och kostnadsprognos per säljare, kund och kontraktsnr",
+			   "Monthly Revenue and Cost Forecast by Salesperson, Customer and Contract No."
+			)
+		isHidden
+		lineageTag: f70616f5-ce9f-42f9-be49-53f186c42193
+
+	measure 'Released and Deferred Amount by Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Importe liberado y fraccionado por mes y año naturales",
+			   "de-DE", "Freigegebener und abgegrenzter Betrag nach Kalenderjahr und Monat",
+			   "fr-FR", "Montant lancé et échelonné par année civile et par mois",
+			   "cs-CZ", "Uvolněná a časové rozlišená částka podle kalendářního roku a měsíce",
+			   "da-DK", "Frigivne og udskudte beløb efter kalenderår og måned",
+			   "de-AT", "Freigegebener und abgegrenzter Betrag nach Kalenderjahr und Monat",
+			   "de-CH", "Freigegebener und abgegrenzter Betrag nach Kalenderjahr und Monat",
+			   "en-AU", "Released and Deferred Amount by Calendar Year and Month",
+			   "en-CA", "Released and Deferred Amount by Calendar Year and Month",
+			   "en-GB", "Released and Deferred Amount by Calendar Year and Month",
+			   "en-NZ", "Released and Deferred Amount by Calendar Year and Month",
+			   "es-MX", "Importe liberado y fraccionado por mes y año naturales",
+			   "fi-FI", "Vapautettu ja siirretty summa kalenterivuosittain ja -kuukausittain",
+			   "fr-BE", "Montant lancé et échelonné par année civile et par mois",
+			   "fr-CA", "Montant libéré et différé par année civile et par mois",
+			   "fr-CH", "Montant lancé et échelonné par année civile et par mois",
+			   "is-IS", "Losuð og frestuð upphæð eftir almanaksári og -mánuði",
+			   "it-CH", "Importo rilasciato e differito per anno e mese di calendario",
+			   "it-IT", "Importo rilasciato e differito per anno e mese di calendario",
+			   "nb-NO", "Frigitt og periodisert beløp etter kalenderår og måned",
+			   "nl-BE", "Vrijgegeven en uitgesteld bedrag per kalenderjaar en -maand",
+			   "nl-NL", "Vrijgegeven en uitgesteld bedrag per kalenderjaar en -maand",
+			   "ru-RU", "Released and Deferred Amount by Calendar Year and Month",
+			   "sv-SE", "Frisläppt och periodiserat belopp per kalenderår och månad",
+			   "Released and Deferred Amount by Calendar Year and Month"
+			)
+		isHidden
+		lineageTag: e958e561-67bc-45ea-b691-d5241a9efb12
+
+	measure 'Revenue Analysis Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis de ingresos",
+			   "de-DE", "Umsatzanalyse",
+			   "fr-FR", "Analyse du revenu",
+			   "cs-CZ", "Analýza výnosů",
+			   "da-DK", "Omsætningsanalyse",
+			   "de-AT", "Umsatzanalyse",
+			   "de-CH", "Umsatzanalyse",
+			   "en-AU", "Revenue Analysis",
+			   "en-CA", "Revenue Analysis",
+			   "en-GB", "Revenue Analysis",
+			   "en-NZ", "Revenue Analysis",
+			   "es-MX", "Análisis de ingresos",
+			   "fi-FI", "Tuottoanalyysi",
+			   "fr-BE", "Analyse du revenu",
+			   "fr-CA", "Analyse du revenu",
+			   "fr-CH", "Analyse du revenu",
+			   "is-IS", "Greining tekja",
+			   "it-CH", "Analisi ricavi",
+			   "it-IT", "Analisi ricavi",
+			   "nb-NO", "Inntektsanalyse",
+			   "nl-BE", "Opbrengstanalyse",
+			   "nl-NL", "Opbrengstanalyse",
+			   "ru-RU", "Revenue Analysis",
+			   "sv-SE", "Intäktsanalys",
+			   "Revenue Analysis"
+			)
+		isHidden
+		lineageTag: d15cf30f-c746-4556-ad49-00927fac9836
+
+	measure 'Revenue by Customer Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos por cliente",
+			   "de-DE", "Umsatz nach Debitor",
+			   "fr-FR", "Revenu par client",
+			   "cs-CZ", "Výnosy podle zákazníka",
+			   "da-DK", "Omsætning pr. debitor",
+			   "de-AT", "Umsatz nach Debitor",
+			   "de-CH", "Umsatz nach Debitor",
+			   "en-AU", "Revenue by Customer",
+			   "en-CA", "Revenue by Customer",
+			   "en-GB", "Revenue by Customer",
+			   "en-NZ", "Revenue by Customer",
+			   "es-MX", "Ingresos por cliente",
+			   "fi-FI", "Asiakaskohtainen tuotto",
+			   "fr-BE", "Revenu par client",
+			   "fr-CA", "Revenu par client",
+			   "fr-CH", "Revenu par client",
+			   "is-IS", "Tekjur eftir viðskiptamanni",
+			   "it-CH", "Ricavi per cliente",
+			   "it-IT", "Ricavi per cliente",
+			   "nb-NO", "Inntekt etter kunde",
+			   "nl-BE", "Opbrengst per klant",
+			   "nl-NL", "Opbrengst per klant",
+			   "ru-RU", "Revenue by Customer",
+			   "sv-SE", "Intäkt per kund",
+			   "Revenue by Customer"
+			)
+		isHidden
+		lineageTag: f030382e-d837-4290-a7c8-02c7373b4c2b
+
+	measure 'Revenue by Item Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos por producto",
+			   "de-DE", "Umsatz nach Artikel",
+			   "fr-FR", "Revenu par article",
+			   "cs-CZ", "Výnosy podle zboží",
+			   "da-DK", "Omsætning pr. vare",
+			   "de-AT", "Umsatz nach Artikel",
+			   "de-CH", "Umsatz nach Artikel",
+			   "en-AU", "Revenue by Item",
+			   "en-CA", "Revenue by Item",
+			   "en-GB", "Revenue by Item",
+			   "en-NZ", "Revenue by Item",
+			   "es-MX", "Ingresos por producto",
+			   "fi-FI", "Nimikekohtainen tuotto",
+			   "fr-BE", "Revenu par article",
+			   "fr-CA", "Revenu par article",
+			   "fr-CH", "Revenu par article",
+			   "is-IS", "Tekjur eftir vöru",
+			   "it-CH", "Ricavi per articolo",
+			   "it-IT", "Ricavi per articolo",
+			   "nb-NO", "Inntekt etter vare",
+			   "nl-BE", "Opbrengst per artikel",
+			   "nl-NL", "Opbrengst per artikel",
+			   "ru-RU", "Revenue by Item",
+			   "sv-SE", "Intäkt per artikel",
+			   "Revenue by Item"
+			)
+		isHidden
+		lineageTag: e876d644-8c77-4beb-bee3-d84955de70f0
+
+	measure 'Revenue by Salesperson Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos por vendedor",
+			   "de-DE", "Umsatz nach Verkäufer",
+			   "fr-FR", "Revenu par vendeur",
+			   "cs-CZ", "Výnosy podle prodejce",
+			   "da-DK", "Omsætning pr. sælger",
+			   "de-AT", "Umsatz nach Verkäufer",
+			   "de-CH", "Umsatz nach Verkäufer",
+			   "en-AU", "Revenue by Salesperson",
+			   "en-CA", "Revenue by Salesperson",
+			   "en-GB", "Revenue by Salesperson",
+			   "en-NZ", "Revenue by Salesperson",
+			   "es-MX", "Ingresos por vendedor",
+			   "fi-FI", "Myyjäkohtainen tuotto",
+			   "fr-BE", "Revenu par vendeur",
+			   "fr-CA", "Revenus par représentant",
+			   "fr-CH", "Revenu par vendeur",
+			   "is-IS", "Tekjur eftir sölumanni",
+			   "it-CH", "Ricavi per venditore",
+			   "it-IT", "Ricavi per venditore",
+			   "nb-NO", "Inntekt per selger",
+			   "nl-BE", "Opbrengst per verkoper",
+			   "nl-NL", "Opbrengst per verkoper",
+			   "ru-RU", "Revenue by Salesperson",
+			   "sv-SE", "Intäkt per säljare",
+			   "Revenue by Salesperson"
+			)
+		isHidden
+		lineageTag: c2816182-98f5-48d7-b9fb-0c4530e4b7cb
+
+	measure 'Revenue Development Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Desarrollo de ingresos",
+			   "de-DE", "Umsatzentwicklung",
+			   "fr-FR", "Développement du revenu",
+			   "cs-CZ", "Vývoj výnosů",
+			   "da-DK", "Omsætningsudvikling",
+			   "de-AT", "Umsatzentwicklung",
+			   "de-CH", "Umsatzentwicklung",
+			   "en-AU", "Revenue Development",
+			   "en-CA", "Revenue Development",
+			   "en-GB", "Revenue Development",
+			   "en-NZ", "Revenue Development",
+			   "es-MX", "Desarrollo de ingresos",
+			   "fi-FI", "Tuottokehitys",
+			   "fr-BE", "Développement du revenu",
+			   "fr-CA", "Développement du revenu",
+			   "fr-CH", "Développement du revenu",
+			   "is-IS", "Tekjuþróun",
+			   "it-CH", "Sviluppo ricavi",
+			   "it-IT", "Sviluppo ricavi",
+			   "nb-NO", "Inntektsutvikling",
+			   "nl-BE", "Opbrengstontwikkeling",
+			   "nl-NL", "Opbrengstontwikkeling",
+			   "ru-RU", "Revenue Development",
+			   "sv-SE", "Intäktsutveckling",
+			   "Revenue Development"
+			)
+		isHidden
+		lineageTag: afef247a-5efc-4c21-9441-fedbe4c023c8
+
+	measure 'Sales and Cost Forecast Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Previsión de ingresos",
+			   "de-DE", "Umsatzplanung",
+			   "fr-FR", "Prévision de revenu",
+			   "cs-CZ", "Prognóza výnosů",
+			   "da-DK", "Indtægtsprognose",
+			   "de-AT", "Umsatzplanung",
+			   "de-CH", "Umsatzplanung",
+			   "en-AU", "Revenue Forecast",
+			   "en-CA", "Revenue Forecast",
+			   "en-GB", "Revenue Forecast",
+			   "en-NZ", "Revenue Forecast",
+			   "es-MX", "Previsión de ingresos",
+			   "fi-FI", "Tuottoennuste",
+			   "fr-BE", "Prévision de revenu",
+			   "fr-CA", "Prévision de revenu",
+			   "fr-CH", "Prévision de revenu",
+			   "is-IS", "Tekjuspá",
+			   "it-CH", "Previsione ricavi",
+			   "it-IT", "Previsione ricavi",
+			   "nb-NO", "Inntektsprognose",
+			   "nl-BE", "Opbrengstprognose",
+			   "nl-NL", "Opbrengstprognose",
+			   "ru-RU", "Revenue Forecast",
+			   "sv-SE", "Intäktsprognos",
+			   "Revenue Forecast"
+			)
+		isHidden
+		lineageTag: 3a3416c4-f6dc-4f7d-822d-4526a7c509ec
+
+	measure 'Revenue Year-Over-Year Growth Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Crecimiento interanual de los ingresos",
+			   "de-DE", "Umsatzwachstum im Vergleich zum Vorjahr",
+			   "fr-FR", "Croissance du revenu d’une année sur l’autre",
+			   "cs-CZ", "Meziroční růst výnosů",
+			   "da-DK", "Omsætning fra år til år vækst",
+			   "de-AT", "Umsatzwachstum im Vergleich zum Vorjahr",
+			   "de-CH", "Umsatzwachstum im Vergleich zum Vorjahr",
+			   "en-AU", "Revenue Year-Over-Year Growth",
+			   "en-CA", "Revenue Year-Over-Year Growth",
+			   "en-GB", "Revenue Year-Over-Year Growth",
+			   "en-NZ", "Revenue Year-Over-Year Growth",
+			   "es-MX", "Crecimiento interanual de los ingresos",
+			   "fi-FI", "Tuoton vuosittainen kasvu",
+			   "fr-BE", "Croissance du revenu d’une année sur l’autre",
+			   "fr-CA", "Croissance du revenu d’une année sur l’autre",
+			   "fr-CH", "Croissance du revenu d’une année sur l’autre",
+			   "is-IS", "Tekjuvöxtur milli ára",
+			   "it-CH", "Crescita ricavi anno su anno",
+			   "it-IT", "Crescita ricavi anno su anno",
+			   "nb-NO", "Inntekstvekst år for år",
+			   "nl-BE", "Opbrengstgroei jaar-tot-jaar",
+			   "nl-NL", "Opbrengstgroei jaar-tot-jaar",
+			   "ru-RU", "Revenue Year-Over-Year Growth",
+			   "sv-SE", "Tillväxtökning år för år",
+			   "Revenue Year-Over-Year Growth"
+			)
+		isHidden
+		lineageTag: 2d2e3c1d-ceec-4c18-ad3b-c6e93ddf6709
+
+	measure 'Subscription Billing Analysis Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis Subscription Billing",
+			   "de-DE", "Subscription Billing-Analyse",
+			   "fr-FR", "Analyse Subscription Billing",
+			   "cs-CZ", "Analýza Subscription Billing",
+			   "da-DK", "Analyse af Subscription Billing",
+			   "de-AT", "Subscription Billing-Analyse",
+			   "de-CH", "Subscription Billing-Analyse",
+			   "en-AU", "Subscription Billing Analysis",
+			   "en-CA", "Subscription Billing Analysis",
+			   "en-GB", "Subscription Billing Analysis",
+			   "en-NZ", "Subscription Billing Analysis",
+			   "es-MX", "Análisis Subscription Billing",
+			   "fi-FI", "Subscription Billing – Analyysi",
+			   "fr-BE", "Analyse Subscription Billing",
+			   "fr-CA", "Analyse Subscription Billing",
+			   "fr-CH", "Analyse Subscription Billing",
+			   "is-IS", "Subscription Billing greining",
+			   "it-CH", "Analisi Subscription Billing",
+			   "it-IT", "Analisi Subscription Billing",
+			   "nb-NO", "Subscription Billing-analyse",
+			   "nl-BE", "Analyse van Subscription Billing",
+			   "nl-NL", "Analyse van Subscription Billing",
+			   "ru-RU", "Subscription Billing Analysis",
+			   "sv-SE", "Analys av Subscription Billing",
+			   "Subscription Billing Analysis"
+			)
+		isHidden
+		lineageTag: a2636555-b186-43af-9a97-f1be3481f349
+
+	measure 'Subscription Billing Overview Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Información general Subscription Billing",
+			   "de-DE", "Übersicht über Subscription Billing",
+			   "fr-FR", "Vue d’ensemble de Subscription Billing",
+			   "cs-CZ", "Přehled Subscription Billing",
+			   "da-DK", "Oversigt over Subscription Billing",
+			   "de-AT", "Übersicht über Subscription Billing",
+			   "de-CH", "Übersicht über Subscription Billing",
+			   "en-AU", "Subscription Billing Overview",
+			   "en-CA", "Subscription Billing Overview",
+			   "en-GB", "Subscription Billing Overview",
+			   "en-NZ", "Subscription Billing Overview",
+			   "es-MX", "Información general Subscription Billing",
+			   "fi-FI", "Subscription Billing – Yleiskatsaus",
+			   "fr-BE", "Vue d’ensemble de Subscription Billing",
+			   "fr-CA", "Vue d’ensemble de Subscription Billing",
+			   "fr-CH", "Vue d’ensemble de Subscription Billing",
+			   "is-IS", "Subscription Billing yfirlit",
+			   "it-CH", "Panoramica di Subscription Billing",
+			   "it-IT", "Panoramica di Subscription Billing",
+			   "nb-NO", "Oversikt over Subscription Billing",
+			   "nl-BE", "Overzicht van Subscription Billing",
+			   "nl-NL", "Overzicht van Subscription Billing",
+			   "ru-RU", "Subscription Billing Overview",
+			   "sv-SE", "Översikt över Subscription Billing",
+			   "Subscription Billing Overview"
+			)
+		isHidden
+		lineageTag: 0aa305de-1af5-4f1f-823d-b8e488a089a4
+
+	measure 'Top 5 Customers by Mon. Recurring Revenue Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Los 5 clientes principales por Ingresos periódicos mensuales",
+			   "de-DE", "Top-5-Debitoren nach mon. wiederkehrenden Umsätzen",
+			   "fr-FR", "5 premiers clients par revenu récurrent mensuel",
+			   "cs-CZ", "5 předních zákazníků podle měsíčního periodického výnosu",
+			   "da-DK", "Top 5 debitorer efter månedlig tilbagevendende indtægt",
+			   "de-AT", "Top-5-Debitoren nach mon. wiederkehrenden Umsätzen",
+			   "de-CH", "Top-5-Debitoren nach mon. wiederkehrenden Umsätzen",
+			   "en-AU", "Top 5 Customers by Mon. Recurring Revenue",
+			   "en-CA", "Top 5 Customers by Mon. Recurring Revenue",
+			   "en-GB", "Top 5 Customers by Mon. Recurring Revenue",
+			   "en-NZ", "Top 5 Customers by Mon. Recurring Revenue",
+			   "es-MX", "Los 5 clientes principales por Ingresos periódicos mensuales",
+			   "fi-FI", "Viisi suurinta asiakasta kk:ttain toistuvan tuoton mukaan",
+			   "fr-BE", "5 premiers clients par revenu récurrent mensuel",
+			   "fr-CA", "5 premiers clients par revenu récurrent mensuel",
+			   "fr-CH", "5 premiers clients par revenu récurrent mensuel",
+			   "is-IS", "5 hæstu viðskiptavinirnir eftir mán. endurteknum tekjum",
+			   "it-CH", "Primi 5 clienti per ricavi periodici mensili",
+			   "it-IT", "Primi 5 clienti per ricavi periodici mensili",
+			   "nb-NO", "Beste fem kunder etter månedlig gjentakende inntekt",
+			   "nl-BE", "Top 5 klanten per maand. periodieke opbrengst",
+			   "nl-NL", "Top 5 klanten per maand. periodieke opbrengst",
+			   "ru-RU", "Top 5 Customers by Mon. Recurring Revenue",
+			   "sv-SE", "5 främsta kunderna per månatliga återkommande intäkter",
+			   "Top 5 Customers by Mon. Recurring Revenue"
+			)
+		isHidden
+		lineageTag: 9a6d9b4a-caa4-4ac3-b5dd-1a312516652c
+
+	measure 'Top 5 Vendors by Mon. Recurring Cost Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Los 5 principales proveedores por coste periódico mensual",
+			   "de-DE", "Top-5-Kreditoren nach mon. wiederkehrenden Kosten",
+			   "fr-FR", "5 premiers fournisseurs par coût mensuel récurrent",
+			   "cs-CZ", "5 nejlepších prodejců podle měsíčních periodických nákladů",
+			   "da-DK", "Top 5 kreditorer efter månedlige tilbagevendende omkostninger",
+			   "de-AT", "Top-5-Kreditoren nach mon. wiederkehrenden Kosten",
+			   "de-CH", "Top-5-Kreditoren nach mon. wiederkehrenden Kosten",
+			   "en-AU", "Top 5 Vendors by Mon. Recurring Cost",
+			   "en-CA", "Top 5 Vendors by Mon. Recurring Cost",
+			   "en-GB", "Top 5 Vendors by Mon. Recurring Cost",
+			   "en-NZ", "Top 5 Vendors by Mon. Recurring Cost",
+			   "es-MX", "Los 5 principales proveedores por costo periódico mensual",
+			   "fi-FI", "5 suurinta toimittajaa kk:ttain toistuvien kustannusten mukaan",
+			   "fr-BE", "5 premiers fournisseurs par coût mensuel récurrent",
+			   "fr-CA", "5 premiers fournisseurs par coût mensuel récurrent",
+			   "fr-CH", "5 premiers fournisseurs par coût mensuel récurrent",
+			   "is-IS", "5 hæstu lánardrottnar fyrir mán. endurtekinn kostnað",
+			   "it-CH", "Primi 5 fornitori per costo periodico mensile",
+			   "it-IT", "Primi 5 fornitori per costo periodico mensile",
+			   "nb-NO", "Beste fem leverandører etter månedlig gjentakende kostnad",
+			   "nl-BE", "Top 5 leveranciers op maand. periodieke kosten",
+			   "nl-NL", "Top 5 leveranciers op maand. periodieke kosten",
+			   "ru-RU", "Top 5 Vendors by Mon. Recurring Cost",
+			   "sv-SE", "5 främsta leverantörer per månatlig återkommande kostnad",
+			   "Top 5 Vendors by Mon. Recurring Cost"
+			)
+		isHidden
+		lineageTag: c7af589e-b446-4868-9738-2facc5405a87
+
+	measure 'Total Contract Value Analysis Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis del valor total del contrato",
+			   "de-DE", "Gesamtvertragswertanalyse",
+			   "fr-FR", "Analyse de la valeur totale du contrat",
+			   "cs-CZ", "Analýza celkové hodnoty smlouvy",
+			   "da-DK", "Analyse af samlet kontraktværdi",
+			   "de-AT", "Gesamtvertragswertanalyse",
+			   "de-CH", "Gesamtvertragswertanalyse",
+			   "en-AU", "Total Contract Value Analysis",
+			   "en-CA", "Total Contract Value Analysis",
+			   "en-GB", "Total Contract Value Analysis",
+			   "en-NZ", "Total Contract Value Analysis",
+			   "es-MX", "Análisis del valor total del contrato",
+			   "fi-FI", "Sopimuksen kokonaisarvon analyysi",
+			   "fr-BE", "Analyse de la valeur totale du contrat",
+			   "fr-CA", "Analyse de la valeur totale du contrat",
+			   "fr-CH", "Analyse de la valeur totale du contrat",
+			   "is-IS", "Heildargreining samningsvirðis",
+			   "it-CH", "Analisi valore totale del contratto",
+			   "it-IT", "Analisi valore totale del contratto",
+			   "nb-NO", "Analyse av total kontraktverdi",
+			   "nl-BE", "Analyse van totale contractwaarde",
+			   "nl-NL", "Analyse van totale contractwaarde",
+			   "ru-RU", "Total Contract Value Analysis",
+			   "sv-SE", "Analys av totalt kontraktsvärde",
+			   "Total Contract Value Analysis"
+			)
+		isHidden
+		lineageTag: 953467b6-cfb0-4859-a22b-35dcc2cc3270
+
+	measure 'Total Contract Value and Total Contract Value PY by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Valor total del contrato y valor total del contrato AA por mes natural",
+			   "de-DE", "Gesamtvertragswert und Gesamtvertragswert VJ nach Kalendermonat",
+			   "fr-FR", "Valeur totale du contrat et valeur totale du contrat AP par mois civil",
+			   "cs-CZ", "Celková hodnota smlouvy a PR celkové hodnoty smlouvy podle kalendářního měsíce",
+			   "da-DK", "Samlet kontraktværdi og samlet kontraktværdi FÅ efter kalendermåned",
+			   "de-AT", "Gesamtvertragswert und Gesamtvertragswert VJ nach Kalendermonat",
+			   "de-CH", "Gesamtvertragswert und Gesamtvertragswert VJ nach Kalendermonat",
+			   "en-AU", "Total Contract Value and Total Contract Value PY by Calendar Month",
+			   "en-CA", "Total Contract Value and Total Contract Value PY by Calendar Month",
+			   "en-GB", "Total Contract Value and Total Contract Value PY by Calendar Month",
+			   "en-NZ", "Total Contract Value and Total Contract Value PY by Calendar Month",
+			   "es-MX", "Valor total del contrato y valor total del contrato AA por mes natural",
+			   "fi-FI", "Sopimuksen kokonaisarvo ja Sopimuksen kokonaisarvo EDV kalenterikuukausittain",
+			   "fr-BE", "Valeur totale du contrat et valeur totale du contrat AP par mois civil",
+			   "fr-CA", "Valeur totale du contrat et valeur totale du contrat AP par mois civil",
+			   "fr-CH", "Valeur totale du contrat et valeur totale du contrat AP par mois civil",
+			   "is-IS", "Heildarsamningsvirði og heildarsamningsvirði fyrra árs eftir almanaksmánuði",
+			   "it-CH", "Valore totale dei contratti e valore totale dei contratti PY per mese di calendario",
+			   "it-IT", "Valore totale dei contratti e valore totale dei contratti PY per mese di calendario",
+			   "nb-NO", "Total kontraktverdi og total kontraktverdi PÅ etter kalendermåned",
+			   "nl-BE", "Totale contractwaarde en totale contractwaarde VJ per kalendermaand",
+			   "nl-NL", "Totale contractwaarde en totale contractwaarde VJ per kalendermaand",
+			   "ru-RU", "Total Contract Value and Total Contract Value PY by Calendar Month",
+			   "sv-SE", "Totalt kontraktsvärde och totalt kontraktsvärde FÅ per kalendermånad",
+			   "Total Contract Value and Total Contract Value PY by Calendar Month"
+			)
+		isHidden
+		lineageTag: 1507ad1f-7a44-42f7-b19b-6222c22fc3a6
+
+	measure 'Total Contract Value and Year-Over-Year Growth by Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Valor total del contrato y crecimiento interanual por mes y año naturales",
+			   "de-DE", "Gesamtvertragswert und Wachstum gegenüber dem Vorjahr nach Kalenderjahr und Monat",
+			   "fr-FR", "Valeur totale des contrats et croissance d’une année à l’autre par année civile et par mois",
+			   "cs-CZ", "Celková hodnota smlouvy a meziroční růst podle kalendářního roku a měsíce",
+			   "da-DK", "Samlet kontraktværdi og vækst fra år til år efter kalenderår og måned",
+			   "de-AT", "Gesamtvertragswert und Wachstum gegenüber dem Vorjahr nach Kalenderjahr und Monat",
+			   "de-CH", "Gesamtvertragswert und Wachstum gegenüber dem Vorjahr nach Kalenderjahr und Monat",
+			   "en-AU", "Total Contract Value and Year-Over-Year Growth by Calendar Year and Month",
+			   "en-CA", "Total Contract Value and Year-Over-Year Growth by Calendar Year and Month",
+			   "en-GB", "Total Contract Value and Year-Over-Year Growth by Calendar Year and Month",
+			   "en-NZ", "Total Contract Value and Year-Over-Year Growth by Calendar Year and Month",
+			   "es-MX", "Valor total del contrato y crecimiento interanual por mes y año naturales",
+			   "fi-FI", "Sopimuksen kokonaisarvo ja vuosittainen kasvu kalenterivuosittain ja -kuukausittain",
+			   "fr-BE", "Valeur totale des contrats et croissance d’une année à l’autre par année civile et par mois",
+			   "fr-CA", "Valeur totale des contrats et croissance d’une année à l’autre par année civile et par mois",
+			   "fr-CH", "Valeur totale des contrats et croissance d’une année à l’autre par année civile et par mois",
+			   "is-IS", "Heildarvirði samnings og vöxtur milli ára eftir almanaksári og -mánuði",
+			   "it-CH", "Valore totale del contratto e crescita anno su anno per anno e mese di calendario",
+			   "it-IT", "Valore totale del contratto e crescita anno su anno per anno e mese di calendario",
+			   "nb-NO", "Total kontraktverdi og vekst år for år etter kalenderår og måned",
+			   "nl-BE", "Totale contractwaarde en jaar-tot-jaar groei per kalenderjaar en -maand",
+			   "nl-NL", "Totale contractwaarde en jaar-tot-jaar groei per kalenderjaar en -maand",
+			   "ru-RU", "Total Contract Value and Year-Over-Year Growth by Calendar Year and Month",
+			   "sv-SE", "Totalt kontraktsvärde och tillväxt år för år per kalenderår och månad",
+			   "Total Contract Value and Year-Over-Year Growth by Calendar Year and Month"
+			)
+		isHidden
+		lineageTag: b0f100f9-330d-47f3-83a8-401ca68ae140
+
+	measure 'Total Contract Value by Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Valor total de contrato por mes y año naturales",
+			   "de-DE", "Gesamtvertragswert nach Kalenderjahr und Monat",
+			   "fr-FR", "Valeur totale du contrat par année civile et par mois",
+			   "cs-CZ", "Celková hodnota smlouvy podle kalendářního roku a měsíce",
+			   "da-DK", "Samlet kontraktværdi efter kalenderår og måned",
+			   "de-AT", "Gesamtvertragswert nach Kalenderjahr und Monat",
+			   "de-CH", "Gesamtvertragswert nach Kalenderjahr und Monat",
+			   "en-AU", "Total Contract Value by Calendar Year and Month",
+			   "en-CA", "Total Contract Value by Calendar Year and Month",
+			   "en-GB", "Total Contract Value by Calendar Year and Month",
+			   "en-NZ", "Total Contract Value by Calendar Year and Month",
+			   "es-MX", "Valor total de contrato por mes y año naturales",
+			   "fi-FI", "Sopimuksen kokonaisarvo kalenterivuosittain ja -kuukausittain",
+			   "fr-BE", "Valeur totale du contrat par année civile et par mois",
+			   "fr-CA", "Valeur totale du contrat par année civile et par mois",
+			   "fr-CH", "Valeur totale du contrat par année civile et par mois",
+			   "is-IS", "Heildarverðmæti samnings eftir almanaksári og -mánuði",
+			   "it-CH", "Valore totale del contratto per anno e mese di calendario",
+			   "it-IT", "Valore totale del contratto per anno e mese di calendario",
+			   "nb-NO", "Total kontraktverdi etter kalenderår og måned",
+			   "nl-BE", "Totale contractwaarde per kalenderjaar en -maand",
+			   "nl-NL", "Totale contractwaarde per kalenderjaar en -maand",
+			   "ru-RU", "Total Contract Value by Calendar Year and Month",
+			   "sv-SE", "Totalt kontraktsvärde per kalenderår och månad",
+			   "Total Contract Value by Calendar Year and Month"
+			)
+		isHidden
+		lineageTag: 1f7bb1f4-5fd2-4cf1-ab4c-1c6636f7929c
+
+	measure 'Total Contract Value Year-Over-Year Growth Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Crecimiento interanual del valor total del contrato",
+			   "de-DE", "Wachstum des Gesamtvertragswerts gegenüber dem Vorjahr",
+			   "fr-FR", "Croissance de la valeur totale des contrats d’une année à l’autre",
+			   "cs-CZ", "Meziroční růst celkové hodnoty smlouvy",
+			   "da-DK", "Samlet kontraktværdi Vækst fra år til år",
+			   "de-AT", "Wachstum des Gesamtvertragswerts gegenüber dem Vorjahr",
+			   "de-CH", "Wachstum des Gesamtvertragswerts gegenüber dem Vorjahr",
+			   "en-AU", "Total Contract Value Year-Over-Year Growth",
+			   "en-CA", "Total Contract Value Year-Over-Year Growth",
+			   "en-GB", "Total Contract Value Year-Over-Year Growth",
+			   "en-NZ", "Total Contract Value Year-Over-Year Growth",
+			   "es-MX", "Crecimiento interanual del valor total del contrato",
+			   "fi-FI", "Sopimuksen kokonaisarvo – Vuosittainen kasvu",
+			   "fr-BE", "Croissance de la valeur totale des contrats d’une année à l’autre",
+			   "fr-CA", "Croissance de la valeur totale des contrats d’une année à l’autre",
+			   "fr-CH", "Croissance de la valeur totale des contrats d’une année à l’autre",
+			   "is-IS", "Heildarvöxtur samningsvirðis á milli ára",
+			   "it-CH", "Crescita anno su anno del valore totale dei contratti",
+			   "it-IT", "Crescita anno su anno del valore totale dei contratti",
+			   "nb-NO", "Total kontraktverdivekst år for år",
+			   "nl-BE", "Groei totale contractwaarde jaar-tot-jaar",
+			   "nl-NL", "Groei totale contractwaarde jaar-tot-jaar",
+			   "ru-RU", "Total Contract Value Year-Over-Year Growth",
+			   "sv-SE", "Totalt kontraktsvärde tillväxt år för år",
+			   "Total Contract Value Year-Over-Year Growth"
+			)
+		isHidden
+		lineageTag: bf178bbe-6578-4c6e-b6f6-63f2a3be0df2
+
+	measure 'Vendor Contract Deferrals Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Fraccionamientos de contrato de proveedor",
+			   "de-DE", "Kreditorenvertragsabgrenzungen",
+			   "fr-FR", "Reports de contrat fournisseur",
+			   "cs-CZ", "Časová rozlišení dodavatelské smlouvy",
+			   "da-DK", "Periodiseringer af kreditorkontrakt",
+			   "de-AT", "Kreditorenvertragsabgrenzungen",
+			   "de-CH", "Kreditorenvertragsabgrenzungen",
+			   "en-AU", "Vendor Contract Deferrals",
+			   "en-CA", "Vendor Contract Deferrals",
+			   "en-GB", "Vendor Contract Deferrals",
+			   "en-NZ", "Vendor Contract Deferrals",
+			   "es-MX", "Fraccionamientos de contrato de proveedor",
+			   "fi-FI", "Toimittajasopimuksen siirrot",
+			   "fr-BE", "Reports de contrat fournisseur",
+			   "fr-CA", "Reports de contrat fournisseur",
+			   "fr-CH", "Reports de contrat fournisseur",
+			   "is-IS", "Frestanir lánardrottnasamnings",
+			   "it-CH", "Differimenti contratto del fornitore",
+			   "it-IT", "Differimenti contratto del fornitore",
+			   "nb-NO", "Leverandørkontraktperiodiseringer",
+			   "nl-BE", "Uitstel van leverancierscontracten",
+			   "nl-NL", "Uitstel van leverancierscontracten",
+			   "ru-RU", "Vendor Contract Deferrals",
+			   "sv-SE", "Kontraktsperiodiseringar för leverantör",
+			   "Vendor Contract Deferrals"
+			)
+		isHidden
+		lineageTag: 98a7baf4-4d66-439f-904f-0f969958c522
+
+	measure 'Vendor Deferrals (Caption) Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Fraccionamientos de proveedores",
+			   "de-DE", "Kreditorenabgrenzungen",
+			   "fr-FR", "Reports fournisseur",
+			   "cs-CZ", "Časová rozlišení dodavatele",
+			   "da-DK", "Kreditorperiodiseringer",
+			   "de-AT", "Kreditorenabgrenzungen",
+			   "de-CH", "Kreditorenabgrenzungen",
+			   "en-AU", "Vendor Deferrals",
+			   "en-CA", "Vendor Deferrals",
+			   "en-GB", "Vendor Deferrals",
+			   "en-NZ", "Vendor Deferrals",
+			   "es-MX", "Fraccionamientos de proveedores",
+			   "fi-FI", "Toimittajasiirrot",
+			   "fr-BE", "Reports fournisseur",
+			   "fr-CA", "Reports fournisseur",
+			   "fr-CH", "Reports fournisseur",
+			   "is-IS", "Frestun lánardrottins",
+			   "it-CH", "Differimenti fornitore",
+			   "it-IT", "Differimenti fornitore",
+			   "nb-NO", "Leverandørperiodiseringer",
+			   "nl-BE", "Leveranciersuitstel",
+			   "nl-NL", "Leveranciersuitstel",
+			   "ru-RU", "Vendor Deferrals",
+			   "sv-SE", "Leverantörsperiodiseringar",
+			   "Vendor Deferrals"
+			)
+		isHidden
+		lineageTag: dda9de1a-70c9-4297-9555-6abeb4cbac10
+
+	measure 'Back button Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Botón Atrás",
+			   "de-DE", "Schaltfläche „Zurück“",
+			   "fr-FR", "Bouton Retour",
+			   "cs-CZ", "Tlačítko zpět",
+			   "da-DK", "Knappen Tilbage",
+			   "de-AT", "Schaltfläche „Zurück“",
+			   "de-CH", "Schaltfläche „Zurück“",
+			   "en-AU", "Back button",
+			   "en-CA", "Back button",
+			   "en-GB", "Back button",
+			   "en-NZ", "Back button",
+			   "es-MX", "Botón Atrás",
+			   "fi-FI", "Takaisin-painike",
+			   "fr-BE", "Bouton Retour",
+			   "fr-CA", "Bouton Retour",
+			   "fr-CH", "Bouton Retour",
+			   "is-IS", "Bakkhnappur",
+			   "it-CH", "Pulsante Indietro",
+			   "it-IT", "Pulsante Indietro",
+			   "nb-NO", "Tilbakeknapp",
+			   "nl-BE", "Knop Terug",
+			   "nl-NL", "Knop Terug",
+			   "ru-RU", "Back button",
+			   "sv-SE", "Knappen Föregående",
+			   "Back button"
+			)
+		isHidden
+		lineageTag: 3e75f090-06f5-4d0c-92a9-3adf4085ee06
+
+	measure 'Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Ingresos periódicos mensuales, Coste periódico mensual, Beneficio neto mensual, Clientes activos, Valor total del contrato, Cambio en los ingresos periódicos mensuales",
+			   "de-DE", "Mon. wiederkehrende Umsätze, Monatlich wiederkehrende Kosten, monatlicher Nettogewinn, aktive Debitoren, Gesamtvertragswert, Veränderung der monatlich wiederkehrenden Umsätze",
+			   "fr-FR", "Revenu récurrent mensuel, Coût mensuel récurrent, Marge nette par mois, Clients actifs, Valeur totale du contrat, Évolution du revenu mensuel récurrent",
+			   "cs-CZ", "Měsíční periodické výnosy, Měsíční periodické náklady, Měsíční čistý zisk, Aktivní zákazníci, Celková hodnota smlouvy, Změna měsíčních periodických výnosů",
+			   "da-DK", "Månedlig tilbagevendende omsætning, Månedlig tilbagevendende omkostning, Månedlig nettofortjeneste, Aktive debitorer, Samlet kontraktværdi, Ændring i månedlig tilbagevendende omsætning",
+			   "de-AT", "Mon. wiederkehrende Umsätze, Monatlich wiederkehrende Kosten, monatlicher Nettogewinn, aktive Debitoren, Gesamtvertragswert, Veränderung der monatlich wiederkehrenden Umsätze",
+			   "de-CH", "Mon. wiederkehrende Umsätze, Monatlich wiederkehrende Kosten, monatlicher Nettogewinn, aktive Debitoren, Gesamtvertragswert, Veränderung der monatlich wiederkehrenden Umsätze",
+			   "en-AU", "Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue",
+			   "en-CA", "Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue",
+			   "en-GB", "Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue",
+			   "en-NZ", "Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue",
+			   "es-MX", "Ingresos periódicos mensuales, Costo periódico mensual, Beneficio neto mensual, Clientes activos, Valor total del contrato, Cambio en los ingresos periódicos mensuales",
+			   "fi-FI", "Kuukausittain toistuva tuotto, Kuukausittainen toistuva kustannus, Kuukausittainen nettotulos, Aktiiviset asiakkaat, Sopimuksen kokonaisarvo, Kuukausittain toistuvan tuoton muutos",
+			   "fr-BE", "Revenu récurrent mensuel, Coût mensuel récurrent, Marge nette par mois, Clients actifs, Valeur totale du contrat, Évolution du revenu mensuel récurrent",
+			   "fr-CA", "Revenus mensuels récurrents, coûts mensuels récurrents, bénéfice net mensuel, clients actifs, valeur totale du contrat, variation des revenus mensuels récurrent",
+			   "fr-CH", "Revenu récurrent mensuel, Coût mensuel récurrent, Marge nette par mois, Clients actifs, Valeur totale du contrat, Évolution du revenu mensuel récurrent",
+			   "is-IS", "Mánaðarlegar endurteknar tekjur, mánaðarlegur endurtekinn kostnaður, mánaðarlegur hreinn hagnaður, virkir viðskiptavinir, heildarvirði samnings, breyting á mánaðarlegum endurteknum tekjum",
+			   "it-CH", "Ricavi periodici mensili, costo periodico mensile, profitto netto mensile, clienti attivi, Valore totale contratto, variazione ricavi periodici mensili",
+			   "it-IT", "Ricavi periodici mensili, costo periodico mensile, profitto netto mensile, clienti attivi, Valore totale contratto, variazione ricavi periodici mensili",
+			   "nb-NO", "Månedlig gjentakende inntekt, månedlig gjentakende kostnad, månedlig nettofortjeneste, aktive kunder, total kontraktverdi, endring i månedlig gjentakende inntekt",
+			   "nl-BE", "Maandelijkse periodieke opbrengst, Maandelijkse periodieke kosten, Maandelijkse nettowinst, Actieve klanten, Totale contractwaarde, Wijziging in maandelijks periodieke opbrengst",
+			   "nl-NL", "Maandelijkse periodieke opbrengst, Maandelijkse periodieke kosten, Maandelijkse nettowinst, Actieve klanten, Totale contractwaarde, Wijziging in maandelijks periodieke opbrengst",
+			   "ru-RU", "Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue",
+			   "sv-SE", "Månatliga återkommande intäkter, månatlig återkommande kostnad, månatlig nettovinst, aktiva kunder, totalt kontraktsvärde, förändring i månatliga återkommande intäkter",
+			   "Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue"
+			)
+		isHidden
+		lineageTag: 9b422523-bdea-4fed-81b0-ee3be1c4c093
+
+	measure 'Churn Analysis Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis de abandono",
+			   "de-DE", "Abwanderungsanalyse",
+			   "fr-FR", "Analyse de l’attrition",
+			   "cs-CZ", "Analýza ztráty zákazníků",
+			   "da-DK", "Analyse af debitorafgang",
+			   "de-AT", "Abwanderungsanalyse",
+			   "de-CH", "Abwanderungsanalyse",
+			   "en-AU", "Churn Analysis",
+			   "en-CA", "Churn Analysis",
+			   "en-GB", "Churn Analysis",
+			   "en-NZ", "Churn Analysis",
+			   "es-MX", "Análisis de abandono",
+			   "fi-FI", "Vaihtuvuusanalyysi",
+			   "fr-BE", "Analyse de l’attrition",
+			   "fr-CA", "Analyse de l’attrition",
+			   "fr-CH", "Analyse de l’attrition",
+			   "is-IS", "Greining á uppsögnum",
+			   "it-CH", "Analisi abbandono",
+			   "it-IT", "Analisi abbandono",
+			   "nb-NO", "Frafallsanalyse",
+			   "nl-BE", "Verloopanalyse",
+			   "nl-NL", "Verloopanalyse",
+			   "ru-RU", "Churn Analysis",
+			   "sv-SE", "Bortfallsanalys",
+			   "Churn Analysis"
+			)
+		isHidden
+		lineageTag: b7c2633c-0ac8-43e2-acc1-954a28b20297
+
+	measure 'Avg. Mon. Churn Rate % by Year and Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "% tasa de abandono men. medio por año y mes",
+			   "de-DE", "Durchschn. mon. Abwanderungsrate % nach Jahr und Monat",
+			   "fr-FR", "% taux d’attrition mensuel moyen par année et par mois",
+			   "cs-CZ", "Prům. měsíční míra úbytku (%) podle roku a měsíce",
+			   "da-DK", "Gennemsnitlig månedlig afgangsrateprocent efter år og måned",
+			   "de-AT", "Durchschn. mon. Abwanderungsrate % nach Jahr und Monat",
+			   "de-CH", "Durchschn. mon. Abwanderungsrate % nach Jahr und Monat",
+			   "en-AU", "Avg. Mon. Churn Rate % by Year and Month",
+			   "en-CA", "Avg. Mon. Churn Rate % by Year and Month",
+			   "en-GB", "Avg. Mon. Churn Rate % by Year and Month",
+			   "en-NZ", "Avg. Mon. Churn Rate % by Year and Month",
+			   "es-MX", "% tasa de abandono men. medio por año y mes",
+			   "fi-FI", "Keskim. kk:ttainen vaihtuvuusprosentti % vuosittain ja kuukausittain",
+			   "fr-BE", "% taux d’attrition mensuel moyen par année et par mois",
+			   "fr-CA", "% taux d’attrition mensuel moyen par année et par mois",
+			   "fr-CH", "% taux d’attrition mensuel moyen par année et par mois",
+			   "is-IS", "Meðaltími mán. uppsagna % eftir ári og mánuði",
+			   "it-CH", "% tasso medio di abbandono mensile per anno e mese",
+			   "it-IT", "% tasso medio di abbandono mensile per anno e mese",
+			   "nb-NO", "Gj.sn. månedlig frafallsrate i prosent etter år og måned",
+			   "nl-BE", "Gem. maand. % verloop per jaar en maand",
+			   "nl-NL", "Gem. maand. % verloop per jaar en maand",
+			   "ru-RU", "Avg. Mon. Churn Rate % by Year and Month",
+			   "sv-SE", "Genomsnittlig månatlig bortfallsgrad % per år och månad",
+			   "Avg. Mon. Churn Rate % by Year and Month"
+			)
+		isHidden
+		lineageTag: 2dd7d7b8-b3ee-4940-a139-d2f0f7e9d11e
+
+	measure 'Total Contract Value by Package Label' = "Total Contract Value by Package"
+		isHidden
+		lineageTag: bf787563-9fcc-455b-8bdd-31dad3104ff3
+
+	measure 'Mon. Recurring Revenue by Package Label' = "Mon. Recurring Revenue by Package"
+		isHidden
+		lineageTag: 5f9d0617-ba80-451f-9150-453e124e84b1
+
+	measure 'Churn by Customer Label' = "Churn by Customer"
+		isHidden
+		lineageTag: 25db989a-83ad-47a9-a1e7-e5f1d79df627
+
+	measure 'Profitability by Item Label' = "Profitability by Item"
+		isHidden
+		lineageTag: db70705e-506c-401c-bcc0-919c459c5bae
+
+	measure 'Mon. Recurring Revenue by Customer Location Label' = "Mon. Recurring Revenue by Customer Location"
+		isHidden
+		lineageTag: d8db89f5-2451-43e1-b6ba-966e8046e15c
+
+	measure 'Profitability by Salesperson Label' = "Profitability by Salesperson"
+		isHidden
+		lineageTag: dbcdf3ac-4d37-49c2-8fca-9f63d6e86935
+
+	measure 'Total Contract Value by Salesperson Label' = "Total Contract Value by Salesperson"
+		isHidden
+		lineageTag: 3bd18626-cd15-4df3-9f0d-ea68a333dd1f
+
+	measure 'Customer Deferrals by Released Status Label' = "Customer Deferrals by Released Status"
+		isHidden
+		lineageTag: df99b153-1f8a-4f8c-926f-40453d4d64a0
+
+	measure 'Vendor Deferrals by Released Status Label' = "Vendor Deferrals by Released Status"
+		isHidden
+		lineageTag: e11dfc8c-7b7a-49b0-9285-ab7e0912cda2
+
+	measure 'Billing Forecast by Billing Period, Vendor and Contract No. Label' = "Billing Forecast by Billing Period, Vendor and Contract No."
+		isHidden
+		lineageTag: a919ba27-5489-4ac5-a1de-f1cc7c8963b3
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: 18923585-b9c1-450c-9b76-9f4b2022e615
+		isNameInferred
+		sourceColumn: [unused]
+
+	partition Partition = calculated
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+
