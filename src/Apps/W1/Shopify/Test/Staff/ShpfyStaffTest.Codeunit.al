@@ -60,6 +60,33 @@ codeunit 139551 "Shpfy Staff Test"
     end;
 
     [Test]
+    procedure TestAutoCreateCatalogRequiresAdvancedPlan()
+    var
+        LibraryAssert: Codeunit "Library Assert";
+    begin
+        // [Given] A shop on a plan that does not support B2B catalogs
+        Initialize();
+        Shop."Advanced Shopify Plan" := false;
+        Shop."Auto Create Catalog" := false;
+        Shop.Modify(false);
+
+        // [When] The user tries to enable Auto Create Catalog
+        // [Then] A field error is raised mentioning the field
+        asserterror Shop.Validate("Auto Create Catalog", true);
+        LibraryAssert.ExpectedError('Auto Create Catalog');
+
+        // [Given] The shop is upgraded to a plan that supports B2B catalogs
+        Shop."Advanced Shopify Plan" := true;
+        Shop.Modify(false);
+
+        // [When] The user enables Auto Create Catalog
+        Shop.Validate("Auto Create Catalog", true);
+
+        // [Then] The field is enabled successfully
+        LibraryAssert.IsTrue(Shop."Auto Create Catalog", 'Auto Create Catalog should be enabled on an Advanced plan.');
+    end;
+
+    [Test]
     [HandlerFunctions('HttpSubmitHandler')]
     procedure TestImportStaff()
     var
