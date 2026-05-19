@@ -156,11 +156,16 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
 
     local procedure ResolveVATProductPostingGroups(EDocumentEntryNo: Integer; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
     var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         Vendor: Record Vendor;
         VATRate: Decimal;
         LineCount: Integer;
     begin
+        if not PurchasesPayablesSetup.Get() then
+            exit;
+        if not PurchasesPayablesSetup."Resolve VAT Group Purch EDoc" then
+            exit;
         if EDocumentPurchaseHeader."[BC] Vendor No." = '' then
             exit;
         if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then

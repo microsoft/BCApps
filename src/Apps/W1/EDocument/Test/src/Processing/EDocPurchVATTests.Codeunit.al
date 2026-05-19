@@ -14,6 +14,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.IO;
@@ -33,6 +34,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
         LibraryEDoc: Codeunit "Library - E-Document";
         EDocImplState: Codeunit "E-Doc. Impl. State";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
 
     [Test]
@@ -52,6 +54,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
     begin
         // [SCENARIO] When a draft line has a VAT Rate and a matching VAT Posting Setup exists, Prepare Draft resolves the VAT Prod. Posting Group
         Initialize(Enum::"Service Integration"::"Mock");
+        SetResolveVATProductGroupInPurchSetup(true);
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
         // [GIVEN] A vendor with a known VAT Bus. Posting Group
@@ -115,6 +118,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
     begin
         // [SCENARIO] When a draft line has a VAT Rate but no matching VAT Posting Setup exists, Prepare Draft leaves the field blank and sets the mismatch flag
         Initialize(Enum::"Service Integration"::"Mock");
+        SetResolveVATProductGroupInPurchSetup(true);
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
         // [GIVEN] A vendor with a known VAT Bus. Posting Group
@@ -167,6 +171,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
     begin
         // [SCENARIO] Full VAT setups must not be matched during VAT Posting Group resolution
         Initialize(Enum::"Service Integration"::"Mock");
+        SetResolveVATProductGroupInPurchSetup(true);
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
         // [GIVEN] A vendor
@@ -233,6 +238,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
     begin
         // [SCENARIO] Sales Tax setups must not be matched during VAT Posting Group resolution
         Initialize(Enum::"Service Integration"::"Mock");
+        SetResolveVATProductGroupInPurchSetup(true);
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
         // [GIVEN] A vendor
@@ -299,6 +305,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
     begin
         // [SCENARIO] Reverse Charge VAT setups should be matched during VAT Posting Group resolution
         Initialize(Enum::"Service Integration"::"Mock");
+        SetResolveVATProductGroupInPurchSetup(true);
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
         // [GIVEN] A vendor
@@ -363,6 +370,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
     begin
         // [SCENARIO] OnValidate clears mismatch when selected posting group's VAT % matches the line's VAT Rate
         Initialize(Enum::"Service Integration"::"Mock");
+        SetResolveVATProductGroupInPurchSetup(true);
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
         // [GIVEN] A vendor
@@ -422,6 +430,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
     begin
         // [SCENARIO] OnValidate keeps mismatch when selected posting group's VAT % differs from VAT Rate
         Initialize(Enum::"Service Integration"::"Mock");
+        SetResolveVATProductGroupInPurchSetup(true);
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
         // [GIVEN] A vendor
@@ -476,6 +485,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
     begin
         // [SCENARIO] OnValidate sets mismatch when posting group is cleared
         Initialize(Enum::"Service Integration"::"Mock");
+        SetResolveVATProductGroupInPurchSetup(true);
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
         // [GIVEN] A line with VAT Rate = 20, a posting group, and no mismatch
@@ -509,6 +519,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
     begin
         // [SCENARIO] OnValidate skips mismatch evaluation for Full VAT — flag stays unchanged
         Initialize(Enum::"Service Integration"::"Mock");
+        SetResolveVATProductGroupInPurchSetup(true);
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
         // [GIVEN] A vendor
@@ -568,6 +579,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
     begin
         // [SCENARIO] OnValidate clears mismatch when both VAT Rate and VAT % are 0
         Initialize(Enum::"Service Integration"::"Mock");
+        SetResolveVATProductGroupInPurchSetup(true);
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
         // [GIVEN] A vendor
@@ -626,6 +638,7 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
         Currency: Record Currency;
         LibraryERM: Codeunit "Library - ERM";
     begin
+        LibrarySetupStorage.Restore();
         LibraryLowerPermission.SetOutsideO365Scope();
         LibraryVariableStorage.Clear();
         Clear(EDocImplState);
@@ -661,7 +674,17 @@ codeunit 139897 "E-Doc Purch. VAT Tests"
 
         TransformationRule.DeleteAll();
         TransformationRule.CreateDefaultTransformations();
+        LibrarySetupStorage.SavePurchasesSetup();
 
         IsInitialized := true;
+    end;
+
+    local procedure SetResolveVATProductGroupInPurchSetup(NewResolveVATProductGroup: Boolean)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Resolve VAT Group Purch EDoc", NewResolveVATProductGroup);
+        PurchasesPayablesSetup.Modify();
     end;
 }
