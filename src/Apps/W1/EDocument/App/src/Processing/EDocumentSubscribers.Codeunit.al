@@ -693,7 +693,7 @@ codeunit 6103 "E-Document Subscribers"
         EDocument: Record "E-Document";
     begin
         if IsEDocumentLinkedToPurchaseDocument(EDocument, OpenRecord) then begin
-            Edocument.TestField(Direction, Enum::"E-Document Direction"::Incoming);
+            EDocument.TestField(Direction, Enum::"E-Document Direction"::Incoming);
             UpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType);
             RemoveEDocumentLinkFromPurchaseDocument(OpenRecord);
         end;

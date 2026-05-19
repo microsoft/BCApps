@@ -6,8 +6,8 @@ namespace Microsoft.Peppol;
 
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Purchases.Document;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Service.Document;

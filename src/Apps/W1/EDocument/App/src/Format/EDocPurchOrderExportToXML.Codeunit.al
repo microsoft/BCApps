@@ -1,11 +1,11 @@
 namespace Microsoft.EServices.EDocument.Format;
 
-using Microsoft.Purchases.Document;
-using Microsoft.Peppol;
 using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Peppol;
+using Microsoft.Purchases.Document;
 using System.Utilities;
 using System.Xml;
-using Microsoft.Finance.VAT.Setup;
 
 codeunit 6405 "E-Doc. Purchase Order To XML"
 {
@@ -239,7 +239,6 @@ codeunit 6405 "E-Doc. Purchase Order To XML"
         DeliveryLocationNode: XmlNode;
         AddressNode: XmlNode;
         CountryNode: XmlNode;
-        RequestedPeriodNode: XmlNode;
         ChildNode: XmlNode;
         StreetName: Text;
         AdditionalStreetName: Text;
@@ -283,8 +282,8 @@ codeunit 6405 "E-Doc. Purchase Order To XML"
         TempPurchaseLine: Record "Purchase Line" temporary;
         TempVATAmtLine: Record "VAT Amount Line" temporary;
         TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary;
-        PurchaseHeaderRecRef, PurchaseLineRecRef : RecordRef;
         PEPPOL30Common: Codeunit "PEPPOL30 Common";
+        PurchaseHeaderRecRef, PurchaseLineRecRef : RecordRef;
         PEPPOLMonetaryInfo: Interface "PEPPOL Purchase Monetary Info Provider";
         MonetaryTotalNode: XmlNode;
         ChildNode: XmlNode;

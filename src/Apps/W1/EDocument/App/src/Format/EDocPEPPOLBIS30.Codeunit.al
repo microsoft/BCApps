@@ -3,6 +3,7 @@ namespace Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument;
 using Microsoft.EServices.EDocument.Format;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
@@ -12,7 +13,6 @@ using Microsoft.Sales.Reminder;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using System.Utilities;
-using Microsoft.Peppol;
 
 codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
 {

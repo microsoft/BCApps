@@ -4,23 +4,23 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
+using Microsoft.CRM.Contact;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Purchases.Vendor;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
-using Microsoft.Purchases.History;
-using Microsoft.CRM.Contact;
-using Microsoft.Purchases.Document;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -1711,7 +1711,9 @@ codeunit 37201 "PEPPOL30 Impl."
         ContactEmail := Contact."E-Mail";
     end;
 
+#pragma warning disable AA0150
     procedure GetGeneralInfoBIS(PurchaseHeader: Record "Purchase Header"; var ID: Text; var SalesOrderID: Text; var IssueDate: Text; var OrderTypeCode: Text; var Note: Text; var DocumentCurrencyCode: Text; var AccountingCost: Text; var CustomerReference: Text)
+#pragma warning restore AA0150
     begin
         ID := PurchaseHeader."No.";
         SalesOrderID := PurchaseHeader."Vendor Order No.";
