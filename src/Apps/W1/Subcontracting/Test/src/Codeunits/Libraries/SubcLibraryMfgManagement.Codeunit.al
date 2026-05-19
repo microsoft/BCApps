@@ -202,18 +202,18 @@ codeunit 139984 "Subc. Library Mfg. Management"
         exit(ProdOrderRoutingLine."Routing Reference No.");
     end;
 
-    procedure CreateLaborReqWkshTemplateAndNameAndUpdateSetup()
+    procedure CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup()
     var
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionWkshName: Record "Requisition Wksh. Name";
-        SubMgmtSetup: Record "Subc. Management Setup";
+        ManufacturingSetup: Record "Manufacturing Setup";
     begin
         CreateReqWkshTemplate(ReqWkshTemplate, false);
         CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
-        SubMgmtSetup.Get();
-        SubMgmtSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
-        SubMgmtSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
-        SubMgmtSetup.Modify();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
+        ManufacturingSetup."Subcontracting Batch Name" := RequisitionWkshName.Name;
+        ManufacturingSetup.Modify();
     end;
 
     procedure CreateReqWkshTemplate(var ReqWkshTemplate: Record "Req. Wksh. Template"; Recurring: Boolean)

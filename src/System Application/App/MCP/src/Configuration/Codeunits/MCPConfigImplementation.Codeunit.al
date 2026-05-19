@@ -668,6 +668,30 @@ codeunit 8351 "MCP Config Implementation"
             APIGroup := MCPAPIPublisherGroup."API Group";
     end;
 
+    internal procedure ResolvePublisherForGroup(var MCPAPIPublisherGroup: Record "MCP API Publisher Group"; var APIPublisher: Text; APIGroupValue: Text)
+    begin
+        if APIGroupValue = '' then begin
+            APIPublisher := '';
+            exit;
+        end;
+
+        MCPAPIPublisherGroup.Reset();
+        MCPAPIPublisherGroup.SetRange("API Group", APIGroupValue);
+
+        if not MCPAPIPublisherGroup.FindSet() then begin
+            APIPublisher := '';
+            exit;
+        end;
+
+        if MCPAPIPublisherGroup.Count() = 1 then begin
+            APIPublisher := MCPAPIPublisherGroup."API Publisher";
+            exit;
+        end;
+
+        if Page.RunModal(Page::"MCP API Publisher Lookup", MCPAPIPublisherGroup) = Action::LookupOK then
+            APIPublisher := MCPAPIPublisherGroup."API Publisher";
+    end;
+
     internal procedure ValidateAPIPageTool(PageId: Integer; ValidateAPIPublisher: Boolean): Record "Page Metadata"
     var
         PageMetadata: Record "Page Metadata";
