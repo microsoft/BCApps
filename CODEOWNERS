@@ -5,9 +5,6 @@
 # Default owners
 * @microsoft/dynamics-365-business-central
 
-# Default owners for all app code
-/src @microsoft/d365-bc-app-required
-
 # App Rulesets
 /src/rulesets/ @microsoft/d365-bc-app-rulesets
 
@@ -36,3 +33,6 @@ app.json @microsoft/d365-bc-engineering-systems @microsoft/d365-bc-app-required
 /.github @microsoft/d365-bc-engineering-systems
 /build @microsoft/d365-bc-engineering-systems
 /CODEOWNERS @microsoft/d365-bc-engineering-systems
+
+# Code Review Tools
+/tools/Code\ Review @microsoft/d365-bc-code-review-agent

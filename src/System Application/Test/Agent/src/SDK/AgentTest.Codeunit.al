@@ -325,6 +325,42 @@ codeunit 133961 "Agent Test"
         Assert.AreEqual('', RetrievedModelId, 'Model ID should be empty in auto mode');
     end;
 
+    [Test]
+    procedure SetModelIdToDefaultModel()
+    var
+        AgentRecord: Record Agent;
+        AgentModel: Record "Agent Model";
+        Any: Codeunit Any;
+        AgentId: Guid;
+        RetrievedModelId: Code[30];
+        RetrievedModelName: Text[70];
+    begin
+        Initialize();
+
+        // [SCENARIO] Setting the model ID to the default Agent Model should succeed and return the correct model name
+
+        // [GIVEN] An agent and the default agent model
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentModel.SetRange("Is Default", true);
+        Assert.IsTrue(AgentModel.FindFirst(), 'A default agent model should exist');
+
+        // [WHEN] Setting the model ID to the default model
+        Agent.SetModelId(AgentId, AgentModel."Model ID");
+
+        // [THEN] The model ID should match the default model
+        RetrievedModelId := Agent.GetModelId(AgentId);
+        Assert.AreEqual(AgentModel."Model ID", RetrievedModelId, 'Model ID should match the default model');
+
+        // [THEN] The model name should match the default model name
+        RetrievedModelName := Agent.GetModelName(AgentId);
+        Assert.AreEqual(AgentModel."Model Name", RetrievedModelName, 'Model name should match the default model name');
+    end;
+
     #endregion
 
     #region User Name Tests

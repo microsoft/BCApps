@@ -27,11 +27,6 @@ page 8353 "MCP API Config Tool Lookup"
         {
             repeater(Control1)
             {
-                field(ID; Rec.ID)
-                {
-                    Caption = 'ID';
-                    ToolTip = 'Specifies the unique identifier for the API page.';
-                }
                 field(Name; Rec.Name)
                 {
                     Caption = 'Name';
@@ -41,6 +36,11 @@ page 8353 "MCP API Config Tool Lookup"
                 {
                     Caption = 'Entity Name';
                     ToolTip = 'Specifies the entity name of the API page.';
+                }
+                field(ID; Rec.ID)
+                {
+                    Caption = 'ID';
+                    ToolTip = 'Specifies the unique identifier for the API page.';
                 }
                 field(APIPublisher; Rec.APIPublisher)
                 {

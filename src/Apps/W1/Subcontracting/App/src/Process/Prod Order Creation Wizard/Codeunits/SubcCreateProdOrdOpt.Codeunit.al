@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -636,7 +636,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
     begin
         GetManufacturingSetupCached();
         ManufacturingSetup.TestField("Rtng. Link Code Purch. Prov.");
-        ManufacturingSetup.TestField("Subc. Comp. at Location");
+        ManufacturingSetup.TestField("Subc. Default Comp. Location");
 
         ManufacturingSetup.TestField("Released Order Nos.");
         ManufacturingSetup.TestField("Production BOM Nos.");
