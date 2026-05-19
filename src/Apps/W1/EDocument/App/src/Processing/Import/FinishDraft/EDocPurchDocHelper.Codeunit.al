@@ -42,7 +42,8 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("No."), EDocumentPurchaseLine."[BC] Purchase Type No.");
         if EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" <> '' then
-            PurchaseLine.Validate("VAT Prod. Posting Group", EDocumentPurchaseLine."[BC] VAT Prod. Posting Group");
+            ValidateFieldWithContext(
+                PurchaseLine, PurchaseLine.FieldNo("VAT Prod. Posting Group"), EDocumentPurchaseLine."[BC] VAT Prod. Posting Group");
         if (PurchaseLine.Type = PurchaseLine.Type::"G/L Account") and HasTotalDiscount then
             ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Allow Invoice Disc."), true);
         PurchaseLine.Description := EDocumentPurchaseLine.Description;
@@ -221,7 +222,7 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
             exit;
         PurchaseHeader.Validate("Posting Date", EDocumentPurchaseHeader."Document Date");
     end;
-    
+
     local procedure ComputeTotalLineAmount(EDocEntryNo: Integer): Decimal
     var
         EDocPurchLine: Record "E-Document Purchase Line";
