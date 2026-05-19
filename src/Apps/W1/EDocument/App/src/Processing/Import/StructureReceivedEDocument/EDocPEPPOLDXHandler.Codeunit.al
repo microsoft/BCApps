@@ -103,6 +103,7 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
         DataExch."Related Record" := EDocument.RecordId;
         DataExch.Modify(true);
 
+        DataExch.ImportToDataExch(DataExchDef);
         DataExchDef.ProcessDataExchange(DataExch);
 
         BridgeToStagingTables(EDocument, DataExch);
@@ -191,6 +192,7 @@ codeunit 6407 "E-Doc. PEPPOL DX Handler" implements IStructuredFormatReader
     begin
         IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
         IntermediateDataImport.SetRange("Table ID", Database::"E-Document Purchase Line");
+        IntermediateDataImport.SetFilter("Parent Record No.", '>%1', 0);
         IntermediateDataImport.SetCurrentKey("Record No.");
 
         if not IntermediateDataImport.FindSet() then

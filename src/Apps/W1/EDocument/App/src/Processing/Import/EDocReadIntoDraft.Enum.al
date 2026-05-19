@@ -40,7 +40,7 @@ enum 6109 "E-Doc. Read into Draft" implements IStructuredFormatReader
         Caption = 'MLLM';
         Implementation = IStructuredFormatReader = "E-Document MLLM Handler";
     }
-    value(5; "Data Exchange")
+    value(5; "PEPPOL Data Exchange")
     {
         Caption = 'PEPPOL BIS 3 - Data Exchange';
         Implementation = IStructuredFormatReader = "E-Doc. PEPPOL DX Handler";

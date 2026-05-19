@@ -36,6 +36,24 @@ codeunit 139897 "E-Doc Data Exch Tests"
         EDocumentStatusNotUpdatedErr: Label 'The status of the EDocument was not updated to the expected status after the step was executed.';
 
     [Test]
+    procedure VerifyV2FieldMappingsImported()
+    var
+        DataExchFieldMapping: Record "Data Exch. Field Mapping";
+    begin
+        // [SCENARIO] V2 Data Exchange Definition field mappings have correct Target Table ID and Target Field ID
+        Initialize();
+
+        // [WHEN] Checking if column 8 (vendor name) mapping exists
+        DataExchFieldMapping.SetRange("Data Exch. Def Code", 'EDOCPEPINVIMPV2');
+        DataExchFieldMapping.SetRange("Column No.", 8);
+        DataExchFieldMapping.SetRange("Target Table ID", Database::"E-Document Purchase Header");
+        DataExchFieldMapping.SetRange("Target Field ID", 9);  // Vendor Company Name
+
+        // [THEN] The mapping record exists
+        Assert.IsTrue(DataExchFieldMapping.FindFirst(), 'Column 8 should map to Table 6100 Field 9 (Vendor Company Name)');
+    end;
+
+    [Test]
     procedure InvoiceReadIntoDraft_HeaderFieldsMapped()
     var
         EDocument: Record "E-Document";
@@ -246,6 +264,9 @@ codeunit 139897 "E-Doc Data Exch Tests"
         Clear(EDocImplState);
         Clear(LibraryVariableStorage);
 
+        // Ensure PEPPOL Data Exchange Definitions exist (they may not in CI environments)
+        EnsurePEPPOLDataExchDefsExist();
+
         if IsInitialized then
             exit;
 
@@ -258,14 +279,11 @@ codeunit 139897 "E-Doc Data Exch Tests"
         EDocServiceDataExchDef.DeleteAll();
         DocumentAttachment.DeleteAll();
 
-        // Ensure PEPPOL Data Exchange Definitions exist (they may not in CI environments)
-        EnsurePEPPOLDataExchDefsExist();
-
         LibraryEDoc.SetupStandardVAT();
         LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
         LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::"Data Exchange";
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::"PEPPOL Data Exchange";
         EDocumentService.Modify();
 
         // Set a currency that can be used across all localizations
@@ -283,7 +301,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
     var
         EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
     begin
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::"Data Exchange";
+        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::"PEPPOL Data Exchange";
         EDocumentService.Modify();
 
         // Link the service to the shipped PEPPOL Invoice import Data Exchange Definition
@@ -293,7 +311,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
         EDocServiceDataExchDef.Init();
         EDocServiceDataExchDef."E-Document Format Code" := EDocumentService.Code;
         EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Invoice";
-        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPPOLINVIMP';
+        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPINVIMPV2';
         EDocServiceDataExchDef.Insert();
     end;
 
@@ -304,7 +322,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
         EDocServiceDataExchDef.Init();
         EDocServiceDataExchDef."E-Document Format Code" := EDocumentService.Code;
         EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Credit Memo";
-        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPPOLCRMEMOIMP';
+        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPCRMEMOIMPV2';
         if not EDocServiceDataExchDef.Insert() then
             EDocServiceDataExchDef.Modify();
     end;
@@ -355,9 +373,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
             EDocumentInstall.ImportInvoiceXML();
         if not DataExchDef.Get('EDOCPEPPOLCRMEMOIMP') then
             EDocumentInstall.ImportCreditMemoXML();
-        if not DataExchDef.Get('EDOCPEPINVIMPV2') then
-            EDocumentInstall.ImportInvoiceV2XML();
-        if not DataExchDef.Get('EDOCPEPCRMEMOIMPV2') then
-            EDocumentInstall.ImportCreditMemoV2XML();
+        EDocumentInstall.ImportInvoiceV2XML();
+        EDocumentInstall.ImportCreditMemoV2XML();
     end;
 }

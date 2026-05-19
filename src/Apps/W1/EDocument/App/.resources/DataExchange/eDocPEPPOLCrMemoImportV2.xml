@@ -50,7 +50,7 @@
       <DataExchColumnDef ColumnNo="47" Name="PayeeLegalEntityCompanyID" Show="false" DataType="0" Description="Payee Legal Entity Company ID" Path="/CreditNote/cac:PayeeParty/cac:PartyLegalEntity/cbc:CompanyID" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
       <DataExchColumnDef ColumnNo="48" Name="CustomerRegistrationName" Show="false" DataType="0" Description="Customer Registration Name" Path="/CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
       <DataExchColumnDef ColumnNo="49" Name="CustLegalEntityCompanyID" Show="false" DataType="0" Description="Customer Legal Entity Company ID" Path="/CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
-      <DataExchMapping TableId="6100" UseAsIntermediateTable="true" Name="PEPPOL Credit Note to E-Document Purchase Header">
+      <DataExchMapping TableId="1214" UseAsIntermediateTable="true" Name="PEPPOL Credit Note to E-Document Purchase Header">
         <DataExchFieldMapping ColumnNo="1" TargetTableID="6100" TargetFieldID="5" />
         <DataExchFieldMapping ColumnNo="2" TargetTableID="6100" TargetFieldID="8" />
         <DataExchFieldMapping ColumnNo="3" TargetTableID="6100" TargetFieldID="24" />
@@ -106,7 +106,7 @@
       <DataExchColumnDef ColumnNo="16" Name="CreditNoteLinePriceAmount" Show="true" DataType="0" Description="Direct Unit Cost" Path="/CreditNote/cac:CreditNoteLine/cac:Price/cbc:PriceAmount" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
       <DataExchColumnDef ColumnNo="17" Name="InvLinePriceAmountCurrencyID" Show="true" DataType="0" Description="Currency Code" Path="/CreditNote/cac:CreditNoteLine/cac:Price/cbc:PriceAmount/@currencyID" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
       <DataExchColumnDef ColumnNo="18" Name="BaseQuantity" Show="true" DataType="0" Description="Quantity (Base)" Path="/CreditNote/cac:CreditNoteLine/cac:Price/cbc:BaseQuantity" TextPaddingRequired="false" Justification="0" UseNodeNameAsValue="false" BlankZero="false" ExportIfNotBlank="false" />
-      <DataExchMapping TableId="6101" UseAsIntermediateTable="true" Name="PEPPOL Credit Note to E-Document Purchase Line">
+      <DataExchMapping TableId="1214" UseAsIntermediateTable="true" Name="PEPPOL Credit Note to E-Document Purchase Line">
         <DataExchFieldMapping ColumnNo="2" TargetTableID="6101" TargetFieldID="6" />
         <DataExchFieldMapping ColumnNo="3" TargetTableID="6101" TargetFieldID="7" />
         <DataExchFieldMapping ColumnNo="4" Optional="true" TargetTableID="6101" TargetFieldID="9" />
