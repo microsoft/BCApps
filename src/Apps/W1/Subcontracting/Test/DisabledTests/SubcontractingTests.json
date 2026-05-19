@@ -4,5 +4,23 @@
         "codeunitId": 139989,
         "codeunitName": "Subc. Subcontracting Test",
         "method": "TestPostItemChargeAssignedToSubcontractingLingValueEntryWithCapacityRelation"
+    },
+    {
+        "bug": "635057",
+        "codeunitId": 149910,
+        "codeunitName": "Subc. WIP Transfer Post Test",
+        "method": "PostWIPTransferOrder_ShipPartialReceiveFullReceive"
+    },
+    {
+        "bug": "635057",
+        "codeunitId": 149910,
+        "codeunitName": "Subc. WIP Transfer Post Test",
+        "method": "PostWIPTransferOrder_FullWhseHandling_ShipPartialReceiveFullReceive"
+    },
+    {
+        "bug": "635057",
+        "codeunitId": 149910,
+        "codeunitName": "Subc. WIP Transfer Post Test",
+        "method": "PostWIPTransferOrder_FullWhseHandling_SerialTrackedItem"
     }
 ]

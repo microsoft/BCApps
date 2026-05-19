@@ -76,5 +76,12 @@ tableextension 99001519 "Subc. Transfer Shpt. Line Ext" extends "Transfer Shipme
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(99001560; "Transfer WIP Item"; Boolean)
+        {
+            Caption = 'Transfer WIP Item';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies whether this transfer shipment line represents a WIP item transfer.';
+        }
     }
 }
