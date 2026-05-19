@@ -87,6 +87,25 @@ codeunit 139551 "Shpfy Staff Test"
     end;
 
     [Test]
+    [HandlerFunctions('AutoCreateCatalogDisabledMessageHandler')]
+    procedure TestAdvancedPlanDowngradeDisablesAutoCreateCatalog()
+    var
+        LibraryAssert: Codeunit "Library Assert";
+    begin
+        // [Given] A shop on an Advanced plan with Auto Create Catalog enabled
+        Initialize();
+        Shop."Advanced Shopify Plan" := true;
+        Shop."Auto Create Catalog" := true;
+        Shop.Modify(false);
+
+        // [When] The shop's plan is downgraded (as happens during a plan sync from Shopify)
+        Shop.Validate("Advanced Shopify Plan", false);
+
+        // [Then] Auto Create Catalog is automatically disabled and the user is notified via the message handler
+        LibraryAssert.IsFalse(Shop."Auto Create Catalog", 'Auto Create Catalog should be disabled after the plan is downgraded.');
+    end;
+
+    [Test]
     [HandlerFunctions('HttpSubmitHandler')]
     procedure TestImportStaff()
     var
@@ -292,6 +311,11 @@ codeunit 139551 "Shpfy Staff Test"
 
         MakeResponse(Response);
         exit(false); // Prevents actual HTTP call
+    end;
+
+    [MessageHandler]
+    internal procedure AutoCreateCatalogDisabledMessageHandler(Message: Text[1024])
+    begin
     end;
 
     local procedure MakeResponse(var HttpResponseMessage: TestHttpResponseMessage): Boolean
