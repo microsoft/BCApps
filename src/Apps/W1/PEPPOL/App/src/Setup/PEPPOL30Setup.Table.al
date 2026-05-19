@@ -34,6 +34,11 @@ table 37202 "PEPPOL 3.0 Setup"
             Caption = 'PEPPOL 3.0 Service Format';
             ToolTip = 'Specifies the PEPPOL 3.0 format to be used for electronic documents of type service.';
         }
+        field(4; "PEPPOL 3.0 Purchase Format"; Enum "PEPPOL 3.0 Purchase Format")
+        {
+            Caption = 'PEPPOL 3.0 Purchase Format';
+            ToolTip = 'Specifies the PEPPOL 3.0 format to be used for electronic documents of type purchase.';
+        }
     }
 
     keys
@@ -48,6 +53,7 @@ table 37202 "PEPPOL 3.0 Setup"
     begin
         Rec."PEPPOL 3.0 Sales Format" := Rec."PEPPOL 3.0 Sales Format"::"PEPPOL 3.0 - Sales";
         Rec."PEPPOL 3.0 Service Format" := Rec."PEPPOL 3.0 Service Format"::"PEPPOL 3.0 - Service";
+        Rec."PEPPOL 3.0 Purchase Format" := Rec."PEPPOL 3.0 Purchase Format"::"PEPPOL 3.0 - Purchase Order";
     end;
 
     /// <summary>

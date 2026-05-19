@@ -42,6 +42,7 @@ codeunit 139897 "E-Doc. Purch. Order Exp. Test"
         // [GIVEN] A purchase order with a line
         LibraryLowerPermission.SetO365BusFull();
         LibraryEDoc.CreatePurchaseOrderWithLine(Vendor, PurchaseHeader, PurchaseLine, 1);
+        
         EDocument.SetRange("Document Record ID", PurchaseHeader.RecordId());
         Assert.RecordIsEmpty(EDocument);
 
@@ -147,7 +148,6 @@ codeunit 139897 "E-Doc. Purch. Order Exp. Test"
         LibraryPurchase.CreateVendor(Vendor);
         DocumentSendingProfile.FindLast();
         Vendor."Document Sending Profile" := DocumentSendingProfile.Code;
-        Vendor."VAT Bus. Posting Group" := Vendor."VAT Bus. Posting Group";
         Vendor.Modify(true);
 
         LibraryEDoc.AddEDocServiceSupportedType(EDocumentService, Enum::"E-Document Type"::"Purchase Order");

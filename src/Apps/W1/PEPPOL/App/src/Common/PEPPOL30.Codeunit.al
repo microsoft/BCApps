@@ -20,6 +20,14 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
                                             , "PEPPOL Party Info Provider"
                                             , "PEPPOL Payment Info Provider"
                                             , "PEPPOL Tax Info Provider"
+                                            , "PEPPOL Purchase Attachment Provider"
+                                            , "PEPPOL Purchase Delivery Info Provider"
+                                            , "PEPPOL Purchase Document Info Provider"
+                                            , "PEPPOL Purchase Line Info Provider"
+                                            , "PEPPOL Purchase Monetary Info Provider"
+                                            , "PEPPOL Purchase Party Info Provider"
+                                            , "PEPPOL Purchase Payment Info Provider"
+                                            , "PEPPOL Purchase Tax Info Provider"
 {
 
     InherentEntitlements = X;
@@ -1129,6 +1137,7 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     begin
         PEPPOLManagementImpl.GetTaxTotals(PurchaseLine, VATAmtLine);
     end;
+
     /// <summary>
     /// Gets tax categories from the sales line and populates VAT product posting group category information.
     /// </summary>
@@ -1137,6 +1146,16 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     procedure GetTaxCategories(SalesLine: Record "Sales Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
     begin
         PEPPOLManagementImpl.GetTaxCategories(SalesLine, VATProductPostingGroupCategory);
+    end;
+
+    /// <summary>
+    /// Gets tax categories from the purchase line and populates VAT product posting group category information.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line record containing tax category information.</param>
+    /// <param name="VATProductPostingGroupCategory">Returns the VAT product posting group category information.</param>
+    procedure GetTaxCategories(PurchaseLine: Record "Purchase Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
+    begin
+        PEPPOLManagementImpl.GetTaxCategories(PurchaseLine, VATProductPostingGroupCategory);
     end;
 
     /// <summary>

@@ -12,6 +12,7 @@ using Microsoft.Sales.Reminder;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using System.Utilities;
+using Microsoft.Peppol;
 
 codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
 {
@@ -179,10 +180,13 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
     local procedure GeneratePurchaseOrderXMLFile(var SourceDocumentHeader: RecordRef; DocOutStream: OutStream; GeneratePDF: Boolean)
     var
         PurchaseHeader: Record "Purchase Header";
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
         PurchaseOrderExport: Codeunit "E-Doc. Purchase Order To XML";
         TempBlob: Codeunit "Temp Blob";
     begin
+        PeppolSetup.GetSetup();
         SourceDocumentHeader.SetTable(PurchaseHeader);
+        PurchaseOrderExport.SetFormat(PeppolSetup."PEPPOL 3.0 Purchase Format");
         PurchaseOrderExport.SetGeneratePDF(GeneratePDF);
         PurchaseOrderExport.Run(PurchaseHeader);
         PurchaseOrderExport.GetPurchaseOrderXML(TempBlob);
