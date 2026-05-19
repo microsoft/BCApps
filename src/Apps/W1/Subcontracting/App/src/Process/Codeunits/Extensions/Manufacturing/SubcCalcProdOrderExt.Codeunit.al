@@ -29,8 +29,8 @@ codeunit 99001517 "Subc. Calc. Prod. Order Ext."
 
     local procedure TransferSubcontractingFieldsBOMComponent(var ProductionBOMLine: Record "Production BOM Line"; var ProdOrderComponent: Record "Prod. Order Component")
     begin
-        ProdOrderComponent."Orig. Location Code" := ProdOrderComponent."Location Code";
-        ProdOrderComponent."Orig. Bin Code" := ProdOrderComponent."Bin Code";
+        ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
+        ProdOrderComponent."Subc. Orig. Bin Code" := ProdOrderComponent."Bin Code";
         ProdOrderComponent."Subcontracting Type" := ProductionBOMLine."Subcontracting Type";
 
         OnAfterTransferSubcontractingFieldsBOMComponent(ProductionBOMLine, ProdOrderComponent);
