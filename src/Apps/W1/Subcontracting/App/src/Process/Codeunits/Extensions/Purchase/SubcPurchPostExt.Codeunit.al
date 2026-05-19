@@ -29,8 +29,8 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Purch.-Post", OnAfterPostItemJnlLineCopyProdOrder, '', false, false)]
     local procedure MfgPurchPostOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line")
     begin
-        ItemJnlLine."Subcontr. Purch. Order No." := PurchLine."Document No.";
-        ItemJnlLine."Subcontr. PO Line No." := PurchLine."Line No.";
+        ItemJnlLine."Subc. Purch. Order No." := PurchLine."Document No.";
+        ItemJnlLine."Subc. Purch. Order Line No." := PurchLine."Line No.";
         ItemJnlLine."Subc. Operation No." := PurchLine."Operation No.";
     end;
 
@@ -96,7 +96,7 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         Item.SetLoadFields("Inventory Posting Group");
         Item.Get(ItemJournalLine."Item No.");
         ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
-        ItemJournalLine."Item Charge Sub. Assign." := true;
+        ItemJournalLine."Subc. Item Charge Assign." := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnPostItemJnlLineOnAfterPostItemJnlLineJobConsumption, '', false, false)]

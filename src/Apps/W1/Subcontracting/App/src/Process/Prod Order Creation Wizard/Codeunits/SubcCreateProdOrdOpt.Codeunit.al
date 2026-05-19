@@ -647,7 +647,7 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         SubcManagementSetup.TestField("Common Work Center No.");
 
         Vendor.Get(PurchaseLine."Buy-from Vendor No.");
-        Vendor.TestField("Subcontr. Location Code");
+        Vendor.TestField("Subc. Location Code");
 
         PurchaseLine.TestField(Type, "Purchase Line Type"::Item);
         PurchaseLine.TestField("Prod. Order No.", '');
@@ -1176,9 +1176,8 @@ codeunit 99001556 "Subc. Create Prod. Ord. Opt."
         ProdOrderComponent."Routing Link Code" := TempProdOrderComponent."Routing Link Code";
         ProdOrderComponent."Flushing Method" := TempProdOrderComponent."Flushing Method";
         ProdOrderComponent."Component Supply Method" := TempProdOrderComponent."Component Supply Method";
-        ProdOrderComponent."Orig. Location Code" := TempProdOrderComponent."Orig. Location Code";
-        ProdOrderComponent."Orig. Bin Code" := TempProdOrderComponent."Orig. Bin Code";
-        ProdOrderComponent."Component Supply Method" := TempProdOrderComponent."Component Supply Method";
+        ProdOrderComponent."Subc. Original Location Code" := TempProdOrderComponent."Subc. Original Location Code";
+        ProdOrderComponent."Subc. Orig. Bin Code" := TempProdOrderComponent."Subc. Orig. Bin Code";
         ProdOrderComponent.Modify(true);
     end;
 

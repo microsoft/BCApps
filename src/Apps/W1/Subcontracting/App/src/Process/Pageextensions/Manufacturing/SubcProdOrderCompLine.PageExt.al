@@ -17,7 +17,7 @@ pageextension 99001513 "Subc. ProdOrderCompLine" extends "Prod. Order Comp. Line
                 ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies how components are supplied to the subcontractor for the production component.';
             }
-            field("Routing Link Code"; Rec."Routing Link Code")
+            field("Subc. Routing Link Code"; Rec."Routing Link Code")
             {
                 ApplicationArea = Manufacturing;
                 ToolTip = 'Specifies the routing link code when you calculate the production order.';

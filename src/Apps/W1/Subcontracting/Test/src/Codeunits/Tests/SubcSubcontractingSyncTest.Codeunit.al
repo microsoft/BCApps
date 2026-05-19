@@ -139,7 +139,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         LibraryWarehouse.CreateLocation(Location);
         LibraryWarehouse.CreateLocation(Location2);
         LibraryPurchase.CreateVendor(Vendor);
-        Vendor."Subcontr. Location Code" := Location2.Code;
+        Vendor."Subc. Location Code" := Location2.Code;
         Vendor.Modify();
         LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
         LibraryPurchase.CreatePurchaseLine(PurchLine, PurchaseHeader, "Purchase Line Type"::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(100));
@@ -359,7 +359,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Get(WorkCenter."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
