@@ -1558,7 +1558,6 @@ codeunit 139608 "Shpfy Orders API Test"
 
         // [GIVEN] The HTTP handler is primed to return a downgraded-plan response
         PlanRefreshExpected := true;
-        PlanRefreshCallCount := 0;
 
         // [WHEN] GetShopSettings is called
         LocalShop.GetShopSettings();
@@ -1566,8 +1565,6 @@ codeunit 139608 "Shpfy Orders API Test"
         // [THEN] The Advanced Shopify Plan flag is cleared based on the live response
         LibraryAssert.IsFalse(LocalShop."Advanced Shopify Plan", 'Stale Advanced Shopify Plan flag should be refreshed to false after plan downgrade.');
         LibraryAssert.AreEqual(1, PlanRefreshCallCount, 'GetShopSettings should issue exactly one plan-refresh query.');
-
-        PlanRefreshExpected := false;
     end;
 
     [Test]
@@ -1597,7 +1594,6 @@ codeunit 139608 "Shpfy Orders API Test"
 
         // [GIVEN] The HTTP handler is primed to return a downgraded-plan response
         PlanRefreshExpected := true;
-        PlanRefreshCallCount := 0;
 
         // [WHEN] The "Sync Orders from Shopify" report runs against this shop
         ShopFilter.SetRange(Code, Shop.Code);
@@ -1609,8 +1605,6 @@ codeunit 139608 "Shpfy Orders API Test"
         Shop.Get(Shop.Code);
         LibraryAssert.IsFalse(Shop."Advanced Shopify Plan", 'Bulk sync report should refresh Advanced Shopify Plan flag before importing orders.');
         LibraryAssert.IsTrue(PlanRefreshCallCount >= 1, 'Bulk sync report should issue a plan-refresh query.');
-
-        PlanRefreshExpected := false;
     end;
 
     local procedure CreateTaxArea(var TaxArea: Record "Tax Area"; var ShopifyTaxArea: Record "Shpfy Tax Area"; ShopParam: Record "Shpfy Shop")
@@ -1714,6 +1708,11 @@ codeunit 139608 "Shpfy Orders API Test"
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         AccessToken: SecretText;
     begin
+        // Reset per-test mock state so a previous test's assertion failure cannot leak
+        // the plan-refresh flag into the next test and corrupt unrelated HTTP calls.
+        PlanRefreshExpected := false;
+        PlanRefreshCallCount := 0;
+
         if IsInitialized then
             exit;
 
