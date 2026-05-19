@@ -162,7 +162,8 @@ codeunit 6102 "E-Doc. Export"
             PurchaseHeader.Get(DocumentHeader.RecordId);
             if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
                 exit(false);
-        end;
+if EDocument."E-Document Service Status" <> Enum::"E-Document Service Status"::Created then
+    EDocumentProcessing.ModifyServiceStatus(EDocument, EDocumentService, Enum::"E-Document Service Status"::Created);
         if EDocumentService.FindSet() then
             repeat
                 if IsDocumentSupported(EDocumentService, DocumentHeader, EDocumentType) then
