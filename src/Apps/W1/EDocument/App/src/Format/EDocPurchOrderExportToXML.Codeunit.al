@@ -7,7 +7,7 @@ using System.Utilities;
 using System.Xml;
 using Microsoft.Finance.VAT.Setup;
 
-codeunit 50000 "E-Doc. Purchase Order To XML"
+codeunit 6405 "E-Doc. Purchase Order To XML"
 {
     TableNo = "Purchase Header";
 
