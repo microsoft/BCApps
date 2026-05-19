@@ -62,7 +62,7 @@ codeunit 7760 "Copilot Capability Install"
         if CopilotCapability <> Enum::"Copilot Capability"::Chat then
             exit;
 
-        if not RequiredPrivacyNotices.Contains(SystemPrivacyNoticeReg.GetMicrosoftLearnID()) then
-            RequiredPrivacyNotices.Add(SystemPrivacyNoticeReg.GetMicrosoftLearnID());
+        if not RequiredPrivacyNotices.Contains(SystemPrivacyNoticeReg.GetMicrosoftCopilotID()) then
+            RequiredPrivacyNotices.Add(SystemPrivacyNoticeReg.GetMicrosoftCopilotID());
     end;
 }
