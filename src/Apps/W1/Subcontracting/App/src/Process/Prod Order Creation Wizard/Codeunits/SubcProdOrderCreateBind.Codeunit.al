@@ -55,7 +55,7 @@ codeunit 99001555 "Subc. ProdOrderCreateBind"
         ComponentsLocationCode := SubcontractingManagement.GetComponentsLocationCode(SubcontractingPurchaseLine);
 
         ProdOrderComponent.Validate("Location Code", ComponentsLocationCode);
-        ProdOrderComponent."Orig. Location Code" := '';
+        ProdOrderComponent."Subc. Original Location Code" := '';
     end;
 
     local procedure GetSubcontractorForPurchaseProvision(var Vendor: Record Vendor; var HasSubcontractor: Boolean; var IsHandled: Boolean)

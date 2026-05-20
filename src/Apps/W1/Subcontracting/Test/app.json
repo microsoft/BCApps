@@ -27,9 +27,9 @@
     },
     {
       "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
-      "name": "Library Variable Storage",
       "publisher": "Microsoft",
-       "version": "29.0.0.0"
+      "name": "Library Variable Storage",
+      "version": "29.0.0.0"
     }
   ],
   "platform": "29.0.0.0",
