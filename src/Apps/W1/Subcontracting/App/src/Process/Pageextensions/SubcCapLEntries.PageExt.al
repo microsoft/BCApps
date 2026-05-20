@@ -65,23 +65,19 @@ pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
         PageManagement: Codeunit "Page Management";
     begin
         if CapacityLedgerEntry."Document No." <> '' then begin
-            PurchRcptHeader.SetRange("No.", CapacityLedgerEntry."Document No.");
-            if PurchRcptHeader.FindFirst() then begin
+            if PurchRcptHeader.Get(CapacityLedgerEntry."Document No.") then begin
                 PageManagement.PageRun(PurchRcptHeader);
                 exit;
             end;
-            PurchInvHeader.SetRange("No.", CapacityLedgerEntry."Document No.");
-            if PurchInvHeader.FindFirst() then begin
+
+            if PurchInvHeader.Get(CapacityLedgerEntry."Document No.") then begin
                 PageManagement.PageRun(PurchInvHeader);
                 exit;
             end;
         end;
 
-        if CapacityLedgerEntry."Subc. Purch. Order No." <> '' then begin
-            PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
-            PurchaseHeader.SetRange("No.", CapacityLedgerEntry."Subc. Purch. Order No.");
-            if PurchaseHeader.FindFirst() then
+        if CapacityLedgerEntry."Subc. Purch. Order No." <> '' then
+            if PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, CapacityLedgerEntry."Subc. Purch. Order No.") then
                 PageManagement.PageRun(PurchaseHeader);
-        end;
     end;
 }
