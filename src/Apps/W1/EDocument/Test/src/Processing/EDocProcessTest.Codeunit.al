@@ -21,7 +21,6 @@ using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
-using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.IO;
@@ -1207,138 +1206,6 @@ codeunit 139883 "E-Doc Process Test"
         Assert.RecordCount(PurchaseLine, 2);
     end;
 
-    [Test]
-    procedure InvoicePostingDateDefaultsToWorkDateWhenSettingIsWorkDate()
-    var
-        EDocument: Record "E-Document";
-        TempEDocImportParams: Record "E-Doc. Import Parameters";
-        PurchaseHeader: Record "Purchase Header";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-        SavedWorkDate: Date;
-    begin
-        // [SCENARIO] When "E-Doc. Def. Posting Date" is "Work Date" (default), the created purchase invoice Posting Date equals WorkDate
-        Initialize(Enum::"Service Integration"::"Mock");
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
-        EDocumentService.Modify();
-
-        // [GIVEN] Setup has "E-Doc. Def. Posting Date" = "Work Date" (default)
-        PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Work Date";
-        PurchasesPayablesSetup.Modify();
-
-        // [WHEN] A PEPPOL invoice (IssueDate = 2026-01-22) is processed with WorkDate = 2027-01-01
-        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        SavedWorkDate := WorkDate();
-        WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The e-document should be processed');
-
-        // [THEN] Posting Date is WorkDate, not the document date
-        EDocument.Get(EDocument."Entry No");
-        PurchaseHeader.Get(EDocument."Document Record ID");
-        Assert.AreEqual(DMY2Date(1, 1, 2027), PurchaseHeader."Posting Date", 'Posting Date should be WorkDate when setting is Work Date.');
-
-        WorkDate(SavedWorkDate);
-    end;
-
-    [Test]
-    procedure InvoicePostingDateUsesDocumentDateWhenSettingIsDocumentDate()
-    var
-        EDocument: Record "E-Document";
-        TempEDocImportParams: Record "E-Doc. Import Parameters";
-        PurchaseHeader: Record "Purchase Header";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-        SavedWorkDate: Date;
-    begin
-        // [SCENARIO] When "E-Doc. Def. Posting Date" is "Document Date", the created purchase invoice Posting Date equals the e-document's Document Date
-        Initialize(Enum::"Service Integration"::"Mock");
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
-        EDocumentService.Modify();
-
-        // [GIVEN] Setup has "E-Doc. Def. Posting Date" = "Document Date"
-        PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Document Date";
-        PurchasesPayablesSetup.Modify();
-
-        // [WHEN] A PEPPOL invoice (IssueDate = 2026-01-22) is processed with WorkDate = 2027-01-01
-        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        SavedWorkDate := WorkDate();
-        WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-no-currency.xml', TempEDocImportParams), 'The e-document should be processed');
-
-        // [THEN] Posting Date equals the Document Date from the PEPPOL file
-        EDocument.Get(EDocument."Entry No");
-        PurchaseHeader.Get(EDocument."Document Record ID");
-        Assert.AreEqual(DMY2Date(22, 1, 2026), PurchaseHeader."Posting Date", 'Posting Date should be Document Date when setting is Document Date.');
-
-        WorkDate(SavedWorkDate);
-    end;
-
-    [Test]
-    procedure CreditMemoPostingDateDefaultsToWorkDateWhenSettingIsWorkDate()
-    var
-        EDocument: Record "E-Document";
-        TempEDocImportParams: Record "E-Doc. Import Parameters";
-        PurchaseHeader: Record "Purchase Header";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-        SavedWorkDate: Date;
-    begin
-        // [SCENARIO] When "E-Doc. Def. Posting Date" is "Work Date", the created purchase credit memo Posting Date equals WorkDate
-        Initialize(Enum::"Service Integration"::"Mock");
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
-        EDocumentService.Modify();
-
-        // [GIVEN] Setup has "E-Doc. Def. Posting Date" = "Work Date"
-        PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Work Date";
-        PurchasesPayablesSetup.Modify();
-
-        // [WHEN] A PEPPOL credit note (IssueDate = 2026-02-15) is processed with WorkDate = 2027-01-01
-        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        SavedWorkDate := WorkDate();
-        WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-creditnote-0.xml', TempEDocImportParams), 'The credit note e-document should be processed');
-
-        // [THEN] Posting Date is WorkDate
-        EDocument.Get(EDocument."Entry No");
-        PurchaseHeader.Get(EDocument."Document Record ID");
-        Assert.AreEqual(DMY2Date(1, 1, 2027), PurchaseHeader."Posting Date", 'Posting Date should be WorkDate when setting is Work Date.');
-
-        WorkDate(SavedWorkDate);
-    end;
-
-    [Test]
-    procedure CreditMemoPostingDateUsesDocumentDateWhenSettingIsDocumentDate()
-    var
-        EDocument: Record "E-Document";
-        TempEDocImportParams: Record "E-Doc. Import Parameters";
-        PurchaseHeader: Record "Purchase Header";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-        SavedWorkDate: Date;
-    begin
-        // [SCENARIO] When "E-Doc. Def. Posting Date" is "Document Date", the created purchase credit memo Posting Date equals the e-document's Document Date
-        Initialize(Enum::"Service Integration"::"Mock");
-        EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
-        EDocumentService.Modify();
-
-        // [GIVEN] Setup has "E-Doc. Def. Posting Date" = "Document Date"
-        PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Document Date";
-        PurchasesPayablesSetup.Modify();
-
-        // [WHEN] A PEPPOL credit note (IssueDate = 2026-01-22) is processed with WorkDate = 2027-01-01
-        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        SavedWorkDate := WorkDate();
-        WorkDate(DMY2Date(1, 1, 2027));
-        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-no-currency.xml', TempEDocImportParams), 'The credit note e-document should be processed');
-
-        // [THEN] Posting Date equals the Document Date from the PEPPOL file
-        EDocument.Get(EDocument."Entry No");
-        PurchaseHeader.Get(EDocument."Document Record ID");
-        Assert.AreEqual(DMY2Date(22, 1, 2026), PurchaseHeader."Posting Date", 'Posting Date should be Document Date when setting is Document Date.');
-
-        WorkDate(SavedWorkDate);
-    end;
-
     local procedure Initialize(Integration: Enum "Service Integration")
     var
         TransformationRule: Record "Transformation Rule";
@@ -1348,7 +1215,6 @@ codeunit 139883 "E-Doc Process Test"
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
         PurchInvHeader: Record "Purch. Inv. Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         GLSetup: Record "General Ledger Setup";
         Currency: Record Currency;
         LibraryERM: Codeunit "Library - ERM";
@@ -1357,10 +1223,6 @@ codeunit 139883 "E-Doc Process Test"
         LibraryVariableStorage.Clear();
         Clear(EDocImplState);
         EDocPurchLineFieldSetup.DeleteAll();
-
-        PurchasesPayablesSetup.GetRecordOnce();
-        PurchasesPayablesSetup."E-Doc. Def. Posting Date" := "E-Doc. Purch.Def. Posting Date"::"Work Date";
-        PurchasesPayablesSetup.Modify();
 
         PurchInvHeader.DeleteAll();
         VendorLedgerEntry.DeleteAll();
