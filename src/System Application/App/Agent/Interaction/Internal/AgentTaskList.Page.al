@@ -243,21 +243,17 @@ page 4300 "Agent Task List"
 
     views
     {
-        view(Default)
-        {
-            Caption = 'Default';
-            Filters = where(Archived = const(false));
-        }
-        view(All)
-        {
-            Caption = 'All';
-        }
         view(Archived)
         {
             Caption = 'Archived';
             Filters = where(Archived = const(true));
         }
     }
+
+    trigger OnOpenPage()
+    begin
+        Rec.SetRange(Archived, false);
+    end;
 
     trigger OnAfterGetRecord()
     begin
