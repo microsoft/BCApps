@@ -526,6 +526,7 @@ page 20403 "Qlty. Inspection Template Subf"
 
     local procedure UpdateRowData()
     var
+        DummyMatrixArrayCaptionSet: array[10] of Text;
         DummyMatrixVisibleState: array[10] of Boolean;
         RowIsLabel: Boolean;
     begin
@@ -539,7 +540,7 @@ page 20403 "Qlty. Inspection Template Subf"
             Clear(MatrixArrayConditionDescriptionCellData);
         end else
             // Refresh the per-row condition values and source RecordIds so OnValidate/OnAssistEdit on each cell operates on the correct underlying configuration record.
-            QltyResultConditionMgmt.GetPromotedResultsForTemplateLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, MatrixArrayCaptionSet, DummyMatrixVisibleState);
+            QltyResultConditionMgmt.GetPromotedResultsForTemplateLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
 
         Editable1 := Visible1 and not RowIsLabel;
         Editable2 := Visible2 and not RowIsLabel;
