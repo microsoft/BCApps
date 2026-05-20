@@ -129,6 +129,7 @@ local procedure SetFilterProductionOrderRouting(var ProdOrderRoutingLine: Record
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
+        ProdOrderRoutingLine.SetLoadFields("Routing Link Code");
         ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrderNo);
         ProdOrderRoutingLine.SetRange("Routing Reference No.", ProdOrderLineNo);
