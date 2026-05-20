@@ -51,7 +51,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
         DataExchFieldMapping.SetRange("Target Field ID", 9);  // Vendor Company Name
 
         // [THEN] The mapping record exists
-        Assert.IsTrue(DataExchFieldMapping.FindFirst(), 'Column 8 should map to Table 6100 Field 9 (Vendor Company Name)');
+        Assert.IsFalse(DataExchFieldMapping.IsEmpty(), 'Column 8 should map to Table 6100 Field 9 (Vendor Company Name)');
     end;
 
     [Test]
