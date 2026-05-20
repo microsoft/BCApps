@@ -1,7 +1,7 @@
 name: Rerun Unstable Failures
 on:
   workflow_run:
-    workflows: ['Pull Request Build']
+    workflows: ['Pull Request Build', ' CI/CD']
     types: [completed]
 
 permissions: read-all
