@@ -97,7 +97,7 @@ page 4300 "Agent Task List"
                         TaskPane.ShowAgent(Rec."Agent User Security ID");
                     end;
                 }
-                field(TaskArchived; Archived)
+                field(TaskArchived; Rec.Archived)
                 {
                     Caption = 'Archived';
                     ToolTip = 'Specifies whether the task is archived.';
