@@ -218,7 +218,6 @@ table 6101 "E-Document Purchase Line"
 
             trigger OnValidate()
             var
-                EDocumentPurchaseHeader: Record "E-Document Purchase Header";
                 Vendor: Record Vendor;
                 VATPostingSetup: Record "VAT Posting Setup";
             begin
@@ -226,9 +225,8 @@ table 6101 "E-Document Purchase Line"
                     "[BC] VAT Rate Mismatch" := true;
                     exit;
                 end;
-                if not EDocumentPurchaseHeader.Get("E-Document Entry No.") then
-                    exit;
-                if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+                Vendor := Rec.GetBCVendor();
+                if Vendor."No." = '' then
                     exit;
                 if VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", "[BC] VAT Prod. Posting Group") then begin
                     if not (VATPostingSetup."VAT Calculation Type" in
@@ -243,18 +241,14 @@ table 6101 "E-Document Purchase Line"
 
             trigger OnLookup()
             var
-                EDocumentPurchaseHeader: Record "E-Document Purchase Header";
                 Vendor: Record Vendor;
                 VATPostingSetup: Record "VAT Posting Setup";
+                EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
             begin
-                if not EDocumentPurchaseHeader.Get("E-Document Entry No.") then
+                Vendor := Rec.GetBCVendor();
+                if Vendor."No." = '' then
                     exit;
-                if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
-                    exit;
-                VATPostingSetup.SetRange("VAT Bus. Posting Group", Vendor."VAT Bus. Posting Group");
-                VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
-                    VATPostingSetup."VAT Calculation Type"::"Normal VAT",
-                    VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+                EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, Vendor."VAT Bus. Posting Group");
                 if Page.RunModal(Page::"VAT Posting Setup", VATPostingSetup) = Action::LookupOK then
                     Validate("[BC] VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
             end;
@@ -433,6 +427,7 @@ table 6101 "E-Document Purchase Line"
     internal procedure LogVATRateMismatch(VendVATBusPostingGroupCode: Code[20]; VATRate: Decimal)
     var
         VATPostingSetup: Record "VAT Posting Setup";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
         ActivityLog: Codeunit "Activity Log Builder";
         VATPostingSetupRef: RecordRef;
         Reasoning: Text[250];
@@ -441,10 +436,7 @@ table 6101 "E-Document Purchase Line"
     begin
         if not Rec."[BC] VAT Rate Mismatch" then
             exit;
-        VATPostingSetup.SetRange("VAT Bus. Posting Group", VendVATBusPostingGroupCode);
-        VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
-            VATPostingSetup."VAT Calculation Type"::"Normal VAT",
-            VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+        EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, VendVATBusPostingGroupCode);
         VATPostingSetupRef.GetTable(VATPostingSetup);
 
         Reasoning := CopyStr(StrSubstNo(VATRateMismatchReasonLbl, Rec."VAT Rate", VendVATBusPostingGroupCode), 1, MaxStrLen(Reasoning));
@@ -461,6 +453,7 @@ table 6101 "E-Document Purchase Line"
     internal procedure LogVATRateResolved(VendVATBusPostingGroupCode: Code[20]; VATRate: Decimal)
     var
         VATPostingSetup: Record "VAT Posting Setup";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
         ActivityLog: Codeunit "Activity Log Builder";
         VATPostingSetupRef: RecordRef;
         Reasoning: Text[250];
@@ -469,10 +462,7 @@ table 6101 "E-Document Purchase Line"
     begin
         if Rec."[BC] VAT Rate Mismatch" then
             exit;
-        VATPostingSetup.SetRange("VAT Bus. Posting Group", VendVATBusPostingGroupCode);
-        VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
-            VATPostingSetup."VAT Calculation Type"::"Normal VAT",
-            VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+        EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, VendVATBusPostingGroupCode);
         VATPostingSetupRef.GetTable(VATPostingSetup);
 
         Reasoning := CopyStr(StrSubstNo(VATRateResolvedReasonLbl, VATRate, Rec."[BC] VAT Prod. Posting Group", VendVATBusPostingGroupCode), 1, MaxStrLen(Reasoning));

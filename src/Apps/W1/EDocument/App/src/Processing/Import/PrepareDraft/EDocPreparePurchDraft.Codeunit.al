@@ -166,9 +166,8 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
             exit;
         if not PurchasesPayablesSetup."Resolve VAT Group Purch EDoc" then
             exit;
-        if EDocumentPurchaseHeader."[BC] Vendor No." = '' then
-            exit;
-        if not Vendor.Get(EDocumentPurchaseHeader."[BC] Vendor No.") then
+        Vendor := EDocumentPurchaseHeader.GetBCVendor();
+        if Vendor."No." = '' then
             exit;
         if Vendor."VAT Bus. Posting Group" = '' then
             exit;
@@ -205,11 +204,9 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
     local procedure FindVATProductPostingGroup(VATBusPostingGroup: Code[20]; VATRate: Decimal): Code[20]
     var
         VATPostingSetup: Record "VAT Posting Setup";
+        EDocPurchDocHelper: Codeunit "E-Doc. Purch. Doc. Helper";
     begin
-        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
-        VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
-            VATPostingSetup."VAT Calculation Type"::"Normal VAT",
-            VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+        EDocPurchDocHelper.SetNormalReverseChargeFilter(VATPostingSetup, VATBusPostingGroup);
         VATPostingSetup.SetRange("VAT %", VATRate);
         if VATPostingSetup.Count() = 1 then begin
             VATPostingSetup.FindFirst();

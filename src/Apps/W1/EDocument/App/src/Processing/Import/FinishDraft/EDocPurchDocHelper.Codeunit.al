@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
@@ -221,6 +222,14 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         if EDocumentPurchaseHeader."Document Date" = 0D then
             exit;
         PurchaseHeader.Validate("Posting Date", EDocumentPurchaseHeader."Document Date");
+    end;
+
+    procedure SetNormalReverseChargeFilter(var VATPostingSetup: Record "VAT Posting Setup"; VATBusPostingGroup: Code[20])
+    begin
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
+        VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
+            VATPostingSetup."VAT Calculation Type"::"Normal VAT",
+            VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
     end;
 
     local procedure ComputeTotalLineAmount(EDocEntryNo: Integer): Decimal
