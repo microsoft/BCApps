@@ -89,14 +89,14 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
         SubcontractorPrices."Direct Unit Cost" := 99;
         SubcontractorPrices.Modify();
-        Vendor."Subcontr. Location Code" := Location2.Code;
+        Vendor."Subc. Location Code" := Location2.Code;
         Vendor.Modify();
 
         LibraryPurchase.CreateVendor(Vendor);
         SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
         SubcontractorPrices2."Direct Unit Cost" := 11;
         SubcontractorPrices2.Modify();
-        Vendor."Subcontr. Location Code" := Location2.Code;
+        Vendor."Subc. Location Code" := Location2.Code;
         Vendor.Modify();
 
         LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
@@ -172,7 +172,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', ItemVariant.Code, WorkDate(), '', 0, Vendor."Currency Code");
         SubcontractorPrices2."Direct Unit Cost" := 11;
         SubcontractorPrices2.Modify();
-        Vendor."Subcontr. Location Code" := Location2.Code;
+        Vendor."Subc. Location Code" := Location2.Code;
         Vendor.Modify();
 
         SubcontractingMgmtLibrary.CreateSubContractingPrice(SubcontractorPrices2, WorkCenter."No.", Vendor."No.", ItemNo, '', '', WorkDate(), '', 0, Vendor."Currency Code");
@@ -243,7 +243,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         LibraryWarehouse.CreateLocation(Location);
         LibraryWarehouse.CreateLocation(Location2);
         LibraryPurchase.CreateVendor(Vendor);
-        Vendor."Subcontr. Location Code" := Location2.Code;
+        Vendor."Subc. Location Code" := Location2.Code;
         Vendor.Modify();
 
         LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
@@ -284,9 +284,9 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         // [GIVEN] A vendor
         LibraryPurchase.CreateVendor(Vendor);
 
-        // [WHEN] Try to set the vendor's Subcontr. Location Code to the location with Bin Mandatory
+        // [WHEN] Try to set the vendor's Subc. Location Code to the location with Bin Mandatory
         // [THEN] An error is thrown with ErrorInfo
-        asserterror Vendor.Validate("Subcontr. Location Code", Location.Code);
+        asserterror Vendor.Validate("Subc. Location Code", Location.Code);
         Assert.ExpectedError('Location ' + Location.Code + ' cannot be used as a subcontracting location because Bin Mandatory or warehouse handling is enabled on the location.');
     end;
 
@@ -308,9 +308,9 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         // [GIVEN] A vendor
         LibraryPurchase.CreateVendor(Vendor);
 
-        // [WHEN] Try to set the vendor's Subcontr. Location Code to the location with Require Pick
+        // [WHEN] Try to set the vendor's Subc. Location Code to the location with Require Pick
         // [THEN] An error is thrown
-        asserterror Vendor.Validate("Subcontr. Location Code", Location.Code);
+        asserterror Vendor.Validate("Subc. Location Code", Location.Code);
         Assert.ExpectedError('Location ' + Location.Code + ' cannot be used as a subcontracting location because Bin Mandatory or warehouse handling is enabled on the location.');
     end;
 
@@ -336,10 +336,10 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         // [GIVEN] A vendor
         LibraryPurchase.CreateVendor(Vendor);
 
-        // [WHEN] Set the vendor's Subcontr. Location Code to the valid location
+        // [WHEN] Set the vendor's Subc. Location Code to the valid location
         // [THEN] The validation succeeds and the field is updated
-        Vendor.Validate("Subcontr. Location Code", Location.Code);
-        Assert.AreEqual(Location.Code, Vendor."Subcontr. Location Code", 'Subcontr. Location Code should be set to the valid location');
+        Vendor.Validate("Subc. Location Code", Location.Code);
+        Assert.AreEqual(Location.Code, Vendor."Subc. Location Code", 'Subc. Location Code should be set to the valid location');
     end;
 
     [Test]
@@ -425,7 +425,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         CreateAndCalculateNeededWorkCenter(WorkCenter, true);
         Vendor.Get(WorkCenter."Subcontractor No.");
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         Vendor.Modify();
 
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(HomeLocation);

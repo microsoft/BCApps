@@ -117,7 +117,7 @@ codeunit 139983 "Subc. Management Library"
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor.Get(WorkCenter."Subcontractor No.");
-        Vendor."Subcontr. Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := Location.Code;
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
         Vendor."Location Code" := Location.Code;
         Vendor.Modify();
@@ -186,7 +186,7 @@ codeunit 139983 "Subc. Management Library"
 #pragma warning restore AA0210
         ProdOrderComp.FindFirst();
         LibraryWarehouse.CreateInTransitLocation(TransitLocation);
-        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, ProdOrderComp."Location Code", Vendor."Subcontr. Location Code", TransitLocation.Code, '', '');
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, ProdOrderComp."Location Code", Vendor."Subc. Location Code", TransitLocation.Code, '', '');
     end;
 
     procedure UpdateManufacturingSetupWithSubcontractingLocation()
