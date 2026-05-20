@@ -70,7 +70,14 @@ pageextension 99001502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
                 PageManagement.PageRun(PurchRcptHeader);
                 exit;
             end;
-            PurchInvHeader.SetRange("No.", CapacityLedgerEntry."Document No.");
+        end;
+
+        // No document found
+        Message(NoDocumentFoundMsg);
+    end;
+
+var
+    NoDocumentFoundMsg: Label 'No related document could be found for this entry.';
             if PurchInvHeader.FindFirst() then begin
                 PageManagement.PageRun(PurchInvHeader);
                 exit;
